@@ -1,0 +1,31 @@
+version: "0.5.0"
+name: "v5_analyst"
+description: "Comprehensive investment research assistant combining all capabilities"
+
+tools:
+  - yfinance_stock_quote
+  - yfinance_get_available_fields
+  - tavily_financial_search
+  - sec_official_docs_retriever
+  - duckdb_query
+  - text_to_sql
+  - neo4j_query
+  - text_to_cypher
+
+model:
+  name: "gpt-4o"
+  temperature: 0.0
+  max_iterations: 30
+
+observability:
+  provider: "langsmith"
+  trace_all_steps: true
+  project_name: "finlabx"
+
+constraints:
+  max_tool_calls_per_step: 15
+  require_citations: true
+  zero_hallucination_policy: true
+  enable_code_execution: true
+  enable_graph_queries: true
+  enable_parallel_subagents: true

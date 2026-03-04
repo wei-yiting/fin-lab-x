@@ -1,0 +1,25 @@
+version: "0.2.0"
+name: "v2_reader"
+description: "Long-context document analysis and multi-document synthesis"
+
+tools:
+  - yfinance_stock_quote
+  - yfinance_get_available_fields
+  - tavily_financial_search
+  - sec_official_docs_retriever
+
+model:
+  name: "gpt-4o"
+  temperature: 0.0
+  max_iterations: 15
+
+observability:
+  provider: "langsmith"
+  trace_all_steps: true
+  project_name: "finlabx"
+
+constraints:
+  max_tool_calls_per_step: 5
+  require_citations: true
+  zero_hallucination_policy: true
+  max_context_tokens: 128000

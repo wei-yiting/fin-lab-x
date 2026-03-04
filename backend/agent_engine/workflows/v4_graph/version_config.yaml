@@ -1,0 +1,27 @@
+version: "0.4.0"
+name: "v4_graph"
+description: "Knowledge graph-based corporate relationship and supply chain analysis"
+
+tools:
+  - yfinance_stock_quote
+  - yfinance_get_available_fields
+  - tavily_financial_search
+  - sec_official_docs_retriever
+  - neo4j_query
+  - text_to_cypher
+
+model:
+  name: "gpt-4o"
+  temperature: 0.0
+  max_iterations: 20
+
+observability:
+  provider: "langsmith"
+  trace_all_steps: true
+  project_name: "finlabx"
+
+constraints:
+  max_tool_calls_per_step: 10
+  require_citations: true
+  zero_hallucination_policy: true
+  enable_graph_queries: true

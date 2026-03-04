@@ -7,7 +7,7 @@ from langsmith.run_trees import RunTree
 
 
 def trace_step(
-    step_name: str, run_type: str = "chain", tags: Optional[dict[str, str]] = None
+    step_name: str, run_type: str = "chain", tags: Optional[list[str]] = None
 ) -> Callable:
     """Decorator to wrap execution steps with LangSmith tracing.
 
@@ -27,7 +27,7 @@ def trace_step(
                 name=step_name,
                 run_type=run_type,
                 inputs={"args": args, "kwargs": kwargs},
-                tags=tags or {},
+                tags=tags or [],
             )
 
             try:

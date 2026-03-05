@@ -1,12 +1,17 @@
-"""Version-agnostic Orchestrator for FinLab-X."""
+"""Version-agnostic Orchestrator for FinLab-X.
+
+Uses LangChain's create_agent to handle the tool calling loop automatically.
+The Orchestrator does NOT manually manage bind_tools or tool execution —
+create_agent handles tool schema binding and the ReAct loop internally.
+"""
 
 from typing import Any
-from langchain.chat_models import init_chat_model
-from langchain_core.messages import ToolMessage
+
+from langchain.agents import create_agent
+from langchain_core.messages import AIMessage, ToolMessage
 
 from backend.agent_engine.workflows.config_loader import VersionConfig
 from backend.agent_engine.agents.specialized.registry import get_tools_by_names
-from backend.agent_engine.observability.langsmith_tracer import trace_step
 
 
 class Orchestrator:
@@ -14,9 +19,9 @@ class Orchestrator:
 
     The Orchestrator is the central reasoning engine that:
     1. Loads tools based on version config
-    2. Manages the LLM + tool calling loop
-    3. Enforces zero hallucination policy
-    4. Traces all steps via LangSmith
+    2. Delegates the tool calling loop to LangChain's create_agent
+    3. Enforces zero hallucination policy via system prompt
+    4. Integrates with LangSmith automatically (via LangChain internals)
     """
 
     def __init__(self, config: VersionConfig):
@@ -26,19 +31,21 @@ class Orchestrator:
             config: VersionConfig object defining available capabilities
         """
         self.config = config
-
         self.tools = get_tools_by_names(config.tools)
-
-        self.model = init_chat_model(
-            model=config.model.name, temperature=config.model.temperature
-        ).bind_tools(self.tools)
-
         self.system_prompt = self._build_system_prompt()
 
-        self.max_iterations = config.model.max_iterations
+        self.agent = create_agent(
+            model=config.model.name,
+            tools=self.tools,
+            system_prompt=self.system_prompt,
+        )
 
     def _build_system_prompt(self) -> str:
         """Build system prompt with zero hallucination policy.
+
+        Tool descriptions are NOT listed here — create_agent passes tool
+        schemas to the LLM automatically via bind_tools. The system prompt
+        only defines behavioral policy and response format.
 
         Returns:
             System prompt string
@@ -50,83 +57,72 @@ ZERO HALLUCINATION POLICY:
 - If data is insufficient, say "I don't have enough information"
 - Never invent financial metrics or news
 
-TOOL USAGE:
-- Use yfinance_stock_quote for current stock prices and metrics
-- Use yfinance_get_available_fields to discover available data fields
-- Use tavily_financial_search for recent news and sentiment
-- Use sec_official_docs_retriever for official SEC filings
-
 RESPONSE FORMAT:
 - Start with a clear conclusion
 - Support with specific data points
 - Cite sources (tool names)
 - Flag any data quality issues"""
 
-    @trace_step(step_name="orchestrator_run", tags=["component:orchestrator"])
     def run(self, prompt: str, **kwargs) -> dict[str, Any]:
-        """Execute orchestration loop with tool calling.
+        """Execute the agent with a user prompt.
+
+        Delegates tool calling loop to create_agent. Extracts response text
+        and tool outputs from the agent's message history.
 
         Args:
             prompt: User prompt to process
             **kwargs: Additional arguments
 
         Returns:
-            Dictionary with response, tool_outputs, iterations, and metadata
+            Dictionary with response, tool_outputs, and metadata
         """
-        messages = [("system", self.system_prompt), ("human", prompt)]
+        result = self.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
-        iteration = 0
-        current_messages = messages
-        tool_outputs = []
+        return self._extract_result(result)
 
-        while iteration < self.max_iterations:
-            response = self.model.invoke(current_messages)
-
-            if response.tool_calls:
-                for tool_call in response.tool_calls:
-                    tool_name = tool_call["name"]
-                    tool_args = tool_call["args"]
-
-                    tool_result = self._execute_tool(tool_name, tool_args)
-                    tool_outputs.append(
-                        {"tool": tool_name, "args": tool_args, "result": tool_result}
-                    )
-
-                    current_messages = list(current_messages) + [
-                        response,
-                        ToolMessage(
-                            content=str(tool_result), tool_call_id=tool_call["id"]
-                        ),
-                    ]
-            else:
-                return {
-                    "response": response.content,
-                    "tool_outputs": tool_outputs,
-                    "iterations": iteration + 1,
-                    "model": self.config.model.name,
-                    "version": self.config.version,
-                }
-
-            iteration += 1
-
-        return {
-            "response": "Max iterations reached without completion",
-            "tool_outputs": tool_outputs,
-            "iterations": iteration,
-            "error": "max_iterations_exceeded",
-        }
-
-    def _execute_tool(self, tool_name: str, tool_args: dict) -> Any:
-        """Execute a specific tool by name.
+    def _extract_result(self, agent_output: dict) -> dict[str, Any]:
+        """Extract structured result from agent message history.
 
         Args:
-            tool_name: Name of the tool to execute
-            tool_args: Arguments to pass to the tool
+            agent_output: Raw output from create_agent.invoke()
 
         Returns:
-            Tool execution result
+            Dictionary with response, tool_outputs, model, and version
         """
-        for tool in self.tools:
-            if tool.name == tool_name:
-                return tool.invoke(tool_args)
-        return f"Error: Tool '{tool_name}' not found"
+        messages = agent_output.get("messages", [])
+
+        # Extract final AI response (last AIMessage without tool_calls)
+        response_text = ""
+        for msg in reversed(messages):
+            if isinstance(msg, AIMessage) and not msg.tool_calls:
+                response_text = msg.content
+                break
+
+        # Extract tool outputs from ToolMessages
+        tool_outputs: list[dict[str, Any]] = []
+        for i, msg in enumerate(messages):
+            if isinstance(msg, ToolMessage):
+                # Find the preceding AIMessage's tool_call for this ToolMessage
+                tool_name = msg.name or "unknown"
+                tool_args: dict[str, Any] = {}
+
+                # Walk backwards to find the matching tool_call
+                for prev_msg in reversed(messages[:i]):
+                    if isinstance(prev_msg, AIMessage) and prev_msg.tool_calls:
+                        for tc in prev_msg.tool_calls:
+                            if tc.get("id") == msg.tool_call_id:
+                                tool_name = tc["name"]
+                                tool_args = tc["args"]
+                                break
+                        break
+
+                tool_outputs.append(
+                    {"tool": tool_name, "args": tool_args, "result": msg.content}
+                )
+
+        return {
+            "response": response_text,
+            "tool_outputs": tool_outputs,
+            "model": self.config.model.name,
+            "version": self.config.version,
+        }

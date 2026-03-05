@@ -2,8 +2,25 @@
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
+from langchain_core.messages import AIMessage, HumanMessage
 from backend.agent_engine.orchestrator.base import Orchestrator
 from backend.agent_engine.workflows.config_loader import VersionConfig, ModelConfig
+
+
+def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Orchestrator:
+    """Create an Orchestrator with mocked create_agent and tool registry."""
+    with (
+        patch(
+            "backend.agent_engine.orchestrator.base.get_tools_by_names"
+        ) as mock_get_tools,
+        patch("backend.agent_engine.orchestrator.base.create_agent") as mock_create,
+    ):
+        mock_get_tools.return_value = mock_tools
+        mock_agent = MagicMock()
+        mock_create.return_value = mock_agent
+
+        orch = Orchestrator(config)
+        return orch
 
 
 def test_orchestrator_initialization_with_config():
@@ -16,22 +33,12 @@ def test_orchestrator_initialization_with_config():
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0, max_iterations=10),
     )
 
-    with patch(
-        "backend.agent_engine.orchestrator.base.get_tools_by_names"
-    ) as mock_get_tools:
-        mock_tool = MagicMock()
-        mock_tool.name = "yfinance_stock_quote"
-        mock_get_tools.return_value = [mock_tool]
+    mock_tool = MagicMock()
+    mock_tool.name = "yfinance_stock_quote"
 
-        with patch(
-            "backend.agent_engine.orchestrator.base.init_chat_model"
-        ) as mock_init:
-            mock_model = MagicMock()
-            mock_model.bind_tools = MagicMock(return_value=mock_model)
-            mock_init.return_value = mock_model
-
-            orch = Orchestrator(config)
-            assert orch.config.name == "v1_baseline"
+    orch = _create_orchestrator(config, [mock_tool])
+    assert orch.config.name == "v1_baseline"
+    assert len(orch.tools) == 1
 
 
 def test_orchestrator_run_returns_response():
@@ -44,21 +51,18 @@ def test_orchestrator_run_returns_response():
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0, max_iterations=10),
     )
 
-    with patch(
-        "backend.agent_engine.orchestrator.base.get_tools_by_names"
-    ) as mock_get_tools:
-        mock_get_tools.return_value = []
+    orch = _create_orchestrator(config, [])
 
-        with patch(
-            "backend.agent_engine.orchestrator.base.init_chat_model"
-        ) as mock_init:
-            mock_model = MagicMock()
-            mock_model.bind_tools = MagicMock(return_value=mock_model)
-            mock_model.invoke = MagicMock(
-                return_value=MagicMock(content="Test response", tool_calls=[])
-            )
-            mock_init.return_value = mock_model
+    # Mock agent.invoke to return a message list with a final AI response
+    orch.agent.invoke.return_value = {
+        "messages": [
+            HumanMessage(content="test prompt"),
+            AIMessage(content="Test response"),
+        ]
+    }
 
-            orch = Orchestrator(config)
-            result = orch.run("test prompt")
-            assert "response" in result or "error" in result
+    result = orch.run("test prompt")
+    assert "response" in result
+    assert result["response"] == "Test response"
+    assert result["version"] == "0.1.0"
+    assert result["model"] == "gpt-4o-mini"

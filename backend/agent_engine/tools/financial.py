@@ -3,7 +3,7 @@
 from typing import Any
 import yfinance as yf
 from pydantic import BaseModel, Field
-from langchain_core.tools import tool
+from langchain.tools import tool
 
 from backend.agent_engine.observability.langsmith_tracer import trace_step
 
@@ -29,7 +29,7 @@ def yfinance_stock_quote(ticker: str) -> dict[str, Any] | str:
             "forwardPE": info.get("forwardPE"),
             "trailingPE": info.get("trailingPE"),
         }
-    except Exception as exc:
+    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
         return f"Error: Could not retrieve data from yfinance: {exc}"
 
 
@@ -104,7 +104,7 @@ def yfinance_get_available_fields(ticker: str) -> dict[str, Any] | str:
             "available_fields": available_fields,
             "total_fields": len(available_fields),
         }
-    except Exception as exc:
+    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
         return f"Error fetching available fields: {exc}"
 
 
@@ -154,5 +154,5 @@ def tavily_financial_search(query: str, ticker: str) -> dict[str, Any] | str:
                 }
             )
         return {"query": full_query, "results": results}
-    except Exception as exc:
+    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
         return f"Error: Could not retrieve data from Tavily: {exc}"

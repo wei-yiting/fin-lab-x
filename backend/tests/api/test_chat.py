@@ -1,6 +1,5 @@
 """Tests for chat API endpoint."""
 
-import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from backend.api.main import app

@@ -4,7 +4,7 @@ import os
 import re
 from typing import Any, Literal
 from pydantic import BaseModel, Field
-from langchain_core.tools import tool
+from langchain.tools import tool
 
 from backend.agent_engine.observability.langsmith_tracer import trace_step
 
@@ -100,5 +100,5 @@ def sec_official_docs_retriever(
             "mdna": mdna,
             "raw_excerpt": cleaned_text[:MAX_SECTION_CHARS].rstrip() + "...",
         }
-    except Exception as exc:
+    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
         return f"Error: Could not retrieve SEC filing data: {exc}"

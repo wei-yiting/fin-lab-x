@@ -15,7 +15,6 @@ tools:
 model:
   name: "gpt-4o"
   temperature: 0.0
-  max_iterations: 30
 
 observability:
   provider: "langsmith"

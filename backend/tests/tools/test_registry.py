@@ -1,7 +1,6 @@
 """Tests for the central tool registry."""
 
-import pytest
-from backend.agent_engine.agents.specialized.registry import (
+from backend.agent_engine.tools.registry import (
     ToolRegistry,
     register_tool,
     get_tool,

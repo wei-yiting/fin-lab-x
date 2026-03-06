@@ -5,28 +5,31 @@ message history output to verify _extract_result correctly parses responses
 and tool outputs.
 """
 
-import pytest
 from unittest.mock import Mock, patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from backend.agent_engine.orchestrator.base import Orchestrator
-from backend.agent_engine.workflows.config_loader import VersionConfig
+from backend.agent_engine.agents.base import Orchestrator
+from backend.agent_engine.agents.config_loader import VersionConfig
 
 
 def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Orchestrator:
     """Create an Orchestrator with mocked create_agent and tool registry.
 
-    Patches create_agent and get_tools_by_names so no real API keys are needed.
-    Returns the orchestrator with a mock agent ready to be configured per test.
+    Patches create_agent, init_chat_model, and get_tools_by_names so no real
+    API keys are needed. Returns the orchestrator with a mock agent ready to
+    be configured per test.
     """
     with (
         patch(
-            "backend.agent_engine.orchestrator.base.get_tools_by_names"
+            "backend.agent_engine.agents.base.get_tools_by_names"
         ) as mock_get_tools,
-        patch("backend.agent_engine.orchestrator.base.create_agent") as mock_create,
+        patch("backend.agent_engine.agents.base.create_agent") as mock_create,
+        patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
+        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
     ):
         mock_get_tools.return_value = mock_tools
         mock_agent = MagicMock()
         mock_create.return_value = mock_agent
+        mock_init.return_value = MagicMock()
 
         orch = Orchestrator(config)
         return orch

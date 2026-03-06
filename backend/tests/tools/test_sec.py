@@ -1,6 +1,5 @@
 """Tests for SEC tools."""
 
-import pytest
 from backend.agent_engine.tools.sec import sec_official_docs_retriever
 
 

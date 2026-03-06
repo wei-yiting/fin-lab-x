@@ -6,7 +6,7 @@ from backend.agent_engine.tools.financial import (
     tavily_financial_search,
 )
 from backend.agent_engine.tools.sec import sec_official_docs_retriever
-from backend.agent_engine.agents.specialized.registry import register_tool
+from backend.agent_engine.tools.registry import register_tool
 
 # Register all tools
 register_tool("yfinance_stock_quote", yfinance_stock_quote)

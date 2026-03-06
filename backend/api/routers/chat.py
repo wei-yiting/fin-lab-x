@@ -1,11 +1,16 @@
 """Chat API router for FinLab-X."""
 
-from fastapi import APIRouter, HTTPException
+import logging
+from functools import lru_cache
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Any
 
-from backend.agent_engine.orchestrator.base import Orchestrator
-from backend.agent_engine.workflows.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.base import Orchestrator
+from backend.agent_engine.agents.config_loader import VersionConfigLoader
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["chat"])
 
@@ -26,22 +31,22 @@ class ChatResponse(BaseModel):
     version: str
 
 
+@lru_cache(maxsize=1)
+def _get_orchestrator() -> Orchestrator:
+    config = VersionConfigLoader("v1_baseline").load()
+    return Orchestrator(config)
+
+
+def get_orchestrator() -> Orchestrator:
+    return _get_orchestrator()
+
+
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    """Process financial analysis chat message.
-
-    Args:
-        request: Chat request with message and optional session ID
-
-    Returns:
-        Chat response with analysis results
-    """
+async def chat(
+    request: ChatRequest, orchestrator: Orchestrator = Depends(get_orchestrator)
+):
+    """Process financial analysis chat message."""
     try:
-        config_loader = VersionConfigLoader("v1_baseline")
-        config = config_loader.load()
-
-        orchestrator = Orchestrator(config)
-
         result = orchestrator.run(request.message)
 
         return ChatResponse(
@@ -50,5 +55,6 @@ async def chat(request: ChatRequest):
             session_id=request.session_id or "new_session",
             version=result.get("version", "0.1.0"),
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Chat endpoint error")
+        raise HTTPException(status_code=500, detail="Internal server error")

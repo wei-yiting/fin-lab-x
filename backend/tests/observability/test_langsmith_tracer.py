@@ -1,7 +1,6 @@
 """Tests for LangSmith tracing decorator."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from backend.agent_engine.observability.langsmith_tracer import trace_step
 
 
@@ -36,7 +35,7 @@ def test_trace_step_decorator_calls_run_tree():
         mock_run_instance = MagicMock()
         mock_run_tree.return_value = mock_run_instance
 
-        result = sample_function(5)
+        sample_function(5)
 
         mock_run_tree.assert_called_once()
         call_kwargs = mock_run_tree.call_args[1]

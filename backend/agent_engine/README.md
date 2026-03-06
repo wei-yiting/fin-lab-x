@@ -6,7 +6,7 @@ The core AI orchestration layer for FinLab-X.
 
 ### Components
 
-- **Orchestrator**: Central reasoning engine (version-agnostic, loads capabilities from config)
+- **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
 - **Observability**: LangSmith tracing for all execution steps
 
@@ -30,8 +30,8 @@ Each version has an independent `version_config.yaml` defining available tools a
 ## Usage
 
 ```python
-from backend.agent_engine.orchestrator.base import Orchestrator
-from backend.agent_engine.workflows.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.base import Orchestrator
+from backend.agent_engine.agents.config_loader import VersionConfigLoader
 
 # Load version config
 config_loader = VersionConfigLoader('v1_baseline')
@@ -47,7 +47,7 @@ result = orchestrator.run("Analyze AAPL stock")
 ## Loading Version Config
 
 ```python
-from backend.agent_engine.workflows.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import VersionConfigLoader
 
 loader = VersionConfigLoader('v1_baseline')
 config = loader.load()
@@ -59,20 +59,7 @@ print(config.version)  # '0.1.0'
 
 ## Folder Structure
 
-- `orchestrator/`: Version-agnostic orchestrator (central reasoning engine)
-- `tools/`: Atomic, stateless tool functions (financial, SEC)
+- `agents/`: Version-agnostic Orchestrator and version configs
+- `tools/`: Atomic, stateless tool functions and central registry
+- `skills/`: Higher-level capabilities (placeholder)
 - `observability/`: LangSmith tracing decorators
-- `agents/specialized/`: Tool registry for dynamic loading
-- `workflows/`: Versioned workflow configs and config loader
-- `core/`: Shared core primitives (state, memory)
-- `infrastructure/`: Integrations for persistence
-- `services/`: Shared services (LLM access, guardrails)
-
-## Implementation Guidelines
-
-- Keep all LLM orchestration and tool usage within `agent_engine`.
-- Prefer absolute imports (e.g., `from backend.agent_engine...`).
-- Add new workflows under `workflows/` with their own `version_config.yaml`.
-- Ensure tool definitions include strict schemas and error handling.
-- All tools must be registered in the tool registry (`agents/specialized/registry.py`).
-- Use `@trace_step` decorator for LangSmith observability on key functions.

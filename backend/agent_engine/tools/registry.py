@@ -1,6 +1,9 @@
 """Central registry for FinLab-X tools."""
 
+import logging
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 # Global tool registry
 TOOL_REGISTRY: dict[str, Any] = {}
@@ -42,6 +45,8 @@ def get_tools_by_names(tool_names: list[str]) -> list[Any]:
         tool = get_tool(name)
         if tool is not None:
             tools.append(tool)
+        else:
+            logger.warning("Tool '%s' not found in registry, skipping", name)
     return tools
 
 

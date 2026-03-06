@@ -1,6 +1,5 @@
 """LangSmith tracing utilities for FinLab-X."""
 
-import os
 from functools import wraps
 from typing import Any, Callable, Optional
 from langsmith.run_trees import RunTree

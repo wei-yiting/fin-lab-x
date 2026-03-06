@@ -1,17 +1,18 @@
-version: "0.1.0"
-name: "v1_baseline"
-description: "Naive single-chain financial analysis with basic tool access"
+version: "0.4.0"
+name: "v4_graph"
+description: "Knowledge graph-based corporate relationship and supply chain analysis"
 
 tools:
   - yfinance_stock_quote
   - yfinance_get_available_fields
   - tavily_financial_search
   - sec_official_docs_retriever
+  - neo4j_query
+  - text_to_cypher
 
 model:
-  name: "gpt-4o-mini"
+  name: "gpt-4o"
   temperature: 0.0
-  max_iterations: 10
 
 observability:
   provider: "langsmith"
@@ -19,6 +20,7 @@ observability:
   project_name: "finlabx"
 
 constraints:
-  max_tool_calls_per_step: 3
+  max_tool_calls_per_step: 10
   require_citations: true
   zero_hallucination_policy: true
+  enable_graph_queries: true

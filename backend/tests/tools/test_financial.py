@@ -1,6 +1,5 @@
 """Tests for financial tools."""
 
-import pytest
 from backend.agent_engine.tools.financial import (
     yfinance_stock_quote,
     yfinance_get_available_fields,

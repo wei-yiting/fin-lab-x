@@ -3,20 +3,18 @@
 ## Quick Start
 
 ```bash
-# Install dependencies
+# Install dependencies (from project root)
 uv sync
 
 # Set environment variables
-export OPENAI_API_KEY="..."
-export TAVILY_API_KEY="..."
-export EDGAR_IDENTITY="..."
-export LANGSMITH_API_KEY="..."
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys
 
 # Run tests
 uv run pytest
 
 # Start API server
-uv run python -m backend.api.main
+uv run uvicorn backend.api.main:app --reload
 ```
 
 ## Architecture
@@ -30,18 +28,18 @@ FinLab-X uses versioned workflow configurations. Each version can be called inde
 ```bash
 # List available versions
 uv run python -c "
-from backend.agent_engine.workflows.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import VersionConfigLoader
 print(VersionConfigLoader.list_available_versions())
 "
 ```
 
 ## Folder Structure
 
-- `agent_engine/`: Core Agent Engine components (orchestrator, tools, observability, workflows).
+- `agent_engine/`: Core Agent Engine components (orchestrator, tools, observability).
 - `api/`: HTTP/SSE routing and request handling (FastAPI).
 - `evaluation/`: LLMOps and evaluation workflows.
 - `tests/`: Programmatic tests for backend logic.
-- `pyproject.toml`: Backend dependency and tooling configuration.
+- `../pyproject.toml`: Project dependency and tooling configuration (at project root).
 
 ## Implementation Guidelines
 

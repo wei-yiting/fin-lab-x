@@ -1,3 +1,9 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the v4_graph workflow is fully implemented and validated.
+# =============================================================================
+
 version: "0.4.0"
 name: "v4_graph"
 description: "Knowledge graph-based corporate relationship and supply chain analysis"
@@ -21,6 +27,4 @@ observability:
 
 constraints:
   max_tool_calls_per_step: 10
-  require_citations: true
-  zero_hallucination_policy: true
   enable_graph_queries: true

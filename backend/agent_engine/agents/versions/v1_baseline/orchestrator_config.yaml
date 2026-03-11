@@ -19,5 +19,3 @@ observability:
 
 constraints:
   max_tool_calls_per_step: 3
-  require_citations: true
-  zero_hallucination_policy: true

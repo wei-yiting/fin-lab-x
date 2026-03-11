@@ -1,3 +1,9 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the v2_reader workflow is fully implemented and validated.
+# =============================================================================
+
 version: "0.2.0"
 name: "v2_reader"
 description: "Long-context document analysis and multi-document synthesis"
@@ -19,6 +25,4 @@ observability:
 
 constraints:
   max_tool_calls_per_step: 5
-  require_citations: true
-  zero_hallucination_policy: true
   max_context_tokens: 128000

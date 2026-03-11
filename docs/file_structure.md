@@ -27,7 +27,7 @@ The core, independent AI logic (agents, tools, skills). Designed to run independ
 - **`agents/`**: Central reasoning engine (version-agnostic Orchestrator).
   - `base.py`: Orchestrator implementation using LangChain's `create_agent`.
   - `config_loader.py`: Version configuration loader (YAML-based).
-  - `versions/`: Versioned workflow configs (each version has its own `version_config.yaml`).
+  - `versions/`: Versioned workflow configs (each version has its own `orchestrator_config.yaml`).
 - **`tools/`**: Atomic, stateless functions for specific data retrieval or actions.
   - `registry.py`: Central tool registry for dynamic loading.
   - `financial.py`: Financial data tools (yfinance, Tavily).
@@ -88,7 +88,7 @@ A Next.js full-stack application responsible for providing a Generative UI.
 
 ### 5.3 Versioned Workflows
 - Each version (v1-v5) is independently callable.
-- `version_config.yaml` defines allowed tools and model settings.
+- `orchestrator_config.yaml` defines allowed tools and model settings.
 - Enables safe experimentation and easy rollback.
 
 ### 5.4 Code as Interface

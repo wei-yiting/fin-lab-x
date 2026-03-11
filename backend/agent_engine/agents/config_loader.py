@@ -58,7 +58,7 @@ class VersionConfigLoader:
             version_name: Name of the version (e.g., 'v1_baseline', 'v2_reader')
         """
         self.version_name = version_name
-        self.config_path = self.VERSIONS_DIR / version_name / "version_config.yaml"
+        self.config_path = self.VERSIONS_DIR / version_name / "orchestrator_config.yaml"
 
         if not self.config_path.exists():
             raise FileNotFoundError(f"Version config not found: {self.config_path}")
@@ -99,7 +99,7 @@ class VersionConfigLoader:
         versions = []
         for item in cls.VERSIONS_DIR.iterdir():
             if item.is_dir() and item.name.startswith("v"):
-                config_file = item / "version_config.yaml"
+                config_file = item / "orchestrator_config.yaml"
                 if config_file.exists():
                     versions.append(item.name)
         return sorted(versions)

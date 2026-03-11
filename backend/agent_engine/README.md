@@ -19,7 +19,7 @@ The core AI orchestration layer for FinLab-X.
 
 ## Versioned Workflows
 
-Each version has an independent `version_config.yaml` defining available tools and model settings:
+Each version has an independent `orchestrator_config.yaml` defining available tools and model settings:
 
 - **v1_baseline (0.1.0)**: Naive single-chain financial analysis
 - **v2_reader (0.2.0)**: Long-context document analysis with RAG

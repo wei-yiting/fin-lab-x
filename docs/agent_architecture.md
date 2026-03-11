@@ -45,7 +45,7 @@ Profiles allow for rapid experimentation and safe rollbacks. By switching a prof
 
 Each version in `backend/agent_engine/agents/versions/` currently contains:
 
-- `version_config.yaml`: Model selection (e.g., GPT-4o, Claude 3.5 Sonnet), temperature, and tool-specific limits.
+- `orchestrator_config.yaml`: Model selection (e.g., GPT-4o, Claude 3.5 Sonnet), temperature, and tool-specific limits.
 
 Future versions (v2+) will include:
 

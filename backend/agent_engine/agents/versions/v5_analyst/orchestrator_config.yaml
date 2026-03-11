@@ -1,3 +1,9 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the v5_analyst workflow is fully implemented and validated.
+# =============================================================================
+
 version: "0.5.0"
 name: "v5_analyst"
 description: "Comprehensive investment research assistant combining all capabilities"
@@ -23,8 +29,6 @@ observability:
 
 constraints:
   max_tool_calls_per_step: 15
-  require_citations: true
-  zero_hallucination_policy: true
   enable_code_execution: true
   enable_graph_queries: true
   enable_parallel_subagents: true

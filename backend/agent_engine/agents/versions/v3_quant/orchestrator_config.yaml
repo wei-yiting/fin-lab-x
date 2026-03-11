@@ -1,3 +1,9 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the v3_quant workflow is fully implemented and validated.
+# =============================================================================
+
 version: "0.3.0"
 name: "v3_quant"
 description: "Numerical reasoning, data visualization, and quantitative modeling"
@@ -21,6 +27,4 @@ observability:
 
 constraints:
   max_tool_calls_per_step: 8
-  require_citations: true
-  zero_hallucination_policy: true
   enable_code_execution: true

@@ -1,20 +1,45 @@
 """FastAPI main application for FinLab-X."""
 
+import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
+# Load environment variables BEFORE importing application modules.
+# Tools and tracing may read env vars (OPENAI_API_KEY, LANGCHAIN_TRACING_V2, etc.)
+# at initialization time, so .env must be loaded first.
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-from backend.api.routers import chat
+from backend.agent_engine.agents.base import Orchestrator  # noqa: E402
+from backend.agent_engine.agents.config_loader import VersionConfigLoader  # noqa: E402
+from backend.api.routers import chat  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 APP_VERSION = "0.1.0"
+DEFAULT_WORKFLOW_VERSION = "v1_baseline"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize application-level singletons on startup."""
+    config = VersionConfigLoader(DEFAULT_WORKFLOW_VERSION).load()
+    app.state.orchestrator = Orchestrator(config)
+    logger.info(
+        "Orchestrator initialized: version=%s, model=%s",
+        config.version,
+        config.model.name,
+    )
+    yield
+
 
 app = FastAPI(
     title="FinLab-X API",
     description="Financial Analysis AI System",
     version=APP_VERSION,
+    lifespan=lifespan,
 )
 
 app.include_router(chat.router)

@@ -51,7 +51,7 @@ The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
 - **Formatting:** Adhere to **Ruff** defaults (typically equivalent to Black, max line length 88). 
 - **Imports:** 
   - Group imports correctly: Standard library first, third-party libraries second, internal project imports last.
-  - Use absolute imports within the project (e.g., `from backend.ai_engine.core.state import State`).
+  - Use absolute imports within the project (e.g., `from backend.agent_engine.core.state import State`).
 - **Naming Conventions:**
   - Variables, functions, methods: `snake_case`
   - Classes, Exceptions: `PascalCase`
@@ -74,17 +74,17 @@ The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
 
 When modifying or generating code, strictly follow the project's **Clean Architecture** and decoupling guidelines:
 
-- **Decoupled API & Agent Engine:** The `backend/api/` directory (FastAPI) handles HTTP/SSE routing only. It MUST NOT contain core AI logic. The `backend/ai_engine/` handles all LLM interactions, tool calls, and LangGraph state management. The API calls the engine, not vice-versa.
-- **Agent Modularity:** In `backend/ai_engine/agents/`, inherit from `BaseAgent`. Keep single-responsibility principles in mind. Agents should rely on configuration files (`config/agents/`) rather than hardcoding prompts.
-- **Hybrid Memory Layer:** Database logic goes in `backend/ai_engine/infrastructure/db/`. Do not bleed DB operations into the API routers or Agent logic directly; use abstract service interfaces.
-- **JIT Data Pipelines:** ETL or data retrieval logic invoked by agents must reside in `backend/ai_engine/services/jit_pipelines/`.
+- **Decoupled API & Agent Engine:** The `backend/api/` directory (FastAPI) handles HTTP/SSE routing only. It MUST NOT contain core AI logic. The `backend/agent_engine/` handles all LLM interactions, tool calls, and LangGraph state management. The API calls the engine, not vice-versa.
+- **Agent Modularity:** In `backend/agent_engine/agents/`, inherit from `BaseAgent`. Keep single-responsibility principles in mind. Agents should rely on configuration files (`config/agents/`) rather than hardcoding prompts.
+- **Hybrid Memory Layer:** Database logic goes in `backend/agent_engine/infrastructure/db/`. Do not bleed DB operations into the API routers or Agent logic directly; use abstract service interfaces.
+- **JIT Data Pipelines:** ETL or data retrieval logic invoked by agents must reside in `backend/agent_engine/services/jit_pipelines/`.
 - **Evaluations vs Tests:** Place purely programmatic tests in `backend/tests/`. Place LLM outputs, relevancy, and accuracy tests in the `backend/evaluation/` directory.
 
 ## 5. Agent Operational Directives
 
 - **Understand First:** Before writing any code, heavily utilize `glob`, `read`, and `grep` to understand the existing conventions in the file or module you are modifying.
 - **Verify Assumptions:** Do not assume standard configurations. If a command (like `pytest` or `npm test`) fails, inspect the configuration files (e.g., `pyproject.toml`, `package.json`) to deduce the correct execution path.
-- **Atomic Changes:** Ensure your implementations don't introduce breaking changes to adjacent modules, especially within `backend/ai_engine/workflows/`.
+- **Atomic Changes:** Ensure your implementations don't introduce breaking changes to adjacent modules, especially within `backend/agent_engine/workflows/`.
 - **Placeholder Replacement:** When developing a scaffolded feature, proactively replace placeholder content with robust, idiomatic code, but stick to the bounds of the assigned task.
 - **Security Check:** Avoid committing secrets. If working with API keys (e.g., OpenAI, LangSmith), ensure they are loaded via environment variables and NEVER hardcoded in source files.
 

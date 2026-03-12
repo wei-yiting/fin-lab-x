@@ -1,0 +1,26 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the v5_analyst workflow is fully implemented and validated.
+# =============================================================================
+
+version: "0.5.0"
+name: "v5_analyst"
+description: "Comprehensive investment research assistant combining all capabilities"
+
+tools:
+  - yfinance_stock_quote
+  - yfinance_get_available_fields
+  - tavily_financial_search
+  - sec_official_docs_retriever
+  - duckdb_query
+  - text_to_sql
+  - neo4j_query
+  - text_to_cypher
+
+model:
+  name: "gpt-4o"
+  temperature: 0.0
+
+constraints:
+  max_tool_calls_per_step: 15

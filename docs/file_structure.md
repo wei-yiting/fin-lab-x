@@ -69,7 +69,7 @@ A Next.js full-stack application responsible for providing a Generative UI.
 
 ## 4. Documentation (`docs/`)
 
-- **`ARCHITECTURE.md`**: High-level architecture documentation (Single Orchestrator pattern).
+- **`agent_architecture.md`**: High-level architecture documentation (Single Orchestrator pattern).
 - **`plans/`**: Implementation plans and design documents.
 
 ---

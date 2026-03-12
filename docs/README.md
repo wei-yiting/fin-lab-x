@@ -8,19 +8,22 @@ Central repository for architectural specifications, design plans, and project g
 
 - `agent_architecture.md`: High-level architecture, Single Orchestrator pattern, and design principles.
 - `file_structure.md`: Comprehensive mapping of directory responsibilities and file roles.
-- `plans/`: Historical and active design documents for features and refactors.
+- `project_requirement.md`: Product Requirements Document (PRD) covering the v1-v5 evolutionary phases, architectural philosophy, and evaluation-driven development strategy.
 
 ## Design Pattern
 
 Documentation is organized following a **Hierarchical Knowledge Base** pattern:
+
 - **Source of Truth**: Centralized architectural specifications.
 - **Modular Plans**: Feature-specific design documents stored in the `plans/` directory.
 - **Living Documentation**: README files at every major directory level to ensure local context.
 
 ## Folder Responsibility
+
 This directory maintains the "Source of Truth" for the project's design and evolution.
 
 ## Implementation Guidelines
+
 - All documentation must be written in English.
 - Update documentation simultaneously with code changes (Definition of Done).
 - Follow the AGENTS.md guidelines for folder-level documentation.
@@ -28,6 +31,7 @@ This directory maintains the "Source of Truth" for the project's design and evol
 ## Extension Algorithm
 
 To add new documentation files:
+
 1. Determine the appropriate location (root `docs/` for general architecture, `docs/plans/` for feature-specific plans).
 2. Create a new Markdown file with a clear, descriptive name.
 3. Ensure the content follows the project's documentation standards (English only, no emojis).

@@ -1,18 +1,11 @@
 """Tests for the central tool registry."""
 
 from backend.agent_engine.tools.registry import (
-    ToolRegistry,
     register_tool,
     get_tool,
     get_tools_by_names,
     clear_registry,
 )
-
-
-def test_tool_registry_initialization():
-    """Test tool registry can be initialized."""
-    registry = ToolRegistry()
-    assert registry is not None
 
 
 def test_register_and_get_tool():

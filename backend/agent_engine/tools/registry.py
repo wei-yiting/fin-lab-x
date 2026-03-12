@@ -62,26 +62,3 @@ def list_registered_tools() -> list[str]:
 def clear_registry() -> None:
     """Clear all tools from the registry (for testing)."""
     TOOL_REGISTRY.clear()
-
-
-class ToolRegistry:
-    """Class-based interface for tool registry (for backward compatibility)."""
-
-    def __init__(self):
-        self._tools = TOOL_REGISTRY
-
-    def register(self, name: str, tool: Any) -> None:
-        """Register a tool."""
-        register_tool(name, tool)
-
-    def get(self, name: str) -> Optional[Any]:
-        """Get a tool by name."""
-        return get_tool(name)
-
-    def get_all(self, names: list[str]) -> list[Any]:
-        """Get multiple tools by names."""
-        return get_tools_by_names(names)
-
-    def list_all(self) -> list[str]:
-        """List all registered tool names."""
-        return list_registered_tools()

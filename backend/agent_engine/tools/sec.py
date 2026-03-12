@@ -58,16 +58,14 @@ def _extract_section(
 
 @tool("sec_official_docs_retriever", args_schema=SecOfficialDocsRetrieverInput)
 @trace_step(step_name="sec_official_docs_retriever", tags=["tool:sec", "version:0.1.0"])
-def sec_official_docs_retriever(
-    ticker: str, doc_type: str = "10-K"
-) -> dict[str, Any] | str:
+def sec_official_docs_retriever(ticker: str, doc_type: str = "10-K") -> dict[str, Any]:
     """Retrieve official SEC filing text sections using edgartools.
 
     Supports 10-K (annual report) and 10-Q (quarterly report).
     """
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
-        return "Error: EDGAR_IDENTITY is not set."
+        return {"error": True, "message": "EDGAR_IDENTITY is not set."}
 
     try:
         from edgar import Company, set_identity
@@ -77,7 +75,10 @@ def sec_official_docs_retriever(
         filings = Company(normalized_ticker).get_filings(form=doc_type)
         filing = filings.latest()
         if not filing:
-            return f"Error: No {doc_type} filing found for {normalized_ticker}."
+            return {
+                "error": True,
+                "message": f"No {doc_type} filing found for {normalized_ticker}.",
+            }
 
         text = filing.text()
         cleaned_text = re.sub(r"\s+", " ", text)
@@ -101,4 +102,4 @@ def sec_official_docs_retriever(
             "raw_excerpt": cleaned_text[:MAX_SECTION_CHARS].rstrip() + "...",
         }
     except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return f"Error: Could not retrieve SEC filing data: {exc}"
+        return {"error": True, "message": f"Could not retrieve SEC filing data: {exc}"}

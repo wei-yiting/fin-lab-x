@@ -16,7 +16,7 @@ class YFinanceStockQuoteInput(BaseModel):
 
 @tool("yfinance_stock_quote", args_schema=YFinanceStockQuoteInput)
 @trace_step(step_name="yfinance_stock_quote", tags=["tool:yfinance", "version:0.1.0"])
-def yfinance_stock_quote(ticker: str) -> dict[str, Any] | str:
+def yfinance_stock_quote(ticker: str) -> dict[str, Any]:
     """Retrieve real-time quantitative stock metrics using yfinance."""
     try:
         normalized_ticker = ticker.strip().upper()
@@ -30,7 +30,10 @@ def yfinance_stock_quote(ticker: str) -> dict[str, Any] | str:
             "trailingPE": info.get("trailingPE"),
         }
     except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return f"Error: Could not retrieve data from yfinance: {exc}"
+        return {
+            "error": True,
+            "message": f"Could not retrieve data from yfinance: {exc}",
+        }
 
 
 class YFinanceGetAvailableFieldsInput(BaseModel):
@@ -45,11 +48,14 @@ class YFinanceGetAvailableFieldsInput(BaseModel):
 @trace_step(
     step_name="yfinance_get_available_fields", tags=["tool:yfinance", "version:0.1.0"]
 )
-def yfinance_get_available_fields(ticker: str) -> dict[str, Any] | str:
+def yfinance_get_available_fields(ticker: str) -> dict[str, Any]:
     """Get all available data fields for a stock ticker with descriptions.
 
     Use this tool first to discover what data is available, then use
     yfinance_stock_quote with specific fields.
+
+    Only returns curated fields with known descriptions to avoid wasting
+    LLM tokens on unrecognized yfinance fields.
     """
     try:
         normalized_ticker = ticker.strip().upper()
@@ -92,20 +98,13 @@ def yfinance_get_available_fields(ticker: str) -> dict[str, Any] | str:
                     "available": True,
                 }
 
-        for field in info.keys():
-            if field not in available_fields:
-                available_fields[field] = {
-                    "description": "Unknown field",
-                    "available": True,
-                }
-
         return {
             "ticker": normalized_ticker,
             "available_fields": available_fields,
             "total_fields": len(available_fields),
         }
     except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return f"Error fetching available fields: {exc}"
+        return {"error": True, "message": f"Could not fetch available fields: {exc}"}
 
 
 TRUSTED_NEWS_DOMAINS = [
@@ -124,13 +123,13 @@ class TavilyFinancialSearchInput(BaseModel):
 
 @tool("tavily_financial_search", args_schema=TavilyFinancialSearchInput)
 @trace_step(step_name="tavily_financial_search", tags=["tool:tavily", "version:0.1.0"])
-def tavily_financial_search(query: str, ticker: str) -> dict[str, Any] | str:
+def tavily_financial_search(query: str, ticker: str) -> dict[str, Any]:
     """Search trusted financial news domains for event-driven queries."""
     import os
 
     api_key = os.getenv("TAVILY_API_KEY")
     if not api_key:
-        return "Error: TAVILY_API_KEY is not set."
+        return {"error": True, "message": "TAVILY_API_KEY is not set."}
 
     try:
         from tavily import TavilyClient
@@ -155,4 +154,4 @@ def tavily_financial_search(query: str, ticker: str) -> dict[str, Any] | str:
             )
         return {"query": full_query, "results": results}
     except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return f"Error: Could not retrieve data from Tavily: {exc}"
+        return {"error": True, "message": f"Could not retrieve data from Tavily: {exc}"}

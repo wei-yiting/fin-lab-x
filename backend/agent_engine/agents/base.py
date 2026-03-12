@@ -5,61 +5,22 @@ The Orchestrator does NOT manually manage bind_tools or tool execution —
 create_agent handles tool schema binding and the ReAct loop internally.
 """
 
-from typing import Any
+from typing import Any, TypedDict
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
 
 from backend.agent_engine.agents.config_loader import VersionConfig
+from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
 
+_DEFAULT_SYSTEM_PROMPT = """You are FinLab-X, a strict, data-driven financial AI Agent.
 
-class Orchestrator:
-    """Version-agnostic Orchestrator that loads capabilities from config.
-
-    The Orchestrator is the central reasoning engine that:
-    1. Loads tools based on version config
-    2. Delegates the tool calling loop to LangChain's create_agent
-    3. Enforces zero hallucination policy via system prompt
-    4. Integrates with LangSmith automatically (via LangChain internals)
-    """
-
-    def __init__(self, config: VersionConfig):
-        """Initialize Orchestrator with version configuration.
-
-        Args:
-            config: VersionConfig object defining available capabilities
-        """
-        self.config = config
-        self.tools = get_tools_by_names(config.tools)
-        self.system_prompt = self._build_system_prompt()
-
-        model = init_chat_model(
-            config.model.name, temperature=config.model.temperature
-        )
-        tool_call_limit = ToolCallLimitMiddleware(
-            run_limit=config.constraints.max_tool_calls_per_step,
-        )
-        self.agent = create_agent(
-            model=model,
-            tools=self.tools,
-            system_prompt=self.system_prompt,
-            middleware=[tool_call_limit],
-        )
-
-    def _build_system_prompt(self) -> str:
-        """Build system prompt with zero hallucination policy.
-
-        Tool descriptions are NOT listed here — create_agent passes tool
-        schemas to the LLM automatically via bind_tools. The system prompt
-        only defines behavioral policy and response format.
-
-        Returns:
-            System prompt string
-        """
-        return """You are FinLab-X, a strict, data-driven financial AI Agent.
+LANGUAGE POLICY:
+- Always think and search in English
+- Respond in the same language as the user's query
 
 ZERO HALLUCINATION POLICY:
 - Only use data from provided tools
@@ -72,50 +33,70 @@ RESPONSE FORMAT:
 - Cite sources (tool names)
 - Flag any data quality issues"""
 
-    def run(self, prompt: str, **kwargs) -> dict[str, Any]:
-        """Execute the agent with a user prompt.
 
-        Delegates tool calling loop to create_agent. Extracts response text
-        and tool outputs from the agent's message history.
+class ToolOutput(TypedDict):
+    tool: str
+    args: dict[str, object]
+    result: str
 
-        Args:
-            prompt: User prompt to process
-            **kwargs: Additional arguments
 
-        Returns:
-            Dictionary with response, tool_outputs, and metadata
-        """
+class OrchestratorResult(TypedDict):
+    response: str
+    tool_outputs: list[ToolOutput]
+    model: str
+    version: str
+
+
+class Orchestrator:
+    """Version-agnostic Orchestrator that loads capabilities from config."""
+
+    def __init__(self, config: VersionConfig):
+        setup_tools()
+        self.config = config
+        self.tools = get_tools_by_names(config.tools)
+        self.system_prompt = config.system_prompt or _DEFAULT_SYSTEM_PROMPT
+
+        model = init_chat_model(config.model.name, temperature=config.model.temperature)
+        tool_call_limit = ToolCallLimitMiddleware(
+            run_limit=config.constraints.max_tool_calls_per_step,
+        )
+        self.agent = create_agent(
+            model=model,
+            tools=self.tools,
+            system_prompt=self.system_prompt,
+            middleware=[tool_call_limit],
+        )
+
+    def run(self, prompt: str, **kwargs: object) -> OrchestratorResult:
         result = self.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
-
         return self._extract_result(result)
 
-    def _extract_result(self, agent_output: dict) -> dict[str, Any]:
-        """Extract structured result from agent message history.
+    async def arun(self, prompt: str, **kwargs: object) -> OrchestratorResult:
+        """Execute the agent asynchronously (non-blocking).
 
-        Args:
-            agent_output: Raw output from create_agent.invoke()
-
-        Returns:
-            Dictionary with response, tool_outputs, model, and version
+        Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
-        messages = agent_output.get("messages", [])
+        result = await self.agent.ainvoke(
+            {"messages": [{"role": "user", "content": prompt}]}
+        )
+        return self._extract_result(result)
 
-        # Extract final AI response (last AIMessage without tool_calls)
+    def _extract_result(self, agent_output: dict[str, Any]) -> OrchestratorResult:
+        messages: list[BaseMessage] = agent_output.get("messages", [])
+
         response_text = ""
         for msg in reversed(messages):
             if isinstance(msg, AIMessage) and not msg.tool_calls:
-                response_text = msg.content
+                content = msg.content
+                response_text = content if isinstance(content, str) else str(content)
                 break
 
-        # Extract tool outputs from ToolMessages
-        tool_outputs: list[dict[str, Any]] = []
+        tool_outputs: list[ToolOutput] = []
         for i, msg in enumerate(messages):
             if isinstance(msg, ToolMessage):
-                # Find the preceding AIMessage's tool_call for this ToolMessage
                 tool_name = msg.name or "unknown"
-                tool_args: dict[str, Any] = {}
+                tool_args: dict[str, object] = {}
 
-                # Walk backwards to find the matching tool_call
                 for prev_msg in reversed(messages[:i]):
                     if isinstance(prev_msg, AIMessage) and prev_msg.tool_calls:
                         for tc in prev_msg.tool_calls:
@@ -125,13 +106,15 @@ RESPONSE FORMAT:
                                 break
                         break
 
+                content = msg.content
+                result_str = content if isinstance(content, str) else str(content)
                 tool_outputs.append(
-                    {"tool": tool_name, "args": tool_args, "result": msg.content}
+                    ToolOutput(tool=tool_name, args=tool_args, result=result_str)
                 )
 
-        return {
-            "response": response_text,
-            "tool_outputs": tool_outputs,
-            "model": self.config.model.name,
-            "version": self.config.version,
-        }
+        return OrchestratorResult(
+            response=response_text,
+            tool_outputs=tool_outputs,
+            model=self.config.model.name,
+            version=self.config.version,
+        )

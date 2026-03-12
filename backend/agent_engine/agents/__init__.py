@@ -3,7 +3,6 @@ from backend.agent_engine.agents.config_loader import (
     VersionConfig,
     VersionConfigLoader,
     ModelConfig,
-    ObservabilityConfig,
     ConstraintsConfig,
 )
 
@@ -12,6 +11,5 @@ __all__ = [
     "VersionConfig",
     "VersionConfigLoader",
     "ModelConfig",
-    "ObservabilityConfig",
     "ConstraintsConfig",
 ]

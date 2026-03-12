@@ -14,36 +14,34 @@ class ModelConfig(BaseModel):
     temperature: float = 0.0
 
 
-class ObservabilityConfig(BaseModel):
-    """Observability configuration for a workflow version."""
-
-    provider: str = "langsmith"
-    trace_all_steps: bool = True
-    project_name: str = "finlabx"
-
-
 class ConstraintsConfig(BaseModel):
     """Constraints configuration for a workflow version."""
 
     max_tool_calls_per_step: int = 5
-    require_citations: bool = True
-    zero_hallucination_policy: bool = True
-    max_context_tokens: Optional[int] = None
-    enable_code_execution: bool = False
-    enable_graph_queries: bool = False
-    enable_parallel_subagents: bool = False
 
 
 class VersionConfig(BaseModel):
-    """Complete configuration for a workflow version."""
+    """Complete configuration for a workflow version.
+
+    Fields:
+        version: Semantic version string (e.g., "0.1.0")
+        name: Version identifier (e.g., "v1_baseline")
+        description: Human-readable description of this version's capabilities
+        tools: List of tool names to load from the tool registry
+        model: LLM model configuration
+        constraints: Runtime constraints. Currently enforced:
+            - max_tool_calls_per_step (via ToolCallLimitMiddleware)
+        system_prompt: System prompt text, loaded from system_prompt.md
+            in the version directory by VersionConfigLoader
+    """
 
     version: str
     name: str
     description: str
     tools: list[str] = Field(default_factory=list)
     model: ModelConfig = Field(default_factory=ModelConfig)
-    observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
     constraints: ConstraintsConfig = Field(default_factory=ConstraintsConfig)
+    system_prompt: Optional[str] = None
 
 
 class VersionConfigLoader:
@@ -68,12 +66,20 @@ class VersionConfigLoader:
     def load(self) -> VersionConfig:
         """Load and parse the version configuration.
 
+        Loads orchestrator_config.yaml and, if present, system_prompt.md
+        from the version directory.
+
         Returns:
             VersionConfig: Parsed configuration object
         """
         if self._config is None:
             with open(self.config_path, "r") as f:
                 config_dict = yaml.safe_load(f)
+
+            prompt_path = self.config_path.parent / "system_prompt.md"
+            if prompt_path.exists():
+                config_dict["system_prompt"] = prompt_path.read_text().strip()
+
             self._config = VersionConfig(**config_dict)
         return self._config
 

@@ -22,13 +22,5 @@ model:
   name: "gpt-4o"
   temperature: 0.0
 
-observability:
-  provider: "langsmith"
-  trace_all_steps: true
-  project_name: "finlabx"
-
 constraints:
   max_tool_calls_per_step: 15
-  enable_code_execution: true
-  enable_graph_queries: true
-  enable_parallel_subagents: true

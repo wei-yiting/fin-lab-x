@@ -1,4 +1,9 @@
-"""LangSmith tracing utilities for FinLab-X."""
+"""LangSmith tracing utilities for FinLab-X.
+
+NOTE: LangSmith's @traceable decorator provides equivalent functionality
+with zero custom code. Consider migrating to @traceable to reduce
+maintenance surface. See: https://docs.smith.langchain.com/tracing
+"""
 
 from functools import wraps
 from typing import Any, Callable, Optional

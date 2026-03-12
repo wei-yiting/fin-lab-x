@@ -7,3 +7,5 @@ __pycache__
 backend/.env
 .vscode
 docs/
+tests/
+evaluation/

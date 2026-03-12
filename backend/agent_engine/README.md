@@ -1,6 +1,42 @@
 # Agent Engine
 
-The core AI orchestration layer for FinLab-X.
+## Scope
+
+The core AI orchestration layer for FinLab-X, responsible for managing agents, tools, and workflows.
+
+## Map
+
+- `agents/`: Version-agnostic Orchestrator and version configs.
+- `tools/`: Atomic, stateless tool functions and central registry.
+- `skills/`: Higher-level capabilities (placeholder).
+- `observability/`: LangSmith tracing decorators.
+
+## Design Pattern
+
+The Agent Engine follows a **Version-Agnostic Orchestrator** pattern:
+- **Single Orchestrator**: A central brain that executes workflows based on configuration.
+- **Configuration-Driven**: Capabilities, tools, and model settings are defined in version-specific YAML files.
+- **Stateless Tools**: Tools are atomic, stateless functions that can be easily plugged into any workflow.
+
+## Extension Algorithm
+
+To add a new component (tool, skill, or agent version):
+
+### Adding a New Tool
+1. Create a new Python file in `backend/agent_engine/tools/`.
+2. Define the tool function with clear docstrings and type hints.
+3. Register the tool in the central tool registry.
+4. Add the tool name to the relevant `orchestrator_config.yaml` in `backend/agent_engine/agents/versions/`.
+
+### Adding a New Skill
+1. Create a new module in `backend/agent_engine/skills/`.
+2. Implement the skill logic, ensuring it is modular and reusable.
+3. Expose the skill through a clear interface.
+
+### Adding a New Agent Version
+1. Create a new directory in `backend/agent_engine/agents/versions/` (e.g., `v6_new_agent/`).
+2. Create an `orchestrator_config.yaml` file defining the tools, model, and version metadata.
+3. Update the `VersionConfigLoader` if necessary to support the new version.
 
 ## Architecture
 
@@ -56,10 +92,3 @@ print(config.tools)  # ['yfinance_stock_quote', 'yfinance_get_available_fields',
 print(config.model.name)  # 'gpt-4o-mini'
 print(config.version)  # '0.1.0'
 ```
-
-## Folder Structure
-
-- `agents/`: Version-agnostic Orchestrator and version configs
-- `tools/`: Atomic, stateless tool functions and central registry
-- `skills/`: Higher-level capabilities (placeholder)
-- `observability/`: LangSmith tracing decorators

@@ -11,11 +11,11 @@ Atomic, stateless tool functions and central registry. This module provides the 
 - **Registry Pattern**: Tools are maintained in a central `TOOL_REGISTRY` dictionary, allowing the `Orchestrator` to dynamically load only the tools required by a specific version configuration.
 - **Decorator Pattern**: 
     - Uses LangChain's `@tool` decorator to automatically generate tool schemas from function signatures and Pydantic models.
-    - Uses a custom `@trace_step` decorator to inject LangSmith tracing and metadata into tool execution.
+    - Uses Langfuse's `@observe()` decorator (from `langfuse` SDK) to trace tool execution.
 
 ## Extension Algorithm
 1. **Implement Tool Function**: Create a new function in `financial.py`, `sec.py`, or a new module. Ensure it returns a JSON-serializable dictionary.
 2. **Define Input Schema**: Create a Pydantic `BaseModel` to define the tool's input arguments and descriptions.
-3. **Apply Decorators**: Wrap the function with `@tool("tool_name", args_schema=YourInputModel)` and `@trace_step(...)`.
+3. **Apply Decorators**: Wrap the function with `@tool("tool_name", args_schema=YourInputModel)` and `@observe(name="tool_name")` (from `langfuse`).
 4. **Register the Tool**: Import the new tool in `backend/agent_engine/tools/__init__.py` and add a `register_tool("tool_name", your_tool_function)` call inside `setup_tools()`.
 5. **Enable in Config**: Add the new `"tool_name"` to the `tools` list in one or more `orchestrator_config.yaml` files in the `versions/` directory.

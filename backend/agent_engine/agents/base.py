@@ -3,11 +3,16 @@
 Uses LangChain's create_agent to handle the tool calling loop automatically.
 The Orchestrator does NOT manually manage bind_tools or tool execution —
 create_agent handles tool schema binding and the ReAct loop internally.
+
+Langfuse integration: A per-request CallbackHandler is injected into
+invoke()/ainvoke() to auto-trace all LLM calls, tool dispatch, and chain
+steps. session_id is propagated from the API layer for trace correlation.
 """
 
 from typing import Any, TypedDict
 
 from langchain.agents import create_agent
+from langfuse.langchain import CallbackHandler
 from langchain.agents.middleware import ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
@@ -68,7 +73,15 @@ class Orchestrator:
         )
 
     def run(self, prompt: str, **kwargs: object) -> OrchestratorResult:
-        result = self.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
+        langfuse_handler = CallbackHandler()
+        metadata = {}
+        session_id = kwargs.get("session_id")
+        if session_id:
+            metadata["langfuse_session_id"] = session_id
+        result = self.agent.invoke(
+            {"messages": [{"role": "user", "content": prompt}]},
+            config={"callbacks": [langfuse_handler], "metadata": metadata},
+        )
         return self._extract_result(result)
 
     async def arun(self, prompt: str, **kwargs: object) -> OrchestratorResult:
@@ -76,8 +89,14 @@ class Orchestrator:
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
+        langfuse_handler = CallbackHandler()
+        metadata = {}
+        session_id = kwargs.get("session_id")
+        if session_id:
+            metadata["langfuse_session_id"] = session_id
         result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]}
+            {"messages": [{"role": "user", "content": prompt}]},
+            config={"callbacks": [langfuse_handler], "metadata": metadata},
         )
         return self._extract_result(result)
 

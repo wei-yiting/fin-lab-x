@@ -9,7 +9,7 @@ The core AI orchestration layer for FinLab-X, responsible for managing agents, t
 - `agents/`: Version-agnostic Orchestrator and version configs.
 - `tools/`: Atomic, stateless tool functions and central registry.
 - `skills/`: Higher-level capabilities (placeholder).
-- `observability/`: LangSmith tracing decorators.
+- `observability/`: Langfuse integration (see `observability/README.md`).
 
 ## Design Pattern
 
@@ -44,12 +44,12 @@ To add a new component (tool, skill, or agent version):
 
 - **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
-- **Observability**: LangSmith tracing for all execution steps
+- **Observability**: Langfuse tracing via CallbackHandler + @observe()
 
 ## Design Principles
 
 1. **Single Orchestrator**: One central brain, not multi-agent routing
-2. **Observability First**: Every step is traced via LangSmith
+2. **Observability First**: Every step is traced via Langfuse
 3. **Version-Agnostic Orchestrator**: Capabilities defined by version config, not code
 4. **Zero Hallucination Policy**: All responses must be grounded in tool outputs
 

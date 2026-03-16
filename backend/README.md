@@ -28,6 +28,8 @@ uv sync
 # Set environment variables
 cp backend/.env.example backend/.env
 # Edit backend/.env with your API keys
+# Required for Langfuse observability:
+# LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_HOST
 
 # Run tests
 uv run pytest

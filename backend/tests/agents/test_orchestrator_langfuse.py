@@ -2,6 +2,8 @@
 
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
+from contextlib import nullcontext
+from typing import Any, cast
 from langchain_core.messages import AIMessage, HumanMessage
 
 from backend.agent_engine.agents.base import Orchestrator
@@ -48,18 +50,26 @@ class TestRunInjectsLangfuseCallback:
     def test_run_injects_langfuse_callback(self):
         config = _make_config()
         orch = _create_orchestrator(config)
-        orch.agent.invoke.return_value = _mock_agent_response()
+        agent = cast(Any, orch.agent)
+        agent.invoke.return_value = _mock_agent_response()
 
-        with patch(
-            "backend.agent_engine.agents.base.CallbackHandler"
-        ) as mock_handler_cls:
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ) as mock_propagate_attributes,
+        ):
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
 
             orch.run("test prompt")
 
             mock_handler_cls.assert_called_once()
-            call_args = orch.agent.invoke.call_args
+            mock_propagate_attributes.assert_called_once_with()
+            call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
             assert config_arg is not None, "agent.invoke was not called with config="
             assert "callbacks" in config_arg
@@ -68,35 +78,51 @@ class TestRunInjectsLangfuseCallback:
     def test_run_without_session_id(self):
         config = _make_config()
         orch = _create_orchestrator(config)
-        orch.agent.invoke.return_value = _mock_agent_response()
+        agent = cast(Any, orch.agent)
+        agent.invoke.return_value = _mock_agent_response()
 
-        with patch(
-            "backend.agent_engine.agents.base.CallbackHandler"
-        ) as mock_handler_cls:
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ) as mock_propagate_attributes,
+        ):
             mock_handler_cls.return_value = MagicMock()
 
             result = orch.run("test prompt")
 
             assert result["response"] == "Test response"
-            call_args = orch.agent.invoke.call_args
+            mock_propagate_attributes.assert_called_once_with()
+            call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
-            assert config_arg["metadata"] == {}
+            assert "callbacks" in config_arg
 
-    def test_run_passes_session_id_via_metadata(self):
+    def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
         orch = _create_orchestrator(config)
-        orch.agent.invoke.return_value = _mock_agent_response()
+        agent = cast(Any, orch.agent)
+        agent.invoke.return_value = _mock_agent_response()
 
-        with patch(
-            "backend.agent_engine.agents.base.CallbackHandler"
-        ) as mock_handler_cls:
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ) as mock_propagate_attributes,
+        ):
             mock_handler_cls.return_value = MagicMock()
 
             orch.run("test prompt", session_id="sess-456")
 
-            call_args = orch.agent.invoke.call_args
+            mock_propagate_attributes.assert_called_once_with(session_id="sess-456")
+            call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
-            assert config_arg["metadata"]["langfuse_session_id"] == "sess-456"
+            assert "callbacks" in config_arg
 
 
 class TestArunInjectsLangfuseCallback:
@@ -104,36 +130,52 @@ class TestArunInjectsLangfuseCallback:
     async def test_arun_injects_langfuse_callback(self):
         config = _make_config()
         orch = _create_orchestrator(config)
-        orch.agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
+        agent = cast(Any, orch.agent)
+        agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
 
-        with patch(
-            "backend.agent_engine.agents.base.CallbackHandler"
-        ) as mock_handler_cls:
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ) as mock_propagate_attributes,
+        ):
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
 
             await orch.arun("test prompt")
 
             mock_handler_cls.assert_called_once()
-            call_args = orch.agent.ainvoke.call_args
+            mock_propagate_attributes.assert_called_once_with()
+            call_args = agent.ainvoke.call_args
             config_arg = call_args[1].get("config")
             assert config_arg is not None
             assert "callbacks" in config_arg
             assert mock_handler in config_arg["callbacks"]
 
     @pytest.mark.asyncio
-    async def test_arun_passes_session_id_via_metadata(self):
+    async def test_arun_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
         orch = _create_orchestrator(config)
-        orch.agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
+        agent = cast(Any, orch.agent)
+        agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
 
-        with patch(
-            "backend.agent_engine.agents.base.CallbackHandler"
-        ) as mock_handler_cls:
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ) as mock_propagate_attributes,
+        ):
             mock_handler_cls.return_value = MagicMock()
 
             await orch.arun("test prompt", session_id="sess-123")
 
-            call_args = orch.agent.ainvoke.call_args
+            mock_propagate_attributes.assert_called_once_with(session_id="sess-123")
+            call_args = agent.ainvoke.call_args
             config_arg = call_args[1].get("config")
-            assert config_arg["metadata"]["langfuse_session_id"] == "sess-123"
+            assert "callbacks" in config_arg

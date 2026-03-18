@@ -6,12 +6,14 @@ create_agent handles tool schema binding and the ReAct loop internally.
 
 Langfuse integration: A per-request CallbackHandler is injected into
 invoke()/ainvoke() to auto-trace all LLM calls, tool dispatch, and chain
-steps. session_id is propagated from the API layer for trace correlation.
+steps. session_id is propagated from the API layer using
+propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
 from typing import Any, TypedDict
 
 from langchain.agents import create_agent
+from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langchain.agents.middleware import ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
@@ -53,6 +55,10 @@ class OrchestratorResult(TypedDict):
     version: str
 
 
+class _LangfusePropagationAttributes(TypedDict, total=False):
+    session_id: str
+
+
 class Orchestrator:
     """Version-agnostic Orchestrator that loads capabilities from config."""
 
@@ -74,10 +80,12 @@ class Orchestrator:
         )
 
     def run(self, prompt: str, **kwargs: object) -> OrchestratorResult:
-        result = self.agent.invoke(
-            {"messages": [{"role": "user", "content": prompt}]},
-            config=self._build_langfuse_config(**kwargs),
-        )
+        config, propagation = self._build_langfuse_config(**kwargs)
+        with propagate_attributes(**propagation):
+            result = self.agent.invoke(
+                {"messages": [{"role": "user", "content": prompt}]},
+                config=config,
+            )
         return self._extract_result(result)
 
     async def arun(self, prompt: str, **kwargs: object) -> OrchestratorResult:
@@ -85,19 +93,24 @@ class Orchestrator:
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
-        result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]},
-            config=self._build_langfuse_config(**kwargs),
-        )
+        config, propagation = self._build_langfuse_config(**kwargs)
+        with propagate_attributes(**propagation):
+            result = await self.agent.ainvoke(
+                {"messages": [{"role": "user", "content": prompt}]},
+                config=config,
+            )
         return self._extract_result(result)
 
-    def _build_langfuse_config(self, **kwargs: object) -> RunnableConfig:
+    def _build_langfuse_config(
+        self,
+        **kwargs: object,
+    ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
         handler = CallbackHandler()
-        metadata: dict[str, str] = {}
+        propagation: _LangfusePropagationAttributes = {}
         session_id = kwargs.get("session_id")
         if isinstance(session_id, str) and session_id:
-            metadata["langfuse_session_id"] = session_id
-        return {"callbacks": [handler], "metadata": metadata}
+            propagation["session_id"] = session_id
+        return {"callbacks": [handler]}, propagation
 
     def _extract_result(self, agent_output: dict[str, Any]) -> OrchestratorResult:
         messages: list[BaseMessage] = agent_output.get("messages", [])

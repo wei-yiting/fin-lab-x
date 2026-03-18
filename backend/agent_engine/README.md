@@ -43,7 +43,7 @@ To add a new component (tool, skill, or agent version):
 
 - **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
-- **Observability**: Langfuse tracing via CallbackHandler + @observe()
+- **Observability**: Langfuse tracing via CallbackHandler + propagate_attributes() + @observe()
 
 ## Observability
 
@@ -54,14 +54,17 @@ Langfuse integration traces all AI agent execution in FinLab-X.
 | Mechanism | Where | What It Traces |
 |-----------|-------|----------------|
 | `CallbackHandler` | Injected once in `Orchestrator.run()`/`arun()` | All LangChain activity: LLM calls, tool dispatch, chain steps |
+| `propagate_attributes()` | Wrapped around `invoke()`/`ainvoke()` in `Orchestrator` | Request attributes like `session_id` propagated to nested `@observe()` observations |
 | `@observe()` | Applied directly on tool functions | Deterministic code paths (data transforms, API calls) |
 
-`CallbackHandler` provides automatic parent-child trace hierarchy, so spans from a
-single request are linked under one trace.
+`CallbackHandler` provides automatic parent-child trace hierarchy, and
+`propagate_attributes()` ensures attributes such as `session_id` are inherited by
+tool-level observations.
 
 ### When to Use Which
 
 - **LLM calls, tool dispatch, chain steps**: Automatic via `CallbackHandler`.
+- **Cross-observation attributes (`session_id`)**: Set via `propagate_attributes()` in `Orchestrator.run()`/`arun()`.
 - **New deterministic tool code**: Add `@observe(name="my_function")` decorator.
 
 ### Environment Variables

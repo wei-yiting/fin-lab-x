@@ -56,7 +56,12 @@ def test_observe_decorator_does_not_break_tool_schema():
         assert hasattr(tool_func, "args_schema"), (
             f"Tool {tool_func.name} is missing .args_schema"
         )
-        assert tool_func.args_schema.__name__ == expected_tools[tool_func.name], (
+        args_schema = tool_func.args_schema
+        assert isinstance(args_schema, type), (
+            f"Tool {tool_func.name} has unexpected args_schema type: "
+            f"{type(args_schema).__name__}"
+        )
+        assert args_schema.__name__ == expected_tools[tool_func.name], (
             f"Tool {tool_func.name} has wrong args_schema: "
-            f"{tool_func.args_schema.__name__} != {expected_tools[tool_func.name]}"
+            f"{args_schema.__name__} != {expected_tools[tool_func.name]}"
         )

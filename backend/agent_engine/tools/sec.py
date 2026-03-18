@@ -80,7 +80,7 @@ def sec_official_docs_retriever(ticker: str, doc_type: str = "10-K") -> dict[str
                 "message": f"No {doc_type} filing found for {normalized_ticker}.",
             }
 
-        text = filing.text()
+        text = getattr(filing, "text")()
         cleaned_text = re.sub(r"\s+", " ", text)
         risk_factors = _extract_section(
             cleaned_text,

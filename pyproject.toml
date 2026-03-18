@@ -29,3 +29,8 @@ testpaths = ["backend/tests"]
 
 [tool.ruff]
 line-length = 88
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+]

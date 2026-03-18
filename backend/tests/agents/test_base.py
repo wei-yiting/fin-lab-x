@@ -1,5 +1,6 @@
 """Tests for the version-agnostic Orchestrator."""
 
+from typing import Any, cast
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from backend.agent_engine.agents.base import Orchestrator, _DEFAULT_SYSTEM_PROMPT
@@ -50,7 +51,7 @@ def test_orchestrator_run_returns_response():
 
     orch = _create_orchestrator(config, [])
 
-    orch.agent.invoke.return_value = {
+    cast(Any, orch.agent.invoke).return_value = {
         "messages": [
             HumanMessage(content="test prompt"),
             AIMessage(content="Test response"),
@@ -99,7 +100,7 @@ def test_orchestrator_result_has_typed_structure():
     )
     orch = _create_orchestrator(config, [])
 
-    orch.agent.invoke.return_value = {
+    cast(Any, orch.agent.invoke).return_value = {
         "messages": [
             HumanMessage(content="test"),
             AIMessage(

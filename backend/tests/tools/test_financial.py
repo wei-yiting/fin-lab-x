@@ -2,6 +2,7 @@
 
 import os
 import sys
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -116,7 +117,7 @@ def test_tavily_financial_search_missing_api_key():
 @patch.dict("sys.modules", {"tavily": MagicMock()})
 @patch("backend.agent_engine.tools.financial.TavilyClient", create=True)
 def test_tavily_financial_search_results(tavily_client_mock):
-    sys.modules["tavily"].TavilyClient = tavily_client_mock
+    cast(Any, sys.modules["tavily"]).TavilyClient = tavily_client_mock
     tavily_client_mock.return_value.search.return_value = {
         "results": [
             {

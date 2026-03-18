@@ -9,7 +9,6 @@ The core AI orchestration layer for FinLab-X, responsible for managing agents, t
 - `agents/`: Version-agnostic Orchestrator and version configs.
 - `tools/`: Atomic, stateless tool functions and central registry.
 - `skills/`: Higher-level capabilities (placeholder).
-- `observability/`: Langfuse integration (see `observability/README.md`).
 
 ## Design Pattern
 
@@ -45,6 +44,46 @@ To add a new component (tool, skill, or agent version):
 - **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
 - **Observability**: Langfuse tracing via CallbackHandler + @observe()
+
+## Observability
+
+Langfuse integration traces all AI agent execution in FinLab-X.
+
+### Tracing Mechanisms
+
+| Mechanism | Where | What It Traces |
+|-----------|-------|----------------|
+| `CallbackHandler` | Injected once in `Orchestrator.run()`/`arun()` | All LangChain activity: LLM calls, tool dispatch, chain steps |
+| `@observe()` | Applied directly on tool functions | Deterministic code paths (data transforms, API calls) |
+
+`CallbackHandler` provides automatic parent-child trace hierarchy, so spans from a
+single request are linked under one trace.
+
+### When to Use Which
+
+- **LLM calls, tool dispatch, chain steps**: Automatic via `CallbackHandler`.
+- **New deterministic tool code**: Add `@observe(name="my_function")` decorator.
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `LANGFUSE_SECRET_KEY` | Langfuse project secret key |
+| `LANGFUSE_PUBLIC_KEY` | Langfuse project public key |
+| `LANGFUSE_HOST` | Langfuse host URL (default: `https://cloud.langfuse.com`) |
+
+### Adding Observability to New Tools
+
+```python
+from langfuse import observe
+
+@tool("my_new_tool", args_schema=MyInputModel)
+@observe(name="my_new_tool")
+def my_new_tool(param: str) -> dict[str, Any]:
+    ...
+```
+
+Decorator stacking order: `@tool` (outer) -> `@observe` (inner).
 
 ## Design Principles
 

@@ -27,7 +27,7 @@ def test_tools_use_observe_decorator():
     for tool_func in ALL_TOOLS:
         # LangChain @tool creates a StructuredTool with a .func attribute
         inner = getattr(tool_func, "func", tool_func)
-        # @observe wraps with functools.wraps, so __wrapped__ points to original
+        # Fragile assertion: depends on @observe using functools.wraps internally.
         assert hasattr(inner, "__wrapped__"), (
             f"{tool_func.name} is missing @observe() decorator — "
             f"no __wrapped__ attribute found on inner function"

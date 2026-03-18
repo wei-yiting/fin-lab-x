@@ -1,7 +1,7 @@
 """Langfuse SDK integration smoke tests.
 
 Verify the SDK is installed correctly and import paths work.
-No live Langfuse server needed — SDK gracefully handles missing env vars.
+No live Langfuse server needed - SDK gracefully handles missing env vars.
 """
 
 

@@ -16,6 +16,7 @@ from langfuse.langchain import CallbackHandler
 from langchain.agents.middleware import ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 
 from backend.agent_engine.agents.config_loader import VersionConfig
 from backend.agent_engine.tools import setup_tools
@@ -73,14 +74,9 @@ class Orchestrator:
         )
 
     def run(self, prompt: str, **kwargs: object) -> OrchestratorResult:
-        langfuse_handler = CallbackHandler()
-        metadata = {}
-        session_id = kwargs.get("session_id")
-        if session_id:
-            metadata["langfuse_session_id"] = session_id
         result = self.agent.invoke(
             {"messages": [{"role": "user", "content": prompt}]},
-            config={"callbacks": [langfuse_handler], "metadata": metadata},
+            config=self._build_langfuse_config(**kwargs),
         )
         return self._extract_result(result)
 
@@ -89,16 +85,19 @@ class Orchestrator:
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
-        langfuse_handler = CallbackHandler()
-        metadata = {}
-        session_id = kwargs.get("session_id")
-        if session_id:
-            metadata["langfuse_session_id"] = session_id
         result = await self.agent.ainvoke(
             {"messages": [{"role": "user", "content": prompt}]},
-            config={"callbacks": [langfuse_handler], "metadata": metadata},
+            config=self._build_langfuse_config(**kwargs),
         )
         return self._extract_result(result)
+
+    def _build_langfuse_config(self, **kwargs: object) -> RunnableConfig:
+        handler = CallbackHandler()
+        metadata: dict[str, str] = {}
+        session_id = kwargs.get("session_id")
+        if isinstance(session_id, str) and session_id:
+            metadata["langfuse_session_id"] = session_id
+        return {"callbacks": [handler], "metadata": metadata}
 
     def _extract_result(self, agent_output: dict[str, Any]) -> OrchestratorResult:
         messages: list[BaseMessage] = agent_output.get("messages", [])

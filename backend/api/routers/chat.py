@@ -40,12 +40,13 @@ async def chat(
 ):
     """Process financial analysis chat message."""
     try:
-        result = await orchestrator.arun(body.message, session_id=body.session_id)
+        session_id = body.session_id or str(uuid.uuid4())
+        result = await orchestrator.arun(body.message, session_id=session_id)
 
         return ChatResponse(
             response=result["response"],
             tool_outputs=result["tool_outputs"],
-            session_id=body.session_id or str(uuid.uuid4()),
+            session_id=session_id,
             version=result["version"],
         )
     except Exception:

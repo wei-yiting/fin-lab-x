@@ -82,6 +82,22 @@ class TestRunInjectsLangfuseCallback:
             config_arg = call_args[1].get("config")
             assert config_arg["metadata"] == {}
 
+    def test_run_passes_session_id_via_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        orch.agent.invoke.return_value = _mock_agent_response()
+
+        with patch(
+            "backend.agent_engine.agents.base.CallbackHandler"
+        ) as mock_handler_cls:
+            mock_handler_cls.return_value = MagicMock()
+
+            orch.run("test prompt", session_id="sess-456")
+
+            call_args = orch.agent.invoke.call_args
+            config_arg = call_args[1].get("config")
+            assert config_arg["metadata"]["langfuse_session_id"] == "sess-456"
+
 
 class TestArunInjectsLangfuseCallback:
     @pytest.mark.asyncio

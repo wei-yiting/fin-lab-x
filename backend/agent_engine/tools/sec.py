@@ -6,7 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 from langchain.tools import tool
 
-from backend.agent_engine.observability.langsmith_tracer import trace_step
+from langfuse import observe
 
 
 MAX_SECTION_CHARS = 4000
@@ -57,7 +57,7 @@ def _extract_section(
 
 
 @tool("sec_official_docs_retriever", args_schema=SecOfficialDocsRetrieverInput)
-@trace_step(step_name="sec_official_docs_retriever", tags=["tool:sec", "version:0.1.0"])
+@observe(name="sec_official_docs_retriever")
 def sec_official_docs_retriever(ticker: str, doc_type: str = "10-K") -> dict[str, Any]:
     """Retrieve official SEC filing text sections using edgartools.
 
@@ -80,7 +80,7 @@ def sec_official_docs_retriever(ticker: str, doc_type: str = "10-K") -> dict[str
                 "message": f"No {doc_type} filing found for {normalized_ticker}.",
             }
 
-        text = filing.text()
+        text = getattr(filing, "text")()
         cleaned_text = re.sub(r"\s+", " ", text)
         risk_factors = _extract_section(
             cleaned_text,

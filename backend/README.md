@@ -6,7 +6,7 @@ This directory contains the backend services for FinLab-X, including the AI Agen
 
 ## Map
 
-- `agent_engine/`: Core Agent Engine components (orchestrator, tools, observability).
+- `agent_engine/`: Core Agent Engine components (orchestrator, tools, Langfuse tracing).
 - `api/`: HTTP/SSE routing and request handling (FastAPI).
 - `evaluation/`: LLMOps and evaluation workflows.
 - `tests/`: Programmatic tests for backend logic.
@@ -28,6 +28,8 @@ uv sync
 # Set environment variables
 cp backend/.env.example backend/.env
 # Edit backend/.env with your API keys
+# Required for Langfuse observability:
+# LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_HOST
 
 # Run tests
 uv run pytest

@@ -5,7 +5,7 @@ import yfinance as yf
 from pydantic import BaseModel, Field
 from langchain.tools import tool
 
-from backend.agent_engine.observability.langsmith_tracer import trace_step
+from langfuse import observe
 
 
 class YFinanceStockQuoteInput(BaseModel):
@@ -15,7 +15,7 @@ class YFinanceStockQuoteInput(BaseModel):
 
 
 @tool("yfinance_stock_quote", args_schema=YFinanceStockQuoteInput)
-@trace_step(step_name="yfinance_stock_quote", tags=["tool:yfinance", "version:0.1.0"])
+@observe(name="yfinance_stock_quote")
 def yfinance_stock_quote(ticker: str) -> dict[str, Any]:
     """Retrieve real-time quantitative stock metrics using yfinance."""
     try:
@@ -45,9 +45,7 @@ class YFinanceGetAvailableFieldsInput(BaseModel):
 
 
 @tool("yfinance_get_available_fields", args_schema=YFinanceGetAvailableFieldsInput)
-@trace_step(
-    step_name="yfinance_get_available_fields", tags=["tool:yfinance", "version:0.1.0"]
-)
+@observe(name="yfinance_get_available_fields")
 def yfinance_get_available_fields(ticker: str) -> dict[str, Any]:
     """Get all available data fields for a stock ticker with descriptions.
 
@@ -122,7 +120,7 @@ class TavilyFinancialSearchInput(BaseModel):
 
 
 @tool("tavily_financial_search", args_schema=TavilyFinancialSearchInput)
-@trace_step(step_name="tavily_financial_search", tags=["tool:tavily", "version:0.1.0"])
+@observe(name="tavily_financial_search")
 def tavily_financial_search(query: str, ticker: str) -> dict[str, Any]:
     """Search trusted financial news domains for event-driven queries."""
     import os

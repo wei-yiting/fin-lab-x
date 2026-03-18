@@ -1,5 +1,6 @@
 """Tests for chat API endpoint."""
 
+import uuid
 from unittest.mock import AsyncMock, MagicMock
 
 from backend.api.main import app
@@ -83,13 +84,15 @@ def test_chat_empty_message(client):
 
 
 def test_chat_with_session_id(client):
-    _override_orchestrator(_make_mock_orchestrator())
+    mock_orch = _make_mock_orchestrator()
+    _override_orchestrator(mock_orch)
     try:
         response = client.post(
             "/api/v1/chat", json={"message": "test", "session_id": "sess_123"}
         )
         assert response.status_code == 200
         assert response.json()["session_id"] == "sess_123"
+        mock_orch.arun.assert_awaited_once_with("test", session_id="sess_123")
     finally:
         _clear_overrides()
 
@@ -99,7 +102,8 @@ def test_chat_default_session_id(client):
     try:
         response = client.post("/api/v1/chat", json={"message": "test"})
         assert response.status_code == 200
-        assert response.json()["session_id"] == "new_session"
+        session_id = response.json()["session_id"]
+        uuid.UUID(session_id)
     finally:
         _clear_overrides()
 

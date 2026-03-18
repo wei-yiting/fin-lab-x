@@ -9,7 +9,6 @@ The core AI orchestration layer for FinLab-X, responsible for managing agents, t
 - `agents/`: Version-agnostic Orchestrator and version configs.
 - `tools/`: Atomic, stateless tool functions and central registry.
 - `skills/`: Higher-level capabilities (placeholder).
-- `observability/`: LangSmith tracing decorators.
 
 ## Design Pattern
 
@@ -44,12 +43,55 @@ To add a new component (tool, skill, or agent version):
 
 - **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
-- **Observability**: LangSmith tracing for all execution steps
+- **Observability**: Langfuse tracing via CallbackHandler + propagate_attributes() + @observe()
+
+## Observability
+
+Langfuse integration traces all AI agent execution in FinLab-X.
+
+### Tracing Mechanisms
+
+| Mechanism | Where | What It Traces |
+|-----------|-------|----------------|
+| `CallbackHandler` | Injected once in `Orchestrator.run()`/`arun()` | All LangChain activity: LLM calls, tool dispatch, chain steps |
+| `propagate_attributes()` | Wrapped around `invoke()`/`ainvoke()` in `Orchestrator` | Request attributes like `session_id` propagated to nested `@observe()` observations |
+| `@observe()` | Applied directly on tool functions | Deterministic code paths (data transforms, API calls) |
+
+`CallbackHandler` provides automatic parent-child trace hierarchy, and
+`propagate_attributes()` ensures attributes such as `session_id` are inherited by
+tool-level observations.
+
+### When to Use Which
+
+- **LLM calls, tool dispatch, chain steps**: Automatic via `CallbackHandler`.
+- **Cross-observation attributes (`session_id`)**: Set via `propagate_attributes()` in `Orchestrator.run()`/`arun()`.
+- **New deterministic tool code**: Add `@observe(name="my_function")` decorator.
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `LANGFUSE_SECRET_KEY` | Langfuse project secret key |
+| `LANGFUSE_PUBLIC_KEY` | Langfuse project public key |
+| `LANGFUSE_HOST` | Langfuse host URL (default: `https://cloud.langfuse.com`) |
+
+### Adding Observability to New Tools
+
+```python
+from langfuse import observe
+
+@tool("my_new_tool", args_schema=MyInputModel)
+@observe(name="my_new_tool")
+def my_new_tool(param: str) -> dict[str, Any]:
+    ...
+```
+
+Decorator stacking order: `@tool` (outer) -> `@observe` (inner).
 
 ## Design Principles
 
 1. **Single Orchestrator**: One central brain, not multi-agent routing
-2. **Observability First**: Every step is traced via LangSmith
+2. **Observability First**: Every step is traced via Langfuse
 3. **Version-Agnostic Orchestrator**: Capabilities defined by version config, not code
 4. **Zero Hallucination Policy**: All responses must be grounded in tool outputs
 

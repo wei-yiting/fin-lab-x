@@ -25,7 +25,8 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests"]
+testpaths = ["backend/tests", "backend/evals"]
+markers = ["eval: evaluation tests that hit real LLM APIs"]
 
 [tool.ruff]
 line-length = 88

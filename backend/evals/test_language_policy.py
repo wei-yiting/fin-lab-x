@@ -5,6 +5,8 @@ BDD scenarios verifying:
   Rule B — Response language matches the user's prompt language
 """
 
+import re
+
 import pytest
 
 from backend.evals.datasets.language_policy import LANGUAGE_POLICY_CASES
@@ -22,16 +24,30 @@ def test_language_policy(orchestrator, case):
 
     # Rule A: tool arguments must not contain CJK characters
     if case.expect_search_query_no_cjk:
+        matched_expected_tool = False
         for tool_output in result["tool_outputs"]:
             if case.expect_tool and tool_output["tool"] != case.expect_tool:
                 continue
+            if case.expect_tool:
+                matched_expected_tool = True
             for arg_key, arg_val in tool_output["args"].items():
-                if arg_key == "ticker" or not isinstance(arg_val, str):
+                if not isinstance(arg_val, str):
+                    continue
+                if arg_key == "ticker":
+                    assert re.match(r"^[A-Z][A-Z0-9.\-]*$", arg_val), (
+                        f"[{case.id}] Tool '{tool_output['tool']}' arg 'ticker' "
+                        f"is not a valid ticker format: '{arg_val}'"
+                    )
                     continue
                 assert not contains_cjk(arg_val), (
                     f"[{case.id}] Tool '{tool_output['tool']}' arg '{arg_key}' "
                     f"contains CJK: '{arg_val}'"
                 )
+        if case.expect_tool:
+            assert matched_expected_tool, (
+                f"[{case.id}] Expected tool '{case.expect_tool}' was never called. "
+                f"Tools called: {[t['tool'] for t in result['tool_outputs']]}"
+            )
 
     # Rule B: response language matches prompt language
     ratio = cjk_ratio(result["response"])

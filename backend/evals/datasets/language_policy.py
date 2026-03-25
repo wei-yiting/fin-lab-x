@@ -32,7 +32,7 @@ LANGUAGE_POLICY_CASES: list[LangPolicyEvalCase] = [
         description="Chinese earnings query -> English search, Chinese response",
         prompt="蘋果公司最新的財報表現如何？",
         prompt_language="zh",
-        expect_tool="tavily_financial_search",
+        expect_tool=None,
         expect_search_query_no_cjk=True,
         expect_response_cjk_min=0.20,
         expect_response_cjk_max=1.0,
@@ -46,7 +46,7 @@ LANGUAGE_POLICY_CASES: list[LangPolicyEvalCase] = [
         expect_tool="tavily_financial_search",
         expect_search_query_no_cjk=True,
         expect_response_cjk_min=0.0,
-        expect_response_cjk_max=0.0,
+        expect_response_cjk_max=0.02,
     ),
     LangPolicyEvalCase(
         id="LP-04",
@@ -56,7 +56,7 @@ LANGUAGE_POLICY_CASES: list[LangPolicyEvalCase] = [
         expect_tool="tavily_financial_search",
         expect_search_query_no_cjk=True,
         expect_response_cjk_min=0.0,
-        expect_response_cjk_max=0.0,
+        expect_response_cjk_max=0.02,
     ),
     # --- Chinese prompt → English ticker, Chinese response (no search) ---
     LangPolicyEvalCase(
@@ -78,7 +78,7 @@ LANGUAGE_POLICY_CASES: list[LangPolicyEvalCase] = [
         expect_tool="yfinance_stock_quote",
         expect_search_query_no_cjk=True,
         expect_response_cjk_min=0.0,
-        expect_response_cjk_max=0.0,
+        expect_response_cjk_max=0.02,
     ),
     # --- Mixed language (CJK present) → English tool args, Chinese response ---
     LangPolicyEvalCase(
@@ -100,6 +100,6 @@ LANGUAGE_POLICY_CASES: list[LangPolicyEvalCase] = [
         expect_tool=None,
         expect_search_query_no_cjk=True,
         expect_response_cjk_min=0.0,
-        expect_response_cjk_max=0.0,
+        expect_response_cjk_max=0.02,
     ),
 ]

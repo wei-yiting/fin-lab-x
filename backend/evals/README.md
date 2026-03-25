@@ -12,21 +12,27 @@ Evaluation tests verify **agent behavior quality** against real LLM APIs. They s
 
 ## Running Evals
 
-```bash
-# Run evals only
-uv run pytest -m eval -v --tb=short
+> **Note:** `pyproject.toml` sets `testpaths = ["backend/tests"]` and
+> `addopts = "-m 'not eval'"`, so a bare `uv run pytest` runs **unit tests
+> only** and never discovers files under `backend/evals/`. You must
+> explicitly pass the eval directory to run evals.
 
-# Run unit tests only (CI default)
-uv run pytest -m "not eval"
+```bash
+# Run evals only (must specify path explicitly)
+uv run pytest backend/evals/ -m eval -v --tb=short
+
+# Run unit tests only (CI default — just use bare pytest)
+uv run pytest
 
 # Run a specific scenario
-uv run pytest -m eval -k "LP-01" -v
+uv run pytest backend/evals/ -m eval -k "LP-01" -v
 
-# Run everything (unit tests + evals)
-uv run pytest -v
+# Run everything (unit tests + evals — override addopts)
+uv run pytest backend/tests/ backend/evals/ -m "" -v
 ```
 
-All eval test functions are marked with `@pytest.mark.eval`. Use `-m eval` / `-m "not eval"` to select or exclude them.
+All eval test functions are marked with `@pytest.mark.eval`. The default
+`addopts` excludes them, so CI never hits real APIs unless you opt in.
 
 ## Marker Convention
 
@@ -80,6 +86,7 @@ backend/evals/
 ├── __init__.py
 ├── eval_helpers.py           ← Language detection utils (CJK regex)
 ├── datasets/
+│   ├── README.md             ← Dataset design guidelines
 │   ├── __init__.py
 │   └── language_policy.py    ← Language Policy eval cases
 ├── conftest.py               ← Real Orchestrator fixture
@@ -178,4 +185,4 @@ Prefer programmatic whenever possible. LLM judges add a second layer of non-dete
 1. Add or modify eval case definitions in `datasets/`
 2. Add a corresponding parametrized test in `test_*.py` (or extend an existing dataset list)
 3. Mark every test function with `@pytest.mark.eval`
-4. Run `uv run pytest -m eval -v` to verify
+4. Run `uv run pytest backend/evals/ -m eval -v` to verify

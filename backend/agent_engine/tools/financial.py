@@ -115,7 +115,7 @@ TRUSTED_NEWS_DOMAINS = [
 class TavilyFinancialSearchInput(BaseModel):
     """Input schema for Tavily financial search tool."""
 
-    query: str = Field(..., description="Financial news search query")
+    query: str = Field(..., description="Financial news search query (MUST be in English)")
     ticker: str = Field(..., description="Stock ticker to focus search on")
 
 

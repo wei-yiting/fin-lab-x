@@ -11,30 +11,30 @@ from autoevals import LLMClassifier  # pyright: ignore[reportMissingImports]
 from backend.evals.scenario_config import ScorerConfig
 
 
-def _resolve_function(dotpath: str) -> Callable[..., Any]:
+def resolve_function(dotpath: str, *, label: str = "scorer") -> Callable[..., Any]:
     """Import and return a callable from a Python dotpath."""
     module_path, separator, attr_name = dotpath.rpartition(".")
     if not separator:
-        raise ImportError(f"Invalid scorer dotpath: {dotpath}")
+        raise ImportError(f"Invalid {label} dotpath: {dotpath}")
 
     try:
         module = importlib.import_module(module_path)
     except ModuleNotFoundError as exc:
         raise ImportError(
-            f"Could not import scorer module '{module_path}' from '{dotpath}'"
+            f"Could not import {label} module '{module_path}' from '{dotpath}'"
         ) from exc
 
     try:
-        scorer = getattr(module, attr_name)
+        func = getattr(module, attr_name)
     except AttributeError as exc:
         raise ImportError(
-            f"Could not find scorer function '{attr_name}' in '{dotpath}'"
+            f"Could not find {label} function '{attr_name}' in '{dotpath}'"
         ) from exc
 
-    if not callable(scorer):
-        raise ImportError(f"Scorer target is not callable: {dotpath}")
+    if not callable(func):
+        raise ImportError(f"{label.capitalize()} target is not callable: {dotpath}")
 
-    return scorer
+    return func
 
 
 def _build_llm_judge(scorer_config: ScorerConfig) -> LLMClassifier:
@@ -59,7 +59,7 @@ def resolve_scorers(scorer_configs: list[ScorerConfig]) -> list[Callable[..., An
 
     for scorer_config in scorer_configs:
         if scorer_config.function is not None:
-            resolved_scorers.append(_resolve_function(scorer_config.function))
+            resolved_scorers.append(resolve_function(scorer_config.function))
             continue
 
         if scorer_config.type == "llm_judge":

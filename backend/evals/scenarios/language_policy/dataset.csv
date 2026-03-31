@@ -1,0 +1,9 @@
+id,description,prompt,prompt_language,ticker,expect_tool,expect_search_query_no_cjk,expect_response_cjk_min,expect_response_cjk_max
+LP-01,Chinese news query,微軟最近有什麼新聞？,zh,MSFT,tavily_financial_search,true,0.20,1.0
+LP-02,Chinese earnings query,蘋果公司最新的財報表現如何？,zh,AAPL,,true,0.20,1.0
+LP-03,English news query,What is the latest news about MSFT?,en,MSFT,tavily_financial_search,true,0.0,0.02
+LP-04,English performance query,How is AAPL performing recently?,en,AAPL,tavily_financial_search,true,0.0,0.02
+LP-05,Chinese price query,特斯拉現在股價多少？,zh,TSLA,yfinance_stock_quote,true,0.20,1.0
+LP-06,English price query,What is TSLA's current price?,en,TSLA,yfinance_stock_quote,true,0.0,0.02
+LP-07,Mixed lang query,NVDA 最近表現如何？,zh,NVDA,,true,0.20,1.0
+LP-08,Ticker-only prompt,GOOGL,en,GOOGL,,true,0.0,0.02

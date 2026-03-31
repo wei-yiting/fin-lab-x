@@ -237,6 +237,25 @@ def test_tool_arg_no_cjk_skips_when_expected_flag_is_missing() -> None:
     assert result["score"] == 1.0
 
 
+def test_tool_arg_no_cjk_skips_when_expected_flag_is_false() -> None:
+    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+
+    result = tool_arg_no_cjk(
+        {
+            "tool_outputs": [
+                {
+                    "tool": "tavily_financial_search",
+                    "args": {"query": "微軟最新新聞"},
+                }
+            ]
+        },
+        {"search_query_no_cjk": False, "tool": "tavily_financial_search"},
+        input="微軟最近有什麼新聞？",
+    )
+
+    assert result["score"] == 1.0
+
+
 def test_response_language_passes_when_cjk_ratio_in_range() -> None:
     from backend.evals.scorers.language_policy_scorer import response_language
 

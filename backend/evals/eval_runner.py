@@ -117,7 +117,10 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
         if output == _ERROR_MARKER:
             return None
         try:
-            return scorer_fn(output=output, expected=expected, input=kwargs.get("input"))
+            result = scorer_fn(output=output, expected=expected, input=kwargs.get("input"))
+            if hasattr(result, "name"):
+                result.name = scorer_name
+            return result
         except Exception:
             logger.warning("Scorer '%s' raised an exception", scorer_name, exc_info=True)
             return _ERROR_MARKER
@@ -189,12 +192,12 @@ def write_result_csv(
                     row[f"score_{name}"] = _ERROR_MARKER
                     continue
                 score_val = result.scores.get(name)
-                if score_val == _ERROR_MARKER:
-                    row[f"score_{name}"] = _ERROR_MARKER
-                elif score_val is None:
+                if score_val is None:
                     row[f"score_{name}"] = _ERROR_MARKER
                 elif isinstance(score_val, (int, float)):
                     row[f"score_{name}"] = str(score_val)
+                elif isinstance(score_val, str):
+                    row[f"score_{name}"] = score_val
                 else:
                     row[f"score_{name}"] = str(score_val.score)
 

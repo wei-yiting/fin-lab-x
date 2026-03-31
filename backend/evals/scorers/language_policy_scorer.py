@@ -61,5 +61,7 @@ def response_language(output: Any, expected: Any, *, input: Any) -> Score:
         response = ""
 
     ratio = cjk_ratio(response)
-    is_in_range = expected_mapping["cjk_min"] <= ratio <= expected_mapping["cjk_max"]
+    cjk_min = float(expected_mapping["cjk_min"])
+    cjk_max = float(expected_mapping["cjk_max"])
+    is_in_range = cjk_min <= ratio <= cjk_max
     return Score(name="response_language", score=1.0 if is_in_range else 0.0)

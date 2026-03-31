@@ -117,7 +117,7 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
         if output == _ERROR_MARKER:
             return None
         try:
-            return scorer_fn(output=output, expected=expected, **kwargs)
+            return scorer_fn(output=output, expected=expected, input=kwargs.get("input"))
         except Exception:
             logger.warning("Scorer '%s' raised an exception", scorer_name, exc_info=True)
             return _ERROR_MARKER

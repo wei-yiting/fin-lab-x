@@ -6,7 +6,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
-from autoevals import Score
+from autoevals import Score  # pyright: ignore[reportMissingImports]
 
 from backend.evals.eval_helpers import contains_cjk, cjk_ratio
 

@@ -6,7 +6,7 @@ import importlib
 from collections.abc import Callable
 from typing import Any
 
-from autoevals import LLMClassifier
+from autoevals import LLMClassifier  # pyright: ignore[reportMissingImports]
 
 from backend.evals.scenario_config import ScorerConfig
 

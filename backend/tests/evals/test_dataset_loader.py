@@ -159,6 +159,7 @@ def test_load_dataset_rejects_header_only_csv(tmp_path: Path) -> None:
         "foo",
         "foo.bar",
         "input.",
+        "input. title",
         "expected..response",
     ],
 )
@@ -178,6 +179,27 @@ def test_load_dataset_rejects_invalid_target_paths(
 
     with pytest.raises(ValueError):
         load_dataset(csv_path, {"prompt": target_path})
+
+
+def test_load_dataset_rejects_overlapping_target_paths(tmp_path: Path) -> None:
+    csv_path = write_csv(
+        tmp_path,
+        "\n".join(
+            [
+                "first,second",
+                "one,two",
+            ]
+        ),
+    )
+
+    with pytest.raises(ValueError, match="Overlapping column_mapping target"):
+        load_dataset(
+            csv_path,
+            {
+                "first": "expected.foo",
+                "second": "expected.foo.bar",
+            },
+        )
 
 
 def test_load_dataset_supports_bom_prefixed_headers(tmp_path: Path) -> None:

@@ -44,6 +44,8 @@ def _validate_target_path(target_path: str) -> None:
     target_parts = target_path.split(".")
     if any(part == "" for part in target_parts):
         raise ValueError(f"Invalid column_mapping target: {target_path}")
+    if any(part != part.strip() for part in target_parts):
+        raise ValueError(f"Invalid column_mapping target: {target_path}")
 
     bucket_name = target_parts[0]
     if bucket_name not in ALLOWED_BUCKETS:
@@ -52,10 +54,39 @@ def _validate_target_path(target_path: str) -> None:
         )
 
 
-def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[str, Any]]:
-    """Read CSV and transform it into Braintrust Eval() data format."""
+def _validate_column_mapping(column_mapping: dict[str, str]) -> None:
+    """Validate target paths and reject overlapping prefixes."""
+    seen_paths: set[tuple[str, ...]] = set()
+
     for target_path in column_mapping.values():
         _validate_target_path(target_path)
+        target_parts = tuple(target_path.split("."))
+
+        for index in range(1, len(target_parts)):
+            prefix = target_parts[:index]
+            if prefix == ("input",):
+                continue
+            if prefix in seen_paths:
+                raise ValueError(
+                    f"Overlapping column_mapping target: {target_path}"
+                )
+
+        if any(
+            existing[: len(target_parts)] == target_parts
+            for existing in seen_paths
+            if len(existing) > len(target_parts)
+            and target_parts != ("input",)
+        ):
+            raise ValueError(
+                f"Overlapping column_mapping target: {target_path}"
+            )
+
+        seen_paths.add(target_parts)
+
+
+def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[str, Any]]:
+    """Read CSV and transform it into Braintrust Eval() data format."""
+    _validate_column_mapping(column_mapping)
 
     with csv_path.open("r", encoding="utf-8-sig", newline="") as file:
         reader = DictReader(file)

@@ -82,8 +82,13 @@ def write_result_csv(
                 "output": _serialize_value(result.output),
             }
             for name in scorer_names:
-                score_obj = result.scores.get(name)
-                row[f"score_{name}"] = str(score_obj.score) if score_obj else ""
+                score_val = result.scores.get(name)
+                if score_val is None:
+                    row[f"score_{name}"] = ""
+                elif isinstance(score_val, (int, float)):
+                    row[f"score_{name}"] = str(score_val)
+                else:
+                    row[f"score_{name}"] = str(score_val.score)
 
             writer.writerow(row)
 

@@ -75,6 +75,26 @@ class TestDiscoverScenarios:
 
         assert discover_scenarios(tmp_path) == ["alpha", "middle", "zebra"]
 
+    def test_rejects_directory_name_with_spaces(self, tmp_path: Path) -> None:
+        d = tmp_path / "response quality"
+        d.mkdir()
+        (d / "eval_spec.yaml").write_text("name: response_quality\n")
+
+        from backend.evals.eval_runner import discover_scenarios
+
+        with pytest.raises(ValueError, match="invalid characters"):
+            discover_scenarios(tmp_path)
+
+    def test_space_name_suggestion_uses_underscore(self, tmp_path: Path) -> None:
+        d = tmp_path / "response quality"
+        d.mkdir()
+        (d / "eval_spec.yaml").write_text("name: response_quality\n")
+
+        from backend.evals.eval_runner import discover_scenarios
+
+        with pytest.raises(ValueError, match="response_quality"):
+            discover_scenarios(tmp_path)
+
 
 # ---------------------------------------------------------------------------
 # write_result_csv
@@ -97,7 +117,12 @@ class TestWriteResultCsv:
         from backend.evals.eval_runner import write_result_csv
 
         csv_path = write_result_csv(
-            eval_result, "test_scenario", ["accuracy", "relevance"], tmp_path
+            eval_result,
+            "test_scenario",
+            ["accuracy", "relevance"],
+            tmp_path,
+            original_columns=["prompt"],
+            original_rows=[{"prompt": "hello"}],
         )
 
         assert csv_path.exists()
@@ -106,7 +131,7 @@ class TestWriteResultCsv:
             rows = list(reader)
 
         assert len(rows) == 1
-        assert rows[0]["input"] == "hello"
+        assert rows[0]["prompt"] == "hello"
         assert rows[0]["output"] == "world"
         assert rows[0]["score_accuracy"] == "1.0"
         assert rows[0]["score_relevance"] == "0.5"
@@ -163,32 +188,7 @@ class TestWriteResultCsv:
 
         assert rows[0]["output"] == 'has, commas\nand "quotes"'
 
-    def test_dict_input_is_serialized(self, tmp_path: Path) -> None:
-        eval_result = _make_eval_result(
-            [
-                {
-                    "input": {"prompt": "hello", "context": "world"},
-                    "output": "response",
-                    "scores": {"s": 1.0},
-                },
-            ],
-            ["s"],
-        )
-
-        from backend.evals.eval_runner import write_result_csv
-
-        csv_path = write_result_csv(eval_result, "dict_input", ["s"], tmp_path)
-
-        with csv_path.open("r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-
-        import json
-
-        parsed = json.loads(rows[0]["input"])
-        assert parsed == {"prompt": "hello", "context": "world"}
-
-    def test_dict_output_extracts_response(self, tmp_path: Path) -> None:
+    def test_dict_output_expands_to_output_dot_columns(self, tmp_path: Path) -> None:
         eval_result = _make_eval_result(
             [
                 {
@@ -208,7 +208,8 @@ class TestWriteResultCsv:
             reader = csv.DictReader(f)
             rows = list(reader)
 
-        assert rows[0]["output"] == "answer text"
+        assert rows[0]["output.response"] == "answer text"
+        assert rows[0]["output.model"] == "gpt-4"
 
     def test_creates_output_dir_if_missing(self, tmp_path: Path) -> None:
         output_dir = tmp_path / "nested" / "results"
@@ -223,6 +224,93 @@ class TestWriteResultCsv:
 
         assert csv_path.exists()
         assert output_dir.exists()
+
+    def test_original_columns_preserved_in_result(self, tmp_path: Path) -> None:
+        eval_result = _make_eval_result(
+            [
+                {
+                    "input": "hello",
+                    "output": "world",
+                    "scores": {"s": 1.0},
+                },
+            ],
+            ["s"],
+        )
+
+        from backend.evals.eval_runner import write_result_csv
+
+        csv_path = write_result_csv(
+            eval_result,
+            "test",
+            ["s"],
+            tmp_path,
+            original_columns=["prompt", "notes"],
+            original_rows=[{"prompt": "hello", "notes": "test note"}],
+        )
+
+        with csv_path.open("r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        assert rows[0]["prompt"] == "hello"
+        assert rows[0]["notes"] == "test note"
+        assert rows[0]["output"] == "world"
+
+    def test_error_row_marked_with_error(self, tmp_path: Path) -> None:
+        from backend.evals.eval_runner import _ERROR_MARKER
+
+        results = []
+        results.append(
+            SimpleNamespace(
+                input="ok",
+                output="good",
+                scores={"s": SimpleNamespace(score=1.0)},
+            )
+        )
+        results.append(
+            SimpleNamespace(
+                input="fail",
+                output=_ERROR_MARKER,
+                scores={"s": None},
+            )
+        )
+        eval_result = SimpleNamespace(results=results)
+
+        from backend.evals.eval_runner import write_result_csv
+
+        csv_path = write_result_csv(eval_result, "err", ["s"], tmp_path)
+
+        with csv_path.open("r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        assert rows[0]["output"] == "good"
+        assert rows[0]["score_s"] == "1.0"
+        assert rows[1]["output"] == "ERROR"
+        assert rows[1]["score_s"] == "ERROR"
+
+    def test_scorer_error_marked_distinct_from_zero(self, tmp_path: Path) -> None:
+        from backend.evals.eval_runner import _ERROR_MARKER
+
+        results = [
+            SimpleNamespace(
+                input="q",
+                output="a",
+                scores={"s1": SimpleNamespace(score=0.0), "s2": _ERROR_MARKER},
+            )
+        ]
+        eval_result = SimpleNamespace(results=results)
+
+        from backend.evals.eval_runner import write_result_csv
+
+        csv_path = write_result_csv(eval_result, "mix", ["s1", "s2"], tmp_path)
+
+        with csv_path.open("r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        assert rows[0]["score_s1"] == "0.0"
+        assert rows[0]["score_s2"] == "ERROR"
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +399,7 @@ class TestRunScenario:
             rows = list(reader)
 
         assert len(rows) == 2
-        assert "input" in reader.fieldnames
+        assert "prompt" in reader.fieldnames
         assert "output" in reader.fieldnames
         assert "score_test_scorer" in reader.fieldnames
 
@@ -414,6 +502,48 @@ class TestMainCli:
         assert "no scenarios found" in captured.err.lower()
 
     @patch("backend.evals.eval_runner.run_scenario")
+    def test_all_flag_warns_on_duplicate_config_names(
+        self,
+        mock_run: MagicMock,
+        tmp_path: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        import yaml
+
+        scenarios_dir = tmp_path / "scenarios"
+        for dir_name in ["v1_quality", "v2_quality"]:
+            d = scenarios_dir / dir_name
+            d.mkdir(parents=True)
+            spec = {
+                "name": "response_quality",
+                "csv": "dataset.csv",
+                "task": {"function": "backend.evals.eval_tasks.run_v1"},
+                "column_mapping": {"prompt": "input"},
+                "scorers": [{"name": "s", "function": "some.func"}],
+            }
+            (d / "eval_spec.yaml").write_text(yaml.dump(spec))
+
+        mock_run.side_effect = [
+            tmp_path / "results" / "r1.csv",
+            tmp_path / "results" / "r2.csv",
+        ]
+
+        import logging
+
+        from backend.evals.eval_runner import main
+
+        with patch("backend.evals.eval_runner.logger") as mock_logger:
+            main(
+                ["--all"],
+                scenarios_dir=scenarios_dir,
+                output_dir=tmp_path / "results",
+            )
+
+            mock_logger.warning.assert_called_once()
+            warning_args = mock_logger.warning.call_args
+            assert "response_quality" in str(warning_args)
+
+    @patch("backend.evals.eval_runner.run_scenario")
     def test_all_flag_skips_invalid_and_reports_summary(
         self,
         mock_run: MagicMock,
@@ -442,3 +572,107 @@ class TestMainCli:
         captured = capsys.readouterr()
         assert "1 succeeded" in captured.out
         assert "1 skipped" in captured.out
+
+
+# ---------------------------------------------------------------------------
+# _wrap_task
+# ---------------------------------------------------------------------------
+
+
+class TestWrapTask:
+    def test_task_returning_none_returns_error_marker(self) -> None:
+        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_task
+
+        def bad_task(input: Any) -> None:
+            return None
+
+        wrapped = _wrap_task(bad_task)
+        result = wrapped("test")
+        assert result == _ERROR_MARKER
+
+    def test_task_exception_returns_error_marker(self) -> None:
+        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_task
+
+        def crashing_task(input: Any) -> str:
+            raise TimeoutError("timed out")
+
+        wrapped = _wrap_task(crashing_task)
+        result = wrapped("test")
+        assert result == _ERROR_MARKER
+
+    def test_task_normal_return_passes_through(self) -> None:
+        from backend.evals.eval_runner import _wrap_task
+
+        def ok_task(input: Any) -> str:
+            return "result"
+
+        wrapped = _wrap_task(ok_task)
+        assert wrapped("test") == "result"
+
+
+# ---------------------------------------------------------------------------
+# _wrap_scorer
+# ---------------------------------------------------------------------------
+
+
+class TestWrapScorer:
+    def test_scorer_crash_returns_error_marker(self) -> None:
+        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_scorer
+
+        def bad_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
+            raise RuntimeError("boom")
+
+        wrapped = _wrap_scorer(bad_scorer, "bad")
+        result = wrapped(output="a", expected="b")
+        assert result == _ERROR_MARKER
+
+    def test_scorer_normal_return_passes_through(self) -> None:
+        from backend.evals.eval_runner import _wrap_scorer
+
+        def ok_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
+            return 0.5
+
+        wrapped = _wrap_scorer(ok_scorer, "ok")
+        assert wrapped(output="a", expected="b") == 0.5
+
+    def test_scorer_skipped_on_error_row(self) -> None:
+        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_scorer
+
+        call_count = 0
+
+        def counting_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
+            nonlocal call_count
+            call_count += 1
+            return 1.0
+
+        wrapped = _wrap_scorer(counting_scorer, "cnt")
+        result = wrapped(output=_ERROR_MARKER, expected="b")
+        assert result is None
+        assert call_count == 0
+
+
+# ---------------------------------------------------------------------------
+# _convert_cell precision
+# ---------------------------------------------------------------------------
+
+
+class TestConvertCellPrecision:
+    def test_preserves_trailing_zero(self) -> None:
+        from backend.evals.dataset_loader import _convert_cell
+
+        assert _convert_cell("3.10") == "3.10"
+
+    def test_preserves_leading_zero(self) -> None:
+        from backend.evals.dataset_loader import _convert_cell
+
+        assert _convert_cell("001") == "001"
+
+    def test_converts_normal_float(self) -> None:
+        from backend.evals.dataset_loader import _convert_cell
+
+        assert _convert_cell("0.8") == 0.8
+
+    def test_converts_integer_string(self) -> None:
+        from backend.evals.dataset_loader import _convert_cell
+
+        assert _convert_cell("12") == 12.0

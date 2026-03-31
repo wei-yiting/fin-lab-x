@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,7 +22,7 @@ from typing import Any
 from braintrust import Eval, EvalCase
 from dotenv import load_dotenv
 
-from backend.evals.dataset_loader import load_dataset
+from backend.evals.dataset_loader import load_dataset, load_raw_csv_rows
 from backend.evals.scenario_config import (
     load_braintrust_config,
     load_scenario_config,
@@ -33,18 +35,37 @@ SCENARIOS_DIR = Path(__file__).parent / "scenarios"
 DEFAULT_RESULTS_DIR = Path(__file__).parent / "results"
 BRAINTRUST_CONFIG_PATH = Path(__file__).parent / "braintrust_config.yaml"
 
+_VALID_SCENARIO_DIR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+
+logger = logging.getLogger(__name__)
+
+_ERROR_MARKER = "ERROR"
+
 
 def discover_scenarios(scenarios_dir: Path) -> list[str]:
-    """Scan scenarios/ for subdirectories containing eval_spec.yaml."""
+    """Scan scenarios/ for subdirectories containing eval_spec.yaml.
+
+    Raises ValueError for directory names with invalid characters (e.g. spaces).
+    """
     if not scenarios_dir.is_dir():
         return []
 
-    return sorted(
-        entry.name
-        for entry in scenarios_dir.iterdir()
-        if entry.is_dir() and (entry / "eval_spec.yaml").is_file()
-    )
+    names: list[str] = []
+    for entry in sorted(scenarios_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        if not (entry / "eval_spec.yaml").is_file():
+            continue
+        if not _VALID_SCENARIO_DIR_RE.match(entry.name):
+            suggestion = re.sub(r"[^A-Za-z0-9_-]", "_", entry.name)
+            raise ValueError(
+                f"Scenario directory name '{entry.name}' contains invalid characters. "
+                f"Use only alphanumerics, hyphens, and underscores. "
+                f"Suggestion: '{suggestion}'"
+            )
+        names.append(entry.name)
 
+    return names
 
 
 def _serialize_value(value: Any) -> str:
@@ -56,15 +77,67 @@ def _serialize_value(value: Any) -> str:
     return str(value)
 
 
+def _flatten_output(output: Any) -> dict[str, str]:
+    """Flatten an output value into output.* columns.
+
+    If output is a dict, each key becomes output.{key}.
+    Otherwise, a single output column is used.
+    """
+    if isinstance(output, dict):
+        return {
+            f"output.{key}": _serialize_value(val) if isinstance(val, dict) else str(val)
+            for key, val in output.items()
+        }
+    return {"output": str(output)}
+
+
+def _wrap_task(task_fn: Any) -> Any:
+    """Wrap the task function to catch exceptions and None returns."""
+
+    def wrapped(input: Any) -> Any:
+        try:
+            result = task_fn(input)
+        except Exception:
+            logger.error("Task function raised an exception", exc_info=True)
+            return _ERROR_MARKER
+        if result is None:
+            logger.error(
+                "Task function returned None. Ensure the function has a return statement."
+            )
+            return _ERROR_MARKER
+        return result
+
+    return wrapped
+
+
+def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
+    """Wrap a scorer to isolate failures from other scorers."""
+
+    def wrapped(*, output: Any, expected: Any, **kwargs: Any) -> Any:
+        if output == _ERROR_MARKER:
+            return None
+        try:
+            return scorer_fn(output=output, expected=expected, **kwargs)
+        except Exception:
+            logger.warning("Scorer '%s' raised an exception", scorer_name, exc_info=True)
+            return _ERROR_MARKER
+
+    wrapped.__name__ = scorer_name
+    return wrapped
+
+
 def write_result_csv(
     eval_result: Any,
     scenario_name: str,
     scorer_names: list[str],
     output_dir: Path,
+    *,
+    original_columns: list[str] | None = None,
+    original_rows: list[dict[str, str]] | None = None,
 ) -> Path:
     """Write eval results to a timestamped CSV file.
 
-    CSV columns: input, output, score_{name} for each scorer.
+    CSV columns: original CSV columns (if provided) + output.* columns + score_{name} columns.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -73,21 +146,53 @@ def write_result_csv(
     csv_path = output_dir / filename
 
     score_columns = [f"score_{name}" for name in scorer_names]
-    fieldnames = ["input", "output", *score_columns]
+
+    # Collect all output keys to determine columns
+    all_output_keys: list[str] = []
+    flattened_outputs: list[dict[str, str]] = []
+    for result in eval_result.results:
+        flat = _flatten_output(result.output)
+        flattened_outputs.append(flat)
+        for key in flat:
+            if key not in all_output_keys:
+                all_output_keys.append(key)
+
+    orig_cols = original_columns or []
+    fieldnames = [*orig_cols, *all_output_keys, *score_columns]
 
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
 
-        for result in eval_result.results:
-            row: dict[str, str] = {
-                "input": _serialize_value(result.input),
-                "output": _serialize_value(result.output),
-            }
+        for idx, result in enumerate(eval_result.results):
+            row: dict[str, str] = {}
+
+            # Include original CSV columns
+            if original_rows and idx < len(original_rows):
+                for col in orig_cols:
+                    row[col] = original_rows[idx].get(col, "")
+
+            # Output columns
+            flat_output = flattened_outputs[idx]
+            is_error_row = (result.output == _ERROR_MARKER)
+
+            if is_error_row:
+                for key in all_output_keys:
+                    row[key] = _ERROR_MARKER
+            else:
+                for key in all_output_keys:
+                    row[key] = flat_output.get(key, "")
+
+            # Score columns
             for name in scorer_names:
+                if is_error_row:
+                    row[f"score_{name}"] = _ERROR_MARKER
+                    continue
                 score_val = result.scores.get(name)
-                if score_val is None:
-                    row[f"score_{name}"] = ""
+                if score_val == _ERROR_MARKER:
+                    row[f"score_{name}"] = _ERROR_MARKER
+                elif score_val is None:
+                    row[f"score_{name}"] = _ERROR_MARKER
                 elif isinstance(score_val, (int, float)):
                     row[f"score_{name}"] = str(score_val)
                 else:
@@ -125,6 +230,7 @@ def run_scenario(
     if not csv_path.is_file():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
+    original_columns, original_rows = load_raw_csv_rows(csv_path)
     raw_data = load_dataset(csv_path, config.column_mapping)
     eval_cases = [
         EvalCase(
@@ -136,6 +242,13 @@ def run_scenario(
     ]
     scorers = resolve_scorers(config.scorers)
     task_fn = resolve_function(config.task.function, label="task")
+
+    scorer_names = [s.name for s in config.scorers]
+    wrapped_task = _wrap_task(task_fn)
+    wrapped_scorers = [
+        _wrap_scorer(scorer, name)
+        for scorer, name in zip(scorers, scorer_names)
+    ]
 
     bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
     experiment_name = f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
@@ -152,14 +265,20 @@ def run_scenario(
     eval_result = Eval(
         bt_config.project,
         data=eval_cases,
-        task=task_fn,
-        scores=scorers,
+        task=wrapped_task,
+        scores=wrapped_scorers,
         experiment_name=experiment_name,
         no_send_logs=local_only,
     )
 
-    scorer_names = [s.name for s in config.scorers]
-    return write_result_csv(eval_result, scenario_name, scorer_names, output_dir)
+    return write_result_csv(
+        eval_result,
+        scenario_name,
+        scorer_names,
+        output_dir,
+        original_columns=original_columns,
+        original_rows=original_rows,
+    )
 
 
 def _init_platform_tracing(project: str, api_key: str) -> None:
@@ -204,6 +323,9 @@ def main(
             print("No scenarios found.", file=sys.stderr)
             raise SystemExit(1)
 
+        # Detect duplicate config names across scenarios
+        _check_duplicate_config_names(available, scenarios_dir)
+
         succeeded = 0
         skipped = 0
         for name in available:
@@ -237,6 +359,28 @@ def main(
         scenarios_dir=scenarios_dir,
     )
     print(f"Result: {result_path}")
+
+
+def _check_duplicate_config_names(
+    scenario_dirs: list[str], scenarios_dir: Path
+) -> None:
+    """Warn if multiple scenario directories share the same config name."""
+    seen: dict[str, str] = {}
+    for dir_name in scenario_dirs:
+        config_path = scenarios_dir / dir_name / "eval_spec.yaml"
+        try:
+            config = load_scenario_config(config_path)
+        except Exception:
+            continue
+        if config.name in seen:
+            logger.warning(
+                "Duplicate experiment name '%s' found in scenarios '%s' and '%s'",
+                config.name,
+                seen[config.name],
+                dir_name,
+            )
+        else:
+            seen[config.name] = dir_name
 
 
 if __name__ == "__main__":

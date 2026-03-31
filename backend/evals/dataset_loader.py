@@ -8,7 +8,11 @@ ALLOWED_BUCKETS = {"input", "expected", "metadata"}
 
 
 def _convert_cell(value: str | None) -> Any:
-    """Convert CSV cell text into the expected Braintrust data type."""
+    """Convert CSV cell text into the expected Braintrust data type.
+
+    Preserves string form when float conversion would lose information
+    (e.g. leading zeros like "001", or trailing precision like "3.10").
+    """
     if value is None or value == "":
         return None
 
@@ -19,9 +23,21 @@ def _convert_cell(value: str | None) -> Any:
         return False
 
     try:
-        return float(value)
+        float_val = float(value)
     except ValueError:
         return value
+
+    # Keep as string if round-trip through float loses information
+    if str(float_val) == value:
+        return float_val
+
+    # Try int round-trip for values like "12" (float gives "12.0")
+    if float_val == int(float_val):
+        int_val = int(float_val)
+        if str(int_val) == value:
+            return float_val
+
+    return value
 
 
 def _set_nested_value(target: dict[str, Any], path: list[str], value: Any) -> None:
@@ -58,6 +74,14 @@ def _validate_column_mapping(column_mapping: dict[str, str]) -> None:
     """Validate target paths before row processing begins."""
     for target_path in column_mapping.values():
         _validate_target_path(target_path)
+
+
+def load_raw_csv_rows(csv_path: Path) -> tuple[list[str], list[dict[str, str]]]:
+    """Read CSV and return (header_columns, raw_rows) with original string values."""
+    with csv_path.open("r", encoding="utf-8-sig", newline="") as file:
+        reader = DictReader(file)
+        header_columns = list(reader.fieldnames or [])
+        return header_columns, [dict(row) for row in reader]
 
 
 def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[str, Any]]:

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from braintrust import Eval
+from braintrust import Eval, EvalCase
 
 from backend.evals.dataset_loader import load_dataset
 from backend.evals.scenario_config import (
@@ -122,7 +122,15 @@ def run_scenario(
     if not csv_path.is_file():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
-    data = load_dataset(csv_path, config.column_mapping)
+    raw_data = load_dataset(csv_path, config.column_mapping)
+    eval_cases = [
+        EvalCase(
+            input=row["input"],
+            expected=row.get("expected"),
+            metadata=row.get("metadata"),
+        )
+        for row in raw_data
+    ]
     scorers = resolve_scorers(config.scorers)
     task_fn = resolve_function(config.task.function, label="task")
 
@@ -140,7 +148,7 @@ def run_scenario(
 
     eval_result = Eval(
         bt_config.project,
-        data=data,
+        data=eval_cases,
         task=task_fn,
         scores=scorers,
         experiment_name=experiment_name,
@@ -157,10 +165,10 @@ def _init_platform_tracing(project: str, api_key: str) -> None:
 
     init_logger(project=project, api_key=api_key)
 
-    from braintrust_langchain import BraintrustCallbackHandler
-    from langchain_core.globals import set_global_handler
+    from braintrust_langchain import BraintrustCallbackHandler, set_global_handler
 
-    set_global_handler(BraintrustCallbackHandler())
+    handler = BraintrustCallbackHandler()
+    set_global_handler(handler)
 
 
 def main(

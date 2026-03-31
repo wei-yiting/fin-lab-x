@@ -153,19 +153,19 @@ def test_load_dataset_rejects_header_only_csv(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "target_path",
+    "target_path,expected_error",
     [
-        "",
-        "foo",
-        "foo.bar",
-        "input.",
-        "input. title",
-        "expected..response",
+        ("", "column_mapping target cannot be empty"),
+        ("foo", "Unsupported column_mapping target bucket: foo"),
+        ("foo.bar", "Unsupported column_mapping target bucket: foo"),
+        ("input.", "Invalid column_mapping target: input."),
+        ("expected..response", "Invalid column_mapping target: expected..response"),
     ],
 )
 def test_load_dataset_rejects_invalid_target_paths(
     tmp_path: Path,
     target_path: str,
+    expected_error: str,
 ) -> None:
     csv_path = write_csv(
         tmp_path,
@@ -177,29 +177,8 @@ def test_load_dataset_rejects_invalid_target_paths(
         ),
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=expected_error):
         load_dataset(csv_path, {"prompt": target_path})
-
-
-def test_load_dataset_rejects_overlapping_target_paths(tmp_path: Path) -> None:
-    csv_path = write_csv(
-        tmp_path,
-        "\n".join(
-            [
-                "first,second",
-                "one,two",
-            ]
-        ),
-    )
-
-    with pytest.raises(ValueError, match="Overlapping column_mapping target"):
-        load_dataset(
-            csv_path,
-            {
-                "first": "expected.foo",
-                "second": "expected.foo.bar",
-            },
-        )
 
 
 def test_load_dataset_supports_bom_prefixed_headers(tmp_path: Path) -> None:

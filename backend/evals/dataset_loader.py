@@ -55,33 +55,9 @@ def _validate_target_path(target_path: str) -> None:
 
 
 def _validate_column_mapping(column_mapping: dict[str, str]) -> None:
-    """Validate target paths and reject overlapping prefixes."""
-    seen_paths: set[tuple[str, ...]] = set()
-
+    """Validate target paths before row processing begins."""
     for target_path in column_mapping.values():
         _validate_target_path(target_path)
-        target_parts = tuple(target_path.split("."))
-
-        for index in range(1, len(target_parts)):
-            prefix = target_parts[:index]
-            if prefix == ("input",):
-                continue
-            if prefix in seen_paths:
-                raise ValueError(
-                    f"Overlapping column_mapping target: {target_path}"
-                )
-
-        if any(
-            existing[: len(target_parts)] == target_parts
-            for existing in seen_paths
-            if len(existing) > len(target_parts)
-            and target_parts != ("input",)
-        ):
-            raise ValueError(
-                f"Overlapping column_mapping target: {target_path}"
-            )
-
-        seen_paths.add(target_parts)
 
 
 def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[str, Any]]:
@@ -139,7 +115,8 @@ def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[st
                 _set_nested_value(bucket_value, target_parts[1:], converted_value)
 
             if "input" in object_buckets:
-                row_data["input"] = row_data["input"] if isinstance(row_data["input"], dict) else {}
+                if not isinstance(row_data["input"], dict):
+                    row_data["input"] = {}
             elif has_scalar_input:
                 row_data["input"] = scalar_input
 

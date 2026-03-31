@@ -186,3 +186,10 @@ Prefer programmatic whenever possible. LLM judges add a second layer of non-dete
 2. Add a corresponding parametrized test in `test_*.py` (or extend an existing dataset list)
 3. Mark every test function with `@pytest.mark.eval`
 4. Run `uv run pytest backend/evals/ -m eval -v` to verify
+
+## Future Implementation
+
+When we add LlamaIndex-based evals later, the Braintrust integration should
+use `braintrust[otel]` together with an OpenTelemetry exporter. That keeps the
+trace pipeline explicit and avoids mixing evaluation logic with ad hoc
+instrumentation in the test code.

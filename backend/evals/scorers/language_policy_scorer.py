@@ -30,15 +30,12 @@ def tool_arg_no_cjk(output: Any, expected: Any, *, input: Any) -> Score:
     if not isinstance(tool_outputs, list):
         tool_outputs = []
 
-    matched_tool = False
-
     for tool_output in tool_outputs:
         tool_output_mapping = _as_mapping(tool_output)
         current_tool = tool_output_mapping.get("tool")
         if tool_name is not None and current_tool != tool_name:
             continue
 
-        matched_tool = True
         args = _as_mapping(tool_output_mapping.get("args", {}))
         for arg_key, arg_value in args.items():
             if not isinstance(arg_value, str):
@@ -49,9 +46,6 @@ def tool_arg_no_cjk(output: Any, expected: Any, *, input: Any) -> Score:
                 continue
             if contains_cjk(arg_value):
                 return Score(name="tool_arg_no_cjk", score=0.0)
-
-    if tool_name is not None and not matched_tool:
-        return Score(name="tool_arg_no_cjk", score=0.0)
 
     return Score(name="tool_arg_no_cjk", score=1.0)
 

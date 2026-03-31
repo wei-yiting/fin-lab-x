@@ -151,6 +151,44 @@ def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:
     assert result["score"] == 0.0
 
 
+def test_tool_arg_no_cjk_ignores_non_matching_tool_outputs() -> None:
+    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+
+    result = tool_arg_no_cjk(
+        {
+            "tool_outputs": [
+                {
+                    "tool": "other_tool",
+                    "args": {"query": "微軟最新新聞"},
+                }
+            ]
+        },
+        {"search_query_no_cjk": True, "tool": "tavily_financial_search"},
+        input="What is the latest news about MSFT?",
+    )
+
+    assert result["score"] == 1.0
+
+
+def test_tool_arg_no_cjk_passes_when_expected_tool_is_missing() -> None:
+    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+
+    result = tool_arg_no_cjk(
+        {
+            "tool_outputs": [
+                {
+                    "tool": "other_tool",
+                    "args": {"query": "latest news about MSFT"},
+                }
+            ]
+        },
+        {"search_query_no_cjk": True, "tool": "tavily_financial_search"},
+        input="What is the latest news about MSFT?",
+    )
+
+    assert result["score"] == 1.0
+
+
 @pytest.mark.parametrize(
     ("ticker", "expected_score"),
     [

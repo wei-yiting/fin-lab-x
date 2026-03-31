@@ -123,7 +123,7 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
             return result
         except Exception:
             logger.warning("Scorer '%s' raised an exception", scorer_name, exc_info=True)
-            return _ERROR_MARKER
+            return None
 
     wrapped.__name__ = scorer_name
     return wrapped

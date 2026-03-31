@@ -290,13 +290,11 @@ class TestWriteResultCsv:
         assert rows[1]["score_s"] == "ERROR"
 
     def test_scorer_error_marked_distinct_from_zero(self, tmp_path: Path) -> None:
-        from backend.evals.eval_runner import _ERROR_MARKER
-
         results = [
             SimpleNamespace(
                 input="q",
                 output="a",
-                scores={"s1": SimpleNamespace(score=0.0), "s2": _ERROR_MARKER},
+                scores={"s1": SimpleNamespace(score=0.0), "s2": None},
             )
         ]
         eval_result = SimpleNamespace(results=results)
@@ -616,15 +614,15 @@ class TestWrapTask:
 
 
 class TestWrapScorer:
-    def test_scorer_crash_returns_error_marker(self) -> None:
-        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_scorer
+    def test_scorer_crash_returns_none(self) -> None:
+        from backend.evals.eval_runner import _wrap_scorer
 
         def bad_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
             raise RuntimeError("boom")
 
         wrapped = _wrap_scorer(bad_scorer, "bad")
         result = wrapped(output="a", expected="b")
-        assert result == _ERROR_MARKER
+        assert result is None
 
     def test_scorer_normal_return_passes_through(self) -> None:
         from backend.evals.eval_runner import _wrap_scorer

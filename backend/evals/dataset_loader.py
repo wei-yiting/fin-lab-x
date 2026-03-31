@@ -4,6 +4,8 @@ from csv import DictReader
 from pathlib import Path
 from typing import Any
 
+ALLOWED_BUCKETS = {"input", "expected", "metadata"}
+
 
 def _convert_cell(value: str | None) -> Any:
     """Convert CSV cell text into the expected Braintrust data type."""
@@ -34,9 +36,28 @@ def _set_nested_value(target: dict[str, Any], path: list[str], value: Any) -> No
     current[path[-1]] = value
 
 
+def _validate_target_path(target_path: str) -> None:
+    """Reject unsupported or malformed target paths before row processing."""
+    if not target_path:
+        raise ValueError("column_mapping target cannot be empty")
+
+    target_parts = target_path.split(".")
+    if any(part == "" for part in target_parts):
+        raise ValueError(f"Invalid column_mapping target: {target_path}")
+
+    bucket_name = target_parts[0]
+    if bucket_name not in ALLOWED_BUCKETS:
+        raise ValueError(
+            f"Unsupported column_mapping target bucket: {bucket_name}"
+        )
+
+
 def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[str, Any]]:
     """Read CSV and transform it into Braintrust Eval() data format."""
-    with csv_path.open("r", encoding="utf-8", newline="") as file:
+    for target_path in column_mapping.values():
+        _validate_target_path(target_path)
+
+    with csv_path.open("r", encoding="utf-8-sig", newline="") as file:
         reader = DictReader(file)
         header_columns = reader.fieldnames or []
         missing_columns = [

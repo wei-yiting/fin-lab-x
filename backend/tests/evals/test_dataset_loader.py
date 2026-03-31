@@ -152,6 +152,55 @@ def test_load_dataset_rejects_header_only_csv(tmp_path: Path) -> None:
         load_dataset(csv_path, {"prompt": "input", "answer": "expected.response"})
 
 
+@pytest.mark.parametrize(
+    "target_path",
+    [
+        "",
+        "foo",
+        "foo.bar",
+        "input.",
+        "expected..response",
+    ],
+)
+def test_load_dataset_rejects_invalid_target_paths(
+    tmp_path: Path,
+    target_path: str,
+) -> None:
+    csv_path = write_csv(
+        tmp_path,
+        "\n".join(
+            [
+                "prompt",
+                "hello",
+            ]
+        ),
+    )
+
+    with pytest.raises(ValueError):
+        load_dataset(csv_path, {"prompt": target_path})
+
+
+def test_load_dataset_supports_bom_prefixed_headers(tmp_path: Path) -> None:
+    csv_path = tmp_path / "dataset.csv"
+    csv_path.write_text(
+        "\ufeffprompt,answer\nHello world,ok\n",
+        encoding="utf-8",
+    )
+
+    rows = load_dataset(
+        csv_path,
+        {"prompt": "input", "answer": "expected.response"},
+    )
+
+    assert rows == [
+        {
+            "input": "Hello world",
+            "expected": {"response": "ok"},
+            "metadata": {},
+        }
+    ]
+
+
 def test_load_dataset_preserves_cjk_content(tmp_path: Path) -> None:
     csv_path = write_csv(
         tmp_path,

@@ -37,5 +37,8 @@ line-length = 88
 
 [dependency-groups]
 dev = [
+    "autoevals",
+    "braintrust",
+    "braintrust-langchain",
     "pyright>=1.1.408",
 ]

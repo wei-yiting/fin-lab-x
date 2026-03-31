@@ -14,10 +14,10 @@
 
 ### 平台分工
 
-| 平台           | 角色                                                             |
-| -------------- | ---------------------------------------------------------------- |
-| **Langfuse**   | Production tracing 與 observability（已整合）                    |
-| **Braintrust** | Offline evaluation 實驗：執行、評分、實驗 diff、trace drill-down |
+| 平台           | 角色                                                             | 何時啟用 |
+| -------------- | ---------------------------------------------------------------- | -------- |
+| **Langfuse**   | Tracing 與 observability                                        | 永遠（local + production） |
+| **Braintrust** | Evaluation 實驗：執行、評分、實驗 diff、trace drill-down         | 僅 eval runner process |
 
 ---
 
@@ -80,19 +80,26 @@ scorers:
 
   - name: string
     type: llm_judge
-    rubric: string              # prompt template，可用 {input}, {expected.field} 插值
+    rubric: string              # Mustache prompt template，可用 {{input}}, {{expected.field}} 插值
+    model: string               # (optional) LLM model，如 "gpt-4o"，預設走 Braintrust proxy
+    use_cot: bool               # (optional) chain-of-thought，LLM 先推理再給分，預設 false
+    choice_scores:              # (optional) LLM 選項 → 分數 mapping，預設 {"Y": 1.0, "N": 0.0}
+      Y: 1.0
+      N: 0.0
 ```
 
 ### Scorer function 簽名
 
-所有 scorer 統一簽名，對齊 Braintrust convention：
+所有 scorer 統一簽名，對齊 autoevals / Braintrust convention：
 
 ```
-(input, output, expected) → {"name": str, "score": float}
+(output, expected, *, input) → Score(name: str, score: float)
 ```
 
+- 參數順序為 `(output, expected, *, input)`——`input` 為 keyword-only，與 `autoevals.LLMClassifier` 一致
 - `name`：scorer 的顯示名稱，用於 Braintrust UI 和 result CSV 的欄位名（如 `score_factuality`）
 - `score`：0~1 之間的浮點數，1 = 完全通過，0 = 完全失敗
+- Programmatic scorer 直接實作此簽名；`llm_judge` 類型由 `autoevals.LLMClassifier` 實例提供
 
 ### Eval Runner CLI 介面
 
@@ -127,7 +134,7 @@ graph TD
 
     subgraph Execution["2. EXECUTION（透過 Braintrust Eval()）"]
         Task["呼叫 task function（run agent）<br/>→ 取得 output"]
-        Score["對每個 scorer 執行<br/>scorer(input, output, expected) → score"]
+        Score["對每個 scorer 執行<br/>scorer(output, expected, input=input) → score"]
         Trace["Braintrust 自動捕捉<br/>執行過程中的 traces"]
         Task --> Score
         Task --> Trace
@@ -148,26 +155,48 @@ graph TD
 | 決策                  | 選擇                                                        | 理由                                         |
 | --------------------- | ----------------------------------------------------------- | -------------------------------------------- |
 | Task function 來源    | config.yaml 指定 Python dotpath                             | 不同 scenario 可能測試不同的 agent 或 prompt |
-| LLM-judge 的 LLM 呼叫 | 在 scorer 內部處理，runner 不管                             | 保持 scorer 介面統一                         |
+| LLM-judge 的 LLM 呼叫 | 使用 `autoevals.LLMClassifier`，Mustache rubric + tool calling 取結構化輸出 | 原生整合 Braintrust `Eval()`，scorer 介面統一 |
 | Result CSV 命名       | `{scenario}_{timestamp}.csv`                                | 每次執行都保留，不覆蓋，方便回溯標注         |
 | Braintrust 開關       | `--local-only` flag                                         | 開發時可純 local，正式比較時送 Braintrust    |
-| Trace 目的地          | Eval 的 trace 進 Braintrust；production trace 留在 Langfuse | 清楚區分 eval 與 production 情境             |
+| Trace 目的地          | Eval runner 同時送 Braintrust + Langfuse；production 只送 Langfuse | Eval 時兩個 dashboard 都可以看；production 只看 Langfuse |
 | Result CSV 預設路徑   | `results/`（相對於 evals 目錄），可用 `--output-dir` 覆寫    | 不指定時有合理預設，減少必填參數             |
 
 ---
 
 ## 4. Braintrust 整合
 
-### Trace 捕捉設定
+### Dual Platform 共存模型
 
-Braintrust 對 LangGraph 和 LlamaIndex 的 trace 捕捉並非零設定，需要少量整合程式碼（類似 Langfuse）：
+Eval runner process 中，Langfuse 和 Braintrust **同時作為 LangChain callback handler** 存在。兩者走不同的 callback 註冊路徑，互不衝突：
+
+| Platform | 註冊方式 | 生命週期 | 職責 |
+|----------|---------|---------|------|
+| **Braintrust** | `set_global_handler()` — 全域，eval runner 啟動時設定一次 | Process-wide | Eval experiment tracking + scoring |
+| **Langfuse** | `config={"callbacks": [handler]}` — per-request，agent 呼叫時傳入 | Per-invocation | Trace observability |
+
+- Braintrust 的 `set_global_handler()` **只在 eval runner entry point 呼叫**，不在 shared agent code 或 API server 中。API server process 不會 import braintrust 相關模組。
+- Production 環境只有 Langfuse，Braintrust 完全不存在。
+- 不使用 OpenTelemetry 做雙平台共存——走 LangChain callback 路徑，避免 OTel global TracerProvider 衝突。
+
+### Trace 捕捉設定
 
 | Framework | 整合方式 | 設定量 |
 |-----------|---------|--------|
-| **LangGraph** | `BraintrustCallbackHandler` 傳入 LangChain callback system | 約 2-3 行 |
-| **LlamaIndex** | OpenTelemetry exporter 指向 Braintrust endpoint | 約 3-4 行 |
+| **LangGraph** | `BraintrustCallbackHandler` 透過 `set_global_handler()` 全域註冊 | 約 2-3 行（eval runner entry point） |
+| **LlamaIndex** | OpenTelemetry exporter 指向 Braintrust endpoint | 約 3-4 行（未來 scope） |
 
-此整合程式碼寫在 task function 內部，由 implementation plan 階段具體定義。
+### Eval Task Function 與 Streaming
+
+Eval task function **必須回傳完整結果**（scorer 需要完整 output 才能計分）。但 task function 內部可以用 `astream()` 執行 agent——callback handler 會捕捉所有 streaming 過程中的 spans（LLM call、tool call、node transition），不受 streaming 影響。
+
+```
+task_fn(input)
+  → agent.astream(input)     # 內部 streaming，callback handlers 捕捉所有 spans
+  → 蒐集所有 chunks          # 組成完整結果
+  → return complete_result   # 回傳給 scorer 計分
+```
+
+不要在 task function 裡直接 yield 或回傳 generator。
 
 ### 整合範圍
 
@@ -239,8 +268,8 @@ graph TD
 | -------------------------------------------------------- | ------------------------------------------------- |
 | CSV 必須可在 Google Sheets 中編輯                        | 欄位值為 flat string / number，不能有 nested JSON |
 | Braintrust `Eval()` 預期 `{input, expected, metadata}`   | column_mapping 必須能將 CSV 組裝成這三個 bucket   |
-| Scorer 簽名固定為 `(input, output, expected) → score`    | 所有 scoring 邏輯（含 LLM-judge）都必須符合此介面 |
-| Eval trace 進 Braintrust；production trace 留在 Langfuse | 依情境清楚分離平台                                |
+| Scorer 簽名固定為 `(output, expected, *, input) → Score`  | 對齊 autoevals convention，所有 scoring 邏輯（含 LLM-judge）符合此介面 |
+| Eval runner 同時掛 Braintrust + Langfuse；production 只有 Langfuse | Eval 時兩者共存（走 LangChain callback，不走 OTel）；production 不 import braintrust |
 
 ### 取捨
 
@@ -266,7 +295,7 @@ graph TD
 | ------------------------------ | ----------------------------------------------------------- | ---------------- |
 | CSV 讀取 + column mapping 正確 | 給定 CSV + config → 驗證 `{input, expected, metadata}` 結構 | Unit test        |
 | Scorer registry 解析           | config 裡的 dotpath 正確 resolve 到 Python function         | Unit test        |
-| LLM-judge rubric 插值          | `{expected.must_mention}` 正確帶入 per-case 值              | Unit test        |
+| LLM-judge rubric 插值          | `{{expected.must_mention}}` 正確帶入 per-case 值（Mustache 語法） | Unit test        |
 | Scenario discovery             | 正確結構的資料夾被找到，缺檔的會報錯                        | Unit test        |
 | 端對端 eval 執行               | Mock task + 小 CSV，跑完整流程驗證 result CSV 輸出格式      | Integration test |
 | Braintrust local 整合          | `local_mode=true` 跑 `Eval()`，驗證 scores 結構正確         | Integration test |

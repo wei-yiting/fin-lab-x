@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from braintrust import Eval, EvalCase
+from dotenv import load_dotenv
 
 from backend.evals.dataset_loader import load_dataset
 from backend.evals.scenario_config import (
@@ -25,6 +26,8 @@ from backend.evals.scenario_config import (
     load_scenario_config,
 )
 from backend.evals.scorer_registry import resolve_function, resolve_scorers
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 SCENARIOS_DIR = Path(__file__).parent / "scenarios"
 DEFAULT_RESULTS_DIR = Path(__file__).parent / "results"

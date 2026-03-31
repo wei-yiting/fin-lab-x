@@ -1,9 +1,9 @@
 """Tests for evaluation scenario configuration loading."""
 
 from pathlib import Path
+import textwrap
 
 import pytest
-from pydantic import ValidationError
 
 from backend.evals.scenario_config import (
     BraintrustConfig,
@@ -58,6 +58,26 @@ scorers:
     assert config.scorers[1].choice_scores == {"pass": 1.0, "fail": 0.0}
 
 
+def test_load_scenario_config_unknown_field_fails(tmp_path: Path) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: sample-eval
+unexpected: value
+task:
+  function: backend.evals.tasks.run_sample_task
+column_mapping:
+  prompt: input_text
+scorers:
+  - name: programmatic_score
+    function: backend.evals.scorers.score_response
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
+        load_scenario_config(config_path)
+
+
 def test_load_scenario_config_missing_task_function_raises_validation_error(
     tmp_path: Path,
 ) -> None:
@@ -73,7 +93,69 @@ scorers:
 """.strip()
     )
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
+        load_scenario_config(config_path)
+
+
+@pytest.mark.parametrize(
+    "scorer_yaml",
+    [
+        """
+  - name: judge_score
+    type: llm_judge
+    function: backend.evals.scorers.score_response
+    rubric: Evaluate response quality
+""",
+        """
+  - name: judge_score
+    type: llm_judge
+    model: gpt-4.1
+""",
+    ],
+)
+def test_load_scenario_config_invalid_scorer_shape_fails(
+    tmp_path: Path,
+    scorer_yaml: str,
+) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    scorer_block = textwrap.indent(textwrap.dedent(scorer_yaml).strip(), "  ")
+    config_path.write_text(
+        "\n".join(
+            [
+                "name: scorer-eval",
+                "task:",
+                "  function: backend.evals.tasks.run_sample_task",
+                "column_mapping:",
+                "  prompt: input_text",
+                "scorers:",
+                scorer_block,
+            ]
+        )
+    )
+
+    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
+        load_scenario_config(config_path)
+
+
+def test_load_scenario_config_duplicate_scorer_names_fail(tmp_path: Path) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: duplicate-scorers
+task:
+  function: backend.evals.tasks.run_sample_task
+column_mapping:
+  prompt: input_text
+scorers:
+  - name: judge_score
+    type: llm_judge
+    rubric: Evaluate response quality
+  - name: judge_score
+    function: backend.evals.scorers.score_response
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
         load_scenario_config(config_path)
 
 
@@ -102,7 +184,23 @@ scorers:
 """.strip()
     )
 
-    with pytest.raises(ValueError, match="Invalid YAML"):
+    with pytest.raises(ValueError, match=f"Invalid YAML in {config_path}"):
+        load_scenario_config(config_path)
+
+
+def test_load_scenario_config_top_level_non_mapping_fails_cleanly(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+- name: sample-eval
+- task:
+    function: backend.evals.tasks.run_sample_task
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match="must be a mapping"):
         load_scenario_config(config_path)
 
 
@@ -136,7 +234,7 @@ scorers:
     assert config.scorers[1].rubric == "Judge with a rubric"
     assert config.scorers[1].model == "gpt-4.1"
     assert config.scorers[1].use_cot is False
-    assert config.scorers[1].choice_scores is None
+    assert config.scorers[1].choice_scores == {"Y": 1.0, "N": 0.0}
 
 
 def test_load_braintrust_config_applies_project_default_when_omitted(

@@ -10,11 +10,11 @@ from typing import Any
 
 from autoevals import LLMClassifier  # pyright: ignore[reportMissingImports]
 
+from backend.evals.scenario_config import ScorerConfig
+
 logger = logging.getLogger(__name__)
 
 _TEMPLATE_VAR_RE = re.compile(r"\{\{(expected\.\w+|input)\}\}")
-
-from backend.evals.scenario_config import ScorerConfig
 
 
 def resolve_function(dotpath: str, *, label: str = "scorer") -> Callable[..., Any]:

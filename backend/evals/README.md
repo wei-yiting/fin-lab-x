@@ -1,188 +1,204 @@
-# Evaluation Tests
+# Evaluation System
 
-Evaluation tests verify **agent behavior quality** against real LLM APIs. They serve a different purpose from the unit tests in `backend/tests/`:
+> For architecture diagrams, design decisions, and platform integration details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-| | Unit Tests (`backend/tests/`) | Evals (`backend/evals/`) |
-|---|---|---|
-| LLM | Mocked | Real API calls |
-| Nature | Deterministic | Non-deterministic |
-| Duration | < 2s | ~60s |
-| When to run | CI (always) | Manual trigger |
-| Purpose | Verify code logic | Verify agent behavior meets expectations |
+This folder has two different evaluation tracks. They serve different goals and should not be mixed.
 
-## Running Evals
+## Two Evaluation Tracks
 
-> **Note:** `pyproject.toml` sets `testpaths = ["backend/tests"]` and
-> `addopts = "-m 'not eval'"`, so a bare `uv run pytest` runs **unit tests
-> only** and never discovers files under `backend/evals/`. You must
-> explicitly pass the eval directory to run evals.
+| Track                | Goal                                                 | Entry Point                                               | Typical Frequency               | Output                                      |
+| -------------------- | ---------------------------------------------------- | --------------------------------------------------------- | ------------------------------- | ------------------------------------------- |
+| Regression Guardrail | Catch severe regressions on critical behavior        | `pytest` (`backend/evals/test_*.py`)                      | Before merge / release gate     | pytest pass/fail                            |
+| Quality Improvement  | Measure agent quality changes over scenario datasets | `eval_runner` (`python -m backend.evals.eval_runner ...`) | Prompt iteration / model tuning | Result CSV + optional Braintrust experiment |
+
+Use this rule:
+
+- If the question is "did we break critical behavior?" -> **Regression Guardrail** (`pytest`)
+- If the question is "did quality improve across scenarios?" -> **Quality Improvement** (`eval_runner`)
+
+## Running Evaluations
+
+### 1) Quality Improvement (Scenario Runner)
+
+This is the primary flow for dataset-based quality evaluation.
 
 ```bash
-# Run evals only (must specify path explicitly)
+# Local mode (recommended for development)
+uv run python -m backend.evals.eval_runner language_policy --local-only
+
+# Platform mode (uploads to Braintrust)
+uv run python -m backend.evals.eval_runner language_policy
+
+# Run all scenarios
+uv run python -m backend.evals.eval_runner --all --local-only
+
+# Custom output folder
+uv run python -m backend.evals.eval_runner language_policy --local-only --output-dir ./tmp/eval-results
+```
+
+### 2) Regression Guardrail (pytest)
+
+Use this for a compact "no serious regression" signal.
+
+```bash
+# Run guardrail eval tests
 uv run pytest backend/evals/ -m eval -v --tb=short
 
-# Run unit tests only (CI default — just use bare pytest)
-uv run pytest
-
-# Run a specific scenario
+# Run one case
 uv run pytest backend/evals/ -m eval -k "LP-01" -v
 
-# Run everything (unit tests + evals — override addopts)
-uv run pytest backend/tests/ backend/evals/ -m "" -v
+# Unit tests only (CI default)
+uv run pytest
 ```
 
-All eval test functions are marked with `@pytest.mark.eval`. The default
-`addopts` excludes them, so CI never hits real APIs unless you opt in.
-
-## Marker Convention
-
-Every test function in `backend/evals/` **must** be decorated with `@pytest.mark.eval`:
-
-```python
-import pytest
-
-@pytest.mark.eval
-def test_something(orchestrator):
-    ...
-```
-
-When combined with `@pytest.mark.parametrize`, the `eval` marker goes first:
-
-```python
-@pytest.mark.eval
-@pytest.mark.parametrize("case", CASES, ids=[c.id for c in CASES])
-def test_language_policy(orchestrator, case):
-    ...
-```
-
-### Why this matters
-
-The marker is what separates evals from unit tests at execution time. Without it, `pytest -m "not eval"` (the CI default) would pick up your eval test and try to run it — hitting real APIs, failing without keys, and slowing down the pipeline.
-
-### Registration
-
-The `eval` marker is registered in `pyproject.toml`:
-
-```toml
-[tool.pytest.ini_options]
-markers = ["eval: evaluation tests that hit real LLM APIs"]
-```
-
-If you introduce a new marker (e.g., `eval_slow` for long-running evals), register it here to avoid pytest warnings.
+`pyproject.toml` sets `testpaths = ["backend/tests"]` and `addopts = "-m 'not eval'"`, so bare `uv run pytest` excludes eval-marked tests unless explicitly requested.
 
 ## Prerequisites
 
-Eval tests call real LLM and external APIs. The following environment variables must be set (in `backend/.env`):
+Both tracks call real LLM/tools. Configure environment variables in `backend/.env`.
 
-- `OPENAI_API_KEY` — LLM calls
-- `TAVILY_API_KEY` — News search eval cases
-- `EDGAR_IDENTITY` — SEC filing retrieval eval cases
+| Variable             | Guardrail (pytest) | Quality Improvement (`--local-only`) | Quality Improvement (Braintrust mode) | Purpose           |
+| -------------------- | ------------------ | ------------------------------------ | ------------------------------------- | ----------------- |
+| `OPENAI_API_KEY`     | Yes                | Yes                                  | Yes                                   | LLM calls         |
+| `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Search tool calls |
+| `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | SEC retrieval     |
+| `BRAINTRUST_API_KEY` | No                 | No                                   | Yes                                   | Braintrust upload |
 
-## Directory Structure
+If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` fails fast.
 
-```
-backend/evals/
-├── README.md                 ← This file
-├── __init__.py
-├── eval_helpers.py           ← Language detection utils (CJK regex)
-├── datasets/
-│   ├── README.md             ← Dataset design guidelines
-│   ├── __init__.py
-│   └── language_policy.py    ← Language Policy eval cases
-├── conftest.py               ← Real Orchestrator fixture
-└── test_language_policy.py   ← Language Policy eval tests
-```
+## File Manifest
 
-## Design Principles
+### Core modules
 
-1. **Separate eval datasets from test logic**: `datasets/` defines eval cases (input + expected output), `test_*.py` defines assertion logic. Adding new eval cases only requires modifying the dataset, not the test code.
-2. **Prefer programmatic assertions**: Use regex and computation over LLM-as-judge whenever possible to minimize non-determinism.
-3. **Before/After comparison**: Run evals before and after each prompt change, then diff the results to prove improvement.
+| File | Role |
+|------|------|
+| `eval_runner.py` | CLI entry point and orchestrator. Discovers scenarios, assembles Braintrust `Eval()` calls, writes result CSV. |
+| `eval_spec_schema.py` | Pydantic models for `eval_spec.yaml` and `braintrust_config.yaml`. Validates and parses scenario configs. |
+| `dataset_loader.py` | Reads CSV files and applies `column_mapping` to produce `{input, expected, metadata}` dicts for each row. |
+| `scorer_registry.py` | Resolves scorer dotpaths to Python callables. Builds `LLMClassifier` instances for `llm_judge` type scorers. |
+| `eval_tasks.py` | Task functions that wrap the agent engine. Called by `Eval()` for each dataset row to produce agent output. |
+| `eval_helpers.py` | Shared utilities (CJK detection, character ratio) used by scorers and guardrail tests. |
+| `braintrust_config.yaml` | Project-level Braintrust settings (project name, API key env var, local mode flag). |
 
-## Assertion Strategies
+### How they connect
 
-### Programmatic (current)
+```mermaid
+graph TD
+    CLI["eval_runner.py<br/>(CLI + orchestrator)"]
+    Config["eval_spec_schema.py<br/>(parse eval_spec.yaml)"]
+    Loader["dataset_loader.py<br/>(CSV → {input, expected, metadata})"]
+    Registry["scorer_registry.py<br/>(dotpath → callable)"]
+    Tasks["eval_tasks.py<br/>(call agent engine)"]
+    Scorers["scorers/<br/>(scoring functions)"]
+    Helpers["eval_helpers.py<br/>(shared utils)"]
 
-Use regex, computation, or string matching when the check is structurally decidable — no ambiguity, no interpretation needed.
-
-| Check | Method | Example |
-|---|---|---|
-| Response language | CJK character ratio | `cjk_ratio(response) >= 0.20` |
-| Tool arg language | CJK presence | `not contains_cjk(query)` |
-| Tool called | Check tool_outputs | `tool_output["tool"] == "tavily_financial_search"` |
-
-### LLM-as-Judge (future guardrails)
-
-For checks that require semantic understanding, use an LLM judge that returns a binary `PASS` / `FAIL: <reason>` verdict. This is not scoring — it is a guardrail that blocks unacceptable behavior.
-
-A generic judge wrapper in `eval_helpers.py` would look like:
-
-```python
-from openai import OpenAI
-
-def llm_judge(system_prompt: str, content: str) -> tuple[bool, str]:
-    """Binary LLM judge. Returns (passed, verdict_text)."""
-    client = OpenAI()
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        temperature=0.0,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": content},
-        ],
-    )
-    verdict = resp.choices[0].message.content.strip()
-    passed = verdict.startswith("PASS")
-    return passed, verdict
+    CLI -->|loads config| Config
+    CLI -->|loads dataset| Loader
+    CLI -->|resolves scorers| Registry
+    CLI -->|calls task fn| Tasks
+    Registry -->|imports from| Scorers
+    Scorers -->|uses| Helpers
 ```
 
-Then build specific guardrail judges on top of it:
+### Scenario directories
 
-```python
-def judge_no_hallucination(response: str, tool_outputs: list[dict]) -> tuple[bool, str]:
-    return llm_judge(
-        system_prompt=(
-            "You are a strict auditor. Check if the response ONLY uses "
-            "data present in the tool outputs. No invented numbers, no "
-            "fabricated facts. Reply 'PASS' or 'FAIL: <specific violation>'."
-        ),
-        content=f"Tool outputs:\n{tool_outputs}\n\nResponse:\n{response}",
-    )
-```
-
-Used in a test exactly like programmatic assertions:
-
-```python
-@pytest.mark.eval
-def test_no_hallucination(orchestrator, case):
-    result = orchestrator.run(case.prompt)
-    passed, reason = judge_no_hallucination(result["response"], result["tool_outputs"])
-    assert passed, f"[{case.id}] Guardrail violated: {reason}"
-```
-
-### Candidate guardrails
-
-| Guardrail | What it catches | Judge prompt focus |
-|---|---|---|
-| **No hallucination** | Agent invents data not present in tool outputs | Compare response claims against tool output data |
-| **Source citation** | Agent fails to cite which tool provided the data | Check every factual claim has a source attribution |
-| **Tool-response consistency** | Agent contradicts its own tool results | Detect conflicts between tool outputs and final response |
-| **Scope adherence** | Agent answers beyond what was asked | Check response stays within the scope of the user's question |
-
-### When to use which
+Each subdirectory under `scenarios/` with an `eval_spec.yaml` is auto-discovered as a scenario.
 
 ```
-Can you check it with string/regex/math?
-  YES → Programmatic (deterministic, fast, free)
-  NO  → Does it need semantic understanding?
-        YES → LLM judge (non-deterministic, slower, costs API calls)
+scenarios/
+└── language_policy/
+    ├── eval_spec.yaml     # Task function, column mapping, scorer list
+    └── dataset.csv        # Test cases (one row = one eval case)
 ```
 
-Prefer programmatic whenever possible. LLM judges add a second layer of non-determinism on top of the already non-deterministic agent output.
+### Other files
 
-## Adding New Evals
+| File | Role |
+|------|------|
+| `conftest.py` | pytest fixtures for guardrail eval tests. |
+| `test_language_policy.py` | Regression guardrail tests (pytest). |
+| `results/` | Output directory for result CSVs (git-ignored). |
 
-1. Add or modify eval case definitions in `datasets/`
-2. Add a corresponding parametrized test in `test_*.py` (or extend an existing dataset list)
-3. Mark every test function with `@pytest.mark.eval`
-4. Run `uv run pytest backend/evals/ -m eval -v` to verify
+### Design guidelines
+
+- Prefer programmatic scorers when checks are structurally decidable.
+- Use LLM-as-judge only when semantic judgment is required.
+- Keep guardrail tests (`test_*.py`) compact and stable — they are not the vehicle for broad quality analysis.
+
+## Eval Spec YAML Schema
+
+Each scenario is configured by an `eval_spec.yaml` file. Full schema:
+
+```yaml
+name: string                    # Scenario name, also used as Braintrust experiment name
+csv: string                     # Dataset filename (default: dataset.csv)
+
+task:
+  function: string              # Python dotpath, e.g. "backend.evals.eval_tasks.run_v1"
+
+column_mapping:
+  <csv_column>: input           # Single column → input (string)
+  <csv_column>: input.<field>   # Multiple columns → input object fields
+  <csv_column>: expected.<field>
+  <csv_column>: metadata.<field>
+
+scorers:
+  - name: string
+    function: string            # Python dotpath, e.g. "backend.evals.scorers.language_policy_scorer.response_language"
+
+  - name: string
+    type: llm_judge
+    rubric: string              # Mustache template, can use {{input}}, {{expected.field}}
+    model: string               # (optional) LLM model, e.g. "gpt-4o"
+    use_cot: bool               # (optional) Chain-of-thought before scoring, default false
+    choice_scores:              # (optional) LLM choice → score mapping, default {"Y": 1.0, "N": 0.0}
+      Y: 1.0
+      N: 0.0
+```
+
+## Quality Iteration Workflow
+
+Use this loop when tuning the agent — whether changing prompts, tool configurations, workflow structure, or model parameters.
+
+```mermaid
+graph TD
+    A["1. Make a change<br/>(prompt, tools, workflow, model params)"]
+    B["2. python -m backend.evals.eval_runner <scenario>"]
+    C["3. Open Braintrust UI — see new experiment"]
+    D["4. Click Compare — diff with previous experiment"]
+    E["5. Inspect per-case regression / improvement"]
+    F{"6. Satisfied?"}
+    G["7. Lock in this version"]
+
+    A --> B --> C --> D --> E --> F
+    F -->|Needs adjustment| A
+    F -->|Good| G
+```
+
+## Implementation Guidelines
+
+### Add a new quality-improvement scenario
+
+1. Create `backend/evals/scenarios/<scenario_name>/`.
+2. Add `dataset.csv` and `eval_spec.yaml` (see [schema above](#eval-spec-yaml-schema)).
+3. Add/update task functions in `backend/evals/eval_tasks.py`.
+4. Add/update scorers under `backend/evals/scorers/`.
+5. Run `uv run python -m backend.evals.eval_runner <scenario_name> --local-only`.
+
+### Add a new regression guardrail
+
+1. Add/update `backend/evals/test_*.py` with `@pytest.mark.eval`.
+2. Keep assertions focused on severe regression signals.
+3. Run `uv run pytest backend/evals/ -m eval -v`.
+
+### Separation rule (important)
+
+- Do not force broad quality-improvement evaluations into pytest.
+- Do not overload guardrail tests with large exploratory datasets.
+- Keep `pytest` for **regression gate** and `eval_runner` for **quality iteration**.
+
+## Future Implementation
+
+When adding LlamaIndex-based evaluations, Braintrust integration should use
+`braintrust[otel]` plus an OpenTelemetry exporter, keeping tracing explicit and
+separate from evaluation logic.

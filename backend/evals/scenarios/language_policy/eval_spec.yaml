@@ -1,0 +1,39 @@
+name: language_policy
+csv: dataset.csv
+
+task:
+  function: backend.evals.eval_tasks.run_v1
+
+column_mapping:
+  prompt: input
+  prompt_language: metadata.prompt_language
+  ticker: expected.ticker
+  expect_tool: expected.tool
+  expect_search_query_no_cjk: expected.search_query_no_cjk
+  expect_response_cjk_min: expected.cjk_min
+  expect_response_cjk_max: expected.cjk_max
+
+scorers:
+  - name: tool_arg_no_cjk
+    function: backend.evals.scorers.language_policy_scorer.tool_arg_no_cjk
+  - name: response_language
+    function: backend.evals.scorers.language_policy_scorer.response_language
+  - name: response_relevance
+    type: llm_judge
+    model: gpt-4o
+    use_cot: true
+    rubric: |
+      The user asked about the company with ticker {{expected.ticker}}.
+
+      User's question:
+      {{input}}
+
+      Agent's response:
+      {{output}}
+
+      Does the response stay focused ONLY on {{expected.ticker}} and directly relevant information?
+      Score Y if the response only discusses {{expected.ticker}} and topics the user asked about.
+      Score N if the response includes substantial information about other companies or topics not asked about.
+    choice_scores:
+      Y: 1.0
+      N: 0.0

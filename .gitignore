@@ -8,3 +8,4 @@ __pycache__/
 .sisyphus/
 artifacts/
 .artifacts/
+backend/evals/results/

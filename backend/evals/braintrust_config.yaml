@@ -1,0 +1,4 @@
+braintrust:
+  project: "finlab-x"
+  api_key_env: "BRAINTRUST_API_KEY"
+  local_mode: false

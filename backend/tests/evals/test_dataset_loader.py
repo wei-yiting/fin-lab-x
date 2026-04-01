@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.evals.dataset_loader import load_dataset
+from backend.evals.dataset_loader import _convert_cell, load_dataset
 
 
 def write_csv(tmp_path: Path, content: str) -> Path:
@@ -242,3 +242,26 @@ def test_load_dataset_parses_rfc4180_cells_correctly(tmp_path: Path) -> None:
             "metadata": {"category": "news"},
         }
     ]
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        (None, None),
+        ("", None),
+        ("true", True),
+        ("FALSE", False),
+        ("12", 12.0),
+        ("12.5", 12.5),
+        ("0.02", 0.02),
+        ("0.20", 0.2),
+        ("1.0", 1.0),
+        ("3.10", 3.1),
+        ("hello", "hello"),
+        ("001", 1.0),
+    ],
+)
+def test_convert_cell_numeric_coercion(raw: str | None, expected: object) -> None:
+    result = _convert_cell(raw)
+    assert result == expected
+    assert type(result) is type(expected)

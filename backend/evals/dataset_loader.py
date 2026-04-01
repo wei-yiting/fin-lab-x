@@ -10,8 +10,14 @@ ALLOWED_BUCKETS = {"input", "expected", "metadata"}
 def _convert_cell(value: str | None) -> Any:
     """Convert CSV cell text into the expected Braintrust data type.
 
-    Preserves string form when float conversion would lose information
-    (e.g. leading zeros like "001", or trailing precision like "3.10").
+    Rules:
+    - None / empty string -> None
+    - "true" / "false" (case-insensitive) -> bool
+    - Any string parseable by float() -> float (e.g. "12" -> 12.0, "0.20" -> 0.2)
+    - Everything else -> str
+
+    All numeric-looking strings become float, including integers (e.g. "12" -> 12.0).
+    Use column_mapping target naming or scorer logic to handle type expectations.
     """
     if value is None or value == "":
         return None
@@ -23,21 +29,9 @@ def _convert_cell(value: str | None) -> Any:
         return False
 
     try:
-        float_val = float(value)
+        return float(value)
     except ValueError:
         return value
-
-    # Keep as string if round-trip through float loses information
-    if str(float_val) == value:
-        return float_val
-
-    # Try int round-trip for values like "12" (float gives "12.0")
-    if float_val == int(float_val):
-        int_val = int(float_val)
-        if str(int_val) == value:
-            return float_val
-
-    return value
 
 
 def _set_nested_value(target: dict[str, Any], path: list[str], value: Any) -> None:

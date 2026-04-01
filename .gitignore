@@ -6,4 +6,6 @@ __pycache__/
 .env
 .vscode/
 .sisyphus/
+artifacts/
+.artifacts/
 backend/evals/results/

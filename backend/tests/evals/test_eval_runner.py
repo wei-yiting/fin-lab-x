@@ -345,14 +345,12 @@ class TestRunScenario:
 
         return scenarios_dir, scenario_dir
 
-    @patch("backend.evals.eval_runner.Eval")
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
     def test_run_scenario_local_produces_result_csv(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
-        mock_eval: MagicMock,
         tmp_path: Path,
     ) -> None:
         scenarios_dir, _ = self._setup_scenario(tmp_path)
@@ -361,24 +359,9 @@ class TestRunScenario:
         fake_task = MagicMock(return_value="fake response")
         mock_resolve_task.return_value = fake_task
 
-        fake_scorer = MagicMock()
+        fake_scorer = MagicMock(return_value=0.9)
+        fake_scorer.__name__ = "test_scorer"
         mock_resolve_scorers.return_value = [fake_scorer]
-
-        mock_eval.return_value = _make_eval_result(
-            [
-                {
-                    "input": "hello world",
-                    "output": "fake response",
-                    "scores": {"test_scorer": 1.0},
-                },
-                {
-                    "input": "goodbye world",
-                    "output": "fake response",
-                    "scores": {"test_scorer": 0.8},
-                },
-            ],
-            ["test_scorer"],
-        )
 
         from backend.evals.eval_runner import run_scenario
 
@@ -401,18 +384,52 @@ class TestRunScenario:
         assert "output" in reader.fieldnames
         assert "score_test_scorer" in reader.fieldnames
 
-        mock_eval.assert_called_once()
-        call_kwargs = mock_eval.call_args
-        assert call_kwargs.kwargs["no_send_logs"] is True
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_run_scenario_local_does_not_import_braintrust(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        """local_only=True must not attempt to import braintrust."""
+        scenarios_dir, _ = self._setup_scenario(tmp_path)
+        output_dir = tmp_path / "results"
 
-    @patch("backend.evals.eval_runner.Eval")
+        fake_task = MagicMock(return_value="fake response")
+        mock_resolve_task.return_value = fake_task
+
+        fake_scorer = MagicMock(return_value=0.5)
+        fake_scorer.__name__ = "test_scorer"
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        import builtins
+
+        original_import = builtins.__import__
+
+        def _guarded_import(name: str, *args: Any, **kwargs: Any) -> Any:
+            if name == "braintrust":
+                raise ModuleNotFoundError("braintrust not installed")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=_guarded_import):
+            from backend.evals.eval_runner import run_scenario
+
+            result_path = run_scenario(
+                "test_scenario",
+                local_only=True,
+                output_dir=output_dir,
+                scenarios_dir=scenarios_dir,
+            )
+
+        assert result_path.exists()
+
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
     def test_run_scenario_csv_not_found_raises(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
-        mock_eval: MagicMock,
         tmp_path: Path,
     ) -> None:
         scenarios_dir, scenario_dir = self._setup_scenario(tmp_path)
@@ -428,14 +445,12 @@ class TestRunScenario:
                 scenarios_dir=scenarios_dir,
             )
 
-    @patch("backend.evals.eval_runner.Eval")
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
     def test_run_scenario_bad_task_dotpath_raises(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
-        mock_eval: MagicMock,
         tmp_path: Path,
     ) -> None:
         scenarios_dir, _ = self._setup_scenario(tmp_path)
@@ -525,8 +540,6 @@ class TestMainCli:
             tmp_path / "results" / "r1.csv",
             tmp_path / "results" / "r2.csv",
         ]
-
-        import logging
 
         from backend.evals.eval_runner import main
 
@@ -648,6 +661,98 @@ class TestWrapScorer:
         assert result is None
         assert call_count == 0
 
+    def test_extra_kwargs_filtered_for_strict_scorer(self) -> None:
+        """V-5.1 regression: scorers without **kwargs must not receive extra
+        keyword arguments like ``metadata`` that Braintrust passes."""
+        from backend.evals.eval_runner import _wrap_scorer
+
+        def strict_scorer(*, output: Any, expected: Any, input: Any) -> float:
+            return 1.0
+
+        wrapped = _wrap_scorer(strict_scorer, "strict")
+        # Simulate Braintrust passing metadata kwarg
+        result = wrapped(output="a", expected="b", input="q", metadata={"row_id": 1})
+        assert result == 1.0
+
+    def test_extra_kwargs_forwarded_for_permissive_scorer(self) -> None:
+        """Scorers that accept **kwargs should still receive all extra kwargs."""
+        from backend.evals.eval_runner import _wrap_scorer
+
+        received: dict[str, Any] = {}
+
+        def permissive_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
+            received.update(kw)
+            return 0.9
+
+        wrapped = _wrap_scorer(permissive_scorer, "permissive")
+        result = wrapped(output="a", expected="b", input="q", metadata={"row_id": 1})
+        assert result == 0.9
+        assert received["metadata"] == {"row_id": 1}
+        assert received["input"] == "q"
+
+    def test_real_scorer_resilient_to_metadata_kwarg(self) -> None:
+        """V-5.1 regression: real language_policy scorers must not crash when
+        Braintrust passes ``metadata``."""
+        from backend.evals.eval_runner import _wrap_scorer
+        from backend.evals.scorers.language_policy_scorer import (
+            response_language,
+            tool_arg_no_cjk,
+        )
+
+        wrapped_tool = _wrap_scorer(tool_arg_no_cjk, "tool_arg_no_cjk")
+        result = wrapped_tool(
+            output={"response": "hello", "tool_outputs": []},
+            expected={"search_query_no_cjk": True, "tool": "search"},
+            input="What is AAPL?",
+            metadata={"row_id": 42},
+        )
+        assert result is not None
+
+        wrapped_lang = _wrap_scorer(response_language, "response_language")
+        result = wrapped_lang(
+            output={"response": "這是中文回應"},
+            expected={"cjk_min": 0.5, "cjk_max": 1.0},
+            input="用中文回答",
+            metadata={"row_id": 99},
+        )
+        assert result is not None
+
+
+# ---------------------------------------------------------------------------
+# _filter_kwargs_for
+# ---------------------------------------------------------------------------
+
+
+class TestFilterKwargsFor:
+    def test_filters_out_unknown_kwargs(self) -> None:
+        from backend.evals.eval_runner import _filter_kwargs_for
+
+        def fn(*, output: Any, expected: Any, input: Any) -> float:
+            return 1.0
+
+        result = _filter_kwargs_for(
+            fn, {"input": "q", "metadata": {"id": 1}, "extra": True}
+        )
+        assert result == {"input": "q"}
+
+    def test_passes_all_when_var_keyword_present(self) -> None:
+        from backend.evals.eval_runner import _filter_kwargs_for
+
+        def fn(*, output: Any, expected: Any, **kw: Any) -> float:
+            return 1.0
+
+        kwargs = {"input": "q", "metadata": {"id": 1}}
+        result = _filter_kwargs_for(fn, kwargs)
+        assert result == kwargs
+
+    def test_empty_kwargs_returns_empty(self) -> None:
+        from backend.evals.eval_runner import _filter_kwargs_for
+
+        def fn(*, output: Any, expected: Any) -> float:
+            return 1.0
+
+        assert _filter_kwargs_for(fn, {}) == {}
+
 
 # ---------------------------------------------------------------------------
 # _convert_cell precision
@@ -655,15 +760,15 @@ class TestWrapScorer:
 
 
 class TestConvertCellPrecision:
-    def test_preserves_trailing_zero(self) -> None:
+    def test_converts_trailing_zero(self) -> None:
         from backend.evals.dataset_loader import _convert_cell
 
-        assert _convert_cell("3.10") == "3.10"
+        assert _convert_cell("3.10") == 3.1
 
-    def test_preserves_leading_zero(self) -> None:
+    def test_converts_leading_zero(self) -> None:
         from backend.evals.dataset_loader import _convert_cell
 
-        assert _convert_cell("001") == "001"
+        assert _convert_cell("001") == 1.0
 
     def test_converts_normal_float(self) -> None:
         from backend.evals.dataset_loader import _convert_cell
@@ -674,3 +779,63 @@ class TestConvertCellPrecision:
         from backend.evals.dataset_loader import _convert_cell
 
         assert _convert_cell("12") == 12.0
+
+
+# ---------------------------------------------------------------------------
+# _run_local_eval – input forwarding regression
+# ---------------------------------------------------------------------------
+
+
+class TestRunLocalEvalInputForwarding:
+    """Regression tests for B-3.1: local-only must pass `input` to scorers."""
+
+    def test_local_eval_passes_input_to_scorer(self) -> None:
+        """Scorer receiving `input` keyword must not raise TypeError."""
+        from backend.evals.eval_runner import _run_local_eval
+
+        def task_fn(inp: Any) -> str:
+            return "output"
+
+        received_inputs: list[Any] = []
+
+        def scorer_needing_input(
+            *, output: Any, expected: Any, input: Any, **kw: Any
+        ) -> float:
+            received_inputs.append(input)
+            return 1.0
+
+        scorer_needing_input.__name__ = "needs_input"
+
+        raw_data = [{"input": "hello", "expected": "world"}]
+        result = _run_local_eval(raw_data, task_fn, [scorer_needing_input])
+
+        assert len(result.results) == 1
+        assert received_inputs == ["hello"]
+        assert result.results[0].scores["needs_input"] == 1.0
+
+    def test_local_eval_with_real_scorer_no_error(self) -> None:
+        """Real scorer (tool_arg_no_cjk) must produce valid score, not ERROR."""
+        from backend.evals.eval_runner import (
+            _ERROR_MARKER,
+            _run_local_eval,
+            _wrap_scorer,
+        )
+        from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+
+        wrapped = _wrap_scorer(tool_arg_no_cjk, "tool_arg_no_cjk")
+
+        def task_fn(inp: Any) -> dict[str, Any]:
+            return {"response": "hello world", "tool_outputs": []}
+
+        raw_data = [
+            {
+                "input": "What is AAPL?",
+                "expected": {"search_query_no_cjk": True, "tool": "search"},
+            },
+        ]
+        result = _run_local_eval(raw_data, task_fn, [wrapped])
+
+        score_val = result.results[0].scores["tool_arg_no_cjk"]
+        assert score_val != _ERROR_MARKER, "Scorer should not produce ERROR"
+        assert isinstance(score_val, (int, float))
+        assert score_val == 1.0

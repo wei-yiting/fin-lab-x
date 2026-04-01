@@ -10,6 +10,7 @@ Usage:
 from __future__ import annotations
 
 import csv
+import inspect
 import json
 import logging
 import os
@@ -19,7 +20,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from braintrust import Eval, EvalCase
 from dotenv import load_dotenv
 
 from backend.evals.dataset_loader import load_dataset, load_raw_csv_rows
@@ -85,7 +85,9 @@ def _flatten_output(output: Any) -> dict[str, str]:
     """
     if isinstance(output, dict):
         return {
-            f"output.{key}": _serialize_value(val) if isinstance(val, dict) else str(val)
+            f"output.{key}": _serialize_value(val)
+            if isinstance(val, dict)
+            else str(val)
             for key, val in output.items()
         }
     return {"output": str(output)}
@@ -110,6 +112,36 @@ def _wrap_task(task_fn: Any) -> Any:
     return wrapped
 
 
+def _filter_kwargs_for(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Return only the *kwargs* entries that *fn* actually accepts.
+
+    If *fn* has a ``**kwargs`` (VAR_KEYWORD) parameter it is assumed to
+    accept any keyword argument, so the full dict is returned unchanged.
+    Otherwise only keys that match a declared parameter name are kept.
+    """
+    try:
+        sig = inspect.signature(fn)
+    except (ValueError, TypeError):
+        # If we cannot introspect, pass everything and let the caller
+        # handle any resulting TypeError via its own exception guard.
+        return kwargs
+
+    for param in sig.parameters.values():
+        if param.kind == inspect.Parameter.VAR_KEYWORD:
+            return kwargs  # fn accepts **kw – forward everything
+
+    accepted = {
+        name
+        for name, p in sig.parameters.items()
+        if p.kind
+        in (
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        )
+    }
+    return {k: v for k, v in kwargs.items() if k in accepted}
+
+
 def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
     """Wrap a scorer to isolate failures from other scorers."""
 
@@ -117,12 +149,15 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
         if output == _ERROR_MARKER:
             return None
         try:
-            result = scorer_fn(output=output, expected=expected, input=kwargs.get("input"))
+            filtered = _filter_kwargs_for(scorer_fn, kwargs)
+            result = scorer_fn(output=output, expected=expected, **filtered)
             if hasattr(result, "name"):
                 result.name = scorer_name
             return result
         except Exception:
-            logger.warning("Scorer '%s' raised an exception", scorer_name, exc_info=True)
+            logger.warning(
+                "Scorer '%s' raised an exception", scorer_name, exc_info=True
+            )
             return None
 
     wrapped.__name__ = scorer_name
@@ -177,7 +212,7 @@ def write_result_csv(
 
             # Output columns
             flat_output = flattened_outputs[idx]
-            is_error_row = (result.output == _ERROR_MARKER)
+            is_error_row = result.output == _ERROR_MARKER
 
             if is_error_row:
                 for key in all_output_keys:
@@ -199,7 +234,7 @@ def write_result_csv(
                 elif isinstance(score_val, str):
                     row[f"score_{name}"] = score_val
                 else:
-                    row[f"score_{name}"] = str(score_val.score)
+                    row[f"score_{name}"] = str(getattr(score_val, "score", score_val))
 
             writer.writerow(row)
 
@@ -235,28 +270,44 @@ def run_scenario(
 
     original_columns, original_rows = load_raw_csv_rows(csv_path)
     raw_data = load_dataset(csv_path, config.column_mapping)
-    eval_cases = [
-        EvalCase(
-            input=row["input"],
-            expected=row.get("expected"),
-            metadata=row.get("metadata"),
-        )
-        for row in raw_data
-    ]
+
     scorers = resolve_scorers(config.scorers)
     task_fn = resolve_function(config.task.function, label="task")
 
     scorer_names = [s.name for s in config.scorers]
     wrapped_task = _wrap_task(task_fn)
     wrapped_scorers = [
-        _wrap_scorer(scorer, name)
-        for scorer, name in zip(scorers, scorer_names)
+        _wrap_scorer(scorer, name) for scorer, name in zip(scorers, scorer_names)
     ]
 
     bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
-    experiment_name = f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    experiment_name = (
+        f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    )
 
-    if not local_only:
+    # Merge local_mode: CLI --local-only overrides config default
+    effective_local = local_only or bt_config.local_mode
+
+    if effective_local:
+        eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
+    else:
+        try:
+            from braintrust import Eval, EvalCase
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
+                "braintrust is required for running evaluations. "
+                "Install it with: uv add --optional dev braintrust"
+            ) from exc
+
+        eval_cases = [
+            EvalCase(
+                input=row["input"],
+                expected=row.get("expected"),
+                metadata=row.get("metadata"),
+            )
+            for row in raw_data
+        ]
+
         api_key = os.environ.get(bt_config.api_key_env)
         if not api_key:
             raise RuntimeError(
@@ -265,14 +316,14 @@ def run_scenario(
             )
         _init_platform_tracing(bt_config.project, api_key)
 
-    eval_result = Eval(
-        bt_config.project,
-        data=eval_cases,
-        task=wrapped_task,
-        scores=wrapped_scorers,
-        experiment_name=experiment_name,
-        no_send_logs=local_only,
-    )
+        eval_result = Eval(
+            bt_config.project,
+            data=eval_cases,
+            task=wrapped_task,
+            scores=wrapped_scorers,
+            experiment_name=experiment_name,
+            no_send_logs=False,
+        )
 
     return write_result_csv(
         eval_result,
@@ -282,6 +333,39 @@ def run_scenario(
         original_columns=original_columns,
         original_rows=original_rows,
     )
+
+
+def _run_local_eval(
+    raw_data: list[dict[str, Any]],
+    task_fn: Any,
+    scorers: list[Any],
+) -> Any:
+    """Run evaluation locally without braintrust dependency.
+
+    Iterates over *raw_data*, calls *task_fn* for each row, then runs every
+    scorer.  Returns a ``SimpleNamespace`` whose ``.results`` list mirrors the
+    shape produced by ``braintrust.Eval``.
+    """
+    from types import SimpleNamespace
+
+    results: list[Any] = []
+    for row in raw_data:
+        input_val = row["input"]
+        expected_val = row.get("expected")
+        output = task_fn(input_val)
+
+        scores: dict[str, Any] = {}
+        for scorer in scorers:
+            name = getattr(scorer, "__name__", "unknown")
+            score = scorer(output=output, expected=expected_val, input=input_val)
+            if score is not None and hasattr(score, "score"):
+                scores[name] = score.score
+            else:
+                scores[name] = score
+
+        results.append(SimpleNamespace(input=input_val, output=output, scores=scores))
+
+    return SimpleNamespace(results=results)
 
 
 def _init_platform_tracing(project: str, api_key: str) -> None:
@@ -308,8 +392,12 @@ def main(
     parser = argparse.ArgumentParser(description="Run Braintrust evaluations")
     parser.add_argument("scenario", nargs="?", help="Scenario name to run")
     parser.add_argument("--all", action="store_true", help="Run all scenarios")
-    parser.add_argument("--local-only", action="store_true", help="Skip platform logging")
-    parser.add_argument("--output-dir", type=Path, default=None, help="Output directory for results")
+    parser.add_argument(
+        "--local-only", action="store_true", help="Skip platform logging"
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=None, help="Output directory for results"
+    )
 
     args = parser.parse_args(argv)
 
@@ -373,7 +461,8 @@ def _check_duplicate_config_names(
         config_path = scenarios_dir / dir_name / "eval_spec.yaml"
         try:
             config = load_scenario_config(config_path)
-        except Exception:
+        except (ValueError, FileNotFoundError) as exc:
+            logger.warning("Could not load config for scenario '%s': %s", dir_name, exc)
             continue
         if config.name in seen:
             logger.warning(

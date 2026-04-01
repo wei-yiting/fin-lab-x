@@ -1,13 +1,15 @@
 # Evaluation System
 
+> For architecture diagrams, design decisions, and platform integration details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
 This folder has two different evaluation tracks. They serve different goals and should not be mixed.
 
 ## Two Evaluation Tracks
 
-| Track | Goal | Entry Point | Typical Frequency | Output |
-|---|---|---|---|---|
-| Regression Guardrail | Catch severe regressions on critical behavior | `pytest` (`backend/evals/test_*.py`) | Before merge / release gate | pytest pass/fail |
-| Quality Improvement | Measure agent quality changes over scenario datasets | `eval_runner` (`python -m backend.evals.eval_runner ...`) | Prompt iteration / model tuning | Result CSV + optional Braintrust experiment |
+| Track                | Goal                                                 | Entry Point                                               | Typical Frequency               | Output                                      |
+| -------------------- | ---------------------------------------------------- | --------------------------------------------------------- | ------------------------------- | ------------------------------------------- |
+| Regression Guardrail | Catch severe regressions on critical behavior        | `pytest` (`backend/evals/test_*.py`)                      | Before merge / release gate     | pytest pass/fail                            |
+| Quality Improvement  | Measure agent quality changes over scenario datasets | `eval_runner` (`python -m backend.evals.eval_runner ...`) | Prompt iteration / model tuning | Result CSV + optional Braintrust experiment |
 
 Use this rule:
 
@@ -55,64 +57,130 @@ uv run pytest
 
 Both tracks call real LLM/tools. Configure environment variables in `backend/.env`.
 
-| Variable | Guardrail (pytest) | Quality Improvement (`--local-only`) | Quality Improvement (Braintrust mode) | Purpose |
-|---|---|---|---|---|
-| `OPENAI_API_KEY` | Yes | Yes | Yes | LLM calls |
-| `TAVILY_API_KEY` | Scenario-dependent | Scenario-dependent | Scenario-dependent | Search tool calls |
-| `EDGAR_IDENTITY` | Scenario-dependent | Scenario-dependent | Scenario-dependent | SEC retrieval |
-| `BRAINTRUST_API_KEY` | No | No | Yes | Braintrust upload |
+| Variable             | Guardrail (pytest) | Quality Improvement (`--local-only`) | Quality Improvement (Braintrust mode) | Purpose           |
+| -------------------- | ------------------ | ------------------------------------ | ------------------------------------- | ----------------- |
+| `OPENAI_API_KEY`     | Yes                | Yes                                  | Yes                                   | LLM calls         |
+| `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Search tool calls |
+| `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | SEC retrieval     |
+| `BRAINTRUST_API_KEY` | No                 | No                                   | Yes                                   | Braintrust upload |
 
 If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` fails fast.
 
 ## File Manifest
 
+### Core modules
+
+| File | Role |
+|------|------|
+| `eval_runner.py` | CLI entry point and orchestrator. Discovers scenarios, assembles Braintrust `Eval()` calls, writes result CSV. |
+| `scenario_config.py` | Pydantic models for `eval_spec.yaml` and `braintrust_config.yaml`. Validates and parses scenario configs. |
+| `dataset_loader.py` | Reads CSV files and applies `column_mapping` to produce `{input, expected, metadata}` dicts for each row. |
+| `scorer_registry.py` | Resolves scorer dotpaths to Python callables. Builds `LLMClassifier` instances for `llm_judge` type scorers. |
+| `eval_tasks.py` | Task functions that wrap the agent engine. Called by `Eval()` for each dataset row to produce agent output. |
+| `eval_helpers.py` | Shared utilities (CJK detection, character ratio) used by scorers and guardrail tests. |
+| `braintrust_config.yaml` | Project-level Braintrust settings (project name, API key env var, local mode flag). |
+
+### How they connect
+
+```mermaid
+graph TD
+    CLI["eval_runner.py<br/>(CLI + orchestrator)"]
+    Config["scenario_config.py<br/>(parse eval_spec.yaml)"]
+    Loader["dataset_loader.py<br/>(CSV → {input, expected, metadata})"]
+    Registry["scorer_registry.py<br/>(dotpath → callable)"]
+    Tasks["eval_tasks.py<br/>(call agent engine)"]
+    Scorers["scorers/<br/>(scoring functions)"]
+    Helpers["eval_helpers.py<br/>(shared utils)"]
+
+    CLI -->|loads config| Config
+    CLI -->|loads dataset| Loader
+    CLI -->|resolves scorers| Registry
+    CLI -->|calls task fn| Tasks
+    Registry -->|imports from| Scorers
+    Scorers -->|uses| Helpers
 ```
-backend/evals/
-├── README.md
-├── braintrust_config.yaml
-├── scenario_config.py
-├── dataset_loader.py
-├── scorer_registry.py
-├── eval_tasks.py
-├── eval_runner.py
-├── eval_helpers.py
-├── scorers/
-│   ├── README.md
-│   └── language_policy_scorer.py
-├── scenarios/
-│   └── language_policy/
-│       ├── README.md
-│       ├── eval_spec.yaml
-│       └── dataset.csv
-├── results/
-├── conftest.py
-└── test_language_policy.py
+
+### Scenario directories
+
+Each subdirectory under `scenarios/` with an `eval_spec.yaml` is auto-discovered as a scenario.
+
+```
+scenarios/
+└── language_policy/
+    ├── eval_spec.yaml     # Task function, column mapping, scorer list
+    └── dataset.csv        # Test cases (one row = one eval case)
 ```
 
-## Architecture and Design
+### Other files
 
-### Scenario-driven quality evaluation
+| File | Role |
+|------|------|
+| `conftest.py` | pytest fixtures for guardrail eval tests. |
+| `test_language_policy.py` | Regression guardrail tests (pytest). |
+| `results/` | Output directory for result CSVs (git-ignored). |
 
-- `scenarios/<name>/dataset.csv` stores evaluation cases.
-- `scenarios/<name>/eval_spec.yaml` defines task function, column mapping, and scorers.
-- `eval_runner` discovers scenarios, executes tasks, computes scores, and writes result CSV.
-
-### Guardrail evaluation
-
-- `test_language_policy.py` provides targeted regression checks using pytest.
-- These tests should stay compact and stable; they are not the main vehicle for broad quality analysis.
-
-### Scoring
+### Design guidelines
 
 - Prefer programmatic scorers when checks are structurally decidable.
 - Use LLM-as-judge only when semantic judgment is required.
+- Keep guardrail tests (`test_*.py`) compact and stable — they are not the vehicle for broad quality analysis.
+
+## Eval Spec YAML Schema
+
+Each scenario is configured by an `eval_spec.yaml` file. Full schema:
+
+```yaml
+name: string                    # Scenario name, also used as Braintrust experiment name
+csv: string                     # Dataset filename (default: dataset.csv)
+
+task:
+  function: string              # Python dotpath, e.g. "backend.evals.eval_tasks.run_v1"
+
+column_mapping:
+  <csv_column>: input           # Single column → input (string)
+  <csv_column>: input.<field>   # Multiple columns → input object fields
+  <csv_column>: expected.<field>
+  <csv_column>: metadata.<field>
+
+scorers:
+  - name: string
+    function: string            # Python dotpath, e.g. "backend.evals.scorers.language_policy_scorer.response_language"
+
+  - name: string
+    type: llm_judge
+    rubric: string              # Mustache template, can use {{input}}, {{expected.field}}
+    model: string               # (optional) LLM model, e.g. "gpt-4o"
+    use_cot: bool               # (optional) Chain-of-thought before scoring, default false
+    choice_scores:              # (optional) LLM choice → score mapping, default {"Y": 1.0, "N": 0.0}
+      Y: 1.0
+      N: 0.0
+```
+
+## Quality Iteration Workflow
+
+Use this loop when tuning the agent — whether changing prompts, tool configurations, workflow structure, or model parameters.
+
+```mermaid
+graph TD
+    A["1. Make a change<br/>(prompt, tools, workflow, model params)"]
+    B["2. python -m backend.evals.eval_runner <scenario>"]
+    C["3. Open Braintrust UI — see new experiment"]
+    D["4. Click Compare — diff with previous experiment"]
+    E["5. Inspect per-case regression / improvement"]
+    F{"6. Satisfied?"}
+    G["7. Lock in this version"]
+
+    A --> B --> C --> D --> E --> F
+    F -->|Needs adjustment| A
+    F -->|Good| G
+```
 
 ## Implementation Guidelines
 
 ### Add a new quality-improvement scenario
 
 1. Create `backend/evals/scenarios/<scenario_name>/`.
-2. Add `dataset.csv` and `eval_spec.yaml`.
+2. Add `dataset.csv` and `eval_spec.yaml` (see [schema above](#eval-spec-yaml-schema)).
 3. Add/update task functions in `backend/evals/eval_tasks.py`.
 4. Add/update scorers under `backend/evals/scorers/`.
 5. Run `uv run python -m backend.evals.eval_runner <scenario_name> --local-only`.

@@ -2,7 +2,7 @@
 
 > Design Reference: [`design_S2_frontend_scaffold.md`](./design_S2_frontend_scaffold.md)
 > Master Design: [`design_master.md`](./design_master.md)
-> Updated: 2026-03-24 — Sync from briefing: npm → pnpm, add Browser-Use CLI for BDD browser verification
+> Updated: 2026-03-31 — BDD session decisions: pnpm confirmed, AI SDK ^5.0.0 pinned, strictPort: true added, dark mode class strategy added
 
 **Goal:** Build the frontend project infrastructure (Vite + React + TypeScript + Tailwind CSS v4 + shadcn/ui + test pipelines) so that S3 Streaming Chat UI can start building on a fully working scaffold.
 
@@ -16,9 +16,9 @@
 
 | Dependency | Version | Source | What Was Verified | Notes |
 | --- | --- | --- | --- | --- |
-| shadcn/ui | latest | Context7 `/shadcn/ui` | `npx shadcn@latest init -t vite` is the official Vite initialization command. `components.json` supports custom `ui` alias path. `style: "radix-nova"` confirmed in official manual.mdx | `rsc: false` required for non-Next.js projects |
-| AI SDK | v5 (stable) | Context7 `/vercel/ai/ai_5_0_0` | `useChat` lives in `@ai-sdk/react` (not `ai/react`). `DefaultChatTransport` lives in `ai` core. Install: `pnpm add ai @ai-sdk/react` | v5 API: `sendMessage()` + `message.parts[]` pattern (S3 concern) |
-| Tailwind CSS v4 | v4 | shadcn/ui Vite installation docs | v4 uses `@tailwindcss/vite` plugin, CSS-first config (`@import "tailwindcss"`), no `tailwind.config.js` needed | `npx shadcn@latest init -t vite` handles Tailwind v4 installation |
+| shadcn/ui | latest | Context7 `/shadcn/ui` | `pnpm dlx shadcn@latest init -t vite` is the official Vite initialization command. `components.json` supports custom `ui` alias path. `style: "radix-nova"` confirmed in official manual.mdx | `rsc: false` required for non-Next.js projects |
+| AI SDK | v5 stable (`^5.0.0`) | Context7 `/vercel/ai/ai_5_0_0` | `useChat` lives in `@ai-sdk/react` (not `ai/react`). `DefaultChatTransport` lives in `ai` core. Install: `pnpm add ai@^5.0.0 @ai-sdk/react@^5.0.0`. 鎖定 `^5.0.0` 因為 design master SSE protocol 依賴 v5 API | v5 API: `sendMessage()` + `message.parts[]` pattern (S3 concern) |
+| Tailwind CSS v4 | v4 | shadcn/ui Vite installation docs | v4 uses `@tailwindcss/vite` plugin, CSS-first config (`@import "tailwindcss"`), no `tailwind.config.js` needed | `pnpm dlx shadcn@latest init -t vite` handles Tailwind v4 installation |
 
 ## Constraints
 
@@ -93,6 +93,33 @@ frontend/
 
 ---
 
+### Task 0: Install Browser-Use CLI + Verify Browser Visibility
+
+**Files:** None (tooling installation only, no project files created)
+
+**What & Why:** Install Browser-Use CLI and verify it can open a browser and capture a visible page. Subsequent tasks (Task 2–3) rely on Browser-Use CLI for visual verification of Tailwind styling and shadcn/ui rendering. This task ensures the tool chain is operational before any browser-dependent verification.
+
+**Implementation Notes:**
+
+- Install Browser-Use CLI globally or in a virtual environment (not a project dependency)
+- Run a smoke test: open any URL (e.g., `https://example.com`) and take a screenshot to confirm the tool can see the page
+- If Browser-Use CLI requires browser drivers, install them here
+
+**Verification:**
+
+| Scope | Command | Expected Result | Why |
+| --- | --- | --- | --- |
+| Targeted | `browser-use open https://example.com` + `browser-use screenshot /tmp/task0-smoke.png` | Screenshot file created, shows rendered page content | Proves Browser-Use CLI can launch browser and capture visible output |
+
+**Execution Checklist:**
+
+- [ ] Install Browser-Use CLI
+- [ ] Run smoke test: open a page and take a screenshot
+- [ ] Confirm screenshot shows rendered content (not blank/error)
+- [ ] No commit needed — this is tooling setup, not project code
+
+---
+
 ### Task 1: Initialize Vite + React + TypeScript Project
 
 **Files:**
@@ -115,14 +142,14 @@ frontend/
 | Scope | Command | Expected Result | Why |
 | --- | --- | --- | --- |
 | Targeted | `cd frontend && pnpm install && pnpm run dev` | Vite dev server starts on `http://localhost:5173`, terminal shows "Local: http://localhost:5173/" | Proves project scaffolding and dependency installation work |
-| Targeted | `cd frontend && npx tsc --noEmit` | Exit code 0, no errors | Proves TypeScript config is valid |
+| Targeted | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0, no errors | Proves TypeScript config is valid |
 
 **Execution Checklist:**
 
 - [ ] Remove `frontend/README.md` and `frontend/package.json`
 - [ ] Run `cd frontend && pnpm create vite@latest . --template react-ts`
 - [ ] Run `cd frontend && pnpm install`
-- [ ] Run verification: `pnpm run dev` starts successfully, `npx tsc --noEmit` passes
+- [ ] Run verification: `pnpm run dev` starts successfully, `pnpm exec tsc --noEmit` passes
 - [ ] Commit: `git commit -m "feat(frontend): initialize Vite + React + TypeScript project"`
 
 ---
@@ -144,14 +171,14 @@ frontend/
 
 **Implementation Notes:**
 
-- Run `npx shadcn@latest init` from `frontend/` directory. When prompted, select:
+- Run `pnpm dlx shadcn@latest init` from `frontend/` directory. When prompted, select:
   - Style: `radix-nova`
   - Base color: `neutral`
   - CSS variables: yes
   - CSS file: `src/index.css`
   - The init command installs `tailwindcss`, `@tailwindcss/vite`, `tw-animate-css`, `class-variance-authority`, `clsx`, `tailwind-merge` and creates `components.json`, `src/lib/utils.ts`, updates `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`
 - After init, edit `components.json` to change the `ui` alias from `@/components/ui` to `@/components/primitives`
-- Verify with `npx shadcn@latest add button` — the file must land at `src/components/primitives/button.tsx`
+- Verify with `pnpm dlx shadcn@latest add button` — the file must land at `src/components/primitives/button.tsx`
 - Ensure `vite.config.ts` has both the `tailwindcss()` plugin and `@` path alias as specified in design doc
 
 **Critical Contract — `components.json`:**
@@ -190,6 +217,10 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -204,18 +235,20 @@ export default defineConfig({
 
 | Scope | Command | Expected Result | Why |
 | --- | --- | --- | --- |
-| Targeted | `cd frontend && npx tsc --noEmit` | Exit code 0 | Path aliases resolve correctly in TypeScript |
-| Targeted | `cd frontend && npx shadcn@latest add button` | File created at `src/components/primitives/button.tsx` | Proves `ui` alias in `components.json` works |
+| Targeted | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0 | Path aliases resolve correctly in TypeScript |
+| Targeted | `cd frontend && pnpm dlx shadcn@latest add button` | File created at `src/components/primitives/button.tsx` | Proves `ui` alias in `components.json` works |
 | Targeted | `cd frontend && pnpm run dev`, open browser at `localhost:5173` | Page renders with Tailwind utility classes applied (verify in next task's App shell) | Proves Tailwind CSS v4 pipeline works |
 
 **Execution Checklist:**
 
-- [ ] Run `cd frontend && npx shadcn@latest init` and answer prompts per implementation notes
+- [ ] Run `cd frontend && pnpm dlx shadcn@latest init` and answer prompts per implementation notes
 - [ ] Edit `components.json`: change `"ui"` alias to `"@/components/primitives"`
-- [ ] Verify `vite.config.ts` matches the critical contract (tailwindcss plugin + path alias)
+- [ ] Verify `vite.config.ts` matches the critical contract (tailwindcss plugin + path alias + `server: { port: 5173, strictPort: true }`)
 - [ ] Verify `tsconfig.app.json` has `"baseUrl": "."` and `"paths": { "@/*": ["./src/*"] }`
-- [ ] Run `npx shadcn@latest add button` and confirm file lands at `src/components/primitives/button.tsx`
-- [ ] Run `npx tsc --noEmit` — exit code 0
+- [ ] Verify `index.css` uses Tailwind v4 syntax (`@import "tailwindcss"`, not `@tailwind` directives)
+- [ ] Configure class-based dark mode variant in `index.css` for Tailwind v4 (shadcn/ui requires class strategy, not media query)
+- [ ] Run `pnpm dlx shadcn@latest add button` and confirm file lands at `src/components/primitives/button.tsx`
+- [ ] Run `pnpm exec tsc --noEmit` — exit code 0
 - [ ] Commit: `git commit -m "feat(frontend): configure Tailwind CSS v4 + shadcn/ui with custom primitives path"`
 
 ---
@@ -239,7 +272,7 @@ export default defineConfig({
 - Use Tailwind utility classes on the shell to serve as AC3 visual verification
 - Remove `App.css` since all styling goes through Tailwind
 - Remove `frontend/src/assets/` and `frontend/public/vite.svg` (Vite logo boilerplate)
-- Install AI SDK: `pnpm add ai @ai-sdk/react lucide-react`
+- Install AI SDK: `pnpm add ai@^5.0.0 @ai-sdk/react@^5.0.0 lucide-react`
 - Add `node_modules/` to root `.gitignore`
 
 **Critical Contract — `App.tsx`:**
@@ -268,7 +301,7 @@ export default App
 | Scope | Command | Expected Result | Why |
 | --- | --- | --- | --- |
 | Targeted | `cd frontend && pnpm run dev`, open `localhost:5173` | Page shows "FinLab-X" heading with Tailwind styling (bg color, font sizing) | AC2 + AC3: App shell renders with Tailwind |
-| Targeted | `cd frontend && npx tsc --noEmit` | Exit code 0 | AC9: AI SDK packages installed, TypeScript resolves types |
+| Targeted | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0 | AC9: AI SDK packages installed, TypeScript resolves types |
 | Targeted | `cd frontend && pnpm ls ai @ai-sdk/react lucide-react` | All three packages listed without errors | Packages installed correctly |
 
 **Execution Checklist:**
@@ -277,9 +310,9 @@ export default App
 - [ ] Rewrite `frontend/src/App.tsx` to App shell per critical contract
 - [ ] Verify `frontend/src/main.tsx` does not import `App.css` (the Vite template imports it in `App.tsx`, which is already replaced above)
 - [ ] Create `frontend/src/components/ui/.gitkeep` and `frontend/src/hooks/.gitkeep`
-- [ ] Run `cd frontend && pnpm add ai @ai-sdk/react lucide-react`
+- [ ] Run `cd frontend && pnpm add ai@^5.0.0 @ai-sdk/react@^5.0.0 lucide-react`
 - [ ] Add `node_modules/` to root `.gitignore`
-- [ ] Run verification: dev server shows App shell, `npx tsc --noEmit` passes
+- [ ] Run verification: dev server shows App shell, `pnpm exec tsc --noEmit` passes
 - [ ] Commit: `git commit -m "feat(frontend): add App shell, directory structure, and AI SDK"`
 
 ---
@@ -292,7 +325,7 @@ export default App
 | --- | --- | --- | --- |
 | 1 | Browser-Use CLI | Open `http://localhost:5173` | Page loads, shows "FinLab-X" heading with Tailwind-applied styling (background color, font) |
 | 2 | Browser-Use CLI | Inspect element, check computed styles on `h1` | `font-weight: 700` (bold), `font-size` matches `text-3xl` |
-| 3 | CLI | `cd frontend && npx tsc --noEmit` | Exit code 0, no type errors |
+| 3 | CLI | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0, no type errors |
 | 4 | CLI | `cd frontend && ls src/components/primitives/button.tsx` | File exists (from Task 2 shadcn add) |
 | 5 | CLI | `cd frontend && pnpm ls ai @ai-sdk/react` | Both packages listed, no missing peer deps |
 
@@ -368,7 +401,7 @@ describe('App', () => {
 | Scope | Command | Expected Result | Why |
 | --- | --- | --- | --- |
 | Targeted | `cd frontend && pnpm run test` | 1 test passes: `App > renders the heading` | AC7: Vitest unit test pipeline works |
-| Targeted | `cd frontend && npx tsc --noEmit` | Exit code 0 | Test file type-checks correctly |
+| Targeted | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0 | Test file type-checks correctly |
 
 **Execution Checklist:**
 
@@ -435,7 +468,7 @@ test('app shell loads and displays heading', async ({ page }) => {
 
 | Scope | Command | Expected Result | Why |
 | --- | --- | --- | --- |
-| Targeted | `cd frontend && npx playwright test` | 1 test passes: `app shell loads and displays heading` | AC8: Playwright E2E pipeline works |
+| Targeted | `cd frontend && pnpm run test:e2e` | 1 test passes: `app shell loads and displays heading` | AC8: Playwright E2E pipeline works |
 
 **Execution Checklist:**
 
@@ -444,7 +477,7 @@ test('app shell loads and displays heading', async ({ page }) => {
 - [ ] Create `frontend/playwright.config.ts` per critical contract
 - [ ] Create `frontend/e2e/app.spec.ts` per critical contract
 - [ ] Add `"test:e2e": "playwright test"` to `package.json` scripts
-- [ ] Run `npx playwright test` — 1 test passes
+- [ ] Run `pnpm run test:e2e` — 1 test passes
 - [ ] Commit: `git commit -m "test(frontend): add Playwright E2E setup and baseline test"`
 
 ---
@@ -456,8 +489,8 @@ test('app shell loads and displays heading', async ({ page }) => {
 | # | Method | Step | Expected Result |
 | --- | --- | --- | --- |
 | 1 | CLI | `cd frontend && pnpm run test` | Vitest: 1 test passes |
-| 2 | CLI | `cd frontend && npx playwright test` | Playwright: 1 test passes |
-| 3 | CLI | `cd frontend && npx tsc --noEmit` | Exit code 0, no type errors |
+| 2 | CLI | `cd frontend && pnpm run test:e2e` | Playwright: 1 test passes |
+| 3 | CLI | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0, no type errors |
 
 - [ ] All flow verifications pass
 
@@ -475,7 +508,7 @@ test('app shell loads and displays heading', async ({ page }) => {
 **Implementation Notes:**
 
 - The Vite react-ts template generates `eslint.config.js` with React + TypeScript rules
-- Run `npx eslint .` from `frontend/` to verify no errors
+- Run `pnpm run lint` from `frontend/` to verify no errors
 - If ESLint reports errors in generated/scaffold files, fix them
 - Add `dist/`, `test-results/`, `playwright-report/` to root `.gitignore`（`node_modules/` already added in Task 3）
 
@@ -483,15 +516,15 @@ test('app shell loads and displays heading', async ({ page }) => {
 
 | Scope | Command | Expected Result | Why |
 | --- | --- | --- | --- |
-| Targeted | `cd frontend && npx eslint .` | Exit code 0, no errors | AC10: ESLint clean |
+| Targeted | `cd frontend && pnpm run lint` | Exit code 0, no errors | AC10: ESLint clean |
 | Broader | `cd frontend && pnpm run dev` | Dev server on `:5173` | AC1 |
-| Broader | `cd frontend && npx tsc --noEmit` | Exit code 0 | AC5 + AC9 |
+| Broader | `cd frontend && pnpm exec tsc --noEmit` | Exit code 0 | AC5 + AC9 |
 | Broader | `cd frontend && pnpm run test` | All tests pass | AC7 |
-| Broader | `cd frontend && npx playwright test` | All tests pass | AC8 |
+| Broader | `cd frontend && pnpm run test:e2e` | All tests pass | AC8 |
 
 **Execution Checklist:**
 
-- [ ] Run `cd frontend && npx eslint .` — fix any errors
+- [ ] Run `cd frontend && pnpm run lint` — fix any errors
 - [ ] Add `dist/`, `test-results/`, `playwright-report/` to root `.gitignore`
 - [ ] Run full acceptance suite (all verification commands above)
 - [ ] Commit: `git commit -m "chore(frontend): verify ESLint and finalize S2 scaffold"`
@@ -503,9 +536,9 @@ test('app shell loads and displays heading', async ({ page }) => {
 ### Code Level (TDD)
 
 - [ ] `cd frontend && pnpm run test` — Vitest passes (1 test)
-- [ ] `cd frontend && npx playwright test` — Playwright passes (1 test)
-- [ ] `cd frontend && npx eslint .` — no errors
-- [ ] `cd frontend && npx tsc --noEmit` — no type errors
+- [ ] `cd frontend && pnpm run test:e2e` — Playwright passes (1 test)
+- [ ] `cd frontend && pnpm run lint` — no errors
+- [ ] `cd frontend && pnpm exec tsc --noEmit` — no type errors
 - [ ] `cd frontend && pnpm run build` — Vite build succeeds
 
 ### Flow Level (Behavioral)
@@ -521,13 +554,13 @@ test('app shell loads and displays heading', async ({ page }) => {
 | AC1 | `pnpm run dev` 在 `:5173` 啟動 | `pnpm run dev` |
 | AC2 | 瀏覽器看到 App shell | Browser check |
 | AC3 | Tailwind utility classes 正常套用 | Visual: `bg-background`, `text-3xl`, `font-bold` |
-| AC4 | shadcn/ui CLI 可新增元件 | `npx shadcn@latest add button` |
-| AC5 | `@/` path alias 正常解析 | `npx tsc --noEmit` |
+| AC4 | shadcn/ui CLI 可新增元件 | `pnpm dlx shadcn@latest add button` |
+| AC5 | `@/` path alias 正常解析 | `pnpm exec tsc --noEmit` |
 | AC6 | shadcn CLI add 落在 `primitives/` | `ls src/components/primitives/button.tsx` |
 | AC7 | Vitest unit test 通過 | `pnpm run test` |
-| AC8 | Playwright E2E test 通過 | `npx playwright test` |
-| AC9 | AI SDK 已安裝、TypeScript 無型別錯誤 | `pnpm ls ai @ai-sdk/react` + `npx tsc --noEmit` |
-| AC10 | ESLint 無 error | `npx eslint .` |
+| AC8 | Playwright E2E test 通過 | `pnpm run test:e2e` |
+| AC9 | AI SDK 已安裝、TypeScript 無型別錯誤 | `pnpm ls ai @ai-sdk/react` + `pnpm exec tsc --noEmit` |
+| AC10 | ESLint 無 error | `pnpm run lint` |
 
 ### Summary
 

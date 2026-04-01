@@ -8,4 +8,5 @@ __pycache__/
 .sisyphus/
 artifacts/
 .artifacts/
+.superpowers/
 backend/evals/results/

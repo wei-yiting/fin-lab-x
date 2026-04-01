@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinLab-X Chat — Design v5</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0d10; display: flex; justify-content: center; padding: 24px; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  .frame { max-width: 780px; width: 100%; }
+  .frame h2 { color: #eef1f4; font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .frame .sub { color: #7c8894; font-size: 13px; margin-bottom: 20px; }
+
+  .phone {
+    background: #101518;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 780px;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 4px 24px rgba(0,0,0,0.5),
+      0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 22px;
+    background: linear-gradient(180deg, #131a1f 0%, #101518 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .header .brand { display: flex; align-items: center; gap: 10px; }
+  .header .brand .name { font-weight: 600; font-size: 15px; color: #eef1f4; }
+  .header .brand .tag {
+    font-size: 10px; color: #7c8894;
+    background: rgba(255,255,255,0.04);
+    padding: 2px 7px; border-radius: 4px;
+    font-weight: 500; letter-spacing: 0.02em;
+  }
+  .header .actions { }
+  .clear-btn {
+    background: rgba(252,122,110,0.08);
+    color: #fc7a6e;
+    border: 1px solid rgba(252,122,110,0.2);
+    padding: 6px 14px; border-radius: 6px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .clear-btn:hover { background: rgba(252,122,110,0.14); border-color: rgba(252,122,110,0.35); }
+
+  /* Messages */
+  .messages {
+    flex: 1; overflow-y: auto;
+    padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+
+  /* User message */
+  .msg-user {
+    display: flex; justify-content: flex-end;
+  }
+  .msg-user .bubble {
+    max-width: 72%;
+    background: linear-gradient(135deg, #1e2d3d 0%, #1a2636 100%);
+    border: 1px solid rgba(59,141,240,0.12);
+    padding: 11px 16px;
+    border-radius: 16px 16px 4px 16px;
+    font-size: 14px; color: #eef1f4;
+    line-height: 1.6;
+  }
+
+  /* Assistant message */
+  .msg-assistant {
+    display: flex; flex-direction: column; gap: 6px;
+    max-width: 88%;
+  }
+  .msg-assistant .text {
+    font-size: 14px; color: #c8cdd3; line-height: 1.75;
+    padding: 2px 0;
+  }
+  .msg-assistant .text strong { color: #eef1f4; font-weight: 600; }
+  .msg-assistant .text .positive { color: #21d87d; }
+  .msg-assistant .text .negative { color: #fc7a6e; }
+
+  /* Tool card base */
+  .tool-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+  }
+  .tool-card:hover { border-color: rgba(255,255,255,0.1); }
+  .tool-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .tool-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .tool-dot.running { background: #f0a030; box-shadow: 0 0 6px rgba(240,160,48,0.4); animation: pulse 2s infinite; }
+  .tool-dot.success { background: #21d87d; }
+  .tool-dot.error { background: #fc7a6e; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .tool-label { color: #7c8894; font-size: 12px; }
+  .tool-label.running { color: #f0a030; }
+  .tool-label.error-text { color: #fc7a6e; }
+  .tool-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: #4a5260;
+    margin-left: auto;
+  }
+  .tool-summary { font-size: 12px; color: #7c8894; }
+  .tool-toggle { color: #7c8894; flex-shrink: 0; transition: color 0.15s; display: flex; align-items: center; }
+  .tool-card:hover .tool-toggle { color: #a0a8b2; }
+
+  .tool-detail {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; line-height: 1.6;
+  }
+  .tool-detail .label { color: #4a5260; font-size: 10px; font-weight: 500; margin-bottom: 2px; letter-spacing: 0.03em; }
+  .tool-detail .value { color: #7c8894; margin-bottom: 8px; word-break: break-all; }
+  .tool-detail .value:last-child { margin-bottom: 0; }
+  .tool-detail pre {
+    color: #7c8894; margin: 0; white-space: pre-wrap;
+    font-size: 11px; line-height: 1.5; font-family: inherit;
+  }
+
+  /* Sources */
+  .sources {
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    margin-top: 4px;
+  }
+  .sources .heading {
+    font-size: 10px; color: #4a5260; font-weight: 600;
+    letter-spacing: 0.05em; margin-bottom: 6px;
+  }
+  .sources a {
+    display: flex; align-items: center; gap: 6px;
+    color: #3b8df0; text-decoration: none; font-size: 12.5px;
+    padding: 3px 0; line-height: 1.5;
+    transition: color 0.1s;
+  }
+  .sources a:hover { color: #5da3f5; }
+  .sources .num { color: #4a5260; font-size: 11px; font-weight: 500; flex-shrink: 0; width: 14px; }
+  .sources .arrow { color: #4a5260; font-size: 10px; margin-left: auto; flex-shrink: 0; }
+
+  /* Error block */
+  .error-block {
+    background: rgba(252,122,110,0.04);
+    border: 1px solid rgba(252,122,110,0.15);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .error-block .error-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .error-block .error-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(252,122,110,0.1);
+    display: flex; align-items: center; justify-content: center;
+    color: #fc7a6e; font-size: 11px; flex-shrink: 0;
+  }
+  .error-block .error-title { font-size: 13px; color: #fc7a6e; font-weight: 500; }
+  .error-block .error-desc { font-size: 12px; color: #7c8894; margin-left: 30px; margin-bottom: 10px; line-height: 1.5; }
+  .error-block .retry-btn {
+    margin-left: 30px;
+    background: rgba(255,255,255,0.06); color: #eef1f4;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 16px; border-radius: 6px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .error-block .retry-btn:hover { background: rgba(255,255,255,0.1); }
+
+  /* Streaming cursor */
+  .cursor {
+    display: inline-block; width: 2px; height: 15px;
+    background: #3b8df0; border-radius: 1px;
+    animation: blink 1s step-end infinite;
+    vertical-align: middle; margin-left: 2px;
+  }
+  @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+
+  /* Input */
+  .input-area {
+    padding: 12px 22px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(0deg, #0d1117 0%, #101518 100%);
+  }
+  .input-row {
+    display: flex; gap: 10px; align-items: flex-end;
+  }
+  .input-box {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13.5px; color: #eef1f4;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: none; outline: none;
+    transition: border-color 0.15s;
+    min-height: 44px;
+  }
+  .input-box:focus { border-color: rgba(59,141,240,0.3); }
+  .input-box::placeholder { color: #4a5260; }
+  .send-btn {
+    width: 44px; height: 44px;
+    background: #3b8df0;
+    border: none; border-radius: 10px;
+    color: white; font-size: 18px;
+    cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(59,141,240,0.2);
+  }
+  .send-btn:hover { background: #4d9af5; }
+  .send-btn:active { transform: scale(0.96); }
+
+  .disclaimer {
+    text-align: center; margin-top: 8px;
+    font-size: 11px; color: #3a4048;
+  }
+
+  .notes {
+    margin-top: 24px; padding: 16px 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    font-size: 12px; color: #7c8894; line-height: 1.7;
+  }
+  .notes h3 { color: #c8cdd3; font-size: 13px; margin-bottom: 8px; }
+  .notes ul { padding-left: 18px; margin: 0; }
+  .notes li { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <h2>S3 Layout v5</h2>
+  <p class="sub">根據回饋調整：tool name 靠右、移除 logo icon、清除對話按鈕更顯眼、sources 移到回答最底部</p>
+
+  <div class="phone">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <span class="name">FinLab-X</span>
+        <span class="tag">v1</span>
+      </div>
+      <div class="actions">
+        <button class="clear-btn">清除對話</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages">
+
+      <!-- User -->
+      <div class="msg-user">
+        <div class="bubble">台積電最近股價和新聞如何？</div>
+      </div>
+
+      <!-- Assistant -->
+      <div class="msg-assistant">
+        <div class="text">讓我幫你查詢台積電的相關資訊。</div>
+
+        <!-- Tool: executing -->
+        <div class="tool-card">
+          <div class="tool-row">
+            <div class="tool-dot running"></div>
+            <span class="tool-label running">查詢 2330.TW 股價...</span>
+            <span class="tool-name">yfinance_stock_quote</span>
+            <svg class="tool-toggle" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <!-- Tool: success, collapsed — tool name on far right -->
+        <div class="tool-card">
+          <div class="tool-row">
+            <div class="tool-dot success"></div>
+            <span class="tool-label">已查詢股價</span>
+            <span style="color:#4a5260;font-size:11px;">·</span>
+            <span class="tool-summary">1,045 TWD (+2.3%)</span>
+            <span class="tool-name">yfinance_stock_quote</span>
+            <svg class="tool-toggle" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <!-- Tool: success, expanded — tool name on far right -->
+        <div class="tool-card" style="border-color:rgba(255,255,255,0.08);">
+          <div class="tool-row">
+            <div class="tool-dot success"></div>
+            <span class="tool-label">已搜尋新聞</span>
+            <span class="tool-name">tavily_financial_search</span>
+            <svg class="tool-toggle" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="tool-detail">
+            <div class="label">INPUT</div>
+            <div class="value">{"query": "TSMC recent news earnings 2026"}</div>
+            <div class="label">OUTPUT</div>
+            <pre>[{"title": "TSMC expands US chip production", "source": "Reuters"},
+ {"title": "TSMC Q2 forecast beats", "source": "Bloomberg"}]</pre>
+          </div>
+        </div>
+
+        <!-- Tool: error — tool name on far right -->
+        <div class="tool-card" style="border-color:rgba(252,122,110,0.15);">
+          <div class="tool-row">
+            <div class="tool-dot error"></div>
+            <span class="tool-label error-text">查詢失敗</span>
+            <span style="color:#4a5260;font-size:11px;">·</span>
+            <span style="font-size:12px;color:#fc7a6e;">API timeout</span>
+            <span class="tool-name">sec_docs_retriever</span>
+            <svg class="tool-toggle" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <!-- Continuation text -->
+        <div class="text">
+          根據查詢結果，台積電（2330.TW）目前股價為 <strong>NT$1,045</strong>，今日漲幅 <span class="positive">+2.3%</span>。
+        </div>
+        <div class="text">
+          最新新聞重點：
+        </div>
+        <div class="text" style="padding-left:4px;">
+          • TSMC 宣布擴大在美國的晶片生產設施<br>
+          • 第二季營收預期優於市場預測
+        </div>
+
+        <!-- Streaming text -->
+        <div class="text">
+          整體而言，台積電近期基本面表現穩健，建議持續關注後續法說會<span class="cursor"></span>
+        </div>
+
+        <!-- Sources — at the very bottom of the response -->
+        <div class="sources">
+          <div class="heading">SOURCES</div>
+          <a href="#"><span class="num">1</span>Reuters: TSMC expands US chip production<span class="arrow">↗</span></a>
+          <a href="#"><span class="num">2</span>Bloomberg: TSMC Q2 revenue forecast beats expectations<span class="arrow">↗</span></a>
+        </div>
+      </div>
+
+      <!-- Stream Error example -->
+      <div class="msg-assistant">
+        <div class="text">讓我幫你查詢 Apple 的</div>
+        <div class="error-block">
+          <div class="error-header">
+            <div class="error-icon">!</div>
+            <span class="error-title">回覆中斷</span>
+          </div>
+          <div class="error-desc">模型暫時無法使用，請重試。</div>
+          <button class="retry-btn">重試</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-row">
+        <textarea class="input-box" rows="1" placeholder="輸入你的問題..."></textarea>
+        <button class="send-btn">↑</button>
+      </div>
+      <div class="disclaimer">FinLab-X 可能產生不準確的資訊，請自行驗證重要財務數據。</div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h3>v4 → v5 調整</h3>
+    <ul>
+      <li>Tool name（yfinance_stock_quote 等）統一靠整個 tool card 的右邊（<code>margin-left: auto</code>）</li>
+      <li>移除 header 的藍色 F logo icon，只留文字</li>
+      <li>「清除對話」按鈕改為紅色系（<code>rgba(252,122,110,0.08)</code> 背景 + 紅色邊框 + 紅色文字），hover 時更亮</li>
+      <li>Sources 區塊移到整個 assistant 回答的最底部（在 streaming text 之後）</li>
+      <li>Stream Error Block 獨立為一個 assistant message block，視覺上分開</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

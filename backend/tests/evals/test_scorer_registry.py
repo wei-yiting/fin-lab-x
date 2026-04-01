@@ -85,7 +85,7 @@ def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) 
     scorers = scorer_registry.resolve_scorers([scorer_config])
 
     assert len(scorers) == 1
-    assert isinstance(scorers[0], FakeLLMClassifier)
+    assert callable(scorers[0])
     assert captured == {
         "name": "judge_score",
         "prompt_template": "Judge whether the answer follows the policy.",

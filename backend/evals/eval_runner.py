@@ -40,6 +40,7 @@ _VALID_SCENARIO_DIR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 logger = logging.getLogger(__name__)
 
 _ERROR_MARKER = "ERROR"
+_SKIPPED_MARKER = "SKIPPED"
 
 
 def discover_scenarios(scenarios_dir: Path) -> list[str]:
@@ -93,15 +94,44 @@ def _flatten_output(output: Any) -> dict[str, str]:
     return {"output": str(output)}
 
 
-def _wrap_task(task_fn: Any) -> Any:
-    """Wrap the task function to catch exceptions and None returns."""
+_TIMEOUT_MARKER = "TIMEOUT"
+
+
+def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
+    """Wrap the task function to catch exceptions, None returns, and timeouts."""
 
     def wrapped(input: Any) -> Any:
-        try:
-            result = task_fn(input)
-        except Exception:
-            logger.error("Task function raised an exception", exc_info=True)
-            return _ERROR_MARKER
+        if timeout is not None:
+            import queue
+            import threading
+
+            result_q: queue.Queue[tuple[str, Any]] = queue.Queue()
+
+            def _run() -> None:
+                try:
+                    result_q.put(("ok", task_fn(input)))
+                except Exception as exc:
+                    result_q.put(("error", exc))
+
+            t = threading.Thread(target=_run, daemon=True)
+            t.start()
+            try:
+                status, value = result_q.get(timeout=timeout)
+            except queue.Empty:
+                logger.error(
+                    "Task function timed out after %.1f seconds", timeout
+                )
+                return _ERROR_MARKER
+            if status == "error":
+                logger.error("Task function raised an exception: %s", value)
+                return _ERROR_MARKER
+            result = value
+        else:
+            try:
+                result = task_fn(input)
+            except Exception:
+                logger.error("Task function raised an exception", exc_info=True)
+                return _ERROR_MARKER
         if result is None:
             logger.error(
                 "Task function returned None. Ensure the function has a return statement."
@@ -151,6 +181,8 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
         try:
             filtered = _filter_kwargs_for(scorer_fn, kwargs)
             result = scorer_fn(output=output, expected=expected, **filtered)
+            if result is None:
+                return _SKIPPED_MARKER
             if hasattr(result, "name"):
                 result.name = scorer_name
             return result
@@ -196,6 +228,17 @@ def write_result_csv(
                 all_output_keys.append(key)
 
     orig_cols = original_columns or []
+
+    # Rename generated output keys that conflict with original CSV columns
+    conflict_keys = set(orig_cols) & set(all_output_keys)
+    if conflict_keys:
+        rename_map = {k: f"_generated.{k}" for k in conflict_keys}
+        all_output_keys = [rename_map.get(k, k) for k in all_output_keys]
+        flattened_outputs = [
+            {rename_map.get(k, k): v for k, v in flat.items()}
+            for flat in flattened_outputs
+        ]
+
     fieldnames = [*orig_cols, *all_output_keys, *score_columns]
 
     with csv_path.open("w", encoding="utf-8", newline="") as f:
@@ -229,6 +272,8 @@ def write_result_csv(
                 score_val = result.scores.get(name)
                 if score_val is None:
                     row[f"score_{name}"] = _ERROR_MARKER
+                elif score_val == _SKIPPED_MARKER:
+                    row[f"score_{name}"] = _SKIPPED_MARKER
                 elif isinstance(score_val, (int, float)):
                     row[f"score_{name}"] = str(score_val)
                 elif isinstance(score_val, str):
@@ -275,7 +320,7 @@ def run_scenario(
     task_fn = resolve_function(config.task.function, label="task")
 
     scorer_names = [s.name for s in config.scorers]
-    wrapped_task = _wrap_task(task_fn)
+    wrapped_task = _wrap_task(task_fn, timeout=config.task.timeout)
     wrapped_scorers = [
         _wrap_scorer(scorer, name) for scorer, name in zip(scorers, scorer_names)
     ]
@@ -285,47 +330,10 @@ def run_scenario(
         f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     )
 
-    # Merge local_mode: CLI --local-only overrides config default
-    effective_local = local_only or bt_config.local_mode
+    # Always run local eval first to guarantee local CSV output
+    eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
 
-    if effective_local:
-        eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
-    else:
-        try:
-            from braintrust import Eval, EvalCase
-        except ModuleNotFoundError as exc:
-            raise ModuleNotFoundError(
-                "braintrust is required for running evaluations. "
-                "Install it with: uv add --optional dev braintrust"
-            ) from exc
-
-        eval_cases = [
-            EvalCase(
-                input=row["input"],
-                expected=row.get("expected"),
-                metadata=row.get("metadata"),
-            )
-            for row in raw_data
-        ]
-
-        api_key = os.environ.get(bt_config.api_key_env)
-        if not api_key:
-            raise RuntimeError(
-                f"API key not found in environment variable '{bt_config.api_key_env}'. "
-                "Set the key or use --local-only."
-            )
-        _init_platform_tracing(bt_config.project, api_key)
-
-        eval_result = Eval(
-            bt_config.project,
-            data=eval_cases,
-            task=wrapped_task,
-            scores=wrapped_scorers,
-            experiment_name=experiment_name,
-            no_send_logs=False,
-        )
-
-    return write_result_csv(
+    result_path = write_result_csv(
         eval_result,
         scenario_name,
         scorer_names,
@@ -333,6 +341,44 @@ def run_scenario(
         original_columns=original_columns,
         original_rows=original_rows,
     )
+
+    # Merge local_mode: CLI --local-only overrides config default
+    effective_local = local_only or bt_config.local_mode
+
+    if not effective_local:
+        try:
+            from braintrust import Eval, EvalCase
+
+            api_key = os.environ.get(bt_config.api_key_env)
+            if not api_key:
+                raise RuntimeError(
+                    f"API key not found in environment variable "
+                    f"'{bt_config.api_key_env}'. "
+                    "Set the key or use --local-only."
+                )
+            _init_platform_tracing(bt_config.project, api_key)
+
+            eval_cases = [
+                EvalCase(
+                    input=row["input"],
+                    expected=row.get("expected"),
+                    metadata=row.get("metadata"),
+                )
+                for row in raw_data
+            ]
+
+            Eval(
+                bt_config.project,
+                data=eval_cases,
+                task=wrapped_task,
+                scores=wrapped_scorers,
+                experiment_name=experiment_name,
+                no_send_logs=False,
+            )
+        except Exception:
+            logger.error("Braintrust upload failed", exc_info=True)
+
+    return result_path
 
 
 def _run_local_eval(
@@ -358,7 +404,9 @@ def _run_local_eval(
         for scorer in scorers:
             name = getattr(scorer, "__name__", "unknown")
             score = scorer(output=output, expected=expected_val, input=input_val)
-            if score is not None and hasattr(score, "score"):
+            if score == _SKIPPED_MARKER:
+                scores[name] = _SKIPPED_MARKER
+            elif score is not None and hasattr(score, "score"):
                 scores[name] = score.score
             else:
                 scores[name] = score

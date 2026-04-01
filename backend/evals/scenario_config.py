@@ -65,6 +65,7 @@ class TaskConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     function: str
+    timeout: float | None = None
 
 
 class ScenarioConfig(BaseModel):

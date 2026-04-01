@@ -10,3 +10,4 @@ artifacts/
 .artifacts/
 .superpowers/
 backend/evals/results/
+node_modules/

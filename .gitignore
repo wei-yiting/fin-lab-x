@@ -13,5 +13,17 @@ backend/evals/results/
 node_modules/
 .pnpm-store/
 dist/
+dist-ssr/
+*.local
 test-results/
 playwright-report/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.idea/
+.DS_Store
+*.sw?

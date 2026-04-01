@@ -11,3 +11,6 @@ artifacts/
 .superpowers/
 backend/evals/results/
 node_modules/
+dist/
+test-results/
+playwright-report/

@@ -73,7 +73,7 @@ If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` 
 | File | Role |
 |------|------|
 | `eval_runner.py` | CLI entry point and orchestrator. Discovers scenarios, assembles Braintrust `Eval()` calls, writes result CSV. |
-| `scenario_config.py` | Pydantic models for `eval_spec.yaml` and `braintrust_config.yaml`. Validates and parses scenario configs. |
+| `eval_spec_schema.py` | Pydantic models for `eval_spec.yaml` and `braintrust_config.yaml`. Validates and parses scenario configs. |
 | `dataset_loader.py` | Reads CSV files and applies `column_mapping` to produce `{input, expected, metadata}` dicts for each row. |
 | `scorer_registry.py` | Resolves scorer dotpaths to Python callables. Builds `LLMClassifier` instances for `llm_judge` type scorers. |
 | `eval_tasks.py` | Task functions that wrap the agent engine. Called by `Eval()` for each dataset row to produce agent output. |
@@ -85,7 +85,7 @@ If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` 
 ```mermaid
 graph TD
     CLI["eval_runner.py<br/>(CLI + orchestrator)"]
-    Config["scenario_config.py<br/>(parse eval_spec.yaml)"]
+    Config["eval_spec_schema.py<br/>(parse eval_spec.yaml)"]
     Loader["dataset_loader.py<br/>(CSV → {input, expected, metadata})"]
     Registry["scorer_registry.py<br/>(dotpath → callable)"]
     Tasks["eval_tasks.py<br/>(call agent engine)"]

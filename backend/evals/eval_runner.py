@@ -23,7 +23,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from backend.evals.dataset_loader import load_dataset, load_raw_csv_rows
-from backend.evals.scenario_config import (
+from backend.evals.eval_spec_schema import (
     load_braintrust_config,
     load_scenario_config,
 )

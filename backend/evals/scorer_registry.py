@@ -10,7 +10,7 @@ from typing import Any
 
 from autoevals import LLMClassifier  # pyright: ignore[reportMissingImports]
 
-from backend.evals.scenario_config import ScorerConfig
+from backend.evals.eval_spec_schema import ScorerConfig
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,7 @@ def _build_llm_judge(scorer_config: ScorerConfig) -> Callable[..., Any]:
     template_vars = _TEMPLATE_VAR_RE.findall(scorer_config.rubric)
 
     def _llm_judge_wrapper(output: Any, expected: Any, *, input: Any = None, **kwargs: Any) -> Any:
+        """Skip scoring when rubric template variables are missing or empty."""
         for var in template_vars:
             if var == "input":
                 if input is None or input == "":

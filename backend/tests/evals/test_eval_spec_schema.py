@@ -5,7 +5,7 @@ import textwrap
 
 import pytest
 
-from backend.evals.scenario_config import (
+from backend.evals.eval_spec_schema import (
     BraintrustConfig,
     ScenarioConfig,
     load_braintrust_config,

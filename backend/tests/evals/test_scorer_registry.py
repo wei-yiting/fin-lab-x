@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from backend.evals.scenario_config import ScorerConfig
+from backend.evals.eval_spec_schema import ScorerConfig
 
 
 def test_resolve_scorers_resolves_programmatic_dotpath() -> None:

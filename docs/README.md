@@ -7,6 +7,7 @@ Central repository for architectural specifications, design plans, and project g
 ## Map
 
 - `agent_architecture.md`: High-level architecture, Single Orchestrator pattern, and design principles.
+- `agent-patterns-primer.md`: Conceptual explainer for Workflow, Subgraph, Subagent, and Multi-agent patterns.
 - `file_structure.md`: Comprehensive mapping of directory responsibilities and file roles.
 - `project_requirement.md`: Product Requirements Document (PRD) covering the v1-v5 evolutionary phases, architectural philosophy, and evaluation-driven development strategy.
 

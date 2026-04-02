@@ -11,6 +11,8 @@ pnpm run build        # Production build
 pnpm run test         # Unit tests (Vitest)
 pnpm run test:e2e     # E2E tests (Playwright)
 pnpm run lint         # ESLint
+pnpm run format       # Format with Prettier
+pnpm run format:check # Check formatting (CI)
 ```
 
 ## Structure

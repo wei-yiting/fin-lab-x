@@ -4,11 +4,14 @@ version = "0.1.0"
 description = "FinLab-X backend services and AI engine"
 requires-python = ">=3.11"
 dependencies = [
+    "beautifulsoup4>=4.12.0",
     "edgartools>=5.17.1",
     "fastapi>=0.115.0",
+    "html-to-markdown>=3.0.2,<4.0.0",
     "langchain>=1.2.10",
     "langchain-openai>=1.1.10",
     "langfuse>=4.0.0",
+    "markdownify>=1.2.0",
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0.2",
     "tavily-python>=0.7.21",
@@ -29,8 +32,11 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
-markers = ["eval: evaluation tests that hit real LLM APIs"]
-addopts = "-m 'not eval'"
+markers = [
+    "eval: evaluation tests that hit real LLM APIs",
+    "sec_integration: SEC integration tests that hit real SEC EDGAR APIs",
+]
+addopts = "-m 'not eval and not sec_integration'"
 
 [tool.ruff]
 line-length = 88

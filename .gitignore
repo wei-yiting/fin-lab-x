@@ -17,6 +17,9 @@ dist-ssr/
 test-results/
 playwright-report/
 
+# SEC filing data
+data/sec_filings/
+
 # Logs
 *.log
 npm-debug.log*

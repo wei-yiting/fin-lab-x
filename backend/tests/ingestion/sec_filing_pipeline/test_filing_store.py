@@ -54,7 +54,9 @@ class TestSaveExistsGetRoundtrip:
         assert result.metadata.filing_type == sample_filing.metadata.filing_type
         assert result.metadata.filing_date == sample_filing.metadata.filing_date
         assert result.metadata.fiscal_year == sample_filing.metadata.fiscal_year
-        assert result.metadata.accession_number == sample_filing.metadata.accession_number
+        assert (
+            result.metadata.accession_number == sample_filing.metadata.accession_number
+        )
         assert result.metadata.source_url == sample_filing.metadata.source_url
         assert result.metadata.parsed_at == sample_filing.metadata.parsed_at
         assert result.metadata.converter == sample_filing.metadata.converter

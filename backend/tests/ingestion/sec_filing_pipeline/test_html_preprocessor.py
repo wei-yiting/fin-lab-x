@@ -157,9 +157,9 @@ class TestHeadingPromotion:
 
     def test_modern_filing_styled_span_promoted(self, preprocessor):
         html = (
-            '<div>'
+            "<div>"
             '<span style="font-weight:700;font-size:10pt">Item 1. Business</span>'
-            '</div>'
+            "</div>"
         )
         result = preprocessor.preprocess(html)
         assert "<h2>" in result

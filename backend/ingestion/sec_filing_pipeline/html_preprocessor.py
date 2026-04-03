@@ -95,7 +95,9 @@ class HTMLPreprocessor:
             tag.unwrap()
 
     def _remove_hidden_elements(self, soup: BeautifulSoup) -> None:
-        for tag in soup.find_all(style=re.compile(r"display\s*:\s*none", re.IGNORECASE)):
+        for tag in soup.find_all(
+            style=re.compile(r"display\s*:\s*none", re.IGNORECASE)
+        ):
             tag.decompose()
 
     def _strip_decorative_styles(self, soup: BeautifulSoup) -> None:

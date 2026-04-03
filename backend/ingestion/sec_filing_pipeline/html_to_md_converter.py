@@ -42,9 +42,7 @@ def create_converter() -> HTMLToMarkdownConverter:
 
         return HtmlToMarkdownAdapter()
     except ImportError:
-        logger.warning(
-            "html-to-markdown not available, falling back to markdownify"
-        )
+        logger.warning("html-to-markdown not available, falling back to markdownify")
         return MarkdownifyAdapter()
 
 

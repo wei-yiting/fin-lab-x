@@ -44,18 +44,21 @@ class TestFilingMetadata:
         with pytest.raises(ValidationError):
             FilingMetadata(**valid_metadata_kwargs)
 
-    @pytest.mark.parametrize("field", [
-        "ticker",
-        "cik",
-        "company_name",
-        "filing_type",
-        "filing_date",
-        "fiscal_year",
-        "accession_number",
-        "source_url",
-        "parsed_at",
-        "converter",
-    ])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "ticker",
+            "cik",
+            "company_name",
+            "filing_type",
+            "filing_date",
+            "fiscal_year",
+            "accession_number",
+            "source_url",
+            "parsed_at",
+            "converter",
+        ],
+    )
     def test_missing_required_field(self, valid_metadata_kwargs, field):
         del valid_metadata_kwargs[field]
         with pytest.raises(ValidationError):

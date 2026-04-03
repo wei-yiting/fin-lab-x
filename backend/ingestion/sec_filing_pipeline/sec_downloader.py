@@ -28,16 +28,12 @@ class SECDownloader:
         ticker = ticker.upper()
 
         if filing_type not in FilingType.__members__.values():
-            raise UnsupportedFilingTypeError(
-                f"Unsupported filing type: {filing_type}"
-            )
+            raise UnsupportedFilingTypeError(f"Unsupported filing type: {filing_type}")
 
         try:
             company = Company(ticker)
         except CompanyNotFoundError as exc:
-            raise TickerNotFoundError(
-                f"Ticker not found: {ticker}"
-            ) from exc
+            raise TickerNotFoundError(f"Ticker not found: {ticker}") from exc
 
         filings = company.get_filings(form=filing_type)
 

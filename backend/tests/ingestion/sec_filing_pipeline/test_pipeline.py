@@ -11,7 +11,10 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     TransientError,
     UnsupportedFilingTypeError,
 )
-from backend.ingestion.sec_filing_pipeline.pipeline import BatchResult, SECFilingPipeline
+from backend.ingestion.sec_filing_pipeline.pipeline import (
+    BatchResult,
+    SECFilingPipeline,
+)
 
 
 @pytest.fixture()
@@ -86,7 +89,13 @@ def mock_store():
 
 
 @pytest.fixture()
-def pipeline(mock_downloader, mock_preprocessor, mock_converter, mock_fallback_converter, mock_store):
+def pipeline(
+    mock_downloader,
+    mock_preprocessor,
+    mock_converter,
+    mock_fallback_converter,
+    mock_store,
+):
     return SECFilingPipeline(
         downloader=mock_downloader,
         preprocessor=mock_preprocessor,
@@ -116,7 +125,9 @@ class TestProcessCacheHit:
         result = pipeline.process("AAPL", "10-K")
 
         mock_downloader.download.assert_called_once_with("AAPL", "10-K", None)
-        mock_store.get.assert_called_once_with("AAPL", FilingType.TEN_K, raw_filing.fiscal_year)
+        mock_store.get.assert_called_once_with(
+            "AAPL", FilingType.TEN_K, raw_filing.fiscal_year
+        )
         assert result is parsed_filing
 
 
@@ -153,9 +164,7 @@ class TestProcessTickerNormalization:
         mock_store.get.assert_called_with("AAPL", FilingType.TEN_K, 2024)
         mock_downloader.download.assert_called_once_with("AAPL", "10-K", 2024)
 
-    def test_mixed_case_ticker_normalized(
-        self, pipeline, mock_downloader, mock_store
-    ):
+    def test_mixed_case_ticker_normalized(self, pipeline, mock_downloader, mock_store):
         pipeline.process("AaPl", "10-K", fiscal_year=2024)
 
         mock_store.get.assert_called_with("AAPL", FilingType.TEN_K, 2024)
@@ -288,9 +297,7 @@ class TestBatchRetryTransientErrors:
         assert mock_sleep.call_count == 1
 
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
-    def test_exponential_backoff_delays(
-        self, mock_sleep, pipeline, mock_downloader
-    ):
+    def test_exponential_backoff_delays(self, mock_sleep, pipeline, mock_downloader):
         mock_downloader.download.side_effect = TransientError("503")
 
         pipeline.process_batch(["AAPL"], "10-K")
@@ -324,9 +331,7 @@ class TestJITModeRaisesExceptions:
 
 
 class TestBatchFromCacheFlag:
-    def test_from_cache_true_when_cache_hit(
-        self, pipeline, mock_store, parsed_filing
-    ):
+    def test_from_cache_true_when_cache_hit(self, pipeline, mock_store, parsed_filing):
         mock_store.get.return_value = parsed_filing
 
         results = pipeline.process_batch(["AAPL"], "10-K")
@@ -348,8 +353,12 @@ class TestCreateClassMethod:
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.MarkdownifyAdapter")
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.LocalFilingStore")
     def test_create_assembles_default_dependencies(
-        self, mock_store_cls, mock_fallback_cls, mock_converter_cls,
-        mock_preprocessor_cls, mock_downloader_cls
+        self,
+        mock_store_cls,
+        mock_fallback_cls,
+        mock_converter_cls,
+        mock_preprocessor_cls,
+        mock_downloader_cls,
     ):
         pipeline = SECFilingPipeline.create()
 
@@ -409,9 +418,7 @@ class TestIntegration:
             assert first_run[t].status == "success"
             assert first_run[t].from_cache is False
 
-        first_parsed_at = {
-            t: first_run[t].filing.metadata.parsed_at for t in tickers
-        }
+        first_parsed_at = {t: first_run[t].filing.metadata.parsed_at for t in tickers}
 
         second_run = self.pipeline.process_batch(tickers, "10-K")
 
@@ -514,9 +521,7 @@ class TestIntegration:
         latest_fy = raw_latest.fiscal_year
 
         nvda1 = self.pipeline.process("NVDA", "10-K", fiscal_year=latest_fy)
-        nvda2 = self.pipeline.process(
-            "NVDA", "10-K", fiscal_year=latest_fy - 1
-        )
+        nvda2 = self.pipeline.process("NVDA", "10-K", fiscal_year=latest_fy - 1)
         aapl = self.pipeline.process("AAPL", "10-K")
 
         nvda_years = self.store.list_filings("NVDA", FilingType.TEN_K)
@@ -545,19 +550,26 @@ class TestIntegration:
         md_path = self.tmp_path / "NVDA" / "10-K" / f"{derived_fy}.md"
         assert md_path.exists(), f"Expected file at {md_path}"
 
-        assert filing.metadata.fiscal_year == int(
-            str(raw.fiscal_year)
-        ), "fiscal_year in metadata must match derived FY"
+        assert filing.metadata.fiscal_year == int(str(raw.fiscal_year)), (
+            "fiscal_year in metadata must match derived FY"
+        )
 
     def test_s_dl_07_concurrent_writes(self):
         """Two parallel process() calls for the same ticker produce a valid file."""
+
         async def _run_pair():
             loop = asyncio.get_event_loop()
             t1 = loop.run_in_executor(
-                None, self.pipeline.process, "NVDA", "10-K",
+                None,
+                self.pipeline.process,
+                "NVDA",
+                "10-K",
             )
             t2 = loop.run_in_executor(
-                None, self.pipeline.process, "NVDA", "10-K",
+                None,
+                self.pipeline.process,
+                "NVDA",
+                "10-K",
             )
             results = await asyncio.gather(t1, t2)
             return results

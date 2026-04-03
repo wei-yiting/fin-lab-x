@@ -69,7 +69,10 @@ class TestDownloadHappyPath:
         assert result.filing_date == "2024-11-01"
         assert result.fiscal_year == 2024
         assert result.accession_number == "0000320193-24-000123"
-        assert result.source_url == "https://www.sec.gov/Archives/edgar/data/320193/filing.htm"
+        assert (
+            result.source_url
+            == "https://www.sec.gov/Archives/edgar/data/320193/filing.htm"
+        )
 
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
     def test_normalizes_ticker_to_uppercase(self, mock_company_cls, mock_company):

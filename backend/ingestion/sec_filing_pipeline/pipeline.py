@@ -14,7 +14,10 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     TransientError,
     UnsupportedFilingTypeError,
 )
-from backend.ingestion.sec_filing_pipeline.filing_store import FilingStore, LocalFilingStore
+from backend.ingestion.sec_filing_pipeline.filing_store import (
+    FilingStore,
+    LocalFilingStore,
+)
 from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor
 from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
     HTMLToMarkdownConverter,
@@ -141,7 +144,11 @@ class SECFilingPipeline:
                     delay = _RETRY_BASE_DELAY * (2**attempt)
                     logger.warning(
                         "Transient error for %s (attempt %d/%d), retrying in %.1fs: %s",
-                        ticker, attempt + 1, _MAX_BATCH_RETRIES, delay, exc,
+                        ticker,
+                        attempt + 1,
+                        _MAX_BATCH_RETRIES,
+                        delay,
+                        exc,
                     )
                     time.sleep(delay)
             except SECPipelineError as exc:
@@ -156,6 +163,4 @@ class SECFilingPipeline:
     @staticmethod
     def _validate_filing_type(filing_type: str) -> None:
         if filing_type not in FilingType.__members__.values():
-            raise UnsupportedFilingTypeError(
-                f"Unsupported filing type: {filing_type}"
-            )
+            raise UnsupportedFilingTypeError(f"Unsupported filing type: {filing_type}")

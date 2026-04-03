@@ -454,12 +454,31 @@ class TestIntegration:
         assert len(refreshed.markdown_content) > 1000
 
     def test_j_prep_01_html_preprocessing_quality(self):
-        """Preprocessed content preserves text and removes XBRL tags."""
-        filing = self.pipeline.process("NVDA", "10-K")
-        md = filing.markdown_content
+        """Preprocessed content preserves >80% of original visible text and removes XBRL tags."""
+        from bs4 import BeautifulSoup
 
-        assert len(md) > 10_000
-        assert not re.search(r"<ix:", md)
+        from backend.ingestion.sec_filing_pipeline.html_preprocessor import (
+            HTMLPreprocessor,
+        )
+        from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
+
+        downloader = SECDownloader()
+        raw = downloader.download("NVDA", FilingType.TEN_K)
+        original_soup = BeautifulSoup(raw.raw_html, "html.parser")
+        original_text_len = len(original_soup.get_text(strip=True))
+
+        pp = HTMLPreprocessor()
+        cleaned_html = pp.preprocess(raw.raw_html)
+        cleaned_soup = BeautifulSoup(cleaned_html, "html.parser")
+        cleaned_text_len = len(cleaned_soup.get_text(strip=True))
+
+        assert cleaned_text_len >= original_text_len * 0.8, (
+            f"Preprocessed text ({cleaned_text_len}) < 80% of original ({original_text_len})"
+        )
+        assert not re.search(r"<ix:", cleaned_html)
+
+        filing = self.pipeline.process("NVDA", "10-K")
+        assert len(filing.markdown_content) > 10_000
 
     def test_j_conv_01_full_pipeline_output_quality(self):
         """Converted markdown has valid frontmatter, headings, tables, no HTML residue."""
@@ -487,28 +506,48 @@ class TestIntegration:
         assert not re.search(r"<ix:", body, re.IGNORECASE)
 
     def test_j_store_01_multi_ticker_lifecycle(self):
-        """Save NVDA + AAPL, verify list_filings and distinct metadata."""
-        nvda = self.pipeline.process("NVDA", "10-K")
+        """Save NVDA (2 FYs) + AAPL (1 FY), verify list_filings and distinct metadata."""
+        from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
+
+        downloader = SECDownloader()
+        raw_latest = downloader.download("NVDA", FilingType.TEN_K)
+        latest_fy = raw_latest.fiscal_year
+
+        nvda1 = self.pipeline.process("NVDA", "10-K", fiscal_year=latest_fy)
+        nvda2 = self.pipeline.process(
+            "NVDA", "10-K", fiscal_year=latest_fy - 1
+        )
         aapl = self.pipeline.process("AAPL", "10-K")
 
         nvda_years = self.store.list_filings("NVDA", FilingType.TEN_K)
         aapl_years = self.store.list_filings("AAPL", FilingType.TEN_K)
 
-        assert nvda.metadata.fiscal_year in nvda_years
+        assert latest_fy in nvda_years
+        assert latest_fy - 1 in nvda_years
+        assert len(nvda_years) >= 2
         assert aapl.metadata.fiscal_year in aapl_years
 
-        assert nvda.metadata.company_name != aapl.metadata.company_name
-        assert nvda.metadata.cik != aapl.metadata.cik
+        assert nvda1.metadata.company_name != aapl.metadata.company_name
+        assert nvda1.metadata.cik != aapl.metadata.cik
 
     def test_s_dl_03_non_calendar_fy_nvda(self):
         """NVDA's fiscal year ends in January — verify FY derivation from period_of_report."""
-        filing = self.pipeline.process("NVDA", "10-K")
-        fy = filing.metadata.fiscal_year
-        filing_date = filing.metadata.filing_date
-        filing_year = int(filing_date[:4])
+        from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
 
-        assert fy >= filing_year - 1
-        assert fy <= filing_year + 1
+        downloader = SECDownloader()
+        raw = downloader.download("NVDA", FilingType.TEN_K)
+        period_of_report = str(raw.filing_date)
+        derived_fy = raw.fiscal_year
+
+        filing = self.pipeline.process("NVDA", "10-K")
+        assert filing.metadata.fiscal_year == derived_fy
+
+        md_path = self.tmp_path / "NVDA" / "10-K" / f"{derived_fy}.md"
+        assert md_path.exists(), f"Expected file at {md_path}"
+
+        assert filing.metadata.fiscal_year == int(
+            str(raw.fiscal_year)
+        ), "fiscal_year in metadata must match derived FY"
 
     def test_s_dl_07_concurrent_writes(self):
         """Two parallel process() calls for the same ticker produce a valid file."""

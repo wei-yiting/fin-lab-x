@@ -1,10 +1,12 @@
 # FinLab-X Agent Guidelines (AGENTS.md)
 
-Welcome, AI Agent! You are operating within the **FinLab-X** repository. This document outlines the critical workflows, commands, and code style guidelines you must follow when contributing to this project. 
+Welcome, AI Agent! You are operating within the **FinLab-X** repository. This document outlines the critical workflows, commands, and code style guidelines you must follow when contributing to this project.
 
 ## 1. Project Overview
-FinLab-X is a modular, multi-agent AI system designed to provide Just-in-Time (JIT) intelligence for US growth stocks. 
+
+FinLab-X is a modular, multi-agent AI system designed to provide Just-in-Time (JIT) intelligence for US growth stocks.
 The codebase is split into two primary environments:
+
 - **Backend (`/backend`)**: Python-based AI Agent Engine and FastAPI Web Server.
 - **Frontend (`/frontend`)**: TypeScript-based Next.js Generative UI.
 - **Evaluation (`backend/evaluation`)**: Independent LLMOps and evaluation framework.
@@ -12,34 +14,41 @@ The codebase is split into two primary environments:
 ## 2. Build, Lint, and Test Commands
 
 ### Backend (Python / FastAPI / LangGraph)
+
 The backend uses **Ruff** for fast linting and formatting, and **Pytest** for testing. Dependency management is intended to be handled by modern tools like `uv` or `poetry`.
 
 **Linting & Formatting:**
+
 - Check linting (Ruff): `ruff check backend/`
 - Fix auto-fixable lint issues: `ruff check --fix backend/`
 - Format code (Ruff): `ruff format backend/`
 - Type checking (MyPy/Pyright - if configured): `mypy backend/` or `pyright backend/`
 
 **Testing (Pytest):**
+
 - Run all tests: `pytest backend/tests/`
 - **Run a single test file (CRITICAL for agents):** `pytest backend/tests/path/to/test_file.py`
 - Run a specific test function: `pytest backend/tests/path/to/test_file.py::test_function_name`
 - Run tests with printed output (useful for debugging): `pytest -s backend/tests/...`
 
 ### Frontend (Next.js / React / TypeScript)
+
 The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
 
 **Build & Run:**
+
 - Install dependencies: `npm install` (or `pnpm install`)
 - Run development server: `npm run dev`
 - Build for production: `npm run build`
 
 **Linting & Formatting:**
+
 - Run ESLint: `npm run lint`
 - Fix ESLint issues: `npm run lint --fix`
 - Format with Prettier: `npx prettier --write "frontend/src/**/*.{ts,tsx,css,md}"`
 
 **Testing (Jest/Vitest/Playwright):**
+
 - Run unit tests: `npm run test`
 - **Run a single test:** `npm run test -- path/to/test.file.test.ts`
 - Run E2E tests: `npm run test:e2e` (if configured)
@@ -47,9 +56,10 @@ The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
 ## 3. Code Style Guidelines
 
 ### 3.1. Backend (Python)
+
 - **Typing:** Strict typing is mandatory. Use Python's `typing` module (`List`, `Dict`, `Optional`, `Any`, `TypedDict`). All function arguments and return types must be explicitly annotated.
-- **Formatting:** Adhere to **Ruff** defaults (typically equivalent to Black, max line length 88). 
-- **Imports:** 
+- **Formatting:** Adhere to **Ruff** defaults (typically equivalent to Black, max line length 88).
+- **Imports:**
   - Group imports correctly: Standard library first, third-party libraries second, internal project imports last.
   - Use absolute imports within the project (e.g., `from backend.agent_engine.core.state import State`).
 - **Naming Conventions:**
@@ -57,9 +67,10 @@ The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
   - Classes, Exceptions: `PascalCase`
   - Constants: `UPPER_SNAKE_CASE`
 - **Error Handling:** Use custom exception classes where possible. Never use bare `except:` blocks; always catch specific exceptions (e.g., `except ValueError as e:`). Use FastAPI's `HTTPException` appropriately in the `api/` directory.
-- **Docstrings:** Use Google-style docstrings for complex classes and functions. Keep them concise and focused on the *why*.
+- **Docstrings:** Use Google-style docstrings for complex classes and functions. Keep them concise and focused on the _why_.
 
 ### 3.2. Frontend (TypeScript & React)
+
 - **Typing:** Strict TypeScript typing. Avoid `any`; use `unknown` if necessary. Define exact interfaces or types for component props and state.
 - **Components:** Use functional components and React Hooks. Prefer default exports for page components and named exports for shared UI components.
 - **Styling:** Adhere to the configured styling solution (e.g., Tailwind CSS). Keep utility classes organized.

@@ -6,14 +6,14 @@
 
 ### Scope
 
-| 包含 | 不包含 |
-|------|--------|
-| 10-K filing download（batch + JIT） | XBRL parsing（v3 DuckDB） |
-| SEC HTML preprocessing（strip XBRL tags 等） | Vector DB ingestion 實作 |
-| HTML → Markdown converter（adapter pattern） | Chunking 策略實作 |
-| Parsing output schema / interface 定義 | Embedding pipeline |
-| Filing Store interface + local 實作 | Cloud storage 實作（未來加） |
-| Batch script + Agent tool entry point | 10-Q / 8-K / 其他 filing types |
+| 包含                                         | 不包含                         |
+| -------------------------------------------- | ------------------------------ |
+| 10-K filing download（batch + JIT）          | XBRL parsing（v3 DuckDB）      |
+| SEC HTML preprocessing（strip XBRL tags 等） | Vector DB ingestion 實作       |
+| HTML → Markdown converter（adapter pattern） | Chunking 策略實作              |
+| Parsing output schema / interface 定義       | Embedding pipeline             |
+| Filing Store interface + local 實作          | Cloud storage 實作（未來加）   |
+| Batch script + Agent tool entry point        | 10-Q / 8-K / 其他 filing types |
 
 ### 使用模式
 
@@ -53,10 +53,10 @@ graph LR
 
 ### 資料格式策略
 
-| 格式 | 用途 | 時程 |
-|------|------|------|
-| HTML → Markdown | 文字 parsing → RAG (v2) | 本次 design |
-| XBRL → structured data | 數值 → DuckDB (v3) | v3 另案 |
+| 格式                   | 用途                    | 時程        |
+| ---------------------- | ----------------------- | ----------- |
+| HTML → Markdown        | 文字 parsing → RAG (v2) | 本次 design |
+| XBRL → structured data | 數值 → DuckDB (v3)      | v3 另案     |
 
 ---
 
@@ -65,7 +65,7 @@ graph LR
 ### 3.1 SECDownloader
 
 - **職責**：用 edgartools 搜尋並下載 10-K raw HTML
-- **輸入**：ticker, filing_type, year (optional)
+- **輸入**：ticker, filing_type, fiscal_year (optional — 不指定時抓最新的 10-K)
 - **輸出**：raw HTML string + filing metadata (ticker, cik, company_name, filing_date, fiscal_year, accession_number, source_url)
 - **依賴**：`edgartools` (已是專案依賴)
 - **備註**：edgartools 內建 SEC rate limiting (10 req/sec) 和 smart caching
@@ -80,7 +80,7 @@ graph LR
   - 移除 inline styles
   - 移除 hidden elements (`display:none`)
   - 移除 SEC EDGAR boilerplate (header/footer)
-- **設計**：rule-based，可擴充新規則
+- **設計**：由一組獨立的 cleaning rules 組成，每條 rule 負責一種 noise pattern（如 XBRL tags、inline styles）。新增 noise pattern 時只需加一條 rule，不影響既有邏輯。
 
 ### 3.3 HTMLToMarkdownConverter (interface)
 
@@ -90,10 +90,10 @@ graph LR
 
 兩個實作：
 
-| 實作 | Library | 角色 |
-|------|---------|------|
+| 實作                    | Library                                           | 角色                   |
+| ----------------------- | ------------------------------------------------- | ---------------------- |
 | `HtmlToMarkdownAdapter` | `html-to-markdown` (Rust-based, `>=3.0.2,<4.0.0`) | 預設，極快 (~208 MB/s) |
-| `MarkdownifyAdapter` | `markdownify` | Fallback，慢但全平台 |
+| `MarkdownifyAdapter`    | `markdownify`                                     | Fallback，慢但全平台   |
 
 Adapter pattern 讓呼叫端不依賴具體 library，未來可替換。
 
@@ -102,12 +102,12 @@ Adapter pattern 讓呼叫端不依賴具體 library，未來可替換。
 - **職責**：持久化和查詢 parsed filing
 - **Operations**：
 
-| Method | 說明 |
-|--------|------|
-| `save(filing)` | 寫入 filing |
-| `get(ticker, filing_type, fiscal_year)` | 讀取 filing，不存在回傳 None |
-| `exists(ticker, filing_type, fiscal_year)` | 檢查是否已存在 |
-| `list_filings(ticker, filing_type)` | 列出某 ticker 已有的 fiscal year 列表 |
+| Method                                     | 說明                                  |
+| ------------------------------------------ | ------------------------------------- |
+| `save(filing)`                             | 寫入 filing                           |
+| `get(ticker, filing_type, fiscal_year)`    | 讀取 filing，不存在回傳 None          |
+| `exists(ticker, filing_type, fiscal_year)` | 檢查是否已存在                        |
+| `list_filings(ticker, filing_type)`        | 列出某 ticker 已有的 fiscal year 列表 |
 
 - **初始實作**：`LocalFilingStore`（filesystem）
 - **未來擴充**：`S3FilingStore` 等，只需實作以上 4 個 method
@@ -185,10 +185,10 @@ NVIDIA designs and sells ...
 
 # Item 7: Management's Discussion and Analysis
 
-| Segment | Revenue |
-|---|---|
-| Data Center | $47.5B |
-| Gaming | $10.4B |
+| Segment     | Revenue |
+| ----------- | ------- |
+| Data Center | $47.5B  |
+| Gaming      | $10.4B  |
 
 ...
 ```
@@ -231,6 +231,7 @@ nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
 ```
 
 Parsing 保留完整的 heading hierarchy，使未來 chunking 不受限：
+
 - `MarkdownNodeParser` — section-level retrieval
 - `HierarchicalNodeParser` — parent-child index
 - `SentenceSplitter` — fixed-size baseline
@@ -240,53 +241,53 @@ Parsing 保留完整的 heading hierarchy，使未來 chunking 不受限：
 
 ## 6. Key Design Decisions
 
-| 決策 | 選擇 | 理由 |
-|------|------|------|
-| Download tool | edgartools（已有依賴） | 免費、AI-ready、內建 rate limiting 和 caching、XBRL 解析能力（v3 可用） |
-| edgartools 角色 | 只負責 download + metadata | 不依賴其 parsing，保留通用 HTML parsing 技能的可轉移性 |
-| 中間格式 | Markdown（帶 heading hierarchy） | LlamaIndex 生態支援最多、人可讀好 debug、保留所有 chunking 可能性 |
-| HTML→MD converter | html-to-markdown (Rust) + markdownify fallback | 極速（~208 MB/s）壓縮 JIT 延遲；adapter pattern 保證平台相容性 |
-| html-to-markdown 版本 | `>=3.0.2,<4.0.0` | v3 API 更好（structured result）、v3.0.2 含 panic fix、v2 已停止維護 |
-| LlamaParse | 不用 | Portfolio 專案要練習 chunking、減少外部依賴和成本 |
-| Metadata 格式 | YAML frontmatter in .md | 單一檔案、不會 orphan、Obsidian 等工具原生支援 |
-| Storage key | `{ticker}/{filing_type}/{fiscal_year}.md` | 自然 unique key、flat lookup、不需額外 index |
-| Table 處理 | 不特別處理，轉成 Markdown table 保留在 content 裡 | 數值 table 留給 v3 DuckDB (XBRL)；文字/混合 table 走 RAG；eval-driven 決定是否需要特殊處理 |
-| Dedup 機制 | 路徑 check（exists）；accession_number 存 metadata 備用 | Filing 數量小（幾十到幾百），路徑 check 已足夠 |
-| Docker 平台 | Dockerfile 加 `--platform linux/amd64` | html-to-markdown 缺 linux-aarch64 wheel；Rosetta 2 模擬效能影響小 |
+| 決策                  | 選擇                                                    | 理由                                                                                       |
+| --------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Download tool         | edgartools（已有依賴）                                  | 免費、AI-ready、內建 rate limiting 和 caching、XBRL 解析能力（v3 可用）                    |
+| edgartools 角色       | 只負責 download + metadata                              | 不依賴其 parsing，保留通用 HTML parsing 技能的可轉移性                                     |
+| 中間格式              | Markdown（帶 heading hierarchy）                        | LlamaIndex 生態支援最多、人可讀好 debug、保留所有 chunking 可能性                          |
+| HTML→MD converter     | html-to-markdown (Rust) + markdownify fallback          | 極速（~208 MB/s）壓縮 JIT 延遲；adapter pattern 保證平台相容性                             |
+| html-to-markdown 版本 | `>=3.0.2,<4.0.0`                                        | v3 API 更好（structured result）、v3.0.2 含 panic fix、v2 已停止維護                       |
+| LlamaParse            | 不用                                                    | Portfolio 專案要練習 chunking、減少外部依賴和成本                                          |
+| Metadata 格式         | YAML frontmatter in .md                                 | 單一檔案、不會 orphan、Obsidian 等工具原生支援                                             |
+| Storage key           | `{ticker}/{filing_type}/{fiscal_year}.md`               | 自然 unique key、flat lookup、不需額外 index                                               |
+| Table 處理            | 不特別處理，轉成 Markdown table 保留在 content 裡       | 數值 table 留給 v3 DuckDB (XBRL)；文字/混合 table 走 RAG；eval-driven 決定是否需要特殊處理 |
+| Dedup 機制            | 路徑 check（exists）；accession_number 存 metadata 備用 | Filing 數量小（幾十到幾百），路徑 check 已足夠                                             |
+| Docker 平台           | Dockerfile 加 `--platform linux/amd64`                  | html-to-markdown 缺 linux-aarch64 wheel；Rosetta 2 模擬效能影響小                          |
 
 ---
 
 ## 7. Known Constraints & Limitations
 
-| 限制 | 影響 | 緩解方式 |
-|------|------|---------|
-| html-to-markdown 缺 linux-aarch64 wheel | Docker on Apple Silicon 需 platform flag | `--platform linux/amd64`；markdownify fallback |
-| SEC rate limit 10 req/sec | Batch 下載速度受限 | edgartools 內建 rate limiting；batch 量小不是問題 |
-| SEC HTML 格式不統一 | 不同公司/年份的 HTML 結構有差異 | Preprocessor 設計為可擴充的 rule-based；人工抽查 parsed output |
-| 複雜 nested table 轉換品質 | colspan/rowspan 可能不完美 | 目前不特別處理；eval-driven 決定是否需要 |
-| html-to-markdown 單人維護 | 長期維護風險 | Adapter pattern 可隨時切換到 markdownify |
-| html-to-markdown major version 迭代快 | v3 生命週期可能只有幾個月 | Pin `<4.0.0`；adapter 隔離 library 細節 |
+| 限制                                    | 影響                                     | 緩解方式                                                       |
+| --------------------------------------- | ---------------------------------------- | -------------------------------------------------------------- |
+| html-to-markdown 缺 linux-aarch64 wheel | Docker on Apple Silicon 需 platform flag | `--platform linux/amd64`；markdownify fallback                 |
+| SEC rate limit 10 req/sec               | Batch 下載速度受限                       | edgartools 內建 rate limiting；batch 量小不是問題              |
+| SEC HTML 格式不統一                     | 不同公司/年份的 HTML 結構有差異          | Preprocessor 設計為可擴充的 rule-based；人工抽查 parsed output |
+| 複雜 nested table 轉換品質              | colspan/rowspan 可能不完美               | 目前不特別處理；eval-driven 決定是否需要                       |
+| html-to-markdown 單人維護               | 長期維護風險                             | Adapter pattern 可隨時切換到 markdownify                       |
+| html-to-markdown major version 迭代快   | v3 生命週期可能只有幾個月                | Pin `<4.0.0`；adapter 隔離 library 細節                        |
 
 ---
 
 ## 8. Out of Scope
 
-| 項目 | 何時做 |
-|------|--------|
-| XBRL parsing → DuckDB | v3 design |
-| Chunking 策略實作 | v2 RAG design |
-| Embedding + Qdrant ingestion | v2 RAG design |
-| Cloud storage 實作（S3/GCS） | Deploy 時，實作 `S3FilingStore` |
+| 項目                           | 何時做                             |
+| ------------------------------ | ---------------------------------- |
+| XBRL parsing → DuckDB          | v3 design                          |
+| Chunking 策略實作              | v2 RAG design                      |
+| Embedding + Qdrant ingestion   | v2 RAG design                      |
+| Cloud storage 實作（S3/GCS）   | Deploy 時，實作 `S3FilingStore`    |
 | 10-Q / 8-K / 其他 filing types | 需求出現時，擴充 `FilingType` enum |
-| 10-K/A 修正案處理 | 需求出現時 |
-| Accession number dedup method | 需求出現時 |
+| 10-K/A 修正案處理              | 需求出現時                         |
+| Accession number dedup method  | 需求出現時                         |
 
 ---
 
 ## 9. Testing Strategy
 
-| 層級 | 驗證什麼 |
-|------|---------|
-| **Unit** | Preprocessor 正確 strip XBRL tags；Converter adapter 回傳合法 Markdown；FilingStore 的 save/get/exists/list_filings |
-| **Integration** | 完整 pipeline：download → preprocess → convert → store，用 1-2 家真實 ticker 跑 |
-| **人工抽查** | 打開 parsed `.md` 確認 heading hierarchy 保留、table 轉換品質、無殘留 HTML tags |
+| 層級            | 驗證什麼                                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Unit**        | Preprocessor 正確 strip XBRL tags；Converter adapter 回傳合法 Markdown；FilingStore 的 save/get/exists/list_filings |
+| **Integration** | 完整 pipeline：download → preprocess → convert → store，用 1-2 家真實 ticker 跑                                     |
+| **人工抽查**    | 打開 parsed `.md` 確認 heading hierarchy 保留、table 轉換品質、無殘留 HTML tags                                     |

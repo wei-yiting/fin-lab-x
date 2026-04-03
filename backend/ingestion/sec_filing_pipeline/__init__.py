@@ -8,9 +8,10 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     TransientError,
     UnsupportedFilingTypeError,
 )
-from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline
+from backend.ingestion.sec_filing_pipeline.pipeline import BatchResult, SECFilingPipeline
 
 __all__ = [
+    "BatchResult",
     "FilingMetadata",
     "FilingNotFoundError",
     "FilingType",

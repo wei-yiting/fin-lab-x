@@ -359,3 +359,178 @@ class TestCreateClassMethod:
         mock_converter_cls.assert_called_once()
         mock_fallback_cls.assert_called_once()
         mock_store_cls.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — real SEC EDGAR API
+# ---------------------------------------------------------------------------
+
+import asyncio
+import re
+
+import yaml
+
+from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
+from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor
+from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
+    HtmlToMarkdownAdapter,
+    MarkdownifyAdapter,
+)
+from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
+
+
+def _build_pipeline(tmp_path):
+    store = LocalFilingStore(base_dir=str(tmp_path))
+    return SECFilingPipeline(
+        downloader=SECDownloader(),
+        preprocessor=HTMLPreprocessor(),
+        converter=HtmlToMarkdownAdapter(),
+        fallback_converter=MarkdownifyAdapter(),
+        store=store,
+    ), store
+
+
+@pytest.mark.sec_integration
+class TestIntegration:
+    """Integration tests requiring real SEC network access."""
+
+    @pytest.fixture(autouse=True)
+    def setup_pipeline(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("EDGAR_IDENTITY", "YI-TING WEI yiting.wei.tina@gmail.com")
+        self.pipeline, self.store = _build_pipeline(tmp_path)
+        self.tmp_path = tmp_path
+
+    def test_j_dl_01_batch_preload_and_cache(self):
+        """Batch pre-load 3 tickers; re-run returns all from cache."""
+        tickers = ["NVDA", "AAPL", "TSLA"]
+        first_run = self.pipeline.process_batch(tickers, "10-K")
+
+        for t in tickers:
+            assert first_run[t].status == "success"
+            assert first_run[t].from_cache is False
+
+        first_parsed_at = {
+            t: first_run[t].filing.metadata.parsed_at for t in tickers
+        }
+
+        second_run = self.pipeline.process_batch(tickers, "10-K")
+
+        for t in tickers:
+            assert second_run[t].status == "success"
+            assert second_run[t].from_cache is True
+            assert second_run[t].filing.metadata.parsed_at == first_parsed_at[t]
+
+    def test_j_dl_02_jit_cache_miss_then_hit(self):
+        """JIT cache miss triggers download; follow-up is a cache hit."""
+        filing1 = self.pipeline.process("NVDA", "10-K")
+        assert filing1.metadata.ticker == "NVDA"
+        fy = filing1.metadata.fiscal_year
+
+        filing2 = self.pipeline.process("NVDA", "10-K", fiscal_year=fy)
+        assert filing2.metadata.parsed_at == filing1.metadata.parsed_at
+
+        filing3 = self.pipeline.process("NVDA", "10-K")
+        assert filing3.metadata.parsed_at == filing1.metadata.parsed_at
+
+    def test_j_dl_03_force_reprocess_corrects_cached(self):
+        """force=True re-downloads even when a cached (corrupt) file exists."""
+        filing = self.pipeline.process("NVDA", "10-K")
+        fy = filing.metadata.fiscal_year
+
+        md_path = self.tmp_path / "NVDA" / "10-K" / f"{fy}.md"
+        raw_text = md_path.read_text(encoding="utf-8")
+        parts = raw_text.split("---", 2)
+        corrupted = f"---{parts[1]}---\n\nBAD BODY"
+        md_path.write_text(corrupted, encoding="utf-8")
+
+        corrupt = self.store.get("NVDA", FilingType.TEN_K, fy)
+        assert corrupt.markdown_content == "BAD BODY"
+
+        cached_no_force = self.pipeline.process("NVDA", "10-K", fiscal_year=fy)
+        assert cached_no_force.markdown_content == "BAD BODY"
+
+        refreshed = self.pipeline.process("NVDA", "10-K", fiscal_year=fy, force=True)
+        assert refreshed.markdown_content != "BAD BODY"
+        assert len(refreshed.markdown_content) > 1000
+
+    def test_j_prep_01_html_preprocessing_quality(self):
+        """Preprocessed content preserves text and removes XBRL tags."""
+        filing = self.pipeline.process("NVDA", "10-K")
+        md = filing.markdown_content
+
+        assert len(md) > 10_000
+        assert not re.search(r"<ix:", md)
+
+    def test_j_conv_01_full_pipeline_output_quality(self):
+        """Converted markdown has valid frontmatter, headings, tables, no HTML residue."""
+        filing = self.pipeline.process("NVDA", "10-K")
+        fy = filing.metadata.fiscal_year
+
+        md_path = self.tmp_path / "NVDA" / "10-K" / f"{fy}.md"
+        raw = md_path.read_text(encoding="utf-8")
+
+        assert raw.startswith("---")
+        parts = raw.split("---", 2)
+        frontmatter = yaml.safe_load(parts[1])
+        assert frontmatter["ticker"] == "NVDA"
+        assert frontmatter["filing_type"] == "10-K"
+
+        body = parts[2].strip()
+        atx_headings = re.findall(r"^#{1,6}\s+.+", body, re.MULTILINE)
+        assert len(atx_headings) >= 3
+
+        assert re.search(r"\|.+\|", body), "Expected at least one Markdown table row"
+        assert len(body) > 10_000
+
+        assert not re.search(r"<div[\s>]", body, re.IGNORECASE)
+        assert not re.search(r"<span[\s>]", body, re.IGNORECASE)
+        assert not re.search(r"<ix:", body, re.IGNORECASE)
+
+    def test_j_store_01_multi_ticker_lifecycle(self):
+        """Save NVDA + AAPL, verify list_filings and distinct metadata."""
+        nvda = self.pipeline.process("NVDA", "10-K")
+        aapl = self.pipeline.process("AAPL", "10-K")
+
+        nvda_years = self.store.list_filings("NVDA", FilingType.TEN_K)
+        aapl_years = self.store.list_filings("AAPL", FilingType.TEN_K)
+
+        assert nvda.metadata.fiscal_year in nvda_years
+        assert aapl.metadata.fiscal_year in aapl_years
+
+        assert nvda.metadata.company_name != aapl.metadata.company_name
+        assert nvda.metadata.cik != aapl.metadata.cik
+
+    def test_s_dl_03_non_calendar_fy_nvda(self):
+        """NVDA's fiscal year ends in January — verify FY derivation from period_of_report."""
+        filing = self.pipeline.process("NVDA", "10-K")
+        fy = filing.metadata.fiscal_year
+        filing_date = filing.metadata.filing_date
+        filing_year = int(filing_date[:4])
+
+        assert fy >= filing_year - 1
+        assert fy <= filing_year + 1
+
+    def test_s_dl_07_concurrent_writes(self):
+        """Two parallel process() calls for the same ticker produce a valid file."""
+        async def _run_pair():
+            loop = asyncio.get_event_loop()
+            t1 = loop.run_in_executor(
+                None, self.pipeline.process, "NVDA", "10-K",
+            )
+            t2 = loop.run_in_executor(
+                None, self.pipeline.process, "NVDA", "10-K",
+            )
+            results = await asyncio.gather(t1, t2)
+            return results
+
+        results = asyncio.run(_run_pair())
+        assert len(results) == 2
+
+        for r in results:
+            assert r.metadata.ticker == "NVDA"
+            assert len(r.markdown_content) > 1000
+
+        fy = results[0].metadata.fiscal_year
+        stored = self.store.get("NVDA", FilingType.TEN_K, fy)
+        assert stored is not None
+        assert len(stored.markdown_content) > 1000

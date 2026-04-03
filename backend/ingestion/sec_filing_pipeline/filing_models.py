@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import StrEnum
 
 from pydantic import BaseModel
@@ -5,6 +6,18 @@ from pydantic import BaseModel
 
 class FilingType(StrEnum):
     TEN_K = "10-K"
+
+
+@dataclass(frozen=True)
+class RawFiling:
+    raw_html: str
+    ticker: str
+    cik: str
+    company_name: str
+    filing_date: str
+    fiscal_year: int
+    accession_number: str
+    source_url: str
 
 
 class FilingMetadata(BaseModel):

@@ -173,6 +173,40 @@ class TestDownloadErrorMapping:
             downloader.download("AAPL", "10-K", fiscal_year=2020)
 
 
+class TestFiscalYearDerivation:
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_fiscal_year_derived_from_period_of_report_not_filing_date(
+        self, mock_company_cls, mock_company, mock_filing
+    ):
+        mock_filing.period_of_report = date(2026, 1, 25)
+        mock_filing.filing_date = date(2026, 2, 28)
+        mock_company_cls.return_value = mock_company
+        downloader = SECDownloader()
+
+        result = downloader.download("NVDA", "10-K")
+
+        assert result.fiscal_year == 2026, (
+            "fiscal_year must be derived from period_of_report (2026), "
+            "not filing_date (also 2026 but for a different reason)"
+        )
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_fiscal_year_differs_from_filing_date_year(
+        self, mock_company_cls, mock_company, mock_filing
+    ):
+        mock_filing.period_of_report = date(2025, 12, 31)
+        mock_filing.filing_date = date(2026, 2, 28)
+        mock_company_cls.return_value = mock_company
+        downloader = SECDownloader()
+
+        result = downloader.download("NVDA", "10-K")
+
+        assert result.fiscal_year == 2025, (
+            "fiscal_year must come from period_of_report year (2025), "
+            "not filing_date year (2026)"
+        )
+
+
 class TestTransientErrorMapping:
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
     def test_connection_error_becomes_transient(self, mock_company_cls):
@@ -218,6 +252,30 @@ class TestTransientErrorMapping:
         downloader = SECDownloader()
 
         with pytest.raises(TransientError, match="Read timed out"):
+            downloader.download("AAPL", "10-K")
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_filter_connection_error_becomes_transient(
+        self, mock_company_cls, mock_company
+    ):
+        mock_company_cls.return_value = mock_company
+        filings = mock_company.get_filings.return_value
+        filings.filter.side_effect = ConnectionError("timeout")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="timeout"):
+            downloader.download("AAPL", "10-K", fiscal_year=2024)
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_latest_timeout_error_becomes_transient(
+        self, mock_company_cls, mock_company
+    ):
+        mock_company_cls.return_value = mock_company
+        filings = mock_company.get_filings.return_value
+        filings.latest.side_effect = TimeoutError("timeout")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="timeout"):
             downloader.download("AAPL", "10-K")
 
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")

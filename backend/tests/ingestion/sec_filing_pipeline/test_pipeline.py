@@ -351,14 +351,14 @@ class TestBatchFromCacheFlag:
 class TestCreateClassMethod:
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.SECDownloader")
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.HTMLPreprocessor")
-    @patch("backend.ingestion.sec_filing_pipeline.pipeline.HtmlToMarkdownAdapter")
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.create_converter")
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.MarkdownifyAdapter")
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.LocalFilingStore")
     def test_create_assembles_default_dependencies(
         self,
         mock_store_cls,
         mock_fallback_cls,
-        mock_converter_cls,
+        mock_create_converter,
         mock_preprocessor_cls,
         mock_downloader_cls,
     ):
@@ -367,7 +367,7 @@ class TestCreateClassMethod:
         assert isinstance(pipeline, SECFilingPipeline)
         mock_downloader_cls.assert_called_once()
         mock_preprocessor_cls.assert_called_once()
-        mock_converter_cls.assert_called_once()
+        mock_create_converter.assert_called_once()
         mock_fallback_cls.assert_called_once()
         mock_store_cls.assert_called_once()
 
@@ -547,7 +547,6 @@ class TestIntegration:
 
         downloader = SECDownloader()
         raw = downloader.download("NVDA", FilingType.TEN_K)
-        period_of_report = str(raw.filing_date)
         derived_fy = raw.fiscal_year
 
         filing = self.pipeline.process("NVDA", "10-K")

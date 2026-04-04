@@ -21,9 +21,9 @@ from backend.ingestion.sec_filing_pipeline.filing_store import (
 from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor
 from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
     HTMLToMarkdownConverter,
-    HtmlToMarkdownAdapter,
     MarkdownifyAdapter,
     convert_with_fallback,
+    create_converter,
 )
 from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
 
@@ -61,7 +61,7 @@ class SECFilingPipeline:
         return cls(
             downloader=SECDownloader(),
             preprocessor=HTMLPreprocessor(),
-            converter=HtmlToMarkdownAdapter(),
+            converter=create_converter(),
             fallback_converter=MarkdownifyAdapter(),
             store=LocalFilingStore(),
         )

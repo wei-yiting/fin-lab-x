@@ -57,6 +57,9 @@ class SECDownloader:
                     + (f" (fiscal year {fiscal_year})" if fiscal_year else "")
                 )
 
+            # Fiscal year derives from period_of_report, not filing_date,
+            # because filing_date can fall in the next calendar year
+            # (e.g., NVDA FY2026 ends 2026-01-25, filed 2026-02-28).
             derived_fy = int(str(filing.period_of_report)[:4])
 
             if fiscal_year is not None and derived_fy != fiscal_year:

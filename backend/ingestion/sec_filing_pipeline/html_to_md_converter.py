@@ -8,6 +8,11 @@ logger = logging.getLogger(__name__)
 
 _LEADING_FRONTMATTER_RE = re.compile(r"\A---\n(?:.*\n)*?---\n*")
 
+# If the primary converter output is less than this fraction of the input HTML
+# length, we assume it failed to convert meaningful content (e.g. table-heavy
+# filings where the converter silently drops content) and fall back.
+_MIN_OUTPUT_RATIO = 0.01
+
 
 class HTMLToMarkdownConverter(Protocol):
     @property
@@ -24,8 +29,14 @@ class HtmlToMarkdownAdapter:
         from html_to_markdown import ConversionOptions
         from html_to_markdown import convert as htm_convert
 
-        result = htm_convert(html, options=ConversionOptions(heading_style="atx"))
-        content = result["content"] or ""
+        result = htm_convert(
+            html,
+            options=ConversionOptions(heading_style="atx", extract_metadata=True),
+        )
+        if isinstance(result, dict):
+            content = result.get("content") or ""
+        else:
+            content = str(result)
         return _LEADING_FRONTMATTER_RE.sub("", content)
 
 
@@ -66,7 +77,7 @@ def convert_with_fallback(
         md = fallback.convert(html)
         return md, fallback.name
 
-    if not md or len(md) < len(html) * 0.01:
+    if not md or len(md) < len(html) * _MIN_OUTPUT_RATIO:
         logger.warning(
             "Primary converter '%s' produced suspiciously small output "
             "(%d bytes from %d bytes input), falling back to '%s'",

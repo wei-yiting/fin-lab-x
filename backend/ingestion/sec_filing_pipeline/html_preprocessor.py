@@ -116,6 +116,14 @@ class HTMLPreprocessor:
             font_tag.unwrap()
 
     def _promote_headings(self, soup: BeautifulSoup) -> None:
+        # SEC filings use <div>/<p>/<span> with bold styling instead of semantic
+        # <h1>-<h6> tags.  This heuristic detects "PART …" and "Item …" patterns
+        # in bold block elements and rewrites them as <h1>/<h2> so downstream
+        # Markdown converters produce proper heading structure.
+        #
+        # Reverse traversal ensures inner (more specific) matches are promoted
+        # first; the descendant guard then prevents an outer container from being
+        # promoted redundantly when one of its children already was.
         promoted = set()
         for tag in reversed(soup.find_all(_BLOCK_TAGS)):
             if id(tag) in promoted:

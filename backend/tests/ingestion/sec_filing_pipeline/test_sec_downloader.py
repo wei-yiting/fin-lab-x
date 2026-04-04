@@ -8,6 +8,7 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingNotFoundError,
     RawFiling,
     TickerNotFoundError,
+    TransientError,
     UnsupportedFilingTypeError,
 )
 from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
@@ -170,3 +171,61 @@ class TestDownloadErrorMapping:
 
         with pytest.raises(FilingNotFoundError, match="fiscal year 2020"):
             downloader.download("AAPL", "10-K", fiscal_year=2020)
+
+
+class TestTransientErrorMapping:
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_connection_error_becomes_transient(self, mock_company_cls):
+        mock_company_cls.side_effect = ConnectionError("Connection refused")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="Connection refused"):
+            downloader.download("AAPL", "10-K")
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_timeout_error_becomes_transient(self, mock_company_cls):
+        mock_company_cls.side_effect = TimeoutError("Request timed out")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="Request timed out"):
+            downloader.download("AAPL", "10-K")
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_os_error_becomes_transient(self, mock_company_cls):
+        mock_company_cls.side_effect = OSError("Network unreachable")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="Network unreachable"):
+            downloader.download("AAPL", "10-K")
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_get_filings_connection_error_becomes_transient(
+        self, mock_company_cls, mock_company
+    ):
+        mock_company_cls.return_value = mock_company
+        mock_company.get_filings.side_effect = ConnectionError("Connection reset")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="Connection reset"):
+            downloader.download("AAPL", "10-K")
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_filing_html_timeout_becomes_transient(
+        self, mock_company_cls, mock_company, mock_filing
+    ):
+        mock_company_cls.return_value = mock_company
+        mock_filing.html.side_effect = TimeoutError("Read timed out")
+        downloader = SECDownloader()
+
+        with pytest.raises(TransientError, match="Read timed out"):
+            downloader.download("AAPL", "10-K")
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_permanent_errors_not_wrapped_as_transient(self, mock_company_cls):
+        from edgar import CompanyNotFoundError
+
+        mock_company_cls.side_effect = CompanyNotFoundError("INVALID")
+        downloader = SECDownloader()
+
+        with pytest.raises(TickerNotFoundError):
+            downloader.download("INVALID", "10-K")

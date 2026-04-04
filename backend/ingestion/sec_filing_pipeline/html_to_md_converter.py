@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Mapping
 from typing import Protocol
 
 logger = logging.getLogger(__name__)
@@ -33,10 +34,14 @@ class HtmlToMarkdownAdapter:
             html,
             options=ConversionOptions(heading_style="atx", extract_metadata=True),
         )
-        if isinstance(result, dict):
+        if isinstance(result, str):
+            content = result
+        elif isinstance(result, Mapping):
             content = result.get("content") or ""
         else:
-            content = str(result)
+            raise TypeError(
+                f"html-to-markdown returned unexpected type: {type(result).__name__}"
+            )
         return _LEADING_FRONTMATTER_RE.sub("", content)
 
 

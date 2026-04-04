@@ -377,6 +377,7 @@ class TestCreateClassMethod:
 # ---------------------------------------------------------------------------
 
 import asyncio
+import os
 import re
 
 import yaml
@@ -407,7 +408,10 @@ class TestIntegration:
 
     @pytest.fixture(autouse=True)
     def setup_pipeline(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("EDGAR_IDENTITY", "YI-TING WEI yiting.wei.tina@gmail.com")
+        identity = os.environ.get("EDGAR_IDENTITY")
+        if not identity:
+            pytest.skip("EDGAR_IDENTITY env var required for integration tests")
+        monkeypatch.setenv("EDGAR_IDENTITY", identity)
         self.pipeline, self.store = _build_pipeline(tmp_path)
         self.tmp_path = tmp_path
 

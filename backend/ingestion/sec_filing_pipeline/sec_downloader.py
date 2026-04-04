@@ -5,6 +5,7 @@ import os
 from edgar import Company, CompanyNotFoundError, set_identity
 
 from backend.ingestion.sec_filing_pipeline.filing_models import (
+    ConfigurationError,
     FilingNotFoundError,
     FilingType,
     RawFiling,
@@ -16,8 +17,12 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
 class SECDownloader:
     def __init__(self) -> None:
         identity = os.environ.get("EDGAR_IDENTITY")
-        if identity:
-            set_identity(identity)
+        if not identity:
+            raise ConfigurationError(
+                "EDGAR_IDENTITY environment variable is required. "
+                "Set it to 'Your Name your@email.com' per SEC EDGAR fair access policy."
+            )
+        set_identity(identity)
 
     def download(
         self,

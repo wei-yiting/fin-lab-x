@@ -1,4 +1,5 @@
 from backend.ingestion.sec_filing_pipeline.filing_models import (
+    ConfigurationError,
     FilingMetadata,
     FilingNotFoundError,
     FilingType,
@@ -15,6 +16,7 @@ from backend.ingestion.sec_filing_pipeline.pipeline import (
 
 __all__ = [
     "BatchResult",
+    "ConfigurationError",
     "FilingMetadata",
     "FilingNotFoundError",
     "FilingType",

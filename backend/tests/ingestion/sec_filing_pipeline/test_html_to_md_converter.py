@@ -18,6 +18,35 @@ SAMPLE_HTML = (
     "<p>Founded in 1993.</p>"
 )
 
+SAMPLE_HTML_WITH_TITLE = (
+    "<html><head><title>Test Document</title></head><body>"
+    + SAMPLE_HTML
+    + "</body></html>"
+)
+
+
+class TestFrontmatterStripping:
+    def test_strips_frontmatter_from_html_with_title(self):
+        adapter = HtmlToMarkdownAdapter()
+        md = adapter.convert(SAMPLE_HTML_WITH_TITLE)
+        assert not md.startswith("---")
+        assert "## Item 1. Business" in md
+        assert "The company designs semiconductors." in md
+
+    def test_no_change_when_no_title(self):
+        adapter = HtmlToMarkdownAdapter()
+        md = adapter.convert(SAMPLE_HTML)
+        assert not md.startswith("---")
+        assert "## Item 1. Business" in md
+
+    def test_preserves_hr_mid_content(self):
+        html = "<p>Before</p><hr><p>After</p>"
+        adapter = HtmlToMarkdownAdapter()
+        md = adapter.convert(html)
+        assert "Before" in md
+        assert "After" in md
+        assert "---" in md
+
 
 class TestAtxHeadings:
     """S-conv-01 / S-conv-04: Both adapters produce ATX headings."""

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Protocol
 
 logger = logging.getLogger(__name__)
+
+_LEADING_FRONTMATTER_RE = re.compile(r"\A---\n(?:.*\n)*?---\n*")
 
 
 class HTMLToMarkdownConverter(Protocol):
@@ -22,7 +25,8 @@ class HtmlToMarkdownAdapter:
         from html_to_markdown import convert as htm_convert
 
         result = htm_convert(html, options=ConversionOptions(heading_style="atx"))
-        return result["content"] or ""
+        content = result["content"] or ""
+        return _LEADING_FRONTMATTER_RE.sub("", content)
 
 
 class MarkdownifyAdapter:

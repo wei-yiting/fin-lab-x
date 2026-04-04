@@ -12,7 +12,6 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     UnsupportedFilingTypeError,
 )
 from backend.ingestion.sec_filing_pipeline.pipeline import (
-    BatchResult,
     SECFilingPipeline,
 )
 

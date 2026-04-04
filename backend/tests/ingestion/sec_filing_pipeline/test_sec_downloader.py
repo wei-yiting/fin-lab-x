@@ -4,12 +4,18 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.ingestion.sec_filing_pipeline.filing_models import (
+    ConfigurationError,
     FilingNotFoundError,
     RawFiling,
     TickerNotFoundError,
     UnsupportedFilingTypeError,
 )
 from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
+
+
+@pytest.fixture(autouse=True)
+def _set_edgar_identity(monkeypatch):
+    monkeypatch.setenv("EDGAR_IDENTITY", "Test User test@example.com")
 
 
 @pytest.fixture()
@@ -39,16 +45,14 @@ def mock_company(mock_filing):
 
 class TestSECDownloaderInit:
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.set_identity")
-    def test_sets_identity_from_env(self, mock_set_identity, monkeypatch):
-        monkeypatch.setenv("EDGAR_IDENTITY", "Test User test@example.com")
+    def test_sets_identity_from_env(self, mock_set_identity):
         SECDownloader()
         mock_set_identity.assert_called_once_with("Test User test@example.com")
 
-    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.set_identity")
-    def test_skips_identity_when_env_unset(self, mock_set_identity, monkeypatch):
+    def test_raises_when_identity_missing(self, monkeypatch):
         monkeypatch.delenv("EDGAR_IDENTITY", raising=False)
-        SECDownloader()
-        mock_set_identity.assert_not_called()
+        with pytest.raises(ConfigurationError, match="EDGAR_IDENTITY"):
+            SECDownloader()
 
 
 class TestDownloadHappyPath:

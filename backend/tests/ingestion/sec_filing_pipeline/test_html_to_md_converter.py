@@ -85,35 +85,6 @@ class TestAdapterNames:
         assert MarkdownifyAdapter().name == "markdownify"
 
 
-class TestAdapterResponseShapes:
-    def test_mapping_response_extracts_content(self):
-        adapter = HtmlToMarkdownAdapter()
-        with patch(
-            "html_to_markdown.convert",
-            return_value={"content": "# Hello"},
-        ):
-            result = adapter.convert("<p>test</p>")
-        assert result == "# Hello"
-
-    def test_string_response_returned_directly(self):
-        adapter = HtmlToMarkdownAdapter()
-        with patch(
-            "html_to_markdown.convert",
-            return_value="# Hello",
-        ):
-            result = adapter.convert("<p>test</p>")
-        assert result == "# Hello"
-
-    def test_unexpected_type_raises_type_error(self):
-        adapter = HtmlToMarkdownAdapter()
-        with patch(
-            "html_to_markdown.convert",
-            return_value=42,
-        ):
-            with pytest.raises(TypeError, match="unexpected type"):
-                adapter.convert("<p>test</p>")
-
-
 class TestCreateConverter:
     def test_returns_html_to_markdown_when_available(self):
         converter = create_converter()

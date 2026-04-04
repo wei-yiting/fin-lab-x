@@ -91,17 +91,14 @@ class SECFilingPipeline:
             if cached is not None:
                 return cached, True
 
-        if fiscal_year is None and not force:
-            cached_years = self._store.list_filings(ticker, FilingType(filing_type))
-            if cached_years:
-                latest_cached_year = cached_years[-1]
-                cached = self._store.get(
-                    ticker, FilingType(filing_type), latest_cached_year
-                )
-                if cached is not None:
-                    return cached, True
-
         raw = self._downloader.download(ticker, filing_type, fiscal_year)
+
+        if not force:
+            cached = self._store.get(
+                ticker, FilingType(filing_type), raw.fiscal_year
+            )
+            if cached is not None:
+                return cached, True
 
         cleaned_html = self._preprocessor.preprocess(raw.raw_html)
         markdown, converter_name = convert_with_fallback(

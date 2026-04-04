@@ -84,7 +84,6 @@ def mock_store():
     store = MagicMock()
     store.exists.return_value = False
     store.get.return_value = None
-    store.list_filings.return_value = []
     return store
 
 
@@ -117,16 +116,14 @@ class TestProcessCacheHit:
         mock_downloader.download.assert_not_called()
         mock_store.get.assert_called_once_with("AAPL", FilingType.TEN_K, 2024)
 
-    def test_cache_check_uses_list_filings_when_fiscal_year_omitted(
+    def test_cache_check_downloads_then_checks_cache_when_fiscal_year_omitted(
         self, pipeline, mock_store, mock_downloader, parsed_filing
     ):
-        mock_store.list_filings.return_value = [2023, 2024]
         mock_store.get.return_value = parsed_filing
 
         result = pipeline.process("AAPL", "10-K")
 
-        mock_downloader.download.assert_not_called()
-        mock_store.list_filings.assert_called_once_with("AAPL", FilingType.TEN_K)
+        mock_downloader.download.assert_called_once_with("AAPL", "10-K", None)
         mock_store.get.assert_called_once_with("AAPL", FilingType.TEN_K, 2024)
         assert result is parsed_filing
 
@@ -332,7 +329,6 @@ class TestJITModeRaisesExceptions:
 
 class TestBatchFromCacheFlag:
     def test_from_cache_true_when_cache_hit(self, pipeline, mock_store, parsed_filing):
-        mock_store.list_filings.return_value = [2024]
         mock_store.get.return_value = parsed_filing
 
         results = pipeline.process_batch(["AAPL"], "10-K")
@@ -341,7 +337,6 @@ class TestBatchFromCacheFlag:
 
     def test_from_cache_false_when_cache_miss(self, pipeline, mock_store):
         mock_store.get.return_value = None
-        mock_store.list_filings.return_value = []
 
         results = pipeline.process_batch(["AAPL"], "10-K")
 

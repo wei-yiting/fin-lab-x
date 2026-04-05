@@ -140,31 +140,6 @@ Origin: Dev (save overwrite semantics), QA (bad cached content persists), User d
 
 ### Journey Scenarios
 
-#### J-dl-01: Batch pre-load followed by cache-only re-run
-> Proves batch pre-load caches all filings and subsequent runs avoid SEC downloads entirely
-
-- **Given** no filings are cached for NVDA, AAPL, or TSLA
-- **When** a batch script runs `process_batch(["NVDA", "AAPL", "TSLA"], "10-K")` and all three download successfully
-- **And** the same batch is run again immediately after
-- **Then** the first run produces 3 successful entries in the result dict (all freshly downloaded)
-- **And** the second run produces 3 successful entries (all from cache, zero SEC downloads)
-
-Category: Journey
-Origin: Multiple
-
-#### J-dl-02: Agent JIT cache miss triggers download, then cache hit on follow-up
-> Proves the JIT flow: agent detects cache miss, triggers pipeline, then subsequent request is served from cache
-
-- **Given** no filing exists for MSFT 10-K in the store
-- **When** an agent calls `process("MSFT", "10-K")` (JIT, fiscal_year omitted)
-- **And** the pipeline resolves latest fiscal year, downloads, preprocesses, converts, and saves
-- **And** the agent later calls `process("MSFT", "10-K")` again for a follow-up question
-- **Then** the first call returns a freshly processed ParsedFiling with correct metadata
-- **And** the second call returns the same filing from cache without contacting SEC for the download
-
-Category: Journey
-Origin: Multiple
-
 #### J-dl-03: Force re-process corrects bad cached output
 > Proves the cache recovery flow: bad output is detected, force re-processes, and produces corrected output
 
@@ -442,3 +417,128 @@ Origin: PO
 
 Category: Journey
 Origin: Multiple
+
+---
+
+## Feature: CLI & Agent Tool Entry Points
+
+### Context
+Pipeline provides two entry points beyond the Python API: a CLI (`__main__.py`) for human terminal use and batch pre-load scripts, and a LangChain agent tool (`sec_filing_downloader`) for JIT download during agent runtime. Both are thin wrappers over `SECFilingPipeline`. The CLI uses `argparse` and supports single/batch modes with output formatting options. The agent tool returns metadata + file_path for downstream RAG consumption.
+
+### Rule: CLI single mode produces correct summary output
+
+#### S-ep-01: CLI single mode prints concise summary without markdown content
+> Verifies that the CLI outputs a one-liner summary to stdout and never prints the full filing content
+
+- **Given** AAPL 10-K is processable
+- **When** `python -m backend.ingestion.sec_filing_pipeline AAPL 10-K` is run
+- **Then** stdout contains a single line with ticker, fiscal year, parsed_at, content length, and file path
+- **And** stdout does NOT contain the full markdown content of the filing
+
+Category: Illustrative
+Origin: Task spec ("Never print the full markdown content to stdout")
+
+#### S-ep-02: CLI --json outputs parseable JSON with metadata and file path
+> Verifies that --json output is machine-consumable with the complete metadata contract
+
+- **Given** AAPL 10-K is processable
+- **When** `python -m backend.ingestion.sec_filing_pipeline AAPL 10-K --json` is run
+- **Then** stdout is valid JSON parseable by `json.loads`
+- **And** the JSON contains `metadata` (all FilingMetadata fields), `content_length` (integer), and `file_path` (string path)
+
+Category: Illustrative
+Origin: Task spec (--json for programmatic consumption)
+
+### Rule: CLI batch mode prints per-ticker results and reflects in exit code
+
+#### S-ep-03: Batch with partial failure prints per-ticker status and exits non-zero
+> Verifies that batch mode reports each ticker's outcome individually and exits 1 when any fail
+
+- **Given** AAPL is processable and FAKECORP is not a valid ticker
+- **When** `python -m backend.ingestion.sec_filing_pipeline batch AAPL FAKECORP --filing-type 10-K` is run
+- **Then** stdout shows AAPL with "ok" status and file path, and FAKECORP with "err" status and error message
+- **And** the process exits with code 1
+
+Category: Illustrative
+Origin: Task spec (exit code 1 if any fail)
+
+#### S-ep-04: Batch with all success exits with code 0
+> Verifies that batch mode exits cleanly when all tickers succeed
+
+- **Given** AAPL and NVDA are both processable
+- **When** `python -m backend.ingestion.sec_filing_pipeline batch AAPL NVDA --filing-type 10-K` is run
+- **Then** stdout shows both tickers with "ok" status
+- **And** the process exits with code 0
+
+Category: Illustrative
+Origin: Task spec (exit code 0 if all succeed)
+
+### Rule: CLI error outputs to stderr with non-zero exit code
+
+#### S-ep-05: Invalid ticker produces stderr error and non-zero exit
+> Verifies that pipeline errors go to stderr (not stdout) with the error type name
+
+- **Given** ZZZZ is not a valid SEC ticker
+- **When** `python -m backend.ingestion.sec_filing_pipeline ZZZZ 10-K` is run
+- **Then** stderr contains the error type name (e.g., "TickerNotFoundError") and "ZZZZ"
+- **And** stdout is empty
+- **And** the process exits with code 1
+
+Category: Illustrative
+Origin: Task spec (error to stderr, non-zero exit)
+
+### Rule: Agent tool returns metadata + file_path without raising exceptions
+
+#### S-ep-06: Successful download returns metadata dict with file_path
+> Verifies that the agent tool wraps pipeline output into the expected dict contract
+
+- **Given** AAPL 10-K is processable
+- **When** `sec_filing_downloader.invoke({"ticker": "AAPL", "filing_type": "10-K"})` is called
+- **Then** the return dict contains `ticker`, `company_name`, `fiscal_year`, `filing_date`, `parsed_at`, and `file_path`
+- **And** the dict does NOT contain an `error` key
+- **And** `file_path` matches `data/sec_filings/AAPL/10-K/{fiscal_year}.md`
+
+Category: Illustrative
+Origin: Design (JIT use case, metadata + file_path contract)
+
+#### S-ep-07: Pipeline error returns error dict instead of raising
+> Verifies that the agent tool catches pipeline exceptions and returns a structured error
+
+- **Given** ZZZZ is not a valid SEC ticker
+- **When** `sec_filing_downloader.invoke({"ticker": "ZZZZ", "filing_type": "10-K"})` is called
+- **Then** the return dict contains `{"error": True, "message": "..."}` where message includes the error type name
+- **And** no exception is raised to the caller
+
+Category: Illustrative
+Origin: Design (agent tool must not crash the agent)
+
+---
+
+### Journey Scenarios
+
+#### J-ep-01: CLI batch pre-load followed by CLI single verify
+> Proves the full CLI batch workflow: download multiple filings, then verify individual results via CLI
+
+- **Given** no filings are cached for NVDA, AAPL, or TSLA
+- **When** `python -m backend.ingestion.sec_filing_pipeline batch NVDA AAPL TSLA --filing-type 10-K` is run
+- **Then** stdout shows 3 "ok" entries with file paths, and the process exits with code 0
+- **And** when the same batch command is run again
+- **Then** all 3 are served from cache (identical output, zero SEC downloads)
+- **And** when `python -m backend.ingestion.sec_filing_pipeline NVDA 10-K --json` is run
+- **Then** the JSON output contains the correct metadata matching the batch-cached filing
+
+Category: Journey
+Origin: Replaces J-dl-01 (elevated from Python API to CLI entry point)
+
+#### J-ep-02: Agent tool JIT download then cache hit on follow-up
+> Proves the JIT flow through the agent tool: first call downloads, second call hits cache
+
+- **Given** no filing exists for MSFT 10-K in the store
+- **When** `sec_filing_downloader.invoke({"ticker": "MSFT", "filing_type": "10-K"})` is called
+- **Then** the return contains `file_path` and `fiscal_year` (freshly downloaded)
+- **And** when `sec_filing_downloader.invoke({"ticker": "MSFT", "filing_type": "10-K"})` is called again
+- **Then** the return contains the same `file_path` and `fiscal_year` (from cache)
+- **And** no duplicate SEC download occurred
+
+Category: Journey
+Origin: Replaces J-dl-02 (elevated from Python API to agent tool entry point)

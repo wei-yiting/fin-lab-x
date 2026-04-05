@@ -1,0 +1,27 @@
+{
+  "round": 1,
+  "timestamp": "2026-04-04T13:09:07.187Z",
+  "results": [
+    {
+      "id": "S-dl-07-manual",
+      "title": "Overlapping writes to same filing produce a complete, valid file (real SEC calls)",
+      "type": "technical",
+      "passed": false,
+      "feedback": "兩個都出現這樣的錯誤，為什麼有這樣的錯誤，你之前會測不出來呢？\n(finlab-x-backend) dong.wyt@Dongs-MacBook-Air fin-lab-x-sec-download-parsing % python -c \"from backend.ingestion.sec_filing_pipeline import SECFilingPipeline; p = SECFilingPipeline(); r = p.process('AAPL', '10-K', fiscal_year=2025); print('done:', r.metadata.parsed_at)\"\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nTypeError: SECFilingPipeline.__init__() missing 5 required positional arguments: 'downloader', 'preprocessor', 'converter', 'fallback_converter', and 'store'\n(finlab-x-backend) dong.wyt@Dongs-MacBook-Air fin-lab-x-sec-download-parsing %",
+      "screenshots": null
+    },
+    {
+      "id": "S-dl-05-manual",
+      "title": "Invalid inputs produce distinct, actionable errors (real SEC calls)",
+      "type": "technical",
+      "passed": false,
+      "feedback": "全部都是一樣的 Error:\n(finlab-x-backend) dong.wyt@Dongs-MacBook-Air fin-lab-x-sec-download-parsing % python -c \"from backend.ingestion.sec_filing_pipeline import SECFilingPipeline; p = SECFilingPipeline(); p.process('DEFINITELYNOTAREALTICKER12345', '10-K')\"\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nTypeError: SECFilingPipeline.__init__() missing 5 required positional arguments: 'downloader', 'preprocessor', 'converter', 'fallback_converter', and 'store'\n(finlab-x-backend) dong.wyt@Dongs-MacBook-Air fin-lab-x-sec-download-parsing % python -c \"from backend.ingestion.sec_filing_pipeline import SECFilingPipeline; p = SECFilingPipeline(); p.process('TSM', '10-K')\"\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nTypeError: SECFilingPipeline.__init__() missing 5 required positional arguments: 'downloader', 'preprocessor', 'converter', 'fallback_converter', and 'store'\n(finlab-x-backend) dong.wyt@Dongs-MacBook-Air fin-lab-x-sec-download-parsing %",
+      "screenshots": null
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2
+  }
+}

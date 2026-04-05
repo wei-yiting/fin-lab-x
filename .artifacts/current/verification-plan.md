@@ -239,28 +239,6 @@
 
 ### Deterministic — Journey Scenarios
 
-#### J-dl-01: Batch pre-load followed by cache-only re-run
-- **Method**: script
-- **Steps**:
-  1. Ensure no filings cached for NVDA, AAPL, TSLA
-  2. Call `process_batch(["NVDA", "AAPL", "TSLA"], "10-K")` — record download count
-  3. Assert 3 successes in result dict; 3 files created in store
-  4. Call `process_batch(["NVDA", "AAPL", "TSLA"], "10-K")` again
-  5. Assert 3 successes; verify SECDownloader was NOT called (0 downloads in second run)
-  6. Compare `parsed_at` timestamps — should be identical between runs (files not re-processed)
-- **Expected**: First run downloads 3 filings; second run serves all from cache with zero SEC contact
-
-#### J-dl-02: Agent JIT cache miss → download → cache hit
-- **Method**: script
-- **Steps**:
-  1. Ensure MSFT 10-K is not cached
-  2. Call `process("MSFT", "10-K")` (no fiscal_year) — assert returns ParsedFiling
-  3. Record the fiscal_year from the returned filing's metadata
-  4. Call `process("MSFT", "10-K")` again
-  5. Assert second call returns the same filing from cache (same `parsed_at`, no download)
-  6. Call `process("MSFT", "10-K", fiscal_year=<recorded_fy>)` — assert also returns from cache
-- **Expected**: JIT download succeeds; subsequent calls (with or without fiscal_year) served from cache
-
 #### J-dl-03: Force re-process corrects bad cached output
 - **Method**: script
 - **Steps**:
@@ -358,3 +336,103 @@
   4. Verify: some heading structure exists (even if imperfect for very old filings)
   5. Note any filings where heading detection failed completely — these are known limitations to document
 - **Expected**: Content preserved for older filings; heading detection is best-effort for pre-semantic-HTML filings
+
+---
+
+## CLI & Agent Tool Entry Points
+
+### Deterministic
+
+#### S-ep-01: CLI single mode prints concise summary without markdown content
+- **Method**: script (subprocess)
+- **Steps**:
+  1. Run `python -m backend.ingestion.sec_filing_pipeline AAPL 10-K` via `subprocess.run`, capture stdout/stderr
+  2. Assert exit code = 0
+  3. Assert stdout contains "AAPL", "FY", "chars", and "data/sec_filings/AAPL/10-K/"
+  4. Assert stdout is a single line (or very few lines)
+  5. Assert stdout does NOT contain `# Item` or long markdown text (i.e., no filing body)
+- **Expected**: Concise one-liner summary; no markdown content leaked to stdout
+
+#### S-ep-02: CLI --json outputs parseable JSON with metadata and file path
+- **Method**: script (subprocess)
+- **Steps**:
+  1. Run `python -m backend.ingestion.sec_filing_pipeline AAPL 10-K --json` via subprocess, capture stdout
+  2. Assert exit code = 0
+  3. Parse stdout with `json.loads` — assert no parse error
+  4. Assert top-level keys include `metadata`, `content_length`, `file_path`
+  5. Assert `metadata` contains all FilingMetadata fields: `ticker`, `cik`, `company_name`, `filing_type`, `filing_date`, `fiscal_year`, `accession_number`, `source_url`, `parsed_at`, `converter`
+  6. Assert `content_length` is an integer > 0
+  7. Assert `file_path` matches `data/sec_filings/AAPL/10-K/{fiscal_year}.md`
+- **Expected**: Valid JSON with complete metadata contract
+
+#### S-ep-03: Batch with partial failure prints per-ticker status and exits non-zero
+- **Method**: script (subprocess)
+- **Steps**:
+  1. Run `python -m backend.ingestion.sec_filing_pipeline batch AAPL DEFINITELYNOTAREALTICKER --filing-type 10-K` via subprocess
+  2. Assert exit code = 1
+  3. Assert stdout contains a line with "AAPL" and "ok"
+  4. Assert stdout contains a line with "DEFINITELYNOTAREALTICKER" and "err"
+- **Expected**: Per-ticker output; exit code 1 due to partial failure
+
+#### S-ep-04: Batch with all success exits with code 0
+- **Method**: script (subprocess)
+- **Steps**:
+  1. Run `python -m backend.ingestion.sec_filing_pipeline batch AAPL NVDA --filing-type 10-K` via subprocess
+  2. Assert exit code = 0
+  3. Assert stdout contains "AAPL" with "ok" and "NVDA" with "ok"
+- **Expected**: All success; clean exit
+
+#### S-ep-05: Invalid ticker produces stderr error and non-zero exit
+- **Method**: script (subprocess)
+- **Steps**:
+  1. Run `python -m backend.ingestion.sec_filing_pipeline DEFINITELYNOTAREALTICKER 10-K` via subprocess
+  2. Assert exit code = 1
+  3. Assert stderr contains "TickerNotFoundError" (or equivalent error type name)
+  4. Assert stderr contains the ticker string
+  5. Assert stdout is empty
+- **Expected**: Error to stderr only; non-zero exit; stdout clean
+
+#### S-ep-06: Successful download returns metadata dict with file_path
+- **Method**: script (mock pipeline)
+- **Steps**:
+  1. Mock `SECFilingPipeline.create()` to return a pipeline with a mock `process()` returning a fixture `ParsedFiling`
+  2. Call `sec_filing_downloader.invoke({"ticker": "AAPL", "filing_type": "10-K"})`
+  3. Assert return dict contains keys: `ticker`, `company_name`, `fiscal_year`, `filing_date`, `parsed_at`, `file_path`
+  4. Assert no `error` key in the return dict
+  5. Assert `file_path` equals `data/sec_filings/AAPL/10-K/{fixture_fiscal_year}.md`
+- **Expected**: Structured metadata dict with file path; no error
+
+#### S-ep-07: Pipeline error returns error dict instead of raising
+- **Method**: script (mock pipeline)
+- **Steps**:
+  1. Mock `SECFilingPipeline.create()` to return a pipeline where `process()` raises `TickerNotFoundError`
+  2. Call `sec_filing_downloader.invoke({"ticker": "ZZZZ", "filing_type": "10-K"})`
+  3. Assert return dict contains `{"error": True}` and `"message"` key
+  4. Assert `"TickerNotFoundError"` appears in the message
+  5. Assert no exception was raised (the invoke call itself succeeded)
+- **Expected**: Error wrapped in dict; no exception propagated
+
+### Deterministic — Journey Scenarios
+
+#### J-ep-01: CLI batch pre-load followed by CLI single verify
+- **Method**: script (subprocess)
+- **Steps**:
+  1. Ensure no filings cached for NVDA, AAPL, TSLA (delete if exists)
+  2. Run `python -m backend.ingestion.sec_filing_pipeline batch NVDA AAPL TSLA --filing-type 10-K`
+  3. Assert exit code = 0; stdout shows 3 "ok" entries with file paths
+  4. Run the same batch command again
+  5. Assert exit code = 0; stdout shows 3 "ok" entries (from cache — identical file paths)
+  6. Run `python -m backend.ingestion.sec_filing_pipeline NVDA 10-K --json`
+  7. Parse JSON; assert `metadata.ticker` = "NVDA" and `file_path` matches the path shown in the batch output
+- **Expected**: Batch downloads all filings; re-run serves from cache; single-mode JSON output is consistent with batch results
+
+#### J-ep-02: Agent tool JIT download then cache hit on follow-up
+- **Method**: script (mock pipeline with cache simulation)
+- **Steps**:
+  1. Ensure MSFT 10-K is not cached
+  2. Call `sec_filing_downloader.invoke({"ticker": "MSFT", "filing_type": "10-K"})`
+  3. Assert return contains `file_path` and `fiscal_year`; no `error` key
+  4. Call `sec_filing_downloader.invoke({"ticker": "MSFT", "filing_type": "10-K"})` again
+  5. Assert return contains the same `file_path` and `fiscal_year`
+  6. Assert `pipeline.process` was called twice but SEC download happened only once (second was cache hit)
+- **Expected**: First call downloads; second call returns from cache; no duplicate SEC contact

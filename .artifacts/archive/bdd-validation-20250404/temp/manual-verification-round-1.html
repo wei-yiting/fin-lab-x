@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Verification</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #f5f5f5; padding: 2rem; color: #1a1a1a;
+      max-width: 900px; margin: 0 auto;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #666; margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+    .card {
+      background: white; border-radius: 8px; padding: 1.5rem;
+      margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-left: 4px solid #ddd;
+    }
+    .card.pass { border-left-color: #22c55e; }
+    .card.fail { border-left-color: #ef4444; }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .card-id { font-weight: 600; font-size: 0.85rem; color: #666; }
+    .card-title { font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem; }
+    .card-type {
+      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px;
+      font-size: 0.75rem; font-weight: 500; background: #e0e7ff; color: #3730a3;
+    }
+    .card-type.uat { background: #fef3c7; color: #92400e; }
+
+    .acceptance-question {
+      background: #fffbeb; border-left: 3px solid #f59e0b; padding: 0.75rem 1rem;
+      margin-bottom: 1rem; font-size: 0.9rem; font-style: italic;
+    }
+    .steps {
+      background: #f9fafb; border-radius: 6px; padding: 1rem;
+      margin-bottom: 1rem; font-size: 0.9rem;
+    }
+    .steps h4 { font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; text-transform: uppercase; }
+    .steps ol { padding-left: 1.25rem; }
+    .steps li { margin-bottom: 0.25rem; }
+    .expected {
+      background: #f0fdf4; border-radius: 6px; padding: 0.75rem 1rem;
+      margin-bottom: 1rem; font-size: 0.9rem; border-left: 3px solid #22c55e;
+    }
+    .expected strong { font-size: 0.8rem; color: #15803d; }
+
+    .result-buttons { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .result-btn {
+      padding: 0.5rem 1.5rem; border: 2px solid #ddd; border-radius: 6px;
+      background: white; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.15s;
+    }
+    .result-btn:hover { border-color: #999; }
+    .result-btn.pass-btn.active { background: #22c55e; color: white; border-color: #22c55e; }
+    .result-btn.fail-btn.active { background: #ef4444; color: white; border-color: #ef4444; }
+
+    .fail-details {
+      display: none; margin-top: 1rem; padding: 1rem;
+      background: #fef2f2; border-radius: 6px;
+    }
+    .fail-details.visible { display: block; }
+    .fail-details label { font-size: 0.85rem; font-weight: 600; color: #555; display: block; margin-bottom: 0.5rem; }
+    .fail-details textarea {
+      width: 100%; min-height: 80px; padding: 0.75rem;
+      border: 1px solid #ddd; border-radius: 6px;
+      font-family: inherit; font-size: 0.9rem; resize: vertical;
+    }
+    .fail-details textarea:focus { outline: none; border-color: #ef4444; }
+
+    .paste-zone {
+      border: 2px dashed #ccc; border-radius: 6px; padding: 1rem;
+      text-align: center; color: #999; margin-top: 0.75rem; cursor: pointer; transition: border-color 0.15s;
+    }
+    .paste-zone:hover { border-color: #999; }
+    .paste-zone.drag-over { border-color: #ef4444; background: #fef2f2; }
+    .paste-zone input[type="file"] { display: none; }
+
+    .screenshots { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .screenshot-thumb {
+      position: relative; width: 140px; height: 105px;
+      border-radius: 4px; overflow: hidden; border: 1px solid #ddd;
+    }
+    .screenshot-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+    .screenshot-thumb .remove-btn {
+      position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
+      background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%;
+      cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+    }
+
+    .actions {
+      position: sticky; bottom: 0; background: white; padding: 1rem; border-radius: 8px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex;
+      justify-content: space-between; align-items: center; margin-top: 1.5rem;
+    }
+    .submit-btn {
+      padding: 0.75rem 2rem; background: #2563eb; color: white; border: none;
+      border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    }
+    .submit-btn:hover { background: #1d4ed8; }
+    .submit-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+    .progress { color: #666; font-size: 0.9rem; }
+
+    .lightbox {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 100; cursor: pointer; align-items: center; justify-content: center;
+    }
+    .lightbox.visible { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Manual Verification — Round <span id="round-num"></span></h1>
+  <p class="subtitle">Test each scenario, mark pass/fail. For failures, describe the issue and paste screenshots (Cmd+V). Click Submit when done.</p>
+  <div id="cards"></div>
+  <div class="actions">
+    <span class="progress" id="progress"></span>
+    <button class="submit-btn" id="submit-btn" onclick="submitResults()" disabled>Submit Results</button>
+  </div>
+  <div class="lightbox" id="lightbox" onclick="this.classList.remove('visible')">
+    <img id="lightbox-img" src="" alt="Full size screenshot">
+  </div>
+
+  <script>
+    const SCENARIOS = [
+      {
+        "id": "S-dl-07-manual",
+        "title": "Overlapping writes to same filing produce a complete, valid file (real SEC calls)",
+        "type": "technical",
+        "steps": [
+          "Open a terminal and activate venv: source .venv/bin/activate",
+          "Delete cached AAPL 10-K FY2025 if exists: rm -f data/sec_filings/AAPL/10-K/2025.md",
+          "Open two terminal tabs/sessions, both in the project root with venv activated",
+          "In BOTH terminals, run simultaneously (within 1 second): python -c \"from backend.ingestion.sec_filing_pipeline import SECFilingPipeline; p = SECFilingPipeline(); r = p.process('AAPL', '10-K', fiscal_year=2025); print('done:', r.metadata.parsed_at)\"",
+          "After both complete, inspect data/sec_filings/AAPL/10-K/2025.md",
+          "Verify: valid YAML frontmatter (all 10 fields), non-empty Markdown body with heading structure",
+          "Run: python -c \"from backend.ingestion.sec_filing_pipeline import LocalFilingStore, FilingType; s = LocalFilingStore(); f = s.get('AAPL', FilingType.TEN_K, 2025); print('valid:', f is not None, 'body_len:', len(f.markdown_body) if f else 0)\""
+        ],
+        "expected": "File is complete and valid regardless of which process 'won' the write. No corruption, truncation, or interleaved content."
+      },
+      {
+        "id": "S-dl-05-manual",
+        "title": "Invalid inputs produce distinct, actionable errors (real SEC calls)",
+        "type": "technical",
+        "steps": [
+          "Open a terminal and activate venv: source .venv/bin/activate",
+          "Run: python -c \"from backend.ingestion.sec_filing_pipeline import SECFilingPipeline; p = SECFilingPipeline(); p.process('DEFINITELYNOTAREALTICKER12345', '10-K')\" — expect TickerNotFoundError",
+          "Run: python -c \"from backend.ingestion.sec_filing_pipeline import SECFilingPipeline; p = SECFilingPipeline(); p.process('TSM', '10-K')\" — expect FilingNotFoundError (TSM files 20-F, not 10-K)",
+          "Verify both errors produce clear, distinct, actionable messages",
+          "Verify the error messages contain the relevant ticker name"
+        ],
+        "expected": "Real SEC permanent errors produce distinguishable error types with actionable messages containing the ticker name."
+      }
+    ];
+    const ROUND = 1;
+    const MAX_IMG_DIM = 1200;
+
+    const results = SCENARIOS.map(s => ({
+      id: s.id, title: s.title, type: s.type,
+      passed: null, feedback: '', screenshots: []
+    }));
+
+    document.getElementById('round-num').textContent = ROUND;
+
+    function render() {
+      const container = document.getElementById('cards');
+      container.innerHTML = '';
+      SCENARIOS.forEach((s, i) => {
+        const r = results[i];
+        const card = document.createElement('div');
+        card.className = 'card' + (r.passed === true ? ' pass' : r.passed === false ? ' fail' : '');
+
+        const typeLabel = s.type === 'uat' ? 'UAT' : 'Technical';
+        const typeClass = s.type === 'uat' ? ' uat' : '';
+        const acceptanceHtml = s.acceptance_question
+          ? '<div class="acceptance-question">' + s.acceptance_question + '</div>' : '';
+
+        card.innerHTML =
+          '<div class="card-header"><div>' +
+            '<div class="card-id">' + s.id + '</div>' +
+            '<div class="card-title">' + s.title + '</div>' +
+          '</div><span class="card-type' + typeClass + '">' + typeLabel + '</span></div>' +
+          acceptanceHtml +
+          '<div class="steps"><h4>Steps</h4><ol>' +
+            s.steps.map(function(st) { return '<li>' + st + '</li>'; }).join('') +
+          '</ol></div>' +
+          '<div class="expected"><strong>Expected: </strong>' + s.expected + '</div>' +
+          '<div class="result-buttons">' +
+            '<button class="result-btn pass-btn' + (r.passed === true ? ' active' : '') +
+              '" data-action="pass" data-idx="' + i + '">Pass</button>' +
+            '<button class="result-btn fail-btn' + (r.passed === false ? ' active' : '') +
+              '" data-action="fail" data-idx="' + i + '">Fail</button>' +
+          '</div>' +
+          '<div class="fail-details' + (r.passed === false ? ' visible' : '') + '" data-fail-idx="' + i + '">' +
+            '<label>Describe the failure:</label>' +
+            '<textarea data-feedback-idx="' + i + '" placeholder="What went wrong? Paste relevant info here...">' +
+              r.feedback + '</textarea>' +
+            '<label style="margin-top:0.75rem">Screenshots (Cmd+V to paste, or click to upload):</label>' +
+            '<div class="paste-zone" data-paste-idx="' + i + '">Cmd+V to paste screenshot, or click to browse</div>' +
+            '<div class="screenshots" data-screenshots-idx="' + i + '"></div>' +
+          '</div>';
+
+        container.appendChild(card);
+        renderScreenshots(i);
+      });
+      updateProgress();
+    }
+
+    document.getElementById('cards').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (btn) {
+        var idx = parseInt(btn.dataset.idx);
+        var passed = btn.dataset.action === 'pass';
+        results[idx].passed = passed;
+        if (passed) { results[idx].feedback = ''; results[idx].screenshots = []; }
+        render();
+      }
+      var zone = e.target.closest('.paste-zone');
+      if (zone) {
+        var input = document.createElement('input');
+        input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
+        input.onchange = function() { handleFiles(input.files, parseInt(zone.dataset.pasteIdx)); };
+        input.click();
+      }
+      var rmBtn = e.target.closest('.remove-btn');
+      if (rmBtn) {
+        var si = parseInt(rmBtn.dataset.scenarioIdx);
+        var pi = parseInt(rmBtn.dataset.picIdx);
+        results[si].screenshots.splice(pi, 1);
+        renderScreenshots(si);
+      }
+      var thumb = e.target.closest('.screenshot-thumb img');
+      if (thumb && !e.target.closest('.remove-btn')) {
+        document.getElementById('lightbox-img').src = thumb.src;
+        document.getElementById('lightbox').classList.add('visible');
+      }
+    });
+
+    document.getElementById('cards').addEventListener('input', function(e) {
+      if (e.target.matches('[data-feedback-idx]')) {
+        results[parseInt(e.target.dataset.feedbackIdx)].feedback = e.target.value;
+      }
+    });
+
+    document.addEventListener('paste', function(e) {
+      var items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      var hasImage = false;
+      for (var j = 0; j < items.length; j++) {
+        if (items[j].type.indexOf('image/') === 0) { hasImage = true; break; }
+      }
+      if (!hasImage) return;
+      e.preventDefault();
+      var failSection = e.target.closest('[data-fail-idx]');
+      var idx = failSection ? parseInt(failSection.dataset.failIdx)
+        : results.findIndex(function(r) { return r.passed === false; });
+      if (idx < 0) return;
+      for (var k = 0; k < items.length; k++) {
+        if (items[k].type.indexOf('image/') === 0) {
+          processImage(items[k].getAsFile(), idx);
+        }
+      }
+    });
+
+    function handleFiles(files, idx) {
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].type.indexOf('image/') === 0) processImage(files[i], idx);
+      }
+    }
+
+    function processImage(blob, idx) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          var w = img.width, h = img.height;
+          if (w > MAX_IMG_DIM || h > MAX_IMG_DIM) {
+            var ratio = Math.min(MAX_IMG_DIM / w, MAX_IMG_DIM / h);
+            w = Math.round(w * ratio); h = Math.round(h * ratio);
+          }
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          results[idx].screenshots.push(canvas.toDataURL('image/jpeg', 0.8));
+          renderScreenshots(idx);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(blob);
+    }
+
+    function renderScreenshots(idx) {
+      var container = document.querySelector('[data-screenshots-idx="' + idx + '"]');
+      if (!container) return;
+      container.innerHTML = results[idx].screenshots.map(function(src, pi) {
+        return '<div class="screenshot-thumb">' +
+          '<img src="' + src + '" alt="Screenshot ' + (pi + 1) + '">' +
+          '<button class="remove-btn" data-scenario-idx="' + idx + '" data-pic-idx="' + pi + '">&times;</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    function updateProgress() {
+      var answered = results.filter(function(r) { return r.passed !== null; }).length;
+      var passed = results.filter(function(r) { return r.passed === true; }).length;
+      var failed = results.filter(function(r) { return r.passed === false; }).length;
+      document.getElementById('progress').textContent =
+        answered + '/' + results.length + ' tested \u00b7 ' + passed + ' passed \u00b7 ' + failed + ' failed';
+      document.getElementById('submit-btn').disabled = (answered < results.length);
+    }
+
+    function submitResults() {
+      var output = {
+        round: ROUND,
+        timestamp: new Date().toISOString(),
+        results: results.map(function(r) {
+          return {
+            id: r.id, title: r.title, type: r.type, passed: r.passed,
+            feedback: r.feedback || null,
+            screenshots: r.screenshots.length > 0 ? r.screenshots : null
+          };
+        }),
+        summary: {
+          total: results.length,
+          passed: results.filter(function(r) { return r.passed; }).length,
+          failed: results.filter(function(r) { return !r.passed; }).length
+        }
+      };
+      var blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'manual-results-round-' + ROUND + '.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      var btn = document.getElementById('submit-btn');
+      btn.textContent = 'Downloaded!'; btn.disabled = true;
+    }
+
+    render();
+  </script>
+</body>
+</html>

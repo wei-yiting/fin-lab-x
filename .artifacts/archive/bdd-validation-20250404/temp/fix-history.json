@@ -1,0 +1,10 @@
+[
+  {
+    "round": 2,
+    "scenario_id": "S-dl-06",
+    "root_cause": "Test false positive on case-insensitive filesystem (macOS-mounted volume). Path.exists() for lowercase 'nvda' returns True because the filesystem treats it the same as uppercase 'NVDA'. The code correctly normalizes tickers to uppercase — no duplicate directories are created.",
+    "fix_description": "Changed test to use os.listdir() to check actual directory names rather than Path.exists() which is case-insensitive on the mounted volume.",
+    "files_changed": [".artifacts/current/temp/bdd_test_runner.py"],
+    "classification": "Level 2 — test methodology issue, not implementation bug"
+  }
+]

@@ -21,11 +21,13 @@ def setup_tools() -> None:
         yfinance_stock_quote,
     )
     from backend.agent_engine.tools.sec import sec_official_docs_retriever
+    from backend.agent_engine.tools.sec_filing import sec_filing_downloader
 
     register_tool("yfinance_stock_quote", yfinance_stock_quote)
     register_tool("yfinance_get_available_fields", yfinance_get_available_fields)
     register_tool("tavily_financial_search", tavily_financial_search)
     register_tool("sec_official_docs_retriever", sec_official_docs_retriever)
+    register_tool("sec_filing_downloader", sec_filing_downloader)
 
     _tools_registered = True
 

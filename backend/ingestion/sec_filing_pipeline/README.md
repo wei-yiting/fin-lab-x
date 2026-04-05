@@ -43,6 +43,32 @@ All inherit from `SECPipelineError`:
 | `TransientError` | Network/SEC temporary failure | Yes |
 | `ConfigurationError` | Missing `EDGAR_IDENTITY` | No |
 
+## Entry Points
+
+### CLI
+
+```bash
+# Single filing (latest fiscal year)
+uv run python -m backend.ingestion.sec_filing_pipeline AAPL 10-K
+
+# Specific fiscal year, bypass cache
+uv run python -m backend.ingestion.sec_filing_pipeline AAPL 10-K --fiscal-year 2024 --force
+
+# Batch download
+uv run python -m backend.ingestion.sec_filing_pipeline batch AAPL NVDA TSLA --filing-type 10-K
+
+# Output control: --verbose (full metadata) or --json (machine-readable)
+uv run python -m backend.ingestion.sec_filing_pipeline AAPL 10-K --json
+```
+
+Defined in `__main__.py`. Uses `argparse`, no extra dependencies.
+
+### Agent Tool
+
+`sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Returns metadata + local file path for downstream RAG consumption. Registered in `backend/agent_engine/tools/sec_filing.py`.
+
+Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), which calls edgartools directly without the pipeline.
+
 ## Extension Guidelines
 
 - **New filing type**: Add value to `FilingType` enum. Preprocessor heading patterns are 10-K specific — new types may need new patterns.

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Protocol
 
 from pydantic import BaseModel
 
@@ -51,6 +52,12 @@ class UnsupportedFilingTypeError(SECPipelineError): ...
 
 
 class TransientError(SECPipelineError): ...
+
+
+class RetryCallback(Protocol):
+    def __call__(
+        self, attempt: int, max_attempts: int, error: TransientError
+    ) -> None: ...
 
 
 class ConfigurationError(SECPipelineError): ...

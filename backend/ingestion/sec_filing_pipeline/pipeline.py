@@ -10,6 +10,7 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
     FilingType,
     ParsedFiling,
+    RetryCallback,
     SECPipelineError,
     TransientError,
     UnsupportedFilingTypeError,
@@ -72,9 +73,41 @@ class SECFilingPipeline:
         filing_type: str,
         fiscal_year: int | None = None,
         force: bool = False,
+        on_retry: RetryCallback | None = None,
     ) -> ParsedFiling:
-        filing, _ = self._process_internal(ticker, filing_type, fiscal_year, force)
+        filing, _ = self._execute_with_retry(
+            ticker, filing_type, fiscal_year, force, on_retry
+        )
         return filing
+
+    def _execute_with_retry(
+        self,
+        ticker: str,
+        filing_type: str,
+        fiscal_year: int | None = None,
+        force: bool = False,
+        on_retry: RetryCallback | None = None,
+    ) -> tuple[ParsedFiling, bool]:
+        last_error: Exception | None = None
+        for attempt in range(_MAX_BATCH_RETRIES):
+            try:
+                return self._process_internal(ticker, filing_type, fiscal_year, force)
+            except TransientError as exc:
+                last_error = exc
+                if attempt < _MAX_BATCH_RETRIES - 1:
+                    if on_retry is not None:
+                        on_retry(attempt + 1, _MAX_BATCH_RETRIES, exc)
+                    delay = _RETRY_BASE_DELAY * (2**attempt)
+                    logger.warning(
+                        "Transient error for %s (attempt %d/%d), retrying in %.1fs: %s",
+                        ticker,
+                        attempt + 1,
+                        _MAX_BATCH_RETRIES,
+                        delay,
+                        exc,
+                    )
+                    time.sleep(delay)
+        raise last_error  # type: ignore[misc]
 
     def _process_internal(
         self,
@@ -94,9 +127,7 @@ class SECFilingPipeline:
         raw = self._downloader.download(ticker, filing_type, fiscal_year)
 
         if not force:
-            cached = self._store.get(
-                ticker, FilingType(filing_type), raw.fiscal_year
-            )
+            cached = self._store.get(ticker, FilingType(filing_type), raw.fiscal_year)
             if cached is not None:
                 return cached, True
 
@@ -133,34 +164,15 @@ class SECFilingPipeline:
         return results
 
     def _process_with_retry(self, ticker: str, filing_type: str) -> BatchResult:
-        last_error: Exception | None = None
-        for attempt in range(_MAX_BATCH_RETRIES):
-            try:
-                filing, from_cache = self._process_internal(ticker, filing_type)
-                return BatchResult(
-                    status="success", filing=filing, error=None, from_cache=from_cache
-                )
-            except TransientError as exc:
-                last_error = exc
-                if attempt < _MAX_BATCH_RETRIES - 1:
-                    delay = _RETRY_BASE_DELAY * (2**attempt)
-                    logger.warning(
-                        "Transient error for %s (attempt %d/%d), retrying in %.1fs: %s",
-                        ticker,
-                        attempt + 1,
-                        _MAX_BATCH_RETRIES,
-                        delay,
-                        exc,
-                    )
-                    time.sleep(delay)
-            except SECPipelineError as exc:
-                return BatchResult(
-                    status="error", filing=None, error=str(exc), from_cache=False
-                )
-
-        return BatchResult(
-            status="error", filing=None, error=str(last_error), from_cache=False
-        )
+        try:
+            filing, from_cache = self._execute_with_retry(ticker, filing_type)
+            return BatchResult(
+                status="success", filing=filing, error=None, from_cache=from_cache
+            )
+        except SECPipelineError as exc:
+            return BatchResult(
+                status="error", filing=None, error=str(exc), from_cache=False
+            )
 
     @staticmethod
     def _validate_filing_type(filing_type: str) -> None:

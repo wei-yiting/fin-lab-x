@@ -314,17 +314,112 @@ class TestBatchPermanentErrors:
 
 
 class TestJITModeRaisesExceptions:
-    def test_transient_error_raised_in_jit_mode(self, pipeline, mock_downloader):
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
+    def test_transient_error_raised_in_jit_mode(
+        self, mock_sleep, pipeline, mock_downloader
+    ):
         mock_downloader.download.side_effect = TransientError("503")
 
         with pytest.raises(TransientError):
             pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        assert mock_downloader.download.call_count == 3
+        assert mock_sleep.call_count == 2
 
     def test_permanent_error_raised_in_jit_mode(self, pipeline, mock_downloader):
         mock_downloader.download.side_effect = FilingNotFoundError("Not found")
 
         with pytest.raises(FilingNotFoundError):
             pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+
+class TestJITModeRetry:
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
+    def test_jit_retries_transient_error_up_to_3_times(
+        self, mock_sleep, pipeline, mock_downloader
+    ):
+        mock_downloader.download.side_effect = TransientError("503 Service Unavailable")
+
+        with pytest.raises(TransientError):
+            pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        assert mock_downloader.download.call_count == 3
+        assert mock_sleep.call_count == 2
+
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
+    def test_jit_retry_succeeds_on_second_attempt(
+        self, mock_sleep, pipeline, mock_downloader, raw_filing
+    ):
+        mock_downloader.download.side_effect = [
+            TransientError("503"),
+            raw_filing,
+        ]
+
+        result = pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        assert isinstance(result, ParsedFiling)
+        assert mock_downloader.download.call_count == 2
+        assert mock_sleep.call_count == 1
+
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
+    def test_jit_exponential_backoff_delays(
+        self, mock_sleep, pipeline, mock_downloader
+    ):
+        mock_downloader.download.side_effect = TransientError("503")
+
+        with pytest.raises(TransientError):
+            pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        delays = [call.args[0] for call in mock_sleep.call_args_list]
+        assert delays == [1.0, 2.0]
+
+    def test_jit_permanent_error_not_retried(self, pipeline, mock_downloader):
+        mock_downloader.download.side_effect = FilingNotFoundError("Not found")
+
+        with pytest.raises(FilingNotFoundError):
+            pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        assert mock_downloader.download.call_count == 1
+
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
+    def test_jit_on_retry_callback_called(
+        self, mock_sleep, pipeline, mock_downloader
+    ):
+        mock_downloader.download.side_effect = TransientError("503")
+        callback = MagicMock()
+
+        with pytest.raises(TransientError):
+            pipeline.process("AAPL", "10-K", fiscal_year=2024, on_retry=callback)
+
+        assert callback.call_count == 2
+        assert callback.call_args_list[0].args[0] == 1
+        assert callback.call_args_list[0].args[1] == 3
+        assert isinstance(callback.call_args_list[0].args[2], TransientError)
+        assert callback.call_args_list[1].args[0] == 2
+        assert callback.call_args_list[1].args[1] == 3
+
+    def test_jit_on_retry_callback_not_called_on_success(
+        self, pipeline, mock_downloader
+    ):
+        callback = MagicMock()
+
+        pipeline.process("AAPL", "10-K", fiscal_year=2024, on_retry=callback)
+
+        callback.assert_not_called()
+
+    @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
+    def test_jit_without_callback_still_retries(
+        self, mock_sleep, pipeline, mock_downloader, raw_filing
+    ):
+        mock_downloader.download.side_effect = [
+            TransientError("503"),
+            raw_filing,
+        ]
+
+        result = pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        assert isinstance(result, ParsedFiling)
+        assert mock_downloader.download.call_count == 2
 
 
 class TestBatchFromCacheFlag:

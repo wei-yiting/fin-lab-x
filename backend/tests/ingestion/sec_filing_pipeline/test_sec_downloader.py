@@ -108,7 +108,7 @@ class TestDownloadWithFiscalYear:
         downloader.download("AAPL", "10-K", fiscal_year=2024)
 
         filings = mock_company.get_filings.return_value
-        filings.filter.assert_called_once_with(date="2023-01-01:2025-01-01")
+        filings.filter.assert_called_once_with(filing_date="2023-01-01:2026-01-01")
 
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
     def test_raises_when_derived_fy_mismatches(
@@ -120,6 +120,19 @@ class TestDownloadWithFiscalYear:
 
         with pytest.raises(FilingNotFoundError, match="fiscal year 2024"):
             downloader.download("AAPL", "10-K", fiscal_year=2024)
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_finds_filing_submitted_in_next_calendar_year(
+        self, mock_company_cls, mock_company, mock_filing
+    ):
+        mock_filing.period_of_report = date(2024, 12, 31)
+        mock_filing.filing_date = date(2025, 2, 28)
+        mock_company_cls.return_value = mock_company
+        downloader = SECDownloader()
+
+        result = downloader.download("AAPL", "10-K", fiscal_year=2024)
+
+        assert result.fiscal_year == 2024
 
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
     def test_no_filter_when_fiscal_year_omitted(self, mock_company_cls, mock_company):

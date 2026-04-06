@@ -46,7 +46,7 @@ class SECDownloader:
 
             if fiscal_year is not None:
                 filings = filings.filter(
-                    date=f"{fiscal_year - 1}-01-01:{fiscal_year + 1}-01-01"
+                    filing_date=f"{fiscal_year - 1}-01-01:{fiscal_year + 2}-01-01"
                 )
 
             filing = filings.latest()

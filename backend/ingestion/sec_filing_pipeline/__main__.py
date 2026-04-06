@@ -23,7 +23,6 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     SECPipelineError,
 )
 from backend.ingestion.sec_filing_pipeline.pipeline import (
-    BatchResult,
     SECFilingPipeline,
 )
 

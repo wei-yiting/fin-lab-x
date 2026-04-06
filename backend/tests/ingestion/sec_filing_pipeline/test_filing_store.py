@@ -182,6 +182,58 @@ class TestTickerNormalization:
         assert store.exists("aapl", FilingType.TEN_K, 2024) is True
 
 
+class TestTickerValidation:
+    """Reject tickers with path traversal or invalid characters."""
+
+    @pytest.mark.parametrize(
+        "bad_ticker",
+        [
+            "../../etc",
+            "foo/bar",
+            "A\\B",
+            "../passwd",
+            "AAPL/../../etc",
+            "",
+            "  ",
+            "AAPL MSFT",
+        ],
+    )
+    def test_rejects_invalid_ticker_on_exists(self, store, bad_ticker):
+        with pytest.raises(ValueError, match="Invalid ticker"):
+            store.exists(bad_ticker, FilingType.TEN_K, 2024)
+
+    @pytest.mark.parametrize(
+        "bad_ticker",
+        [
+            "../../etc",
+            "foo/bar",
+            "A\\B",
+        ],
+    )
+    def test_rejects_invalid_ticker_on_get(self, store, bad_ticker):
+        with pytest.raises(ValueError, match="Invalid ticker"):
+            store.get(bad_ticker, FilingType.TEN_K, 2024)
+
+    @pytest.mark.parametrize(
+        "bad_ticker",
+        [
+            "../../etc",
+            "foo/bar",
+            "A\\B",
+        ],
+    )
+    def test_rejects_invalid_ticker_on_list_filings(self, store, bad_ticker):
+        with pytest.raises(ValueError, match="Invalid ticker"):
+            store.list_filings(bad_ticker, FilingType.TEN_K)
+
+    @pytest.mark.parametrize(
+        "valid_ticker",
+        ["AAPL", "BRK.B", "BF-B", "X", "A123"],
+    )
+    def test_accepts_valid_tickers(self, store, valid_ticker):
+        assert store.exists(valid_ticker, FilingType.TEN_K, 2024) is False
+
+
 class TestAtomicWrite:
     """S-dl-07: atomic write prevents corruption."""
 

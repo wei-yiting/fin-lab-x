@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 from pathlib import Path
 from typing import Protocol, runtime_checkable
@@ -14,6 +15,7 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
 )
 
 FRONTMATTER_DELIMITER = "---"
+_TICKER_RE = re.compile(r"^[A-Z0-9.\-]+$")
 
 
 @runtime_checkable
@@ -35,8 +37,17 @@ class LocalFilingStore:
     def __init__(self, base_dir: str = "data/sec_filings") -> None:
         self._base_dir = Path(base_dir)
 
+    @staticmethod
+    def _validate_ticker(ticker: str) -> str:
+        normalized = ticker.strip().upper()
+        if not normalized or not _TICKER_RE.match(normalized):
+            raise ValueError(
+                f"Invalid ticker {ticker!r}: must contain only A-Z, 0-9, '.', or '-'"
+            )
+        return normalized
+
     def _filing_dir(self, ticker: str, filing_type: FilingType) -> Path:
-        return self._base_dir / ticker.upper() / str(filing_type)
+        return self._base_dir / self._validate_ticker(ticker) / str(filing_type)
 
     def _filing_path(
         self, ticker: str, filing_type: FilingType, fiscal_year: int
@@ -44,7 +55,7 @@ class LocalFilingStore:
         return self._filing_dir(ticker, filing_type) / f"{fiscal_year}.md"
 
     def save(self, filing: ParsedFiling) -> None:
-        ticker = filing.metadata.ticker.upper()
+        ticker = self._validate_ticker(filing.metadata.ticker)
         path = self._filing_path(
             ticker, filing.metadata.filing_type, filing.metadata.fiscal_year
         )

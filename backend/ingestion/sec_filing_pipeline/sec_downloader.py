@@ -31,7 +31,7 @@ class SECDownloader:
         filing_type: str,
         fiscal_year: int | None = None,
     ) -> RawFiling:
-        ticker = ticker.upper()
+        ticker = ticker.strip().upper()
 
         if filing_type not in FilingType.__members__.values():
             raise UnsupportedFilingTypeError(f"Unsupported filing type: {filing_type}")

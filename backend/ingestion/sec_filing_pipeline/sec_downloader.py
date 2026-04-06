@@ -48,26 +48,27 @@ class SECDownloader:
                 filings = filings.filter(
                     filing_date=f"{fiscal_year - 1}-01-01:{fiscal_year + 2}-01-01"
                 )
-
-            filing = filings.latest()
-
-            if filing is None:
-                raise FilingNotFoundError(
-                    f"No {filing_type} filing found for {ticker}"
-                    + (f" (fiscal year {fiscal_year})" if fiscal_year else "")
-                )
+                filing = None
+                for f in filings:
+                    if int(str(f.period_of_report)[:4]) == fiscal_year:
+                        filing = f
+                        break
+                if filing is None:
+                    raise FilingNotFoundError(
+                        f"No {filing_type} filing found for {ticker}"
+                        f" (fiscal year {fiscal_year})"
+                    )
+            else:
+                filing = filings.latest()
+                if filing is None:
+                    raise FilingNotFoundError(
+                        f"No {filing_type} filing found for {ticker}"
+                    )
 
             # Fiscal year derives from period_of_report, not filing_date,
             # because filing_date can fall in the next calendar year
             # (e.g., NVDA FY2026 ends 2026-01-25, filed 2026-02-28).
             derived_fy = int(str(filing.period_of_report)[:4])
-
-            if fiscal_year is not None and derived_fy != fiscal_year:
-                raise FilingNotFoundError(
-                    f"No {filing_type} filing found for {ticker}"
-                    f" matching fiscal year {fiscal_year}"
-                    f" (closest match: {derived_fy})"
-                )
 
             return RawFiling(
                 raw_html=filing.html(),

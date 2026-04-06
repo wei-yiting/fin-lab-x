@@ -42,7 +42,7 @@ _DECORATIVE_PROPS = frozenset(
     }
 )
 
-_BLOCK_TAGS = frozenset({"div", "p", "td", "th", "span"})
+_BLOCK_TAGS = frozenset({"div", "p", "td", "th"})
 
 
 def _has_bold_signal(tag: Tag) -> bool:

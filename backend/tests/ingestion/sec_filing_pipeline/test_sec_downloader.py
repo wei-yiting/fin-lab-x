@@ -38,7 +38,9 @@ def mock_company(mock_filing):
 
     filings = MagicMock()
     filings.latest.return_value = mock_filing
-    filings.filter.return_value = filings
+    filtered_filings = MagicMock()
+    filtered_filings.__iter__ = MagicMock(return_value=iter([mock_filing]))
+    filings.filter.return_value = filtered_filings
     company.get_filings.return_value = filings
 
     return company
@@ -111,7 +113,7 @@ class TestDownloadWithFiscalYear:
         filings.filter.assert_called_once_with(filing_date="2023-01-01:2026-01-01")
 
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
-    def test_raises_when_derived_fy_mismatches(
+    def test_raises_when_no_filing_matches_fiscal_year(
         self, mock_company_cls, mock_company, mock_filing
     ):
         mock_filing.period_of_report = date(2023, 9, 30)
@@ -133,6 +135,36 @@ class TestDownloadWithFiscalYear:
         result = downloader.download("AAPL", "10-K", fiscal_year=2024)
 
         assert result.fiscal_year == 2024
+
+    @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
+    def test_selects_correct_year_when_multiple_years_in_range(
+        self, mock_company_cls, mock_company
+    ):
+        """Regression: filter range includes adjacent fiscal years; must pick the requested one."""
+        fy2023_filing = MagicMock()
+        fy2023_filing.period_of_report = date(2023, 9, 30)
+        fy2023_filing.filing_date = date(2023, 11, 1)
+        fy2023_filing.accession_number = "0000320193-23-000100"
+        fy2023_filing.filing_url = "https://www.sec.gov/Archives/edgar/data/320193/fy2023.htm"
+        fy2023_filing.html.return_value = "<html>FY2023</html>"
+
+        fy2024_filing = MagicMock()
+        fy2024_filing.period_of_report = date(2024, 9, 28)
+        fy2024_filing.filing_date = date(2024, 11, 1)
+        fy2024_filing.accession_number = "0000320193-24-000123"
+        fy2024_filing.filing_url = "https://www.sec.gov/Archives/edgar/data/320193/fy2024.htm"
+        fy2024_filing.html.return_value = "<html>FY2024</html>"
+
+        filtered = MagicMock()
+        filtered.__iter__ = MagicMock(return_value=iter([fy2024_filing, fy2023_filing]))
+        mock_company.get_filings.return_value.filter.return_value = filtered
+        mock_company_cls.return_value = mock_company
+        downloader = SECDownloader()
+
+        result = downloader.download("AAPL", "10-K", fiscal_year=2023)
+
+        assert result.fiscal_year == 2023
+        assert result.raw_html == "<html>FY2023</html>"
 
     @patch("backend.ingestion.sec_filing_pipeline.sec_downloader.Company")
     def test_no_filter_when_fiscal_year_omitted(self, mock_company_cls, mock_company):
@@ -178,7 +210,9 @@ class TestDownloadErrorMapping:
         self, mock_company_cls, mock_company
     ):
         filings = mock_company.get_filings.return_value
-        filings.filter.return_value.latest.return_value = None
+        empty_filtered = MagicMock()
+        empty_filtered.__iter__ = MagicMock(return_value=iter([]))
+        filings.filter.return_value = empty_filtered
         mock_company_cls.return_value = mock_company
         downloader = SECDownloader()
 

@@ -35,6 +35,12 @@ class StreamEventMapper:
         self._total_output_tokens = 0
 
     def _next_text_id(self) -> str:
+        # Within a single assistant turn we can emit multiple text blocks
+        # separated by tool calls (text-0 → tool call → text-1 → finish).
+        # Per AI SDK UIMessage protocol, each block's text-start/text-delta/
+        # text-end must share an id, and sibling blocks must have different
+        # ids so the client can keep them apart. A counter keeps IDs
+        # deterministic for unit tests; uuid would work too but adds noise.
         text_id = f"text-{self._text_id_counter}"
         self._text_id_counter += 1
         return text_id
@@ -77,6 +83,14 @@ class StreamEventMapper:
                 if tc_id and tc_name and tc_id not in self._pending_tool_calls:
                     self._pending_tool_calls[tc_id] = tc_name
 
+        # LangChain does not auto-aggregate usage_metadata across streaming
+        # chunks — the official pattern is to concatenate AIMessageChunks
+        # with `+` and read .usage_metadata at the end. We don't need the
+        # full concatenated message (TextDeltas are already flushed), so we
+        # sum the two numeric fields directly. This works whether the
+        # provider emits usage on every chunk (Anthropic-style deltas) or
+        # only on the final chunk (OpenAI-style cumulative) — both sum to
+        # the correct total.
         if getattr(msg_chunk, "usage_metadata", None):
             self._total_input_tokens += msg_chunk.usage_metadata.get("input_tokens", 0)
             self._total_output_tokens += msg_chunk.usage_metadata.get("output_tokens", 0)

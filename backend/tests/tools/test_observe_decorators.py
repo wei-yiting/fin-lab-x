@@ -1,4 +1,8 @@
-"""Tests to verify @observe() decorator is applied on all tool functions."""
+"""Tests to verify @observe() decorator is NOT applied on tool functions.
+
+CallbackHandler auto-traces via LangGraph, so @observe() is unnecessary
+and would interfere with streaming.
+"""
 
 from backend.agent_engine.tools.financial import (
     tavily_financial_search,
@@ -16,26 +20,22 @@ ALL_TOOLS = [
 ]
 
 
-def test_tools_use_observe_decorator():
-    """Verify all tool functions are decorated with @observe().
+def test_tools_do_not_use_observe_decorator():
+    """Verify all tool functions do NOT have @observe() decorator.
 
-    Langfuse's @observe() wraps functions and sets internal attributes.
-    We check that the wrapper chain includes the observe layer by verifying
-    the function's __wrapped__ attribute exists (set by functools.wraps
-    inside @observe).
+    CallbackHandler auto-traces via LangGraph, so @observe() is removed.
+    We check that the inner function does NOT have __wrapped__ (which
+    @observe sets via functools.wraps).
     """
     for tool_func in ALL_TOOLS:
-        # LangChain @tool creates a StructuredTool with a .func attribute
         inner = getattr(tool_func, "func", tool_func)
-        # Fragile assertion: depends on @observe using functools.wraps internally.
-        assert hasattr(inner, "__wrapped__"), (
-            f"{tool_func.name} is missing @observe() decorator — "
-            f"no __wrapped__ attribute found on inner function"
+        assert not hasattr(inner, "__wrapped__"), (
+            f"{tool_func.name} still has @observe() decorator"
         )
 
 
-def test_observe_decorator_does_not_break_tool_schema():
-    """Verify @observe() doesn't interfere with LangChain tool schema."""
+def test_tool_schema_intact_without_observe():
+    """Verify tool schema is intact after removing @observe()."""
     expected_tools = {
         "yfinance_stock_quote": "YFinanceStockQuoteInput",
         "yfinance_get_available_fields": "YFinanceGetAvailableFieldsInput",

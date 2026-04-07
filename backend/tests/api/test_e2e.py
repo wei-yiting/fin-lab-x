@@ -42,10 +42,19 @@ def test_e2e_chat_flow():
             "backend.agent_engine.agents.base.create_agent",
             return_value=mock_agent,
         ),
+        patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
+        patch("backend.api.main.AsyncSqliteSaver") as mock_sqlite_cls,
     ):
+        mock_ctx = MagicMock()
+        mock_ctx.__aenter__ = AsyncMock(return_value=MagicMock())
+        mock_ctx.__aexit__ = AsyncMock(return_value=False)
+        mock_sqlite_cls.from_conn_string.return_value = mock_ctx
+
         config = VersionConfigLoader("v1_baseline").load()
         with TestClient(app) as client:
-            response = client.post("/api/v1/chat", json={"message": "Analyze AAPL"})
+            response = client.post(
+                "/api/v1/chat/invoke", json={"message": "Analyze AAPL"}
+            )
 
     assert response.status_code == 200
     data = response.json()

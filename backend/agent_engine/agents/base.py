@@ -10,19 +10,69 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
-from typing import Any, TypedDict
+import logging
+import uuid
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
-from langchain.agents.middleware import ToolCallLimitMiddleware
-from langchain.chat_models import init_chat_model
-from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
-from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from typing_extensions import TypedDict
 
 from backend.agent_engine.agents.config_loader import VersionConfig
+from backend.agent_engine.streaming.domain_events_schema import (
+    DomainEvent,
+    Finish,
+    StreamError,
+)
+from backend.agent_engine.streaming.event_mapper import StreamEventMapper
+from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
+
+
+class _SuppressOTelDetachError(logging.Filter):
+    """Suppress harmless 'Failed to detach context' from OpenTelemetry.
+
+    In async generators (astream_run), propagate_attributes() context manager
+    detach can fail when yield boundaries cross async contexts. The error is
+    benign — attributes propagate correctly during streaming, and the context
+    is cleaned up when the asyncio Task completes.
+
+    Uses reference counting so concurrent astream_run() calls safely share
+    one filter instance — the filter is only removed when the last active
+    stream finishes.
+    """
+
+    _instance: "_SuppressOTelDetachError | None" = None
+    _refcount: int = 0
+
+    @classmethod
+    def acquire(cls, logger: logging.Logger) -> "_SuppressOTelDetachError":
+        if cls._instance is None:
+            cls._instance = cls()
+        cls._refcount += 1
+        if cls._refcount == 1:
+            logger.addFilter(cls._instance)
+        return cls._instance
+
+    @classmethod
+    def release(cls, logger: logging.Logger) -> None:
+        cls._refcount = max(0, cls._refcount - 1)
+        if cls._refcount == 0 and cls._instance is not None:
+            logger.removeFilter(cls._instance)
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "Failed to detach context" not in record.getMessage()
+
+
+_otel_logger = logging.getLogger("opentelemetry.context")
 
 _DEFAULT_SYSTEM_PROMPT = """\
 You are FinLab-X, a strict, data-driven financial AI Agent.
@@ -48,6 +98,37 @@ RESPONSE FORMAT:
 - Flag any data quality issues"""
 
 
+class _HandleToolErrors(AgentMiddleware):
+    """Middleware that catches tool exceptions and returns sanitized error messages.
+
+    Implements both sync and async to support invoke() (eval runner) and
+    astream() (streaming API).
+    """
+
+    def wrap_tool_call(self, request, handler):
+        try:
+            return handler(request)
+        except Exception as e:
+            return ToolMessage(
+                content=sanitize_tool_error(str(e)),
+                tool_call_id=request.tool_call["id"],
+                status="error",
+            )
+
+    async def awrap_tool_call(self, request, handler):
+        try:
+            return await handler(request)
+        except Exception as e:
+            return ToolMessage(
+                content=sanitize_tool_error(str(e)),
+                tool_call_id=request.tool_call["id"],
+                status="error",
+            )
+
+
+handle_tool_errors = _HandleToolErrors()
+
+
 class ToolOutput(TypedDict):
     tool: str
     args: dict[str, object]
@@ -68,7 +149,7 @@ class _LangfusePropagationAttributes(TypedDict, total=False):
 class Orchestrator:
     """Version-agnostic Orchestrator that loads capabilities from config."""
 
-    def __init__(self, config: VersionConfig):
+    def __init__(self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None):
         setup_tools()
         self.config = config
         self.tools = get_tools_by_names(config.tools)
@@ -82,11 +163,15 @@ class Orchestrator:
             model=model,
             tools=self.tools,
             system_prompt=self.system_prompt,
-            middleware=[tool_call_limit],
+            middleware=[tool_call_limit, handle_tool_errors],
+            checkpointer=checkpointer,
         )
 
     def run(self, prompt: str, **kwargs: object) -> OrchestratorResult:
         config, propagation = self._build_langfuse_config(**kwargs)
+        session_id = kwargs.get("session_id")
+        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = self.agent.invoke(
                 {"messages": [{"role": "user", "content": prompt}]},
@@ -100,12 +185,131 @@ class Orchestrator:
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
         config, propagation = self._build_langfuse_config(**kwargs)
+        session_id = kwargs.get("session_id")
+        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = await self.agent.ainvoke(
                 {"messages": [{"role": "user", "content": prompt}]},
                 config=config,
             )
         return self._extract_result(result)
+
+    async def astream_run(
+        self,
+        *,
+        message: str | None = None,
+        session_id: str,
+        trigger: str | None = None,
+        message_id: str | None = None,
+    ) -> AsyncGenerator[DomainEvent, None]:
+        config, propagation = self._build_langfuse_config(session_id=session_id)
+        config["configurable"] = {"thread_id": session_id}
+        mapper = StreamEventMapper(session_id=session_id)
+
+        _SuppressOTelDetachError.acquire(_otel_logger)
+        with propagate_attributes(**propagation):
+            try:
+                if trigger == "regenerate":
+                    await self._prepare_regenerate(config, message_id)
+                    input_data = None
+                else:
+                    input_data = {"messages": [{"role": "user", "content": message}]}
+
+                async for raw_chunk in self.agent.astream(
+                    input_data,
+                    config=config,
+                    stream_mode=["messages", "updates", "custom"],
+                    version="v2",
+                ):
+                    if isinstance(raw_chunk, tuple):
+                        chunk = {"type": raw_chunk[0], "data": raw_chunk[1]}
+                    else:
+                        chunk = raw_chunk
+                    for event in mapper.process_chunk(chunk):
+                        yield event
+
+                for event in mapper.finalize():
+                    yield event
+            except Exception as e:
+                for event in mapper.finalize():
+                    if not isinstance(event, Finish):
+                        yield event
+                yield StreamError(error_text=sanitize_tool_error(str(e)))
+                yield Finish(finish_reason="error")
+            finally:
+                _SuppressOTelDetachError.release(_otel_logger)
+
+    @staticmethod
+    def _find_regenerate_target(
+        messages: list[BaseMessage], message_id: str | None
+    ) -> int:
+        """Find the start index of the last AI turn for regeneration.
+
+        Walks backward to find the last contiguous block of AIMessage and
+        ToolMessage entries (the "last turn"). Returns the index of the first
+        AIMessage in that turn, optionally verifying that ``message_id``
+        belongs to it.
+
+        Raises ValueError if no AI messages exist or ``message_id`` is not
+        in the last turn.
+        """
+        if not any(isinstance(m, AIMessage) for m in messages):
+            raise ValueError("No assistant message to regenerate")
+
+        last_ai_idx = None
+        for i in reversed(range(len(messages))):
+            if isinstance(messages[i], AIMessage):
+                last_ai_idx = i
+                break
+
+        assert last_ai_idx is not None
+
+        turn_start = last_ai_idx
+        turn_ids: set[str] = set()
+        for i in range(last_ai_idx, -1, -1):
+            if isinstance(messages[i], AIMessage):
+                turn_start = i
+                turn_ids.add(messages[i].id)
+            elif isinstance(messages[i], ToolMessage):
+                continue
+            else:
+                break
+
+        if message_id:
+            if message_id not in turn_ids:
+                raise ValueError(
+                    "messageId does not match the last assistant message"
+                )
+
+        return turn_start
+
+    async def validate_regenerate(
+        self, *, session_id: str, message_id: str | None
+    ) -> None:
+        """Validate regenerate preconditions before streaming.
+
+        Raises ValueError with descriptive message on failure.
+        """
+        config: dict = {"configurable": {"thread_id": session_id}}
+        state = await self.agent.aget_state(config)
+        messages = state.values.get("messages", [])
+
+        if not messages:
+            raise ValueError("No conversation found for this session")
+
+        self._find_regenerate_target(messages, message_id)
+
+    async def _prepare_regenerate(
+        self, config: dict, message_id: str | None
+    ) -> None:
+        state = await self.agent.aget_state(config)
+        messages = state.values.get("messages", [])
+
+        target_idx = self._find_regenerate_target(messages, message_id)
+
+        to_remove = [RemoveMessage(id=m.id) for m in messages[target_idx:]]
+        await self.agent.aupdate_state(config, {"messages": to_remove}, as_node="__start__")
 
     def _build_langfuse_config(
         self,

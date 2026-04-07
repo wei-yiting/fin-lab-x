@@ -9,6 +9,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import inspect
 import json
@@ -36,6 +37,18 @@ DEFAULT_RESULTS_DIR = Path(__file__).parent / "results"
 BRAINTRUST_CONFIG_PATH = Path(__file__).parent / "braintrust_config.yaml"
 
 _VALID_SCENARIO_DIR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+
+
+class _SuppressContextDetach(logging.Filter):
+    """Filter out 'Failed to detach context' noise from OpenTelemetry.
+
+    asyncio.run() creates a fresh ContextVar scope, so OTel tokens created
+    inside cannot be detached after the loop exits.  This is harmless — traces
+    are already flushed — but produces noisy tracebacks on stderr.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "Failed to detach context" not in record.getMessage()
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +111,39 @@ _TIMEOUT_MARKER = "TIMEOUT"
 
 
 def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
-    """Wrap the task function to catch exceptions, None returns, and timeouts."""
+    """Wrap the task function to catch exceptions, None returns, and timeouts.
+
+    Preserves async task functions so Braintrust Eval() can await them
+    directly in the same event loop (avoiding thread + asyncio.run overhead).
+    """
+
+    if asyncio.iscoroutinefunction(task_fn):
+
+        async def wrapped(input: Any) -> Any:
+            try:
+                if timeout is not None:
+                    result = await asyncio.wait_for(
+                        task_fn(input), timeout=timeout
+                    )
+                else:
+                    result = await task_fn(input)
+            except asyncio.TimeoutError:
+                logger.error(
+                    "Task function timed out after %.1f seconds", timeout
+                )
+                return _ERROR_MARKER
+            except Exception:
+                logger.error("Task function raised an exception", exc_info=True)
+                return _ERROR_MARKER
+            if result is None:
+                logger.error(
+                    "Task function returned None. "
+                    "Ensure the function has a return statement."
+                )
+                return _ERROR_MARKER
+            return result
+
+        return wrapped
 
     def wrapped(input: Any) -> Any:
         if timeout is not None:
@@ -305,80 +350,87 @@ def run_scenario(
     7. Eval() call
     8. write_result_csv() -> result CSV path
     """
-    scenario_dir = scenarios_dir / scenario_name
-    config_path = scenario_dir / "eval_spec.yaml"
-    config = load_scenario_config(config_path)
+    otel_filter = _SuppressContextDetach()
+    otel_logger = logging.getLogger("opentelemetry.context")
+    otel_logger.addFilter(otel_filter)
 
-    csv_path = scenario_dir / config.csv
-    if not csv_path.is_file():
-        raise FileNotFoundError(f"CSV file not found: {csv_path}")
+    try:
+        scenario_dir = scenarios_dir / scenario_name
+        config_path = scenario_dir / "eval_spec.yaml"
+        config = load_scenario_config(config_path)
 
-    original_columns, original_rows = load_raw_csv_rows(csv_path)
-    raw_data = load_dataset(csv_path, config.column_mapping)
+        csv_path = scenario_dir / config.csv
+        if not csv_path.is_file():
+            raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
-    scorers = resolve_scorers(config.scorers)
-    task_fn = resolve_function(config.task.function, label="task")
+        original_columns, original_rows = load_raw_csv_rows(csv_path)
+        raw_data = load_dataset(csv_path, config.column_mapping)
 
-    scorer_names = [s.name for s in config.scorers]
-    wrapped_task = _wrap_task(task_fn, timeout=config.task.timeout)
-    wrapped_scorers = [
-        _wrap_scorer(scorer, name) for scorer, name in zip(scorers, scorer_names)
-    ]
+        scorers = resolve_scorers(config.scorers)
+        task_fn = resolve_function(config.task.function, label="task")
 
-    bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
-    experiment_name = (
-        f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-    )
+        scorer_names = [s.name for s in config.scorers]
+        wrapped_task = _wrap_task(task_fn, timeout=config.task.timeout)
+        wrapped_scorers = [
+            _wrap_scorer(scorer, name) for scorer, name in zip(scorers, scorer_names)
+        ]
 
-    # Always run local eval first to guarantee local CSV output
-    eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
+        bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
+        experiment_name = (
+            f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        )
 
-    result_path = write_result_csv(
-        eval_result,
-        scenario_name,
-        scorer_names,
-        output_dir,
-        original_columns=original_columns,
-        original_rows=original_rows,
-    )
+        # Always run local eval first to guarantee local CSV output
+        eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
 
-    # Merge local_mode: CLI --local-only overrides config default
-    effective_local = local_only or bt_config.local_mode
+        result_path = write_result_csv(
+            eval_result,
+            scenario_name,
+            scorer_names,
+            output_dir,
+            original_columns=original_columns,
+            original_rows=original_rows,
+        )
 
-    if not effective_local:
-        try:
-            from braintrust import Eval, EvalCase
+        # Merge local_mode: CLI --local-only overrides config default
+        effective_local = local_only or bt_config.local_mode
 
-            api_key = os.environ.get(bt_config.api_key_env)
-            if not api_key:
-                raise RuntimeError(
-                    f"API key not found in environment variable "
-                    f"'{bt_config.api_key_env}'. "
-                    "Set the key or use --local-only."
+        if not effective_local:
+            try:
+                from braintrust import Eval, EvalCase
+
+                api_key = os.environ.get(bt_config.api_key_env)
+                if not api_key:
+                    raise RuntimeError(
+                        f"API key not found in environment variable "
+                        f"'{bt_config.api_key_env}'. "
+                        "Set the key or use --local-only."
+                    )
+                _init_platform_tracing(bt_config.project, api_key)
+
+                eval_cases = [
+                    EvalCase(
+                        input=row["input"],
+                        expected=row.get("expected"),
+                        metadata=row.get("metadata"),
+                    )
+                    for row in raw_data
+                ]
+
+                Eval(
+                    bt_config.project,
+                    data=eval_cases,
+                    task=wrapped_task,
+                    scores=wrapped_scorers,
+                    experiment_name=experiment_name,
+                    no_send_logs=False,
                 )
-            _init_platform_tracing(bt_config.project, api_key)
+            except Exception:
+                logger.error("Braintrust upload failed", exc_info=True)
 
-            eval_cases = [
-                EvalCase(
-                    input=row["input"],
-                    expected=row.get("expected"),
-                    metadata=row.get("metadata"),
-                )
-                for row in raw_data
-            ]
-
-            Eval(
-                bt_config.project,
-                data=eval_cases,
-                task=wrapped_task,
-                scores=wrapped_scorers,
-                experiment_name=experiment_name,
-                no_send_logs=False,
-            )
-        except Exception:
-            logger.error("Braintrust upload failed", exc_info=True)
-
-    return result_path
+        return result_path
+    finally:
+        otel_logger.removeFilter(otel_filter)
 
 
 def _run_local_eval(
@@ -394,11 +446,17 @@ def _run_local_eval(
     """
     from types import SimpleNamespace
 
+    is_async_task = asyncio.iscoroutinefunction(task_fn)
+
     results: list[Any] = []
     for row in raw_data:
         input_val = row["input"]
         expected_val = row.get("expected")
-        output = task_fn(input_val)
+        output = (
+            asyncio.run(task_fn(input_val))
+            if is_async_task
+            else task_fn(input_val)
+        )
 
         scores: dict[str, Any] = {}
         for scorer in scorers:
@@ -417,7 +475,16 @@ def _run_local_eval(
 
 
 def _init_platform_tracing(project: str, api_key: str) -> None:
-    """Initialize Braintrust platform tracing for non-local mode."""
+    """Initialize Braintrust platform tracing for non-local mode.
+
+    WARNING: set_global_handler() sets a process-level singleton. This means:
+    - Eval scenarios MUST run sequentially (not in parallel).
+    - Previous handler state is NOT restored after the call.
+    - If this module is reused in the same process, traces from different
+      experiments may leak into each other.
+    Concurrent eval execution requires per-request trace isolation, which
+    Braintrust's current API does not support.
+    """
     from braintrust import init_logger
 
     init_logger(project=project, api_key=api_key)

@@ -1,11 +1,12 @@
 """Financial data tools for FinLab-X."""
 
-from typing import Any
+from typing import Annotated, Any
+
 import yfinance as yf
+from langchain_core.tools import InjectedToolCallId
+from langgraph.config import get_stream_writer
 from pydantic import BaseModel, Field
 from langchain.tools import tool
-
-from langfuse import observe
 
 
 class YFinanceStockQuoteInput(BaseModel):
@@ -15,25 +16,29 @@ class YFinanceStockQuoteInput(BaseModel):
 
 
 @tool("yfinance_stock_quote", args_schema=YFinanceStockQuoteInput)
-@observe(name="yfinance_stock_quote")
-def yfinance_stock_quote(ticker: str) -> dict[str, Any]:
+def yfinance_stock_quote(
+    ticker: str,
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> dict[str, Any]:
     """Retrieve real-time quantitative stock metrics using yfinance."""
     try:
-        normalized_ticker = ticker.strip().upper()
-        info = yf.Ticker(normalized_ticker).info
-        return {
-            "ticker": normalized_ticker,
-            "currentPrice": info.get("currentPrice"),
-            "fiftyTwoWeekHigh": info.get("fiftyTwoWeekHigh"),
-            "fiftyTwoWeekLow": info.get("fiftyTwoWeekLow"),
-            "forwardPE": info.get("forwardPE"),
-            "trailingPE": info.get("trailingPE"),
-        }
-    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return {
-            "error": True,
-            "message": f"Could not retrieve data from yfinance: {exc}",
-        }
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
+
+    normalized_ticker = ticker.strip().upper()
+    if writer:
+        writer({"status": "querying_stock", "message": f"Querying {normalized_ticker}...", "toolName": "yfinance_stock_quote", "toolCallId": tool_call_id})
+
+    info = yf.Ticker(normalized_ticker).info
+    return {
+        "ticker": normalized_ticker,
+        "currentPrice": info.get("currentPrice"),
+        "fiftyTwoWeekHigh": info.get("fiftyTwoWeekHigh"),
+        "fiftyTwoWeekLow": info.get("fiftyTwoWeekLow"),
+        "forwardPE": info.get("forwardPE"),
+        "trailingPE": info.get("trailingPE"),
+    }
 
 
 class YFinanceGetAvailableFieldsInput(BaseModel):
@@ -45,8 +50,10 @@ class YFinanceGetAvailableFieldsInput(BaseModel):
 
 
 @tool("yfinance_get_available_fields", args_schema=YFinanceGetAvailableFieldsInput)
-@observe(name="yfinance_get_available_fields")
-def yfinance_get_available_fields(ticker: str) -> dict[str, Any]:
+def yfinance_get_available_fields(
+    ticker: str,
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> dict[str, Any]:
     """Get all available data fields for a stock ticker with descriptions.
 
     Use this tool first to discover what data is available, then use
@@ -56,53 +63,58 @@ def yfinance_get_available_fields(ticker: str) -> dict[str, Any]:
     LLM tokens on unrecognized yfinance fields.
     """
     try:
-        normalized_ticker = ticker.strip().upper()
-        info = yf.Ticker(normalized_ticker).info
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
 
-        field_descriptions = {
-            "currentPrice": "Current stock price",
-            "fiftyTwoWeekHigh": "52-week high price",
-            "fiftyTwoWeekLow": "52-week low price",
-            "forwardPE": "Forward P/E ratio",
-            "trailingPE": "Trailing P/E ratio",
-            "marketCap": "Market capitalization",
-            "revenueGrowth": "Revenue growth rate",
-            "earningsGrowth": "Earnings growth rate",
-            "dividendYield": "Dividend yield",
-            "beta": "Beta coefficient",
-            "avgVolume": "Average trading volume",
-            "profitMargin": "Profit margin",
-            "operatingMargin": "Operating margin",
-            "returnOnEquity": "Return on equity (ROE)",
-            "returnOnAssets": "Return on assets (ROA)",
-            "debtToEquity": "Debt-to-equity ratio",
-            "currentRatio": "Current ratio",
-            "quickRatio": "Quick ratio",
-            "priceToBook": "Price-to-book ratio",
-            "priceToSales": "Price-to-sales ratio",
-            "enterpriseValue": "Enterprise value",
-            "ebitda": "EBITDA",
-            "totalRevenue": "Total revenue",
-            "netIncome": "Net income",
-            "freeCashflow": "Free cash flow",
-            "operatingCashflow": "Operating cash flow",
-        }
+    normalized_ticker = ticker.strip().upper()
+    if writer:
+        writer({"status": "querying_fields", "message": f"Discovering fields for {normalized_ticker}...", "toolName": "yfinance_get_available_fields", "toolCallId": tool_call_id})
 
-        available_fields = {}
-        for field, description in field_descriptions.items():
-            if field in info:
-                available_fields[field] = {
-                    "description": description,
-                    "available": True,
-                }
+    info = yf.Ticker(normalized_ticker).info
 
-        return {
-            "ticker": normalized_ticker,
-            "available_fields": available_fields,
-            "total_fields": len(available_fields),
-        }
-    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return {"error": True, "message": f"Could not fetch available fields: {exc}"}
+    field_descriptions = {
+        "currentPrice": "Current stock price",
+        "fiftyTwoWeekHigh": "52-week high price",
+        "fiftyTwoWeekLow": "52-week low price",
+        "forwardPE": "Forward P/E ratio",
+        "trailingPE": "Trailing P/E ratio",
+        "marketCap": "Market capitalization",
+        "revenueGrowth": "Revenue growth rate",
+        "earningsGrowth": "Earnings growth rate",
+        "dividendYield": "Dividend yield",
+        "beta": "Beta coefficient",
+        "avgVolume": "Average trading volume",
+        "profitMargin": "Profit margin",
+        "operatingMargin": "Operating margin",
+        "returnOnEquity": "Return on equity (ROE)",
+        "returnOnAssets": "Return on assets (ROA)",
+        "debtToEquity": "Debt-to-equity ratio",
+        "currentRatio": "Current ratio",
+        "quickRatio": "Quick ratio",
+        "priceToBook": "Price-to-book ratio",
+        "priceToSales": "Price-to-sales ratio",
+        "enterpriseValue": "Enterprise value",
+        "ebitda": "EBITDA",
+        "totalRevenue": "Total revenue",
+        "netIncome": "Net income",
+        "freeCashflow": "Free cash flow",
+        "operatingCashflow": "Operating cash flow",
+    }
+
+    available_fields = {}
+    for field, description in field_descriptions.items():
+        if field in info:
+            available_fields[field] = {
+                "description": description,
+                "available": True,
+            }
+
+    return {
+        "ticker": normalized_ticker,
+        "available_fields": available_fields,
+        "total_fields": len(available_fields),
+    }
 
 
 TRUSTED_NEWS_DOMAINS = [
@@ -120,36 +132,44 @@ class TavilyFinancialSearchInput(BaseModel):
 
 
 @tool("tavily_financial_search", args_schema=TavilyFinancialSearchInput)
-@observe(name="tavily_financial_search")
-def tavily_financial_search(query: str, ticker: str) -> dict[str, Any]:
+def tavily_financial_search(
+    query: str,
+    ticker: str,
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> dict[str, Any]:
     """Search trusted financial news domains for event-driven queries."""
     import os
 
     api_key = os.getenv("TAVILY_API_KEY")
     if not api_key:
-        return {"error": True, "message": "TAVILY_API_KEY is not set."}
+        raise ValueError("TAVILY_API_KEY is not set.")
 
     try:
-        from tavily import TavilyClient
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
 
-        normalized_ticker = ticker.strip().upper()
-        client = TavilyClient(api_key=api_key)
-        full_query = f"{normalized_ticker} {query}".strip()
-        response = client.search(
-            query=full_query,
-            include_domains=TRUSTED_NEWS_DOMAINS,
-            max_results=5,
+    from tavily import TavilyClient
+
+    normalized_ticker = ticker.strip().upper()
+    if writer:
+        writer({"status": "searching_news", "message": f"Searching news for {normalized_ticker}...", "toolName": "tavily_financial_search", "toolCallId": tool_call_id})
+
+    client = TavilyClient(api_key=api_key)
+    full_query = f"{normalized_ticker} {query}".strip()
+    response = client.search(
+        query=full_query,
+        include_domains=TRUSTED_NEWS_DOMAINS,
+        max_results=5,
+    )
+    results = []
+    for item in response.get("results", []):
+        results.append(
+            {
+                "title": item.get("title"),
+                "url": item.get("url"),
+                "content": item.get("content"),
+                "published_date": item.get("published_date"),
+            }
         )
-        results = []
-        for item in response.get("results", []):
-            results.append(
-                {
-                    "title": item.get("title"),
-                    "url": item.get("url"),
-                    "content": item.get("content"),
-                    "published_date": item.get("published_date"),
-                }
-            )
-        return {"query": full_query, "results": results}
-    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return {"error": True, "message": f"Could not retrieve data from Tavily: {exc}"}
+    return {"query": full_query, "results": results}

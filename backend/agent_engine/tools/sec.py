@@ -2,11 +2,12 @@
 
 import os
 import re
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
+
+from langchain_core.tools import InjectedToolCallId
+from langgraph.config import get_stream_writer
 from pydantic import BaseModel, Field
 from langchain.tools import tool
-
-from langfuse import observe
 
 
 MAX_SECTION_CHARS = 4000
@@ -57,49 +58,54 @@ def _extract_section(
 
 
 @tool("sec_official_docs_retriever", args_schema=SecOfficialDocsRetrieverInput)
-@observe(name="sec_official_docs_retriever")
-def sec_official_docs_retriever(ticker: str, doc_type: str = "10-K") -> dict[str, Any]:
+def sec_official_docs_retriever(
+    ticker: str,
+    tool_call_id: Annotated[str, InjectedToolCallId],
+    doc_type: str = "10-K",
+) -> dict[str, Any]:
     """Retrieve official SEC filing text sections using edgartools.
 
     Supports 10-K (annual report) and 10-Q (quarterly report).
     """
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
-        return {"error": True, "message": "EDGAR_IDENTITY is not set."}
+        raise ValueError("EDGAR_IDENTITY is not set.")
 
     try:
-        from edgar import Company, set_identity
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
 
-        set_identity(identity)
-        normalized_ticker = ticker.strip().upper()
-        filings = Company(normalized_ticker).get_filings(form=doc_type)
-        filing = filings.latest()
-        if not filing:
-            return {
-                "error": True,
-                "message": f"No {doc_type} filing found for {normalized_ticker}.",
-            }
+    from edgar import Company, set_identity
 
-        text = getattr(filing, "text")()
-        cleaned_text = re.sub(r"\s+", " ", text)
-        risk_factors = _extract_section(
-            cleaned_text,
-            ["Item 1A", "Item 1A."],
-            ["Item 1B", "Item 2", "Item 3"],
-        )
-        mdna = _extract_section(
-            cleaned_text,
-            ["Item 7", "Item 7."],
-            ["Item 7A", "Item 8", "Item 9"],
-        )
+    set_identity(identity)
+    normalized_ticker = ticker.strip().upper()
+    if writer:
+        writer({"status": "retrieving_filing", "message": f"Retrieving {doc_type} for {normalized_ticker}...", "toolName": "sec_official_docs_retriever", "toolCallId": tool_call_id})
 
-        return {
-            "ticker": normalized_ticker,
-            "doc_type": doc_type,
-            "filing_date": getattr(filing, "filing_date", None),
-            "risk_factors": risk_factors,
-            "mdna": mdna,
-            "raw_excerpt": cleaned_text[:MAX_SECTION_CHARS].rstrip() + "...",
-        }
-    except (KeyError, ValueError, ConnectionError, TimeoutError) as exc:
-        return {"error": True, "message": f"Could not retrieve SEC filing data: {exc}"}
+    filings = Company(normalized_ticker).get_filings(form=doc_type)
+    filing = filings.latest()
+    if not filing:
+        raise ValueError(f"No {doc_type} filing found for {normalized_ticker}.")
+
+    text = getattr(filing, "text")()
+    cleaned_text = re.sub(r"\s+", " ", text)
+    risk_factors = _extract_section(
+        cleaned_text,
+        ["Item 1A", "Item 1A."],
+        ["Item 1B", "Item 2", "Item 3"],
+    )
+    mdna = _extract_section(
+        cleaned_text,
+        ["Item 7", "Item 7."],
+        ["Item 7A", "Item 8", "Item 9"],
+    )
+
+    return {
+        "ticker": normalized_ticker,
+        "doc_type": doc_type,
+        "filing_date": getattr(filing, "filing_date", None),
+        "risk_factors": risk_factors,
+        "mdna": mdna,
+        "raw_excerpt": cleaned_text[:MAX_SECTION_CHARS].rstrip() + "...",
+    }

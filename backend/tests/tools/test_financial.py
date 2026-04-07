@@ -1,5 +1,6 @@
 """Tests for financial tools."""
 
+import json
 import os
 import sys
 from typing import Any, cast
@@ -14,6 +15,22 @@ from backend.agent_engine.tools.financial import (
     yfinance_get_available_fields,
     yfinance_stock_quote,
 )
+
+
+def _tool_call(tool_func, args: dict) -> dict:
+    """Invoke a tool with a full ToolCall (required for InjectedToolCallId).
+
+    Returns the parsed dict from the ToolMessage content.
+    """
+    msg = tool_func.invoke(
+        {
+            "args": args,
+            "name": tool_func.name,
+            "type": "tool_call",
+            "id": "test-call-id",
+        }
+    )
+    return json.loads(msg.content)
 
 
 def test_yfinance_tool_exists():
@@ -32,8 +49,8 @@ def test_tavily_tool_exists():
 
 
 def test_yfinance_stock_quote_schema_validation():
-    with pytest.raises(ValidationError):
-        yfinance_stock_quote.invoke({})
+    with pytest.raises((ValidationError, ValueError)):
+        _tool_call(yfinance_stock_quote, {})
 
 
 @patch("yfinance.Ticker")
@@ -49,7 +66,7 @@ def test_yfinance_stock_quote_returns_expected_fields(ticker_mock):
     instance.info = info
     ticker_mock.return_value = instance
 
-    result = yfinance_stock_quote.invoke({"ticker": "aapl"})
+    result = _tool_call(yfinance_stock_quote, {"ticker": "aapl"})
 
     assert result["ticker"] == "AAPL"
     assert result["currentPrice"] == 190.5
@@ -64,10 +81,8 @@ def test_yfinance_stock_quote_returns_expected_fields(ticker_mock):
 def test_yfinance_stock_quote_handles_connection_error(ticker_mock):
     ticker_mock.side_effect = ConnectionError("network down")
 
-    result = yfinance_stock_quote.invoke({"ticker": "AAPL"})
-
-    assert result["error"] is True
-    assert "network down" in result["message"]
+    with pytest.raises(ConnectionError, match="network down"):
+        _tool_call(yfinance_stock_quote, {"ticker": "AAPL"})
 
 
 @patch("yfinance.Ticker")
@@ -81,14 +96,13 @@ def test_yfinance_get_available_fields_discovers_curated_fields(ticker_mock):
     instance.info = info
     ticker_mock.return_value = instance
 
-    result = yfinance_get_available_fields.invoke({"ticker": "aapl"})
+    result = _tool_call(yfinance_get_available_fields, {"ticker": "aapl"})
 
     assert result["ticker"] == "AAPL"
     assert result["available_fields"]["currentPrice"]["description"] == (
         "Current stock price"
     )
     assert result["available_fields"]["beta"]["description"] == "Beta coefficient"
-    # customField should NOT appear (catch-all loop removed per P3)
     assert "customField" not in result["available_fields"]
     assert result["total_fields"] == 2
 
@@ -99,7 +113,7 @@ def test_ticker_normalization_uppercase(ticker_mock):
     instance.info = {}
     ticker_mock.return_value = instance
 
-    result = yfinance_get_available_fields.invoke({"ticker": "aapl"})
+    result = _tool_call(yfinance_get_available_fields, {"ticker": "aapl"})
 
     assert result["ticker"] == "AAPL"
     ticker_mock.assert_called_once_with("AAPL")
@@ -107,10 +121,25 @@ def test_ticker_normalization_uppercase(ticker_mock):
 
 def test_tavily_financial_search_missing_api_key():
     with patch.dict(os.environ, {}, clear=True):
-        result = tavily_financial_search.invoke({"query": "earnings", "ticker": "AAPL"})
+        with pytest.raises(ValueError, match="TAVILY_API_KEY"):
+            _tool_call(
+                tavily_financial_search,
+                {"query": "earnings", "ticker": "AAPL"},
+            )
 
-    assert result["error"] is True
-    assert "TAVILY_API_KEY" in result["message"]
+
+@patch("yfinance.Ticker")
+def test_tools_work_without_stream_writer(ticker_mock):
+    """Tools should work in non-streaming context where get_stream_writer() fails."""
+    info = {"currentPrice": 190.5}
+    instance = MagicMock()
+    instance.info = info
+    ticker_mock.return_value = instance
+
+    result = _tool_call(yfinance_stock_quote, {"ticker": "AAPL"})
+
+    assert result["ticker"] == "AAPL"
+    assert result["currentPrice"] == 190.5
 
 
 @patch.dict(os.environ, {"TAVILY_API_KEY": "test-key"}, clear=True)
@@ -135,7 +164,9 @@ def test_tavily_financial_search_results(tavily_client_mock):
         ]
     }
 
-    result = tavily_financial_search.invoke({"query": "earnings", "ticker": "aapl"})
+    result = _tool_call(
+        tavily_financial_search, {"query": "earnings", "ticker": "aapl"}
+    )
 
     assert result["query"] == "AAPL earnings"
     assert len(result["results"]) == 2

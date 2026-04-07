@@ -14,8 +14,19 @@ CITATION REQUIREMENTS:
 - Cite sources by tool name (e.g., "According to yfinance data...")
 - Flag any data quality issues or stale data
 
+LINK FORMAT:
+- NEVER place URLs inline with the text body
+- Instead, use numbered reference-style links: mark the text with [1], [2], etc., and list all URLs in a "References" section at the very end of the response
+- Example:
+  According to recent filings [1], AAPL revenue grew 8% YoY [2].
+
+  **References**
+  [1] https://example.com/sec-filing
+  [2] https://example.com/earnings-report
+
 RESPONSE FORMAT:
 - Start with a clear conclusion
 - Support with specific data points
 - Cite sources (tool names)
 - Flag any data quality issues
+- Place all reference links at the bottom (see LINK FORMAT above)

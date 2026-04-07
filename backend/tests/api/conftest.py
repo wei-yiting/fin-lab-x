@@ -24,7 +24,14 @@ def client():
             return_value=mock_agent,
         ),
         patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
+        patch("backend.api.main.AsyncSqliteSaver") as mock_sqlite_cls,
     ):
+        mock_ctx = MagicMock()
+        mock_ctx.__aenter__ = AsyncMock(return_value=MagicMock())
+        mock_ctx.__aexit__ = AsyncMock(return_value=False)
+        mock_sqlite_cls.from_conn_string.return_value = mock_ctx
+
         from backend.api.main import app
 
         with TestClient(app) as c:

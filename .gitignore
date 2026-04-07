@@ -26,6 +26,10 @@ data/sec_filings/
 npm-debug.log*
 pnpm-debug.log*
 
+# Runtime data (SQLite checkpoints)
+data/
+*.db
+
 # Editor / OS
 .idea/
 .DS_Store

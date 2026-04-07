@@ -1,5 +1,6 @@
 """Tests for SEC tools."""
 
+import json
 import os
 import sys
 from unittest.mock import MagicMock, patch
@@ -14,14 +15,30 @@ from backend.agent_engine.tools.sec import (
 )
 
 
+def _tool_call(tool_func, args: dict) -> dict:
+    """Invoke a tool with a full ToolCall (required for InjectedToolCallId).
+
+    Returns the parsed dict from the ToolMessage content.
+    """
+    msg = tool_func.invoke(
+        {
+            "args": args,
+            "name": tool_func.name,
+            "type": "tool_call",
+            "id": "test-call-id",
+        }
+    )
+    return json.loads(msg.content)
+
+
 def test_sec_tool_exists():
     assert sec_official_docs_retriever is not None
     assert hasattr(sec_official_docs_retriever, "invoke")
 
 
 def test_sec_tool_schema_validation():
-    with pytest.raises(ValidationError):
-        sec_official_docs_retriever.invoke({"doc_type": "10-K"})
+    with pytest.raises((ValidationError, ValueError)):
+        _tool_call(sec_official_docs_retriever, {"doc_type": "10-K"})
 
 
 def test_extract_section_returns_section_between_markers():
@@ -50,12 +67,11 @@ def test_extract_section_returns_none_when_missing_markers():
 
 def test_sec_official_docs_retriever_missing_identity():
     with patch.dict(os.environ, {}, clear=True):
-        result = sec_official_docs_retriever.invoke(
-            {"ticker": "AAPL", "doc_type": "10-K"}
-        )
-
-    assert result["error"] is True
-    assert "EDGAR_IDENTITY" in result["message"]
+        with pytest.raises(ValueError, match="EDGAR_IDENTITY"):
+            _tool_call(
+                sec_official_docs_retriever,
+                {"ticker": "AAPL", "doc_type": "10-K"},
+            )
 
 
 @patch.dict(os.environ, {"EDGAR_IDENTITY": "test@test.com"}, clear=True)
@@ -70,10 +86,12 @@ def test_sec_official_docs_retriever_no_filing_found(set_identity_mock, company_
     filings_mock.latest.return_value = None
     company_mock.return_value.get_filings.return_value = filings_mock
 
-    result = sec_official_docs_retriever.invoke({"ticker": "aapl", "doc_type": "10-K"})
+    with pytest.raises(ValueError, match="No 10-K filing found"):
+        _tool_call(
+            sec_official_docs_retriever,
+            {"ticker": "aapl", "doc_type": "10-K"},
+        )
 
-    assert result["error"] is True
-    assert "No 10-K filing found" in result["message"]
     company_mock.assert_called_once_with("AAPL")
 
 
@@ -98,7 +116,10 @@ def test_sec_official_docs_retriever_returns_sections(set_identity_mock, company
     filings_mock.latest.return_value = filing_mock
     company_mock.return_value.get_filings.return_value = filings_mock
 
-    result = sec_official_docs_retriever.invoke({"ticker": "aapl", "doc_type": "10-K"})
+    result = _tool_call(
+        sec_official_docs_retriever,
+        {"ticker": "aapl", "doc_type": "10-K"},
+    )
 
     assert result["ticker"] == "AAPL"
     assert result["doc_type"] == "10-K"

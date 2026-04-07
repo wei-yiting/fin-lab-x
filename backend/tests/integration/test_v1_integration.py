@@ -25,13 +25,14 @@ def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Any:
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
         patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
     ):
         mock_get_tools.return_value = mock_tools
         mock_agent = MagicMock()
         mock_create.return_value = mock_agent
         mock_init.return_value = MagicMock()
 
-        orch = Orchestrator(config)
+        orch = Orchestrator(config, checkpointer=MagicMock())
         return orch
 
 
@@ -39,12 +40,13 @@ def _create_orchestrator_with_mocked_llm(config: VersionConfig) -> Orchestrator:
     with (
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
+        patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
     ):
         mock_agent = MagicMock()
         mock_create.return_value = mock_agent
         mock_init.return_value = MagicMock()
 
-        orch = Orchestrator(config)
+        orch = Orchestrator(config, checkpointer=MagicMock())
         return orch
 
 

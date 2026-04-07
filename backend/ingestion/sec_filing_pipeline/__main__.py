@@ -149,7 +149,7 @@ def _run_batch(argv: list[str]) -> None:
                 print()
             else:
                 print(f"--- {ticker} ---")
-                print(f"status: error")
+                print("status: error")
                 print(f"error:  {result.error}")
                 print()
                 has_error = True

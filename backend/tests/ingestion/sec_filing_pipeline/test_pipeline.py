@@ -1,6 +1,10 @@
+import asyncio
+import os
+import re
 from unittest.mock import MagicMock, patch
 
 import pytest
+import yaml
 
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
@@ -11,9 +15,16 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     TransientError,
     UnsupportedFilingTypeError,
 )
+from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
+from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor
+from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
+    HtmlToMarkdownAdapter,
+    MarkdownifyAdapter,
+)
 from backend.ingestion.sec_filing_pipeline.pipeline import (
     SECFilingPipeline,
 )
+from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
 
 
 @pytest.fixture()
@@ -466,20 +477,6 @@ class TestCreateClassMethod:
 # Integration tests — real SEC EDGAR API
 # ---------------------------------------------------------------------------
 
-import asyncio
-import os
-import re
-
-import yaml
-
-from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
-from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor
-from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
-    HtmlToMarkdownAdapter,
-    MarkdownifyAdapter,
-)
-from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
-
 
 def _build_pipeline(tmp_path):
     store = LocalFilingStore(base_dir=str(tmp_path))
@@ -617,7 +614,7 @@ class TestIntegration:
         latest_fy = raw_latest.fiscal_year
 
         nvda1 = self.pipeline.process("NVDA", "10-K", fiscal_year=latest_fy)
-        nvda2 = self.pipeline.process("NVDA", "10-K", fiscal_year=latest_fy - 1)
+        self.pipeline.process("NVDA", "10-K", fiscal_year=latest_fy - 1)
         aapl = self.pipeline.process("AAPL", "10-K")
 
         nvda_years = self.store.list_filings("NVDA", FilingType.TEN_K)

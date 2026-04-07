@@ -113,6 +113,7 @@ Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), whi
 | html-to-markdown lacks linux-aarch64 wheel | Docker on Apple Silicon needs platform flag | `--platform linux/amd64`; markdownify fallback |
 | SEC HTML format inconsistency | Different companies/years have varying HTML structure | Preprocessor is rule-based and extensible — add a rule per noise pattern |
 | Complex nested table conversion | colspan/rowspan may not convert perfectly | Not special-cased now; eval-driven decision if needed |
+| Heading promotion limited to SEC Item patterns | Only `ITEM 1`, `ITEM 1A`, etc. are promoted to Markdown headings; other sub-section titles (e.g., segment names, accounting policy headers) remain as plain text with no heading markup | May produce large flat chunks with no structural splits below Item level, reducing RAG retrieval precision. Revisit if chunking quality is insufficient — add more promotion rules to `HTMLPreprocessor` |
 | html-to-markdown is single-maintainer | Long-term maintenance risk | Adapter pattern allows switching to markdownify at any time |
 | html-to-markdown major version churn | v3 lifecycle may be short | Pinned `<4.0.0`; adapter isolates library internals |
 

@@ -43,6 +43,20 @@ class BatchResult:
 
 
 class SECFilingPipeline:
+    """Orchestrates download → preprocess → convert → store for a single SEC filing.
+
+    Wires together the four pipeline stages and exposes two entry points:
+
+    - :meth:`process` — single-filing JIT path used by the agent tool and CLI
+      (one ticker, one filing, raises on failure).
+    - :meth:`process_batch` — multi-ticker path used by the batch CLI command
+      (returns a per-ticker ``BatchResult`` instead of raising, so one bad
+      ticker does not abort the run).
+
+    Both paths share :meth:`_execute_with_retry` for transient-error retry,
+    and :meth:`_process_internal` for the actual stage execution.
+    """
+
     def __init__(
         self,
         downloader: SECDownloader,
@@ -59,6 +73,13 @@ class SECFilingPipeline:
 
     @classmethod
     def create(cls) -> SECFilingPipeline:
+        """Build a pipeline wired with the default production collaborators.
+
+        Use this for CLI / agent-tool entry points where you want the standard
+        ``html-to-markdown`` primary converter, ``markdownify`` fallback, and
+        the on-disk :class:`LocalFilingStore`.  Tests should construct
+        ``SECFilingPipeline`` directly with fakes/mocks instead.
+        """
         return cls(
             downloader=SECDownloader(),
             preprocessor=HTMLPreprocessor(),
@@ -75,6 +96,17 @@ class SECFilingPipeline:
         force: bool = False,
         on_retry: RetryCallback | None = None,
     ) -> ParsedFiling:
+        """Process a single filing and return the parsed result.
+
+        Single-filing entry point used by the agent tool and the default CLI
+        invocation.  Honors the cache (skip download if hit) unless ``force``
+        is set, retries transient errors up to ``_MAX_BATCH_RETRIES`` times,
+        and raises any :class:`SECPipelineError` on failure — so callers see
+        the original exception type and can branch on it.
+
+        Use :meth:`process_batch` instead when you have many tickers and want
+        per-ticker error isolation.
+        """
         filing, _ = self._execute_with_retry(
             ticker, filing_type, fiscal_year, force, on_retry
         )
@@ -88,6 +120,14 @@ class SECFilingPipeline:
         force: bool = False,
         on_retry: RetryCallback | None = None,
     ) -> tuple[ParsedFiling, bool]:
+        """Run :meth:`_process_internal` with exponential-backoff retry.
+
+        Shared retry helper for both :meth:`process` and
+        :meth:`_process_with_retry`.  Retries only on :class:`TransientError`
+        (network blips, SEC 5xx); non-transient errors propagate immediately
+        so the caller can decide what to do with them.  Returns
+        ``(filing, from_cache)`` so the batch path can report cache hits.
+        """
         last_error: Exception | None = None
         for attempt in range(_MAX_BATCH_RETRIES):
             try:
@@ -116,6 +156,20 @@ class SECFilingPipeline:
         fiscal_year: int | None = None,
         force: bool = False,
     ) -> tuple[ParsedFiling, bool]:
+        """Execute one full pipeline pass: download → preprocess → convert → store.
+
+        Two-phase cache check is intentional:
+
+        1. If ``fiscal_year`` is supplied we can look up the cache directly
+           without contacting SEC at all.
+        2. If ``fiscal_year`` is ``None`` we have to download the filing index
+           first to learn the latest year, then re-check the cache against
+           that resolved year before doing the (expensive) full download.
+
+        Always wraps the converter result in a :class:`ParsedFiling` and
+        persists it via the configured ``FilingStore``.  Returns
+        ``(filing, from_cache)``.
+        """
         ticker = ticker.upper()
         self._validate_filing_type(filing_type)
 
@@ -157,6 +211,18 @@ class SECFilingPipeline:
         tickers: list[str],
         filing_type: str,
     ) -> dict[str, BatchResult]:
+        """Process multiple tickers, isolating failures per ticker.
+
+        Multi-ticker entry point used by the ``batch`` CLI command.  Always
+        downloads the latest fiscal year (``fiscal_year=None``) and never
+        forces re-download (``force=False``) — batch mode is meant for
+        bulk-warming the local cache.
+
+        Unlike :meth:`process`, this method never raises: per-ticker errors
+        are captured into the corresponding :class:`BatchResult` so a single
+        bad ticker does not abort the rest of the run.  Returns a dict keyed
+        by upper-cased ticker.
+        """
         results: dict[str, BatchResult] = {}
         for ticker in tickers:
             normalized = ticker.upper()
@@ -164,6 +230,13 @@ class SECFilingPipeline:
         return results
 
     def _process_with_retry(self, ticker: str, filing_type: str) -> BatchResult:
+        """Per-ticker wrapper for the batch path: catch and box errors.
+
+        Calls :meth:`_execute_with_retry` (which already does transient-error
+        retry) and converts both success and any :class:`SECPipelineError`
+        into a :class:`BatchResult`.  Used only by :meth:`process_batch` —
+        the single-filing path lets exceptions propagate to the caller.
+        """
         try:
             filing, from_cache = self._execute_with_retry(ticker, filing_type)
             return BatchResult(
@@ -176,5 +249,11 @@ class SECFilingPipeline:
 
     @staticmethod
     def _validate_filing_type(filing_type: str) -> None:
+        """Reject unsupported filing types early with a domain-specific error.
+
+        Currently only ``"10-K"`` is supported (see :class:`FilingType`).
+        Called at the top of :meth:`_process_internal` so we fail fast before
+        spending a network round-trip on an invalid request.
+        """
         if filing_type not in FilingType.__members__.values():
             raise UnsupportedFilingTypeError(f"Unsupported filing type: {filing_type}")

@@ -1,4 +1,5 @@
-FROM python:3.13-slim AS base
+ARG BASE_PLATFORM=linux/amd64
+FROM --platform=${BASE_PLATFORM} python:3.13-slim AS base
 
 WORKDIR /app
 

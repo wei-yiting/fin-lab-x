@@ -5,6 +5,7 @@ Atomic, stateless tool functions and central registry. This module provides the 
 - `registry.py`: Manages the global `TOOL_REGISTRY` dictionary. Provides utility functions for registering, retrieving, and listing available tools.
 - `financial.py`: Implements tools for quantitative data retrieval via `yfinance` and event-driven news search via `Tavily`.
 - `sec.py`: Implements tools for retrieving official SEC filings (10-K, 10-Q) and extracting key sections like Risk Factors and MD&A.
+- `sec_filing.py`: `sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Downloads 10-K filings on demand (JIT), returns metadata + local file path for downstream RAG. Separate from `sec.py` which calls edgartools directly without the pipeline.
 - `__init__.py`: Contains the `setup_tools()` function, which serves as the central entry point for tool registration.
 
 ## Design Pattern

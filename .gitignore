@@ -7,6 +7,7 @@ __pycache__/
 .vscode/
 .sisyphus/
 artifacts/
+.artifacts/
 .superpowers/
 backend/evals/results/
 node_modules/

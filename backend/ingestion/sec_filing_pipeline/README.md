@@ -2,11 +2,33 @@
 
 Downloads SEC 10-K filings, converts them to RAG-friendly Markdown with YAML frontmatter, and caches locally.
 
-## Pipeline Stages
+## Architecture
 
+```mermaid
+graph LR
+    subgraph "SEC Filing Pipeline"
+        A[SECDownloader<br/>edgartools] --> B[HTMLPreprocessor<br/>strip XBRL/noise]
+        B --> C[HTMLToMarkdownConverter<br/>adapter pattern]
+        C --> D[LocalFilingStore<br/>atomic write]
+
+        C1[HtmlToMarkdownAdapter<br/>Rust, primary] -.-> C
+        C2[MarkdownifyAdapter<br/>Python, fallback] -.-> C
+    end
+
+    subgraph "Entry Points"
+        CLI[CLI __main__.py<br/>single + batch] --> A
+        Tool[Agent Tool<br/>sec_filing_downloader] --> A
+    end
+
+    subgraph "Future"
+        D2[S3FilingStore] -.-> D
+        E[Chunking Pipeline] --> F[Qdrant]
+    end
+
+    D -- "ParsedFiling" --> E
 ```
-SECDownloader → HTMLPreprocessor → HTMLToMarkdownConverter → LocalFilingStore
-```
+
+## Pipeline Stages
 
 | Stage | File | Responsibility |
 |-------|------|----------------|

@@ -209,6 +209,41 @@ class TestHeadingPromotion:
         assert "<h2>" in result
         assert "Item 1. Business" in result
 
+    def test_part_split_across_adjacent_spans_promoted(self, preprocessor):
+        # MSFT 2025 pattern: heading text broken at the space, with the space
+        # living inside the second span: <span>PART</span><span> I</span>.
+        html = (
+            "<p>"
+            '<span style="font-weight:bold">PART</span>'
+            '<span style="font-weight:bold"> I</span>'
+            "</p>"
+        )
+        result = preprocessor.preprocess(html)
+        assert "<h1>PART I</h1>" in result
+
+    def test_part_split_mid_word_across_spans_promoted(self, preprocessor):
+        # MSFT 2025 PART II pattern: split mid-word across two bold spans
+        # — <span>PAR</span><span>T II</span>.
+        html = (
+            "<p>"
+            '<span style="font-weight:bold">PAR</span>'
+            '<span style="font-weight:bold">T II</span>'
+            "</p>"
+        )
+        result = preprocessor.preprocess(html)
+        assert "<h1>PART II</h1>" in result
+
+    def test_item_split_across_adjacent_spans_promoted(self, preprocessor):
+        # Same XBRL exporter pattern applied to Item rows.
+        html = (
+            "<p>"
+            '<span style="font-weight:bold">ITEM 1. B</span>'
+            '<span style="font-weight:bold">USINESS</span>'
+            "</p>"
+        )
+        result = preprocessor.preprocess(html)
+        assert "<h2>ITEM 1. BUSINESS</h2>" in result
+
 
 # ---------- Full pipeline integration ----------
 

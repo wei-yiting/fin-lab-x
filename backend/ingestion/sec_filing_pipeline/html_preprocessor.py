@@ -159,7 +159,12 @@ class HTMLPreprocessor:
             if any(id(d) in promoted for d in tag.descendants if isinstance(d, Tag)):
                 continue
 
-            text = tag.get_text(strip=True)
+            # MSFT 2025 (and similar XBRL exporters) split heading text across
+            # adjacent <span> elements — e.g. <span>PART</span><span> I</span>.
+            # ``get_text(strip=True)`` would strip each text node before joining,
+            # producing "PARTI" and breaking the regex match.  We must preserve
+            # internal whitespace, then strip and collapse only at the edges.
+            text = " ".join(tag.get_text().split())
             if not text:
                 continue
 

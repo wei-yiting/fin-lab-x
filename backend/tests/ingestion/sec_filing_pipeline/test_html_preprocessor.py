@@ -112,6 +112,38 @@ class TestFontTagUnwrapping:
         assert "body text here" in result
 
 
+# ---------- Text whitespace normalization ----------
+
+
+class TestTextWhitespaceNormalization:
+    def test_hard_linebreak_inside_text_collapsed(self, preprocessor):
+        html = "<p>United\nStates Securities and Exchange Commission</p>"
+        result = preprocessor.preprocess(html)
+        assert "United States Securities and Exchange Commission" in result
+        assert "United\nStates" not in result
+
+    def test_item_pattern_with_embedded_newline_promoted(self, preprocessor):
+        html = "<p><b>Item\n1A. Risk Factors.</b></p>"
+        result = preprocessor.preprocess(html)
+        assert "<h2>" in result
+        assert "Item 1A. Risk Factors." in result
+
+    def test_multiple_internal_whitespace_collapsed(self, preprocessor):
+        html = "<p>foo\n\n  bar\t\tbaz</p>"
+        result = preprocessor.preprocess(html)
+        assert "foo bar baz" in result
+
+    def test_pre_block_preserves_whitespace(self, preprocessor):
+        html = "<pre>line one\nline two\n  indented</pre>"
+        result = preprocessor.preprocess(html)
+        assert "line one\nline two\n  indented" in result
+
+    def test_code_block_preserves_whitespace(self, preprocessor):
+        html = "<code>def f():\n    return 1</code>"
+        result = preprocessor.preprocess(html)
+        assert "def f():\n    return 1" in result
+
+
 # ---------- Heading promotion ----------
 
 

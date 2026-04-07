@@ -1,9 +1,11 @@
 import re
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 _PART_RE = re.compile(r"^\s*PART\s+(I{1,3}V?|IV)\b", re.IGNORECASE)
 _ITEM_RE = re.compile(r"^\s*Item\s+\d+[A-Z]?\.", re.IGNORECASE)
+_WHITESPACE_RE = re.compile(r"\s+")
+_PRESERVE_WHITESPACE_PARENTS = frozenset({"pre", "code", "script", "style", "textarea"})
 
 _DECORATIVE_PROPS = frozenset(
     {
@@ -87,6 +89,7 @@ class HTMLPreprocessor:
         self._remove_hidden_elements(soup)
         self._strip_decorative_styles(soup)
         self._unwrap_font_tags(soup)
+        self._normalize_text_whitespace(soup)
         self._promote_headings(soup)
         return str(soup)
 
@@ -115,11 +118,36 @@ class HTMLPreprocessor:
         for font_tag in soup.find_all("font"):
             font_tag.unwrap()
 
+    def _normalize_text_whitespace(self, soup: BeautifulSoup) -> None:
+        # Older SEC filings (pre-~2010, varies by filer) embed hard line breaks
+        # inside text content nodes — e.g. "Item\n1A. Risk Factors." or
+        # "United\nStates Securities and Exchange Commission".  Browsers render
+        # these as a single space (HTML whitespace collapsing), but Markdown
+        # converters preserve them verbatim, fragmenting paragraphs into
+        # one-fragment-per-line output that destroys RAG chunking quality.
+        #
+        # We mirror browser behavior here: collapse runs of \s (newlines, tabs,
+        # multiple spaces) to a single space inside every text node, except for
+        # those whose parent preserves whitespace (<pre>, <code>, etc.).
+        for text_node in list(soup.find_all(string=True)):
+            parent = text_node.parent
+            if parent is not None and parent.name in _PRESERVE_WHITESPACE_PARENTS:
+                continue
+            normalized = _WHITESPACE_RE.sub(" ", text_node)
+            if normalized != text_node:
+                text_node.replace_with(NavigableString(normalized))
+
     def _promote_headings(self, soup: BeautifulSoup) -> None:
-        # SEC filings use <div>/<p>/<span> with bold styling instead of semantic
-        # <h1>-<h6> tags.  This heuristic detects "PART …" and "Item …" patterns
-        # in bold block elements and rewrites them as <h1>/<h2> so downstream
-        # Markdown converters produce proper heading structure.
+        # SEC filings overwhelmingly use <div>/<p>/<span> with bold styling
+        # rather than semantic <h1>-<h6> tags for section structure.  In the
+        # rare cases where <h*> tags do appear (e.g. AAPL 2010 uses <h5> for
+        # repeated "Table of Contents" anchor links on every page), they
+        # decorate navigation links rather than mark real section headings, so
+        # we leave them untouched and they pass through to Markdown as-is.
+        #
+        # This heuristic detects "PART …" and "Item …" patterns in bold block
+        # elements and rewrites them as <h1>/<h2> so downstream Markdown
+        # converters produce proper heading structure.
         #
         # Reverse traversal ensures inner (more specific) matches are promoted
         # first; the descendant guard then prevents an outer container from being

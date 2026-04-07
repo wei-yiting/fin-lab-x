@@ -88,6 +88,7 @@ def test_yfinance_stock_quote_handles_connection_error(ticker_mock):
 @patch("yfinance.Ticker")
 def test_yfinance_get_available_fields_discovers_curated_fields(ticker_mock):
     info = {
+        "symbol": "AAPL",
         "currentPrice": 101.0,
         "beta": 1.2,
         "customField": "value",
@@ -110,13 +111,45 @@ def test_yfinance_get_available_fields_discovers_curated_fields(ticker_mock):
 @patch("yfinance.Ticker")
 def test_ticker_normalization_uppercase(ticker_mock):
     instance = MagicMock()
-    instance.info = {}
+    instance.info = {"symbol": "AAPL"}
     ticker_mock.return_value = instance
 
     result = _tool_call(yfinance_get_available_fields, {"ticker": "aapl"})
 
     assert result["ticker"] == "AAPL"
     ticker_mock.assert_called_once_with("AAPL")
+
+
+@patch("yfinance.Ticker")
+def test_yfinance_stock_quote_raises_on_invalid_ticker(ticker_mock):
+    instance = MagicMock()
+    instance.info = {"symbol": "BOGUS"}
+    ticker_mock.return_value = instance
+
+    with pytest.raises(ValueError, match="BOGUS"):
+        _tool_call(yfinance_stock_quote, {"ticker": "bogus"})
+
+
+@patch("yfinance.Ticker")
+def test_yfinance_stock_quote_accepts_regular_market_price_fallback(ticker_mock):
+    instance = MagicMock()
+    instance.info = {"symbol": "AAPL", "regularMarketPrice": 185.0}
+    ticker_mock.return_value = instance
+
+    result = _tool_call(yfinance_stock_quote, {"ticker": "aapl"})
+
+    assert result["ticker"] == "AAPL"
+    assert result["currentPrice"] is None
+
+
+@patch("yfinance.Ticker")
+def test_yfinance_get_available_fields_raises_on_invalid_ticker(ticker_mock):
+    instance = MagicMock()
+    instance.info = {}
+    ticker_mock.return_value = instance
+
+    with pytest.raises(ValueError, match="BOGUS"):
+        _tool_call(yfinance_get_available_fields, {"ticker": "bogus"})
 
 
 def test_tavily_financial_search_missing_api_key():

@@ -31,6 +31,13 @@ def yfinance_stock_quote(
         writer({"status": "querying_stock", "message": f"Querying {normalized_ticker}...", "toolName": "yfinance_stock_quote", "toolCallId": tool_call_id})
 
     info = yf.Ticker(normalized_ticker).info
+    if not info or (
+        info.get("currentPrice") is None and info.get("regularMarketPrice") is None
+    ):
+        raise ValueError(
+            f"No quote data for ticker '{normalized_ticker}'. "
+            f"The symbol may be invalid, delisted, or not covered by yfinance."
+        )
     return {
         "ticker": normalized_ticker,
         "currentPrice": info.get("currentPrice"),
@@ -72,6 +79,11 @@ def yfinance_get_available_fields(
         writer({"status": "querying_fields", "message": f"Discovering fields for {normalized_ticker}...", "toolName": "yfinance_get_available_fields", "toolCallId": tool_call_id})
 
     info = yf.Ticker(normalized_ticker).info
+    if not info or not info.get("symbol"):
+        raise ValueError(
+            f"No data for ticker '{normalized_ticker}'. "
+            f"The symbol may be invalid or not covered by yfinance."
+        )
 
     field_descriptions = {
         "currentPrice": "Current stock price",

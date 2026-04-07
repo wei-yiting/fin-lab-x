@@ -2,7 +2,7 @@
 
 Use this section whenever work under `backend/agent_engine/` touches any of the following:
 
-- `Langfuse`, `LangChain`, `LangGraph`, or `LlamaIndex` observability or tracing
+- `Langfuse`, `Braintrust`, `LangChain`, `LangGraph`, or `LlamaIndex` observability or tracing
 - streaming orchestration, `astream()` wrappers, or SSE body generation
 - new async boundaries, cancellation paths, or request-level correlation
 - observability architecture decisions, migrations, or proof-of-concept work

@@ -28,5 +28,6 @@ pnpm-debug.log*
 
 # Editor / OS
 .idea/
+.obsidian/
 .DS_Store
 *.sw?

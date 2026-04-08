@@ -339,3 +339,70 @@ class TestSubsectionPromotion:
         assert "Cover Page Heading" not in promoted_texts
         # Inside Region should be promoted
         assert "Inside Region" in promoted_texts
+
+
+# ---------- Class C fallback: non-bold Item headings (R5) ----------
+
+
+class TestClassCFallback:
+    def test_intc_non_bold_item_promoted_when_larger_font_size(self, preprocessor):
+        # INTC-style: font-weight:400 but larger font-size than body → should promote to h2
+        html = (
+            '<div><span style="font-weight:400;font-size:14pt">Item 1A. Risk Factors</span></div>'
+            '<p><span style="font-size:10pt">Body text here with enough characters to establish body font size.</span></p>'
+        )
+        result = preprocessor.preprocess(html)
+        assert "<h2>" in result
+        assert "Item 1A. Risk Factors" in result
+
+    def test_intc_non_bold_item_not_promoted_when_smaller_font_size(self, preprocessor):
+        # font-size 9pt < body 10pt → should NOT promote
+        html = (
+            '<div><span style="font-weight:400;font-size:9pt">Item 1A. Risk Factors</span></div>'
+            '<p><span style="font-size:10pt">Body text here with enough characters to establish body font size so we can compare properly.</span></p>'
+        )
+        result = preprocessor.preprocess(html)
+        assert "<h2>" not in result
+
+    def test_intc_non_bold_item_not_promoted_when_not_isolated(self, preprocessor):
+        # Item text is inside a div that has block-level siblings → not isolated → should NOT promote
+        html = (
+            '<div>'
+            '<div><span style="font-weight:400;font-size:14pt">Item 1. Business</span></div>'
+            '<div><span style="font-size:10pt">Some sibling block content here.</span></div>'
+            '</div>'
+        )
+        result = preprocessor.preprocess(html)
+        # The outer div wrapping both blocks should not be promoted (has block children)
+        # The inner Item div itself has a block-level sibling div → not isolated
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        assert len(h2_tags) == 0
+
+    def test_intc_class_c_does_not_crash_without_subsections(self, preprocessor):
+        # Entire HTML has only non-bold Item headings, no bold sub-sections → graceful degradation
+        html = (
+            '<p><span style="font-size:10pt">Annual Report on Form 10-K body text paragraph one with many words.</span></p>'
+            '<div><span style="font-weight:400;font-size:14pt">Item 1. Business</span></div>'
+            '<p><span style="font-size:10pt">Business description content goes here with sufficient length.</span></p>'
+            '<div><span style="font-weight:400;font-size:14pt">Item 1A. Risk Factors</span></div>'
+            '<p><span style="font-size:10pt">Risk factors description content here with sufficient length.</span></p>'
+            '<div><span style="font-weight:400;font-size:14pt">Item 2. Properties</span></div>'
+            '<p><span style="font-size:10pt">Properties description content here with sufficient length.</span></p>'
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        h3_tags = result_soup.find_all("h3")
+        h4_tags = result_soup.find_all("h4")
+        # All three Item headings should be promoted to h2
+        assert len(h2_tags) == 3
+        # No sub-section headings (graceful degradation — Class C has no bold sub-sections)
+        assert len(h3_tags) == 0
+        assert len(h4_tags) == 0
+
+    def test_existing_bold_item_still_promoted(self, preprocessor):
+        # Regression guard: existing bold Item rule must still work after fallback is added
+        html = '<div><span style="font-weight:700;font-size:10pt">Item 1. Business</span></div>'
+        result = preprocessor.preprocess(html)
+        assert "<h2>Item 1. Business</h2>" in result

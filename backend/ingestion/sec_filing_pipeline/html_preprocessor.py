@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 
 from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
     detect_item_regions,
+    extract_dominant_font_size,
+    has_table_ancestor,
     promote_subsections,
 )
 
@@ -50,6 +52,62 @@ _DECORATIVE_PROPS = frozenset(
 )
 
 _BLOCK_TAGS = frozenset({"div", "p", "td", "th"})
+# For isolation check: block siblings that indicate the tag is NOT a standalone heading.
+# <p> is intentionally excluded — body text <p> siblings after an Item heading are normal.
+_BLOCK_SIBLING_NAMES = frozenset({"div", "td", "th", "table", "ul", "ol", "li"})
+
+_FONT_SIZE_PT_RE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)pt", re.IGNORECASE)
+
+
+def _estimate_body_font_size(soup: BeautifulSoup) -> float | None:
+    size_char_counts: dict[float, int] = {}
+    for span in soup.find_all("span"):
+        if not isinstance(span, Tag):
+            continue
+        style = span.get("style", "")
+        if isinstance(style, list):
+            style = ";".join(style)
+        if not isinstance(style, str):
+            continue
+        match = _FONT_SIZE_PT_RE.search(style)
+        if not match:
+            continue
+        size = float(match.group(1))
+        char_count = len(span.get_text(strip=True))
+        size_char_counts[size] = size_char_counts.get(size, 0) + char_count
+    if not size_char_counts:
+        return None
+    return max(size_char_counts, key=lambda s: size_char_counts[s])
+
+
+def _is_isolated_item_block(tag: Tag, body_font_size: float | None) -> bool:
+    if tag.name in ("td", "th"):
+        return False
+    if has_table_ancestor(tag):
+        return False
+
+    tag_font_size = extract_dominant_font_size(tag)
+    if tag_font_size is None:
+        return False
+    if body_font_size is not None and tag_font_size < body_font_size:
+        return False
+
+    def _first_tag_sibling(node: Tag, direction: str) -> Tag | None:
+        sib = getattr(node, direction)
+        while sib is not None:
+            if isinstance(sib, Tag):
+                return sib
+            sib = getattr(sib, direction)
+        return None
+
+    prev_sib = _first_tag_sibling(tag, "previous_sibling")
+    next_sib = _first_tag_sibling(tag, "next_sibling")
+
+    for sib in (prev_sib, next_sib):
+        if sib is not None and sib.name in _BLOCK_SIBLING_NAMES:
+            return False
+
+    return True
 
 
 def _has_bold_signal(tag: Tag) -> bool:
@@ -162,6 +220,7 @@ class HTMLPreprocessor:
         # detect_item_regions must run before the Part/Item loop rewrites div/p to h2,
         # because the detection scans for div/p/td/th matching the Item pattern.
         regions = detect_item_regions(soup)
+        body_font_size = _estimate_body_font_size(soup)
 
         promoted = set()
         for tag in reversed(soup.find_all(_BLOCK_TAGS)):
@@ -185,7 +244,17 @@ class HTMLPreprocessor:
             elif _ITEM_RE.match(text):
                 heading_level = "h2"
 
-            if not heading_level or not _has_bold_signal(tag):
+            if not heading_level:
+                continue
+
+            if heading_level == "h2":
+                should_promote = _has_bold_signal(tag) or _is_isolated_item_block(
+                    tag, body_font_size
+                )
+            else:
+                should_promote = _has_bold_signal(tag)
+
+            if not should_promote:
                 continue
 
             if any(

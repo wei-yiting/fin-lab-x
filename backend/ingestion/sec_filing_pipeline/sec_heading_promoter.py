@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 from dataclasses import dataclass
 
 from bs4 import BeautifulSoup, Tag
@@ -13,6 +14,26 @@ _FONT_WEIGHT_RE = re.compile(r"font-weight\s*:\s*(700|bold)", re.IGNORECASE)
 
 _ITEM_HEADING_RE = re.compile(r"^\s*Item\s+(\d+[A-Z]?)\.", re.IGNORECASE)
 _ITEM_REGION_BLOCKS = ("div", "p", "td", "th")
+
+_REPEATED_TEXT_MIN_OCCURRENCES = 4
+_REPEATED_TEXT_MAX_LEN = 50
+_SELF_REFERENCE_RE = re.compile(r"^\s*Item\s+\d+[A-Z]?\b", re.IGNORECASE)
+
+
+def _build_noise_tokens(soup: BeautifulSoup) -> frozenset[str]:
+    """Collect short block texts that appear at least _REPEATED_TEXT_MIN_OCCURRENCES
+    times — typically page header/footer noise like 'Part I' or 'Bank of America'."""
+    counter: Counter[str] = Counter()
+    for tag in soup.find_all(["div", "p", "td", "th"]):
+        text = tag.get_text(strip=True)
+        if _MIN_HEADING_TEXT_LEN <= len(text) <= _REPEATED_TEXT_MAX_LEN:
+            counter[text] += 1
+    return frozenset(t for t, count in counter.items() if count >= _REPEATED_TEXT_MIN_OCCURRENCES)
+
+
+def _is_self_reference(text: str) -> bool:
+    """Return True if text looks like an Item N reference rather than a sub-section."""
+    return _SELF_REFERENCE_RE.match(text) is not None
 
 
 @dataclass(frozen=True)
@@ -213,8 +234,8 @@ def promote_subsections(
     if not regions:
         return
 
-    # Include h1/h2 so we can find start/end tags that may have been promoted by
-    # the Part/Item heading rewrite pass that runs before promote_subsections.
+    noise_tokens = _build_noise_tokens(soup)
+
     # Include h1/h2 because the Part/Item promotion pass running before this
     # function may have already rewritten the regions' start_tag from div/p to
     # h1/h2 — same Python object, different tag name.
@@ -238,7 +259,14 @@ def promote_subsections(
 
     # Per-region: filter candidates → collect font-sizes → rank → rewrite
     for blocks in region_blocks:
-        candidates = [b for b in blocks if is_bold_only_block(b)]
+        candidates: list[Tag] = []
+        for b in blocks:
+            if not is_bold_only_block(b):
+                continue
+            text = b.get_text(strip=True)
+            if text in noise_tokens or _is_self_reference(text):
+                continue
+            candidates.append(b)
         if not candidates:
             continue
 

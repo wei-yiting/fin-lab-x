@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 
 from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
     ItemRegion,
+    _build_noise_tokens,
+    _is_self_reference,
     detect_item_regions,
     extract_dominant_font_size,
     has_table_ancestor,
@@ -551,3 +553,89 @@ class TestPromoteSubsections:
         h3 = soup.find("h3")
         assert h3 is not None
         assert "Critical Accounting Estimates" in h3.get_text()
+
+
+# ---------- _build_noise_tokens ----------
+
+
+class TestBuildNoiseTokens:
+    def test_build_noise_tokens_page_header(self):
+        # "Part I" repeated 20 times across block elements → must be in noise set
+        repeated = '<p>Part I</p>' * 20
+        soup = _parse(f'<html><body>{repeated}</body></html>')
+        noise = _build_noise_tokens(soup)
+        assert "Part I" in noise
+
+    def test_build_noise_tokens_infrequent_text_not_noise(self):
+        # "Our Company" appears only once → not a noise token
+        soup = _parse('<html><body><p>Our Company</p></body></html>')
+        noise = _build_noise_tokens(soup)
+        assert "Our Company" not in noise
+
+    def test_build_noise_tokens_boundary_below_threshold(self):
+        # Text appearing exactly 3 times (threshold is 4) → not in noise set
+        repeated = '<p>Section Header</p>' * 3
+        soup = _parse(f'<html><body>{repeated}</body></html>')
+        noise = _build_noise_tokens(soup)
+        assert "Section Header" not in noise
+
+    def test_build_noise_tokens_long_text_excluded(self):
+        # Text longer than 50 chars must not be included even if repeated many times
+        long_text = "A" * 51
+        repeated = f'<p>{long_text}</p>' * 20
+        soup = _parse(f'<html><body>{repeated}</body></html>')
+        noise = _build_noise_tokens(soup)
+        assert long_text not in noise
+
+
+# ---------- _is_self_reference ----------
+
+
+class TestIsSelfReference:
+    def test_is_self_reference_item_7a_body(self):
+        assert _is_self_reference("Item 7A Risk") is True
+
+    def test_is_self_reference_non_item_text(self):
+        assert _is_self_reference("Critical Accounting Estimates") is False
+
+
+# ---------- promote_subsections with false positive filters ----------
+
+
+class TestPromoteSubsectionsFilters:
+    def test_promote_subsections_skips_noise_token_blocks(self):
+        # "Part I" appears 5 times across the document → qualifies as noise → not promoted
+        repeated_headers = '<div style="font-weight:700"><span style="font-size:10pt">Part I</span></div>' * 5
+        soup = _parse(
+            '<html><body>'
+            f'{repeated_headers}'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div style="font-weight:700"><span style="font-size:10pt">Part I</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        # "Part I" should not be promoted to any heading level
+        all_headings = soup.find_all(["h3", "h4", "h5"])
+        heading_texts = [h.get_text(strip=True) for h in all_headings]
+        assert "Part I" not in heading_texts
+
+    def test_promote_subsections_skips_self_reference(self):
+        # Inside Item 7 region, a bold block starting with "Item 7A." should not be promoted
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 7. Management Discussion</p>'
+            '<div><span style="font-weight:700;font-size:10pt">Item 7A. Quantitative</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Critical Accounting Estimates</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="7", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        all_headings = soup.find_all(["h3", "h4", "h5"])
+        heading_texts = [h.get_text(strip=True) for h in all_headings]
+        # self-reference "Item 7A. Quantitative" must not be promoted
+        assert not any(t.startswith("Item 7A") for t in heading_texts)
+        # the legitimate sub-section heading should still be promoted
+        assert "Critical Accounting Estimates" in heading_texts

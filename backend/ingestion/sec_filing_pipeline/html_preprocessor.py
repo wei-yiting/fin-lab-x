@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 
 from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
     detect_item_regions,
+    detect_part_anchors,
     extract_dominant_font_size,
     has_table_ancestor,
     promote_subsections,
@@ -220,6 +221,9 @@ class HTMLPreprocessor:
         # detect_item_regions must run before the Part/Item loop rewrites div/p to h2,
         # because the detection scans for div/p/td/th matching the Item pattern.
         regions = detect_item_regions(soup)
+        part_anchor_ids: set[int] = {
+            id(t) for t in detect_part_anchors(soup, is_eligible=_has_bold_signal)
+        }
         body_font_size = _estimate_body_font_size(soup)
 
         promoted = set()
@@ -240,6 +244,8 @@ class HTMLPreprocessor:
 
             heading_level = None
             if _PART_RE.match(text):
+                if id(tag) not in part_anchor_ids:
+                    continue
                 heading_level = "h1"
             elif _ITEM_RE.match(text):
                 heading_level = "h2"

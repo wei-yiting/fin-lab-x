@@ -1,5 +1,6 @@
 import re
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from bs4 import BeautifulSoup, Tag
@@ -13,6 +14,7 @@ _FONT_SIZE_PT_RE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)pt", re.IGN
 _FONT_WEIGHT_RE = re.compile(r"font-weight\s*:\s*(700|bold)", re.IGNORECASE)
 
 _ITEM_HEADING_RE = re.compile(r"^\s*Item\s+(\d+[A-Z]?)\.", re.IGNORECASE)
+_PART_HEADING_RE = re.compile(r"^\s*PART\s+(I{1,3}V?|IV)\b", re.IGNORECASE)
 _ITEM_REGION_BLOCKS = ("div", "p", "td", "th")
 
 _REPEATED_TEXT_MIN_OCCURRENCES = 4
@@ -81,6 +83,48 @@ def detect_item_regions(soup: BeautifulSoup) -> list[ItemRegion]:
         )
 
     return regions
+
+
+def detect_part_anchors(
+    soup: BeautifulSoup,
+    is_eligible: Callable[[Tag], bool] | None = None,
+) -> list[Tag]:
+    """Return ordered list of body-level PART heading anchor tags.
+
+    Mirrors detect_item_regions: for each Roman numeral (I/II/III/IV) keep
+    only the LAST block element whose normalized text matches the PART regex,
+    dropping duplicate TOC entries that always appear before the body.
+
+    When ``is_eligible`` is provided, candidate tags must pass that predicate
+    before being considered. Callers like _promote_headings pass the bold-signal
+    check so tickers whose body PART dividers are non-bold (JNJ, MSFT, BAC) keep
+    the bold TOC anchor instead of being silently dropped.
+
+    Text normalization matches html_preprocessor._promote_headings — we use
+    ``" ".join(tag.get_text().split())`` rather than ``get_text(strip=True)``
+    so MSFT-style markup like ``<span>PART</span><span> I</span>`` resolves
+    to ``"PART I"`` instead of ``"PARTI"``.
+    """
+    all_blocks = soup.find_all(_ITEM_REGION_BLOCKS)
+
+    last_occurrence: dict[str, tuple[int, Tag]] = {}
+    for idx, tag in enumerate(all_blocks):
+        text = " ".join(tag.get_text().split())
+        if not text:
+            continue
+        match = _PART_HEADING_RE.match(text)
+        if not match:
+            continue
+        if is_eligible is not None and not is_eligible(tag):
+            continue
+        part_num = match.group(1).upper()
+        last_occurrence[part_num] = (idx, tag)
+
+    if not last_occurrence:
+        return []
+
+    sorted_parts = sorted(last_occurrence.items(), key=lambda kv: kv[1][0])
+    return [tag for _, (_, tag) in sorted_parts]
 
 
 def has_table_ancestor(tag: Tag) -> bool:

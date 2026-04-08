@@ -5,6 +5,7 @@ from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
     _build_noise_tokens,
     _is_self_reference,
     detect_item_regions,
+    detect_part_anchors,
     extract_dominant_font_size,
     has_table_ancestor,
     is_bold_only_block,
@@ -412,6 +413,126 @@ class TestDetectItemRegions:
         for i in range(len(regions) - 1):
             assert regions[i].end_tag is regions[i + 1].start_tag
         assert regions[-1].end_tag is None
+
+
+# ---------- detect_part_anchors ----------
+
+
+class TestDetectPartAnchors:
+    def test_single_part_kept(self):
+        soup = _parse('<html><body><div>PART I</div></body></html>')
+        anchors = detect_part_anchors(soup)
+        assert len(anchors) == 1
+        assert anchors[0].get_text(strip=True) == "PART I"
+
+    def test_no_parts_returns_empty(self):
+        soup = _parse(
+            '<html><body><p>no part text here</p><div>just business</div></body></html>'
+        )
+        assert detect_part_anchors(soup) == []
+
+    def test_toc_and_body_keeps_last(self):
+        soup = _parse(
+            '<html><body>'
+            '<div id="toc">PART I</div>'
+            '<p>table of contents stuff</p>'
+            '<div id="body">PART I</div>'
+            '<p>actual body content</p>'
+            '</body></html>'
+        )
+        anchors = detect_part_anchors(soup)
+        assert len(anchors) == 1
+        assert anchors[0].get("id") == "body"
+
+    def test_three_occurrences_keeps_last(self):
+        soup = _parse(
+            '<html><body>'
+            '<div id="toc">PART I</div>'
+            '<p>as defined in PART I earlier</p>'
+            '<div id="xref">PART I</div>'
+            '<div id="body">PART I</div>'
+            '</body></html>'
+        )
+        anchors = detect_part_anchors(soup)
+        assert len(anchors) == 1
+        assert anchors[0].get("id") == "body"
+
+    def test_multiple_part_numerals_kept(self):
+        soup = _parse(
+            '<html><body>'
+            '<div id="toc-1">PART I</div>'
+            '<div id="toc-2">PART II</div>'
+            '<div id="toc-3">PART III</div>'
+            '<div id="toc-4">PART IV</div>'
+            '<p>--- body begins ---</p>'
+            '<div id="body-1">PART I</div>'
+            '<div id="body-2">PART II</div>'
+            '<div id="body-3">PART III</div>'
+            '<div id="body-4">PART IV</div>'
+            '</body></html>'
+        )
+        anchors = detect_part_anchors(soup)
+        assert len(anchors) == 4
+        assert [a.get("id") for a in anchors] == [
+            "body-1",
+            "body-2",
+            "body-3",
+            "body-4",
+        ]
+
+    def test_split_span_part_text(self):
+        soup = _parse(
+            '<html><body>'
+            '<div><span>PART</span><span> I</span></div>'
+            '</body></html>'
+        )
+        anchors = detect_part_anchors(soup)
+        assert len(anchors) == 1
+        # normalized text equals "PART I" when using " ".join(split())
+        assert " ".join(anchors[0].get_text().split()) == "PART I"
+
+    def test_case_insensitive_part_text(self):
+        soup = _parse('<html><body><div>part i</div></body></html>')
+        anchors = detect_part_anchors(soup)
+        assert len(anchors) == 1
+
+    def test_eligibility_filter_keeps_last_eligible(self):
+        # Body PART I is non-bold; eligibility predicate rejects it.
+        # The earlier (TOC) tag passes the predicate, so it must be kept
+        # instead of the body tag silently dropping out. This mirrors
+        # JNJ/MSFT-style filings where body PART dividers are non-bold.
+        soup = _parse(
+            '<html><body>'
+            '<div id="toc"><b>PART I</b></div>'
+            '<p>cover content</p>'
+            '<div id="body">PART I</div>'
+            '</body></html>'
+        )
+
+        def is_bold(tag):
+            return tag.find("b") is not None or tag.name == "b"
+
+        anchors = detect_part_anchors(soup, is_eligible=is_bold)
+        assert len(anchors) == 1
+        assert anchors[0].get("id") == "toc"
+
+    def test_eligibility_filter_picks_last_among_eligible(self):
+        # Three body PART I occurrences, only the middle one passes the
+        # eligibility check; that's the anchor that must be kept.
+        soup = _parse(
+            '<html><body>'
+            '<div id="first">PART I</div>'
+            '<div id="middle"><b>PART I</b></div>'
+            '<div id="last">PART I</div>'
+            '</body></html>'
+        )
+
+        def is_bold(tag):
+            return tag.find("b") is not None
+
+        anchors = detect_part_anchors(soup, is_eligible=is_bold)
+        assert len(anchors) == 1
+        assert anchors[0].get("id") == "middle"
 
 
 # ---------- promote_subsections ----------

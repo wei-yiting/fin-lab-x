@@ -1,13 +1,9 @@
 {
-  "generated_at": "2026-04-08T14:09:31",
+  "generated_at": "2026-04-08T16:33:07",
   "source": "snapshot-of-current-branch",
   "tickers": {
     "NVDA": {
       "h1": [
-        "Part I",
-        "Part II",
-        "Part III",
-        "Part IV",
         "Part I",
         "Part II",
         "Part III",
@@ -43,10 +39,6 @@
     },
     "AAPL": {
       "h1": [
-        "Part I",
-        "Part II",
-        "Part III",
-        "Part IV",
         "PART I",
         "PART II",
         "PART III",
@@ -85,10 +77,6 @@
         "PART I",
         "PART II",
         "PART III",
-        "PART IV",
-        "PART I",
-        "PART II",
-        "PART III",
         "PART IV"
       ],
       "h2": [
@@ -121,10 +109,6 @@
     },
     "AMZN": {
       "h1": [
-        "PART I",
-        "PART II",
-        "PART III",
-        "PART IV",
         "PART I",
         "PART II",
         "PART III",
@@ -163,10 +147,6 @@
         "PART I",
         "PART II",
         "PART III",
-        "PART IV",
-        "PART I",
-        "PART II",
-        "PART III",
         "PART IV"
       ],
       "h2": [
@@ -199,10 +179,6 @@
     },
     "TSLA": {
       "h1": [
-        "PART I.",
-        "PART II.",
-        "PART III.",
-        "PART IV.",
         "PART I",
         "PART II",
         "PART III",
@@ -238,10 +214,6 @@
     },
     "CRM": {
       "h1": [
-        "PART I",
-        "PART II",
-        "PART III",
-        "PART IV",
         "PART I.",
         "PART II.",
         "PART III.",
@@ -305,10 +277,6 @@
         "Part I",
         "Part II",
         "Part III",
-        "Part IV",
-        "Part I",
-        "Part II",
-        "Part III",
         "Part IV"
       ],
       "h2": [
@@ -341,10 +309,6 @@
     },
     "BA": {
       "h1": [
-        "PART I",
-        "PART II",
-        "PART III",
-        "PART IV",
         "PART I",
         "PART II",
         "Part III",
@@ -415,27 +379,9 @@
     },
     "JPM": {
       "h1": [
-        "Part I",
         "Part II",
         "Part III",
-        "Part IV",
         "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part I",
-        "Part IV",
         "Part IV"
       ],
       "h2": [],
@@ -444,10 +390,6 @@
     },
     "XOM": {
       "h1": [
-        "PART I",
-        "PART II",
-        "PART III",
-        "PART IV",
         "PART I",
         "PART II",
         "PART III",
@@ -482,10 +424,6 @@
     },
     "BRK.B": {
       "h1": [
-        "Part I",
-        "Part II",
-        "Part III",
-        "Part IV",
         "Part I",
         "Part II",
         "Part III",
@@ -537,10 +475,6 @@
     },
     "UNH": {
       "h1": [
-        "Part I",
-        "Part II",
-        "Part III",
-        "Part IV",
         "PART I",
         "PART II",
         "PART III",
@@ -650,10 +584,6 @@
         "PART I",
         "PART II",
         "PART III",
-        "PART IV",
-        "PART I",
-        "PART II",
-        "PART III",
         "PART IV"
       ],
       "h2": [
@@ -686,10 +616,6 @@
     },
     "DIS": {
       "h1": [
-        "PART I",
-        "PART II",
-        "PART III",
-        "PART IV",
         "PART I",
         "PART II",
         "PART III",
@@ -785,10 +711,6 @@
         "PART I",
         "PART II",
         "PART III",
-        "PART IV",
-        "PART I",
-        "PART II",
-        "PART III",
         "PART IV"
       ],
       "h2": [
@@ -824,10 +746,6 @@
         "PART I",
         "PART II",
         "PART III",
-        "PART IV",
-        "PART I",
-        "PART II",
-        "PART III",
         "PART IV"
       ],
       "h2": [
@@ -860,10 +778,6 @@
     },
     "WMT": {
       "h1": [
-        "Part I",
-        "Part II",
-        "Part III",
-        "Part IV",
         "PART I",
         "PART II",
         "PART III",

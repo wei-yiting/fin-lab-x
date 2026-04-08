@@ -244,6 +244,25 @@ class TestHeadingPromotion:
         result = preprocessor.preprocess(html)
         assert "<h2>ITEM 1. BUSINESS</h2>" in result
 
+    def test_toc_part_headings_not_double_promoted(self, preprocessor):
+        # Workiva-style 10-K layout: TOC region lists PART I, body region
+        # repeats PART I. After preprocess only the body occurrence must be
+        # promoted to <h1>, keeping the TOC entry unpromoted.
+        html = (
+            "<html><body>"
+            '<div><span style="font-weight:700">PART I</span></div>'
+            "<p>Item 1 ... 1</p>"
+            "<p>Item 1A ... 5</p>"
+            '<div><span style="font-weight:700">PART I</span></div>'
+            "<p>Actual Part I body content here.</p>"
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h1_tags = result_soup.find_all("h1")
+        assert len(h1_tags) == 1
+        assert h1_tags[0].get_text(strip=True) == "PART I"
+
 
 # ---------- Preprocessing order ----------
 

@@ -179,3 +179,84 @@ def _find_text_font_size(text_node: NavigableString, root: Tag) -> float | None:
             return None
         current = current.parent
     return None
+
+
+def _map_sizes_to_levels(unique_sizes: list[float]) -> dict[float, str]:
+    """Map sorted-descending unique font-sizes to h3/h4/h5, capping at h5."""
+    mapping: dict[float, str] = {}
+    for idx, size in enumerate(unique_sizes):
+        if idx == 0:
+            mapping[size] = "h3"
+        elif idx == 1:
+            mapping[size] = "h4"
+        else:
+            mapping[size] = "h5"
+    return mapping
+
+
+def promote_subsections(
+    soup: BeautifulSoup,
+    regions: list[ItemRegion],
+) -> None:
+    """Rewrite bold-only blocks inside each item region as <h3>/<h4>/<h5>.
+
+    For each ItemRegion:
+      1. Walk forward from region.start_tag to region.end_tag.
+      2. Collect every tag passing is_bold_only_block().
+      3. For each collected tag, extract its dominant font-size.
+      4. Rank unique font-sizes descending → map to h3/h4/h5 (cap at h5).
+      5. Rewrite each collected tag to its mapped heading level in-place,
+         clearing attrs and setting .string to the collapsed text.
+
+    Blocks outside any region are untouched.
+    """
+    if not regions:
+        return
+
+    # Include h1/h2 so we can find start/end tags that may have been promoted by
+    # the Part/Item heading rewrite pass that runs before promote_subsections.
+    # Include h1/h2 because the Part/Item promotion pass running before this
+    # function may have already rewritten the regions' start_tag from div/p to
+    # h1/h2 — same Python object, different tag name.
+    all_blocks = soup.find_all(["div", "p", "h1", "h2"])
+
+    # Region transitions are signalled by start_tag identity. Each non-None
+    # end_tag is the next region's start_tag, so a single start_tag lookup
+    # handles both "enter region N" and "leave region N-1".
+    start_tag_ids: dict[int, int] = {id(r.start_tag): idx for idx, r in enumerate(regions)}
+
+    current_region_idx: int | None = None
+    region_blocks: list[list[Tag]] = [[] for _ in regions]
+
+    for block in all_blocks:
+        bid = id(block)
+        if bid in start_tag_ids:
+            current_region_idx = start_tag_ids[bid]
+            continue
+        if current_region_idx is not None:
+            region_blocks[current_region_idx].append(block)
+
+    # Per-region: filter candidates → collect font-sizes → rank → rewrite
+    for blocks in region_blocks:
+        candidates = [b for b in blocks if is_bold_only_block(b)]
+        if not candidates:
+            continue
+
+        block_sizes: list[tuple[Tag, float]] = []
+        for candidate in candidates:
+            size = extract_dominant_font_size(candidate)
+            if size is not None:
+                block_sizes.append((candidate, size))
+
+        if not block_sizes:
+            continue
+
+        unique_sizes = sorted({s for _, s in block_sizes}, reverse=True)
+        size_to_level = _map_sizes_to_levels(unique_sizes)
+
+        for block, size in block_sizes:
+            level = size_to_level[size]
+            text = block.get_text(strip=True)
+            block.name = level
+            block.string = text
+            block.attrs.clear()

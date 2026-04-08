@@ -6,6 +6,7 @@ from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
     extract_dominant_font_size,
     has_table_ancestor,
     is_bold_only_block,
+    promote_subsections,
 )
 
 
@@ -409,3 +410,144 @@ class TestDetectItemRegions:
         for i in range(len(regions) - 1):
             assert regions[i].end_tag is regions[i + 1].start_tag
         assert regions[-1].end_tag is None
+
+
+# ---------- promote_subsections ----------
+
+
+class TestPromoteSubsections:
+    def test_promote_subsections_single_font_size_all_h3(self):
+        # 3 bold blocks all same font-size → all become h3
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div><span style="font-weight:700;font-size:10pt">Our Company</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Our Products</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Our Markets</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        headings = [t.name for t in soup.find_all(["h3", "h4", "h5"])]
+        assert headings == ["h3", "h3", "h3"]
+        texts = [t.get_text(strip=True) for t in soup.find_all("h3")]
+        assert texts == ["Our Company", "Our Products", "Our Markets"]
+
+    def test_promote_subsections_two_sizes_h3_h4(self):
+        # 2 unique font-sizes: largest → h3, smaller → h4
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div><span style="font-weight:700;font-size:12pt">Big Heading</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Small Heading</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        h3_texts = [t.get_text(strip=True) for t in soup.find_all("h3")]
+        h4_texts = [t.get_text(strip=True) for t in soup.find_all("h4")]
+        assert h3_texts == ["Big Heading"]
+        assert h4_texts == ["Small Heading"]
+
+    def test_promote_subsections_three_sizes_h3_h4_h5(self):
+        # 3 unique sizes → largest h3, middle h4, smallest h5
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div><span style="font-weight:700;font-size:12pt">Level One</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Level Two</span></div>'
+            '<div><span style="font-weight:700;font-size:8pt">Level Three</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        assert item_tag is not None
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        h3_texts = [t.get_text(strip=True) for t in soup.find_all("h3")]
+        h4_texts = [t.get_text(strip=True) for t in soup.find_all("h4")]
+        h5_texts = [t.get_text(strip=True) for t in soup.find_all("h5")]
+        assert h3_texts == ["Level One"]
+        assert h4_texts == ["Level Two"]
+        assert h5_texts == ["Level Three"]
+
+    def test_promote_subsections_four_sizes_caps_at_h5(self):
+        # 4 unique sizes: idx0→h3, idx1→h4, idx2+→h5 (cap)
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div><span style="font-weight:700;font-size:14pt">Alpha</span></div>'
+            '<div><span style="font-weight:700;font-size:12pt">Beta</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Gamma</span></div>'
+            '<div><span style="font-weight:700;font-size:8pt">Delta</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        assert item_tag is not None
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        h3_texts = [t.get_text(strip=True) for t in soup.find_all("h3")]
+        h4_texts = [t.get_text(strip=True) for t in soup.find_all("h4")]
+        h5_texts = [t.get_text(strip=True) for t in soup.find_all("h5")]
+        assert h3_texts == ["Alpha"]
+        assert h4_texts == ["Beta"]
+        assert h5_texts == ["Gamma", "Delta"]
+
+    def test_promote_subsections_excludes_blocks_in_tables(self):
+        # bold block inside a <td> must not be promoted
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<table><tr><td>'
+            '<div><span style="font-weight:700;font-size:10pt">Table Header</span></div>'
+            '</td></tr></table>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        assert soup.find("h3") is None
+        assert soup.find("h4") is None
+        assert soup.find("h5") is None
+
+    def test_promote_subsections_outside_item_region_untouched(self):
+        # bold block outside any ItemRegion (before first Item) must not be promoted
+        soup = _parse(
+            '<html><body>'
+            '<div><span style="font-weight:700;font-size:10pt">Cover Page Heading</span></div>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div><span style="font-weight:700;font-size:10pt">Inside Region</span></div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        # "Cover Page Heading" is OUTSIDE the region — must remain <div>
+        all_divs = soup.find_all("div")
+        cover_div = next(
+            (d for d in all_divs if "Cover Page Heading" in d.get_text()), None
+        )
+        assert cover_div is not None, "Cover Page Heading div should still exist as div"
+        # "Inside Region" should be promoted
+        assert soup.find("h3") is not None
+
+    def test_promote_subsections_footnote_marker_ignored_in_ranking(self):
+        # Heading text at 9pt (many chars) wins over footnote "1" at 6pt (1 char).
+        # All headings land on h3 since there is only one effective size.
+        soup = _parse(
+            '<html><body>'
+            '<p style="font-weight:700">Item 1. Business</p>'
+            '<div>'
+            '<span style="font-weight:700;font-size:9pt">Critical Accounting Estimates</span>'
+            '<span style="font-weight:700;font-size:6pt">1</span>'
+            '</div>'
+            '</body></html>'
+        )
+        item_tag = soup.find("p")
+        regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
+        promote_subsections(soup, regions)
+        # The dominant size is 9pt; heading should be h3
+        h3 = soup.find("h3")
+        assert h3 is not None
+        assert "Critical Accounting Estimates" in h3.get_text()

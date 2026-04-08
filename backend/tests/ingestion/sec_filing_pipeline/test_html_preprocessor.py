@@ -304,3 +304,38 @@ class TestPreprocessorPipeline:
         assert "<font" not in result
         assert "<h2>Item 1. Business</h2>" in result
         assert "The Company designs and manufactures." in result
+
+
+# ---------- Sub-section promotion integration ----------
+
+
+class TestSubsectionPromotion:
+    def test_preprocess_promotes_nvda_style_subsection(self, preprocessor):
+        # NVDA-style: Item heading followed by bold-only div with font-size →
+        # the bold div inside the item region becomes <h3>
+        html = (
+            '<div><span style="font-weight:700;font-size:10pt">Item 1. Business</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Our Company</span></div>'
+            '<p>We design GPUs.</p>'
+        )
+        result = preprocessor.preprocess(html)
+        assert "<h2>" in result
+        assert "Item 1. Business" in result
+        assert "<h3>Our Company</h3>" in result
+
+    def test_preprocess_subsection_below_item_untouched(self, preprocessor):
+        # Bold block BEFORE the first Item must not be promoted to h3/h4/h5
+        html = (
+            '<div><span style="font-weight:700;font-size:10pt">Cover Page Heading</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Item 1. Business</span></div>'
+            '<div><span style="font-weight:700;font-size:10pt">Inside Region</span></div>'
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        # Cover Page Heading must NOT be promoted — it's outside any item region
+        promoted_texts = [
+            t.get_text(strip=True) for t in result_soup.find_all(["h3", "h4", "h5"])
+        ]
+        assert "Cover Page Heading" not in promoted_texts
+        # Inside Region should be promoted
+        assert "Inside Region" in promoted_texts

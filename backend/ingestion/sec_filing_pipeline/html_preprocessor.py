@@ -2,6 +2,11 @@ import re
 
 from bs4 import BeautifulSoup, NavigableString, Tag
 
+from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
+    detect_item_regions,
+    promote_subsections,
+)
+
 _PART_RE = re.compile(r"^\s*PART\s+(I{1,3}V?|IV)\b", re.IGNORECASE)
 _ITEM_RE = re.compile(r"^\s*Item\s+\d+[A-Z]?\.", re.IGNORECASE)
 _WHITESPACE_RE = re.compile(r"\s+")
@@ -154,6 +159,10 @@ class HTMLPreprocessor:
         # Reverse traversal ensures inner (more specific) matches are promoted
         # first; the descendant guard then prevents an outer container from being
         # promoted redundantly when one of its children already was.
+        # detect_item_regions must run before the Part/Item loop rewrites div/p to h2,
+        # because the detection scans for div/p/td/th matching the Item pattern.
+        regions = detect_item_regions(soup)
+
         promoted = set()
         for tag in reversed(soup.find_all(_BLOCK_TAGS)):
             if id(tag) in promoted:
@@ -191,3 +200,5 @@ class HTMLPreprocessor:
             tag.string = text
             if tag.attrs:
                 tag.attrs.clear()
+
+        promote_subsections(soup, regions)

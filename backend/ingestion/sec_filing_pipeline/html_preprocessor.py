@@ -84,13 +84,15 @@ def _filter_decorative_styles(style_str: str) -> str | None:
 
 class HTMLPreprocessor:
     def preprocess(self, html: str) -> str:
+        # _strip_decorative_styles runs after _promote_headings so that font-size
+        # is visible to the promotion heuristic (and future sub-section detectors).
         soup = BeautifulSoup(html, "html.parser")
         self._strip_xbrl_tags(soup)
         self._remove_hidden_elements(soup)
-        self._strip_decorative_styles(soup)
         self._unwrap_font_tags(soup)
         self._normalize_text_whitespace(soup)
         self._promote_headings(soup)
+        self._strip_decorative_styles(soup)
         return str(soup)
 
     def _strip_xbrl_tags(self, soup: BeautifulSoup) -> None:

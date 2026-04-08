@@ -245,6 +245,34 @@ class TestHeadingPromotion:
         assert "<h2>ITEM 1. BUSINESS</h2>" in result
 
 
+# ---------- Preprocessing order ----------
+
+
+class TestPreprocessingOrder:
+    def test_promote_headings_sees_font_size(self):
+        """_promote_headings must see font-size before _strip_decorative_styles removes it."""
+
+        class SpyPreprocessor(HTMLPreprocessor):
+            def __init__(self):
+                super().__init__()
+                self.captured: str = ""
+
+            def _promote_headings(self, soup):
+                self.captured = str(soup)
+                super()._promote_headings(soup)
+
+        spy = SpyPreprocessor()
+        html = '<div><span style="font-size:10pt;font-weight:700">Item 1. Business</span></div>'
+        final = spy.preprocess(html)
+
+        assert "font-size" in spy.captured, (
+            "_promote_headings did not see font-size; strip_decorative ran too early"
+        )
+        assert "font-size" not in final, (
+            "font-size leaked into final output; _strip_decorative_styles must run after promote"
+        )
+
+
 # ---------- Full pipeline integration ----------
 
 

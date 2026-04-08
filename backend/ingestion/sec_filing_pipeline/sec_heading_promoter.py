@@ -1,6 +1,7 @@
 import re
+from dataclasses import dataclass
 
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 from bs4.element import NavigableString
 
 _MIN_HEADING_TEXT_LEN = 3
@@ -9,6 +10,56 @@ _SENTENCE_END_CHARS = frozenset(".!?")
 
 _FONT_SIZE_PT_RE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)pt", re.IGNORECASE)
 _FONT_WEIGHT_RE = re.compile(r"font-weight\s*:\s*(700|bold)", re.IGNORECASE)
+
+_ITEM_HEADING_RE = re.compile(r"^\s*Item\s+(\d+[A-Z]?)\.", re.IGNORECASE)
+_ITEM_REGION_BLOCKS = ("div", "p", "td", "th")
+
+
+@dataclass(frozen=True)
+class ItemRegion:
+    item_num: str
+    start_tag: Tag
+    end_tag: Tag | None
+
+
+def detect_item_regions(soup: BeautifulSoup) -> list[ItemRegion]:
+    """Return ordered list of body-level Item regions.
+
+    Algorithm:
+      1. Find all block elements (div/p/td/th) whose stripped text matches
+         ^Item\\s+\\d+[A-Z]?\\..
+      2. Group by normalized item_num.
+      3. For each item_num pick the LAST occurrence (TOC is always before body).
+      4. Sort picked tags by document position.
+      5. Pair each tag with its successor as end_tag; last tag has end_tag=None.
+    """
+    all_blocks = soup.find_all(_ITEM_REGION_BLOCKS)
+
+    # Map item_num -> (doc_index, tag); last write wins (last occurrence heuristic)
+    last_occurrence: dict[str, tuple[int, Tag]] = {}
+    for idx, tag in enumerate(all_blocks):
+        match = _ITEM_HEADING_RE.match(tag.get_text(strip=True))
+        if match:
+            item_num = match.group(1).upper()
+            last_occurrence[item_num] = (idx, tag)
+
+    if not last_occurrence:
+        return []
+
+    # Sort by document position (idx) to preserve raw document order
+    sorted_items = sorted(
+        last_occurrence.items(), key=lambda kv: kv[1][0]
+    )
+    ordered = [(item_num, tag) for item_num, (_, tag) in sorted_items]
+
+    regions: list[ItemRegion] = []
+    for i, (item_num, start_tag) in enumerate(ordered):
+        end_tag = ordered[i + 1][1] if i + 1 < len(ordered) else None
+        regions.append(
+            ItemRegion(item_num=item_num, start_tag=start_tag, end_tag=end_tag)
+        )
+
+    return regions
 
 
 def has_table_ancestor(tag: Tag) -> bool:

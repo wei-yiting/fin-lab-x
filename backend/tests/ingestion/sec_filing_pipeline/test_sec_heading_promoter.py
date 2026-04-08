@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 
 from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
+    ItemRegion,
+    detect_item_regions,
     extract_dominant_font_size,
     has_table_ancestor,
     is_bold_only_block,
@@ -307,3 +309,103 @@ class TestExtractDominantFontSizeNestedSpans:
         )
         div = soup.find("div")
         assert extract_dominant_font_size(div) == 12.0
+
+
+# ---------- detect_item_regions ----------
+
+
+class TestDetectItemRegions:
+    def test_detect_item_regions_basic(self):
+        # 3 Items, no TOC — returns 3 ItemRegions in order, end_tag chain correct
+        soup = _parse(
+            '<html><body>'
+            '<p>Item 1. Business</p>'
+            '<p>Some business text</p>'
+            '<p>Item 2. Risk Factors</p>'
+            '<p>Some risk text</p>'
+            '<p>Item 3. Properties</p>'
+            '<p>Some property text</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 3
+        assert all(isinstance(r, ItemRegion) for r in regions)
+        assert regions[0].item_num == "1"
+        assert regions[1].item_num == "2"
+        assert regions[2].item_num == "3"
+        # end_tag chain: each region's end_tag is next region's start_tag
+        assert regions[0].end_tag is regions[1].start_tag
+        assert regions[1].end_tag is regions[2].start_tag
+        assert regions[2].end_tag is None
+
+    def test_detect_item_regions_with_toc(self):
+        # Same item_num appears twice (TOC + body) — last occurrence (body) is selected
+        soup = _parse(
+            '<html><body>'
+            '<p>Item 1. Business</p>'
+            '<p>Item 2. Risk Factors</p>'
+            '<p>--- TOC end ---</p>'
+            '<div>Item 1. Business</div>'
+            '<p>actual business content</p>'
+            '<div>Item 2. Risk Factors</div>'
+            '<p>actual risk content</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 2
+        # body occurrence is a <div>, TOC occurrence is a <p>
+        assert regions[0].start_tag.name == "div"
+        assert regions[1].start_tag.name == "div"
+
+    def test_detect_item_regions_empty_html(self):
+        soup = _parse('<html></html>')
+        assert detect_item_regions(soup) == []
+
+    def test_detect_item_regions_xom_table_cell(self):
+        # XOM-style: Item heading inside a <td>
+        soup = _parse(
+            '<html><body>'
+            '<table><tr><td>Item 1. Business</td></tr></table>'
+            '<p>Business content</p>'
+            '<table><tr><td>Item 2. Risk Factors</td></tr></table>'
+            '<p>Risk content</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 2
+        assert regions[0].item_num == "1"
+        assert regions[0].start_tag.name == "td"
+        assert regions[1].item_num == "2"
+
+    def test_detect_item_regions_preserves_order(self):
+        # Items in non-numeric document order: 5, 1, 10, 2 — must preserve document order
+        soup = _parse(
+            '<html><body>'
+            '<p>Item 5. Selected Data</p>'
+            '<p>Item 1. Business</p>'
+            '<p>Item 10. Directors</p>'
+            '<p>Item 2. Risk Factors</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 4
+        assert [r.item_num for r in regions] == ["5", "1", "10", "2"]
+
+    def test_detect_item_regions_subnumbered(self):
+        # Items 1, 1A, 1B, 1C, 2 — 5 distinct regions in order
+        soup = _parse(
+            '<html><body>'
+            '<p>Item 1. Business</p>'
+            '<p>Item 1A. Risk Factors</p>'
+            '<p>Item 1B. Unresolved Staff Comments</p>'
+            '<p>Item 1C. Cybersecurity</p>'
+            '<p>Item 2. Properties</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 5
+        assert [r.item_num for r in regions] == ["1", "1A", "1B", "1C", "2"]
+        # verify end_tag chain
+        for i in range(len(regions) - 1):
+            assert regions[i].end_tag is regions[i + 1].start_tag
+        assert regions[-1].end_tag is None

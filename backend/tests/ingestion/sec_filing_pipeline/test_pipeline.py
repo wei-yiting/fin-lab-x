@@ -21,6 +21,7 @@ from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
     HtmlToMarkdownAdapter,
     MarkdownifyAdapter,
 )
+from backend.ingestion.sec_filing_pipeline.markdown_cleaner import MarkdownCleaner
 from backend.ingestion.sec_filing_pipeline.pipeline import (
     SECFilingPipeline,
 )
@@ -99,11 +100,19 @@ def mock_store():
 
 
 @pytest.fixture()
+def mock_markdown_cleaner():
+    cleaner = MagicMock()
+    cleaner.clean.side_effect = lambda md: md  # passthrough by default
+    return cleaner
+
+
+@pytest.fixture()
 def pipeline(
     mock_downloader,
     mock_preprocessor,
     mock_converter,
     mock_fallback_converter,
+    mock_markdown_cleaner,
     mock_store,
 ):
     return SECFilingPipeline(
@@ -111,6 +120,7 @@ def pipeline(
         preprocessor=mock_preprocessor,
         converter=mock_converter,
         fallback_converter=mock_fallback_converter,
+        markdown_cleaner=mock_markdown_cleaner,
         store=mock_store,
     )
 
@@ -161,6 +171,24 @@ class TestProcessCacheMiss:
         mock_preprocessor.preprocess.assert_called_once()
         mock_store.save.assert_called_once()
         assert result.metadata.fiscal_year == 2024
+
+    def test_markdown_cleaner_runs_after_converter(
+        self,
+        pipeline,
+        mock_converter,
+        mock_markdown_cleaner,
+        mock_store,
+    ):
+        mock_converter.convert.return_value = "# Markdown output"
+        mock_markdown_cleaner.clean.side_effect = lambda md: md + "\n[CLEANED]"
+
+        result = pipeline.process("AAPL", "10-K", fiscal_year=2024)
+
+        mock_markdown_cleaner.clean.assert_called_once_with("# Markdown output")
+        # The cleaned result must end up in the saved ParsedFiling
+        saved = mock_store.save.call_args.args[0]
+        assert saved.markdown_content.endswith("[CLEANED]")
+        assert result.markdown_content.endswith("[CLEANED]")
 
 
 class TestProcessTickerNormalization:
@@ -485,6 +513,7 @@ def _build_pipeline(tmp_path):
         preprocessor=HTMLPreprocessor(),
         converter=HtmlToMarkdownAdapter(),
         fallback_converter=MarkdownifyAdapter(),
+        markdown_cleaner=MarkdownCleaner(),
         store=store,
     ), store
 

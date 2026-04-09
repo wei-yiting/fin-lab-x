@@ -26,6 +26,7 @@ from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
     convert_with_fallback,
     create_converter,
 )
+from backend.ingestion.sec_filing_pipeline.markdown_cleaner import MarkdownCleaner
 from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
 
 logger = logging.getLogger(__name__)
@@ -63,12 +64,14 @@ class SECFilingPipeline:
         preprocessor: HTMLPreprocessor,
         converter: HTMLToMarkdownConverter,
         fallback_converter: HTMLToMarkdownConverter,
+        markdown_cleaner: MarkdownCleaner,
         store: FilingStore,
     ) -> None:
         self._downloader = downloader
         self._preprocessor = preprocessor
         self._converter = converter
         self._fallback_converter = fallback_converter
+        self._markdown_cleaner = markdown_cleaner
         self._store = store
 
     @classmethod
@@ -76,8 +79,9 @@ class SECFilingPipeline:
         """Build a pipeline wired with the default production collaborators.
 
         Use this for CLI / agent-tool entry points where you want the standard
-        ``html-to-markdown`` primary converter, ``markdownify`` fallback, and
-        the on-disk :class:`LocalFilingStore`.  Tests should construct
+        ``html-to-markdown`` primary converter, ``markdownify`` fallback,
+        :class:`MarkdownCleaner` for boilerplate stripping, and the on-disk
+        :class:`LocalFilingStore`.  Tests should construct
         ``SECFilingPipeline`` directly with fakes/mocks instead.
         """
         return cls(
@@ -85,6 +89,7 @@ class SECFilingPipeline:
             preprocessor=HTMLPreprocessor(),
             converter=create_converter(),
             fallback_converter=MarkdownifyAdapter(),
+            markdown_cleaner=MarkdownCleaner(),
             store=LocalFilingStore(),
         )
 
@@ -189,6 +194,7 @@ class SECFilingPipeline:
         markdown, converter_name = convert_with_fallback(
             cleaned_html, self._converter, self._fallback_converter
         )
+        markdown = self._markdown_cleaner.clean(markdown)
 
         metadata = FilingMetadata(
             ticker=raw.ticker,

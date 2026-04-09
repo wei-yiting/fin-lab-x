@@ -1830,25 +1830,36 @@ export function ChatPanel() {
 - Update: `frontend/src/components/pages/ChatPanel.tsx` — 補 `handleRetry` smart dispatch
 - Create: `frontend/src/components/pages/__tests__/ChatPanel.integration.test.tsx`（先建 file 並寫第一個 integration test）
 
-**What & Why:** 422-on-regenerate 必須降級為 `sendMessage(originalUserText)`，避免 user 反覆觸發 422 loop（per Q-USR-7 + prerequisites §5）。
+**What & Why:** Per V-1 result (verification_results_streaming_chat_ui.md): S1 actually **accepts** partial-turn regenerate with HTTP 200. The smart retry primary path is therefore `regenerate({ messageId: lastAssistantMessage.id })` (the ID is already the backend-issued `lc_run--...` because AI SDK v6 propagates `start.messageId` into `state.message.id` — see `frontend/node_modules/ai/dist/index.js:5814-5815`, no manual stashing needed). The `sendMessage(originalUserText)` fallback remains as an **exception handler** for the race window where the client disconnected before LangGraph committed any AIMessage to its checkpoint — backend may then return 404 ("no assistant message to regenerate") or 422 ("messageId does not match"). The fallback must trigger on **any 4xx**, not just 422.
 
 **Implementation Notes:**
 
-- `handleRetry` 邏輯詳見 prerequisites §5：
+- `handleRetry` 邏輯詳見 prerequisites §5（注意：本 plan 已根據 V-1 結果把 fallback condition 從 `pre-stream-422` 放寬到「任何 pre-stream 4xx」，prerequisites §5 的 pseudo-code 仍寫 422，請以本 task 的 snippet 為準）：
   - 從 `lastTriggerRef` + `classifyError(error)` 取得「上次 trigger 類型」與「當前 error class」
-  - 若 `last.type === 'regenerate'` && `errorClass === 'pre-stream-422'` → 切換為 sendMessage(last.userText)
+  - 若 `last.type === 'regenerate'` && `errorClass` 是任何 4xx (`'pre-stream-422'` / `'pre-stream-404'` / `'pre-stream-409'`) → 切換為 sendMessage(last.userText)
   - 否則 replay 原 action
 - ChatPanel 必須把 `handleRetry` 傳給 ErrorBlock 的 `onRetry` prop
 - Pre-stream error 渲染位置：messages 為空 / 或最後一筆 user message 之後 → 渲染獨立 ErrorBlock；mid-stream 由 AssistantMessage 內嵌 ErrorBlock 處理（M4 已做）
+- **No manual stash**: `regenerate({ messageId: assistantMessage.id })` works because `assistantMessage.id` is already the backend-issued `lc_run--...` ID after the start chunk arrives. Verified empirically in V-1 (HTTP 200 + new SSE stream) and by reading the AI SDK v6 store reducer.
 
 **Critical Contract / Snippet:**
 
 ```ts
+// Helper: any pre-stream 4xx that should trigger sendMessage fallback.
+const PRE_STREAM_4XX: ReadonlySet<ErrorClass> = new Set([
+  'pre-stream-422',
+  'pre-stream-404',
+  'pre-stream-409',
+])
+
 const handleRetry = useCallback(() => {
   const last = lastTriggerRef.current
   if (!last) return
   const errClass = classifyError(error)
-  if (last.type === "regenerate" && errClass === "pre-stream-422") {
+  // Race-window fallback: regenerate hit a 4xx because the partial AIMessage
+  // wasn't yet in LangGraph checkpoint when the client disconnected.
+  // Replay the original user text via sendMessage instead.
+  if (last.type === "regenerate" && PRE_STREAM_4XX.has(errClass)) {
     lastTriggerRef.current = { type: "send", userText: last.userText }
     sendMessage({ text: last.userText })
     return

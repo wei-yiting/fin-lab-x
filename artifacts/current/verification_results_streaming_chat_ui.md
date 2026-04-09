@@ -73,15 +73,35 @@ data: {"type": "data-tool-progress", "id": "call_3ojCNr4L1EqziADMEHSpXRPM", "dat
 2. **BDD `S-regen-03`** (regenerate after stop)：原本寫成 fallback 路徑（sendMessage 重發），現在可以改成直接 regenerate 路徑；BDD scenario 仍應保留 happy-path 斷言「assistant message 被替換成新一輪內容」。
 3. **BDD `S-err-04`** (regenerate after error)：happy path 成立，可直接走 regenerate trigger。
 
-### Caveat — frontend messageId mapping（不影響 V-1 結論，但 implementation 必須注意）
+### Frontend messageId mapping — AI SDK v6 actually handles this for us
 
-V-1 證實 backend 願意接受 regenerate，但**前端能不能正確拼出這個請求**取決於 `messageId` 的傳遞鏈：
+第一輪 V-1 報告原本擔心「backend `start` chunk 的 `lc_run--...` messageId 不會自動寫進 `UIMessage.id`，需要 ChatPanel 自行 stash」。**追加實證後修正：這個擔心是錯的**。
 
-- Backend `start` chunk emit 的 messageId 形如 `lc_run--019d7058-6b3b-7b23-83e6-4c516b078947`（LangGraph run-scoped UUIDv7）。
-- AI SDK v6 `useChat` 預設用 client 端 generate 的 UUID 當 `UIMessage.id`，**並不會**自動把 backend `start` chunk 的 `messageId` 寫進 `UIMessage.id`。
-- 因此 ChatPanel 在 `regenerate({ messageId })` 時送出去的 ID 必須是 backend 認得的那一個（`lc_run--...`），而不是 AI SDK 自己生的 UUID。
-- Implementation 必須在 `onData` / message metadata 路徑把 backend messageId stash 下來，regenerate 時用 stashed 的值；或在 transport 層攔截 start chunk。
-- 這是 M5 ChatPanel 的細節，不阻擋 V-1 結論，但**列為 Task 5.2 (smart retry dispatch) 的明確 sub-requirement**：smart retry 必須優先使用 backend-issued messageId，缺失時 fallback 到 `sendMessage(originalUserText)`。
+直接讀 `frontend/node_modules/ai/dist/index.js` 的 chat store reducer（行 5813-5821）：
+
+```js
+case "start": {
+  if (chunk.messageId != null) {
+    state.message.id = chunk.messageId;   // ← backend ID 直接覆蓋進 UIMessage.id
+  }
+  await updateMessageMetadata(chunk.messageMetadata);
+  ...
+}
+```
+
+並對照 `UIMessageChunk` type（`index.d.ts` 行 2264-2266）：
+
+```ts
+| {
+    type: 'start';
+    messageId?: string;
+    messageMetadata?: METADATA;
+}
+```
+
+⇒ AI SDK v6 在收到第一個 `start` chunk 的當下就把 `chunk.messageId` 直接寫進 `state.message.id`。`messages` array 內的對應 UIMessage `.id` 從那一刻起就是 backend 發的 `lc_run--...`，**不是** client 端 generate 的 UUID。所以 `regenerate({ messageId: lastAssistantMessage.id })` 直接就會送對的 ID，**不需要**手動 stash、不需要 onData 攔截、不需要 transport-layer hack。
+
+此修正同時解掉了「Task 5.2 額外 sub-requirement」的負擔 — Task 5.2 的設計其實已經正確（就用 `last.messageId`，那個值天然就是 backend ID）。
 
 ### 一個需注意的 race window
 
@@ -91,12 +111,16 @@ V-1 證實 backend 願意接受 regenerate，但**前端能不能正確拼出這
 
 **Implementation guidance**：
 - Smart retry **應該** 直接呼叫 `regenerate({ messageId })`，但**必須** catch 任何 4xx response（404 = no AI message，422 = messageId mismatch）並降級為 `sendMessage(originalUserText)`。
-- 換句話說：design 的 "default 422 fallback" 路徑**仍然要實作**作為防禦網，只是它從「always-on default」變成「exception handler」。
+- 換句話說：design 的 "default 422 fallback" 路徑**仍然要實作**作為防禦網，只是它從「always-on default」變成「exception handler」（而且必須涵蓋 404，不只是 422）。
 
 ### 結論
 
 - **V-1 outcome**: HTTP `200` — direct-regen path 可用。
-- **Action**: 不需要改 implementation 的整體架構，但要 (a) 把 smart retry 的主路徑從 sendMessage 切到 regenerate-with-backend-messageId、(b) 保留 4xx fallback 為例外處理、(c) 在 ChatPanel state 中 stash backend-issued messageId（M5 Task 5.2 的明確 sub-requirement）。
+- **Action**:
+  1. **不需要** 改 ChatPanel 整體架構。
+  2. **不需要** 額外 stash backend messageId — AI SDK v6 已經把 `start.messageId` 寫進 `UIMessage.id`，`regenerate({ messageId: lastAssistantMessage.id })` 天然送對的 ID。
+  3. **要** 把 Task 5.2 的 retry classifier fallback condition 從「`pre-stream-422`」放寬到「任何 4xx」（涵蓋 race-window 的 404）— 修改 `lib/error-classifier.ts` enum 多 `'pre-stream-4xx'` 或在 `handleRetry` 改用範圍判斷。
+  4. **要** 在 Task 5.2 description 補一行 BDD scenario interpretation：S-regen-03 / S-err-04 happy path 走直接 regenerate（之前的設計假設這條會 fallback 到 sendMessage，現在改成 happy path 直接成立）。
 
 
 ## V-2 Result: PASS — useChat pre-stream HTTP 500 user-message lifecycle

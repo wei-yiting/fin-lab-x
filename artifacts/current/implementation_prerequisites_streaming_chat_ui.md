@@ -217,9 +217,24 @@ export const handlers = [
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       async start(controller) {
+        // CRITICAL: must honor client-side abort, otherwise S-stop-* BDD scenarios
+        // false-fail (V-3 contract test confirmed this — see verification_results).
+        // When useChat.stop() aborts the underlying fetch, request.signal fires;
+        // close the stream so the SDK consumer sees end-of-stream and transitions
+        // status back to 'ready'.
+        const onAbort = () => {
+          try {
+            controller.close()
+          } catch {
+            /* already closed */
+          }
+        }
+        request.signal.addEventListener('abort', onAbort)
+
         try {
           for (const chunk of fixture.chunks) {
             if (chunk.delayMs) await delay(chunk.delayMs)
+            if (request.signal.aborted) return
             const frame = `data: ${JSON.stringify(chunk.data)}\n\n`
             controller.enqueue(encoder.encode(frame))
           }
@@ -257,7 +272,7 @@ export const handlers = [
 export type UIMessageChunk =
   | { type: 'start'; messageId: string }
   | { type: 'text-start'; id: string }
-  | { type: 'text-delta'; id: string; textDelta: string }
+  | { type: 'text-delta'; id: string; delta: string }
   | { type: 'text-end'; id: string }
   | { type: 'tool-input-available'; toolCallId: string; toolName: string; input: object }
   | { type: 'tool-output-available'; toolCallId: string; output: object }
@@ -383,9 +398,9 @@ const fixture: SSEStreamFixture = {
   chunks: [
     { delayMs: 0,   data: { type: 'start', messageId: 'asst-mock-1' } },
     { delayMs: 30,  data: { type: 'text-start', id: 't1' } },
-    { delayMs: 80,  data: { type: 'text-delta', id: 't1', textDelta: 'NVDA Q2 [1] beat estimates' } },
-    { delayMs: 130, data: { type: 'text-delta', id: 't1', textDelta: ', and per [2]' } },
-    { delayMs: 180, data: { type: 'text-delta', id: 't1', textDelta: '\n\n[1]: https://reuters.com/nvda-q2 "Reuters NVDA Q2"' } },
+    { delayMs: 80,  data: { type: 'text-delta', id: 't1', delta: 'NVDA Q2 [1] beat estimates' } },
+    { delayMs: 130, data: { type: 'text-delta', id: 't1', delta: ', and per [2]' } },
+    { delayMs: 180, data: { type: 'text-delta', id: 't1', delta: '\n\n[1]: https://reuters.com/nvda-q2 "Reuters NVDA Q2"' } },
     { delayMs: 220, data: { type: 'error', errorText: 'context length exceeded' } },
   ],
 }
@@ -403,9 +418,9 @@ const fixture: SSEStreamFixture = {
   chunks: [
     { delayMs: 0,   data: { type: 'start', messageId: 'asst-xss-1' } },
     { delayMs: 30,  data: { type: 'text-start', id: 't1' } },
-    { delayMs: 80,  data: { type: 'text-delta', id: 't1', textDelta: 'See [1] for the report.\n\n' } },
-    { delayMs: 130, data: { type: 'text-delta', id: 't1', textDelta: '[1]: javascript:alert("XSS") "Click me"\n' } },
-    { delayMs: 180, data: { type: 'text-delta', id: 't1', textDelta: '[2]: mailto:ir@nvidia.com "Contact IR"\n' } },
+    { delayMs: 80,  data: { type: 'text-delta', id: 't1', delta: 'See [1] for the report.\n\n' } },
+    { delayMs: 130, data: { type: 'text-delta', id: 't1', delta: '[1]: javascript:alert("XSS") "Click me"\n' } },
+    { delayMs: 180, data: { type: 'text-delta', id: 't1', delta: '[2]: mailto:ir@nvidia.com "Contact IR"\n' } },
     { delayMs: 230, data: { type: 'finish' } },
   ],
 }
@@ -584,7 +599,7 @@ const server = setupServer(
         await delay(100)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text-start', id: 't1' })}\n\n`))
         await delay(100)
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text-delta', id: 't1', textDelta: 'hello' })}\n\n`))
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text-delta', id: 't1', delta: 'hello' })}\n\n`))
         // Long delay to give test time to call stop()
         await delay(5000)
         controller.close()
@@ -614,7 +629,8 @@ test('V-3: stop() transitions status to ready, not error', async () => {
   })
 
   await waitFor(() => expect(result.current.status).toBe('ready'))
-  expect(result.current.error).toBeNull() // 不能變 'error' 狀態
+  // useChat.error is `Error | undefined` — on a clean abort it's never set
+  expect(result.current.error).toBeUndefined() // 不能變 'error' 狀態
 })
 ```
 

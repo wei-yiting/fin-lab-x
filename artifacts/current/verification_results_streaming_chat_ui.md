@@ -66,5 +66,21 @@ _Pending — requires backend running on :8000._
 
 ### Additional notes
 - 同樣需要顯式 `import { test, expect, beforeAll, afterAll } from 'vitest'`（Vitest `globals: false`）。
-- MSW handler 用 `delay(5000)` 模擬長 stream，但測試只跑 ~250ms，證明 `stop()` 的 abort 訊號的確 propagate 到 `fetch` underlying 的 `AbortController`，而不是讓 test runner 等到 stream 自然結束。
+- MSW handler 用 `delay(5000)` 模擬長 stream，但測試只跑 ~117ms，證明 `stop()` 的 abort 訊號的確 propagate 到 `fetch` underlying 的 `AbortController`，而不是讓 test runner 等到 stream 自然結束。
 - 結論可繼續放行 BDD `S-stop-01/02/03` 的設計與 M5 ChatPanel 的 `handleStop` 直接呼叫策略。
+
+### Plan defect found — `text-delta` payload field name (silent killer for M1+ fixtures)
+- 第一輪 V-3 用了 plan verbatim 的 `textDelta` field name，例如：
+  ```ts
+  { type: 'text-delta', id: 't1', textDelta: 'hello' }
+  ```
+  測試 PASS，但**這是 false positive** — 因為 SDK 收到的 chunk 不是 `text-delta` schema 的合法 shape，SDK 直接把該 part 丟掉，stream 等於沒有 in-flight text；於是 `stop()` 看起來「幾乎立刻」就回 `'ready'`。
+- 改成正確的 field 名稱（`delta`，與 `node_modules/ai/dist/index.d.ts` 的 v6 type 與 backend `sse_serializer.py` 一致）後，stream 真的有正在 process 的 text part，原版測試會在 `waitFor(ready)` 卡住超過 1 秒並失敗 — 但這**也是 false negative**，因為 MSW handler 沒有監聽 `request.signal.abort`，client 端 fetch abort 後 server 端 stream 依然停在 `await delay(5000)`，client side 的 SDK 一直等不到 stream end。
+- 真正的 V-3 contract test 必須同時滿足兩個條件：
+  1. 用正確的 `delta` field（與 SDK / backend 一致），讓 SDK 真的解析 chunk。
+  2. MSW handler 監聽 `request.signal.abort`，當 client 端 stop 時也關掉 server 端 stream，讓 SDK 看到 end-of-stream。
+- 修正後的版本 PASS in ~117ms，這才是真正成立的 V-3 contract（status → 'ready'，error 仍 undefined）。
+- **行動建議**：
+  - `implementation_prerequisites_streaming_chat_ui.md` Section 2 fixture types（`UIMessageChunk`）+ §3 fixture 範例 + §4 V-3 範例：所有 `text-delta` chunk 一律使用 `delta` field（已批次修正完成）。
+  - `implementation_test_cases_streaming_chat_ui.md`：同一個 typo 出現在 4 個地方（已批次修正）。
+  - M1 `__tests__/msw/handlers.ts` 與所有 streaming fixture 寫法都必須監聽 `request.signal.abort` 並關閉 stream，否則 `S-stop-*` 系列 BDD scenarios 會 false-fail。本檔的 `use-chat-stop-semantic.test.ts` 可作為 reference。

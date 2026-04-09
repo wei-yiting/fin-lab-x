@@ -1469,7 +1469,7 @@ const server = setupServer(
           const enc = new TextEncoder()
           c.enqueue(enc.encode('data: {"type":"start","messageId":"new"}\n\n'))
           c.enqueue(enc.encode('data: {"type":"text-start","id":"t1"}\n\n'))
-          c.enqueue(enc.encode('data: {"type":"text-delta","id":"t1","textDelta":"recovered"}\n\n'))
+          c.enqueue(enc.encode('data: {"type":"text-delta","id":"t1","delta":"recovered"}\n\n'))
           c.enqueue(enc.encode('data: {"type":"finish"}\n\n'))
           c.close()
         },
@@ -1538,7 +1538,7 @@ test('mid-stream error after tool-input-available → ToolCard becomes aborted',
             c.enqueue(enc.encode('data: {"type":"tool-input-available","toolCallId":"tc-x","toolName":"yfinance","input":{}}\n\n'))
             await new Promise((r) => setTimeout(r, 50))
             c.enqueue(enc.encode('data: {"type":"text-start","id":"t1"}\n\n'))
-            c.enqueue(enc.encode('data: {"type":"text-delta","id":"t1","textDelta":"partial"}\n\n'))
+            c.enqueue(enc.encode('data: {"type":"text-delta","id":"t1","delta":"partial"}\n\n'))
             await new Promise((r) => setTimeout(r, 50))
             c.enqueue(enc.encode('data: {"type":"error","errorText":"context overflow"}\n\n'))
             c.close()
@@ -1589,7 +1589,7 @@ test('stop + immediate clear in streaming state → EmptyState, no leak', async 
             c.enqueue(enc.encode('data: {"type":"text-start","id":"t1"}\n\n'))
             for (let i = 0; i < 20; i++) {
               await new Promise((r) => setTimeout(r, 100))
-              c.enqueue(enc.encode(`data: {"type":"text-delta","id":"t1","textDelta":"chunk${i} "}\n\n`))
+              c.enqueue(enc.encode(`data: {"type":"text-delta","id":"t1","delta":"chunk${i} "}\n\n`))
             }
             c.enqueue(enc.encode('data: {"type":"finish"}\n\n'))
             c.close()

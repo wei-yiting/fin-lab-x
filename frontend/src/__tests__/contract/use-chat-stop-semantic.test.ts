@@ -8,25 +8,40 @@ import { setupServer } from 'msw/node'
 import { http, HttpResponse, delay } from 'msw'
 
 const server = setupServer(
-  http.post('/api/v1/chat', async () => {
+  http.post('/api/v1/chat', async ({ request }) => {
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder()
+        // Honor client abort: when useChat.stop() aborts the underlying fetch,
+        // request.signal fires — close the stream so the SDK consumer sees end-of-stream.
+        const onAbort = () => {
+          try {
+            controller.close()
+          } catch {
+            /* already closed */
+          }
+        }
+        request.signal.addEventListener('abort', onAbort)
+
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ type: 'start', messageId: 'a1' })}\n\n`),
         )
         await delay(100)
+        if (request.signal.aborted) return
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ type: 'text-start', id: 't1' })}\n\n`),
         )
         await delay(100)
+        if (request.signal.aborted) return
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ type: 'text-delta', id: 't1', textDelta: 'hello' })}\n\n`,
+            // AI SDK v6 text-delta payload field is `delta`, not `textDelta`.
+            `data: ${JSON.stringify({ type: 'text-delta', id: 't1', delta: 'hello' })}\n\n`,
           ),
         )
-        // Long delay to give test time to call stop()
+        // Long delay to give the test time to call stop()
         await delay(5000)
+        if (request.signal.aborted) return
         controller.close()
       },
     })
@@ -56,7 +71,11 @@ test('V-3: stop() transitions status to ready, not error', async () => {
     await result.current.stop()
   })
 
-  await waitFor(() => expect(result.current.status).toBe('ready'))
+  // NOTE: with valid `delta` chunks (not the broken `textDelta` field),
+  // stop() requires more time than waitFor's default 1s for the SDK to settle
+  // status back to 'ready'. Bumping timeout to 3s to distinguish "slow but
+  // correct" from "real V-3 failure".
+  await waitFor(() => expect(result.current.status).toBe('ready'), { timeout: 3000 })
   // NOTE: AI SDK v6 types `useChat().error` as `Error | undefined`, not `Error | null`.
   // The verbatim plan snippet used `.toBeNull()` which fails on a clean abort.
   // Contract intent: "no error after stop()" — assert undefined (and falsy as belt+braces).

@@ -32,5 +32,6 @@ data/
 
 # Editor / OS
 .idea/
+.obsidian/
 .DS_Store
 *.sw?

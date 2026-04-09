@@ -2,6 +2,14 @@ import re
 
 from bs4 import BeautifulSoup, NavigableString, Tag
 
+from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
+    detect_item_regions,
+    detect_part_anchors,
+    extract_dominant_font_size,
+    has_table_ancestor,
+    promote_subsections,
+)
+
 _PART_RE = re.compile(r"^\s*PART\s+(I{1,3}V?|IV)\b", re.IGNORECASE)
 _ITEM_RE = re.compile(r"^\s*Item\s+\d+[A-Z]?\.", re.IGNORECASE)
 _WHITESPACE_RE = re.compile(r"\s+")
@@ -45,6 +53,88 @@ _DECORATIVE_PROPS = frozenset(
 )
 
 _BLOCK_TAGS = frozenset({"div", "p", "td", "th"})
+# For isolation check: block siblings that indicate the tag is NOT a standalone heading.
+# <p> is intentionally excluded — body text <p> siblings after an Item heading are normal.
+_BLOCK_SIBLING_NAMES = frozenset({"div", "td", "th", "table", "ul", "ol", "li"})
+
+_FONT_SIZE_PT_RE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)pt", re.IGNORECASE)
+
+
+def _estimate_body_font_size(soup: BeautifulSoup) -> float | None:
+    size_char_counts: dict[float, int] = {}
+    for span in soup.find_all("span"):
+        if not isinstance(span, Tag):
+            continue
+        style = span.get("style", "")
+        if isinstance(style, list):
+            style = ";".join(style)
+        if not isinstance(style, str):
+            continue
+        match = _FONT_SIZE_PT_RE.search(style)
+        if not match:
+            continue
+        size = float(match.group(1))
+        char_count = len(span.get_text(strip=True))
+        size_char_counts[size] = size_char_counts.get(size, 0) + char_count
+    if not size_char_counts:
+        return None
+    return max(size_char_counts, key=lambda s: size_char_counts[s])
+
+
+def is_isolated_item_block(tag: Tag, body_font_size: float | None) -> bool:
+    if tag.name in ("td", "th"):
+        return False
+    if has_table_ancestor(tag):
+        return False
+
+    tag_font_size = extract_dominant_font_size(tag)
+    if tag_font_size is None:
+        return False
+    if body_font_size is not None and tag_font_size < body_font_size:
+        return False
+
+    def _first_tag_sibling(node: Tag, direction: str) -> Tag | None:
+        # Workiva-style filings (JPM) insert empty <div style="margin-bottom:6pt">
+        # spacers between block headings purely for layout. Treat them as
+        # invisible: keep walking past empty-text Tag siblings until we find a
+        # real one (or run out).
+        sib = getattr(node, direction)
+        while sib is not None:
+            if isinstance(sib, Tag):
+                if sib.get_text(strip=True) != "":
+                    return sib
+            sib = getattr(sib, direction)
+        return None
+
+    prev_sib = _first_tag_sibling(tag, "previous_sibling")
+    next_sib = _first_tag_sibling(tag, "next_sibling")
+
+    for sib in (prev_sib, next_sib):
+        if sib is not None and sib.name in _BLOCK_SIBLING_NAMES:
+            return False
+
+    return True
+
+
+def _has_item_strong_size_signal(
+    tag: Tag, text: str, body_font_size: float | None
+) -> bool:
+    """Promote short Item-regex blocks whose font-size clearly exceeds body.
+
+    Bypasses sibling-isolation checks: the size jump (>10%) plus short text
+    plus the strict Item regex anchor make false positives unlikely. Targets
+    JPM-style filings where body Item headings are non-bold but use a 12pt
+    span over a 10pt body, and adjacent siblings are real body <div>s that
+    block the standard isolation path.
+    """
+    if body_font_size is None:
+        return False
+    if len(text) >= 150:
+        return False
+    tag_size = extract_dominant_font_size(tag)
+    if tag_size is None:
+        return False
+    return tag_size > body_font_size * 1.1
 
 
 def _has_bold_signal(tag: Tag) -> bool:
@@ -84,13 +174,15 @@ def _filter_decorative_styles(style_str: str) -> str | None:
 
 class HTMLPreprocessor:
     def preprocess(self, html: str) -> str:
+        # _strip_decorative_styles runs after _promote_headings so that font-size
+        # is visible to the promotion heuristic (and future sub-section detectors).
         soup = BeautifulSoup(html, "html.parser")
         self._strip_xbrl_tags(soup)
         self._remove_hidden_elements(soup)
-        self._strip_decorative_styles(soup)
         self._unwrap_font_tags(soup)
         self._normalize_text_whitespace(soup)
         self._promote_headings(soup)
+        self._strip_decorative_styles(soup)
         return str(soup)
 
     def _strip_xbrl_tags(self, soup: BeautifulSoup) -> None:
@@ -152,6 +244,15 @@ class HTMLPreprocessor:
         # Reverse traversal ensures inner (more specific) matches are promoted
         # first; the descendant guard then prevents an outer container from being
         # promoted redundantly when one of its children already was.
+        # detect_item_regions must run before the Part/Item loop rewrites div/p to h2,
+        # because the detection scans for div/p/td/th matching the Item pattern.
+        regions = detect_item_regions(soup)
+        region_start_ids: set[int] = {id(r.start_tag) for r in regions}
+        part_anchor_ids: set[int] = {
+            id(t) for t in detect_part_anchors(soup, is_eligible=_has_bold_signal)
+        }
+        body_font_size = _estimate_body_font_size(soup)
+
         promoted = set()
         for tag in reversed(soup.find_all(_BLOCK_TAGS)):
             if id(tag) in promoted:
@@ -170,11 +271,27 @@ class HTMLPreprocessor:
 
             heading_level = None
             if _PART_RE.match(text):
+                if id(tag) not in part_anchor_ids:
+                    continue
                 heading_level = "h1"
             elif _ITEM_RE.match(text):
+                if id(tag) not in region_start_ids:
+                    continue
                 heading_level = "h2"
 
-            if not heading_level or not _has_bold_signal(tag):
+            if not heading_level:
+                continue
+
+            if heading_level == "h2":
+                should_promote = (
+                    _has_bold_signal(tag)
+                    or is_isolated_item_block(tag, body_font_size)
+                    or _has_item_strong_size_signal(tag, text, body_font_size)
+                )
+            else:
+                should_promote = _has_bold_signal(tag)
+
+            if not should_promote:
                 continue
 
             if any(
@@ -189,3 +306,5 @@ class HTMLPreprocessor:
             tag.string = text
             if tag.attrs:
                 tag.attrs.clear()
+
+        promote_subsections(soup, regions)

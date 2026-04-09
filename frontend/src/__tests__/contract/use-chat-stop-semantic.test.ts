@@ -14,14 +14,17 @@ const server = setupServer(
         const encoder = new TextEncoder()
         // Honor client abort: when useChat.stop() aborts the underlying fetch,
         // request.signal fires — close the stream so the SDK consumer sees end-of-stream.
-        const onAbort = () => {
-          try {
-            controller.close()
-          } catch {
-            /* already closed */
-          }
-        }
-        request.signal.addEventListener('abort', onAbort)
+        request.signal.addEventListener(
+          'abort',
+          () => {
+            try {
+              controller.close()
+            } catch {
+              /* already closed */
+            }
+          },
+          { once: true },
+        )
 
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ type: 'start', messageId: 'a1' })}\n\n`),
@@ -77,8 +80,6 @@ test('V-3: stop() transitions status to ready, not error', async () => {
   // correct" from "real V-3 failure".
   await waitFor(() => expect(result.current.status).toBe('ready'), { timeout: 3000 })
   // NOTE: AI SDK v6 types `useChat().error` as `Error | undefined`, not `Error | null`.
-  // The verbatim plan snippet used `.toBeNull()` which fails on a clean abort.
-  // Contract intent: "no error after stop()" — assert undefined (and falsy as belt+braces).
+  // Contract intent: "no error after stop()" — `undefined` is the only valid passing value.
   expect(result.current.error).toBeUndefined()
-  expect(result.current.error).toBeFalsy()
 })

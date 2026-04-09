@@ -591,17 +591,38 @@ import { setupServer } from 'msw/node'
 import { http, HttpResponse, delay } from 'msw'
 
 const server = setupServer(
-  http.post('/api/v1/chat', async () => {
+  http.post('/api/v1/chat', async ({ request }) => {
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder()
+        // CRITICAL: must honor client abort. When useChat.stop() aborts the
+        // underlying fetch, request.signal fires — close the stream so the SDK
+        // consumer sees end-of-stream and transitions status back to 'ready'.
+        // Without this, the V-3 contract test produces a false negative
+        // (waitFor(ready) times out because the SDK keeps consuming the
+        // queued long-tail delay).
+        request.signal.addEventListener(
+          'abort',
+          () => {
+            try {
+              controller.close()
+            } catch {
+              /* already closed */
+            }
+          },
+          { once: true },
+        )
+
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start', messageId: 'a1' })}\n\n`))
         await delay(100)
+        if (request.signal.aborted) return
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text-start', id: 't1' })}\n\n`))
         await delay(100)
+        if (request.signal.aborted) return
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text-delta', id: 't1', delta: 'hello' })}\n\n`))
-        // Long delay to give test time to call stop()
+        // Long delay to give the test time to call stop()
         await delay(5000)
+        if (request.signal.aborted) return
         controller.close()
       },
     })

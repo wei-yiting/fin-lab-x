@@ -128,67 +128,20 @@ Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), whi
 
 ## Markdown Cleanup
 
-The `MarkdownCleaner` step (added to the pipeline after `convert_with_fallback`) removes converter-output boilerplate that has zero RAG value and normalizes inconsistent Item / Part heading shapes across tickers. It is the **last** stage before the markdown is persisted, so the on-disk cache and any downstream chunking pipeline always see cleaned content.
+`MarkdownCleaner` runs after `convert_with_fallback()` to strip boilerplate and normalize headings. It operates at the markdown layer because page separators (`---`) are converter artifacts invisible in HTML, and heading casing inconsistencies only manifest after conversion.
 
-### Why a separate stage (not in the HTML preprocessor)
-
-| Reason | Detail |
-|--------|--------|
-| Page separators are a markdown converter artifact | The `---` page-break lines do not exist in the source HTML — they are emitted by `html-to-markdown` during conversion. Cannot be stripped at the HTML layer. |
-| Cover-page anchor is more stable in markdown | At the HTML layer, the cover page is a tangle of `<div>` / `<table>` elements with no consistent selector. In markdown, `# Part I` (or fallback `## Item 1`) is a stable, ticker-agnostic anchor. |
-| Part III stub detection is simpler in markdown | "incorporated by reference" plain-text matching is structurally simpler than walking HTML elements. |
-| Heading normalization only makes sense in markdown | The casing inconsistencies (`## ITEM 1.BUSINESS`, `## Item 1A. Risk factors`) only appear after the converter has produced markdown headings. |
-
-### Cleanup pipeline
-
-```mermaid
-graph LR
-    Input[Markdown from<br/>converter]
-    Input --> S1[Strip cover page<br/>frontmatter → first<br/>Part I or Item 1]
-    S1 --> S2[Strip page<br/>separators<br/>bare --- with<br/>optional TOC link]
-    S2 --> S3[Strip Part III<br/>stubs<br/>conservative —<br/>preserves hybrids]
-    S3 --> S4[Normalize<br/>headings<br/>Part / Item casing<br/>+ split-line merge]
-    S4 --> Output[Cleaned<br/>markdown]
-```
+Design principle: **prefer leaving noise over risking deletion of real content.** The downstream LLM can filter noise, but deleted content is gone for good.
 
 ### Cleanup rules
 
-| Rule | What it removes | Conservative guards |
-|------|-----------------|---------------------|
-| **R1.1 Cover page strip** | Content between the YAML frontmatter and the first `# Part I` heading (registrant info, check marks, "DOCUMENTS INCORPORATED BY REFERENCE" narrative, the standalone Table of Contents block). | Falls back to `## Item 1` anchor when `# Part I` is missing (BAC, JNJ). If both are missing (GE 2008, INTC 2025, BRK.B), passes through with a warning — never deletes content blindly. |
-| **R1.2 Page separator strip** | Bare `---` lines preceded by a blank or all-digit line, plus an optional `[Table of Contents](#anchor)` link on the line below. | Markdown table separators (`\| --- \| --- \|`, with or without spaces) are pipe-flanked and never match the regex. |
-| **R1.3 Part III stub strip** | `## Item 10` through `## Item 14` sections whose body, after dropping every sentence containing "incorporated...by reference", contains < 100 non-whitespace, non-structural characters. | Strict word boundary `\b` on `1[0-4]` protects `Item 1A / 1B / 1C` (NVDA Cybersecurity is real content). The "drop ref sentences then count remaining" algorithm preserves hybrid sections like AMT Item 10 (~3000 chars of executive biographies + 1 ref sentence) and CRM Item 10 (~1200 chars of Code of Conduct policy). Markdown link / image syntax is stripped before counting so trailing image filenames don't keep stubs alive. |
-| **R2 Heading normalization** | Standardizes Part headings to `# Part {Roman}` and Item headings to `## Item {num}. {Title}`. Title-cases ALL CAPS (`BUSINESS` → `Business`) and sentence-case (`Risk factors` → `Risk Factors`) titles. Preserves whitelisted abbreviations (`MD&A`, `SEC`, `U.S.`, `R&D`). | Mixed-case titles already in proper Title Case are left alone. Small connector words (`of`, `the`, `and`, ...) stay lowercase except as the first word. |
-| **R2.1 Split-line title merge** | Merges next-line titles back into bare Item headings — both AMZN-style (`## Item 1.\nBusiness Description`) and AMT-style (`## ITEM 10.\n\n- DIRECTORS, EXECUTIVE OFFICERS`). | The dash-prefix branch requires the remaining text to be ALL CAPS or Title Case, so real bullet lists are not mistaken for split titles. |
-| **R2.2 Truncated heading warning** | (Defensive) Logs a warning if a heading title is shorter than 5 characters after normalization. | Does not modify the heading — just emits a `logger.warning`. Currently has no trigger in the validation set; preserved against future converter regressions. |
-
-### Conservative-cleanup principle
-
-Every rule above is designed to **prefer leaving noise over risking deletion of real content**. The downstream LLM can filter noise during retrieval and reranking, but content that the cleanup stage drops is gone for good. If a rule cannot decide whether a chunk of content is boilerplate or real, the rule passes through and leaves the content alone — sometimes with a `logger.warning` for visibility, never with a silent delete.
-
-This principle drove the most invasive design decision in the module: the Part III stub stripper does not use a length threshold or a "section contains keyword → delete" heuristic. Instead, it strips ref-sentences first and only deletes the section if essentially nothing real is left. The validation report at `artifacts/current/validation_cleanup_patterns.md` documents the specific filings that drove each rule.
-
-### Validation set
-
-The cleanup rules were derived and validated against **24 tickers / 29 10-K filings spanning 8 industries**:
-
-| Industry | Tickers |
-|----------|---------|
-| Technology | NVDA (2024/2025/2026), AAPL (2010/2025), MSFT (2023/2024/2025), GOOGL, AMZN, TSLA, CRM, INTC |
-| Financial | JPM, BAC, BRK.B |
-| Energy | XOM |
-| Consumer | KO, WMT, HD, DIS |
-| Healthcare | JNJ, UNH |
-| Industrial | BA, CAT, GE (2008) |
-| Real Estate | AMT |
-| Utility | NEE |
-| Telecom | T |
-
-The set includes deliberate edge cases: GE 2008 and INTC 2025 (no Part / Item headings at all — out of scope, pass-through path), BAC and JNJ (no `# Part I` anchor — Item 1 fallback), AMT and CRM (hybrid Item 10 — must preserve real content), AAPL 2010 (very old filing format), and CRM (duplicate Item 10-14 headings near TOC + actual Part III).
+| Rule | What it does | Safety |
+|------|-------------|--------|
+| **Cover page strip** | Removes content between frontmatter and `# Part I` (or fallback `## Item 1`). | Pass-through + warning if no anchor found. |
+| **Page separator strip** | Removes bare `---` lines with optional digit-line and `[Table of Contents]` link. | Pipe-flanked table separators never match. |
+| **Part III stub strip** | Removes Item 10-14 sections that are pure "incorporated by reference" stubs. Drops ref-sentences first, then checks if < 100 chars remain. | Preserves hybrid sections (e.g. AMT exec biographies, CRM Code of Conduct). `\b` boundary protects Item 1C/9A/9B/9C. |
+| **Heading normalization** | Standardizes to `# Part {Roman}` / `## Item {num}. {Title}`. Title-cases ALL CAPS and sentence-case titles. Merges split-line titles. | Mixed-case left alone. Abbreviations (`MD&A`, `SEC`, `U.S.`) preserved. |
 
 ### Re-running validation
-
-The validation script `backend/scripts/validate_sec_md_cleanup.py` walks the cache and produces a per-filing report. Re-run it whenever you change a cleanup rule or add new tickers — see [`backend/scripts/README.md`](../../scripts/README.md) for what each statistic in the report means.
 
 ```bash
 uv run python backend/scripts/validate_sec_md_cleanup.py \
@@ -196,6 +149,4 @@ uv run python backend/scripts/validate_sec_md_cleanup.py \
   --output artifacts/current/validation_cleanup_patterns.md
 ```
 
-### Existing cache
-
-The cleaner only runs during `_process_internal()`, which means cached filings produced before the cleaner was added are still in their pre-cleanup form. They will be cleaned the next time the pipeline reprocesses them — either when they expire from the cache logic, or when invoked with `--force`. The cleanup stage does not rewrite the cache retroactively.
+Validated against 24 tickers / 29 filings across 8 industries. Existing cached filings are not retroactively cleaned — use `--force` to reprocess.

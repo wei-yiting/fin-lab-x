@@ -7,9 +7,7 @@ inconsistent Item / Part heading formats produced by SEC EDGAR.
 
 Designed conservatively: every rule prefers leaving noise over risking
 deletion of real content. Once content is dropped from the cleaned
-markdown it cannot be recovered downstream — see
-``feedback_cleanup_conservative`` user guidance and the validation
-report at ``artifacts/current/validation_cleanup_patterns.md``.
+markdown it cannot be recovered downstream.
 
 Wired into ``SECFilingPipeline._process_internal`` as the step
 immediately after ``convert_with_fallback()``.
@@ -24,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# R1.1 Cover page anchors
+# Cover page anchors
 # ---------------------------------------------------------------------------
 
 _PART_I_ANCHOR_RE = re.compile(r"^# (?:PART|Part) I\b", re.MULTILINE)
@@ -32,7 +30,7 @@ _ITEM_1_ANCHOR_RE = re.compile(r"^## (?:ITEM|Item) 1\b", re.MULTILINE)
 
 
 # ---------------------------------------------------------------------------
-# R1.2 Page separator
+# Page separator
 # ---------------------------------------------------------------------------
 
 # Match: empty-or-numeric line + bare `---` line + optional TOC link line.
@@ -49,7 +47,7 @@ _PAGE_SEP_RE = re.compile(
 
 
 # ---------------------------------------------------------------------------
-# R1.3 Part III stub
+# Part III stub
 # ---------------------------------------------------------------------------
 
 # Match `## Item 10` through `## Item 14` (NOT `1A`, `1B`, `1C` — `\b`
@@ -113,7 +111,7 @@ _ITEM_HEADING_RE = re.compile(
     re.MULTILINE,
 )
 
-# Bare Item heading with no inline title — used by R2.1 to look at the
+# Bare Item heading with no inline title — used by split-title merge to look at the
 # next non-blank line for a split-off title.
 _BARE_ITEM_HEADING_RE = re.compile(
     r"^(## (?:ITEM|Item)\s+\d+[A-Z]?)\.?[ \t]*$"
@@ -171,7 +169,7 @@ class MarkdownCleaner:
         return markdown
 
     # ------------------------------------------------------------------
-    # R1.1 Cover page stripping
+    # Cover page stripping
     # ------------------------------------------------------------------
 
     def _strip_cover_page(self, markdown: str) -> str:
@@ -222,7 +220,7 @@ class MarkdownCleaner:
         return prefix + body[anchor.start() :]
 
     # ------------------------------------------------------------------
-    # R1.2 Page separator stripping
+    # Page separator stripping
     # ------------------------------------------------------------------
 
     def _strip_page_separators(self, markdown: str) -> str:
@@ -235,7 +233,7 @@ class MarkdownCleaner:
         return _PAGE_SEP_RE.sub("", markdown)
 
     # ------------------------------------------------------------------
-    # R1.3 Part III stub stripping
+    # Part III stub stripping
     # ------------------------------------------------------------------
 
     def _strip_part_iii_stubs(self, markdown: str) -> str:
@@ -288,7 +286,7 @@ class MarkdownCleaner:
         return markdown
 
     def _merge_split_titles(self, markdown: str) -> str:
-        """R2.1 — pull AMZN-style and AMT-style next-line titles into the heading.
+        """Pull AMZN-style and AMT-style next-line titles into the heading.
 
         - AMZN: ``## Item 1.\\nBusiness Description`` → ``## Item 1. Business Description``
         - AMT:  ``## ITEM 10.\\n\\n- DIRECTORS, ...`` → ``## ITEM 10. DIRECTORS, ...``
@@ -379,7 +377,7 @@ class MarkdownCleaner:
 
         cased = _title_case(title)
 
-        # R2.2 defensive: log if heading title is suspiciously short.
+        # Defensive: log if heading title is suspiciously short.
         if 0 < len(cased) < _TRUNCATED_HEADING_TITLE_LEN:
             logger.warning(
                 "MarkdownCleaner: truncated heading detected: %r — converter may have dropped chars",

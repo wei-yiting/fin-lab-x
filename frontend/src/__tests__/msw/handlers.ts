@@ -47,7 +47,7 @@ export const handlers = [
             /* already closed */
           }
         }
-        request.signal.addEventListener('abort', onAbort)
+        request.signal.addEventListener('abort', onAbort, { once: true })
 
         try {
           for (const chunk of fixture.chunks) {

@@ -585,15 +585,19 @@ S1 backend 已 locked，且金融 tool 的錯誤來自上游 API（yfinance、SE
 
 ### Smart Retry Routing（Q-USR-7）
 
+> **Post-V-1 update (2026-04-09)**: V-1 contract probe confirmed S1 returns HTTP 200 (not 422) for `regenerate` against a partial-turn `messageId` — `_find_regenerate_target` walks LangGraph checkpoint state and accepts the partial AIMessage as long as it has been committed. The "regenerate fallback to sendMessage" path is therefore an **exception handler for the race window** (client disconnects before LangGraph commits any AIMessage to checkpoint → backend returns 404 instead of 422). Widened the fallback condition from `pre-stream-422` only to **any pre-stream 4xx**. See `verification_results_streaming_chat_ui.md` §V-1 for full evidence.
+
 Retry button 的 onClick 處理：`ChatPanel` 的 `handleRetry` 依錯誤來源 + 類型 dispatch：
 
 | 情境 | Retry action |
 |---|---|
-| Pre-stream `404` / `409` / `500` / network offline | `sendMessage(originalUserText)` 重送 |
-| Pre-stream `422` on regenerate（messageId stale / not last turn）| **降級**為 `sendMessage(originalUserText)` 重送，**避免**再次 `regenerate` 同 messageId 陷入無限 422 loop |
+| Pre-stream `409` / `500` / network offline (不是 regenerate 觸發) | `sendMessage(originalUserText)` 重送 |
+| Pre-stream **任何 4xx** (`404` / `409` / `422`) on regenerate (race window: messageId not yet in checkpoint, or messageId stale) | **降級**為 `sendMessage(originalUserText)` 重送，**避免**反覆 `regenerate` 同 messageId 陷入無限 4xx loop |
 | Mid-stream `error`（last assistant message 已存在含 partial parts）| `regenerate({ messageId: lastAssistantMessageId })` |
 
 實作上 `handleRetry` 必須能取得 `useChat.error` 的 error class 與來源資訊。若 `useChat` v6 的 error 物件不夠豐富，需在 ChatPanel 維護「最近一次 trigger」的 metadata（trigger type + messageId + originalUserText）以支援 dispatch。
+
+**No manual messageId stash needed**: AI SDK v6 propagates `start.messageId` directly into `state.message.id` (verified empirically in `frontend/node_modules/ai/dist/index.js` lines 5814-5815, and validated by V-1's HTTP 200 response). `regenerate({ messageId: lastAssistantMessage.id })` naturally sends the backend-issued `lc_run--...` ID.
 
 ### Tool Card State Machine
 

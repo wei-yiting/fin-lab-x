@@ -311,9 +311,10 @@ test('V-2: user message remains in messages array after pre-stream HTTP 500', as
 
 ```ts
 // 摘自 V-3 的核心 assertion
+// NOTE: useChat.error is `Error | undefined` (not `Error | null`) — see V-3 post-mortem in verification_results.
 await act(async () => { await result.current.stop() })
 await waitFor(() => expect(result.current.status).toBe('ready'))
-expect(result.current.error).toBeNull()
+expect(result.current.error).toBeUndefined()
 ```
 
 **Test Strategy:** 同 TC-int-v2-01 的角色：contract verification，pass 就是 design 假設成立。
@@ -382,6 +383,8 @@ expect(result.current.error).toBeNull()
 
 - `enableMocking()` 嚴格 gate 在 `import.meta.env.MODE === 'development' && URL.searchParams.has('msw_fixture')` — production build 與一般 dev 都不掛 SW
 - `handlers.ts` 從 `referer` URL 解析 `msw_fixture` query string（因為 `useChat` 的 fetch 不會帶 query）
+- **CRITICAL — abort signal handling**: streaming branch 必須監聽 `request.signal.addEventListener('abort', ...)` 並 `controller.close()`，否則 `S-stop-*` 系列 BDD scenarios 會 false-fail（V-3 contract test 已證實 — 詳見 verification_results §V-3 plan-defect post-mortem）。直接 copy prerequisites §2 handlers.ts 的 reference snippet 即可（已含 abort handler）。
+- **CRITICAL — text-delta payload field**: 所有 `text-delta` chunk 一律使用 `delta` field（與 AI SDK v6 wire format 一致），絕不使用 `textDelta`（plan defect，已批次修正）。
 - 5 個 priority fixtures 對應的 BDD scenarios：
   - `xss-javascript-url` → S-md-03（security critical，e2e 必跑）
   - `duplicate-references` → S-md-02（first-wins dedup unit test 需要的 reference fixture）

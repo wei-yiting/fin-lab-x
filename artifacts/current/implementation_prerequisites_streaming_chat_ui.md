@@ -725,15 +725,26 @@ function findOriginalUserText(messages: UIMessage[], assistantMessageId: string)
 
 ### handleRetry dispatch table
 
+> **Post-V-1 update (2026-04-09)**: fallback condition widened from `pre-stream-422` only to **any pre-stream 4xx**. V-1 contract probe (verification_results §V-1) confirmed S1 returns HTTP 200 for partial-turn regenerate, so the original "always 422" assumption was wrong. The 4xx fallback now covers (a) the race window where the partial AIMessage isn't yet in LangGraph checkpoint (returns 404) and (b) the genuine messageId-mismatch case (still 422).
+
 ```ts
+// Helper: any pre-stream 4xx that should trigger sendMessage fallback.
+const PRE_STREAM_4XX_FALLBACK: ReadonlySet<ErrorClass> = new Set([
+  'pre-stream-422',
+  'pre-stream-404',
+  'pre-stream-409',
+])
+
 const handleRetry = () => {
   const last = lastTriggerRef.current
   if (!last) return // shouldn't happen, defensive
 
   const errorClass = classifyError(useChatError) // see classifyError below
 
-  // Smart fallback: 422-on-regenerate → sendMessage
-  if (last.type === 'regenerate' && errorClass === 'pre-stream-422') {
+  // Smart fallback: any 4xx on regenerate → sendMessage
+  // Race window: client disconnected before LangGraph committed any AIMessage.
+  // Stale window: messageId no longer matches the last assistant turn.
+  if (last.type === 'regenerate' && PRE_STREAM_4XX_FALLBACK.has(errorClass)) {
     lastTriggerRef.current = { type: 'send', userText: last.userText }
     sendMessage({ text: last.userText })
     return

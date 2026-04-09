@@ -636,7 +636,7 @@ Origin: PO
 
 #### S-regen-03: Streaming 進行中所有 assistant messages 皆不顯示 RegenerateButton
 
-> 依 Q-USR-1 pin：避免 stale button 觸發 422
+> 依 Q-USR-1 pin：streaming 期間 user 沒有「明確的最後一則」可以 regenerate，且若在新 stream 抵達前 click 舊的 RegenerateButton 會送出 race-window 4xx（V-1 證實 partial-regenerate 在 race window 才會 4xx，正常路徑回 200 — 詳見 verification_results §V-1）。隱藏 button 讓 user intent 永遠是「對 ready 狀態的 last assistant 重做」。
 
 - **Given** Wendy 送出新問題後 assistant 正在串流新回覆
 - **When** `useChat.status === 'streaming'`

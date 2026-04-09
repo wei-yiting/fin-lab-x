@@ -1,3 +1,5 @@
+import { ChatHttpError } from "./chat-http-error"
+
 export type ErrorClass =
   | "pre-stream-422"
   | "pre-stream-404"
@@ -18,6 +20,12 @@ const STATUS_MAP: Record<number, ErrorClass> = {
 export function classifyError(err: unknown): ErrorClass {
   if (err instanceof TypeError && /fetch/i.test(err.message)) {
     return "network"
+  }
+
+  if (err instanceof ChatHttpError) {
+    const mapped = STATUS_MAP[err.status]
+    if (mapped) return mapped
+    if (err.status >= 500 && err.status < 600) return "pre-stream-5xx"
   }
 
   if (err != null && typeof err === "object" && "status" in err) {

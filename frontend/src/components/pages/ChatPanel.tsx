@@ -11,6 +11,8 @@ import { ErrorBlock } from "@/components/organisms/ErrorBlock"
 import { findOriginalUserText } from "@/lib/message-helpers"
 import { classifyError } from "@/lib/error-classifier"
 import { toFriendlyError } from "@/lib/error-messages"
+import { statusAwareFetch } from "@/lib/status-aware-fetch"
+import { ChatHttpError } from "@/lib/chat-http-error"
 import type { ChatStatus, ToolCallId } from "@/models"
 
 const PRE_STREAM_4XX: ReadonlySet<string> = new Set(['pre-stream-422', 'pre-stream-404', 'pre-stream-409'])
@@ -32,7 +34,10 @@ type LastTrigger =
 
 export function ChatPanel() {
   const [chatId, setChatId] = useState(() => crypto.randomUUID())
-  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/v1/chat" }), [])
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/v1/chat", fetch: statusAwareFetch }),
+    [],
+  )
   const { toolProgress, handleData, clearProgress } = useToolProgress()
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
     id: chatId,
@@ -122,7 +127,7 @@ export function ChatPanel() {
   const preStreamFriendly = showPreStreamError
     ? toFriendlyError({
         source: error instanceof TypeError ? "network" : "pre-stream-http",
-        status: (error as unknown as Record<string, unknown>)?.status as number | undefined,
+        status: error instanceof ChatHttpError ? error.status : undefined,
         rawMessage: error?.message,
       })
     : null

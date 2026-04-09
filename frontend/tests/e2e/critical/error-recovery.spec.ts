@@ -10,5 +10,5 @@ test('J-err-01 @critical: pre-stream error shows ErrorBlock with Retry', async (
 
   await expect(page.getByTestId('error-retry-btn')).toBeVisible()
 
-  await expect(page.getByTestId('error-title')).toContainText('went wrong')
+  await expect(page.getByTestId('error-title')).toContainText('Server error')
 })

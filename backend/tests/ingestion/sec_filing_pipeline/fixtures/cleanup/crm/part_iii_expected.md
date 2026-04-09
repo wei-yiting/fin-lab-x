@@ -1,15 +1,3 @@
----
-ticker: CRM
-cik: '1108524'
-company_name: Salesforce, Inc.
-filing_type: 10-K
-filing_date: '2026-03-02'
-fiscal_year: 2026
-accession_number: 0001108524-26-000060
-source_url: https://www.sec.gov/Archives/edgar/data/1108524/000110852426000060/crm-20260131.htm
-parsed_at: '2026-04-09T02:43:12.529786+00:00'
-converter: html-to-markdown
----
 # Part I
 
 ## Item 1. Business
@@ -69,7 +57,7 @@ We intend to satisfy the disclosure requirement under SEC and NYSE rules regardi
 (b) Exhibits. The exhibits listed below in the accompanying “Index to Exhibits” are filed or incorporated by reference as part of this Annual Report on Form 10-K.
 
 
-## Item 16. Form 10-k Summary
+## Item 16. Form 10-K Summary
 
 
 Omitted at Registrant’s option.

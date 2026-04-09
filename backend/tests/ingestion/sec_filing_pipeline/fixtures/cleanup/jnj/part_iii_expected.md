@@ -1,15 +1,3 @@
----
-ticker: JNJ
-cik: '200406'
-company_name: JOHNSON & JOHNSON
-filing_type: 10-K
-filing_date: '2026-02-11'
-fiscal_year: 2025
-accession_number: 0000200406-26-000016
-source_url: https://www.sec.gov/Archives/edgar/data/200406/000020040626000016/jnj-20251228.htm
-parsed_at: '2026-04-07T04:08:05.030338+00:00'
-converter: html-to-markdown
----
 # Part I
 
 ## Item 1. Business
@@ -54,6 +42,39 @@ In addition, the Company has adopted a Code of Business Conduct & Ethics for Mem
 
 In addition to the prohibition on insider trading for all employees covered in our Code of Business Conduct, the Company has adopted an insider trading policy governing the purchase, sale and other dispositions of its securities by directors, officers and certain other insiders that is reasonably designed to promote compliance with insider trading laws, rules and regulations and any applicable listing standards. A copy of this policy is filed with this Annual Report on Form 10-K as Exhibit 19.
 
+## Item 11. Executive Compensation
+
+The information called for by this item is incorporated herein by reference to the material under the captions Item 1. Election of Directors – Director compensation, and Item 2. Compensation Committee report, Compensation discussion and analysis and Executive compensation tables in the Proxy Statement.
+
+The material incorporated herein by reference to the material under the caption Compensation Committee report in the Proxy Statement shall be deemed furnished, and not filed, in this Report and shall not be deemed incorporated by reference into any filing under the Securities Act of 1933, as amended, or the Securities Exchange Act of 1934, as amended, as a result of this furnishing, except to the extent that the Company specifically incorporates it by reference.
+
+## Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters
+
+The information called for by this item is incorporated herein by reference to the material under the caption Stock ownership in the Proxy Statement; and Note 16 Common stock, stock option plans and stock compensation agreements of the Notes to Consolidated Financial Statements in Item 8 of this Report.
+
+|  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- |
+| 2025 Annual Report | | | 115 | | |
+
+
+
+Equity compensation plan information
+
+The following table provides certain information as of December 28, 2025 concerning the shares of the Company’s Common Stock that may be issued under existing equity compensation plans.
+
+|  |  |  |  |  |  |  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Plan Category | | | Number of   Securities to   be Issued Upon   Exercise of   Outstanding   Options and Rights | | | Weighted Average   Exercise Price of   Outstanding   Options   and Rights | | | Number of Securities  Remaining Available for  Future Issuance Under  Equity Compensation  Plans(2)(3) | | |
+| Equity Compensation Plans Approved by Security Holders(1) | | | 107,318,427 | | | $131.08 | | | 93,216,941 | | |
+| Equity Compensation Plans Not Approved by Security Holders | | | — | | | — | | | — | | |
+| Total | | | 107,318,427 | | | $131.08 | | | 93,216,941 | | |
+
+(1)Included in this category are the following equity compensation plans which have been approved by the Company’s shareholders: 2012 Long-Term Incentive Plan and 2022 Long-Term Incentive Plan.
+
+(2)This column excludes shares reflected under the column “Number of Securities to be Issued Upon Exercise of Outstanding Options and Rights.”
+
+(3)The 2012 Long-Term Incentive Plan expired April 26, 2022. All options and restricted shares granted subsequent to that date were under the 2022 Long-Term Incentive Plan.
+
 ## Item 15. Exhibits and Financial Statement Schedules
 
 The following documents are filed as part of this report:
@@ -80,7 +101,7 @@ All schedules are omitted because they are not applicable, not material or the r
 
 The information called for by this item is incorporated herein by reference to the Exhibit Index in this Report.
 
-## Item 16. Form 10-k Summary
+## Item 16. Form 10-K Summary
 
 Registrants may voluntarily include a summary of information required by Form 10-K under this Item 16. The Company has elected not to include such summary information.
 

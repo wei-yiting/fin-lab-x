@@ -29,22 +29,26 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# Re-use production regexes and helpers directly so the validator cannot
+# silently drift from ``MarkdownCleaner``. M-1.3 / M-1.4 regressions were
+# caused by locally-forked versions of these.
+from backend.ingestion.sec_filing_pipeline.markdown_cleaner import (
+    _INCORP_BY_REF_RE as INCORP_BY_REF_RE,
+    _ITEM_1_ANCHOR_RE as COVER_PAGE_FALLBACK_ANCHOR_RE,
+    _PAGE_SEP_RE as PAGE_SEP_STRICT_RE,
+    _PART_I_ANCHOR_RE as COVER_PAGE_PRIMARY_ANCHOR_RE,
+    is_pure_part_iii_stub,
+)
+
 # ---------------------------------------------------------------------------
-# Detection regexes (mirror the proposed cleaner rules in the task spec)
+# Detection regexes that are local to the validator (heading variant
+# classification + false-positive checks). The cleanup semantics (stub
+# detection, anchor selection) are delegated to the production module.
 # ---------------------------------------------------------------------------
 
 # A `[Table of Contents](#anchor)` link – appears as standalone line near
 # every page break in many filings.
 TOC_LINK_RE = re.compile(r"\[Table of Contents\]\(#")
-
-# Page separator: `---` line whose previous line is digits-or-blank,
-# optionally followed by a TOC link. This is the spec's R1.2 regex.
-PAGE_SEP_STRICT_RE = re.compile(
-    r"^[ \t]*\d*[ \t]*\n"
-    r"---[ \t]*\n"
-    r"(\[Table of Contents\]\([^)]+\)[ \t]*\n)?",
-    re.MULTILINE,
-)
 
 # Any bare `---` line (no surrounding pipes, not part of a markdown table).
 BARE_DASH_RE = re.compile(r"^---[ \t]*$", re.MULTILINE)
@@ -72,16 +76,6 @@ ITEM_SECTION_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
-# Match "incorporated by reference" plus common adverb-injected variants
-# like "incorporated herein by reference" or "incorporated within by reference".
-INCORP_BY_REF_RE = re.compile(
-    r"incorporated\s+(?:\w+\s+)?(?:in|into|to|by)\s+(?:\w+\s+)?reference",
-    re.IGNORECASE,
-)
-
-# Cover-page anchor: `# Part I` first occurrence (standard or uppercase).
-COVER_PAGE_ANCHOR_RE = re.compile(r"^# (?:PART|Part) I\b", re.MULTILINE)
-
 
 # ---------------------------------------------------------------------------
 # Stats container
@@ -100,7 +94,12 @@ class FilingStats:
     page_sep_strict_count: int = 0
     table_sep_count: int = 0
 
+    # Part III stub classification — mirrors the production rule:
+    # * stub: contains ref AND would be stripped by the cleaner.
+    # * hybrid: contains ref BUT has enough non-ref remainder to survive.
+    # * real: contains no ref at all (untouched by the cleaner).
     item_10_14_stub_count: int = 0
+    item_10_14_hybrid_count: int = 0
     item_10_14_real_count: int = 0
     item_10_14_total: int = 0
     item_1c_present: bool = False
@@ -108,7 +107,8 @@ class FilingStats:
     item_9a_present: bool = False
     item_9b_present: bool = False
     item_9c_present: bool = False
-    cover_page_anchor_found: bool = False
+    # Cover-page anchor: primary (# Part I), fallback (## Item 1), or none.
+    cover_page_anchor_type: str = "none"  # "primary" | "fallback" | "none"
     cover_page_anchor_position: int = -1
 
     part_headings: list[str] = field(default_factory=list)
@@ -120,6 +120,10 @@ class FilingStats:
     item_variants: Counter[str] = field(default_factory=Counter)
 
     fp_warnings: list[str] = field(default_factory=list)
+
+    @property
+    def cover_page_anchor_found(self) -> bool:
+        return self.cover_page_anchor_type != "none"
 
 
 # ---------------------------------------------------------------------------
@@ -201,28 +205,40 @@ def analyze_filing(path: Path) -> FilingStats | None:
     stats.page_sep_strict_count = len(PAGE_SEP_STRICT_RE.findall(body))
     stats.table_sep_count = len(TABLE_SEP_RE.findall(body))
 
-    # Cover-page anchor presence
-    cp_match = COVER_PAGE_ANCHOR_RE.search(body)
-    if cp_match:
-        stats.cover_page_anchor_found = True
-        stats.cover_page_anchor_position = cp_match.start()
+    # Cover-page anchor presence — mirror the cleaner's primary /
+    # fallback logic so BAC, JNJ (no `# Part I`, but have `## Item 1`)
+    # aren't incorrectly reported as "missing anchor".
+    cp_primary = COVER_PAGE_PRIMARY_ANCHOR_RE.search(body)
+    if cp_primary:
+        stats.cover_page_anchor_type = "primary"
+        stats.cover_page_anchor_position = cp_primary.start()
+    else:
+        cp_fallback = COVER_PAGE_FALLBACK_ANCHOR_RE.search(body)
+        if cp_fallback:
+            stats.cover_page_anchor_type = "fallback"
+            stats.cover_page_anchor_position = cp_fallback.start()
 
-    # Item section walk
+    # Item section walk — classify 10-14 sections using the exact same
+    # ``is_pure_part_iii_stub`` rule the production cleaner applies, so
+    # the report's stub/hybrid/real counts match what actually happens
+    # at ingestion time.
     for match in ITEM_SECTION_RE.finditer(body):
         item_num = match.group(2).upper()
         section_body = match.group(4)
-        is_stub = bool(INCORP_BY_REF_RE.search(section_body))
+        has_ref = bool(INCORP_BY_REF_RE.search(section_body))
         section_len = len(section_body.strip())
 
         if item_num in {"10", "11", "12", "13", "14"}:
             stats.item_10_14_total += 1
-            if is_stub:
+            if not has_ref:
+                stats.item_10_14_real_count += 1
+            elif is_pure_part_iii_stub(section_body):
                 stats.item_10_14_stub_count += 1
             else:
-                stats.item_10_14_real_count += 1
+                stats.item_10_14_hybrid_count += 1
         elif item_num == "1C":
             stats.item_1c_present = True
-            if is_stub or section_len < 200:
+            if has_ref or section_len < 200:
                 stats.item_1c_stub_like = True
         elif item_num == "9A":
             stats.item_9a_present = True
@@ -294,17 +310,36 @@ def render_report(stats_list: list[FilingStats]) -> str:
     lines.append("## Per-filing breakdown")
     lines.append("")
     lines.append(
-        "| Ticker | FY | Converter | Cover anchor | TOC links | Bare --- | Strict page sep | Table --- | Item 10-14 (stub/real/total) | Item 1C | Item 9A | Truncated | FP risks |"
+        "Cover anchor values: ``primary`` = ``# Part I`` found; "
+        "``fallback`` = ``## Item 1`` found (BAC/JNJ style); "
+        "``**none**`` = neither found (cleaner will skip cover strip)."
+    )
+    lines.append("")
+    lines.append(
+        "Item 10-14 column format: ``stub/hybrid/real/total``. "
+        "``stub`` = would be removed by the cleaner; "
+        "``hybrid`` = contains ref sentence(s) but has enough non-ref "
+        "remainder to survive (e.g. AMT exec biographies, CRM Code of "
+        "Conduct); ``real`` = no ref sentence at all."
+    )
+    lines.append("")
+    lines.append(
+        "| Ticker | FY | Converter | Cover anchor | TOC links | Bare --- | Strict page sep | Table --- | Item 10-14 (stub/hybrid/real/total) | Item 1C | Item 9A | Truncated | FP risks |"
     )
     lines.append(
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
     )
     for s in sorted(stats_list, key=lambda x: (x.ticker, x.fiscal_year)):
+        anchor_cell = (
+            s.cover_page_anchor_type
+            if s.cover_page_anchor_found
+            else "**none**"
+        )
         lines.append(
             f"| {s.ticker} | {s.fiscal_year} | {s.converter} "
-            f"| {'Y' if s.cover_page_anchor_found else '**N**'} "
+            f"| {anchor_cell} "
             f"| {s.toc_link_count} | {s.bare_dash_count} | {s.page_sep_strict_count} | {s.table_sep_count} "
-            f"| {s.item_10_14_stub_count}/{s.item_10_14_real_count}/{s.item_10_14_total} "
+            f"| {s.item_10_14_stub_count}/{s.item_10_14_hybrid_count}/{s.item_10_14_real_count}/{s.item_10_14_total} "
             f"| {'real' if (s.item_1c_present and not s.item_1c_stub_like) else ('stub' if s.item_1c_present else '-')} "
             f"| {'Y' if s.item_9a_present else '-'} "
             f"| {len(s.truncated_headings)} "

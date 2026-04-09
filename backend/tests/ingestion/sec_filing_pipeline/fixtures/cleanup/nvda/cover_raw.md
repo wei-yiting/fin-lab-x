@@ -1,16 +1,3 @@
----
-ticker: NVDA
-cik: '1045810'
-company_name: NVIDIA CORP
-filing_type: 10-K
-filing_date: '2026-02-25'
-fiscal_year: 2026
-accession_number: 0001045810-26-000021
-source_url: https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm
-parsed_at: '2026-04-07T02:55:18.791255+00:00'
-converter: html-to-markdown
----
-
 [Table of Contents](#i82ea215a7c1f4862b6518f1348ddc832_7)
 
 UNITED STATES

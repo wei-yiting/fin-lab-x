@@ -1,15 +1,3 @@
----
-ticker: AMT
-cik: '1053507'
-company_name: AMERICAN TOWER CORP /MA/
-filing_type: 10-K
-filing_date: '2026-02-24'
-fiscal_year: 2025
-accession_number: 0001053507-26-000035
-source_url: https://www.sec.gov/Archives/edgar/data/1053507/000105350726000035/amt-20251231.htm
-parsed_at: '2026-04-07T04:38:07.741250+00:00'
-converter: html-to-markdown
----
 # Part I
 
 ## Item 1. Business

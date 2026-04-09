@@ -1,16 +1,3 @@
----
-ticker: JNJ
-cik: '200406'
-company_name: JOHNSON & JOHNSON
-filing_type: 10-K
-filing_date: '2026-02-11'
-fiscal_year: 2025
-accession_number: 0000200406-26-000016
-source_url: https://www.sec.gov/Archives/edgar/data/200406/000020040626000016/jnj-20251228.htm
-parsed_at: '2026-04-07T04:08:05.030338+00:00'
-converter: html-to-markdown
----
-
 UNITED STATES
 
 SECURITIES AND EXCHANGE COMMISSION

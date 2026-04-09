@@ -37,11 +37,13 @@ _ITEM_1_ANCHOR_RE = re.compile(r"^## (?:ITEM|Item) 1\b", re.MULTILINE)
 
 # Match: empty-or-numeric line + bare `---` line + optional TOC link line.
 # Markdown table separators (`| --- | --- |`) are pipe-flanked and never
-# match this pattern.
+# match this pattern. The trailing newlines are ``(?:\n|\Z)`` so the
+# separator still strips when it sits at end-of-file without a final
+# newline (``81\n---`` or ``81\n---\n[Table of Contents](#x)`` at EOF).
 _PAGE_SEP_RE = re.compile(
     r"^[ \t]*\d*[ \t]*\n"
-    r"---[ \t]*\n"
-    r"(?:\[Table of Contents\]\([^)]+\)[ \t]*\n)?",
+    r"---[ \t]*(?:\n|\Z)"
+    r"(?:\[Table of Contents\]\([^)]+\)[ \t]*(?:\n|\Z))?",
     re.MULTILINE,
 )
 
@@ -71,15 +73,18 @@ _INCORP_BY_REF_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Approximate sentence boundary — split only when the punctuation is
-# preceded by a LETTER (not a digit) and followed by whitespace + a
-# capital letter. The letter constraint avoids splitting at numeric
-# references like ``Item 1.`` or ``Item 14.`` inside a stub sentence,
-# which would otherwise let the second half escape ref-detection. The
-# capital-letter lookahead is a soft sentence-start hint. Still naive
-# enough to over-split on ``Mr. Vondran`` (harmless — both halves are
-# kept since neither contains the ref phrase).
-_SENTENCE_SPLIT_RE = re.compile(r"(?<=[A-Za-z][.!?])\s+(?=[A-Z])")
+# Approximate sentence boundary — split on sentence-ending punctuation
+# followed by whitespace + any non-whitespace char (letter, digit,
+# quote, paren, etc.). Over-splitting is harmless (e.g. ``Mr. Smith``
+# → two halves, neither contains the ref phrase, both kept and joined
+# back into the remainder). Under-splitting was the real bug: a
+# narrower splitter like ``(?=[A-Z])`` silently glues the next real
+# sentence onto the ref sentence when it starts with a digit
+# (``2025 saw growth...``), a quote (``"Executive..."``), or a paren
+# (``(See Item 11...)``), causing the whole chunk to be dropped as
+# part of the ref sentence — that violates the "prefer noise over
+# deletion" principle.
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=\S)")
 
 # Markdown link / image syntax. We strip these before counting remaining
 # content because image filenames and URL-strings are not prose — a
@@ -170,25 +175,39 @@ class MarkdownCleaner:
     # ------------------------------------------------------------------
 
     def _strip_cover_page(self, markdown: str) -> str:
-        """Remove boilerplate between the YAML frontmatter and the first Part I.
+        """Remove boilerplate between the document start and the first Part I.
 
-        Tries the primary anchor ``# Part I`` first, then falls back to
-        ``## Item 1`` (BAC, JNJ have no Part heading at all but do have
-        Item 1). If neither anchor is found (GE 2008, INTC 2025, BRK.B
-        2025 — non-standard formats), the cleaner logs a warning and
-        passes through unchanged. Frontmatter is always preserved.
+        Production contract: the cleaner runs on raw converter output,
+        which has no YAML frontmatter (``HtmlToMarkdownAdapter.convert``
+        strips any leading frontmatter). Frontmatter is only attached
+        later by ``LocalFilingStore.save()``. This method therefore
+        operates on the plain markdown body by default.
+
+        Defensively, the method still handles the stored-file shape
+        (leading ``---\\n...\\n---\\n`` frontmatter) so it stays robust
+        when called from tests or downstream re-processing. In that
+        case the frontmatter block is preserved verbatim and the anchor
+        search runs against the body portion only.
+
+        Anchor logic:
+
+        1. Primary: first ``# Part I`` (case-insensitive keyword).
+        2. Fallback: first ``## Item 1`` (BAC, JNJ have no Part heading
+           at all but do have Item 1).
+        3. Neither found (GE 2008, INTC 2025, BRK.B 2025 — non-standard
+           formats) → log warning, pass through unchanged. The
+           conservative principle wins: prefer leaving boilerplate over
+           risking deletion of real content.
         """
-        if not markdown.startswith("---\n"):
-            # No frontmatter — nothing to anchor against, leave unchanged.
-            return markdown
+        prefix = ""
+        body = markdown
 
-        fm_end = markdown.find("\n---\n", 4)
-        if fm_end == -1:
-            return markdown
-
-        body_start = fm_end + len("\n---\n")
-        prefix = markdown[:body_start]
-        body = markdown[body_start:]
+        if markdown.startswith("---\n"):
+            fm_end = markdown.find("\n---\n", 4)
+            if fm_end != -1:
+                body_start = fm_end + len("\n---\n")
+                prefix = markdown[:body_start]
+                body = markdown[body_start:]
 
         anchor = _PART_I_ANCHOR_RE.search(body)
         if anchor is None:
@@ -241,50 +260,21 @@ class MarkdownCleaner:
             if heading_line_end == -1:
                 continue
 
-            section_end = self._find_next_heading(markdown, heading_line_end + 1)
+            section_end = _find_next_heading(markdown, heading_line_end + 1)
             section_body = markdown[heading_line_end + 1 : section_end]
 
-            if self._is_pure_stub(section_body):
+            body_stripped = section_body.strip()
+            if not body_stripped or (
+                _INCORP_BY_REF_RE.search(section_body)
+                and is_pure_part_iii_stub(section_body)
+            ):
                 result_parts.append(markdown[last_end:heading_start])
                 last_end = section_end
-            # Hybrid / real content: leave the section in place by not
-            # advancing last_end. The next stub strip (or the final tail
-            # append) will sweep this section into the output.
+            # Hybrid / real content (or short section with no ref phrase):
+            # leave the section in place by not advancing last_end.
 
         result_parts.append(markdown[last_end:])
         return "".join(result_parts)
-
-    @staticmethod
-    def _find_next_heading(markdown: str, start: int) -> int:
-        """Return the index of the next ``^#{1,2} `` heading after ``start``, or end-of-string."""
-        match = _NEXT_HEADING_RE.search(markdown, start)
-        if match is None:
-            return len(markdown)
-        return match.start()
-
-    @staticmethod
-    def _is_pure_stub(section_body: str) -> bool:
-        """Decide whether a Part III item section body is a pure ref-to-Proxy stub.
-
-        Splits on approximate sentence boundaries, drops sentences that
-        contain the incorporated-by-reference pattern, strips markdown
-        link/image syntax (filenames and URLs are not prose), then
-        counts non-whitespace, non-structural chars. Below the threshold
-        ⇒ pure stub.
-
-        Naive sentence splitting is fine because the split is only used
-        to identify which sentences to drop; kept sentences still cover
-        the full character count of the original real content.
-        """
-        sentences = _SENTENCE_SPLIT_RE.split(section_body)
-        kept = [s for s in sentences if not _INCORP_BY_REF_RE.search(s)]
-        remaining = " ".join(kept)
-        # Strip markdown links / images so trailing images / footer URLs
-        # don't keep a stub section alive.
-        remaining = _MARKDOWN_LINK_RE.sub("", remaining)
-        # Strip whitespace plus markdown structural noise (---, |, *).
-        cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
-        return len(cleaned) < _PURE_STUB_REMAINING_THRESHOLD
 
     # ------------------------------------------------------------------
     # R2 Heading normalization
@@ -345,8 +335,13 @@ class MarkdownCleaner:
         """Return the title text if ``line`` looks like a split-off Item title.
 
         Returns ``None`` if ``line`` is empty, too long, a heading, a
-        code block, a markdown table, or (for the dash-prefix branch) a
-        bullet that doesn't look like a title.
+        code block, a markdown table, a bullet/plain line that doesn't
+        look like a title, or otherwise ordinary body prose.
+
+        Both branches (AMZN plain-text, AMT ``- `` bullet prefix) require
+        the content to look like a title — ALL CAPS or Title Case — so
+        that body prose such as ``The company operates in multiple
+        segments and ...`` is never merged into a heading.
         """
         stripped = line.strip()
         if not stripped or len(stripped) >= _NEXT_LINE_TITLE_MAX_LEN:
@@ -363,8 +358,11 @@ class MarkdownCleaner:
                 return content
             return None
 
-        # AMZN branch: plain text, must start with alphanumeric.
-        if stripped[0].isalnum():
+        # AMZN branch: plain text — require ALL CAPS or Title Case so
+        # ordinary body prose (``The company operates in ...``) never
+        # gets merged into a heading. This matches the dash-prefix
+        # branch's safety contract.
+        if stripped.isupper() or _looks_like_title_case(stripped):
             return stripped
         return None
 
@@ -471,11 +469,59 @@ def _needs_recasing(words: list[str]) -> bool:
     return False
 
 
+def _find_next_heading(markdown: str, start: int) -> int:
+    """Return the index of the next ``^#{1,2} `` heading after ``start``, or end-of-string."""
+    match = _NEXT_HEADING_RE.search(markdown, start)
+    if match is None:
+        return len(markdown)
+    return match.start()
+
+
+def is_pure_part_iii_stub(section_body: str) -> bool:
+    """Decide whether a Part III item section body is a pure ref-to-Proxy stub.
+
+    Exported at module level so both :class:`MarkdownCleaner` and the
+    ``validate_sec_md_cleanup`` script share the exact same decision
+    rule — otherwise the validator silently drifts from production
+    semantics and reports bad stub/real counts.
+
+    Splits on approximate sentence boundaries, drops sentences that
+    contain the incorporated-by-reference pattern, strips markdown
+    link/image syntax (filenames and URLs are not prose), then counts
+    non-whitespace, non-structural chars. Below the threshold ⇒ pure
+    stub.
+
+    Naive sentence splitting is fine because the split is only used to
+    identify which sentences to drop; kept sentences still contribute
+    their full character count toward the preservation decision.
+    """
+    sentences = _SENTENCE_SPLIT_RE.split(section_body)
+    kept = [s for s in sentences if not _INCORP_BY_REF_RE.search(s)]
+    remaining = " ".join(kept)
+    # Strip markdown links / images so trailing images / footer URLs
+    # don't keep a stub section alive.
+    remaining = _MARKDOWN_LINK_RE.sub("", remaining)
+    # Strip whitespace plus markdown structural noise (---, |, *).
+    cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
+    return len(cleaned) < _PURE_STUB_REMAINING_THRESHOLD
+
+
 def _capitalize_word(word: str) -> str:
-    """Capitalize a word, handling possessives like ``MANAGEMENT'S``."""
+    """Capitalize a word, handling possessives and hyphenated tokens.
+
+    - Possessives (``MANAGEMENT'S`` → ``Management's``): split on the
+      first apostrophe, capitalize the head, lowercase the tail.
+    - Hyphenated tokens (``10-K`` → ``10-K``, ``ALL-CAPS-TITLE`` →
+      ``All-Caps-Title``): split on ``-``, capitalize each segment,
+      rejoin. Without this, ``str.capitalize()`` lowercases everything
+      after the first character and corrupts canonical SEC terms like
+      ``10-K`` into ``10-k``.
+    """
     if "'" in word:
         head, _, tail = word.partition("'")
-        return head.capitalize() + "'" + tail.lower()
+        return _capitalize_word(head) + "'" + tail.lower()
+    if "-" in word:
+        return "-".join(segment.capitalize() for segment in word.split("-"))
     return word.capitalize()
 
 

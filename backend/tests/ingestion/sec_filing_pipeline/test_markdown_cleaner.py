@@ -13,7 +13,15 @@ def cleaner() -> MarkdownCleaner:
     return MarkdownCleaner()
 
 
-def _wrap_with_frontmatter(body: str, ticker: str = "TEST") -> str:
+def _with_frontmatter(body: str, ticker: str = "TEST") -> str:
+    """Wrap body with stored-file YAML frontmatter for defensive-shape tests.
+
+    The production pipeline never calls ``MarkdownCleaner.clean()`` with
+    frontmatter attached — the converter output is plain markdown and
+    ``LocalFilingStore.save()`` adds frontmatter *after* cleaning. This
+    helper is only used to verify the cleaner still handles the stored
+    shape correctly when called from tests or downstream re-processing.
+    """
     return (
         "---\n"
         f"ticker: {ticker}\n"
@@ -31,8 +39,15 @@ def _wrap_with_frontmatter(body: str, ticker: str = "TEST") -> str:
 
 
 class TestStripCoverPage:
-    def test_strips_content_between_frontmatter_and_part_i(self, cleaner):
-        markdown = _wrap_with_frontmatter(
+    """Test cover page stripping on plain markdown (production shape).
+
+    The cleaner receives plain markdown from ``convert_with_fallback()``
+    before the store attaches frontmatter. These tests feed that exact
+    shape.
+    """
+
+    def test_strips_content_before_part_i(self, cleaner):
+        markdown = (
             "UNITED STATES SECURITIES AND EXCHANGE COMMISSION\n\n"
             "Some cover page noise.\n\n"
             "Check the box ☒\n\n"
@@ -43,20 +58,18 @@ class TestStripCoverPage:
         result = cleaner._strip_cover_page(markdown)
         assert "UNITED STATES" not in result
         assert "Check the box" not in result
-        assert "# Part I" in result
+        assert result.startswith("# Part I")
         assert "## Item 1. Business" in result
         assert "We make widgets" in result
 
     def test_strips_uppercase_part_i_anchor(self, cleaner):
-        markdown = _wrap_with_frontmatter(
-            "Cover noise here.\n\n# PART I\n\n## ITEM 1. BUSINESS\n"
-        )
+        markdown = "Cover noise here.\n\n# PART I\n\n## ITEM 1. BUSINESS\n"
         result = cleaner._strip_cover_page(markdown)
         assert "Cover noise" not in result
-        assert "# PART I" in result
+        assert result.startswith("# PART I")
 
     def test_falls_back_to_item_1_anchor_when_part_i_missing(self, cleaner):
-        markdown = _wrap_with_frontmatter(
+        markdown = (
             "Cover page boilerplate here.\n\n"
             "Part I\n\n"  # plain text, not heading
             "## Item 1. Business\n\n"
@@ -64,31 +77,31 @@ class TestStripCoverPage:
         )
         result = cleaner._strip_cover_page(markdown)
         assert "boilerplate" not in result
-        assert "## Item 1. Business" in result
+        assert result.startswith("## Item 1. Business")
         assert "Real content" in result
 
     def test_passes_through_when_no_anchor_found(self, cleaner, caplog):
-        markdown = _wrap_with_frontmatter(
-            "Plain text without any headings.\nNothing structured here.\n"
-        )
+        markdown = "Plain text without any headings.\nNothing structured here.\n"
         with caplog.at_level(logging.WARNING):
             result = cleaner._strip_cover_page(markdown)
         assert "Plain text" in result  # nothing was deleted
         assert any("anchor" in rec.message.lower() for rec in caplog.records)
 
-    def test_preserves_frontmatter_unchanged(self, cleaner):
-        markdown = _wrap_with_frontmatter("noise\n\n# Part I\n\nreal\n", ticker="NVDA")
-        result = cleaner._strip_cover_page(markdown)
-        assert result.startswith("---\nticker: NVDA\n")
-        assert "noise" not in result
-
-    def test_no_frontmatter_pass_through(self, cleaner):
-        markdown = "Just some markdown without YAML frontmatter.\n# Part I\n"
-        result = cleaner._strip_cover_page(markdown)
-        assert result == markdown
-
     def test_empty_input(self, cleaner):
         assert cleaner._strip_cover_page("") == ""
+
+    def test_defensive_preserves_frontmatter_when_present(self, cleaner):
+        """Stored-file shape (frontmatter + body) still works defensively."""
+        markdown = _with_frontmatter("noise\n\n# Part I\n\nreal\n", ticker="NVDA")
+        result = cleaner._strip_cover_page(markdown)
+        assert result.startswith("---\nticker: NVDA\n")
+        assert "# Part I" in result
+        assert "noise" not in result
+
+    def test_defensive_no_frontmatter_plain_markdown(self, cleaner):
+        markdown = "Just some markdown without YAML frontmatter.\n# Part I\n"
+        result = cleaner._strip_cover_page(markdown)
+        assert result == "# Part I\n"
 
 
 # ===========================================================================
@@ -145,6 +158,22 @@ class TestStripPageSeparators:
         result = cleaner._strip_page_separators(markdown)
         # The regex requires the prev line to be empty/digits, so this should NOT match
         assert "---" in result
+
+    # --- m-1.1 regression: EOF page separators without trailing newline ---
+
+    def test_m11_strips_eof_separator_no_trailing_newline(self, cleaner):
+        markdown = "Body content.\n81\n---"
+        result = cleaner._strip_page_separators(markdown)
+        assert "---" not in result
+        assert "81" not in result
+        assert "Body content." in result
+
+    def test_m11_strips_eof_separator_with_toc_no_trailing_newline(self, cleaner):
+        markdown = "Body content.\n\n---\n[Table of Contents](#x)"
+        result = cleaner._strip_page_separators(markdown)
+        assert "---" not in result
+        assert "Table of Contents" not in result
+        assert "Body content." in result
 
 
 # ===========================================================================
@@ -290,6 +319,66 @@ class TestStripPartIIIStubs:
         assert "## Item 11." not in result
         assert "## Item 12." not in result
 
+    # --- B-1.2 regression tests: sentence splitter must not glue real
+    # follow-up sentences that start with non-ASCII-uppercase chars onto
+    # a ref sentence, causing them to be silently dropped ------------------
+
+    def test_b12_digit_start_follow_up_sentence_preserved(self, cleaner):
+        # Regression: a real sentence starting with a digit must NOT be
+        # glued to a preceding ref sentence and dropped. Section total
+        # must exceed the 100-char threshold after ref removal → kept.
+        markdown = (
+            "## Item 10. Directors\n\n"
+            "Information is incorporated herein by reference. "
+            "2024 saw strong growth of the business across all regions "
+            "and our directors oversaw a record capital expenditure program.\n\n"
+            "## Item 11. Compensation\n"
+        )
+        result = cleaner._strip_part_iii_stubs(markdown)
+        # The section must still be present with the digit-start follow-up.
+        assert "## Item 10." in result
+        assert "2024 saw strong growth" in result
+
+    def test_b12_quote_start_follow_up_sentence_preserved(self, cleaner):
+        markdown = (
+            "## Item 10. Directors\n\n"
+            "Information is incorporated by reference. "
+            "\"Executive Compensation\" section describes additional context "
+            "about the compensation committee, its charter, and the "
+            "role of outside independent directors.\n\n"
+            "## Item 11. Compensation\n"
+        )
+        result = cleaner._strip_part_iii_stubs(markdown)
+        assert "## Item 10." in result
+        assert "Executive Compensation" in result
+        assert "outside independent directors" in result
+
+    def test_b12_paren_start_follow_up_sentence_preserved(self, cleaner):
+        markdown = (
+            "## Item 10. Directors\n\n"
+            "Information required is incorporated herein by reference. "
+            "(See Item 11 for additional detail and related disclosures "
+            "about our directors, board committees, and governance "
+            "policies adopted under NYSE listing standards.)\n\n"
+            "## Item 11. Compensation\n"
+        )
+        result = cleaner._strip_part_iii_stubs(markdown)
+        assert "## Item 10." in result
+        assert "See Item 11 for additional detail" in result
+
+    def test_b21_short_no_ref_section_preserved(self, cleaner):
+        """B-2.1 regression: a short but genuine Item 10-14 section with no
+        ref phrase must NOT be deleted, even if its char count is below the
+        stub threshold."""
+        markdown = (
+            "## Item 10. Directors\n\n"
+            "Board oversight discussion.\n\n"
+            "## Item 11. Compensation\n"
+        )
+        result = cleaner._strip_part_iii_stubs(markdown)
+        assert "## Item 10." in result
+        assert "Board oversight discussion." in result
+
 
 # ===========================================================================
 # R2 Heading normalization
@@ -348,6 +437,21 @@ class TestNormalizeItemHeadings:
         result = cleaner._normalize_headings("## ITEM 7A. QUANTITATIVE DISCLOSURES\n")
         assert "## Item 7A. Quantitative Disclosures" in result
 
+    def test_m12_hyphenated_10_k_preserved_uppercase(self, cleaner):
+        # M-1.2 regression: `10-K` must stay `10-K` (not `10-k`) when
+        # title-casing an ALL CAPS title. ``str.capitalize()`` lowercases
+        # everything after the first char and corrupts canonical SEC
+        # terms.
+        result = cleaner._normalize_headings("## ITEM 16. FORM 10-K SUMMARY\n")
+        assert "## Item 16. Form 10-K Summary" in result
+        assert "10-k" not in result
+
+    def test_m12_hyphenated_s_k_preserved(self, cleaner):
+        result = cleaner._normalize_headings(
+            "## ITEM 15. REGULATION S-K EXHIBITS\n"
+        )
+        assert "## Item 15. Regulation S-K Exhibits" in result
+
 
 class TestSplitTitleMerge:
     def test_amzn_plain_text_next_line(self, cleaner):
@@ -399,6 +503,33 @@ class TestSplitTitleMerge:
         assert "## Item 1. B" in result
         assert any("truncated" in rec.message.lower() for rec in caplog.records)
 
+    # --- M-1.1 regression: plain-text next-line branch must not merge
+    # ordinary body prose into headings ---------------------------------
+
+    def test_m11_body_prose_not_merged_into_heading(self, cleaner):
+        # Body prose starts with a capital but is a full sentence, not a
+        # title — must NOT be merged into the bare heading.
+        markdown = (
+            "## Item 1.\n"
+            "The company operates in multiple segments and the results "
+            "are presented below.\n"
+        )
+        result = cleaner._merge_split_titles(markdown)
+        assert "## Item 1." in result
+        assert "## Item 1. The company operates" not in result
+        # The body prose must still be present on its own line.
+        assert "The company operates in multiple segments" in result
+
+    def test_m11_title_case_next_line_still_merged(self, cleaner):
+        markdown = "## Item 1.\nBusiness Description\n"
+        result = cleaner._merge_split_titles(markdown)
+        assert "## Item 1. Business Description" in result
+
+    def test_m11_all_caps_next_line_still_merged(self, cleaner):
+        markdown = "## Item 1.\nBUSINESS\n"
+        result = cleaner._merge_split_titles(markdown)
+        assert "## Item 1. BUSINESS" in result
+
 
 # ===========================================================================
 # End-to-end clean()
@@ -406,8 +537,11 @@ class TestSplitTitleMerge:
 
 
 class TestCleanEndToEnd:
+    """Validate clean() on the production contract: plain markdown from convert_with_fallback()."""
+
     def test_clean_pipeline_runs_all_steps(self, cleaner):
-        markdown = _wrap_with_frontmatter(
+        # Plain markdown — matches what ``convert_with_fallback()`` returns.
+        markdown = (
             "Cover page noise.\nUNITED STATES SEC.\n\n"
             "# PART I\n\n"
             "## ITEM 1. BUSINESS\n\n"
@@ -437,12 +571,10 @@ class TestCleanEndToEnd:
         assert "## Item 10." not in result
         assert "## ITEM 10." not in result
         # Part heading normalized
-        assert "# Part I" in result
-        # Frontmatter preserved
-        assert result.startswith("---\nticker: TEST\n")
+        assert result.startswith("# Part I")
 
     def test_clean_pure_passthrough_when_no_anchor(self, cleaner, caplog):
-        markdown = _wrap_with_frontmatter(
+        markdown = (
             "Just plain content without any structure.\n"
             "More plain content here.\n"
         )
@@ -453,7 +585,7 @@ class TestCleanEndToEnd:
         assert "More plain content" in result
 
     def test_clean_idempotent_on_already_clean_markdown(self, cleaner):
-        clean_md = _wrap_with_frontmatter(
+        clean_md = (
             "# Part I\n\n"
             "## Item 1. Business\n\n"
             "Clean content.\n\n"
@@ -463,6 +595,18 @@ class TestCleanEndToEnd:
         once = cleaner.clean(clean_md)
         twice = cleaner.clean(once)
         assert once == twice
+
+    def test_clean_defensive_with_frontmatter(self, cleaner):
+        """Stored-file shape (frontmatter prefix) still flows through clean() correctly."""
+        markdown = _with_frontmatter(
+            "Cover page noise.\n\n# Part I\n\n## Item 1. Business\n\nContent.\n",
+            ticker="TEST",
+        )
+        result = cleaner.clean(markdown)
+        assert result.startswith("---\nticker: TEST\n")
+        assert "noise" not in result
+        assert "# Part I" in result
+        assert "Content" in result
 
 
 # ===========================================================================
@@ -551,9 +695,11 @@ class TestFixtureInvariants:
     def test_jnj_pure_stubs_stripped(self, cleaner):
         raw = (FIXTURE_ROOT / "jnj" / "part_iii_raw.md").read_text()
         result = cleaner.clean(raw)
-        # JNJ Item 11 / 13 / 14 are pure single-sentence stubs
-        assert "## Item 11. Executive compensation" not in result
-        assert "## Item 11. Executive Compensation" not in result
+        # JNJ Item 13 / 14 are short single-sentence stubs — stripped.
+        # Item 11 / 12 contain more text around the ref sentences (post
+        # B-1.2 looser sentence splitter) and fall above the 100-char
+        # threshold → preserved as hybrid, matching the conservative
+        # "prefer noise over deletion" principle.
         assert "## Item 13" not in result
         assert "## Item 14" not in result
 

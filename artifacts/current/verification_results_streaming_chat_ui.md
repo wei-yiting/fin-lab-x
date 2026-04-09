@@ -37,6 +37,34 @@ _Pending — requires backend running on :8000._
 - Vitest 設定 `globals: false`，因此 test file 最頂端額外加上 `import { test, expect, beforeAll, afterAll } from 'vitest'`（計畫的 verbatim 片段未包含）。
 - `msw@2.13.2` 已加入 `frontend/package.json` devDependencies（僅套件本身，未執行 `pnpm dlx msw init public/`，service worker 初始化屬 M1 範疇）。
 
-## V-3 Result: TBD (useChat.stop() abort semantic)
+## V-3 Result: PASS — useChat.stop() abort semantic
 
-_Pending — Task 0.3._
+- **Contract test**: `frontend/src/__tests__/contract/use-chat-stop-semantic.test.ts`
+- **Runner**: `pnpm vitest run src/__tests__/contract/use-chat-stop-semantic.test.ts --reporter=verbose`
+- **Result**: 1 passed / 0 failed（`Tests 1 passed (1)`，duration ≈ 246ms — 遠低於 fixture 的 5s 長尾，證明 `stop()` 真的有中斷 stream）
+- **Assertions confirmed**：
+  - `result.current.status` 在 `await result.current.stop()` 之後成功 transition 回 `'ready'`（`waitFor` 成功 resolve）。
+  - `result.current.error` 在 stop 之後維持 `undefined`（**未** 被 `AbortError` 污染成 truthy）。
+- **結論**：AI SDK v6（`@ai-sdk/react@3.0.144` + `ai@6.0.142`）的 `useChat().stop()` 在 streaming 中途呼叫時，會 cleanly 中斷 fetch、把 status 拉回 `'ready'`、且**不會**把 `AbortError` 寫入 `error` field。BDD scenarios `S-stop-01/02/03` 假設的「stop 後 status 立即回 ready、error 保持 nil」前提**成立**。`ChatPanel.handleStop` **不需要** wrap try-catch + filter `AbortError` + 強制 `setStatus`，可直接呼叫 `useChat().stop()`。
+
+### Plan defect found — V-3 verbatim snippet uses `.toBeNull()` on a field typed `Error | undefined`
+- `artifacts/current/implementation_prerequisites_streaming_chat_ui.md` Section 4 V-3（行 617）的 verbatim 寫法是：
+  ```ts
+  expect(result.current.error).toBeNull() // 不能變 'error' 狀態
+  ```
+- 但 AI SDK v6 中 `useChat()` 回傳的 `error` 型別是 `Error | undefined`（不是 `Error | null`），參見 `node_modules/@ai-sdk/react/dist/index.d.ts`：
+  ```ts
+  error: Error | undefined;
+  ```
+  在 clean abort 路徑下 `error` 從未被 set，所以實際值是 `undefined`，原版 assertion 會誤報 `AssertionError: expected undefined to be null`，看起來像 V-3 FAIL，但其實是測試 assertion 用錯 matcher。
+- 已在 test file 修正為符合 SDK type 的兩段 assertion（保留 contract 的「無 error」語意）：
+  ```ts
+  expect(result.current.error).toBeUndefined()
+  expect(result.current.error).toBeFalsy()
+  ```
+- **行動建議**：後續更新 `implementation_prerequisites_streaming_chat_ui.md` Section 4 V-3 範例（行 617），把 `.toBeNull()` 換成 `.toBeUndefined()`，避免 Milestone 1+ 工作者再次踩到。此問題與 V-3 contract 本身無關，純粹是計畫文件對 AI SDK type 的記憶錯誤；BDD scenarios 用的「error stays nil」自然語言仍然成立（`undefined` 即為 nil 的一種具體形式）。
+
+### Additional notes
+- 同樣需要顯式 `import { test, expect, beforeAll, afterAll } from 'vitest'`（Vitest `globals: false`）。
+- MSW handler 用 `delay(5000)` 模擬長 stream，但測試只跑 ~250ms，證明 `stop()` 的 abort 訊號的確 propagate 到 `fetch` underlying 的 `AbortController`，而不是讓 test runner 等到 stream 自然結束。
+- 結論可繼續放行 BDD `S-stop-01/02/03` 的設計與 M5 ChatPanel 的 `handleStop` 直接呼叫策略。

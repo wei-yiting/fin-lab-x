@@ -9,7 +9,8 @@ graph LR
     subgraph "SEC Filing Pipeline"
         A[SECDownloader<br/>edgartools] --> B[HTMLPreprocessor<br/>strip XBRL/noise]
         B --> C[HTMLToMarkdownConverter<br/>adapter pattern]
-        C --> D[LocalFilingStore<br/>atomic write]
+        C --> M[MarkdownCleaner<br/>strip boilerplate +<br/>normalize headings]
+        M --> D[LocalFilingStore<br/>atomic write]
 
         C1[HtmlToMarkdownAdapter<br/>Rust, primary] -.-> C
         C2[MarkdownifyAdapter<br/>Python, fallback] -.-> C
@@ -35,6 +36,7 @@ graph LR
 | Download | `sec_downloader.py` | Fetches filing HTML from SEC EDGAR via edgartools. Maps edgartools exceptions to domain errors. Requires `EDGAR_IDENTITY` env var. |
 | Preprocess | `html_preprocessor.py` | Strips XBRL tags, removes decorative styles/hidden elements, unwraps `<font>` tags, normalizes hard-wrapped text whitespace (browser-equivalent collapsing), and promotes SEC Item patterns to semantic `<h>` headings. |
 | Convert | `html_to_md_converter.py` | Converts cleaned HTML to Markdown. Primary: html-to-markdown (Rust-based). Fallback: markdownify (pure Python, for linux-aarch64). |
+| Clean Markdown | `markdown_cleaner.py` | Strips converter-output boilerplate that has zero RAG value (cover pages, page separators, Part III stubs), and normalizes inconsistent Part / Item heading shapes across tickers. Conservative — preserves any section with substantive real content. See [Markdown Cleanup](#markdown-cleanup) below. |
 | Store | `filing_store.py` | Persists `.md` files with YAML frontmatter at `data/sec_filings/{TICKER}/10-K/{fiscal_year}.md`. Atomic writes via temp file + `os.replace`. |
 | Orchestrate | `pipeline.py` | `SECFilingPipeline` wires all stages. `process()` for single filing (JIT), `process_batch()` for multiple tickers with retry. |
 
@@ -246,3 +248,29 @@ Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), whi
 - **New filing type**: Add value to `FilingType` enum. Preprocessor heading patterns are 10-K specific — new types may need new patterns.
 - **New preprocessor rule**: Add a method to `HTMLPreprocessor`, call it in `preprocess()`. Rules execute sequentially.
 - **New converter**: Implement `HTMLToMarkdownConverter` protocol (`.name` property + `.convert()` method).
+- **New cleanup rule**: Add a private `_strip_*` or `_normalize_*` method to `MarkdownCleaner`, call it from `clean()`. Run `backend/scripts/validate_sec_md_cleanup.py` against the cache before and after to confirm the new rule's impact and absence of regressions.
+
+## Markdown Cleanup
+
+`MarkdownCleaner` runs after `convert_with_fallback()` to strip boilerplate and normalize headings. It operates at the markdown layer because page separators (`---`) are converter artifacts invisible in HTML, and heading casing inconsistencies only manifest after conversion.
+
+Design principle: **prefer leaving noise over risking deletion of real content.** The downstream LLM can filter noise, but deleted content is gone for good.
+
+### Cleanup rules
+
+| Rule | What it does | Safety |
+|------|-------------|--------|
+| **Cover page strip** | Removes content between frontmatter and `# Part I` (or fallback `## Item 1`). | Pass-through + warning if no anchor found. |
+| **Page separator strip** | Removes bare `---` lines with optional digit-line and `[Table of Contents]` link. | Pipe-flanked table separators never match. |
+| **Part III stub strip** | Removes Item 10-14 sections that are pure "incorporated by reference" stubs. Drops ref-sentences first, then checks if < 100 chars remain. | Preserves hybrid sections (e.g. AMT exec biographies, CRM Code of Conduct). `\b` boundary protects Item 1C/9A/9B/9C. |
+| **Heading normalization** | Standardizes to `# Part {Roman}` / `## Item {num}. {Title}`. Title-cases ALL CAPS and sentence-case titles. Merges split-line titles. | Mixed-case left alone. Abbreviations (`MD&A`, `SEC`, `U.S.`) preserved. |
+
+### Re-running validation
+
+```bash
+uv run python backend/scripts/validate_sec_md_cleanup.py \
+  --cache-dir data/sec_filings \
+  --output artifacts/current/validation_cleanup_patterns.md
+```
+
+Validated against 24 tickers / 29 filings across 8 industries. Existing cached filings are not retroactively cleaned — use `--force` to reprocess.

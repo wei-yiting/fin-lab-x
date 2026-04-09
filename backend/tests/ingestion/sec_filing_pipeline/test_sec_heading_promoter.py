@@ -395,6 +395,77 @@ class TestDetectItemRegions:
         assert len(regions) == 4
         assert [r.item_num for r in regions] == ["5", "1", "10", "2"]
 
+    def test_drops_toc_only_items_before_body_start(self):
+        # BRK.A/B-style: Items 10/11 only exist in TOC <table>; body has
+        # only Items 1 and 15. The TOC anchors must be dropped so the
+        # final region order is monotonic and limited to body anchors.
+        soup = _parse(
+            '<html><body>'
+            '<table><tr>'
+            '<td>Item 1.</td>'
+            '<td>Item 10.</td>'
+            '<td>Item 11.</td>'
+            '</tr></table>'
+            '<div>Item 1. Business</div>'
+            '<p>Business content</p>'
+            '<div>Item 15. Exhibits</div>'
+            '<p>Exhibits content</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        item_nums = [r.item_num for r in regions]
+        assert item_nums == ["1", "15"]
+        for r in regions:
+            assert r.start_tag.name == "div"
+
+    def test_keeps_all_when_fully_table_layout(self):
+        # Hypothetical filing where all Items live inside <table> cells
+        # (no body anchors at all). non_table_positions is empty, so the
+        # drop pass falls through and every item is kept.
+        soup = _parse(
+            '<html><body>'
+            '<table>'
+            '<tr><td>Item 1. Business</td></tr>'
+            '<tr><td>Item 2. Properties</td></tr>'
+            '<tr><td>Item 3. Legal</td></tr>'
+            '</table>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert [r.item_num for r in regions] == ["1", "2", "3"]
+
+    def test_keeps_body_table_items_after_non_table_start(self):
+        # Mixed: first body Item is non-table; a later Item lives inside
+        # a body layout table. The table-ancestor item is AFTER body_start
+        # so the drop rule does not apply and both are kept.
+        soup = _parse(
+            '<html><body>'
+            '<div>Item 1. Business</div>'
+            '<p>Business content</p>'
+            '<table><tr><td>Item 2. Properties</td></tr></table>'
+            '<p>Properties content</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert [r.item_num for r in regions] == ["1", "2"]
+
+    def test_keeps_non_table_toc_and_body(self):
+        # TOC entry is a non-table <div> followed by the body <div>.
+        # last-occurrence dedup picks the body anchor; the C1 drop rule
+        # does not interfere because neither tag has a table ancestor.
+        soup = _parse(
+            '<html><body>'
+            '<div>Item 1.</div>'
+            '<p>cover content</p>'
+            '<div>Item 1. Business</div>'
+            '<p>actual business content</p>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 1
+        assert regions[0].item_num == "1"
+        assert regions[0].start_tag.get_text(strip=True) == "Item 1. Business"
+
     def test_detect_item_regions_subnumbered(self):
         # Items 1, 1A, 1B, 1C, 2 — 5 distinct regions in order
         soup = _parse(

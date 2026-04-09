@@ -69,6 +69,27 @@ def detect_item_regions(soup: BeautifulSoup) -> list[ItemRegion]:
     if not last_occurrence:
         return []
 
+    # BRK.A/B drop-pass: filings that cross-reference Items 10-14 to a
+    # consolidated section only have those Items in the TOC <table>; the
+    # body never re-anchors them. Without this filter the last-occurrence
+    # picks the TOC anchors, producing non-monotonic regions like
+    # [10, 11, 12, ..., 1, 1A, ...]. Identify "TOC-only-before-body" by
+    # finding any item anchor whose doc_index is earlier than the first
+    # non-table anchor AND whose tag has a table ancestor.
+    non_table_positions = [
+        idx for idx, tag in last_occurrence.values() if not has_table_ancestor(tag)
+    ]
+    if non_table_positions:
+        body_start = min(non_table_positions)
+        last_occurrence = {
+            item_num: (idx, tag)
+            for item_num, (idx, tag) in last_occurrence.items()
+            if not (idx < body_start and has_table_ancestor(tag))
+        }
+
+    if not last_occurrence:
+        return []
+
     # Sort by document position (idx) to preserve raw document order
     sorted_items = sorted(
         last_occurrence.items(), key=lambda kv: kv[1][0]

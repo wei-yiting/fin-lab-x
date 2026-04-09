@@ -94,10 +94,15 @@ def _is_isolated_item_block(tag: Tag, body_font_size: float | None) -> bool:
         return False
 
     def _first_tag_sibling(node: Tag, direction: str) -> Tag | None:
+        # Workiva-style filings (JPM) insert empty <div style="margin-bottom:6pt">
+        # spacers between block headings purely for layout. Treat them as
+        # invisible: keep walking past empty-text Tag siblings until we find a
+        # real one (or run out).
         sib = getattr(node, direction)
         while sib is not None:
             if isinstance(sib, Tag):
-                return sib
+                if sib.get_text(strip=True) != "":
+                    return sib
             sib = getattr(sib, direction)
         return None
 
@@ -109,6 +114,27 @@ def _is_isolated_item_block(tag: Tag, body_font_size: float | None) -> bool:
             return False
 
     return True
+
+
+def _has_item_strong_size_signal(
+    tag: Tag, text: str, body_font_size: float | None
+) -> bool:
+    """Promote short Item-regex blocks whose font-size clearly exceeds body.
+
+    Bypasses sibling-isolation checks: the size jump (>10%) plus short text
+    plus the strict Item regex anchor make false positives unlikely. Targets
+    JPM-style filings where body Item headings are non-bold but use a 12pt
+    span over a 10pt body, and adjacent siblings are real body <div>s that
+    block the standard isolation path.
+    """
+    if body_font_size is None:
+        return False
+    if len(text) >= 150:
+        return False
+    tag_size = extract_dominant_font_size(tag)
+    if tag_size is None:
+        return False
+    return tag_size > body_font_size * 1.1
 
 
 def _has_bold_signal(tag: Tag) -> bool:
@@ -221,6 +247,7 @@ class HTMLPreprocessor:
         # detect_item_regions must run before the Part/Item loop rewrites div/p to h2,
         # because the detection scans for div/p/td/th matching the Item pattern.
         regions = detect_item_regions(soup)
+        region_start_ids: set[int] = {id(r.start_tag) for r in regions}
         part_anchor_ids: set[int] = {
             id(t) for t in detect_part_anchors(soup, is_eligible=_has_bold_signal)
         }
@@ -248,14 +275,18 @@ class HTMLPreprocessor:
                     continue
                 heading_level = "h1"
             elif _ITEM_RE.match(text):
+                if id(tag) not in region_start_ids:
+                    continue
                 heading_level = "h2"
 
             if not heading_level:
                 continue
 
             if heading_level == "h2":
-                should_promote = _has_bold_signal(tag) or _is_isolated_item_block(
-                    tag, body_font_size
+                should_promote = (
+                    _has_bold_signal(tag)
+                    or _is_isolated_item_block(tag, body_font_size)
+                    or _has_item_strong_size_signal(tag, text, body_font_size)
                 )
             else:
                 should_promote = _has_bold_signal(tag)

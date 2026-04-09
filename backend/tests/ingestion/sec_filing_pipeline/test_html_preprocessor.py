@@ -1,7 +1,10 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor
+from backend.ingestion.sec_filing_pipeline.html_preprocessor import (
+    HTMLPreprocessor,
+    _is_isolated_item_block,
+)
 
 
 @pytest.fixture()
@@ -263,6 +266,235 @@ class TestHeadingPromotion:
         assert len(h1_tags) == 1
         assert h1_tags[0].get_text(strip=True) == "PART I"
 
+    def test_item_promotion_ssot_skips_toc_duplicate(self, preprocessor):
+        # CRM/BAC-style 10-K layout: TOC table contains <td>Item 1.</td> and
+        # body has its own <div>Item 1. Business</div>. Both are bold.
+        # detect_item_regions picks the body div (last occurrence) as the
+        # region anchor, so only the body div should become <h2>; the TOC
+        # <td> must remain a <td>.
+        html = (
+            "<html><body>"
+            "<table><tr>"
+            '<td><span style="font-weight:700">Item 1.</span></td>'
+            "</tr></table>"
+            '<div><span style="font-weight:700">Item 1. Business</span></div>'
+            "<p>Body text describing the business.</p>"
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        assert len(h2_tags) == 1
+        assert h2_tags[0].get_text(strip=True) == "Item 1. Business"
+        # TOC td must remain unchanged
+        toc_td = result_soup.find("td")
+        assert toc_td is not None
+        assert toc_td.get_text(strip=True) == "Item 1."
+
+    def test_item_promotion_ssot_multiple_items(self, preprocessor):
+        # 5 Items in TOC + 5 Items in body, all bold. After preprocess,
+        # exactly 5 <h2>s, all from the body region.
+        toc_rows = "".join(
+            f'<tr><td><span style="font-weight:700">Item {n}.</span></td></tr>'
+            for n in (1, "1A", 2, 3, 4)
+        )
+        body_blocks = "".join(
+            f'<div><span style="font-weight:700">Item {n}. Section {n}</span></div>'
+            f"<p>Body content for section {n}.</p>"
+            for n in (1, "1A", 2, 3, 4)
+        )
+        html = f"<html><body><table>{toc_rows}</table>{body_blocks}</body></html>"
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        assert len(h2_tags) == 5
+        # All h2s should be the body "Item N. Section N" form, not the
+        # TOC "Item N." form
+        for h2 in h2_tags:
+            assert "Section" in h2.get_text(strip=True)
+
+
+# ---------- Isolated item block sibling scan ----------
+
+
+class TestIsolatedItemBlock:
+    def test_skips_empty_prev_spacer(self):
+        # JPM/Workiva pattern: empty <div> spacer precedes the Item div.
+        # The spacer must be skipped so isolation succeeds.
+        soup = BeautifulSoup(
+            "<html><body>"
+            '<div style="margin-bottom:6pt"></div>'
+            '<div><span style="font-size:12pt">Item 1.</span></div>'
+            "<p>Body paragraph after item.</p>"
+            "</body></html>",
+            "html.parser",
+        )
+        item_div = soup.find_all("div")[1]
+        assert _is_isolated_item_block(item_div, body_font_size=10.0) is True
+
+    def test_blocked_by_text_prev_div(self):
+        # Real (non-empty) prev div sibling must still block isolation.
+        soup = BeautifulSoup(
+            "<html><body>"
+            "<div>real content here</div>"
+            '<div><span style="font-size:12pt">Item 1.</span></div>'
+            "<p>Body paragraph after item.</p>"
+            "</body></html>",
+            "html.parser",
+        )
+        item_div = soup.find_all("div")[1]
+        assert _is_isolated_item_block(item_div, body_font_size=10.0) is False
+
+    def test_walks_past_multiple_empty_siblings(self):
+        # Two empty spacer divs followed by a real text div — the third
+        # sibling is the blocker.
+        soup = BeautifulSoup(
+            "<html><body>"
+            "<div>real text</div>"
+            '<div style="margin-bottom:3pt"></div>'
+            '<div style="margin-bottom:3pt"></div>'
+            '<div><span style="font-size:12pt">Item 1.</span></div>'
+            "<p>Body paragraph after item.</p>"
+            "</body></html>",
+            "html.parser",
+        )
+        item_div = soup.find_all("div")[3]
+        assert _is_isolated_item_block(item_div, body_font_size=10.0) is False
+
+    def test_all_siblings_empty_returns_true(self):
+        # Both prev and next siblings are empty Tags — isolation passes.
+        soup = BeautifulSoup(
+            "<html><body>"
+            '<div style="margin-bottom:6pt"></div>'
+            '<div><span style="font-size:12pt">Item 1.</span></div>'
+            '<div style="margin-bottom:6pt"></div>'
+            "</body></html>",
+            "html.parser",
+        )
+        item_div = soup.find_all("div")[1]
+        assert _is_isolated_item_block(item_div, body_font_size=10.0) is True
+
+    def test_strong_signal_promotes_non_bold_item_with_size_jump(self, preprocessor):
+        # JPM-style: non-bold Item with 12pt span over 10pt body. The next
+        # sibling is a real body <div> that blocks _is_isolated_item_block.
+        # The strong-signal path should bypass the sibling check and
+        # promote based on the >10% font-size jump alone.
+        html = (
+            "<html><body>"
+            '<p><span style="font-size:10pt">Body paragraph one establishing the body font size baseline.</span></p>'
+            "<div>"
+            '<span style="font-size:12pt;font-weight:400">Item 1. Business.</span>'
+            "</div>"
+            '<div><span style="font-size:10pt">Real body paragraph in a div that would normally block isolation.</span></div>'
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        assert len(h2_tags) == 1
+        assert h2_tags[0].get_text(strip=True) == "Item 1. Business."
+
+    def test_strong_signal_rejects_long_text(self, preprocessor):
+        # Item-regex match but text length >= 100 → strong-signal path
+        # rejects to avoid promoting body paragraphs.
+        long_tail = (
+            "This is a very long paragraph of text that describes the company's "
+            "business operations in detail and mentions many specific subsidiaries "
+            "and product lines that we sell."
+        )
+        html = (
+            "<html><body>"
+            '<p><span style="font-size:10pt">Body paragraph one establishing the body font size baseline value.</span></p>'
+            "<div>"
+            f'<span style="font-size:12pt;font-weight:400">Item 1. {long_tail}</span>'
+            "</div>"
+            '<div><span style="font-size:10pt">Real body paragraph after.</span></div>'
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        assert result_soup.find_all("h2") == []
+
+    def test_strong_signal_rejects_small_size_jump(self, preprocessor):
+        # font-size 10.5pt vs body 10pt → ratio 1.05 < 1.1 → rejected.
+        html = (
+            "<html><body>"
+            '<p><span style="font-size:10pt">Body paragraph one establishing the body font size baseline value here.</span></p>'
+            "<div>"
+            '<span style="font-size:10.5pt;font-weight:400">Item 1. Business.</span>'
+            "</div>"
+            '<div><span style="font-size:10pt">Real body paragraph after.</span></div>'
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        assert result_soup.find_all("h2") == []
+
+    def test_strong_signal_rejects_equal_font_size(self, preprocessor):
+        # font-size equal to body → no jump → rejected.
+        html = (
+            "<html><body>"
+            '<p><span style="font-size:10pt">Body paragraph one establishing the body font size baseline value here.</span></p>'
+            "<div>"
+            '<span style="font-size:10pt;font-weight:400">Item 1. Business.</span>'
+            "</div>"
+            '<div><span style="font-size:10pt">Real body paragraph after.</span></div>'
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        assert result_soup.find_all("h2") == []
+
+    def test_strong_signal_does_not_override_bold_path(self, preprocessor):
+        # Bold Item with no font-size jump must still promote via the
+        # bold-signal path even though the strong-signal path would
+        # reject (no body font-size info, no size jump).
+        html = (
+            "<html><body>"
+            "<div>"
+            '<span style="font-weight:700">Item 1. Business</span>'
+            "</div>"
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        assert len(h2_tags) == 1
+        assert h2_tags[0].get_text(strip=True) == "Item 1. Business"
+
+    def test_jpm_style_non_bold_item_with_spacer_promotes(self, preprocessor):
+        # Integration test combining Fix A + Fix B: JPM-like fragment with
+        # a non-bold body Item heading preceded by a Workiva spacer and a
+        # TOC <td>. The TOC lives in a separate outer wrapper so it is not
+        # a direct sibling of the body Item div (mirrors real Workiva
+        # output where TOC and body sit in different sections). Only the
+        # body div should become <h2>.
+        html = (
+            "<html><body>"
+            "<div>"
+            "<table><tr>"
+            '<td><span style="font-size:10pt">Item 1.</span></td>'
+            "</tr></table>"
+            "</div>"
+            "<section>"
+            '<div style="margin-bottom:6pt"></div>'
+            "<div>"
+            '<span style="font-size:12pt;font-weight:400">Item 1. Business.</span>'
+            "</div>"
+            '<p><span style="font-size:10pt">Body paragraph describing the business of the registrant.</span></p>'
+            "</section>"
+            "</body></html>"
+        )
+        result = preprocessor.preprocess(html)
+        result_soup = BeautifulSoup(result, "html.parser")
+        h2_tags = result_soup.find_all("h2")
+        assert len(h2_tags) == 1
+        assert h2_tags[0].get_text(strip=True) == "Item 1. Business."
+        # TOC td must remain unchanged
+        toc_td = result_soup.find("td")
+        assert toc_td is not None
+        assert toc_td.get_text(strip=True) == "Item 1."
+
 
 # ---------- Preprocessing order ----------
 
@@ -383,17 +615,18 @@ class TestClassCFallback:
         result = preprocessor.preprocess(html)
         assert "<h2>" not in result
 
-    def test_intc_non_bold_item_not_promoted_when_not_isolated(self, preprocessor):
-        # Item text is inside a div that has block-level siblings → not isolated → should NOT promote
+    def test_intc_non_bold_item_not_promoted_when_size_below_strong_signal(self, preprocessor):
+        # Non-bold Item with sibling block. The strong-signal path now
+        # bypasses sibling checks for clear font-size jumps, so the
+        # rejection must come from a sub-threshold size ratio (10.5/10
+        # = 1.05 < 1.1) rather than the isolation sibling guard.
         html = (
             '<div>'
-            '<div><span style="font-weight:400;font-size:14pt">Item 1. Business</span></div>'
-            '<div><span style="font-size:10pt">Some sibling block content here.</span></div>'
+            '<div><span style="font-weight:400;font-size:10.5pt">Item 1. Business</span></div>'
+            '<div><span style="font-size:10pt">Some sibling block content here long enough to count.</span></div>'
             '</div>'
         )
         result = preprocessor.preprocess(html)
-        # The outer div wrapping both blocks should not be promoted (has block children)
-        # The inner Item div itself has a block-level sibling div → not isolated
         result_soup = BeautifulSoup(result, "html.parser")
         h2_tags = result_soup.find_all("h2")
         assert len(h2_tags) == 0

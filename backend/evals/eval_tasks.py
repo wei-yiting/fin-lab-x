@@ -71,6 +71,17 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
     )
 
 
+def run_sec_retrieval(input: Any) -> dict:
+    """Retrieval-only eval task — calls search() directly, no agent, no filters."""
+    import asyncio
+
+    from backend.ingestion.sec_dense_pipeline.retriever import search
+
+    question = input["question"]
+    chunks = asyncio.run(search(query=question, top_k=10))
+    return {"retrieved_chunks": [chunk.model_dump() for chunk in chunks]}
+
+
 async def run_v1(input: Any) -> OrchestratorResult:
     """Braintrust task function: run v1_baseline agent via async streaming.
 

@@ -22,7 +22,7 @@ _REPEATED_TEXT_MAX_LEN = 50
 _SELF_REFERENCE_RE = re.compile(r"^\s*Item\s+\d+[A-Z]?\b", re.IGNORECASE)
 
 
-def _build_noise_tokens(soup: BeautifulSoup) -> frozenset[str]:
+def build_noise_tokens(soup: BeautifulSoup) -> frozenset[str]:
     """Collect short block texts that appear at least _REPEATED_TEXT_MIN_OCCURRENCES
     times — typically page header/footer noise like 'Part I' or 'Bank of America'."""
     counter: Counter[str] = Counter()
@@ -33,7 +33,7 @@ def _build_noise_tokens(soup: BeautifulSoup) -> frozenset[str]:
     return frozenset(t for t, count in counter.items() if count >= _REPEATED_TEXT_MIN_OCCURRENCES)
 
 
-def _is_self_reference(text: str) -> bool:
+def is_self_reference(text: str) -> bool:
     """Return True if text looks like an Item N reference rather than a sub-section."""
     return _SELF_REFERENCE_RE.match(text) is not None
 
@@ -49,19 +49,28 @@ def detect_item_regions(soup: BeautifulSoup) -> list[ItemRegion]:
     """Return ordered list of body-level Item regions.
 
     Algorithm:
-      1. Find all block elements (div/p/td/th) whose stripped text matches
+      1. Find all block elements (div/p/td/th) whose normalized text matches
          ^Item\\s+\\d+[A-Z]?\\..
       2. Group by normalized item_num.
       3. For each item_num pick the LAST occurrence (TOC is always before body).
       4. Sort picked tags by document position.
       5. Pair each tag with its successor as end_tag; last tag has end_tag=None.
+
+    Text normalization mirrors ``detect_part_anchors`` — we use
+    ``" ".join(tag.get_text().split())`` rather than ``get_text(strip=True)``
+    so Donnelley/Workiva markup that splits heading text across adjacent
+    spans (``<span>Item</span><span> 7.</span>``) resolves to ``"Item 7."``
+    instead of ``"Item7."`` and the regex can still match.
     """
     all_blocks = soup.find_all(_ITEM_REGION_BLOCKS)
 
     # Map item_num -> (doc_index, tag); last write wins (last occurrence heuristic)
     last_occurrence: dict[str, tuple[int, Tag]] = {}
     for idx, tag in enumerate(all_blocks):
-        match = _ITEM_HEADING_RE.match(tag.get_text(strip=True))
+        text = " ".join(tag.get_text().split())
+        if not text:
+            continue
+        match = _ITEM_HEADING_RE.match(text)
         if match:
             item_num = match.group(1).upper()
             last_occurrence[item_num] = (idx, tag)
@@ -299,7 +308,7 @@ def promote_subsections(
     if not regions:
         return
 
-    noise_tokens = _build_noise_tokens(soup)
+    noise_tokens = build_noise_tokens(soup)
 
     # Include h1/h2 because the Part/Item promotion pass running before this
     # function may have already rewritten the regions' start_tag from div/p to
@@ -329,7 +338,7 @@ def promote_subsections(
             if not is_bold_only_block(b):
                 continue
             text = b.get_text(strip=True)
-            if text in noise_tokens or _is_self_reference(text):
+            if text in noise_tokens or is_self_reference(text):
                 continue
             candidates.append(b)
         if not candidates:

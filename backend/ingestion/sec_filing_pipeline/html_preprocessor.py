@@ -81,7 +81,7 @@ def _estimate_body_font_size(soup: BeautifulSoup) -> float | None:
     return max(size_char_counts, key=lambda s: size_char_counts[s])
 
 
-def _is_isolated_item_block(tag: Tag, body_font_size: float | None) -> bool:
+def is_isolated_item_block(tag: Tag, body_font_size: float | None) -> bool:
     if tag.name in ("td", "th"):
         return False
     if has_table_ancestor(tag):
@@ -285,7 +285,7 @@ class HTMLPreprocessor:
             if heading_level == "h2":
                 should_promote = (
                     _has_bold_signal(tag)
-                    or _is_isolated_item_block(tag, body_font_size)
+                    or is_isolated_item_block(tag, body_font_size)
                     or _has_item_strong_size_signal(tag, text, body_font_size)
                 )
             else:

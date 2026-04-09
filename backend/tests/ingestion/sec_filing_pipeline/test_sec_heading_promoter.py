@@ -2,13 +2,13 @@ from bs4 import BeautifulSoup
 
 from backend.ingestion.sec_filing_pipeline.sec_heading_promoter import (
     ItemRegion,
-    _build_noise_tokens,
-    _is_self_reference,
+    build_noise_tokens,
     detect_item_regions,
     detect_part_anchors,
     extract_dominant_font_size,
     has_table_ancestor,
     is_bold_only_block,
+    is_self_reference,
     promote_subsections,
 )
 
@@ -485,6 +485,21 @@ class TestDetectItemRegions:
             assert regions[i].end_tag is regions[i + 1].start_tag
         assert regions[-1].end_tag is None
 
+    def test_detect_item_regions_text_split_across_spans(self):
+        # Donnelley/Workiva sometimes split heading text across adjacent
+        # spans, with the whitespace living in a separate text node:
+        # <span>Item</span><span>&nbsp;7.</span><span> MD&A</span>.
+        # get_text(strip=True) would collapse this to "Item7.MD&A" and
+        # break the Item regex; the normalized path must still detect it.
+        soup = _parse(
+            '<html><body>'
+            '<div><span>Item</span><span>&nbsp;7.</span><span> MD&A</span></div>'
+            '</body></html>'
+        )
+        regions = detect_item_regions(soup)
+        assert len(regions) == 1
+        assert regions[0].item_num == "7"
+
 
 # ---------- detect_part_anchors ----------
 
@@ -747,7 +762,7 @@ class TestPromoteSubsections:
         assert "Critical Accounting Estimates" in h3.get_text()
 
 
-# ---------- _build_noise_tokens ----------
+# ---------- build_noise_tokens ----------
 
 
 class TestBuildNoiseTokens:
@@ -755,20 +770,20 @@ class TestBuildNoiseTokens:
         # "Part I" repeated 20 times across block elements → must be in noise set
         repeated = '<p>Part I</p>' * 20
         soup = _parse(f'<html><body>{repeated}</body></html>')
-        noise = _build_noise_tokens(soup)
+        noise = build_noise_tokens(soup)
         assert "Part I" in noise
 
     def test_build_noise_tokens_infrequent_text_not_noise(self):
         # "Our Company" appears only once → not a noise token
         soup = _parse('<html><body><p>Our Company</p></body></html>')
-        noise = _build_noise_tokens(soup)
+        noise = build_noise_tokens(soup)
         assert "Our Company" not in noise
 
     def test_build_noise_tokens_boundary_below_threshold(self):
         # Text appearing exactly 3 times (threshold is 4) → not in noise set
         repeated = '<p>Section Header</p>' * 3
         soup = _parse(f'<html><body>{repeated}</body></html>')
-        noise = _build_noise_tokens(soup)
+        noise = build_noise_tokens(soup)
         assert "Section Header" not in noise
 
     def test_build_noise_tokens_long_text_excluded(self):
@@ -776,19 +791,19 @@ class TestBuildNoiseTokens:
         long_text = "A" * 51
         repeated = f'<p>{long_text}</p>' * 20
         soup = _parse(f'<html><body>{repeated}</body></html>')
-        noise = _build_noise_tokens(soup)
+        noise = build_noise_tokens(soup)
         assert long_text not in noise
 
 
-# ---------- _is_self_reference ----------
+# ---------- is_self_reference ----------
 
 
 class TestIsSelfReference:
     def test_is_self_reference_item_7a_body(self):
-        assert _is_self_reference("Item 7A Risk") is True
+        assert is_self_reference("Item 7A Risk") is True
 
     def test_is_self_reference_non_item_text(self):
-        assert _is_self_reference("Critical Accounting Estimates") is False
+        assert is_self_reference("Critical Accounting Estimates") is False
 
 
 # ---------- promote_subsections with false positive filters ----------

@@ -5,13 +5,21 @@ import { toFriendlyError } from "@/lib/error-messages"
 import type { ToolUIState } from "@/models"
 
 type ToolPart = {
-  type: "tool"
+  type: string
   toolCallId: string
-  toolName: string
+  toolName?: string
+  title?: string
   state: string
   input: unknown
   output?: unknown
   errorText?: string
+}
+
+function resolveToolName(part: ToolPart): string {
+  if (part.toolName) return part.toolName
+  if (part.title) return part.title
+  if (part.type.startsWith("tool-")) return part.type.slice(5)
+  return part.type
 }
 
 export function ToolCard({
@@ -46,7 +54,7 @@ export function ToolCard({
         >
           <ToolRow
             visualState={visualState}
-            toolName={part.toolName}
+            toolName={resolveToolName(part)}
             progressText={progressText}
             friendlyTitle={friendly?.title}
           />

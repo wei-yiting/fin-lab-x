@@ -35,7 +35,20 @@ type LastTrigger =
 export function ChatPanel() {
   const [chatId, setChatId] = useState(() => crypto.randomUUID())
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/v1/chat", fetch: statusAwareFetch }),
+    () => new DefaultChatTransport({
+      api: "/api/v1/chat",
+      fetch: statusAwareFetch,
+      prepareSendMessagesRequest: ({ id, messages: msgs, trigger, messageId: msgId }) => {
+        if (trigger === "regenerate-message") {
+          return { body: { id, trigger: "regenerate", messageId: msgId } }
+        }
+        const lastUserMsg = [...msgs].reverse().find(m => m.role === "user")
+        const text = lastUserMsg
+          ? lastUserMsg.parts?.find((p: Record<string, unknown>) => p.type === "text")?.text ?? ""
+          : ""
+        return { body: { id, message: text } }
+      },
+    }),
     [],
   )
   const { toolProgress, handleData, clearProgress } = useToolProgress()

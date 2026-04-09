@@ -32,4 +32,12 @@ export type NetworkFailureFixture = {
   networkFailure: true
 }
 
-export type SSEFixture = SSEStreamFixture | PreStreamErrorFixture | NetworkFailureFixture
+export type SingleFixture = SSEStreamFixture | PreStreamErrorFixture | NetworkFailureFixture
+
+export type SequentialFixture = {
+  description: string
+  scenarios: string[]
+  responses: SingleFixture[]
+}
+
+export type SSEFixture = SingleFixture | SequentialFixture

@@ -1,10 +1,12 @@
 import { http, HttpResponse, delay } from 'msw'
-import type { SSEStreamFixture } from './fixtures/types'
+import type { SSEStreamFixture, SingleFixture } from './fixtures/types'
 import { fixtures } from './fixtures'
 
 function isStreamFixture(f: unknown): f is SSEStreamFixture {
   return typeof f === 'object' && f !== null && 'chunks' in f
 }
+
+const requestCounts = new Map<string, number>()
 
 export const handlers = [
   http.post('/api/v1/chat', async ({ request }) => {
@@ -19,18 +21,27 @@ export const handlers = [
       )
     }
 
-    if ('preStreamError' in fixture) {
-      return new HttpResponse(fixture.preStreamError.body ?? null, {
-        status: fixture.preStreamError.status,
+    let resolved: SingleFixture
+    if ('responses' in fixture) {
+      const count = requestCounts.get(fixtureName) ?? 0
+      requestCounts.set(fixtureName, count + 1)
+      resolved = fixture.responses[Math.min(count, fixture.responses.length - 1)]
+    } else {
+      resolved = fixture
+    }
+
+    if ('preStreamError' in resolved) {
+      return new HttpResponse(resolved.preStreamError.body ?? null, {
+        status: resolved.preStreamError.status,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    if ('networkFailure' in fixture && fixture.networkFailure) {
+    if ('networkFailure' in resolved && resolved.networkFailure) {
       return HttpResponse.error()
     }
 
-    if (!isStreamFixture(fixture)) {
+    if (!isStreamFixture(resolved)) {
       return HttpResponse.json(
         { error: `invalid fixture shape: ${fixtureName}` },
         { status: 500 }
@@ -50,13 +61,13 @@ export const handlers = [
         request.signal.addEventListener('abort', onAbort, { once: true })
 
         try {
-          for (const chunk of fixture.chunks) {
+          for (const chunk of resolved.chunks) {
             if (chunk.delayMs) await delay(chunk.delayMs)
             if (request.signal.aborted) return
             const frame = `data: ${JSON.stringify(chunk.data)}\n\n`
             controller.enqueue(encoder.encode(frame))
           }
-          if (!fixture.dropConnectionBeforeEnd) {
+          if (!resolved.dropConnectionBeforeEnd) {
             controller.close()
           } else {
             controller.error(new Error('simulated connection drop'))

@@ -11,6 +11,7 @@ import preStream422Regenerate from './pre-stream-422-regenerate'
 import longTextStream from './long-text-stream'
 import midStreamErrorToolRunning from './mid-stream-error-tool-running'
 import slowStartStream from './slow-start-stream'
+import preStream500ThenSuccess from './pre-stream-500-then-success'
 
 export const fixtures: Record<string, SSEFixture> = {
   'xss-javascript-url': xssJavascriptUrl,
@@ -25,4 +26,5 @@ export const fixtures: Record<string, SSEFixture> = {
   'long-text-stream': longTextStream,
   'mid-stream-error-tool-running': midStreamErrorToolRunning,
   'slow-start-stream': slowStartStream,
+  'pre-stream-500-then-success': preStream500ThenSuccess,
 }

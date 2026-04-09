@@ -39,7 +39,7 @@ export function ChatPanel() {
     [],
   )
   const { toolProgress, handleData, clearProgress } = useToolProgress()
-  const { messages, sendMessage, regenerate, stop, status, error } = useChat({
+  const { messages, setMessages, sendMessage, regenerate, stop, status, error } = useChat({
     id: chatId,
     transport,
     onData: handleData,
@@ -93,17 +93,19 @@ export function ChatPanel() {
     const errClass = classifyError(error)
     if (last.type === "regenerate" && PRE_STREAM_4XX.has(errClass)) {
       lastTriggerRef.current = { type: "send", userText: last.userText }
+      setMessages(msgs => msgs.slice(0, -1))
       sendMessage({ text: last.userText })
       return
     }
     if (last.type === "send") {
+      setMessages(msgs => msgs.slice(0, -1))
       sendMessage({ text: last.userText })
       return
     }
     if (last.type === "regenerate") {
       regenerate({ messageId: last.messageId })
     }
-  }, [error, sendMessage, regenerate])
+  }, [error, setMessages, sendMessage, regenerate])
 
   // Mid-stream error → mark running tools as aborted (deferred to avoid cascading render)
   useEffect(() => {

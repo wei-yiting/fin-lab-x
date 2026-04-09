@@ -5,9 +5,99 @@
 - Implementation Plan: `artifacts/current/implementation_streaming_chat_ui.md`
 - Generated during Milestone 0+ execution.
 
-## V-1 Result: TBD (S1 partial-turn regenerate probe)
+## V-1 Result: PASS — S1 接受 partial-turn regenerate（HTTP 200）
 
-_Pending — requires backend running on :8000._
+- **Probe script**: `scripts/v1-partial-regen-probe.sh`
+- **Runner**: `bash scripts/v1-partial-regen-probe.sh`
+- **觀察日期**: 2026-04-09
+- **Backend**: `http://localhost:8000`，後端版本對應 commit `20fe80d`（feat(backend): SSE streaming chat with AI SDK v6 wire format）
+- **Session ID**: `47c5ca1b-f121-4518-b50d-b0a41da55b88`
+- **Partial messageId**: `lc_run--019d7058-6b3b-7b23-83e6-4c516b078947`
+- **Regen HTTP status**: **`200`**
+- **Regen response Content-Type**: `text/event-stream`（fresh SSE stream，含新的 `messageId` 與新一輪 tool calls）
+
+### 觀察過程
+
+1. 對 `POST /api/v1/chat` 送出 finance 查詢（"Give me a detailed analysis of NVDA..."），讓後端 orchestrator 進入 tool-calling 路徑（觸發 `yfinance_stock_quote` / `tavily_financial_search` / `yfinance_get_available_fields`）。
+2. curl 用 `--max-time 4` 模擬使用者按下 Stop — exit code `28`（timeout），且捕捉到的 SSE 內**沒有** `finish` chunk，確認這是真正的 partial turn。
+3. 從 partial SSE 的 `start` chunk 解出 `messageId`，立即用 `trigger=regenerate` + 同一 session id 對 `POST /api/v1/chat` 送 regenerate 請求。
+4. Backend 回 `200 OK` + 新的 SSE stream（新 `messageId`，新一輪 tool-input-available 事件）。
+
+### Raw 證據
+
+**Partial SSE（首 800 bytes）**：
+
+```
+data: {"type": "start", "messageId": "lc_run--019d7058-6b3b-7b23-83e6-4c516b078947", "messageMetadata": {"sessionId": "47c5ca1b-f121-4518-b50d-b0a41da55b88"}}
+
+data: {"type": "tool-input-available", "toolCallId": "call_JgNz967iFCq3EzZAbDEQ8HrA", "toolName": "yfinance_stock_quote", "input": {"ticker": "NVDA"}}
+
+data: {"type": "tool-input-available", "toolCallId": "call_DPMJELX9G0gSShnJSMEOhXU1", "toolName": "tavily_financial_search", "input": {"query": "recent news", "ticker": "NVDA"}}
+
+data: {"type": "tool-input-available", "toolCallId": "call_TFizj2nvMTGV149xJTyrSLlO", "toolName": "yfinance_get_available_fields", "input": {"ticker": "NVDA"}}
+
+data: {"type": "data-tool-progress", "id": "call_TFizj2nvMTGV149xJTyrSLlO", "data": {"status": "querying_fields", "message": "Discovering fields for
+```
+
+**Regen response（首 1000 bytes，HTTP 200）**：
+
+```
+data: {"type": "start", "messageId": "lc_run--019d7058-7ba9-7290-a4e3-861a4da0d0d9", "messageMetadata": {"sessionId": "47c5ca1b-f121-4518-b50d-b0a41da55b88"}}
+
+data: {"type": "tool-input-available", "toolCallId": "call_x4HVElK6yNQpkzeBbv5ujqwn", "toolName": "yfinance_stock_quote", "input": {"ticker": "NVDA"}}
+
+data: {"type": "tool-input-available", "toolCallId": "call_3ojCNr4L1EqziADMEHSpXRPM", "toolName": "tavily_financial_search", "input": {"query": "recent news", "ticker": "NVDA"}}
+
+data: {"type": "tool-input-available", "toolCallId": "call_xiaLeTGd45NgmdVfMagvJJzH", "toolName": "yfinance_get_available_fields", "input": {"ticker": "NVDA"}}
+
+data: {"type": "data-tool-progress", "id": "call_3ojCNr4L1EqziADMEHSpXRPM", "data": {"status": "searching_news", "message": "Searching news for NVDA...", "toolName": "tavily_financial_search", "toolCallId": "call_3ojCNr4L1EqziADMEHSpXRPM"}, "transient": true}
+```
+
+### 解讀
+
+對照 prerequisites §4 V-1 的 outcome table：
+
+| HTTP status | 觀察結果 | 對 implementation 的影響 |
+|---|---|---|
+| **200** + new SSE stream | ✅ **本次觀察結果** | S1 接受 partial-turn 的 regenerate；smart retry 可以直接 regenerate（不需降級為 sendMessage） |
+
+**為什麼 S1 會接受**：閱讀 `backend/api/routers/chat.py` + `backend/agent_engine/agents/base.py::_find_regenerate_target` 後可確認 — backend 的 validate_regenerate 是對 LangGraph checkpointer 持久化後的 state 做查詢，而 LangGraph 在 tool-call AIMessage 產生的瞬間就會把該 message 寫進 checkpoint。所以即使 client 半路 disconnect，那個帶 tool_calls 的 partial AIMessage 已經在 state 中以 `lc_run--019d7058-6b3b-...` 這個 ID 存在；regenerate 走 `_find_regenerate_target` 時會把它認定為 "last AI turn"、通過 message_id 比對、然後走 `_prepare_regenerate` 把它連同後續所有 messages remove 掉再重跑 — 這就是 200 的成因。
+
+### Action
+
+**No implementation change needed for the design's smart-retry path — but the design's *default assumption* should be flipped from 422 to 200.**
+
+具體影響：
+
+1. **Q-USR-7 smart retry strategy**: 設計文件原本假設「S1 拒絕 partial turn → smart retry 必須降級為 `sendMessage(originalUserText)`」。實測 S1 接受 → smart retry 可以直接呼叫 `regenerate({ messageId })`，但仍**必須**處理一個現實限制（見下方 caveat）。
+2. **BDD `S-regen-03`** (regenerate after stop)：原本寫成 fallback 路徑（sendMessage 重發），現在可以改成直接 regenerate 路徑；BDD scenario 仍應保留 happy-path 斷言「assistant message 被替換成新一輪內容」。
+3. **BDD `S-err-04`** (regenerate after error)：happy path 成立，可直接走 regenerate trigger。
+
+### Caveat — frontend messageId mapping（不影響 V-1 結論，但 implementation 必須注意）
+
+V-1 證實 backend 願意接受 regenerate，但**前端能不能正確拼出這個請求**取決於 `messageId` 的傳遞鏈：
+
+- Backend `start` chunk emit 的 messageId 形如 `lc_run--019d7058-6b3b-7b23-83e6-4c516b078947`（LangGraph run-scoped UUIDv7）。
+- AI SDK v6 `useChat` 預設用 client 端 generate 的 UUID 當 `UIMessage.id`，**並不會**自動把 backend `start` chunk 的 `messageId` 寫進 `UIMessage.id`。
+- 因此 ChatPanel 在 `regenerate({ messageId })` 時送出去的 ID 必須是 backend 認得的那一個（`lc_run--...`），而不是 AI SDK 自己生的 UUID。
+- Implementation 必須在 `onData` / message metadata 路徑把 backend messageId stash 下來，regenerate 時用 stashed 的值；或在 transport 層攔截 start chunk。
+- 這是 M5 ChatPanel 的細節，不阻擋 V-1 結論，但**列為 Task 5.2 (smart retry dispatch) 的明確 sub-requirement**：smart retry 必須優先使用 backend-issued messageId，缺失時 fallback 到 `sendMessage(originalUserText)`。
+
+### 一個需注意的 race window
+
+雖然這次觀察到 200，但觸發成功的前提是：
+1. Backend 在 client disconnect 之前已經至少 emit 過一個 tool-call AIMessage（讓 LangGraph checkpoint 把它持久化）。
+2. 若 client 在 LLM 第一個 token 還沒出來前就斷線（極短 partial），LangGraph 可能還沒寫 checkpoint，那時 `_find_regenerate_target` 會 fall back 到上一個完整的 AI turn（可能是不相關的舊 message）或 raise `"No assistant message to regenerate"` → HTTP 404。
+
+**Implementation guidance**：
+- Smart retry **應該** 直接呼叫 `regenerate({ messageId })`，但**必須** catch 任何 4xx response（404 = no AI message，422 = messageId mismatch）並降級為 `sendMessage(originalUserText)`。
+- 換句話說：design 的 "default 422 fallback" 路徑**仍然要實作**作為防禦網，只是它從「always-on default」變成「exception handler」。
+
+### 結論
+
+- **V-1 outcome**: HTTP `200` — direct-regen path 可用。
+- **Action**: 不需要改 implementation 的整體架構，但要 (a) 把 smart retry 的主路徑從 sendMessage 切到 regenerate-with-backend-messageId、(b) 保留 4xx fallback 為例外處理、(c) 在 ChatPanel state 中 stash backend-issued messageId（M5 Task 5.2 的明確 sub-requirement）。
+
 
 ## V-2 Result: PASS — useChat pre-stream HTTP 500 user-message lifecycle
 
@@ -41,7 +131,7 @@ _Pending — requires backend running on :8000._
 
 - **Contract test**: `frontend/src/__tests__/contract/use-chat-stop-semantic.test.ts`
 - **Runner**: `pnpm vitest run src/__tests__/contract/use-chat-stop-semantic.test.ts --reporter=verbose`
-- **Result**: 1 passed / 0 failed（`Tests 1 passed (1)`，duration ≈ 246ms — 遠低於 fixture 的 5s 長尾，證明 `stop()` 真的有中斷 stream）
+- **Result**: 1 passed / 0 failed（`Tests 1 passed (1)`，duration ≈ 117ms — 遠低於 fixture 的 5s 長尾，證明 `stop()` 真的有中斷 stream。註：實作初稿曾經報 ~246ms 的 PASS，但那是 false positive；詳見下方 plan-defect post-mortem。）
 - **Assertions confirmed**：
   - `result.current.status` 在 `await result.current.stop()` 之後成功 transition 回 `'ready'`（`waitFor` 成功 resolve）。
   - `result.current.error` 在 stop 之後維持 `undefined`（**未** 被 `AbortError` 污染成 truthy）。

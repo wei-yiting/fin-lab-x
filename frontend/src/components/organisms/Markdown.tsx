@@ -20,7 +20,7 @@ export function Markdown({
   )
 
   return (
-    <div className="prose prose-invert max-w-none text-sm leading-relaxed text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-code:rounded prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-[var(--chat-fg-secondary)] prose-pre:bg-muted/50 prose-a:text-[var(--chat-brand-accent)] prose-a:no-underline hover:prose-a:underline">
+    <div className="prose prose-invert max-w-none text-sm leading-[1.75] text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-code:rounded prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-[var(--chat-fg-secondary)] prose-pre:bg-muted/50 prose-a:text-[var(--chat-brand-accent)] prose-a:no-underline hover:prose-a:underline">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

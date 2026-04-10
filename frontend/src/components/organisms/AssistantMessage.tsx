@@ -98,10 +98,16 @@ export function AssistantMessage({
       })}
 
       {displayText && (
-        <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
+        <div className="pl-3">
+          <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
+        </div>
       )}
 
-      {extractedSources.length > 0 && <Sources sources={extractedSources} />}
+      {extractedSources.length > 0 && (
+        <div className="pl-3">
+          <Sources sources={extractedSources} />
+        </div>
+      )}
 
       {isLast && status === "ready" && onRegenerate && (
         <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />

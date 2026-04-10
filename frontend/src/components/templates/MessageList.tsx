@@ -63,7 +63,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
           onScroll={handleScroll}
           className="min-h-0 flex-1 overflow-y-auto"
         >
-          <div className="flex flex-col gap-4 p-4">
+          <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-16 py-4">
             {messages.map((msg, i) => {
               if (msg.role === "user") {
                 const textPart = msg.parts.find((p) => p.type === "text")

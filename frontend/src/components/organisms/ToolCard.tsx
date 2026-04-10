@@ -45,7 +45,7 @@ export function ToolCard({
         data-testid="tool-card"
         data-tool-call-id={part.toolCallId}
         data-tool-state={visualState}
-        className="my-1 rounded-lg border border-border bg-card"
+        className="mt-1 mb-4 rounded-lg border border-border bg-card"
       >
         <CollapsibleTrigger
           data-testid="tool-card-expand"

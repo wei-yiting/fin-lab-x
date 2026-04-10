@@ -4,7 +4,7 @@ import { RefreshCw } from "lucide-react"
 export function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="sm"
       data-testid="regenerate-btn"
       aria-label="Regenerate response"

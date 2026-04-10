@@ -60,7 +60,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(
               data-testid="composer-stop-btn"
               aria-label="Stop response"
               onClick={stop}
-              className="shrink-0"
+              className="size-[44px] shrink-0"
             >
               <Square className="h-4 w-4" />
             </Button>
@@ -71,7 +71,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(
               data-testid="composer-send-btn"
               aria-label="Send message"
               disabled={!text.trim()}
-              className="shrink-0"
+              className="size-[44px] shrink-0"
             >
               <Send className="h-4 w-4" />
             </Button>

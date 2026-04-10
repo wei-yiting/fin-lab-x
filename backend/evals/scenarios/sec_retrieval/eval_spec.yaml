@@ -1,4 +1,5 @@
 name: sec_retrieval
+status: draft
 csv: dataset.csv
 task:
   function: backend.evals.eval_tasks.run_sec_retrieval

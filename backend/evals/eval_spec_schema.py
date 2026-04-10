@@ -74,6 +74,7 @@ class ScenarioConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str
+    status: str | None = None
     csv: str = "dataset.csv"
     task: TaskConfig
     column_mapping: dict[str, str]

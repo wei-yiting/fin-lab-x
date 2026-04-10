@@ -34,13 +34,15 @@ def _canonicalize_ticker(raw: str) -> str:
     return stripped.upper()
 
 
+_EMBED_MODEL = "text-embedding-3-large"
+_EMBED_DIM = 3072  # tied to _EMBED_MODEL; change both together
+
+
 async def embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed texts using OpenAI. Patchable for testing."""
     from llama_index.embeddings.openai import OpenAIEmbedding
 
-    embed_model = OpenAIEmbedding(
-        model=os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large")
-    )
+    embed_model = OpenAIEmbedding(model=_EMBED_MODEL)
     return await embed_model.aget_text_embedding_batch(texts)
 
 
@@ -67,7 +69,7 @@ def _build_header_path(node) -> str:
     return " / ".join(segments)
 
 
-def _ensure_collection(client, collection: str, vector_size: int = 3072) -> None:
+def _ensure_collection(client, collection: str, vector_size: int = _EMBED_DIM) -> None:
     from qdrant_client import models
 
     if not client.collection_exists(collection):
@@ -121,12 +123,12 @@ def ingest_filing(
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
     client = QdrantClient(url=qdrant_url)
-    _ensure_collection(client, collection, vector_size=3072)
+    _ensure_collection(client, collection, vector_size=_EMBED_DIM)
     _ensure_indexes(client, collection)
 
     # Upsert sentinel as "pending" before any content processing
     sentinel_point_id = _sentinel_id(ticker, year)
-    sentinel_vector = [0.0] * 3072
+    sentinel_vector = [0.0] * _EMBED_DIM
     client.upsert(
         collection_name=collection,
         points=[
@@ -184,6 +186,30 @@ def ingest_filing(
             "ingested_at": ingested_at,
         }
         points.append((point_id, payload))
+
+    # Delete stale content chunks for this (ticker, year) before upserting.
+    # Sentinel points (which have a "status" field) are excluded from deletion.
+    client.delete(
+        collection_name=collection,
+        points_selector=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="ticker",
+                    match=models.MatchValue(value=ticker),
+                ),
+                models.FieldCondition(
+                    key="year",
+                    match=models.MatchValue(value=year),
+                ),
+            ],
+            must_not=[
+                models.FieldCondition(
+                    key="status",
+                    match=models.MatchAny(any=["pending", "complete"]),
+                ),
+            ],
+        ),
+    )
 
     texts = [p[1]["text"] for p in points]
     embeddings = asyncio.run(embed_texts(texts))

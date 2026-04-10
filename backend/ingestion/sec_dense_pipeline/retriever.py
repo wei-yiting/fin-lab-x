@@ -79,33 +79,6 @@ def _check_sentinel(client, collection: str, ticker: str, year: int) -> bool:
         return False
 
 
-def _has_any_complete_sentinel(
-    client, collection: str, ticker: str
-) -> bool:
-    """Check if the ticker has any sentinel with status='complete'."""
-    from qdrant_client import models
-
-    try:
-        result = client.count(
-            collection_name=collection,
-            count_filter=models.Filter(
-                must=[
-                    models.FieldCondition(
-                        key="ticker",
-                        match=models.MatchValue(value=ticker),
-                    ),
-                    models.FieldCondition(
-                        key="status",
-                        match=models.MatchValue(value="complete"),
-                    ),
-                ]
-            ),
-        )
-        return result.count > 0
-    except Exception:
-        return False
-
-
 async def search(
     query: str, filters: dict | None = None, top_k: int = 10
 ) -> list[Chunk]:
@@ -156,24 +129,26 @@ async def search(
                         filing.metadata,
                     )
             else:
-                if not _has_any_complete_sentinel(
-                    client, collection, ticker
+                filing, resolved_year = fetch_filing(ticker, None)
+                if not _check_sentinel(
+                    client, collection, ticker, resolved_year
                 ):
-                    filing, resolved_year = fetch_filing(ticker, None)
-                    if not _check_sentinel(
-                        client, collection, ticker, resolved_year
-                    ):
-                        loop = asyncio.get_event_loop()
-                        await loop.run_in_executor(
-                            None,
-                            ingest_filing,
-                            ticker,
-                            resolved_year,
-                            filing.markdown_content,
-                            filing.metadata,
-                        )
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(
+                        None,
+                        ingest_filing,
+                        ticker,
+                        resolved_year,
+                        filing.markdown_content,
+                        filing.metadata,
+                    )
 
-        embeddings = await embed_texts([query])
+        try:
+            embeddings = await embed_texts([query])
+        except Exception as e:
+            raise EmbeddingServiceError(
+                f"Embedding failed: {e}"
+            ) from e
         query_vector = embeddings[0]
 
         results = client.query_points(
@@ -204,7 +179,12 @@ async def search(
                 )
             )
         return chunks
-    except (ValueError, JITDisabledError, JITTickerNotFoundError):
+    except (
+        ValueError,
+        JITDisabledError,
+        JITTickerNotFoundError,
+        EmbeddingServiceError,
+    ):
         raise
     except Exception as e:
         if "not found" in str(e).lower() or "doesn't exist" in str(e).lower():

@@ -74,8 +74,39 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
 def run_sec_retrieval(input: Any) -> dict:
     """Retrieval-only eval task — calls search() directly, no agent, no filters."""
     import asyncio
+    import os
+
+    from qdrant_client import QdrantClient, models
 
     from backend.ingestion.sec_dense_pipeline.retriever import search
+
+    collection = os.environ.get(
+        "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
+    )
+    qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
+    client = QdrantClient(url=qdrant_url)
+
+    if not client.collection_exists(collection):
+        raise RuntimeError(
+            f"Collection '{collection}' does not exist. "
+            "Run the ingest pipeline before eval."
+        )
+    content_count = client.count(
+        collection_name=collection,
+        count_filter=models.Filter(
+            must_not=[
+                models.FieldCondition(
+                    key="status",
+                    match=models.MatchAny(any=["pending", "complete"]),
+                ),
+            ],
+        ),
+    ).count
+    if content_count == 0:
+        raise RuntimeError(
+            f"Collection '{collection}' has 0 content points. "
+            "Run the ingest pipeline before eval."
+        )
 
     question = input["question"]
     chunks = asyncio.run(search(query=question, top_k=10))

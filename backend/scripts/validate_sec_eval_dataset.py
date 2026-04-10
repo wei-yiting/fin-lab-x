@@ -42,11 +42,18 @@ def validate_dataset(
         print(f"ERROR: Collection '{collection}' does not exist.")
         return 1
 
-    all_points = client.scroll(
-        collection_name=collection,
-        limit=10000,
-        with_payload=True,
-    )[0]
+    all_points = []
+    offset = None
+    while True:
+        batch, offset = client.scroll(
+            collection_name=collection,
+            limit=1000,
+            offset=offset,
+            with_payload=True,
+        )
+        all_points.extend(batch)
+        if offset is None:
+            break
     content_points = [p for p in all_points if p.payload.get("status") is None]
 
     if not content_points:

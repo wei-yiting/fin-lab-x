@@ -359,6 +359,14 @@ def run_scenario(
         config_path = scenario_dir / "eval_spec.yaml"
         config = load_scenario_config(config_path)
 
+        if config.status == "draft":
+            print(
+                f"\u26a0 Scenario '{config.name}' is draft "
+                f"\u2014 results may be unreliable. "
+                f"Curate dataset before trusting metrics.",
+                file=sys.stderr,
+            )
+
         csv_path = scenario_dir / config.csv
         if not csv_path.is_file():
             raise FileNotFoundError(f"CSV file not found: {csv_path}")

@@ -223,18 +223,15 @@ def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embe
 
 
 @pytest.mark.integration
-def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys):
+def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys, tmp_path):
     from backend.scripts.embed_sec_filings import main
     from backend.ingestion.sec_dense_pipeline.vectorizer import _sentinel_id
     from qdrant_client import QdrantClient
-    import os
 
-    # Create fake filing data for NVDA and INTC
-    os.makedirs("data/sec_filings/NVDA/10-K", exist_ok=True)
-    os.makedirs("data/sec_filings/INTC/10-K", exist_ok=True)
-
-    # Write test filing files with frontmatter
+    filings_dir = tmp_path / "sec_filings"
     for ticker, markdown in [("NVDA", FIXTURE_MARKDOWN_CLASS_A), ("INTC", FIXTURE_MARKDOWN_CLASS_C)]:
+        ticker_dir = filings_dir / ticker / "10-K"
+        ticker_dir.mkdir(parents=True)
         filing_content = f'''---
 ticker: {ticker}
 cik: "0001234567"
@@ -249,11 +246,17 @@ converter: test
 ---
 
 {markdown}'''
-        with open(f"data/sec_filings/{ticker}/10-K/2025.md", "w") as f:
-            f.write(filing_content)
+        (ticker_dir / "2025.md").write_text(filing_content)
 
     # FAIL_TICKER has no data directory
-    exit_code = main(["NVDA", "FAIL_TICKER", "INTC"])
+    with patch(
+        "backend.scripts.embed_sec_filings.LocalFilingStore",
+        lambda: __import__(
+            "backend.ingestion.sec_filing_pipeline.filing_store",
+            fromlist=["LocalFilingStore"],
+        ).LocalFilingStore(base_dir=str(filings_dir)),
+    ):
+        exit_code = main(["NVDA", "FAIL_TICKER", "INTC"])
 
     captured = capsys.readouterr()
     assert "NVDA" in captured.out
@@ -274,17 +277,3 @@ converter: test
         )
         assert len(points) == 1
         assert points[0].payload["status"] == "complete"
-
-    # Cleanup test data
-    import shutil
-    shutil.rmtree("data/sec_filings/NVDA", ignore_errors=True)
-    shutil.rmtree("data/sec_filings/INTC", ignore_errors=True)
-    shutil.rmtree("data/sec_filings/FAIL_TICKER", ignore_errors=True)
-    try:
-        os.removedirs("data/sec_filings")
-    except OSError:
-        pass
-    try:
-        os.removedirs("data")
-    except OSError:
-        pass

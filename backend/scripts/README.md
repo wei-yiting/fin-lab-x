@@ -24,15 +24,19 @@ Both arguments are required. Output goes to `artifacts/` (gitignored).
 
 ## `embed_sec_filings.py`
 
-Runs the v2 dense embedding pipeline end-to-end: reads cleaned SEC 10-K markdown files, chunks them with structural awareness, generates OpenAI embeddings, and upserts the resulting vectors into a Qdrant collection.
+Batch ingest SEC filings into the dense vector pipeline. Reads cleaned SEC 10-K markdown files from the local filing store, chunks them with structural awareness, generates OpenAI embeddings, and upserts the resulting vectors into Qdrant.
 
 ### Usage
 
 ```bash
-uv run python backend/scripts/embed_sec_filings.py \
-  --cache-dir data/sec_filings \
-  --collection sec_filings
+uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
+uv run python -m backend.scripts.embed_sec_filings NVDA --max-retries 5
 ```
+
+| Argument | Required | Description |
+|---|---|---|
+| `tickers` (positional) | Yes | One or more ticker symbols to ingest |
+| `--max-retries` | No | Max retry attempts per ticker (default: 3) |
 
 ### When to run
 
@@ -42,15 +46,20 @@ uv run python backend/scripts/embed_sec_filings.py \
 
 ## `validate_sec_eval_dataset.py`
 
-Validates the SEC evaluation dataset by checking that expected queries return relevant chunks from the Qdrant vector store. Reports recall and precision metrics against a ground-truth mapping.
+Validates the SEC retrieval eval dataset against a live Qdrant collection. Checks that `expected_header_paths` entries have matching chunks and reports near-miss warnings for case mismatches.
 
 ### Usage
 
 ```bash
-uv run python backend/scripts/validate_sec_eval_dataset.py \
-  --eval-dataset data/sec_eval_dataset.json \
-  --collection sec_filings
+uv run python -m backend.scripts.validate_sec_eval_dataset
+uv run python -m backend.scripts.validate_sec_eval_dataset --csv path/to/dataset.csv
 ```
+
+| Argument | Required | Description |
+|---|---|---|
+| `--csv` | No | Path to dataset CSV (default: `backend/evals/scenarios/sec_retrieval/dataset.csv`) |
+
+Collection and Qdrant URL are configured via environment variables `SEC_QDRANT_COLLECTION` and `QDRANT_URL`.
 
 ### When to run
 

@@ -27,7 +27,8 @@ export function Markdown({
           a: ({ href, children }) => {
             const childText = String(children)
             if (labelToSource.has(childText)) {
-              return <RefSup label={childText} href={`#src-${childText}`} />
+              const source = labelToSource.get(childText)!
+              return <RefSup label={childText} href={source.url} />
             }
             return (
               <a href={href} target="_blank" rel="noopener noreferrer">

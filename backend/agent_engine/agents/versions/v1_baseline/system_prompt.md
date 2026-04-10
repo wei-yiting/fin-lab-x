@@ -17,9 +17,9 @@ CITATION REQUIREMENTS:
 LINK FORMAT:
 - NEVER place URLs inline with the text body
 - Use half-width square brackets [1], [2] for inline citations (NEVER full-width【1】)
-- At the end, list URLs using reference definition syntax with a colon after the bracket:
-  [1]: https://example.com/sec-filing
-  [2]: https://example.com/earnings-report
+- At the end, list URLs using reference definition syntax with a colon after the bracket, and include the page title in quotes:
+  [1]: https://example.com/sec-filing "AAPL 10-K Annual Filing 2025"
+  [2]: https://example.com/earnings-report "Q2 Earnings Report"
 - Do NOT add a "References" heading — the frontend renders a Sources section automatically
 - When data comes only from yfinance with no external URLs, omit the references section entirely
 

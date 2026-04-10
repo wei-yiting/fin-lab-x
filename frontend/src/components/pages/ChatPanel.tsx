@@ -2,10 +2,9 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { useState, useMemo, useRef, useCallback, useEffect } from "react"
 import { useToolProgress } from "@/hooks/useToolProgress"
-import { useFollowBottom } from "@/hooks/useFollowBottom"
 import { ChatHeader } from "@/components/organisms/ChatHeader"
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer"
-import { MessageList } from "@/components/templates/MessageList"
+import { MessageList, type MessageListHandle } from "@/components/templates/MessageList"
 import { EmptyState } from "@/components/organisms/EmptyState"
 import { ErrorBlock } from "@/components/organisms/ErrorBlock"
 import { findOriginalUserText } from "@/lib/message-helpers"
@@ -59,15 +58,14 @@ export function ChatPanel() {
   })
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set())
   const lastTriggerRef = useRef<LastTrigger | null>(null)
-  const scrollAnchorRef = useRef<HTMLDivElement>(null)
-  const { forceFollowBottom } = useFollowBottom(scrollAnchorRef)
+  const messageListRef = useRef<MessageListHandle>(null)
   const composerRef = useRef<ComposerHandle>(null)
 
   const handleSend = useCallback((text: string) => {
     lastTriggerRef.current = { type: "send", userText: text }
-    forceFollowBottom()
+    messageListRef.current?.forceFollowBottom()
     sendMessage({ text })
-  }, [sendMessage, forceFollowBottom])
+  }, [sendMessage])
 
   const handleRegenerate = useCallback((messageId: string) => {
     const userText = findOriginalUserText(messages, messageId)
@@ -154,6 +152,7 @@ export function ChatPanel() {
     <div data-testid="chat-panel" {...dataTestProps} className="flex h-screen flex-col bg-background">
       <ChatHeader onClear={handleClearSession} messagesEmpty={messages.length === 0} />
       <MessageList
+        ref={messageListRef}
         messages={messages as unknown as Parameters<typeof MessageList>[0]["messages"]}
         status={status as ChatStatus}
         toolProgress={toolProgress}

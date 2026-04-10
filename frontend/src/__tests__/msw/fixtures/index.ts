@@ -14,6 +14,8 @@ import slowStartStream from './slow-start-stream'
 import preStream500ThenSuccess from './pre-stream-500-then-success'
 import scrollOverflow from './scroll-overflow'
 import happyCitation from './happy-citation'
+import regenerateHappy from './regenerate-happy'
+import regenerateFailThenSuccess from './regenerate-fail-then-success'
 
 export const fixtures: Record<string, SSEFixture> = {
   'xss-javascript-url': xssJavascriptUrl,
@@ -31,4 +33,6 @@ export const fixtures: Record<string, SSEFixture> = {
   'pre-stream-500-then-success': preStream500ThenSuccess,
   'scroll-overflow': scrollOverflow,
   'happy-citation': happyCitation,
+  'regenerate-happy': regenerateHappy,
+  'regenerate-fail-then-success': regenerateFailThenSuccess,
 }

@@ -14,8 +14,6 @@ import { statusAwareFetch } from "@/lib/status-aware-fetch"
 import { ChatHttpError } from "@/lib/chat-http-error"
 import type { ChatStatus, ToolCallId } from "@/models"
 
-const PRE_STREAM_4XX: ReadonlySet<string> = new Set(['pre-stream-422', 'pre-stream-404', 'pre-stream-409'])
-
 type PartLike = Record<string, unknown>
 
 function isToolPart(p: PartLike): boolean {
@@ -91,22 +89,13 @@ export function ChatPanel() {
   const handleRetry = useCallback(() => {
     const last = lastTriggerRef.current
     if (!last) return
-    const errClass = classifyError(error)
-    if (last.type === "regenerate" && PRE_STREAM_4XX.has(errClass)) {
-      lastTriggerRef.current = { type: "send", userText: last.userText }
-      setMessages(msgs => msgs.slice(0, -1))
-      sendMessage({ text: last.userText })
-      return
-    }
-    if (last.type === "send") {
-      setMessages(msgs => msgs.slice(0, -1))
-      sendMessage({ text: last.userText })
-      return
-    }
-    if (last.type === "regenerate") {
-      regenerate({ messageId: last.messageId })
-    }
-  }, [error, setMessages, sendMessage, regenerate])
+    // After any failure (send or regenerate), messages state is [user₀].
+    // AI SDK's regenerate() irreversibly removes the assistant before the request,
+    // so we can't retry with regenerate(). Unified path: remove user, re-send.
+    lastTriggerRef.current = { type: "send", userText: last.userText }
+    setMessages(msgs => msgs.slice(0, -1))
+    sendMessage({ text: last.userText })
+  }, [setMessages, sendMessage])
 
   // Mid-stream error → mark running tools as aborted (deferred to avoid cascading render)
   useEffect(() => {
@@ -153,17 +142,17 @@ export function ChatPanel() {
             <EmptyState onPickPrompt={(text) => { composerRef.current?.setValue(text); composerRef.current?.focus() }} />
           ) : undefined
         }
+        errorContent={
+          showPreStreamError && preStreamFriendly ? (
+            <ErrorBlock
+              friendly={preStreamFriendly}
+              onRetry={handleRetry}
+              source="pre-stream"
+              errorClass={preStreamErrorClass}
+            />
+          ) : undefined
+        }
       />
-      {showPreStreamError && preStreamFriendly && (
-        <div className="px-4">
-          <ErrorBlock
-            friendly={preStreamFriendly}
-            onRetry={handleRetry}
-            source="pre-stream"
-            errorClass={preStreamErrorClass}
-          />
-        </div>
-      )}
       <Composer
         ref={composerRef}
         sendMessage={({ text }) => handleSend(text)}

@@ -40,6 +40,15 @@ class StreamChatRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_request(self):
+        is_regenerate = self.trigger == "regenerate-message"
+        self._normalized_trigger = "regenerate" if is_regenerate else None
+
+        if is_regenerate:
+            if not self.messageId:
+                raise ValueError("messageId required for regenerate")
+            self._user_text = None
+            return self
+
         user_text = None
         for msg in reversed(self.messages):
             if msg.role == "user":
@@ -49,18 +58,9 @@ class StreamChatRequest(BaseModel):
                 if joined:
                     user_text = joined
                     break
+        if not user_text:
+            raise ValueError("Must have a user message for submit")
         self._user_text = user_text
-        self._normalized_trigger = "regenerate" if self.trigger == "regenerate-message" else None
-
-        has_message = bool(self._user_text)
-        is_regenerate = self._normalized_trigger == "regenerate"
-
-        if has_message and is_regenerate:
-            raise ValueError("Cannot have both message and regenerate trigger")
-        if not has_message and not is_regenerate:
-            raise ValueError("Must have either a user message or regenerate trigger")
-        if is_regenerate and not self.messageId:
-            raise ValueError("messageId required for regenerate")
         return self
 
     @property

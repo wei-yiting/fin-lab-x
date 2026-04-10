@@ -19,6 +19,7 @@ type MessageListProps = {
   abortedTools: Set<string>
   onRegenerate: (id: string) => void
   emptyContent?: ReactNode
+  errorContent?: ReactNode
 }
 
 export type MessageListHandle = {
@@ -27,7 +28,7 @@ export type MessageListHandle = {
 
 export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
   function MessageList(
-    { messages, status, toolProgress, abortedTools, onRegenerate, emptyContent },
+    { messages, status, toolProgress, abortedTools, onRegenerate, emptyContent, errorContent },
     ref,
   ) {
     const viewportRef = useRef<HTMLDivElement>(null)
@@ -89,6 +90,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
               }
               return null
             })}
+            {errorContent}
             {showTyping && <TypingIndicator />}
           </div>
         </div>

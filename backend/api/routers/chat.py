@@ -19,9 +19,19 @@ router = APIRouter(prefix="/api/v1", tags=["chat"])
 _active_sessions: set[str] = set()
 
 
+class MessagePart(BaseModel):
+    type: str
+    text: str = ""
+
+
+class ChatMessage(BaseModel):
+    role: str
+    parts: list[MessagePart]
+
+
 class StreamChatRequest(BaseModel):
     id: str = Field(..., min_length=1)
-    messages: list[dict]
+    messages: list[ChatMessage]
     trigger: Literal["submit-message", "regenerate-message"]
     messageId: str | None = None
 
@@ -32,21 +42,17 @@ class StreamChatRequest(BaseModel):
     def validate_request(self):
         user_text = None
         for msg in reversed(self.messages):
-            if msg.get("role") == "user":
-                for part in msg.get("parts", []):
-                    if part.get("type") == "text":
-                        user_text = part.get("text", "").strip()
-                        break
-                if user_text:
+            if msg.role == "user":
+                joined = " ".join(
+                    part.text.strip() for part in msg.parts if part.type == "text"
+                )
+                if joined:
+                    user_text = joined
                     break
         self._user_text = user_text
+        self._normalized_trigger = "regenerate" if self.trigger == "regenerate-message" else None
 
-        if self.trigger == "regenerate-message":
-            self._normalized_trigger = "regenerate"
-        else:
-            self._normalized_trigger = None
-
-        has_message = self._user_text is not None and self._user_text != ""
+        has_message = bool(self._user_text)
         is_regenerate = self._normalized_trigger == "regenerate"
 
         if has_message and is_regenerate:
@@ -56,6 +62,14 @@ class StreamChatRequest(BaseModel):
         if is_regenerate and not self.messageId:
             raise ValueError("messageId required for regenerate")
         return self
+
+    @property
+    def user_text(self) -> str | None:
+        return self._user_text
+
+    @property
+    def normalized_trigger(self) -> str | None:
+        return self._normalized_trigger
 
 
 def get_orchestrator(request: Request) -> Orchestrator:
@@ -70,7 +84,7 @@ async def stream_chat(
     orchestrator: Orchestrator = Depends(get_orchestrator),
 ):
     """Stream financial analysis chat response via SSE."""
-    if body._normalized_trigger == "regenerate":
+    if body.normalized_trigger == "regenerate":
         try:
             await orchestrator.validate_regenerate(
                 session_id=body.id, message_id=body.messageId
@@ -88,9 +102,9 @@ async def stream_chat(
     async def generate():
         try:
             async for event in orchestrator.astream_run(
-                message=body._user_text,
+                message=body.user_text,
                 session_id=body.id,
-                trigger=body._normalized_trigger,
+                trigger=body.normalized_trigger,
                 message_id=body.messageId,
             ):
                 if await request.is_disconnected():

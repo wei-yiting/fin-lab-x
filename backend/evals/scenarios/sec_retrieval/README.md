@@ -10,12 +10,14 @@ Evaluates the v2 RAG pipeline's retrieval quality for SEC 10-K filings.
 
 ## Dataset
 
-10 placeholder rows covering three query types:
+10 manually written rows covering three query types:
 - `single_ticker_fact`: Basic factual retrieval for one company
 - `single_ticker_deep`: Deeper analysis within one company's filing
 - `cross_company_comparison`: Multi-ticker queries testing structural ceiling
 
-Dataset requires human curation — placeholder paths and snippets may not match actual filing content.
+**Status: draft** — This dataset was hand-written as a fallback. The original design (`design_v2-rag-pipeline.md` Section 6.3) planned an Ensemble & Rerank synthetic generation pipeline (`generate_sec_eval_dataset.py`) where two LLMs generate candidate questions and a judge LLM filters the best ones. That script was never implemented; the current 10 rows are manually curated placeholders.
+
+**Next step:** Evaluate whether to build the synthetic generation script, or manually generate questions via LLM with careful human curation. Either way, the dataset should be expanded and answer snippets validated against actual filing content before trusting metrics.
 
 Key notes for dataset maintenance:
 - NVDA uses FY2026 (fiscal year ending Jan 2026), not calendar year 2025.

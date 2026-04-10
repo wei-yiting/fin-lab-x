@@ -4,7 +4,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, PrivateAttr, model_validator
 from typing import Literal
 
 from backend.agent_engine.agents.base import Orchestrator
@@ -21,21 +21,40 @@ _active_sessions: set[str] = set()
 
 class StreamChatRequest(BaseModel):
     id: str = Field(..., min_length=1)
-    message: str | None = None
-    trigger: Literal["regenerate"] | None = None
+    messages: list[dict]
+    trigger: Literal["submit-message", "regenerate-message"]
     messageId: str | None = None
+
+    _user_text: str | None = PrivateAttr(default=None)
+    _normalized_trigger: str | None = PrivateAttr(default=None)
 
     @model_validator(mode="after")
     def validate_request(self):
-        has_message = self.message is not None and self.message.strip() != ""
-        if has_message and self.trigger:
-            raise ValueError("Cannot have both message and trigger")
-        if not has_message and not self.trigger:
-            raise ValueError("Must have either message or trigger")
-        if self.trigger == "regenerate" and not self.messageId:
+        user_text = None
+        for msg in reversed(self.messages):
+            if msg.get("role") == "user":
+                for part in msg.get("parts", []):
+                    if part.get("type") == "text":
+                        user_text = part.get("text", "").strip()
+                        break
+                if user_text:
+                    break
+        self._user_text = user_text
+
+        if self.trigger == "regenerate-message":
+            self._normalized_trigger = "regenerate"
+        else:
+            self._normalized_trigger = None
+
+        has_message = self._user_text is not None and self._user_text != ""
+        is_regenerate = self._normalized_trigger == "regenerate"
+
+        if has_message and is_regenerate:
+            raise ValueError("Cannot have both message and regenerate trigger")
+        if not has_message and not is_regenerate:
+            raise ValueError("Must have either a user message or regenerate trigger")
+        if is_regenerate and not self.messageId:
             raise ValueError("messageId required for regenerate")
-        if has_message:
-            self.message = self.message.strip()
         return self
 
 
@@ -51,7 +70,7 @@ async def stream_chat(
     orchestrator: Orchestrator = Depends(get_orchestrator),
 ):
     """Stream financial analysis chat response via SSE."""
-    if body.trigger == "regenerate":
+    if body._normalized_trigger == "regenerate":
         try:
             await orchestrator.validate_regenerate(
                 session_id=body.id, message_id=body.messageId
@@ -69,9 +88,9 @@ async def stream_chat(
     async def generate():
         try:
             async for event in orchestrator.astream_run(
-                message=body.message,
+                message=body._user_text,
                 session_id=body.id,
-                trigger=body.trigger,
+                trigger=body._normalized_trigger,
                 message_id=body.messageId,
             ):
                 if await request.is_disconnected():

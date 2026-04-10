@@ -57,10 +57,6 @@ export function AssistantMessage({
 
   return (
     <article data-testid="assistant-message">
-      {displayText && (
-        <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
-      )}
-
       {parts.map((part, i) => {
         if (part.type === "tool" || (typeof part.type === "string" && part.type.startsWith("tool-")) || part.type === "dynamic-tool") {
           const toolCallId = part.toolCallId as string
@@ -94,6 +90,10 @@ export function AssistantMessage({
 
         return null
       })}
+
+      {displayText && (
+        <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
+      )}
 
       {extractedSources.length > 0 && <Sources sources={extractedSources} />}
 

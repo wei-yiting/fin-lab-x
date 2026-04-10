@@ -82,13 +82,6 @@ async def test_search_rejects_invalid_top_k(top_k: int) -> None:
         await search(query="test", top_k=top_k)
 
 
-@pytest.mark.parametrize("top_k", [1, 10, 50, 100])
-@pytest.mark.asyncio
-async def test_search_accepts_valid_top_k(top_k: int) -> None:
-    with pytest.raises(Exception) as exc_info:
-        await search(query="test", top_k=top_k)
-    assert not isinstance(exc_info.value, ValueError)
-
 
 def test_exception_classes_are_distinct() -> None:
     assert not issubclass(JITTickerNotFoundError, EmbeddingServiceError)

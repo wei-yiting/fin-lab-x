@@ -2,7 +2,7 @@ import type { SourceRef, ExtractedSources } from '@/models'
 
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:'])
 
-const REF_DEF_RE = /^\[(\d+)\]:\s+(\S+)(?:\s+"([^"]*)")?$/gm
+const REF_DEF_RE = /^\[(\d+)\]:?\s+(\S+?)(?:\s+"([^"]*)")?\s*$/gm
 
 export function extractSources(text: string): ExtractedSources {
   try {

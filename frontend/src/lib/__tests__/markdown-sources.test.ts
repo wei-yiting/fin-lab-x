@@ -160,6 +160,61 @@ NVDA 很棒 [3]。
   })
 })
 
+describe('extractSources — real backend format fallback', () => {
+  test('TC-unit-md-08: extracts [N] URL format (no colon)', () => {
+    const md = `
+text [1] and [2].
+
+[1] https://reuters.com/report
+[2] https://bloomberg.com/analysis
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({
+      label: '1',
+      url: 'https://reuters.com/report',
+      title: undefined,
+      hostname: 'reuters.com',
+    })
+    expect(result[1]).toEqual({
+      label: '2',
+      url: 'https://bloomberg.com/analysis',
+      title: undefined,
+      hostname: 'bloomberg.com',
+    })
+  })
+
+  test('TC-unit-md-09: handles trailing spaces (markdown line break)', () => {
+    const md = `
+text [1].
+
+[1] https://reuters.com/report
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].url).toBe('https://reuters.com/report')
+  })
+
+  test('TC-unit-md-10: handles mixed formats in same response', () => {
+    const md = `
+text [1] and [2].
+
+[1]: https://reuters.com/a "Reuters A"
+[2] https://bloomberg.com/b
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].title).toBe('Reuters A')
+    expect(result[1].title).toBeUndefined()
+  })
+})
+
 test('TC-unit-md-07: orders Sources by numeric label, not by appearance order in markdown', () => {
   const md = `
 Body text [3] then [1] then [2].

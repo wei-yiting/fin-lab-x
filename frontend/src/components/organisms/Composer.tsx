@@ -1,11 +1,11 @@
-import { forwardRef, useImperativeHandle, useState } from "react"
+import { forwardRef, useImperativeHandle, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { Button } from "@/components/primitives/button"
 import { Textarea } from "@/components/primitives/textarea"
 import { Send, Square } from "lucide-react"
 import type { ChatStatus } from "@/models"
 
-export type ComposerHandle = { setValue: (v: string) => void }
+export type ComposerHandle = { setValue: (v: string) => void; focus: () => void }
 
 type Props = {
   sendMessage: (m: { text: string }) => void
@@ -16,7 +16,11 @@ type Props = {
 export const Composer = forwardRef<ComposerHandle, Props>(
   ({ sendMessage, stop, status }, ref) => {
     const [text, setText] = useState("")
-    useImperativeHandle(ref, () => ({ setValue: (v: string) => flushSync(() => setText(v)) }), [])
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
+    useImperativeHandle(ref, () => ({
+      setValue: (v: string) => flushSync(() => setText(v)),
+      focus: () => textareaRef.current?.focus(),
+    }), [])
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault()
@@ -33,6 +37,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(
       <form data-testid="composer" onSubmit={handleSubmit} className="border-t border-border px-4 py-3">
         <div className="flex items-end gap-2">
           <Textarea
+            ref={textareaRef}
             data-testid="composer-textarea"
             aria-label="Message input"
             placeholder="Ask about markets, companies, or filings..."

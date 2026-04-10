@@ -13,6 +13,7 @@ import midStreamErrorToolRunning from './mid-stream-error-tool-running'
 import slowStartStream from './slow-start-stream'
 import preStream500ThenSuccess from './pre-stream-500-then-success'
 import scrollOverflow from './scroll-overflow'
+import happyCitation from './happy-citation'
 
 export const fixtures: Record<string, SSEFixture> = {
   'xss-javascript-url': xssJavascriptUrl,
@@ -29,4 +30,5 @@ export const fixtures: Record<string, SSEFixture> = {
   'slow-start-stream': slowStartStream,
   'pre-stream-500-then-success': preStream500ThenSuccess,
   'scroll-overflow': scrollOverflow,
+  'happy-citation': happyCitation,
 }

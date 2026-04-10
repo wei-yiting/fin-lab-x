@@ -145,3 +145,79 @@ describe('AssistantMessage — RegenerateButton visibility', () => {
     expect(screen.queryByTestId('regenerate-btn')).not.toBeInTheDocument()
   })
 })
+
+describe('AssistantMessage — citation rendering', () => {
+  const commonMarkText =
+    'Analysis shows growth [1] and stability [2].\n\n' +
+    '[1]: https://reuters.com/report "Reuters Report"\n' +
+    '[2]: https://bloomberg.com/article'
+
+  const commonMarkMsg = {
+    id: 'a1',
+    role: 'assistant' as const,
+    parts: [{ type: 'text' as const, text: commonMarkText }],
+  }
+
+  test('TC-comp-citation-01: CommonMark citations render as RefSup after streaming', () => {
+    render(
+      <AssistantMessage
+        message={commonMarkMsg}
+        isLast={true}
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    )
+    const refSups = screen.getAllByTestId('ref-sup')
+    expect(refSups).toHaveLength(2)
+    expect(refSups[0]).toHaveAttribute('data-ref-label', '1')
+    expect(refSups[1]).toHaveAttribute('data-ref-label', '2')
+
+    expect(screen.getByTestId('sources-block')).toBeInTheDocument()
+    expect(screen.getByText('Reuters Report')).toBeInTheDocument()
+    expect(screen.getByText('bloomberg.com')).toBeInTheDocument()
+  })
+
+  test('TC-comp-citation-02: no RefSup or Sources block during streaming', () => {
+    render(
+      <AssistantMessage
+        message={commonMarkMsg}
+        isLast={true}
+        status="streaming"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    )
+    expect(screen.queryByTestId('ref-sup')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sources-block')).not.toBeInTheDocument()
+  })
+
+  test('TC-comp-citation-03: fallback format — [N] URL + full-width【N】inline', () => {
+    const fallbackText =
+      '最新報導顯示成長【1】，Bloomberg 確認趨勢【2】。\n\n' +
+      '**References**\n' +
+      '[1] https://reuters.com/report\n' +
+      '[2] https://bloomberg.com/analysis'
+
+    const fallbackMsg = {
+      id: 'a2',
+      role: 'assistant' as const,
+      parts: [{ type: 'text' as const, text: fallbackText }],
+    }
+
+    render(
+      <AssistantMessage
+        message={fallbackMsg}
+        isLast={true}
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    )
+    const refSups = screen.getAllByTestId('ref-sup')
+    expect(refSups).toHaveLength(2)
+
+    expect(screen.getByTestId('sources-block')).toBeInTheDocument()
+    expect(screen.queryByText('**References**')).not.toBeInTheDocument()
+  })
+})

@@ -16,13 +16,12 @@ CITATION REQUIREMENTS:
 
 LINK FORMAT:
 - NEVER place URLs inline with the text body
-- Instead, use numbered reference-style links: mark the text with [1], [2], etc., and list all URLs in a "References" section at the very end of the response
-- Example:
-  According to recent filings [1], AAPL revenue grew 8% YoY [2].
-
-  **References**
-  [1] https://example.com/sec-filing
-  [2] https://example.com/earnings-report
+- Use half-width square brackets [1], [2] for inline citations (NEVER full-width【1】)
+- At the end, list URLs using reference definition syntax with a colon after the bracket:
+  [1]: https://example.com/sec-filing
+  [2]: https://example.com/earnings-report
+- Do NOT add a "References" heading — the frontend renders a Sources section automatically
+- When data comes only from yfinance with no external URLs, omit the references section entirely
 
 RESPONSE FORMAT:
 - Start with a clear conclusion

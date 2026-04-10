@@ -1,6 +1,4 @@
-import { Button } from "@/components/primitives/button"
 import { Badge } from "@/components/primitives/badge"
-import { Trash2 } from "lucide-react"
 
 export function ChatHeader({ onClear, messagesEmpty }: {
   onClear: () => void
@@ -12,18 +10,15 @@ export function ChatHeader({ onClear, messagesEmpty }: {
         <h1 className="text-lg font-semibold text-foreground">FinLab-X</h1>
         <Badge variant="outline" className="text-[10px] uppercase">v1</Badge>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
+      <button
         data-testid="composer-clear-btn"
         aria-label="Clear conversation"
         disabled={messagesEmpty}
         onClick={onClear}
-        className="gap-1.5 text-xs text-muted-foreground"
+        className="rounded-md border border-[oklch(0.7282_0.1610_27.12/0.2)] bg-[oklch(0.7282_0.1610_27.12/0.08)] px-3.5 py-1.5 text-xs font-medium text-[oklch(0.7282_0.1610_27.12)] transition-all hover:border-[oklch(0.7282_0.1610_27.12/0.35)] hover:bg-[oklch(0.7282_0.1610_27.12/0.14)] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <Trash2 className="h-3.5 w-3.5" />
-        Clear
-      </Button>
+        Clear conversation
+      </button>
     </header>
   )
 }

@@ -150,7 +150,7 @@ export function ChatPanel() {
         onRegenerate={handleRegenerate}
         emptyContent={
           !showPreStreamError ? (
-            <EmptyState onPickPrompt={(text) => composerRef.current?.setValue(text)} />
+            <EmptyState onPickPrompt={(text) => { composerRef.current?.setValue(text); composerRef.current?.focus() }} />
           ) : undefined
         }
       />

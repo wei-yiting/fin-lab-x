@@ -47,13 +47,19 @@ export function AssistantMessage({
     [isStreaming, concatenatedText],
   )
 
-  const displayText = useMemo(
-    () =>
-      extractedSources.length > 0
-        ? concatenatedText.replace(/^\[[0-9]+\]:\s+\S+.*$/gm, "").replace(/\n{3,}/g, "\n\n")
-        : concatenatedText,
-    [concatenatedText, extractedSources.length],
-  )
+  const displayText = useMemo(() => {
+    if (extractedSources.length === 0) return concatenatedText
+    let cleaned = concatenatedText
+      .replace(/^\*{0,2}References\*{0,2}\s*$/gm, "")
+      .replace(/^\[(\d+)\]:?\s+\S+.*$/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trimEnd()
+    cleaned = cleaned.replace(/【(\d+)】/g, "[$1]")
+    const syntheticDefs = extractedSources
+      .map((s) => `[${s.label}]: #src-${s.label}`)
+      .join("\n")
+    return `${cleaned}\n\n${syntheticDefs}`
+  }, [concatenatedText, extractedSources])
 
   return (
     <article data-testid="assistant-message">

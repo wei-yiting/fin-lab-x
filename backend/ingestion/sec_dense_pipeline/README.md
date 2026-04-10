@@ -2,6 +2,20 @@
 
 Dense vector retrieval pipeline for SEC 10-K filings. Chunks filing markdown with structural awareness, embeds via OpenAI `text-embedding-3-large` (3072-dim), and stores in Qdrant.
 
+## Quick Start
+
+```bash
+# 1. Start Qdrant
+docker compose up -d qdrant
+
+# 2. Batch ingest filings (requires pre-downloaded markdown in data/sec_filings/)
+uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
+
+# 3. Search from Python
+from backend.ingestion.sec_dense_pipeline.retriever import search
+chunks = await search(query="NVIDIA export control risks", top_k=10)
+```
+
 ## Key Components
 
 - **`vectorizer.py`** -- Ingestion: parses markdown into section-aware chunks, generates embeddings, upserts into Qdrant. Manages sentinel points to track ingestion status per (ticker, year).
@@ -37,6 +51,17 @@ Each **sentinel point** stores `ticker`, `year`, and `status` (`"pending"` or `"
 | `SEC_QDRANT_COLLECTION` | `sec_filings_openai_large_dense_baseline` | Qdrant collection name |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant server URL |
 | `SEC_DISABLE_JIT` | _(unset)_ | Set to `1` to disable JIT ingestion |
+
+## Error Hierarchy
+
+Defined in `retriever.py`:
+
+| Exception | Meaning | Retryable? |
+|---|---|---|
+| `EmbeddingServiceError` | OpenAI embedding API failure | Yes |
+| `CorpusUnavailableError` | Qdrant connection or collection issue | Yes |
+| `JITTickerNotFoundError` | Ticker not found in SEC filings | No |
+| `JITDisabledError` | JIT requested but `SEC_DISABLE_JIT=1` | No |
 
 ## JIT Ingest Contract
 

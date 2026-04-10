@@ -17,6 +17,11 @@ Evaluates the v2 RAG pipeline's retrieval quality for SEC 10-K filings.
 
 Dataset requires human curation — placeholder paths and snippets may not match actual filing content.
 
+Key notes for dataset maintenance:
+- NVDA uses FY2026 (fiscal year ending Jan 2026), not calendar year 2025.
+- `expected_header_paths` must include Part-level prefix where present (e.g. `NVDA / 2026 / Part I / Item 1A`, not `NVDA / 2026 / Item 1A`). Tickers without Part structure (e.g. INTC) use `TICKER / YEAR` prefix only.
+- Run `validate_sec_eval_dataset` after any dataset edits to check paths against live Qdrant.
+
 ## Pre-requisites
 
 1. Ingest target tickers: `python -m backend.scripts.embed_sec_filings NVDA INTC AAPL AMD TSLA`

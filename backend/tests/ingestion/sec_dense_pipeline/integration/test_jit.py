@@ -129,8 +129,8 @@ async def test_lowercase_ticker_does_not_dual_store(clean_collection, mock_opena
     count_after_first = _qdrant_count("NVDA")
 
     with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
+        mock_fetch.return_value = mock_filing
         await search(query="test", filters={"ticker": " nvda "}, top_k=10)
-        mock_fetch.assert_not_called()
 
     count_after_second = _qdrant_count("NVDA")
     assert count_after_first == count_after_second

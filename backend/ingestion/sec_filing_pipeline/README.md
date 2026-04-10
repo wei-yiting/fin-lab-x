@@ -21,9 +21,9 @@ graph LR
         Tool[Agent Tool<br/>sec_filing_downloader] --> A
     end
 
-    subgraph "Future"
+    subgraph "Downstream"
         D2[S3FilingStore] -.-> D
-        E[Chunking Pipeline] --> F[Qdrant]
+        E["sec_dense_pipeline<br/>chunk + embed + upsert"] --> F[Qdrant]
     end
 
     D -- "ParsedFiling" --> E

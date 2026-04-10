@@ -26,6 +26,18 @@ Each **content point** stores:
 
 Each **sentinel point** stores `ticker`, `year`, and `status` (`"pending"` or `"complete"`).
 
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `SEC_EMBED_MODEL` | `text-embedding-3-large` | OpenAI embedding model name |
+| `SEC_EMBED_DIM` | `3072` | Embedding output dimension (must match model and Qdrant collection) |
+| `SEC_CHUNK_SIZE` | `512` | Chunk size in tokens |
+| `SEC_CHUNK_OVERLAP` | `50` | Chunk overlap in tokens |
+| `SEC_QDRANT_COLLECTION` | `sec_filings_openai_large_dense_baseline` | Qdrant collection name |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant server URL |
+| `SEC_DISABLE_JIT` | _(unset)_ | Set to `1` to disable JIT ingestion |
+
 ## JIT Ingest Contract
 
 When `search()` receives a filter with `ticker` (and optionally `year`):

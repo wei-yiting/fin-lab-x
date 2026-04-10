@@ -34,15 +34,15 @@ def _canonicalize_ticker(raw: str) -> str:
     return stripped.upper()
 
 
-_EMBED_MODEL = "text-embedding-3-large"
-_EMBED_DIM = 3072  # tied to _EMBED_MODEL; change both together
+_EMBED_MODEL = os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large")
+_EMBED_DIM = int(os.environ.get("SEC_EMBED_DIM", "3072"))
 
 
 async def embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed texts using OpenAI. Patchable for testing."""
     from llama_index.embeddings.openai import OpenAIEmbedding
 
-    embed_model = OpenAIEmbedding(model=_EMBED_MODEL)
+    embed_model = OpenAIEmbedding(model=_EMBED_MODEL, dimensions=_EMBED_DIM)
     return await embed_model.aget_text_embedding_batch(texts)
 
 

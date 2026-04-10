@@ -85,9 +85,13 @@ async def test_search_rejects_invalid_top_k(top_k: int) -> None:
 @pytest.mark.parametrize("top_k", [1, 10, 50, 100])
 @pytest.mark.asyncio
 async def test_search_accepts_valid_top_k(top_k: int) -> None:
-    with pytest.raises(Exception) as exc_info:
+    """Valid top_k values must not trigger ValueError."""
+    try:
         await search(query="test", top_k=top_k)
-    assert not isinstance(exc_info.value, ValueError)
+    except ValueError:
+        pytest.fail(f"search() raised ValueError for valid top_k={top_k}")
+    except Exception:
+        pass
 
 
 def test_exception_classes_are_distinct() -> None:

@@ -12,7 +12,9 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import parse_item, create_t
     ("Item 1A. Risk Factors", "Item 1A"),
     ("PART I", "_unknown"),
     ("", "_unknown"),
-    ("NVDA / 2025 / Item 1A / Risks", "_unknown"),
+    ("NVDA / 2025 / Item 1A / Risks", "Item 1A"),
+    ("Part I / Item 1A. Risk Factors", "Item 1A"),
+    ("Part II / Item 7. MD&A", "Item 7"),
 ])
 def test_parse_item(raw_path: str, expected_item: str) -> None:
     assert parse_item(raw_path) == expected_item

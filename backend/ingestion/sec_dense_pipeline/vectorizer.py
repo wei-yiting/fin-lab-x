@@ -10,9 +10,11 @@ def parse_item(raw_header_path: str) -> str:
     """Extract Item number from raw header_path BEFORE ticker/year prefix."""
     if not raw_header_path:
         return "_unknown"
-    first_level = raw_header_path.split(" / ")[0]
-    match = re.match(r"^(Item \d+[A-Z]?(?:\(T\))?)\.?", first_level)
-    return match.group(1) if match else "_unknown"
+    for level in raw_header_path.split(" / "):
+        match = re.match(r"^(Item \d+[A-Z]?(?:\(T\))?)\.?", level.strip())
+        if match:
+            return match.group(1)
+    return "_unknown"
 
 
 def create_text_splitter() -> RecursiveCharacterTextSplitter:
@@ -196,7 +198,9 @@ def ingest_filing(
             )
         )
 
-    client.upsert(collection_name=collection, points=qdrant_points)
+    BATCH_SIZE = 100
+    for i in range(0, len(qdrant_points), BATCH_SIZE):
+        client.upsert(collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE])
 
     # Mark sentinel as "complete" after all content is upserted
     client.upsert(

@@ -1,11 +1,11 @@
 question,expected_header_paths,expected_tickers,match_mode,answer_snippets,query_type
-"What are NVIDIA's key risk factors related to export controls?","[""NVDA / 2025 / Item 1A""]","[""NVDA""]","startswith","[""export controls""]","single_ticker_fact"
-"Describe NVIDIA's revenue growth in FY2025","[""NVDA / 2025 / Item 7""]","[""NVDA""]","startswith","[""revenue""]","single_ticker_fact"
-"What is NVIDIA's business overview?","[""NVDA / 2025 / Item 1""]","[""NVDA""]","startswith","[""GPU"", ""data center""]","single_ticker_fact"
-"How does NVIDIA discuss supply chain risks?","[""NVDA / 2025 / Item 1A""]","[""NVDA""]","startswith","[""supply chain""]","single_ticker_deep"
-"What accounting estimates does NVIDIA consider critical?","[""NVDA / 2025 / Item 7""]","[""NVDA""]","startswith","[""accounting""]","single_ticker_deep"
-"Compare export control risks between NVIDIA and Intel","[""NVDA / 2025 / Item 1A"", ""INTC / 2025 / Item 1A""]","[""NVDA"", ""INTC""]","startswith","[""export"", ""export""]","cross_company_comparison"
-"What are Apple's main business segments?","[""AAPL / 2025 / Item 1""]","[""AAPL""]","startswith","[]","single_ticker_fact"
-"How does AMD discuss competitive risks?","[""AMD / 2025 / Item 1A""]","[""AMD""]","startswith","[""competitive""]","single_ticker_fact"
-"What does Tesla say about manufacturing risks?","[""TSLA / 2025 / Item 1A""]","[""TSLA""]","startswith","[""manufacturing""]","single_ticker_fact"
-"Compare revenue discussion between NVIDIA and AMD","[""NVDA / 2025 / Item 7"", ""AMD / 2025 / Item 7""]","[""NVDA"", ""AMD""]","startswith","[""revenue"", ""revenue""]","cross_company_comparison"
+What are NVIDIA's key risk factors related to export controls?,"[""NVDA / 2026 / Part I / Item 1A""]","[""NVDA""]",startswith,"[""export controls""]",single_ticker_fact
+Describe NVIDIA's revenue growth in FY2025,"[""NVDA / 2026 / Part II / Item 7""]","[""NVDA""]",startswith,"[""revenue""]",single_ticker_fact
+What is NVIDIA's business overview?,"[""NVDA / 2026 / Part I / Item 1""]","[""NVDA""]",startswith,"[""GPU"", ""data center""]",single_ticker_fact
+How does NVIDIA discuss supply chain risks?,"[""NVDA / 2026 / Part I / Item 1A""]","[""NVDA""]",startswith,"[""supply chain""]",single_ticker_deep
+What accounting estimates does NVIDIA consider critical?,"[""NVDA / 2026 / Part II / Item 7""]","[""NVDA""]",startswith,"[""accounting""]",single_ticker_deep
+Compare export control risks between NVIDIA and Intel,"[""NVDA / 2026 / Part I / Item 1A"", ""INTC / 2025""]","[""NVDA"", ""INTC""]",startswith,"[""export"", ""export""]",cross_company_comparison
+What are Apple's main business segments?,"[""AAPL / 2025 / Part I / Item 1""]","[""AAPL""]",startswith,[],single_ticker_fact
+How does AMD discuss competitive risks?,"[""AMD / 2025""]","[""AMD""]",startswith,"[""competitive""]",single_ticker_fact
+What does Tesla say about manufacturing risks?,"[""TSLA / 2025 / Part I / Item 1A""]","[""TSLA""]",startswith,"[""manufacturing""]",single_ticker_fact
+Compare revenue discussion between NVIDIA and AMD,"[""NVDA / 2026 / Part II / Item 7"", ""AMD / 2025 / Part II / Item 7""]","[""NVDA"", ""AMD""]",startswith,"[""revenue"", ""revenue""]",cross_company_comparison

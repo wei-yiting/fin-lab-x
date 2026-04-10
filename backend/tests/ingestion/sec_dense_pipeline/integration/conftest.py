@@ -18,9 +18,10 @@ def _unset_disable_jit(monkeypatch):
 
 @pytest.fixture()
 def mock_openai_embed():
-    """Mock OpenAI embedding to return deterministic 3072-dim vectors."""
+    """Mock OpenAI embedding to return deterministic vectors matching _EMBED_DIM."""
+    from backend.ingestion.sec_dense_pipeline.vectorizer import _EMBED_DIM
     async def fake_embed(texts):
-        return [np.random.default_rng(hash(t) % 2**32).random(3072).tolist() for t in texts]
+        return [np.random.default_rng(hash(t) % 2**32).random(_EMBED_DIM).tolist() for t in texts]
     with patch("backend.ingestion.sec_dense_pipeline.vectorizer.embed_texts", new=fake_embed) as m:
         yield m
 

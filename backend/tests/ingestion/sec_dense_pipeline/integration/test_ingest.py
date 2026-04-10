@@ -3,6 +3,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
+from backend.ingestion.sec_dense_pipeline.vectorizer import _EMBED_DIM
 from backend.tests.ingestion.sec_dense_pipeline.integration.conftest import (
     FIXTURE_MARKDOWN_CLASS_A,
     FIXTURE_MARKDOWN_CLASS_C,
@@ -138,7 +139,7 @@ def test_partial_failure_sentinel_pending(clean_collection):
         if call_count > 3:
             raise Exception("Simulated OpenAI failure")
         return [
-            np.random.default_rng(42).random(3072).tolist() for _ in texts
+            np.random.default_rng(42).random(_EMBED_DIM).tolist() for _ in texts
         ]
 
     with patch(
@@ -178,7 +179,7 @@ def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embe
         if call_count > 3:
             raise Exception("Simulated OpenAI failure")
         return [
-            np.random.default_rng(42).random(3072).tolist() for _ in texts
+            np.random.default_rng(42).random(_EMBED_DIM).tolist() for _ in texts
         ]
 
     with patch(

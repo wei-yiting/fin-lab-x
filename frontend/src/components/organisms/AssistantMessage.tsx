@@ -62,7 +62,7 @@ export function AssistantMessage({
   }, [concatenatedText, extractedSources])
 
   return (
-    <article data-testid="assistant-message">
+    <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
         if (part.type === "tool" || (typeof part.type === "string" && part.type.startsWith("tool-")) || part.type === "dynamic-tool") {
           const toolCallId = part.toolCallId as string

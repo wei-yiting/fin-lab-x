@@ -1,5 +1,4 @@
 import { useRef, useEffect, useImperativeHandle, forwardRef, type ReactNode } from "react"
-import { ScrollArea } from "@/components/primitives/scroll-area"
 import { UserMessage } from "@/components/molecules/UserMessage"
 import { AssistantMessage } from "@/components/organisms/AssistantMessage"
 import { TypingIndicator } from "@/components/atoms/TypingIndicator"
@@ -58,10 +57,11 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
 
     return (
       <div data-testid="message-list" data-status={status} className="flex flex-1 flex-col overflow-hidden">
-        <ScrollArea
-          className="flex-1 min-h-0"
-          viewportRef={viewportRef}
-          viewportProps={{ onScroll: handleScroll, "data-testid": "message-list-viewport" }}
+        <div
+          ref={viewportRef}
+          data-testid="message-list-viewport"
+          onScroll={handleScroll}
+          className="min-h-0 flex-1 overflow-y-auto"
         >
           <div className="flex flex-col gap-4 p-4">
             {messages.map((msg, i) => {
@@ -91,7 +91,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
             })}
             {showTyping && <TypingIndicator />}
           </div>
-        </ScrollArea>
+        </div>
       </div>
     )
   },

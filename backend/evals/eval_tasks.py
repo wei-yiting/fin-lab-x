@@ -71,9 +71,8 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
     )
 
 
-def run_sec_retrieval(input: Any) -> dict:
+async def run_sec_retrieval(input: Any) -> dict:
     """Retrieval-only eval task — calls search() directly, no agent, no filters."""
-    import asyncio
     import os
 
     from qdrant_client import QdrantClient, models
@@ -109,7 +108,7 @@ def run_sec_retrieval(input: Any) -> dict:
         )
 
     question = input["question"]
-    chunks = asyncio.run(search(query=question, top_k=10))
+    chunks = await search(query=question, top_k=10)
     return {"retrieved_chunks": [chunk.model_dump() for chunk in chunks]}
 
 

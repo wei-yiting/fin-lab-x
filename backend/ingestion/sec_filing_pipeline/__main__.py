@@ -17,6 +17,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
     ParsedFiling,

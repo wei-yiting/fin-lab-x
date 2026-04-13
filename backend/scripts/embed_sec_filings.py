@@ -7,6 +7,11 @@ Usage: python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
 import argparse
 import sys
 import time
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
 from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore

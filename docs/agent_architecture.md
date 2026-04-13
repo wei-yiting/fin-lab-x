@@ -68,3 +68,50 @@ To maintain a clean architecture, the following dependency rules are enforced:
 3.  **Skills** can depend on `tools` and `mcp`.
 4.  **Tools** and **MCP** must be independent and stateless; they cannot depend on the orchestrator or skills.
 5.  **Circular Dependencies** are strictly prohibited.
+
+## 6. Data Pipeline Architecture
+
+The data pipeline uses a shared, idempotent filing cache layer that both current and future retrieval entry points depend on.
+
+```mermaid
+flowchart TD
+    subgraph shared["Shared Layer — Filing Cache (idempotent)"]
+        B{"Filing in\nLocalFilingStore?"}
+        A["SEC Filing Pipeline\n(EDGAR → HTML → Markdown → LocalFilingStore)"]
+        B -->|No| A
+        B -->|Yes| C["Cached Filing\n(ParsedFiling)"]
+        A --> C
+    end
+
+    subgraph rag["RAG Entry Point (V2 — current)"]
+        D{"Sentinel in\nQdrant?"}
+        D -->|No| E["Dense Pipeline\n(chunk → embed → Qdrant)"]
+        D -->|Yes| F["Vector Search"]
+        E --> F
+    end
+
+    subgraph quant["DuckDB Entry Point (V3 — planned)"]
+        G{"Data in\nDuckDB?"}
+        G -->|No| H["ETL Pipeline\n(parse tables → DuckDB)"]
+        G -->|Yes| I["Text-to-SQL Query"]
+        H --> I
+    end
+
+    TR["Agent: RAG tool call"] --> B
+    TS["Agent: SQL tool call"] --> B
+    C --> D
+    C --> G
+```
+
+### Current Implementation (V2)
+
+The EDGAR fallback logic lives inside `sec_dense_pipeline/retriever.py::fetch_filing()`. When `search()` is called with a ticker filter, `fetch_filing()` first checks the local store and falls back to `SECFilingPipeline.process()` if the filing is absent. This is appropriate for V2 where RAG is the only consumer of the filing cache.
+
+### Planned Refactor (V3)
+
+When the DuckDB entry point is introduced in V3, the filing cache logic should be extracted into a shared module (e.g., `backend/ingestion/filing_provider.py`) exposing `ensure_filing(ticker, year) -> ParsedFiling`. This prevents:
+
+- **Coupling**: the DuckDB pipeline depending on `sec_dense_pipeline` internals to obtain filings.
+- **Duplication**: the same check-and-fetch logic implemented twice.
+
+The refactor should be triggered when V3 implementation begins and a second consumer is confirmed — not before.

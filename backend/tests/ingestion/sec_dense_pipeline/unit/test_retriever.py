@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import MagicMock, patch
 
 from backend.ingestion.sec_dense_pipeline.retriever import (
     Chunk,
@@ -101,3 +102,108 @@ def test_jit_disabled_error_is_separate() -> None:
     )
     assert "NVDA" in str(err)
     assert "batch" in str(err).lower()
+
+
+# --- fetch_filing() EDGAR fallback unit tests ---
+
+def _make_mock_filing(fiscal_year: int = 2025):
+    filing = MagicMock()
+    filing.metadata.fiscal_year = fiscal_year
+    filing.metadata.filing_date = "2025-02-28"
+    filing.metadata.filing_type = "10-K"
+    filing.metadata.accession_number = "0001234567-25-000001"
+    filing.markdown_content = "# Item 1. Business\n\nSome content."
+    return filing
+
+
+def test_fetch_filing_falls_back_to_edgar() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
+
+    mock_filing = _make_mock_filing(fiscal_year=2025)
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_pipeline = MagicMock()
+        mock_pipeline.process.return_value = mock_filing
+        mock_create.return_value = mock_pipeline
+
+        result_filing, result_year = fetch_filing("NVDA")
+
+    assert result_filing is mock_filing
+    assert result_year == 2025
+    mock_create.assert_called_once()
+    mock_pipeline.process.assert_called_once()
+
+
+def test_fetch_filing_edgar_with_explicit_year() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
+
+    mock_filing = _make_mock_filing(fiscal_year=2023)
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_pipeline = MagicMock()
+        mock_pipeline.process.return_value = mock_filing
+        mock_create.return_value = mock_pipeline
+
+        _, result_year = fetch_filing("NVDA", 2023)
+
+    assert result_year == 2023
+    _, call_kwargs = mock_pipeline.process.call_args
+    assert call_kwargs.get("fiscal_year") == 2023
+
+
+def test_fetch_filing_edgar_converts_pipeline_error() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
+    from backend.ingestion.sec_filing_pipeline import TickerNotFoundError
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_pipeline = MagicMock()
+        original_exc = TickerNotFoundError("ZZZZZ not found in SEC EDGAR")
+        mock_pipeline.process.side_effect = original_exc
+        mock_create.return_value = mock_pipeline
+
+        with pytest.raises(JITTickerNotFoundError) as exc_info:
+            fetch_filing("ZZZZZ")
+
+    assert exc_info.value.__cause__ is original_exc
+
+
+def test_fetch_filing_local_hit_skips_edgar() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
+
+    cached_filing = _make_mock_filing(fiscal_year=2024)
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[2024],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=cached_filing,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        result_filing, result_year = fetch_filing("NVDA")
+
+    assert result_filing is cached_filing
+    assert result_year == 2024
+    mock_create.assert_not_called()

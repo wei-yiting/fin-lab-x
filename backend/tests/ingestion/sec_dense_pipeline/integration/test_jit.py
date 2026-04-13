@@ -146,3 +146,37 @@ async def test_disable_jit_raises(clean_collection, monkeypatch):
 
     with pytest.raises(JITDisabledError, match="NVDA"):
         await search(query="test", filters={"ticker": "NVDA"}, top_k=10)
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_jit_fires_edgar_fallback_on_empty_store(clean_collection, mock_openai_embed):
+    """Verify full JIT path when filing is absent from local store: EDGAR download → ingest → search."""
+    from backend.ingestion.sec_dense_pipeline.retriever import search
+
+    mock_filing = MagicMock()
+    mock_filing.markdown_content = FIXTURE_MARKDOWN_CLASS_A
+    mock_filing.metadata.fiscal_year = 2025
+    mock_filing.metadata.filing_date = "2025-02-28"
+    mock_filing.metadata.filing_type = "10-K"
+    mock_filing.metadata.accession_number = "0001234567-25-000001"
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_pipeline = MagicMock()
+        mock_pipeline.process.return_value = mock_filing
+        mock_create.return_value = mock_pipeline
+
+        result = await search(query="GPU data center revenue", filters={"ticker": "NVDA"}, top_k=10)
+
+    assert len(result) > 0
+    assert all(c.ticker == "NVDA" for c in result)
+    mock_create.assert_called_once()
+    mock_pipeline.process.assert_called_once()

@@ -1,7 +1,10 @@
 import asyncio
+import logging
 import os
 
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class Chunk(BaseModel):
@@ -40,25 +43,43 @@ def _canonicalize_ticker(raw: str) -> str:
 
 
 def fetch_filing(ticker: str, year: int | None = None):
-    """Fetch filing from local store. Patchable for testing."""
+    """Fetch filing from local store, falling back to EDGAR download."""
     from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
     from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
 
     store = LocalFilingStore()
+
+    # Fast path: local cache
     if year is None:
         years = store.list_filings(ticker, FilingType.TEN_K)
-        if not years:
-            raise JITTickerNotFoundError(
-                f"No filings found for ticker={ticker}"
-            )
-        year = max(years)
+        if years:
+            year = max(years)
 
-    filing = store.get(ticker, FilingType.TEN_K, year)
-    if filing is None:
-        raise JITTickerNotFoundError(
-            f"No 10-K filing for ticker={ticker}, year={year}"
+    if year is not None:
+        filing = store.get(ticker, FilingType.TEN_K, year)
+        if filing is not None:
+            return filing, year
+
+    # Slow path: download from EDGAR
+    from backend.ingestion.sec_filing_pipeline import (
+        SECFilingPipeline,
+        SECPipelineError,
+    )
+
+    logger.info(
+        "Local cache miss for %s/%s — downloading from EDGAR", ticker, year
+    )
+    try:
+        filing = SECFilingPipeline.create().process(
+            ticker, FilingType.TEN_K, fiscal_year=year
         )
-    return filing, year
+    except SECPipelineError as exc:
+        raise JITTickerNotFoundError(
+            f"No 10-K filing for ticker={ticker}"
+            + (f", year={year}" if year else "")
+        ) from exc
+
+    return filing, filing.metadata.fiscal_year
 
 
 def _check_sentinel(client, collection: str, ticker: str, year: int) -> bool:
@@ -115,11 +136,13 @@ async def search(
 
             _ensure_collection(client, collection)
 
+            loop = asyncio.get_event_loop()
             year = filters.get("year")
             if year is not None:
                 if not _check_sentinel(client, collection, ticker, year):
-                    filing, resolved_year = fetch_filing(ticker, year)
-                    loop = asyncio.get_event_loop()
+                    filing, resolved_year = await loop.run_in_executor(
+                        None, fetch_filing, ticker, year
+                    )
                     await loop.run_in_executor(
                         None,
                         ingest_filing,
@@ -129,11 +152,12 @@ async def search(
                         filing.metadata,
                     )
             else:
-                filing, resolved_year = fetch_filing(ticker, None)
+                filing, resolved_year = await loop.run_in_executor(
+                    None, fetch_filing, ticker, None
+                )
                 if not _check_sentinel(
                     client, collection, ticker, resolved_year
                 ):
-                    loop = asyncio.get_event_loop()
                     await loop.run_in_executor(
                         None,
                         ingest_filing,

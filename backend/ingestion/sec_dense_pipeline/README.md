@@ -51,6 +51,7 @@ Each **sentinel point** stores `ticker`, `year`, and `status` (`"pending"` or `"
 | `SEC_QDRANT_COLLECTION` | `sec_filings_openai_large_dense_baseline` | Qdrant collection name |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant server URL |
 | `SEC_DISABLE_JIT` | _(unset)_ | Set to `1` to disable JIT ingestion |
+| `EDGAR_IDENTITY` | _(required)_ | User-Agent string for SEC EDGAR API (e.g. `Company Name admin@company.com`). Required when JIT triggers an EDGAR download. |
 
 ## Error Hierarchy
 
@@ -70,3 +71,4 @@ When `search()` receives a filter with `ticker` (and optionally `year`):
 1. If `year` is specified: check the sentinel for that exact (ticker, year). If missing or not complete, fetch and ingest.
 2. If `year` is omitted: resolve the latest filing year from the local store, then check the sentinel for that year. If missing, ingest.
 3. If `SEC_DISABLE_JIT=1` is set, JIT is skipped and `JITDisabledError` is raised instead.
+4. If the ticker is not found in the local file store, the pipeline falls back to downloading from SEC EDGAR via `SECFilingPipeline`. This requires `EDGAR_IDENTITY` to be set. All `SECPipelineError` subtypes are converted to `JITTickerNotFoundError`.

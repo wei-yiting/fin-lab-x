@@ -40,12 +40,13 @@ def test_eval_runner_preflight_empty_collection(clean_collection):
 
 
 @pytest.mark.integration
-def test_eval_runner_prints_collection_banner(
+@pytest.mark.asyncio
+async def test_eval_runner_prints_collection_banner(
     clean_collection, mock_openai_embed, capsys
 ):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
 
-    ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 
     count = _preflight_check()
     collection = os.environ.get("SEC_QDRANT_COLLECTION", TEST_COLLECTION)
@@ -63,13 +64,14 @@ def test_eval_runner_prints_collection_banner(
 
 
 @pytest.mark.integration
-def test_validator_catches_case_mismatch(
+@pytest.mark.asyncio
+async def test_validator_catches_case_mismatch(
     clean_collection, mock_openai_embed, tmp_path
 ):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from backend.scripts.validate_sec_eval_dataset import validate_dataset
 
-    ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 
     # Write test CSV with deliberate case error ("item 1a" vs actual "Item 1A")
     csv_path = tmp_path / "test_dataset.csv"

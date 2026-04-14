@@ -11,6 +11,8 @@ from backend.tests.ingestion.sec_dense_pipeline.integration.conftest import (
     TEST_COLLECTION,
 )
 
+pytestmark = pytest.mark.asyncio
+
 
 def _qdrant_count(ticker: str) -> int:
     """Count content points (non-sentinel) for a ticker."""
@@ -37,11 +39,11 @@ def _qdrant_count(ticker: str) -> int:
 
 
 @pytest.mark.integration
-def test_class_a_produces_deep_header_path(clean_collection, mock_openai_embed):
+async def test_class_a_produces_deep_header_path(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
-    ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 
     client = QdrantClient(url=QDRANT_URL)
     points = client.scroll(collection_name=TEST_COLLECTION, limit=100)[0]
@@ -59,13 +61,13 @@ def test_class_a_produces_deep_header_path(clean_collection, mock_openai_embed):
 
 
 @pytest.mark.integration
-def test_class_c_produces_shallow_header_path(
+async def test_class_c_produces_shallow_header_path(
     clean_collection, mock_openai_embed
 ):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
-    ingest_filing(ticker="INTC", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_C)
+    await ingest_filing(ticker="INTC", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_C)
 
     client = QdrantClient(url=QDRANT_URL)
     points = client.scroll(collection_name=TEST_COLLECTION, limit=100)[0]
@@ -80,11 +82,11 @@ def test_class_c_produces_shallow_header_path(
 
 
 @pytest.mark.integration
-def test_all_metadata_fields_populated(clean_collection, mock_openai_embed):
+async def test_all_metadata_fields_populated(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
-    ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 
     client = QdrantClient(url=QDRANT_URL)
     points = client.scroll(collection_name=TEST_COLLECTION, limit=100)[0]
@@ -110,13 +112,13 @@ def test_all_metadata_fields_populated(clean_collection, mock_openai_embed):
 
 
 @pytest.mark.integration
-def test_reingest_same_filing_no_duplicates(clean_collection, mock_openai_embed):
+async def test_reingest_same_filing_no_duplicates(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
 
-    ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
     count_1 = _qdrant_count("NVDA")
 
-    ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
     count_2 = _qdrant_count("NVDA")
 
     assert count_1 == count_2
@@ -124,7 +126,7 @@ def test_reingest_same_filing_no_duplicates(clean_collection, mock_openai_embed)
 
 
 @pytest.mark.integration
-def test_partial_failure_sentinel_pending(clean_collection):
+async def test_partial_failure_sentinel_pending(clean_collection):
     from backend.ingestion.sec_dense_pipeline.vectorizer import (
         _sentinel_id,
         ingest_filing,
@@ -147,7 +149,7 @@ def test_partial_failure_sentinel_pending(clean_collection):
         new=fail_after_3,
     ):
         with pytest.raises(Exception, match="Simulated"):
-            ingest_filing(
+            await ingest_filing(
                 ticker="TEST", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
             )
 
@@ -163,7 +165,7 @@ def test_partial_failure_sentinel_pending(clean_collection):
 
 
 @pytest.mark.integration
-def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embed):
+async def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.vectorizer import (
         _sentinel_id,
         ingest_filing,
@@ -187,7 +189,7 @@ def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embe
         new=fail_after_3,
     ):
         try:
-            ingest_filing(
+            await ingest_filing(
                 ticker="TEST", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
             )
         except Exception:
@@ -205,7 +207,7 @@ def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embe
     assert points[0].payload["status"] == "pending"
 
     # Re-run with working embed
-    ingest_filing(
+    await ingest_filing(
         ticker="TEST", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
     )
 

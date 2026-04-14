@@ -39,15 +39,16 @@ def _qdrant_count_raw(ticker: str) -> int:
     return result.count
 
 
-def _mock_filing_store(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A):
+def _mock_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A):
     """Create a mock filing object for JIT tests."""
-    mock_filing = MagicMock()
-    mock_filing.markdown_content = markdown
-    mock_filing.metadata = MagicMock()
-    mock_filing.metadata.filing_date = "2025-02-28"
-    mock_filing.metadata.filing_type = "10-K"
-    mock_filing.metadata.accession_number = "0001234567-25-000001"
-    return mock_filing, year
+    mock_f = MagicMock()
+    mock_f.markdown_content = markdown
+    mock_f.metadata = MagicMock()
+    mock_f.metadata.fiscal_year = year
+    mock_f.metadata.filing_date = "2025-02-28"
+    mock_f.metadata.filing_type = "10-K"
+    mock_f.metadata.accession_number = "0001234567-25-000001"
+    return mock_f
 
 
 @pytest.mark.integration
@@ -55,13 +56,25 @@ def _mock_filing_store(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS
 async def test_jit_fires_on_empty_collection(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
-    with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
-        mock_fetch.return_value = _mock_filing_store()
+    mock_filing = _mock_filing()
+    mock_pipeline = MagicMock()
+    mock_pipeline.process.return_value = mock_filing
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_create.return_value = mock_pipeline
         result = await search(query="test", filters={"ticker": "NVDA"}, top_k=10)
 
     assert len(result) > 0
     assert all(c.ticker == "NVDA" for c in result)
-    mock_fetch.assert_called_once()
+    mock_create.assert_called_once()
 
 
 @pytest.mark.integration
@@ -69,15 +82,14 @@ async def test_jit_fires_on_empty_collection(clean_collection, mock_openai_embed
 async def test_jit_skips_when_already_complete(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.retriever import search
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
-    import asyncio
 
-    await asyncio.get_event_loop().run_in_executor(
-        None, ingest_filing, "NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A
-    )
+    await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
-    with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
         await search(query="test", filters={"ticker": "NVDA", "year": 2025}, top_k=10)
-        mock_fetch.assert_not_called()
+        mock_create.assert_not_called()
 
 
 @pytest.mark.integration
@@ -85,17 +97,25 @@ async def test_jit_skips_when_already_complete(clean_collection, mock_openai_emb
 async def test_jit_fires_for_missing_year(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.retriever import search
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
-    import asyncio
 
-    await asyncio.get_event_loop().run_in_executor(
-        None, ingest_filing, "NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A
-    )
+    await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
-    mock_filing_2024 = _mock_filing_store(year=2024)
-    with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
-        mock_fetch.return_value = mock_filing_2024
+    mock_filing_2024 = _mock_filing(year=2024)
+    mock_pipeline = MagicMock()
+    mock_pipeline.process.return_value = mock_filing_2024
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[2025],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_create.return_value = mock_pipeline
         await search(query="test", filters={"ticker": "NVDA", "year": 2024}, top_k=10)
-        mock_fetch.assert_called_once()
+        mock_create.assert_called_once()
 
 
 @pytest.mark.integration
@@ -103,18 +123,17 @@ async def test_jit_fires_for_missing_year(clean_collection, mock_openai_embed):
 async def test_jit_does_not_fire_without_ticker(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.retriever import search
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
-    import asyncio
 
-    await asyncio.get_event_loop().run_in_executor(
-        None, ingest_filing, "NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A
-    )
+    await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
-    with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
         await search(query="test", filters=None, top_k=10)
-        mock_fetch.assert_not_called()
+        mock_create.assert_not_called()
 
         await search(query="test", filters={}, top_k=10)
-        mock_fetch.assert_not_called()
+        mock_create.assert_not_called()
 
 
 @pytest.mark.integration
@@ -122,14 +141,33 @@ async def test_jit_does_not_fire_without_ticker(clean_collection, mock_openai_em
 async def test_lowercase_ticker_does_not_dual_store(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
-    mock_filing = _mock_filing_store()
-    with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
-        mock_fetch.return_value = mock_filing
+    mock_f = _mock_filing()
+    mock_pipeline = MagicMock()
+    mock_pipeline.process.return_value = mock_f
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_create.return_value = mock_pipeline
         await search(query="test", filters={"ticker": "NVDA"}, top_k=10)
     count_after_first = _qdrant_count("NVDA")
 
-    with patch("backend.ingestion.sec_dense_pipeline.retriever.fetch_filing") as mock_fetch:
-        mock_fetch.return_value = mock_filing
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[],
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=None,
+    ), patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_create.return_value = mock_pipeline
         await search(query="test", filters={"ticker": " nvda "}, top_k=10)
 
     count_after_second = _qdrant_count("NVDA")

@@ -80,20 +80,18 @@ def check_sec_cache(ticker: str, year: int | None, qdrant_client, collection: st
 
 def _edgar_download_raw(ticker: str, year: int | None = None):
     """Call EDGAR API to download raw filing. Returns (RawFiling, SECFilingPipeline)."""
-    from backend.ingestion.sec_filing_pipeline import (
-        ConfigurationError,
-        SECPipelineError,
+    from backend.ingestion.sec_filing_pipeline.filing_models import (
+        FilingNotFoundError,
+        FilingType,
+        TickerNotFoundError,
     )
-    from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
     from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline
 
     pipeline = SECFilingPipeline.create()
 
     try:
         raw = pipeline._downloader.download(ticker, str(FilingType.TEN_K), year)
-    except ConfigurationError:
-        raise
-    except SECPipelineError as exc:
+    except (TickerNotFoundError, FilingNotFoundError) as exc:
         raise JITTickerNotFoundError(
             f"No 10-K filing for ticker={ticker}"
             + (f", year={year}" if year else "")

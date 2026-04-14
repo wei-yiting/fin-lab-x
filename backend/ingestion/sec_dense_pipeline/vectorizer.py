@@ -323,8 +323,8 @@ async def ingest_filing(
                 "num_batches": num_batches,
                 "status": "complete",
             })
+        get_client().update_current_span(
+            output={"num_chunks": len(qdrant_points), "status": "complete"},
+        )
     finally:
         await client.close()
-    get_client().update_current_span(
-        output={"num_chunks": len(qdrant_points), "status": "complete"},
-    )

@@ -110,10 +110,12 @@ def validate_dataset(
                     ]
                     if not snippet_matches:
                         print(
-                            f"  Row {row_idx}: WARN path='{expected_path}' "
+                            f"  Row {row_idx}: ERROR path='{expected_path}' "
                             f"matched {len(exact_matches)} chunks but "
                             f"snippet '{snippet}' not found in any"
                         )
+                        row_pass = False
+                        has_failures = True
                 else:
                     print(
                         f"  Row {row_idx}: OK path='{expected_path}' "

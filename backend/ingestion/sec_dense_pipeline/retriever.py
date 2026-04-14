@@ -167,7 +167,7 @@ async def search(
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
     try:
-        from qdrant_client import QdrantClient
+        from qdrant_client import QdrantClient, models
 
         from backend.ingestion.sec_dense_pipeline.vectorizer import (
             embed_query,
@@ -260,19 +260,24 @@ async def search(
                 query=query_vector,
                 limit=top_k,
                 with_payload=True,
+                query_filter=models.Filter(
+                    must_not=[
+                        models.FieldCondition(
+                            key="status",
+                            match=models.MatchAny(any=["pending", "complete"]),
+                        )
+                    ]
+                ),
             )
-            content_points = [p for p in results.points if "status" not in p.payload]
             search_span.update(output={
-                "num_results": len(content_points),
-                "top_scores": [round(p.score, 4) for p in content_points[:3]],
-                "top_headers": [p.payload.get("header_path", "") for p in content_points[:3]],
+                "num_results": len(results.points),
+                "top_scores": [round(p.score, 4) for p in results.points[:3]],
+                "top_headers": [p.payload.get("header_path", "") for p in results.points[:3]],
             })
 
         chunks = []
         for point in results.points:
             payload = point.payload
-            if "status" in payload:
-                continue
             chunks.append(
                 Chunk(
                     ticker=payload["ticker"],

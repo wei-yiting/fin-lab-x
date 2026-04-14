@@ -71,4 +71,4 @@ When `search()` receives a filter with `ticker` (and optionally `year`):
 1. If `year` is specified: check the sentinel for that exact (ticker, year). If missing or not complete, fetch and ingest.
 2. If `year` is omitted: resolve the latest filing year from the local store, then check the sentinel for that year. If missing, ingest.
 3. If `SEC_DISABLE_JIT=1` is set, JIT is skipped and `JITDisabledError` is raised instead.
-4. If the ticker is not found in the local file store, the pipeline falls back to downloading from SEC EDGAR via `SECFilingPipeline`. This requires `EDGAR_IDENTITY` to be set. All `SECPipelineError` subtypes are converted to `JITTickerNotFoundError`.
+4. If the ticker is not found in the local file store, the pipeline falls back to downloading from SEC EDGAR via `SECFilingPipeline`. This requires `EDGAR_IDENTITY` to be set. Only `TickerNotFoundError` and `FilingNotFoundError` are converted to `JITTickerNotFoundError`. Other `SECPipelineError` subtypes (e.g., `TransientError`) propagate as-is and are wrapped as `CorpusUnavailableError` by the outer handler in `search()`.

@@ -1,14 +1,9 @@
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-
 import pytest
 
 from backend.tests.ingestion.sec_dense_pipeline.integration.conftest import (
     FIXTURE_MARKDOWN_CLASS_A,
     FIXTURE_MARKDOWN_CLASS_C,
 )
-
-_executor = ThreadPoolExecutor(max_workers=1)
 
 
 @pytest.mark.integration
@@ -17,12 +12,8 @@ async def test_search_returns_full_chunk_schema(clean_collection, mock_openai_em
     from backend.ingestion.sec_dense_pipeline.retriever import Chunk, search
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
 
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(
-        _executor,
-        lambda: ingest_filing(
-            ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
-        ),
+    await ingest_filing(
+        ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
     )
 
     results = await search(query="GPU revenue", top_k=5)
@@ -72,14 +63,9 @@ async def test_qdrant_down_raises_corpus_unavailable(mock_openai_embed, monkeypa
 async def test_filters_body_ignored_in_baseline(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from backend.ingestion.sec_dense_pipeline.retriever import search
-    import asyncio
 
-    await asyncio.get_event_loop().run_in_executor(
-        None, ingest_filing, "NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A
-    )
-    await asyncio.get_event_loop().run_in_executor(
-        None, ingest_filing, "INTC", 2025, FIXTURE_MARKDOWN_CLASS_C
-    )
+    await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
+    await ingest_filing("INTC", 2025, FIXTURE_MARKDOWN_CLASS_C)
 
     results = await search(
         query="semiconductor business",
@@ -97,11 +83,8 @@ async def test_filters_body_ignored_in_baseline(clean_collection, mock_openai_em
 async def test_search_succeeds_with_langfuse_down(clean_collection, mock_openai_embed, monkeypatch):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from backend.ingestion.sec_dense_pipeline.retriever import search
-    import asyncio
 
-    await asyncio.get_event_loop().run_in_executor(
-        None, ingest_filing, "NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A
-    )
+    await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
     monkeypatch.setenv("LANGFUSE_HOST", "http://unreachable.invalid:9999")
     results = await search(query="GPU revenue", top_k=5)

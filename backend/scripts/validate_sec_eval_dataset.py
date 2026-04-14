@@ -17,8 +17,8 @@ from pathlib import Path
 from qdrant_client import QdrantClient
 
 
-def _parse_json_field(value: str) -> list[str]:
-    """Parse a JSON list from a CSV field."""
+def _parse_json_field(value: str) -> list[str] | None:
+    """Parse a JSON list from a CSV field. Returns None on parse failure."""
     if not value or value.strip() == "[]":
         return []
     try:
@@ -26,8 +26,8 @@ def _parse_json_field(value: str) -> list[str]:
         if isinstance(parsed, list):
             return [str(item) for item in parsed]
     except json.JSONDecodeError:
-        pass
-    return []
+        return None
+    return None
 
 
 def validate_dataset(
@@ -72,6 +72,15 @@ def validate_dataset(
         answer_snippets = _parse_json_field(
             row.get("answer_snippets", "")
         )
+
+        if expected_paths is None:
+            print(f"  Row {row_idx}: ERROR malformed expected_header_paths JSON")
+            has_failures = True
+            continue
+        if answer_snippets is None:
+            print(f"  Row {row_idx}: ERROR malformed answer_snippets JSON")
+            has_failures = True
+            continue
 
         if not expected_paths:
             print(f"  Row {row_idx}: SKIP (no expected_header_paths)")

@@ -51,14 +51,21 @@ def _mock_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A):
     return mock_f
 
 
+def _mock_raw_filing(ticker="NVDA", year=2025):
+    """Create a mock raw filing object for _edgar_download_raw return."""
+    mock_raw = MagicMock()
+    mock_raw.fiscal_year = year
+    mock_raw.ticker = ticker
+    return mock_raw
+
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_jit_fires_on_empty_collection(clean_collection, mock_openai_embed):
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
     mock_filing = _mock_filing()
-    mock_pipeline = MagicMock()
-    mock_pipeline.process.return_value = mock_filing
+    mock_raw = _mock_raw_filing()
 
     with patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
@@ -67,14 +74,17 @@ async def test_jit_fires_on_empty_collection(clean_collection, mock_openai_embed
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=None,
     ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_create.return_value = mock_pipeline
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl, patch(
+        "backend.ingestion.sec_dense_pipeline.retriever._parse_raw_filing"
+    ) as mock_parse:
+        mock_dl.return_value = (mock_raw, MagicMock())
+        mock_parse.return_value = mock_filing
         result = await search(query="test", filters={"ticker": "NVDA"}, top_k=10)
 
     assert len(result) > 0
     assert all(c.ticker == "NVDA" for c in result)
-    mock_create.assert_called_once()
+    mock_dl.assert_called_once()
 
 
 @pytest.mark.integration
@@ -86,10 +96,10 @@ async def test_jit_skips_when_already_complete(clean_collection, mock_openai_emb
     await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
     with patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl:
         await search(query="test", filters={"ticker": "NVDA", "year": 2025}, top_k=10)
-        mock_create.assert_not_called()
+        mock_dl.assert_not_called()
 
 
 @pytest.mark.integration
@@ -101,8 +111,7 @@ async def test_jit_fires_for_missing_year(clean_collection, mock_openai_embed):
     await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
     mock_filing_2024 = _mock_filing(year=2024)
-    mock_pipeline = MagicMock()
-    mock_pipeline.process.return_value = mock_filing_2024
+    mock_raw_2024 = _mock_raw_filing(year=2024)
 
     with patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
@@ -111,11 +120,14 @@ async def test_jit_fires_for_missing_year(clean_collection, mock_openai_embed):
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=None,
     ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_create.return_value = mock_pipeline
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl, patch(
+        "backend.ingestion.sec_dense_pipeline.retriever._parse_raw_filing"
+    ) as mock_parse:
+        mock_dl.return_value = (mock_raw_2024, MagicMock())
+        mock_parse.return_value = mock_filing_2024
         await search(query="test", filters={"ticker": "NVDA", "year": 2024}, top_k=10)
-        mock_create.assert_called_once()
+        mock_dl.assert_called_once()
 
 
 @pytest.mark.integration
@@ -127,13 +139,13 @@ async def test_jit_does_not_fire_without_ticker(clean_collection, mock_openai_em
     await ingest_filing("NVDA", 2025, FIXTURE_MARKDOWN_CLASS_A)
 
     with patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl:
         await search(query="test", filters=None, top_k=10)
-        mock_create.assert_not_called()
+        mock_dl.assert_not_called()
 
         await search(query="test", filters={}, top_k=10)
-        mock_create.assert_not_called()
+        mock_dl.assert_not_called()
 
 
 @pytest.mark.integration
@@ -142,8 +154,7 @@ async def test_lowercase_ticker_does_not_dual_store(clean_collection, mock_opena
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
     mock_f = _mock_filing()
-    mock_pipeline = MagicMock()
-    mock_pipeline.process.return_value = mock_f
+    mock_raw = _mock_raw_filing()
 
     with patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
@@ -152,9 +163,12 @@ async def test_lowercase_ticker_does_not_dual_store(clean_collection, mock_opena
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=None,
     ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_create.return_value = mock_pipeline
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl, patch(
+        "backend.ingestion.sec_dense_pipeline.retriever._parse_raw_filing"
+    ) as mock_parse:
+        mock_dl.return_value = (mock_raw, MagicMock())
+        mock_parse.return_value = mock_f
         await search(query="test", filters={"ticker": "NVDA"}, top_k=10)
     count_after_first = _qdrant_count("NVDA")
 
@@ -165,9 +179,12 @@ async def test_lowercase_ticker_does_not_dual_store(clean_collection, mock_opena
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=None,
     ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_create.return_value = mock_pipeline
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl, patch(
+        "backend.ingestion.sec_dense_pipeline.retriever._parse_raw_filing"
+    ) as mock_parse:
+        mock_dl.return_value = (mock_raw, MagicMock())
+        mock_parse.return_value = mock_f
         await search(query="test", filters={"ticker": " nvda "}, top_k=10)
 
     count_after_second = _qdrant_count("NVDA")
@@ -189,15 +206,11 @@ async def test_disable_jit_raises(clean_collection, monkeypatch):
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_jit_fires_edgar_fallback_on_empty_store(clean_collection, mock_openai_embed):
-    """Verify full JIT path when filing is absent from local store: EDGAR download → ingest → search."""
+    """Verify full JIT path when filing is absent from local store: EDGAR download -> ingest -> search."""
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
-    mock_filing = MagicMock()
-    mock_filing.markdown_content = FIXTURE_MARKDOWN_CLASS_A
-    mock_filing.metadata.fiscal_year = 2025
-    mock_filing.metadata.filing_date = "2025-02-28"
-    mock_filing.metadata.filing_type = "10-K"
-    mock_filing.metadata.accession_number = "0001234567-25-000001"
+    mock_filing = _mock_filing()
+    mock_raw = _mock_raw_filing()
 
     with patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
@@ -206,15 +219,16 @@ async def test_jit_fires_edgar_fallback_on_empty_store(clean_collection, mock_op
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=None,
     ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_pipeline = MagicMock()
-        mock_pipeline.process.return_value = mock_filing
-        mock_create.return_value = mock_pipeline
+        "backend.ingestion.sec_dense_pipeline.retriever._edgar_download_raw"
+    ) as mock_dl, patch(
+        "backend.ingestion.sec_dense_pipeline.retriever._parse_raw_filing"
+    ) as mock_parse:
+        mock_dl.return_value = (mock_raw, MagicMock())
+        mock_parse.return_value = mock_filing
 
         result = await search(query="GPU data center revenue", filters={"ticker": "NVDA"}, top_k=10)
 
     assert len(result) > 0
     assert all(c.ticker == "NVDA" for c in result)
-    mock_create.assert_called_once()
-    mock_pipeline.process.assert_called_once()
+    mock_dl.assert_called_once()
+    mock_parse.assert_called_once()

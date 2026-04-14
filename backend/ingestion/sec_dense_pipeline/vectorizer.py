@@ -188,121 +188,12 @@ async def ingest_filing(
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
     client = AsyncQdrantClient(url=qdrant_url)
-    await _async_ensure_collection(client, collection, vector_size=_EMBED_DIM)
-    await _async_ensure_indexes(client, collection)
+    try:
+        await _async_ensure_collection(client, collection, vector_size=_EMBED_DIM)
+        await _async_ensure_indexes(client, collection)
 
-    sentinel_point_id = _sentinel_id(ticker, year)
-    sentinel_vector = [0.0] * _EMBED_DIM
-    await client.upsert(
-        collection_name=collection,
-        points=[
-            models.PointStruct(
-                id=sentinel_point_id,
-                vector=sentinel_vector,
-                payload={
-                    "ticker": ticker,
-                    "year": year,
-                    "status": "pending",
-                },
-            )
-        ],
-    )
-
-    lf = Langfuse()
-
-    with lf.start_as_current_observation(
-        name="sec_chunking",
-        input={"markdown_length": len(markdown)},
-    ) as chunking_span:
-        doc = Document(text=markdown)
-        section_nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
-        splitter = LangchainNodeParser(create_text_splitter())
-        chunk_nodes = splitter.get_nodes_from_documents(section_nodes)
-        chunking_span.update(output={
-            "num_sections": len(section_nodes),
-            "num_chunks": len(chunk_nodes),
-        })
-
-    ingested_at = datetime.now(timezone.utc).isoformat()
-    filing_date = (
-        filing_metadata.filing_date if filing_metadata else "unknown"
-    )
-    filing_type = (
-        str(filing_metadata.filing_type) if filing_metadata else "10-K"
-    )
-    accession_number = (
-        filing_metadata.accession_number if filing_metadata else None
-    )
-
-    points = []
-    for idx, node in enumerate(chunk_nodes):
-        raw_header_path = _build_header_path(node)
-        item = parse_item(raw_header_path)
-        prefixed_header_path = (
-            f"{ticker} / {year} / {raw_header_path}"
-            if raw_header_path
-            else f"{ticker} / {year}"
-        )
-
-        point_id = str(uuid5(NAMESPACE_DNS, f"{ticker}:{year}:{idx}"))
-
-        payload = {
-            "ticker": ticker,
-            "year": year,
-            "filing_date": filing_date,
-            "filing_type": filing_type,
-            "accession_number": accession_number,
-            "item": item,
-            "header_path": prefixed_header_path,
-            "chunk_index": idx,
-            "text": node.get_content(),
-            "ingested_at": ingested_at,
-        }
-        points.append((point_id, payload))
-
-    await client.delete(
-        collection_name=collection,
-        points_selector=models.Filter(
-            must=[
-                models.FieldCondition(
-                    key="ticker",
-                    match=models.MatchValue(value=ticker),
-                ),
-                models.FieldCondition(
-                    key="year",
-                    match=models.MatchValue(value=year),
-                ),
-            ],
-            must_not=[
-                models.FieldCondition(
-                    key="status",
-                    match=models.MatchAny(any=["pending", "complete"]),
-                ),
-            ],
-        ),
-    )
-
-    texts = [p[1]["text"] for p in points]
-    embeddings = await embed_chunks(texts)
-
-    qdrant_points = []
-    for (point_id, payload), embedding in zip(points, embeddings):
-        qdrant_points.append(
-            models.PointStruct(
-                id=point_id,
-                vector=embedding,
-                payload=payload,
-            )
-        )
-
-    with lf.start_as_current_observation(
-        name="sec_qdrant_upsert",
-        input={"num_points": len(qdrant_points), "batch_size": 100},
-    ) as upsert_span:
-        BATCH_SIZE = 100
-        for i in range(0, len(qdrant_points), BATCH_SIZE):
-            await client.upsert(collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE])
-
+        sentinel_point_id = _sentinel_id(ticker, year)
+        sentinel_vector = [0.0] * _EMBED_DIM
         await client.upsert(
             collection_name=collection,
             points=[
@@ -312,17 +203,128 @@ async def ingest_filing(
                     payload={
                         "ticker": ticker,
                         "year": year,
-                        "status": "complete",
+                        "status": "pending",
                     },
                 )
             ],
         )
-        num_batches = (len(qdrant_points) + BATCH_SIZE - 1) // BATCH_SIZE
-        upsert_span.update(output={
-            "num_batches": num_batches,
-            "status": "complete",
-        })
-    await client.close()
+
+        lf = Langfuse()
+
+        with lf.start_as_current_observation(
+            name="sec_chunking",
+            input={"markdown_length": len(markdown)},
+        ) as chunking_span:
+            doc = Document(text=markdown)
+            section_nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
+            splitter = LangchainNodeParser(create_text_splitter())
+            chunk_nodes = splitter.get_nodes_from_documents(section_nodes)
+            chunking_span.update(output={
+                "num_sections": len(section_nodes),
+                "num_chunks": len(chunk_nodes),
+            })
+
+        ingested_at = datetime.now(timezone.utc).isoformat()
+        filing_date = (
+            filing_metadata.filing_date if filing_metadata else "unknown"
+        )
+        filing_type = (
+            str(filing_metadata.filing_type) if filing_metadata else "10-K"
+        )
+        accession_number = (
+            filing_metadata.accession_number if filing_metadata else None
+        )
+
+        points = []
+        for idx, node in enumerate(chunk_nodes):
+            raw_header_path = _build_header_path(node)
+            item = parse_item(raw_header_path)
+            prefixed_header_path = (
+                f"{ticker} / {year} / {raw_header_path}"
+                if raw_header_path
+                else f"{ticker} / {year}"
+            )
+
+            point_id = str(uuid5(NAMESPACE_DNS, f"{ticker}:{year}:{idx}"))
+
+            payload = {
+                "ticker": ticker,
+                "year": year,
+                "filing_date": filing_date,
+                "filing_type": filing_type,
+                "accession_number": accession_number,
+                "item": item,
+                "header_path": prefixed_header_path,
+                "chunk_index": idx,
+                "text": node.get_content(),
+                "ingested_at": ingested_at,
+            }
+            points.append((point_id, payload))
+
+        await client.delete(
+            collection_name=collection,
+            points_selector=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="ticker",
+                        match=models.MatchValue(value=ticker),
+                    ),
+                    models.FieldCondition(
+                        key="year",
+                        match=models.MatchValue(value=year),
+                    ),
+                ],
+                must_not=[
+                    models.FieldCondition(
+                        key="status",
+                        match=models.MatchAny(any=["pending", "complete"]),
+                    ),
+                ],
+            ),
+        )
+
+        texts = [p[1]["text"] for p in points]
+        embeddings = await embed_chunks(texts)
+
+        qdrant_points = []
+        for (point_id, payload), embedding in zip(points, embeddings):
+            qdrant_points.append(
+                models.PointStruct(
+                    id=point_id,
+                    vector=embedding,
+                    payload=payload,
+                )
+            )
+
+        with lf.start_as_current_observation(
+            name="sec_qdrant_upsert",
+            input={"num_points": len(qdrant_points), "batch_size": 100},
+        ) as upsert_span:
+            BATCH_SIZE = 100
+            for i in range(0, len(qdrant_points), BATCH_SIZE):
+                await client.upsert(collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE])
+
+            await client.upsert(
+                collection_name=collection,
+                points=[
+                    models.PointStruct(
+                        id=sentinel_point_id,
+                        vector=sentinel_vector,
+                        payload={
+                            "ticker": ticker,
+                            "year": year,
+                            "status": "complete",
+                        },
+                    )
+                ],
+            )
+            num_batches = (len(qdrant_points) + BATCH_SIZE - 1) // BATCH_SIZE
+            upsert_span.update(output={
+                "num_batches": num_batches,
+                "status": "complete",
+            })
+    finally:
+        await client.close()
     get_client().update_current_span(
         output={"num_chunks": len(qdrant_points), "status": "complete"},
     )

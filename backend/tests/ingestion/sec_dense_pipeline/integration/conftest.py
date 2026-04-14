@@ -22,7 +22,7 @@ def mock_openai_embed():
     from backend.ingestion.sec_dense_pipeline.vectorizer import _EMBED_DIM
     async def fake_embed(texts):
         return [np.random.default_rng(hash(t) % 2**32).random(_EMBED_DIM).tolist() for t in texts]
-    with patch("backend.ingestion.sec_dense_pipeline.vectorizer.embed_texts", new=fake_embed) as m:
+    with patch("backend.ingestion.sec_dense_pipeline.vectorizer._embed_texts", new=fake_embed) as m:
         yield m
 
 @pytest.fixture()

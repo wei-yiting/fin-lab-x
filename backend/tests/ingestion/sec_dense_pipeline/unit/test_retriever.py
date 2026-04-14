@@ -104,7 +104,7 @@ def test_jit_disabled_error_is_separate() -> None:
     assert "batch" in str(err).lower()
 
 
-# --- fetch_filing() EDGAR fallback unit tests ---
+# --- check_sec_cache / download_filing unit tests ---
 
 def _make_mock_filing(fiscal_year: int = 2025):
     filing = MagicMock()
@@ -116,57 +116,19 @@ def _make_mock_filing(fiscal_year: int = 2025):
     return filing
 
 
-def test_fetch_filing_falls_back_to_edgar() -> None:
-    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
-
-    mock_filing = _make_mock_filing(fiscal_year=2025)
-
-    with patch(
-        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
-        return_value=[],
-    ), patch(
-        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
-        return_value=None,
-    ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_pipeline = MagicMock()
-        mock_pipeline.process.return_value = mock_filing
-        mock_create.return_value = mock_pipeline
-
-        result_filing, result_year = fetch_filing("NVDA")
-
-    assert result_filing is mock_filing
-    assert result_year == 2025
-    mock_create.assert_called_once()
-    mock_pipeline.process.assert_called_once()
+def _mock_qdrant_client(sentinel_complete: bool = False):
+    client = MagicMock()
+    if sentinel_complete:
+        mock_point = MagicMock()
+        mock_point.payload = {"status": "complete"}
+        client.retrieve.return_value = [mock_point]
+    else:
+        client.retrieve.return_value = []
+    return client
 
 
-def test_fetch_filing_edgar_with_explicit_year() -> None:
-    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
-
-    mock_filing = _make_mock_filing(fiscal_year=2023)
-
-    with patch(
-        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
-        return_value=None,
-    ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_pipeline = MagicMock()
-        mock_pipeline.process.return_value = mock_filing
-        mock_create.return_value = mock_pipeline
-
-        _, result_year = fetch_filing("NVDA", 2023)
-
-    assert result_year == 2023
-    _, call_kwargs = mock_pipeline.process.call_args
-    assert call_kwargs.get("fiscal_year") == 2023
-
-
-def test_fetch_filing_edgar_converts_pipeline_error() -> None:
-    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
-    from backend.ingestion.sec_filing_pipeline import TickerNotFoundError
+def test_check_sec_cache_all_miss() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import check_sec_cache
 
     with patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
@@ -174,22 +136,18 @@ def test_fetch_filing_edgar_converts_pipeline_error() -> None:
     ), patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=None,
-    ), patch(
-        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
-    ) as mock_create:
-        mock_pipeline = MagicMock()
-        original_exc = TickerNotFoundError("ZZZZZ not found in SEC EDGAR")
-        mock_pipeline.process.side_effect = original_exc
-        mock_create.return_value = mock_pipeline
+    ):
+        filing, year, filing_hit, embedding_hit = check_sec_cache(
+            "NVDA", None, _mock_qdrant_client(), "test_col"
+        )
 
-        with pytest.raises(JITTickerNotFoundError) as exc_info:
-            fetch_filing("ZZZZZ")
-
-    assert exc_info.value.__cause__ is original_exc
+    assert filing is None
+    assert not filing_hit
+    assert not embedding_hit
 
 
-def test_fetch_filing_local_hit_skips_edgar() -> None:
-    from backend.ingestion.sec_dense_pipeline.retriever import fetch_filing
+def test_check_sec_cache_filing_hit_embedding_miss() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import check_sec_cache
 
     cached_filing = _make_mock_filing(fiscal_year=2024)
 
@@ -199,11 +157,83 @@ def test_fetch_filing_local_hit_skips_edgar() -> None:
     ), patch(
         "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
         return_value=cached_filing,
+    ):
+        filing, year, filing_hit, embedding_hit = check_sec_cache(
+            "NVDA", None, _mock_qdrant_client(sentinel_complete=False), "test_col"
+        )
+
+    assert filing is cached_filing
+    assert year == 2024
+    assert filing_hit
+    assert not embedding_hit
+
+
+def test_check_sec_cache_all_hit() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import check_sec_cache
+
+    cached_filing = _make_mock_filing(fiscal_year=2024)
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.list_filings",
+        return_value=[2024],
     ), patch(
+        "backend.ingestion.sec_filing_pipeline.filing_store.LocalFilingStore.get",
+        return_value=cached_filing,
+    ):
+        filing, year, filing_hit, embedding_hit = check_sec_cache(
+            "NVDA", None, _mock_qdrant_client(sentinel_complete=True), "test_col"
+        )
+
+    assert filing is cached_filing
+    assert filing_hit
+    assert embedding_hit
+
+
+def test_edgar_download_raw_returns_raw_filing() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import _edgar_download_raw
+
+    mock_raw = MagicMock()
+    mock_raw.fiscal_year = 2025
+
+    with patch(
         "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
     ) as mock_create:
-        result_filing, result_year = fetch_filing("NVDA")
+        mock_pipeline = MagicMock()
+        mock_pipeline._downloader.download.return_value = mock_raw
+        mock_create.return_value = mock_pipeline
 
-    assert result_filing is cached_filing
-    assert result_year == 2024
-    mock_create.assert_not_called()
+        raw, pipeline = _edgar_download_raw("NVDA")
+
+    assert raw is mock_raw
+    assert pipeline is mock_pipeline
+
+
+def test_edgar_download_raw_converts_pipeline_error() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import _edgar_download_raw
+    from backend.ingestion.sec_filing_pipeline import TickerNotFoundError
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_pipeline = MagicMock()
+        original_exc = TickerNotFoundError("ZZZZZ not found")
+        mock_pipeline._downloader.download.side_effect = original_exc
+        mock_create.return_value = mock_pipeline
+
+        with pytest.raises(JITTickerNotFoundError) as exc_info:
+            _edgar_download_raw("ZZZZZ")
+
+    assert exc_info.value.__cause__ is original_exc
+
+
+def test_edgar_download_raw_configuration_error_propagates() -> None:
+    from backend.ingestion.sec_dense_pipeline.retriever import _edgar_download_raw
+    from backend.ingestion.sec_filing_pipeline import ConfigurationError
+
+    with patch(
+        "backend.ingestion.sec_filing_pipeline.pipeline.SECFilingPipeline.create"
+    ) as mock_create:
+        mock_create.side_effect = ConfigurationError("EDGAR_IDENTITY required")
+
+        with pytest.raises(ConfigurationError):
+            _edgar_download_raw("ADSK")

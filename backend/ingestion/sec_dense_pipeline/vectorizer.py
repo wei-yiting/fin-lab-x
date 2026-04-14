@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from uuid import NAMESPACE_DNS, uuid5
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langfuse import Langfuse, observe
 
 
 def parse_item(raw_header_path: str) -> str:
@@ -38,12 +39,40 @@ _EMBED_MODEL = os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large")
 _EMBED_DIM = int(os.environ.get("SEC_EMBED_DIM", "3072"))
 
 
-async def embed_texts(texts: list[str]) -> list[list[float]]:
-    """Embed texts using OpenAI. Patchable for testing."""
+async def _embed_texts(texts: list[str]) -> list[list[float]]:
+    """Low-level embedding via OpenAI. Patchable for testing."""
     from llama_index.embeddings.openai import OpenAIEmbedding
 
     embed_model = OpenAIEmbedding(model=_EMBED_MODEL, dimensions=_EMBED_DIM)
     return await embed_model.aget_text_embedding_batch(texts)
+
+
+@observe(name="sec_query_embedding", capture_output=False)
+async def embed_query(query: str) -> list[float]:
+    """Embed a single query string for vector search."""
+    from langfuse import get_client
+    get_client().update_current_span(
+        input={"query": query, "model": _EMBED_MODEL},
+    )
+    result = await _embed_texts([query])
+    get_client().update_current_span(
+        output={"dimensions": len(result[0])},
+    )
+    return result[0]
+
+
+@observe(name="sec_chunk_embedding", capture_output=False)
+async def embed_chunks(texts: list[str]) -> list[list[float]]:
+    """Embed document chunks for dense ingestion."""
+    from langfuse import get_client
+    get_client().update_current_span(
+        input={"num_chunks": len(texts), "model": _EMBED_MODEL},
+    )
+    result = await _embed_texts(texts)
+    get_client().update_current_span(
+        output={"num_embedded": len(result), "dimensions": len(result[0]) if result else 0},
+    )
+    return result
 
 
 def _build_header_path(node) -> str:
@@ -82,6 +111,19 @@ def _ensure_collection(client, collection: str, vector_size: int = _EMBED_DIM) -
         )
 
 
+async def _async_ensure_collection(client, collection: str, vector_size: int = _EMBED_DIM) -> None:
+    from qdrant_client import models
+
+    if not await client.collection_exists(collection):
+        await client.create_collection(
+            collection_name=collection,
+            vectors_config=models.VectorParams(
+                size=vector_size,
+                distance=models.Distance.COSINE,
+            ),
+        )
+
+
 def _ensure_indexes(client, collection: str) -> None:
     from qdrant_client import models
 
@@ -102,34 +144,56 @@ def _ensure_indexes(client, collection: str) -> None:
     )
 
 
+async def _async_ensure_indexes(client, collection: str) -> None:
+    from qdrant_client import models
+
+    await client.create_payload_index(
+        collection_name=collection,
+        field_name="ticker",
+        field_schema=models.PayloadSchemaType.KEYWORD,
+    )
+    await client.create_payload_index(
+        collection_name=collection,
+        field_name="year",
+        field_schema=models.PayloadSchemaType.INTEGER,
+    )
+    await client.create_payload_index(
+        collection_name=collection,
+        field_name="item",
+        field_schema=models.PayloadSchemaType.KEYWORD,
+    )
+
+
 def _sentinel_id(ticker: str, year: int) -> str:
     """Deterministic sentinel point ID for (ticker, year)."""
     return str(uuid5(NAMESPACE_DNS, f"{ticker}:{year}:_status"))
 
 
-def ingest_filing(
+@observe(name="sec_dense_ingestion")
+async def ingest_filing(
     ticker: str, year: int, markdown: str, filing_metadata=None
 ) -> None:
-    import asyncio
-
+    from langfuse import get_client
     from llama_index.core import Document
     from llama_index.core.node_parser import LangchainNodeParser, MarkdownNodeParser
-    from qdrant_client import QdrantClient, models
+    from qdrant_client import AsyncQdrantClient, models
 
     ticker = _canonicalize_ticker(ticker)
+    get_client().update_current_span(
+        input={"ticker": ticker, "year": year, "markdown_length": len(markdown)},
+    )
     collection = os.environ.get(
         "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
     )
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
-    client = QdrantClient(url=qdrant_url)
-    _ensure_collection(client, collection, vector_size=_EMBED_DIM)
-    _ensure_indexes(client, collection)
+    client = AsyncQdrantClient(url=qdrant_url)
+    await _async_ensure_collection(client, collection, vector_size=_EMBED_DIM)
+    await _async_ensure_indexes(client, collection)
 
-    # Upsert sentinel as "pending" before any content processing
     sentinel_point_id = _sentinel_id(ticker, year)
     sentinel_vector = [0.0] * _EMBED_DIM
-    client.upsert(
+    await client.upsert(
         collection_name=collection,
         points=[
             models.PointStruct(
@@ -144,11 +208,20 @@ def ingest_filing(
         ],
     )
 
-    doc = Document(text=markdown)
-    section_nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
+    lf = Langfuse()
 
-    splitter = LangchainNodeParser(create_text_splitter())
-    chunk_nodes = splitter.get_nodes_from_documents(section_nodes)
+    with lf.start_as_current_observation(
+        name="sec_chunking",
+        input={"markdown_length": len(markdown)},
+    ) as chunking_span:
+        doc = Document(text=markdown)
+        section_nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
+        splitter = LangchainNodeParser(create_text_splitter())
+        chunk_nodes = splitter.get_nodes_from_documents(section_nodes)
+        chunking_span.update(output={
+            "num_sections": len(section_nodes),
+            "num_chunks": len(chunk_nodes),
+        })
 
     ingested_at = datetime.now(timezone.utc).isoformat()
     filing_date = (
@@ -187,9 +260,7 @@ def ingest_filing(
         }
         points.append((point_id, payload))
 
-    # Delete stale content chunks for this (ticker, year) before upserting.
-    # Sentinel points (which have a "status" field) are excluded from deletion.
-    client.delete(
+    await client.delete(
         collection_name=collection,
         points_selector=models.Filter(
             must=[
@@ -212,7 +283,7 @@ def ingest_filing(
     )
 
     texts = [p[1]["text"] for p in points]
-    embeddings = asyncio.run(embed_texts(texts))
+    embeddings = await embed_chunks(texts)
 
     qdrant_points = []
     for (point_id, payload), embedding in zip(points, embeddings):
@@ -224,22 +295,34 @@ def ingest_filing(
             )
         )
 
-    BATCH_SIZE = 100
-    for i in range(0, len(qdrant_points), BATCH_SIZE):
-        client.upsert(collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE])
+    with lf.start_as_current_observation(
+        name="sec_qdrant_upsert",
+        input={"num_points": len(qdrant_points), "batch_size": 100},
+    ) as upsert_span:
+        BATCH_SIZE = 100
+        for i in range(0, len(qdrant_points), BATCH_SIZE):
+            await client.upsert(collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE])
 
-    # Mark sentinel as "complete" after all content is upserted
-    client.upsert(
-        collection_name=collection,
-        points=[
-            models.PointStruct(
-                id=sentinel_point_id,
-                vector=sentinel_vector,
-                payload={
-                    "ticker": ticker,
-                    "year": year,
-                    "status": "complete",
-                },
-            )
-        ],
+        await client.upsert(
+            collection_name=collection,
+            points=[
+                models.PointStruct(
+                    id=sentinel_point_id,
+                    vector=sentinel_vector,
+                    payload={
+                        "ticker": ticker,
+                        "year": year,
+                        "status": "complete",
+                    },
+                )
+            ],
+        )
+        num_batches = (len(qdrant_points) + BATCH_SIZE - 1) // BATCH_SIZE
+        upsert_span.update(output={
+            "num_batches": num_batches,
+            "status": "complete",
+        })
+    await client.close()
+    get_client().update_current_span(
+        output={"num_chunks": len(qdrant_points), "status": "complete"},
     )

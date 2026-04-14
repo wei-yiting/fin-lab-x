@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 
+from langfuse import Langfuse, get_client, observe
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -42,44 +43,99 @@ def _canonicalize_ticker(raw: str) -> str:
     return stripped.upper()
 
 
-def fetch_filing(ticker: str, year: int | None = None):
-    """Fetch filing from local store, falling back to EDGAR download."""
+@observe(name="check_sec_cache", capture_output=False)
+def check_sec_cache(ticker: str, year: int | None, qdrant_client, collection: str):
+    """Check filing cache and embedding sentinel. Returns (filing, year, filing_hit, embedding_hit)."""
     from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
     from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
 
     store = LocalFilingStore()
+    resolved_year = year
+    filing = None
 
-    # Fast path: local cache
     if year is None:
         years = store.list_filings(ticker, FilingType.TEN_K)
         if years:
-            year = max(years)
+            resolved_year = max(years)
 
-    if year is not None:
-        filing = store.get(ticker, FilingType.TEN_K, year)
-        if filing is not None:
-            return filing, year
+    if resolved_year is not None:
+        filing = store.get(ticker, FilingType.TEN_K, resolved_year)
 
-    # Slow path: download from EDGAR
+    filing_hit = filing is not None
+    embedding_hit = (
+        resolved_year is not None
+        and _check_sentinel(qdrant_client, collection, ticker, resolved_year)
+    )
+
+    get_client().update_current_span(
+        input={"ticker": ticker, "year": year},
+        output={
+            "filing_cache_hit": filing_hit,
+            "embedding_cache_hit": embedding_hit,
+            "resolved_year": resolved_year,
+        },
+    )
+    return filing, resolved_year, filing_hit, embedding_hit
+
+
+def _edgar_download_raw(ticker: str, year: int | None = None):
+    """Call EDGAR API to download raw filing. Returns (RawFiling, SECFilingPipeline)."""
     from backend.ingestion.sec_filing_pipeline import (
-        SECFilingPipeline,
+        ConfigurationError,
         SECPipelineError,
     )
+    from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
+    from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline
 
-    logger.info(
-        "Local cache miss for %s/%s — downloading from EDGAR", ticker, year
-    )
+    pipeline = SECFilingPipeline.create()
+
     try:
-        filing = SECFilingPipeline.create().process(
-            ticker, FilingType.TEN_K, fiscal_year=year
-        )
+        raw = pipeline._downloader.download(ticker, str(FilingType.TEN_K), year)
+    except ConfigurationError:
+        raise
     except SECPipelineError as exc:
         raise JITTickerNotFoundError(
             f"No 10-K filing for ticker={ticker}"
             + (f", year={year}" if year else "")
         ) from exc
 
-    return filing, filing.metadata.fiscal_year
+    return raw, pipeline
+
+
+def _parse_raw_filing(raw, pipeline):
+    """Parse raw HTML to markdown and store locally. Returns ParsedFiling."""
+    from datetime import UTC, datetime
+
+    from backend.ingestion.sec_filing_pipeline.filing_models import (
+        FilingMetadata,
+        FilingType,
+        ParsedFiling,
+    )
+    from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
+        convert_with_fallback,
+    )
+
+    cleaned_html = pipeline._preprocessor.preprocess(raw.raw_html)
+    markdown, converter_name = convert_with_fallback(
+        cleaned_html, pipeline._converter, pipeline._fallback_converter
+    )
+    markdown = pipeline._markdown_cleaner.clean(markdown)
+
+    metadata = FilingMetadata(
+        ticker=raw.ticker,
+        cik=raw.cik,
+        company_name=raw.company_name,
+        filing_type=FilingType.TEN_K,
+        filing_date=raw.filing_date,
+        fiscal_year=raw.fiscal_year,
+        accession_number=raw.accession_number,
+        source_url=raw.source_url,
+        parsed_at=datetime.now(UTC).isoformat(),
+        converter=converter_name,
+    )
+    filing = ParsedFiling(metadata=metadata, markdown_content=markdown)
+    pipeline._store.save(filing)
+    return filing
 
 
 def _check_sentinel(client, collection: str, ticker: str, year: int) -> bool:
@@ -100,6 +156,7 @@ def _check_sentinel(client, collection: str, ticker: str, year: int) -> bool:
         return False
 
 
+@observe(name="sec_retrieval")
 async def search(
     query: str, filters: dict | None = None, top_k: int = 10
 ) -> list[Chunk]:
@@ -115,11 +172,12 @@ async def search(
         from qdrant_client import QdrantClient
 
         from backend.ingestion.sec_dense_pipeline.vectorizer import (
-            embed_texts,
+            embed_query,
             ingest_filing,
         )
 
         client = QdrantClient(url=qdrant_url)
+        lf = Langfuse()
 
         if filters and "ticker" in filters:
             ticker = _canonicalize_ticker(filters["ticker"])
@@ -138,49 +196,79 @@ async def search(
 
             loop = asyncio.get_event_loop()
             year = filters.get("year")
-            if year is not None:
-                if not _check_sentinel(client, collection, ticker, year):
-                    filing, resolved_year = await loop.run_in_executor(
-                        None, fetch_filing, ticker, year
-                    )
-                    await loop.run_in_executor(
-                        None,
-                        ingest_filing,
-                        ticker,
-                        resolved_year,
-                        filing.markdown_content,
-                        filing.metadata,
-                    )
-            else:
-                filing, resolved_year = await loop.run_in_executor(
-                    None, fetch_filing, ticker, None
+
+            filing, resolved_year, filing_hit, embedding_hit = check_sec_cache(
+                ticker, year, client, collection
+            )
+
+            if not filing_hit:
+                with lf.start_as_current_observation(
+                    name="sec_filing_pipeline",
+                    input={"ticker": ticker, "year": year},
+                ) as pipeline_span:
+                    try:
+                        with lf.start_as_current_observation(
+                            name="sec_edgar_download",
+                            input={"ticker": ticker, "year": year},
+                        ) as dl_span:
+                            raw, pipeline_obj = await loop.run_in_executor(
+                                None, _edgar_download_raw, ticker, year
+                            )
+                            dl_span.update(output={
+                                "status": "complete",
+                                "fiscal_year": raw.fiscal_year,
+                            })
+
+                        with lf.start_as_current_observation(
+                            name="sec_html_to_markdown",
+                            input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
+                        ) as parse_span:
+                            filing = await loop.run_in_executor(
+                                None, _parse_raw_filing, raw, pipeline_obj
+                            )
+                            parse_span.update(output={
+                                "status": "complete",
+                                "markdown_length": len(filing.markdown_content),
+                            })
+
+                        resolved_year = filing.metadata.fiscal_year
+                        pipeline_span.update(output={
+                            "resolved_year": resolved_year,
+                            "status": "complete",
+                        })
+                    except Exception:
+                        pipeline_span.update(output={"status": "error"})
+                        raise
+
+            if not embedding_hit:
+                await ingest_filing(
+                    ticker, resolved_year,
+                    filing.markdown_content, filing.metadata,
                 )
-                if not _check_sentinel(
-                    client, collection, ticker, resolved_year
-                ):
-                    await loop.run_in_executor(
-                        None,
-                        ingest_filing,
-                        ticker,
-                        resolved_year,
-                        filing.markdown_content,
-                        filing.metadata,
-                    )
 
         try:
-            embeddings = await embed_texts([query])
+            query_vector = await embed_query(query)
         except Exception as e:
             raise EmbeddingServiceError(
                 f"Embedding failed: {e}"
             ) from e
-        query_vector = embeddings[0]
 
-        results = client.query_points(
-            collection_name=collection,
-            query=query_vector,
-            limit=top_k,
-            with_payload=True,
-        )
+        with lf.start_as_current_observation(
+            name="sec_vector_search",
+            input={"query": query, "top_k": top_k, "collection": collection},
+        ) as search_span:
+            results = client.query_points(
+                collection_name=collection,
+                query=query_vector,
+                limit=top_k,
+                with_payload=True,
+            )
+            content_points = [p for p in results.points if "status" not in p.payload]
+            search_span.update(output={
+                "num_results": len(content_points),
+                "top_scores": [round(p.score, 4) for p in content_points[:3]],
+                "top_headers": [p.payload.get("header_path", "") for p in content_points[:3]],
+            })
 
         chunks = []
         for point in results.points:
@@ -202,6 +290,13 @@ async def search(
                     score=point.score,
                 )
             )
+        get_client().update_current_span(
+            metadata={
+                "collection_name": collection,
+                "embed_model": os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large"),
+                "filters_applied": False,
+            }
+        )
         return chunks
     except (
         ValueError,
@@ -211,6 +306,10 @@ async def search(
     ):
         raise
     except Exception as e:
+        # ConfigurationError from the filing pipeline should surface as-is
+        # so callers receive a clear signal about missing env vars.
+        if type(e).__name__ == "ConfigurationError":
+            raise
         if "not found" in str(e).lower() or "doesn't exist" in str(e).lower():
             raise CorpusUnavailableError(
                 f"Collection unavailable: {e}"

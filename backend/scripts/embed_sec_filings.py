@@ -5,6 +5,7 @@ Usage: python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
 """
 
 import argparse
+import asyncio
 import sys
 import time
 from pathlib import Path
@@ -51,12 +52,12 @@ def main(argv: list[str] | None = None) -> int:
             last_error = None
             for attempt in range(args.max_retries):
                 try:
-                    ingest_filing(
+                    asyncio.run(ingest_filing(
                         ticker=ticker_upper,
                         year=year,
                         markdown=filing.markdown_content,
                         filing_metadata=filing.metadata,
-                    )
+                    ))
                     last_error = None
                     break
                 except Exception as e:

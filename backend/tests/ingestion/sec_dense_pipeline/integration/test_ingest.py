@@ -143,7 +143,7 @@ def test_partial_failure_sentinel_pending(clean_collection):
         ]
 
     with patch(
-        "backend.ingestion.sec_dense_pipeline.vectorizer.embed_texts",
+        "backend.ingestion.sec_dense_pipeline.vectorizer._embed_texts",
         new=fail_after_3,
     ):
         with pytest.raises(Exception, match="Simulated"):
@@ -183,7 +183,7 @@ def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embe
         ]
 
     with patch(
-        "backend.ingestion.sec_dense_pipeline.vectorizer.embed_texts",
+        "backend.ingestion.sec_dense_pipeline.vectorizer._embed_texts",
         new=fail_after_3,
     ):
         try:

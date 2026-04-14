@@ -105,7 +105,7 @@ flowchart TD
 
 ### Current Implementation (V2)
 
-`search()` orchestrates filing resolution in two separate steps: `try_filing_cache()` checks the local store, and `download_filing()` fetches from EDGAR on cache miss. This separation ensures correct trace hierarchy (siblings, not parent-child).
+`search()` orchestrates filing resolution in two separate steps: `check_sec_cache()` checks the local store and embedding sentinel, and `_edgar_download_raw()` + `_parse_raw_filing()` fetch from EDGAR on cache miss. This separation ensures correct trace hierarchy (siblings, not parent-child).
 
 ### Planned Refactor (V3)
 
@@ -123,15 +123,15 @@ Pipeline tracing uses Langfuse's `@observe` decorator for async operations and `
 `@observe` parent-child nesting relies on `contextvars`, which does **not** propagate across `run_in_executor` thread boundaries. Therefore:
 
 - **Async functions** (`ingest_filing`, `embed_texts`): use `@observe` — called with `await`, same event loop thread, nesting works.
-- **Sync functions forced to executor** (`download_filing` — `edgartools` has no async API): use `Langfuse().start_as_current_observation()` context manager in the caller. The span is created/closed in the event loop thread; the executor call runs inside it.
-- **Direct sync calls** (`try_filing_cache`): use `@observe` — called directly from `search()`, same thread, nesting works.
+- **Sync functions forced to executor** (`_edgar_download_raw` — `edgartools` has no async API): use `Langfuse().start_as_current_observation()` context manager in the caller. The span is created/closed in the event loop thread; the executor call runs inside it.
+- **Direct sync calls** (`check_sec_cache`): use `@observe` — called directly from `search()`, same thread, nesting works.
 
 ### Current Spans
 
 | Span Name | Function | Mechanism |
 |---|---|---|
 | `sec_retrieval` | `search()` | `@observe` (async) |
-| `check_sec_filing_cache` | `try_filing_cache()` | `@observe` (sync direct call) |
+| `check_sec_cache` | `check_sec_cache()` | `@observe` (sync direct call) |
 | `sec_filing_pipeline` | wraps EDGAR download + parse | context manager (executor) |
 | `sec_edgar_download` | wraps `_edgar_download_raw()` | context manager (executor, child of pipeline) |
 | `sec_html_to_markdown` | wraps `_parse_raw_filing()` | context manager (executor, child of pipeline) |

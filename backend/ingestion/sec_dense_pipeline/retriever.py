@@ -162,22 +162,33 @@ async def search(
                 )
 
             _ensure_collection(client, collection)
+            year_filter = filters.get("year")
 
-            loop = asyncio.get_event_loop()
-            pipeline = SECFilingPipeline.create()
+            # Fast path: caller supplied a year and embeddings are already
+            # complete for it — no EDGAR call (and no SECFilingPipeline
+            # construction) needed. SECFilingPipeline.create() requires
+            # EDGAR_IDENTITY, so deferring it here also makes search() usable
+            # in environments without EDGAR access for already-ingested data.
+            if year_filter is not None and check_sec_cache(
+                ticker, year_filter, client, collection
+            ):
+                pass
+            else:
+                loop = asyncio.get_event_loop()
+                pipeline = SECFilingPipeline.create()
 
-            resolved_year = await _resolve_year(
-                pipeline, ticker, filters.get("year"), loop
-            )
-
-            if not check_sec_cache(ticker, resolved_year, client, collection):
-                filing = await _ensure_filing_locally(
-                    pipeline, ticker, resolved_year, loop, lf
+                resolved_year = await _resolve_year(
+                    pipeline, ticker, year_filter, loop
                 )
-                await ingest_filing(
-                    ticker, resolved_year,
-                    filing.markdown_content, filing.metadata,
-                )
+
+                if not check_sec_cache(ticker, resolved_year, client, collection):
+                    filing = await _ensure_filing_locally(
+                        pipeline, ticker, resolved_year, loop, lf
+                    )
+                    await ingest_filing(
+                        ticker, resolved_year,
+                        filing.markdown_content, filing.metadata,
+                    )
 
         try:
             query_vector = await embed_query(query)

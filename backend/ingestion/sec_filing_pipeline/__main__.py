@@ -21,12 +21,12 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from backend.ingestion.sec_filing_pipeline.filing_models import (
+from backend.ingestion.sec_filing_pipeline.filing_models import (  # noqa: E402
     FilingMetadata,
     ParsedFiling,
     SECPipelineError,
 )
-from backend.ingestion.sec_filing_pipeline.pipeline import (
+from backend.ingestion.sec_filing_pipeline.pipeline import (  # noqa: E402
     SECFilingPipeline,
 )
 

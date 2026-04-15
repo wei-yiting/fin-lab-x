@@ -14,9 +14,9 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
-from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
-from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
+from backend.ingestion.sec_filing_pipeline.filing_models import FilingType  # noqa: E402
+from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore  # noqa: E402
+from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:

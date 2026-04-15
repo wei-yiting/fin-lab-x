@@ -199,46 +199,46 @@ async def search(
                 ticker, year, client, collection
             )
 
-            if not filing_hit:
-                with lf.start_as_current_observation(
-                    name="sec_filing_pipeline",
-                    input={"ticker": ticker, "year": year},
-                ) as pipeline_span:
-                    try:
-                        with lf.start_as_current_observation(
-                            name="sec_edgar_download",
-                            input={"ticker": ticker, "year": year},
-                        ) as dl_span:
-                            raw, pipeline_obj = await loop.run_in_executor(
-                                None, _edgar_download_raw, ticker, year
-                            )
-                            dl_span.update(output={
-                                "status": "complete",
-                                "fiscal_year": raw.fiscal_year,
-                            })
-
-                        with lf.start_as_current_observation(
-                            name="sec_html_to_markdown",
-                            input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
-                        ) as parse_span:
-                            filing = await loop.run_in_executor(
-                                None, _parse_raw_filing, raw, pipeline_obj
-                            )
-                            parse_span.update(output={
-                                "status": "complete",
-                                "markdown_length": len(filing.markdown_content),
-                            })
-
-                        resolved_year = filing.metadata.fiscal_year
-                        pipeline_span.update(output={
-                            "resolved_year": resolved_year,
-                            "status": "complete",
-                        })
-                    except Exception:
-                        pipeline_span.update(output={"status": "error"})
-                        raise
-
             if not embedding_hit:
+                if not filing_hit:
+                    with lf.start_as_current_observation(
+                        name="sec_filing_pipeline",
+                        input={"ticker": ticker, "year": year},
+                    ) as pipeline_span:
+                        try:
+                            with lf.start_as_current_observation(
+                                name="sec_edgar_download",
+                                input={"ticker": ticker, "year": year},
+                            ) as dl_span:
+                                raw, pipeline_obj = await loop.run_in_executor(
+                                    None, _edgar_download_raw, ticker, year
+                                )
+                                dl_span.update(output={
+                                    "status": "complete",
+                                    "fiscal_year": raw.fiscal_year,
+                                })
+
+                            with lf.start_as_current_observation(
+                                name="sec_html_to_markdown",
+                                input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
+                            ) as parse_span:
+                                filing = await loop.run_in_executor(
+                                    None, _parse_raw_filing, raw, pipeline_obj
+                                )
+                                parse_span.update(output={
+                                    "status": "complete",
+                                    "markdown_length": len(filing.markdown_content),
+                                })
+
+                            resolved_year = filing.metadata.fiscal_year
+                            pipeline_span.update(output={
+                                "resolved_year": resolved_year,
+                                "status": "complete",
+                            })
+                        except Exception:
+                            pipeline_span.update(output={"status": "error"})
+                            raise
+
                 await ingest_filing(
                     ticker, resolved_year,
                     filing.markdown_content, filing.metadata,

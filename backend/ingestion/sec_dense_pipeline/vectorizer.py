@@ -4,7 +4,16 @@ from datetime import datetime, timezone
 from uuid import NAMESPACE_DNS, uuid5
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langfuse import Langfuse, observe
+from langfuse import Langfuse, get_client, observe
+from llama_index.core import Document
+from llama_index.core.node_parser import LangchainNodeParser, MarkdownNodeParser
+from llama_index.embeddings.openai import OpenAIEmbedding
+from qdrant_client import AsyncQdrantClient, models
+
+from backend.ingestion.sec_dense_pipeline.common import (
+    canonicalize_ticker,
+    sentinel_id,
+)
 
 
 def parse_item(raw_header_path: str) -> str:
@@ -26,23 +35,12 @@ def create_text_splitter() -> RecursiveCharacterTextSplitter:
     )
 
 
-def _canonicalize_ticker(raw: str) -> str:
-    if not isinstance(raw, str):
-        raise TypeError(f"Expected str, got {type(raw).__name__}")
-    stripped = raw.strip()
-    if not stripped:
-        raise ValueError("Empty ticker")
-    return stripped.upper()
-
-
 _EMBED_MODEL = os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large")
 _EMBED_DIM = int(os.environ.get("SEC_EMBED_DIM", "3072"))
 
 
 async def _embed_texts(texts: list[str]) -> list[list[float]]:
     """Low-level embedding via OpenAI. Patchable for testing."""
-    from llama_index.embeddings.openai import OpenAIEmbedding
-
     embed_model = OpenAIEmbedding(model=_EMBED_MODEL, dimensions=_EMBED_DIM)
     return await embed_model.aget_text_embedding_batch(texts)
 
@@ -50,7 +48,6 @@ async def _embed_texts(texts: list[str]) -> list[list[float]]:
 @observe(name="sec_query_embedding", capture_output=False)
 async def embed_query(query: str) -> list[float]:
     """Embed a single query string for vector search."""
-    from langfuse import get_client
     get_client().update_current_span(
         input={"query": query, "model": _EMBED_MODEL},
     )
@@ -64,7 +61,6 @@ async def embed_query(query: str) -> list[float]:
 @observe(name="sec_chunk_embedding", capture_output=False)
 async def embed_chunks(texts: list[str]) -> list[list[float]]:
     """Embed document chunks for dense ingestion."""
-    from langfuse import get_client
     get_client().update_current_span(
         input={"num_chunks": len(texts), "model": _EMBED_MODEL},
     )
@@ -99,8 +95,6 @@ def _build_header_path(node) -> str:
 
 
 def _ensure_collection(client, collection: str, vector_size: int = _EMBED_DIM) -> None:
-    from qdrant_client import models
-
     if not client.collection_exists(collection):
         client.create_collection(
             collection_name=collection,
@@ -112,8 +106,6 @@ def _ensure_collection(client, collection: str, vector_size: int = _EMBED_DIM) -
 
 
 async def _async_ensure_collection(client, collection: str, vector_size: int = _EMBED_DIM) -> None:
-    from qdrant_client import models
-
     if not await client.collection_exists(collection):
         await client.create_collection(
             collection_name=collection,
@@ -125,8 +117,6 @@ async def _async_ensure_collection(client, collection: str, vector_size: int = _
 
 
 def _ensure_indexes(client, collection: str) -> None:
-    from qdrant_client import models
-
     client.create_payload_index(
         collection_name=collection,
         field_name="ticker",
@@ -145,8 +135,6 @@ def _ensure_indexes(client, collection: str) -> None:
 
 
 async def _async_ensure_indexes(client, collection: str) -> None:
-    from qdrant_client import models
-
     await client.create_payload_index(
         collection_name=collection,
         field_name="ticker",
@@ -164,21 +152,11 @@ async def _async_ensure_indexes(client, collection: str) -> None:
     )
 
 
-def _sentinel_id(ticker: str, year: int) -> str:
-    """Deterministic sentinel point ID for (ticker, year)."""
-    return str(uuid5(NAMESPACE_DNS, f"{ticker}:{year}:_status"))
-
-
 @observe(name="sec_dense_ingestion")
 async def ingest_filing(
     ticker: str, year: int, markdown: str, filing_metadata=None
 ) -> None:
-    from langfuse import get_client
-    from llama_index.core import Document
-    from llama_index.core.node_parser import LangchainNodeParser, MarkdownNodeParser
-    from qdrant_client import AsyncQdrantClient, models
-
-    ticker = _canonicalize_ticker(ticker)
+    ticker = canonicalize_ticker(ticker)
     get_client().update_current_span(
         input={"ticker": ticker, "year": year, "markdown_length": len(markdown)},
     )
@@ -192,7 +170,7 @@ async def ingest_filing(
         await _async_ensure_collection(client, collection, vector_size=_EMBED_DIM)
         await _async_ensure_indexes(client, collection)
 
-        sentinel_point_id = _sentinel_id(ticker, year)
+        sentinel_point_id = sentinel_id(ticker, year)
         sentinel_vector = [0.0] * _EMBED_DIM
         await client.upsert(
             collection_name=collection,

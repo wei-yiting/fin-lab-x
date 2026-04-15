@@ -1,7 +1,17 @@
 #!/usr/bin/env python
 """Batch ingest SEC filings into the dense vector pipeline.
 
-Usage: python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
+Examples:
+    python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
+    python -m backend.scripts.embed_sec_filings NVDA --year 2024
+    python -m backend.scripts.embed_sec_filings NVDA AAPL --max-retries 5
+
+For each ticker, fetches the requested fiscal year (or EDGAR's latest if --year is
+omitted) via SECFilingPipeline.process — which downloads + parses the filing if
+not already cached locally — then embeds the markdown into Qdrant via
+ingest_filing.
+
+This script intentionally runs without Langfuse tracing.
 """
 
 import argparse
@@ -14,18 +24,42 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from backend.ingestion.sec_filing_pipeline.filing_models import FilingType  # noqa: E402
-from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore  # noqa: E402
 from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing  # noqa: E402
+from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline  # noqa: E402
+
+
+async def _embed_one(
+    pipeline: SECFilingPipeline,
+    ticker: str,
+    year: int | None,
+) -> None:
+    filing = await asyncio.to_thread(pipeline.process, ticker, "10-K", year)
+    await ingest_filing(
+        ticker=ticker,
+        year=filing.metadata.fiscal_year,
+        markdown=filing.markdown_content,
+        filing_metadata=filing.metadata,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Batch ingest SEC filings")
     parser.add_argument("tickers", nargs="+", help="Ticker symbols to ingest")
-    parser.add_argument("--max-retries", type=int, default=3, help="Max retry attempts per ticker")
+    parser.add_argument(
+        "--year",
+        type=int,
+        default=None,
+        help="Fiscal year to ingest (default: EDGAR's latest)",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=3,
+        help="Max retry attempts per ticker (default: 3)",
+    )
     args = parser.parse_args(argv)
 
-    store = LocalFilingStore()
+    pipeline = SECFilingPipeline.create()
     results: list[dict] = []
 
     for ticker in args.tickers:
@@ -33,46 +67,20 @@ def main(argv: list[str] | None = None) -> int:
         status = "success"
         error_msg = None
 
-        try:
-            years = store.list_filings(ticker_upper, FilingType.TEN_K)
-            if not years:
-                status = "skipped"
-                error_msg = "No filings found"
-                results.append({"ticker": ticker_upper, "status": status, "error": error_msg})
-                continue
+        last_error: Exception | None = None
+        for attempt in range(args.max_retries):
+            try:
+                asyncio.run(_embed_one(pipeline, ticker_upper, args.year))
+                last_error = None
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt < args.max_retries - 1:
+                    time.sleep(2**attempt)  # 1s, 2s, 4s
 
-            year = max(years)
-            filing = store.get(ticker_upper, FilingType.TEN_K, year)
-            if filing is None:
-                status = "skipped"
-                error_msg = f"Filing not found for year {year}"
-                results.append({"ticker": ticker_upper, "status": status, "error": error_msg})
-                continue
-
-            last_error = None
-            for attempt in range(args.max_retries):
-                try:
-                    asyncio.run(ingest_filing(
-                        ticker=ticker_upper,
-                        year=year,
-                        markdown=filing.markdown_content,
-                        filing_metadata=filing.metadata,
-                    ))
-                    last_error = None
-                    break
-                except Exception as e:
-                    last_error = e
-                    if attempt < args.max_retries - 1:
-                        wait = 2 ** attempt  # 1s, 2s, 4s
-                        time.sleep(wait)
-
-            if last_error is not None:
-                status = "skipped"
-                error_msg = str(last_error)
-
-        except Exception as e:
+        if last_error is not None:
             status = "skipped"
-            error_msg = str(e)
+            error_msg = str(last_error)
 
         results.append({"ticker": ticker_upper, "status": status, "error": error_msg})
 

@@ -248,7 +248,7 @@ Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), whi
 - **New filing type**: Add value to `FilingType` enum. Preprocessor heading patterns are 10-K specific — new types may need new patterns.
 - **New preprocessor rule**: Add a method to `HTMLPreprocessor`, call it in `preprocess()`. Rules execute sequentially.
 - **New converter**: Implement `HTMLToMarkdownConverter` protocol (`.name` property + `.convert()` method).
-- **New cleanup rule**: Add a private `_strip_*` or `_normalize_*` method to `MarkdownCleaner`, call it from `clean()`. Run `backend/scripts/validate_sec_md_cleanup.py` against the cache before and after to confirm the new rule's impact and absence of regressions.
+- **New cleanup rule**: Add a private `_strip_*` or `_normalize_*` method to `MarkdownCleaner`, call it from `clean()`. Run `backend/scripts/validation/validate_sec_md_cleanup.py` against the cache before and after to confirm the new rule's impact and absence of regressions.
 
 ## Markdown Cleanup
 
@@ -268,7 +268,7 @@ Design principle: **prefer leaving noise over risking deletion of real content.*
 ### Re-running validation
 
 ```bash
-uv run python backend/scripts/validate_sec_md_cleanup.py \
+uv run python -m backend.scripts.validation.validate_sec_md_cleanup \
   --cache-dir data/sec_filings \
   --output artifacts/current/validation_cleanup_patterns.md
 ```

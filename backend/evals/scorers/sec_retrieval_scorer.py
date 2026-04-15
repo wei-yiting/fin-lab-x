@@ -25,15 +25,28 @@ def _is_hit(chunk: dict, expected_entry: dict) -> bool:
     return path_match and snippet_match
 
 
+def _chunk_key(chunk: dict) -> tuple:
+    """Stable identity for a chunk so the same chunk can't satisfy multiple expected entries.
+
+    Real Qdrant chunks carry (ticker, year, chunk_index) — use that. Synthetic
+    test chunks may omit those, so fall back to (header_path, text) which is
+    unique per row and stable across calls.
+    """
+    if "chunk_index" in chunk and "ticker" in chunk and "year" in chunk:
+        return ("by_id", chunk["ticker"], chunk["year"], chunk["chunk_index"])
+    return ("by_payload", chunk.get("header_path"), chunk.get("text"))
+
+
 def _compute_recall_at_k(
     chunks: list[dict], expected: dict, k: int
 ) -> float:
-    """Compute recall@k with per-expected dedup."""
+    """Compute recall@k. A single chunk can satisfy at most one expected entry."""
     top_k = chunks[:k]
     expected_paths = expected["header_paths"]
     snippets = expected.get("answer_snippets") or []
 
-    matched = set()
+    matched_paths: set[int] = set()
+    used_chunks: set[tuple] = set()
     for path_idx, exp_path in enumerate(expected_paths):
         exp_entry = {
             "header_paths": [exp_path],
@@ -42,14 +55,18 @@ def _compute_recall_at_k(
             else [],
         }
         for c in top_k:
+            key = _chunk_key(c)
+            if key in used_chunks:
+                continue
             if _is_hit(c, exp_entry):
-                matched.add(path_idx)
+                matched_paths.add(path_idx)
+                used_chunks.add(key)
                 break
 
     total_expected = len(expected_paths)
     if total_expected == 0:
         return 0.0
-    return len(matched) / total_expected
+    return len(matched_paths) / total_expected
 
 
 def _compute_mrr(chunks: list[dict], expected: dict) -> float:
@@ -77,13 +94,18 @@ def _compute_mrr(chunks: list[dict], expected: dict) -> float:
 
 
 def _compute_map(chunks: list[dict], expected: dict) -> float:
-    """MAP = mean over expected entries of (1 / rank of first match), 0 for unmatched."""
+    """MAP = mean over expected entries of (1 / rank of first match), 0 for unmatched.
+
+    A single chunk can satisfy at most one expected entry, so a later expected
+    entry must find a different chunk (possibly at a deeper rank, or zero).
+    """
     expected_paths = expected["header_paths"]
     snippets = expected.get("answer_snippets") or []
 
     if not expected_paths:
         return 0.0
 
+    used_chunks: set[tuple] = set()
     reciprocal_ranks = []
     for path_idx, exp_path in enumerate(expected_paths):
         exp_entry = {
@@ -94,8 +116,12 @@ def _compute_map(chunks: list[dict], expected: dict) -> float:
         }
         found = False
         for rank, c in enumerate(chunks, start=1):
+            key = _chunk_key(c)
+            if key in used_chunks:
+                continue
             if _is_hit(c, exp_entry):
                 reciprocal_ranks.append(1.0 / rank)
+                used_chunks.add(key)
                 found = True
                 break
         if not found:

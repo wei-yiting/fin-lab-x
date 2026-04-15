@@ -127,10 +127,8 @@ async def test_reingest_same_filing_no_duplicates(clean_collection, mock_openai_
 
 @pytest.mark.integration
 async def test_partial_failure_sentinel_pending(clean_collection):
-    from backend.ingestion.sec_dense_pipeline.vectorizer import (
-        _sentinel_id,
-        ingest_filing,
-    )
+    from backend.ingestion.sec_dense_pipeline.common import sentinel_id
+    from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
     call_count = 0
@@ -154,10 +152,9 @@ async def test_partial_failure_sentinel_pending(clean_collection):
             )
 
     client = QdrantClient(url=QDRANT_URL)
-    sentinel_id = _sentinel_id("TEST", 2025)
     points = client.retrieve(
         collection_name=TEST_COLLECTION,
-        ids=[sentinel_id],
+        ids=[sentinel_id("TEST", 2025)],
         with_payload=True,
     )
     assert len(points) == 1
@@ -166,13 +163,10 @@ async def test_partial_failure_sentinel_pending(clean_collection):
 
 @pytest.mark.integration
 async def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embed):
-    from backend.ingestion.sec_dense_pipeline.vectorizer import (
-        _sentinel_id,
-        ingest_filing,
-    )
+    from backend.ingestion.sec_dense_pipeline.common import sentinel_id
+    from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
-    # First: create a "pending" state with a failed embed
     call_count = 0
 
     async def fail_after_3(texts):
@@ -195,69 +189,66 @@ async def test_rerun_after_partial_failure_recovers(clean_collection, mock_opena
         except Exception:
             pass
 
-    # Sentinel should be pending
     client = QdrantClient(url=QDRANT_URL)
-    sentinel_id = _sentinel_id("TEST", 2025)
     points = client.retrieve(
         collection_name=TEST_COLLECTION,
-        ids=[sentinel_id],
+        ids=[sentinel_id("TEST", 2025)],
         with_payload=True,
     )
     assert len(points) == 1
     assert points[0].payload["status"] == "pending"
 
-    # Re-run with working embed
     await ingest_filing(
         ticker="TEST", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
     )
 
-    # Sentinel should now be "complete"
     points = client.retrieve(
         collection_name=TEST_COLLECTION,
-        ids=[sentinel_id],
+        ids=[sentinel_id("TEST", 2025)],
         with_payload=True,
     )
     assert len(points) == 1
     assert points[0].payload["status"] == "complete"
 
-    # All content chunks present
     count = _qdrant_count("TEST")
     assert count > 0
 
 
 @pytest.mark.integration
-def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys, tmp_path):
+def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys):
+    from unittest.mock import MagicMock
+
+    from backend.ingestion.sec_dense_pipeline.common import sentinel_id
+    from backend.ingestion.sec_filing_pipeline.filing_models import (
+        FilingNotFoundError,
+        FilingType,
+    )
     from backend.scripts.embed_sec_filings import main
-    from backend.ingestion.sec_dense_pipeline.vectorizer import _sentinel_id
     from qdrant_client import QdrantClient
 
-    filings_dir = tmp_path / "sec_filings"
-    for ticker, markdown in [("NVDA", FIXTURE_MARKDOWN_CLASS_A), ("INTC", FIXTURE_MARKDOWN_CLASS_C)]:
-        ticker_dir = filings_dir / ticker / "10-K"
-        ticker_dir.mkdir(parents=True)
-        filing_content = f'''---
-ticker: {ticker}
-cik: "0001234567"
-company_name: Test Corp
-filing_type: 10-K
-filing_date: "2025-02-28"
-fiscal_year: 2025
-accession_number: "0001234567-25-000001"
-source_url: "https://example.com"
-parsed_at: "2026-04-09T00:00:00Z"
-converter: test
----
+    fixtures = {
+        "NVDA": FIXTURE_MARKDOWN_CLASS_A,
+        "INTC": FIXTURE_MARKDOWN_CLASS_C,
+    }
 
-{markdown}'''
-        (ticker_dir / "2025.md").write_text(filing_content)
+    def fake_process(ticker, filing_type, fiscal_year=None, force=False, on_retry=None):
+        if ticker not in fixtures:
+            raise FilingNotFoundError(f"No 10-K filing for ticker={ticker}")
+        filing = MagicMock()
+        filing.markdown_content = fixtures[ticker]
+        filing.metadata = MagicMock()
+        filing.metadata.fiscal_year = 2025
+        filing.metadata.filing_date = "2025-02-28"
+        filing.metadata.filing_type = FilingType.TEN_K
+        filing.metadata.accession_number = "0001234567-25-000001"
+        return filing
 
-    # FAIL_TICKER has no data directory
+    fake_pipeline = MagicMock()
+    fake_pipeline.process.side_effect = fake_process
+
     with patch(
-        "backend.scripts.embed_sec_filings.LocalFilingStore",
-        lambda: __import__(
-            "backend.ingestion.sec_filing_pipeline.filing_store",
-            fromlist=["LocalFilingStore"],
-        ).LocalFilingStore(base_dir=str(filings_dir)),
+        "backend.scripts.embed_sec_filings.SECFilingPipeline.create",
+        return_value=fake_pipeline,
     ):
         exit_code = main(["NVDA", "FAIL_TICKER", "INTC"])
 
@@ -269,13 +260,11 @@ converter: test
     assert "skipped" in captured.out.lower()
     assert exit_code == 1
 
-    # Verify NVDA and INTC have complete sentinels
     client = QdrantClient(url=QDRANT_URL)
     for ticker in ["NVDA", "INTC"]:
-        sentinel_id = _sentinel_id(ticker, 2025)
         points = client.retrieve(
             collection_name=TEST_COLLECTION,
-            ids=[sentinel_id],
+            ids=[sentinel_id(ticker, 2025)],
             with_payload=True,
         )
         assert len(points) == 1

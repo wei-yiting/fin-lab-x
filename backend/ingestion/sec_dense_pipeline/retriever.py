@@ -4,6 +4,24 @@ import os
 
 from langfuse import Langfuse, get_client, observe
 from pydantic import BaseModel
+from qdrant_client import QdrantClient, models
+
+from backend.ingestion.sec_dense_pipeline.common import (
+    canonicalize_ticker,
+    check_sentinel_complete,
+)
+from backend.ingestion.sec_dense_pipeline.vectorizer import (
+    _ensure_collection,
+    embed_query,
+    ingest_filing,
+)
+from backend.ingestion.sec_filing_pipeline.filing_models import (
+    FilingNotFoundError,
+    FilingType,
+    TickerNotFoundError,
+)
+from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
+from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline
 
 logger = logging.getLogger(__name__)
 
@@ -34,124 +52,88 @@ class CorpusUnavailableError(Exception): ...
 class JITDisabledError(Exception): ...
 
 
-def _canonicalize_ticker(raw: str) -> str:
-    if not isinstance(raw, str):
-        raise TypeError(f"Expected str, got {type(raw).__name__}")
-    stripped = raw.strip()
-    if not stripped:
-        raise ValueError("Empty ticker")
-    return stripped.upper()
-
-
 @observe(name="check_sec_cache", capture_output=False)
-def check_sec_cache(ticker: str, year: int | None, qdrant_client, collection: str):
-    """Check filing cache and embedding sentinel. Returns (filing, year, filing_hit, embedding_hit)."""
-    from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
-    from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
-
-    store = LocalFilingStore()
-    resolved_year = year
-    filing = None
-
-    if year is None:
-        years = store.list_filings(ticker, FilingType.TEN_K)
-        if years:
-            resolved_year = max(years)
-
-    if resolved_year is not None:
-        filing = store.get(ticker, FilingType.TEN_K, resolved_year)
-
-    filing_hit = filing is not None
-    embedding_hit = (
-        resolved_year is not None
-        and _check_sentinel(qdrant_client, collection, ticker, resolved_year)
-    )
-
+def check_sec_cache(
+    ticker: str, year: int, qdrant_client, collection: str
+) -> bool:
+    """Check if a 'complete' embedding sentinel exists for (ticker, year)."""
+    embedding_hit = check_sentinel_complete(qdrant_client, collection, ticker, year)
     get_client().update_current_span(
         input={"ticker": ticker, "year": year},
-        output={
-            "filing_cache_hit": filing_hit,
-            "embedding_cache_hit": embedding_hit,
-            "resolved_year": resolved_year,
-        },
+        output={"embedding_cache_hit": embedding_hit},
     )
-    return filing, resolved_year, filing_hit, embedding_hit
+    return embedding_hit
 
 
-def _edgar_download_raw(ticker: str, year: int | None = None):
-    """Call EDGAR API to download raw filing. Returns (RawFiling, SECFilingPipeline)."""
-    from backend.ingestion.sec_filing_pipeline.filing_models import (
-        FilingNotFoundError,
-        FilingType,
-        TickerNotFoundError,
-    )
-    from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline
-
-    pipeline = SECFilingPipeline.create()
-
+async def _resolve_year(
+    pipeline: SECFilingPipeline, ticker: str, year: int | None, loop
+) -> int:
+    """Return the fiscal year to use. EDGAR is the source of truth when year=None."""
+    if year is not None:
+        return year
     try:
-        raw = pipeline._downloader.download(ticker, str(FilingType.TEN_K), year)
+        return await loop.run_in_executor(
+            None, pipeline.resolve_latest_year, ticker, "10-K"
+        )
     except (TickerNotFoundError, FilingNotFoundError) as exc:
-        raise JITTickerNotFoundError(
-            f"No 10-K filing for ticker={ticker}"
-            + (f", year={year}" if year else "")
-        ) from exc
-
-    return raw, pipeline
+        raise JITTickerNotFoundError(f"No 10-K filing for ticker={ticker}") from exc
 
 
-def _parse_raw_filing(raw, pipeline):
-    """Parse raw HTML to markdown and store locally. Returns ParsedFiling."""
-    from datetime import UTC, datetime
+async def _ensure_filing_locally(
+    pipeline: SECFilingPipeline,
+    ticker: str,
+    year: int,
+    loop,
+    lf: Langfuse,
+):
+    """Return ParsedFiling for (ticker, year). Fetches from EDGAR if not cached locally."""
+    filing = LocalFilingStore().get(ticker, FilingType.TEN_K, year)
+    if filing is not None:
+        return filing
 
-    from backend.ingestion.sec_filing_pipeline.filing_models import (
-        FilingMetadata,
-        FilingType,
-        ParsedFiling,
-    )
-    from backend.ingestion.sec_filing_pipeline.html_to_md_converter import (
-        convert_with_fallback,
-    )
+    with lf.start_as_current_observation(
+        name="sec_filing_pipeline",
+        input={"ticker": ticker, "year": year},
+    ) as pipeline_span:
+        try:
+            with lf.start_as_current_observation(
+                name="sec_edgar_download",
+                input={"ticker": ticker, "year": year},
+            ) as dl_span:
+                try:
+                    raw = await loop.run_in_executor(
+                        None, pipeline.download_raw, ticker, "10-K", year
+                    )
+                except (TickerNotFoundError, FilingNotFoundError) as exc:
+                    raise JITTickerNotFoundError(
+                        f"No 10-K filing for ticker={ticker}, year={year}"
+                    ) from exc
+                dl_span.update(output={
+                    "status": "complete",
+                    "fiscal_year": raw.fiscal_year,
+                })
 
-    cleaned_html = pipeline._preprocessor.preprocess(raw.raw_html)
-    markdown, converter_name = convert_with_fallback(
-        cleaned_html, pipeline._converter, pipeline._fallback_converter
-    )
-    markdown = pipeline._markdown_cleaner.clean(markdown)
+            with lf.start_as_current_observation(
+                name="sec_html_to_markdown",
+                input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
+            ) as parse_span:
+                filing = await loop.run_in_executor(
+                    None, pipeline.parse_raw, raw, "10-K"
+                )
+                parse_span.update(output={
+                    "status": "complete",
+                    "markdown_length": len(filing.markdown_content),
+                })
 
-    metadata = FilingMetadata(
-        ticker=raw.ticker,
-        cik=raw.cik,
-        company_name=raw.company_name,
-        filing_type=FilingType.TEN_K,
-        filing_date=raw.filing_date,
-        fiscal_year=raw.fiscal_year,
-        accession_number=raw.accession_number,
-        source_url=raw.source_url,
-        parsed_at=datetime.now(UTC).isoformat(),
-        converter=converter_name,
-    )
-    filing = ParsedFiling(metadata=metadata, markdown_content=markdown)
-    pipeline._store.save(filing)
+            pipeline_span.update(output={
+                "fiscal_year": filing.metadata.fiscal_year,
+                "status": "complete",
+            })
+        except Exception:
+            pipeline_span.update(output={"status": "error"})
+            raise
+
     return filing
-
-
-def _check_sentinel(client, collection: str, ticker: str, year: int) -> bool:
-    """Check if (ticker, year) sentinel is 'complete' in Qdrant."""
-    from backend.ingestion.sec_dense_pipeline.vectorizer import _sentinel_id
-
-    try:
-        points = client.retrieve(
-            collection_name=collection,
-            ids=[_sentinel_id(ticker, year)],
-            with_payload=True,
-        )
-        return (
-            len(points) > 0
-            and points[0].payload.get("status") == "complete"
-        )
-    except Exception:
-        return False
 
 
 @observe(name="sec_retrieval")
@@ -167,18 +149,11 @@ async def search(
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
     try:
-        from qdrant_client import QdrantClient, models
-
-        from backend.ingestion.sec_dense_pipeline.vectorizer import (
-            embed_query,
-            ingest_filing,
-        )
-
         client = QdrantClient(url=qdrant_url)
         lf = Langfuse()
 
         if filters and "ticker" in filters:
-            ticker = _canonicalize_ticker(filters["ticker"])
+            ticker = canonicalize_ticker(filters["ticker"])
 
             if os.environ.get("SEC_DISABLE_JIT") == "1":
                 raise JITDisabledError(
@@ -186,59 +161,19 @@ async def search(
                     f"pre-load ticker={ticker} via batch script"
                 )
 
-            from backend.ingestion.sec_dense_pipeline.vectorizer import (
-                _ensure_collection,
-            )
-
             _ensure_collection(client, collection)
 
             loop = asyncio.get_event_loop()
-            year = filters.get("year")
+            pipeline = SECFilingPipeline.create()
 
-            filing, resolved_year, filing_hit, embedding_hit = check_sec_cache(
-                ticker, year, client, collection
+            resolved_year = await _resolve_year(
+                pipeline, ticker, filters.get("year"), loop
             )
 
-            if not embedding_hit:
-                if not filing_hit:
-                    with lf.start_as_current_observation(
-                        name="sec_filing_pipeline",
-                        input={"ticker": ticker, "year": year},
-                    ) as pipeline_span:
-                        try:
-                            with lf.start_as_current_observation(
-                                name="sec_edgar_download",
-                                input={"ticker": ticker, "year": year},
-                            ) as dl_span:
-                                raw, pipeline_obj = await loop.run_in_executor(
-                                    None, _edgar_download_raw, ticker, year
-                                )
-                                dl_span.update(output={
-                                    "status": "complete",
-                                    "fiscal_year": raw.fiscal_year,
-                                })
-
-                            with lf.start_as_current_observation(
-                                name="sec_html_to_markdown",
-                                input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
-                            ) as parse_span:
-                                filing = await loop.run_in_executor(
-                                    None, _parse_raw_filing, raw, pipeline_obj
-                                )
-                                parse_span.update(output={
-                                    "status": "complete",
-                                    "markdown_length": len(filing.markdown_content),
-                                })
-
-                            resolved_year = filing.metadata.fiscal_year
-                            pipeline_span.update(output={
-                                "resolved_year": resolved_year,
-                                "status": "complete",
-                            })
-                        except Exception:
-                            pipeline_span.update(output={"status": "error"})
-                            raise
-
+            if not check_sec_cache(ticker, resolved_year, client, collection):
+                filing = await _ensure_filing_locally(
+                    pipeline, ticker, resolved_year, loop, lf
+                )
                 await ingest_filing(
                     ticker, resolved_year,
                     filing.markdown_content, filing.metadata,

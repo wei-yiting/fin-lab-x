@@ -27,5 +27,5 @@ Key notes for dataset maintenance:
 ## Pre-requisites
 
 1. Ingest target tickers: `python -m backend.scripts.embed_sec_filings NVDA INTC AAPL AMD TSLA`
-2. Validate dataset: `python -m backend.scripts.validate_sec_eval_dataset`
+2. Validate dataset: `python -m backend.scripts.validation.validate_sec_eval_dataset`
 3. Run: `python -m backend.evals.eval_runner sec_retrieval`

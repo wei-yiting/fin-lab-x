@@ -71,94 +71,47 @@ To maintain a clean architecture, the following dependency rules are enforced:
 
 ## 6. Data Pipeline Architecture
 
-The data pipeline uses a shared, idempotent filing cache layer that both current and future retrieval entry points depend on.
+The agent invokes two independent SEC data pipelines depending on the task. They share neither source format nor cache layer.
 
 ```mermaid
 flowchart TD
-    subgraph shared["Shared Layer — Filing Cache (idempotent)"]
-        B{"Filing in\nLocalFilingStore?"}
-        A["SEC Filing Pipeline\n(EDGAR → HTML → Markdown → LocalFilingStore)"]
-        B -->|No| A
-        B -->|Yes| C["Cached Filing\n(ParsedFiling)"]
-        A --> C
+    Agent[Agent Orchestrator]
+
+    subgraph V2 [RAG Pipeline V2 current]
+        V2A[SEC EDGAR HTML]
+        V2B[LocalFilingStore Markdown]
+        V2C[Qdrant dense vectors]
+        V2A --> V2B --> V2C
     end
 
-    subgraph rag["RAG Entry Point (V2 — current)"]
-        D{"Sentinel in\nQdrant?"}
-        D -->|No| E["Dense Pipeline\n(chunk → embed → Qdrant)"]
-        D -->|Yes| F["Vector Search"]
-        E --> F
+    subgraph V3 [Quant Pipeline V3 planned]
+        V3A[SEC EDGAR XBRL]
+        V3B[DuckDB tables]
+        V3A --> V3B
     end
 
-    subgraph quant["DuckDB Entry Point (V3 — planned)"]
-        G{"Data in\nDuckDB?"}
-        G -->|No| H["ETL Pipeline\n(parse tables → DuckDB)"]
-        G -->|Yes| I["Text-to-SQL Query"]
-        H --> I
-    end
-
-    TR["Agent: RAG tool call"] --> B
-    TS["Agent: SQL tool call"] --> B
-    C --> D
-    C --> G
+    Agent -->|search_sec_filings| V2C
+    Agent -->|query_financial_data| V3B
 ```
 
-### Current Implementation (V2)
+### V2 — Current RAG Pipeline
 
-`search()` orchestrates filing resolution in two separate steps: `check_sec_cache()` checks the local store and embedding sentinel, and `_edgar_download_raw()` + `_parse_raw_filing()` fetch from EDGAR on cache miss. This separation ensures correct trace hierarchy (siblings, not parent-child).
+V2 retrieves unstructured text from 10-K filings. Two modules:
 
-### Planned Refactor (V3)
+- `backend/ingestion/sec_filing_pipeline/` — downloads HTML from EDGAR, converts to Markdown, persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)` returning a `ParsedFiling`. Granular methods (`resolve_latest_year`, `download_raw`, `parse_raw`) are also public for callers that need finer-grained control or per-step tracing.
+- `backend/ingestion/sec_dense_pipeline/` — chunks the Markdown, embeds with OpenAI `text-embedding-3-large`, stores in Qdrant. Idempotent via per-(ticker, year) sentinel points (status `pending` / `complete`).
 
-When the DuckDB entry point is introduced in V3, the filing cache logic should be extracted into a shared module (e.g., `backend/ingestion/filing_provider.py`) exposing `ensure_filing(ticker, year) -> ParsedFiling`. This prevents:
+JIT (just-in-time) ingestion: `search()` calls `pipeline.resolve_latest_year` to learn the true latest fiscal year from EDGAR, checks the embedding sentinel for that year, and triggers download + parse + ingest if missing.
 
-- **Coupling**: the DuckDB pipeline depending on `sec_dense_pipeline` internals to obtain filings.
-- **Duplication**: the same check-and-fetch logic implemented twice.
+### V3 — Planned Quant Pipeline
 
-The refactor should be triggered when V3 implementation begins and a second consumer is confirmed — not before.
+V3 will support structured numeric queries (e.g., "show me five-year revenue trend"). It will ingest XBRL — SEC's tagged financial data format — directly into DuckDB. **It does not share the V2 HTML→Markdown pipeline**: source format and downstream consumption pattern are fundamentally different. The two pipelines coexist as independent siblings.
 
 ## 7. Observability and Tracing
 
-Pipeline tracing uses Langfuse's `@observe` decorator for async operations and `start_as_current_observation` context managers for sync operations that run in executor threads.
+All agent and pipeline operations are traced via Langfuse. Span naming uses `snake_case` with a `sec_` prefix for SEC-specific operations.
 
-`@observe` parent-child nesting relies on `contextvars`, which does **not** propagate across `run_in_executor` thread boundaries. Therefore:
+- **JIT path** through `search()` produces a full trace tree (cache check → EDGAR download → Markdown conversion → embedding → vector search).
+- **Batch CLI** (`embed_sec_filings.py`) intentionally runs without tracing — pipeline modules emit no spans on their own; spans are created by the calling layer (retriever) only when needed.
 
-- **Async functions** (`ingest_filing`, `embed_texts`): use `@observe` — called with `await`, same event loop thread, nesting works.
-- **Sync functions forced to executor** (`_edgar_download_raw` — `edgartools` has no async API): use `Langfuse().start_as_current_observation()` context manager in the caller. The span is created/closed in the event loop thread; the executor call runs inside it.
-- **Direct sync calls** (`check_sec_cache`): use `@observe` — called directly from `search()`, same thread, nesting works.
-
-### Current Spans
-
-| Span Name | Function | Mechanism |
-|---|---|---|
-| `sec_retrieval` | `search()` | `@observe` (async) |
-| `check_sec_cache` | `check_sec_cache()` | `@observe` (sync direct call) |
-| `sec_filing_pipeline` | wraps EDGAR download + parse | context manager (executor) |
-| `sec_edgar_download` | wraps `_edgar_download_raw()` | context manager (executor, child of pipeline) |
-| `sec_html_to_markdown` | wraps `_parse_raw_filing()` | context manager (executor, child of pipeline) |
-| `sec_dense_ingestion` | `ingest_filing()` | `@observe` (async) |
-| `sec_chunk_embedding` | `embed_chunks()` | `@observe` (async, inside ingestion) |
-| `sec_query_embedding` | `embed_query()` | `@observe` (async, for vector search) |
-| `sec_vector_search` | wraps `client.query_points()` | context manager (sync Qdrant call) |
-
-### Trace Hierarchy
-
-```
-sec_retrieval
-  ├── check_sec_cache                (always)
-  ├── sec_filing_pipeline            (only on filing cache miss)
-  │     ├── sec_edgar_download
-  │     └── sec_html_to_markdown
-  ├── sec_dense_ingestion            (only on embedding cache miss)
-  │     ├── sec_chunking
-  │     ├── sec_chunk_embedding
-  │     └── sec_qdrant_upsert
-  ├── sec_query_embedding
-  └── sec_vector_search
-```
-
-### Naming Convention
-
-- SEC-specific operations: prefix with `sec_` (e.g., `sec_dense_ingestion`)
-- General-purpose operations: no prefix (e.g., `dense_vector_embedding`)
-- Format: `snake_case`
-- Granularity: one `@observe` per logical pipeline stage
+For trace hierarchy, span definitions, and the rationale behind `@observe` vs. context-manager choices, see [`docs/observability.md`](./observability.md).

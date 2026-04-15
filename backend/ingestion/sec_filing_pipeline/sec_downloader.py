@@ -88,3 +88,37 @@ class SECDownloader:
             raise
         except (ConnectionError, TimeoutError, OSError) as exc:
             raise TransientError(str(exc)) from exc
+
+    def get_latest_fiscal_year(self, ticker: str, filing_type: str) -> int:
+        """Return the latest fiscal year from EDGAR without downloading filing content.
+
+        Cheap metadata-only call — used to resolve "what is the truly latest year?"
+        before deciding whether a full download/parse is needed.
+        """
+        ticker = ticker.strip().upper()
+
+        if filing_type not in FilingType.__members__.values():
+            raise UnsupportedFilingTypeError(f"Unsupported filing type: {filing_type}")
+
+        try:
+            try:
+                company = Company(ticker)
+            except CompanyNotFoundError as exc:
+                raise TickerNotFoundError(f"Ticker not found: {ticker}") from exc
+
+            filings = company.get_filings(form=filing_type)
+            filing = filings.latest()
+            if filing is None:
+                raise FilingNotFoundError(
+                    f"No {filing_type} filing found for {ticker}"
+                )
+
+            return int(str(filing.period_of_report)[:4])
+        except (
+            TickerNotFoundError,
+            FilingNotFoundError,
+            UnsupportedFilingTypeError,
+        ):
+            raise
+        except (ConnectionError, TimeoutError, OSError) as exc:
+            raise TransientError(str(exc)) from exc

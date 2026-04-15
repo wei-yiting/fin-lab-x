@@ -69,7 +69,7 @@ async def test_validator_catches_case_mismatch(
     clean_collection, mock_openai_embed, tmp_path
 ):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
-    from backend.scripts.validate_sec_eval_dataset import validate_dataset
+    from backend.scripts.validation.validate_sec_eval_dataset import validate_dataset
 
     await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 

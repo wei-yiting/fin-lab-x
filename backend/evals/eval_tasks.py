@@ -90,6 +90,8 @@ async def run_sec_retrieval(input: Any) -> dict:
             f"Collection '{collection}' does not exist. "
             "Run the ingest pipeline before eval."
         )
+    # Sentinel points (status pending/complete) are bookkeeping markers — exclude
+    # them so the count reflects real chunk content.
     content_count = client.count(
         collection_name=collection,
         count_filter=models.Filter(

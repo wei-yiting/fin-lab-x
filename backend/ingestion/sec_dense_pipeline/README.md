@@ -68,7 +68,12 @@ Defined in `retriever.py`:
 
 When `search()` receives a filter with `ticker` (and optionally `year`):
 
-1. If `year` is specified: check the sentinel for that exact (ticker, year). If missing or not complete, fetch and ingest.
-2. If `year` is omitted: resolve the latest filing year from the local store, then check the sentinel for that year. If missing, ingest.
-3. If `SEC_DISABLE_JIT=1` is set, JIT is skipped and `JITDisabledError` is raised instead.
-4. If the ticker is not found in the local file store, the pipeline falls back to downloading from SEC EDGAR via `SECFilingPipeline`. This requires `EDGAR_IDENTITY` to be set. Only `TickerNotFoundError` and `FilingNotFoundError` are converted to `JITTickerNotFoundError`. Other `SECPipelineError` subtypes (e.g., `TransientError`) propagate as-is and are wrapped as `CorpusUnavailableError` by the outer handler in `search()`.
+1. **Year resolution.** If `year` is specified, use it. If omitted, call `SECFilingPipeline.resolve_latest_year(ticker, "10-K")` — a cheap EDGAR metadata lookup — to learn the truly latest year. Local store is never consulted for "what is latest"; EDGAR is the source of truth.
+2. **Embedding cache check.** Look up the (ticker, resolved_year) sentinel in Qdrant. If status is `complete`, JIT is skipped and search proceeds against existing embeddings.
+3. **Filing acquisition.** On embedding miss: check `LocalFilingStore` for a cached `ParsedFiling`. If missing, call `pipeline.download_raw()` then `pipeline.parse_raw()` to fetch from EDGAR and persist the markdown locally.
+4. **Ingestion.** Run `ingest_filing()` to chunk, embed, and upsert into Qdrant. Sentinel transitions `pending` → `complete`.
+5. **Disable.** If `SEC_DISABLE_JIT=1` is set, all of the above is skipped and `JITDisabledError` is raised.
+
+Error mapping: only `TickerNotFoundError` and `FilingNotFoundError` from EDGAR are converted to `JITTickerNotFoundError`. Other `SECPipelineError` subtypes (e.g., `TransientError`) propagate and are wrapped as `CorpusUnavailableError` by the outer handler.
+
+`EDGAR_IDENTITY` must be set whenever JIT may trigger an EDGAR call (which now includes the year-resolution lookup, even when local cache is warm).

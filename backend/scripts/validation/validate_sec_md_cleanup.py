@@ -12,11 +12,11 @@ Re-run this whenever:
 - Investigating a suspected regression on a specific filing
 
 Usage:
-    uv run python backend/scripts/validate_sec_md_cleanup.py \\
+    uv run python -m backend.scripts.validation.validate_sec_md_cleanup \\
         --cache-dir /path/to/data/sec_filings \\
         --output artifacts/current/validation_cleanup_patterns.md
 
-See ``backend/scripts/README.md`` for what each statistic in the report
+See ``backend/scripts/validation/README.md`` for what each statistic in the report
 means and how to interpret it against the rules in
 ``backend/ingestion/sec_filing_pipeline/markdown_cleaner.py``.
 """

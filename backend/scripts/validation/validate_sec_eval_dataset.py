@@ -4,7 +4,7 @@
 Checks that expected_header_paths entries have matching chunks in Qdrant,
 and reports near-miss warnings for case mismatches.
 
-Usage: python -m backend.scripts.validate_sec_eval_dataset [--csv path]
+Usage: python -m backend.scripts.validation.validate_sec_eval_dataset [--csv path]
 """
 
 import argparse

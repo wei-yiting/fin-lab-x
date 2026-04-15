@@ -10,6 +10,7 @@ from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
     FilingType,
     ParsedFiling,
+    RawFiling,
     RetryCallback,
     SECPipelineError,
     TransientError,
@@ -117,6 +118,62 @@ class SECFilingPipeline:
         )
         return filing
 
+    def resolve_latest_year(self, ticker: str, filing_type: str) -> int:
+        """Return EDGAR's latest fiscal year for a ticker without downloading content.
+
+        Cheap metadata-only call. Use this when you need to know the truly latest
+        year before deciding whether a cache hit (e.g., embedding sentinel) is
+        actually current.
+        """
+        self._validate_filing_type(filing_type)
+        return self._downloader.get_latest_fiscal_year(ticker, filing_type)
+
+    def download_raw(
+        self,
+        ticker: str,
+        filing_type: str,
+        fiscal_year: int | None = None,
+    ) -> RawFiling:
+        """Download raw filing HTML from EDGAR.
+
+        Public entry point for callers that want the EDGAR fetch step alone —
+        e.g., the JIT path in :mod:`sec_dense_pipeline.retriever`, which wraps
+        each step with its own Langfuse span. Bypasses cache and retry; use
+        :meth:`process` for the cached + retried convenience path.
+        """
+        self._validate_filing_type(filing_type)
+        return self._downloader.download(ticker.strip().upper(), filing_type, fiscal_year)
+
+    def parse_raw(self, raw: RawFiling, filing_type: str) -> ParsedFiling:
+        """Convert raw filing HTML to cleaned Markdown and persist to the store.
+
+        Public entry point for callers that already have a :class:`RawFiling`
+        (e.g., from :meth:`download_raw`). Wraps preprocessor → converter →
+        cleaner → :class:`ParsedFiling` → store.save.
+        """
+        self._validate_filing_type(filing_type)
+        cleaned_html = self._preprocessor.preprocess(raw.raw_html)
+        markdown, converter_name = convert_with_fallback(
+            cleaned_html, self._converter, self._fallback_converter
+        )
+        markdown = self._markdown_cleaner.clean(markdown)
+
+        metadata = FilingMetadata(
+            ticker=raw.ticker,
+            cik=raw.cik,
+            company_name=raw.company_name,
+            filing_type=FilingType(filing_type),
+            filing_date=raw.filing_date,
+            fiscal_year=raw.fiscal_year,
+            accession_number=raw.accession_number,
+            source_url=raw.source_url,
+            parsed_at=datetime.now(UTC).isoformat(),
+            converter=converter_name,
+        )
+        filing = ParsedFiling(metadata=metadata, markdown_content=markdown)
+        self._store.save(filing)
+        return filing
+
     def _execute_with_retry(
         self,
         ticker: str,
@@ -183,33 +240,14 @@ class SECFilingPipeline:
             if cached is not None:
                 return cached, True
 
-        raw = self._downloader.download(ticker, filing_type, fiscal_year)
+        raw = self.download_raw(ticker, filing_type, fiscal_year)
 
         if not force:
             cached = self._store.get(ticker, FilingType(filing_type), raw.fiscal_year)
             if cached is not None:
                 return cached, True
 
-        cleaned_html = self._preprocessor.preprocess(raw.raw_html)
-        markdown, converter_name = convert_with_fallback(
-            cleaned_html, self._converter, self._fallback_converter
-        )
-        markdown = self._markdown_cleaner.clean(markdown)
-
-        metadata = FilingMetadata(
-            ticker=raw.ticker,
-            cik=raw.cik,
-            company_name=raw.company_name,
-            filing_type=FilingType(filing_type),
-            filing_date=raw.filing_date,
-            fiscal_year=raw.fiscal_year,
-            accession_number=raw.accession_number,
-            source_url=raw.source_url,
-            parsed_at=datetime.now(UTC).isoformat(),
-            converter=converter_name,
-        )
-        filing = ParsedFiling(metadata=metadata, markdown_content=markdown)
-        self._store.save(filing)
+        filing = self.parse_raw(raw, filing_type)
         return filing, False
 
     def process_batch(

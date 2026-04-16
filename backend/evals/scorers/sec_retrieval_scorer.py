@@ -94,40 +94,58 @@ def _compute_mrr(chunks: list[dict], expected: dict) -> float:
 
 
 def _compute_map(chunks: list[dict], expected: dict) -> float:
-    """MAP = mean over expected entries of (1 / rank of first match), 0 for unmatched.
+    """Canonical Average Precision.
 
-    A single chunk can satisfy at most one expected entry, so a later expected
-    entry must find a different chunk (possibly at a deeper rank, or zero).
+    AP = (1 / R) * sum over relevant ranks k of Precision@k
+      where Precision@k = (# relevant chunks found in top-k) / k
+      and R = total number of expected entries (denominator is fixed, not
+      just the number found — unmatched entries reduce AP).
+
+    A single chunk can satisfy at most one expected entry; each chunk is
+    greedily bound to the first unmatched expected entry it matches, in rank
+    order.
+
+    Reference: Manning, Raghavan, Schütze, "Introduction to Information
+    Retrieval", Ch. 8.
     """
     expected_paths = expected["header_paths"]
     snippets = expected.get("answer_snippets") or []
+    total_expected = len(expected_paths)
 
-    if not expected_paths:
+    if total_expected == 0:
         return 0.0
 
+    matched_entries: set[int] = set()
     used_chunks: set[tuple] = set()
-    reciprocal_ranks = []
-    for path_idx, exp_path in enumerate(expected_paths):
-        exp_entry = {
-            "header_paths": [exp_path],
-            "answer_snippets": [snippets[path_idx]]
-            if path_idx < len(snippets)
-            else [],
-        }
-        found = False
-        for rank, c in enumerate(chunks, start=1):
-            key = _chunk_key(c)
-            if key in used_chunks:
-                continue
-            if _is_hit(c, exp_entry):
-                reciprocal_ranks.append(1.0 / rank)
-                used_chunks.add(key)
-                found = True
-                break
-        if not found:
-            reciprocal_ranks.append(0.0)
+    relevant_ranks: list[int] = []
 
-    return sum(reciprocal_ranks) / len(reciprocal_ranks)
+    for rank, c in enumerate(chunks, start=1):
+        key = _chunk_key(c)
+        if key in used_chunks:
+            continue
+        for path_idx, exp_path in enumerate(expected_paths):
+            if path_idx in matched_entries:
+                continue
+            exp_entry = {
+                "header_paths": [exp_path],
+                "answer_snippets": [snippets[path_idx]]
+                if path_idx < len(snippets)
+                else [],
+            }
+            if _is_hit(c, exp_entry):
+                matched_entries.add(path_idx)
+                used_chunks.add(key)
+                relevant_ranks.append(rank)
+                break
+
+    if not relevant_ranks:
+        return 0.0
+
+    ap = 0.0
+    for i, k in enumerate(relevant_ranks, start=1):
+        precision_at_k = i / k
+        ap += precision_at_k
+    return ap / total_expected
 
 
 def header_path_recall_at_5(

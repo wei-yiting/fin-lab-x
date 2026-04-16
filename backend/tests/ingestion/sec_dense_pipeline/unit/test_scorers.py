@@ -2,6 +2,7 @@ import pytest
 from autoevals import Score
 
 from backend.evals.scorers.sec_retrieval_scorer import (
+    _compute_map,
     _is_hit,
     header_path_recall_at_5,
     header_path_recall_at_10,
@@ -114,3 +115,76 @@ def test_recall_cross_company_at_5_structural_ceiling() -> None:
         output=output, expected=expected, input={"question": "test"}
     )
     assert abs(result.score - 0.2) < 0.01
+
+
+def test_map_canonical_ranks_1_and_3() -> None:
+    """AP = (P@1 + P@3) / R = (1/1 + 2/3) / 2 = 0.8333 when R=2, hits at 1 and 3."""
+    chunks = [
+        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
+        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
+        {"header_path": "AMD / 2025 / Item 1A / B", "text": "export restrictions"},
+        {"header_path": "TSLA / 2025 / Item 3", "text": "unrelated"},
+    ]
+    expected = {
+        "header_paths": ["NVDA / 2025 / Item 1A", "AMD / 2025 / Item 1A"],
+        "answer_snippets": ["export controls", "export restrictions"],
+    }
+    assert abs(_compute_map(chunks, expected) - (1.0 + 2 / 3) / 2) < 1e-6
+
+
+def test_map_canonical_ranks_2_and_4() -> None:
+    """AP = (P@2 + P@4) / R = (1/2 + 2/4) / 2 = 0.5 when R=2, hits at 2 and 4."""
+    chunks = [
+        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
+        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
+        {"header_path": "TSLA / 2025 / Item 3", "text": "unrelated"},
+        {"header_path": "AMD / 2025 / Item 1A / B", "text": "export restrictions"},
+    ]
+    expected = {
+        "header_paths": ["NVDA / 2025 / Item 1A", "AMD / 2025 / Item 1A"],
+        "answer_snippets": ["export controls", "export restrictions"],
+    }
+    assert abs(_compute_map(chunks, expected) - 0.5) < 1e-6
+
+
+def test_map_unmatched_expected_reduces_score() -> None:
+    """R counts all expected entries even if some are never found.
+    R=3, only one hit at rank 1 → AP = (1/1) / 3 = 0.333."""
+    chunks = [
+        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
+    ]
+    expected = {
+        "header_paths": [
+            "NVDA / 2025 / Item 1A",
+            "AMD / 2025 / Item 1A",
+            "INTC / 2025 / Item 1A",
+        ],
+        "answer_snippets": ["export controls", "export restrictions", "trade compliance"],
+    }
+    assert abs(_compute_map(chunks, expected) - 1.0 / 3) < 1e-6
+
+
+def test_map_single_expected_equals_reciprocal_rank() -> None:
+    """With one expected entry, AP degenerates to 1/rank of first hit."""
+    chunks = [
+        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
+        {"header_path": "TSLA / 2025 / Item 3", "text": "unrelated"},
+        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
+    ]
+    expected = {
+        "header_paths": ["NVDA / 2025 / Item 1A"],
+        "answer_snippets": ["export controls"],
+    }
+    assert abs(_compute_map(chunks, expected) - 1.0 / 3) < 1e-6
+
+
+def test_map_no_hits() -> None:
+    """Zero relevant ranks → AP = 0."""
+    chunks = [
+        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
+    ]
+    expected = {
+        "header_paths": ["NVDA / 2025 / Item 1A"],
+        "answer_snippets": ["export controls"],
+    }
+    assert _compute_map(chunks, expected) == 0.0

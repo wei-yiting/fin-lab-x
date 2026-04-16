@@ -83,6 +83,7 @@ def _patch_pipeline_and_store(*, latest_year=2025, raw=None, parsed=None, store_
 
         mock_store = MagicMock()
         mock_store.get.return_value = store_hit
+        mock_store.exists.return_value = store_hit is not None
         mock_store_cls.return_value = mock_store
 
         yield mock_pipeline, mock_store

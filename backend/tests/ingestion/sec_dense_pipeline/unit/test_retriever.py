@@ -10,9 +10,9 @@ from backend.ingestion.sec_dense_pipeline.retriever import (
     EmbeddingServiceError,
     JITDisabledError,
     JITTickerNotFoundError,
-    _ensure_filing_locally,
-    _resolve_year,
-    check_sec_cache,
+    _check_caches,
+    _download_and_parse,
+    _resolve_latest_year,
     search,
 )
 
@@ -108,7 +108,7 @@ def test_jit_disabled_error_is_separate() -> None:
     assert "batch" in str(err).lower()
 
 
-# --- check_sec_cache (now only checks embedding sentinel) ---
+# --- _check_caches (Qdrant sentinel + local filing store) ---
 
 def _mock_qdrant_client(sentinel_complete: bool = False):
     client = MagicMock()
@@ -121,43 +121,40 @@ def _mock_qdrant_client(sentinel_complete: bool = False):
     return client
 
 
-def test_check_sec_cache_miss() -> None:
-    assert check_sec_cache("NVDA", 2024, _mock_qdrant_client(), "test_col") is False
+@pytest.mark.parametrize(
+    "sentinel_complete,filing_exists,expected",
+    [
+        (False, False, (False, False)),
+        (True, False, (True, False)),
+        (False, True, (False, True)),
+        (True, True, (True, True)),
+    ],
+)
+def test_check_caches_matrix(sentinel_complete, filing_exists, expected) -> None:
+    client = _mock_qdrant_client(sentinel_complete=sentinel_complete)
+    with patch(
+        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
+    ) as mock_store_cls:
+        mock_store_cls.return_value.exists.return_value = filing_exists
+        result = _check_caches(client, "test_col", "NVDA", 2024)
+    assert result == expected
 
 
-def test_check_sec_cache_hit() -> None:
-    assert (
-        check_sec_cache("NVDA", 2024, _mock_qdrant_client(sentinel_complete=True), "test_col")
-        is True
-    )
+# --- _resolve_latest_year (EDGAR metadata call) ---
 
-
-# --- _resolve_year (EDGAR-first when year is None) ---
-
-def test_resolve_year_passthrough_when_provided() -> None:
-    pipeline = MagicMock()
-    loop = asyncio.new_event_loop()
-    try:
-        result = loop.run_until_complete(_resolve_year(pipeline, "NVDA", 2024, loop))
-    finally:
-        loop.close()
-    assert result == 2024
-    pipeline.resolve_latest_year.assert_not_called()
-
-
-def test_resolve_year_calls_edgar_when_none() -> None:
+def test_resolve_latest_year_calls_edgar() -> None:
     pipeline = MagicMock()
     pipeline.resolve_latest_year.return_value = 2025
     loop = asyncio.new_event_loop()
     try:
-        result = loop.run_until_complete(_resolve_year(pipeline, "NVDA", None, loop))
+        result = loop.run_until_complete(_resolve_latest_year(pipeline, "NVDA", loop))
     finally:
         loop.close()
     assert result == 2025
     pipeline.resolve_latest_year.assert_called_once_with("NVDA", "10-K")
 
 
-def test_resolve_year_converts_ticker_not_found() -> None:
+def test_resolve_latest_year_converts_ticker_not_found() -> None:
     from backend.ingestion.sec_filing_pipeline.filing_models import TickerNotFoundError
 
     pipeline = MagicMock()
@@ -167,38 +164,16 @@ def test_resolve_year_converts_ticker_not_found() -> None:
     loop = asyncio.new_event_loop()
     try:
         with pytest.raises(JITTickerNotFoundError) as exc_info:
-            loop.run_until_complete(_resolve_year(pipeline, "ZZZZZ", None, loop))
+            loop.run_until_complete(_resolve_latest_year(pipeline, "ZZZZZ", loop))
     finally:
         loop.close()
 
     assert exc_info.value.__cause__ is original
 
 
-# --- _ensure_filing_locally (filing cache + EDGAR fallback) ---
+# --- _download_and_parse (EDGAR download + markdown parse) ---
 
-def test_ensure_filing_locally_returns_cached_when_present() -> None:
-    cached = MagicMock()
-    pipeline = MagicMock()
-    lf = MagicMock()
-    loop = asyncio.new_event_loop()
-
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
-    ) as mock_store_cls:
-        mock_store_cls.return_value.get.return_value = cached
-        try:
-            result = loop.run_until_complete(
-                _ensure_filing_locally(pipeline, "NVDA", 2024, loop, lf)
-            )
-        finally:
-            loop.close()
-
-    assert result is cached
-    pipeline.download_raw.assert_not_called()
-    pipeline.parse_raw.assert_not_called()
-
-
-def test_ensure_filing_locally_fetches_when_cache_miss() -> None:
+def test_download_and_parse_returns_filing() -> None:
     fetched = MagicMock()
     fetched.markdown_content = "# Item 1"
     fetched.metadata.fiscal_year = 2025
@@ -209,51 +184,33 @@ def test_ensure_filing_locally_fetches_when_cache_miss() -> None:
     pipeline.download_raw.return_value = raw
     pipeline.parse_raw.return_value = fetched
 
-    lf = MagicMock()
-    lf.start_as_current_observation.return_value.__enter__.return_value = MagicMock()
-    lf.start_as_current_observation.return_value.__exit__.return_value = False
-
     loop = asyncio.new_event_loop()
-
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
-    ) as mock_store_cls:
-        mock_store_cls.return_value.get.return_value = None
-        try:
-            result = loop.run_until_complete(
-                _ensure_filing_locally(pipeline, "NVDA", 2025, loop, lf)
-            )
-        finally:
-            loop.close()
+    try:
+        result = loop.run_until_complete(
+            _download_and_parse(pipeline, "NVDA", 2025, loop)
+        )
+    finally:
+        loop.close()
 
     assert result is fetched
     pipeline.download_raw.assert_called_once_with("NVDA", "10-K", 2025)
     pipeline.parse_raw.assert_called_once_with(raw, "10-K")
 
 
-def test_ensure_filing_locally_converts_ticker_not_found() -> None:
+def test_download_and_parse_converts_ticker_not_found() -> None:
     from backend.ingestion.sec_filing_pipeline.filing_models import TickerNotFoundError
 
     pipeline = MagicMock()
     original = TickerNotFoundError("ZZZZZ not found")
     pipeline.download_raw.side_effect = original
 
-    lf = MagicMock()
-    lf.start_as_current_observation.return_value.__enter__.return_value = MagicMock()
-    lf.start_as_current_observation.return_value.__exit__.return_value = False
-
     loop = asyncio.new_event_loop()
-
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
-    ) as mock_store_cls:
-        mock_store_cls.return_value.get.return_value = None
-        try:
-            with pytest.raises(JITTickerNotFoundError) as exc_info:
-                loop.run_until_complete(
-                    _ensure_filing_locally(pipeline, "ZZZZZ", 2025, loop, lf)
-                )
-        finally:
-            loop.close()
+    try:
+        with pytest.raises(JITTickerNotFoundError) as exc_info:
+            loop.run_until_complete(
+                _download_and_parse(pipeline, "ZZZZZ", 2025, loop)
+            )
+    finally:
+        loop.close()
 
     assert exc_info.value.__cause__ is original

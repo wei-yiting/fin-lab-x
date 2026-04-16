@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from uuid import NAMESPACE_DNS, uuid5
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langfuse import Langfuse, get_client, observe
 from llama_index.core import Document
 from llama_index.core.node_parser import LangchainNodeParser, MarkdownNodeParser
 from llama_index.embeddings.openai import OpenAIEmbedding
@@ -14,6 +13,7 @@ from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
     sentinel_id,
 )
+from backend.ingestion.sec_dense_pipeline.tracing import traced_span
 
 
 def parse_item(raw_header_path: str) -> str:
@@ -45,30 +45,15 @@ async def _embed_texts(texts: list[str]) -> list[list[float]]:
     return await embed_model.aget_text_embedding_batch(texts)
 
 
-@observe(name="sec_query_embedding", capture_output=False)
 async def embed_query(query: str) -> list[float]:
     """Embed a single query string for vector search."""
-    get_client().update_current_span(
-        input={"query": query, "model": _EMBED_MODEL},
-    )
     result = await _embed_texts([query])
-    get_client().update_current_span(
-        output={"dimensions": len(result[0])},
-    )
     return result[0]
 
 
-@observe(name="sec_chunk_embedding", capture_output=False)
 async def embed_chunks(texts: list[str]) -> list[list[float]]:
     """Embed document chunks for dense ingestion."""
-    get_client().update_current_span(
-        input={"num_chunks": len(texts), "model": _EMBED_MODEL},
-    )
-    result = await _embed_texts(texts)
-    get_client().update_current_span(
-        output={"num_embedded": len(result), "dimensions": len(result[0]) if result else 0},
-    )
-    return result
+    return await _embed_texts(texts)
 
 
 def _build_header_path(node) -> str:
@@ -152,14 +137,16 @@ async def _async_ensure_indexes(client, collection: str) -> None:
     )
 
 
-@observe(name="sec_dense_ingestion")
 async def ingest_filing(
     ticker: str, year: int, markdown: str, filing_metadata=None
 ) -> None:
+    """Chunk, embed, and upsert a filing into Qdrant.
+
+    No Langfuse spans are emitted unless the caller is already inside an
+    active trace (see `tracing.traced_span`). Batch CLI and unit-test callers
+    run silently; `search()`'s JIT path produces a nested span tree.
+    """
     ticker = canonicalize_ticker(ticker)
-    get_client().update_current_span(
-        input={"ticker": ticker, "year": year, "markdown_length": len(markdown)},
-    )
     collection = os.environ.get(
         "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
     )
@@ -187,10 +174,8 @@ async def ingest_filing(
             ],
         )
 
-        lf = Langfuse()
-
-        with lf.start_as_current_observation(
-            name="sec_chunking",
+        with traced_span(
+            "sec_chunking",
             input={"markdown_length": len(markdown)},
         ) as chunking_span:
             doc = Document(text=markdown)
@@ -262,7 +247,15 @@ async def ingest_filing(
         )
 
         texts = [p[1]["text"] for p in points]
-        embeddings = await embed_chunks(texts)
+        with traced_span(
+            "sec_chunk_embedding",
+            input={"num_chunks": len(texts), "model": _EMBED_MODEL},
+        ) as embed_span:
+            embeddings = await embed_chunks(texts)
+            embed_span.update(output={
+                "num_embedded": len(embeddings),
+                "dimensions": len(embeddings[0]) if embeddings else 0,
+            })
 
         qdrant_points = []
         for (point_id, payload), embedding in zip(points, embeddings):
@@ -274,8 +267,8 @@ async def ingest_filing(
                 )
             )
 
-        with lf.start_as_current_observation(
-            name="sec_qdrant_upsert",
+        with traced_span(
+            "sec_qdrant_upsert",
             input={"num_points": len(qdrant_points), "batch_size": 100},
         ) as upsert_span:
             BATCH_SIZE = 100
@@ -301,8 +294,5 @@ async def ingest_filing(
                 "num_batches": num_batches,
                 "status": "complete",
             })
-        get_client().update_current_span(
-            output={"num_chunks": len(qdrant_points), "status": "complete"},
-        )
     finally:
         await client.close()

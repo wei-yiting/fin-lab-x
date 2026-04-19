@@ -1,18 +1,38 @@
-# Design: Path 1 — SEC Agent Tool 拆分為 Two-Step（list_sections + get_section）
+# Design: SEC Agent Tool 拆分為 Two-Step（list_sections + get_section）
 
 ## 背景
 
-本 design 承接 `design_master.md`，聚焦其中 **Path 1（Agent Tool）** 的細節設計。Design master 已定下的 high-level 方向：
+FinLab-X backend 目前有**兩個**需要從 SEC EDGAR 取得 10-K filing 的子系統：
 
-- 保留 edgartools 定位 filing，但改走 `filing.obj()` → `tenk[key]` 結構化 API，取代現有 `filing.text() + text.find()` 的 string-matching 實作
-- Agent tool 從單一 `sec_official_docs_retriever` 拆成 metadata-first 的 two-step（`list_sections` + `get_section`），避免一次把 100K+ chars 塞進 context
-- 兩條 path 共享 `sec_core` module
+| Subsystem | 位置 | 用途 | 本 design 涉及 |
+|-----------|------|------|---------------|
+| **SEC Agent Tool** | `backend/agent_engine/tools/sec.py` | Agent 在對話中即時取 10-K section 原文給 LLM 閱讀 | ✅ 本 design 的主題 |
+| **SEC Ingestion Pipeline** | `backend/ingestion/sec_filing_pipeline/` | 離線下載 + HTML/Markdown 轉換 + 本地 cache，供未來 RAG 使用 | ❌ 本 design 不改；僅搬共用 domain 類型 |
 
-Design master 對 Path 1 的描述屬示意；本 design 確認所有 tool interface、資料 schema、shared module 位置、observability 策略、與 orchestrator 的整合細節。
+兩個子系統目前都用 `edgartools` 定位 filing，但接著立刻丟棄 library 的結構化輸出，退回到 raw text/HTML parsing：
 
-相關 research：
-- `artifacts/current/research_sec_filing_api.md` — edgartools API 驗證
-- `artifacts/current/research_filing_markdown_quality.md` — `filing.markdown()` 替代方案
+- **SEC Agent Tool**：`filing.text()` + `text.find()` case-insensitive string matching，容易命中 ToC stub、section 截斷武斷、fixed 4000-char cap
+- **SEC Ingestion Pipeline**：`filing.html()` + 約 1000 行自製 HTML parsing、公司專屬 heading heuristic 修補
+
+edgartools 5.17.1 已提供 `filing.obj()` → `TenK[key]` 結構化 section API，在 ADSK / AAPL / MSFT 的 smoke test 中穩定抽出 section 文字（0.95 confidence、零 ToC 污染），可以取代這些自製 parsing。
+
+### 本 design 的範圍
+
+只重構 **SEC Agent Tool**：
+
+1. 單一 `sec_official_docs_retriever` tool 拆成 metadata-first 的 two-step（`sec_filing_list_sections` + `sec_filing_get_section`）—— 避免一次把 100K+ chars 塞進 context
+2. 改走 edgartools 結構化 API，不再 string matching
+3. 共用 SEC domain 類型（exception hierarchy、`FilingType` enum 等）抽成 `backend/common/sec_core.py`，供 SEC Ingestion Pipeline 也 import
+
+**SEC Ingestion Pipeline** 的內部實作（HTML preprocessing、markdown conversion、heading promoter 等）這次 PR 不動；僅跟著 `sec_core` 的搬遷更新 import site。
+
+### 相關 research（選讀）
+
+| 檔案 | 內容 |
+|------|------|
+| `artifacts/current/design_master.md` | 兩子系統重構的 high-level overview |
+| `artifacts/current/research_sec_filing_api.md` | edgartools `filing.obj()` / `TenK[key]` API 驗證（ADSK、AAPL、MSFT） |
+| `artifacts/current/research_filing_markdown_quality.md` | `filing.markdown()` 品質問題分析 |
 
 ---
 
@@ -38,8 +58,8 @@ graph TB
         SPM["v1_baseline/system_prompt.md<br/>含 {section_soft_cap_chars}"]
     end
 
-    subgraph "backend/ingestion/sec_filing_pipeline/ (Path 2, 不動)"
-        FM["filing_models.py<br/>(僅 Path 2-specific types)"]
+    subgraph "backend/ingestion/sec_filing_pipeline/ (SEC Ingestion Pipeline, 內部不動)"
+        FM["filing_models.py<br/>(僅 ingestion-specific types)"]
     end
 
     ST --> SC
@@ -88,7 +108,7 @@ sequenceDiagram
 
 | 元素 | 說明 |
 |------|------|
-| `FilingType` enum | 從 `filing_models.py` 搬來，兩條 path 共用 |
+| `FilingType` enum | 從 `filing_models.py` 搬來，兩個子系統共用 |
 | `TENK_STANDARD_TITLES` | SEC 規定的 **10-K** Item 標題常數表（16 個 Items）。以 filing type prefix 命名，未來可新增 `TENQ_STANDARD_TITLES` |
 | `fetch_filing_obj(ticker, filing_type, fiscal_year=None)` | edgartools wrapper，`@lru_cache(maxsize=64)` 快取 `TenK` object |
 | `parse_item_number(section_key)` | edgartools native key（`part_i_item_1a`）↔ 正規化 item number（`1a`）雙向 mapping |
@@ -434,7 +454,7 @@ class Orchestrator:
 
 1. 先用 `sec_filing_list_sections` 看目錄 + `char_count`
 2. 確知要哪個 section → `sec_filing_get_section`
-3. `char_count > {section_soft_cap_chars}` 則改用 `sec_filing_search`（Path 2，本 PR reserve naming）
+3. `char_count > {section_soft_cap_chars}` 則改用 `sec_filing_search`（未來 RAG retrieval tool，本 PR 僅 reserve naming）
 
 完整 prompt 片段：
 
@@ -510,10 +530,10 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 - `TransientError`
 - `ConfigurationError`
 
-留在 `filing_models.py`（Path 2-specific）：
+留在 `filing_models.py`（SEC Ingestion Pipeline 專屬）：
 - `RawFiling`（含 `raw_html`）
 - `ParsedFiling`（含 `markdown_content`）
-- `FilingMetadata`（含 `parsed_at` / `converter`，Path 2 pipeline metadata）
+- `FilingMetadata`（含 `parsed_at` / `converter`，ingestion pipeline metadata）
 - `RetryCallback` Protocol
 
 **Backwards compat**：無 alias、無 re-export。直接更新 10+ 個 internal import site 改 import from `backend.common.sec_core`（主要是 `sec_filing_pipeline/` 內檔案與 `backend/tests/` 下的 tests）。Frontend contract 未受影響（這些 class 僅在 backend 內流動）。
@@ -539,20 +559,20 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 | 決策 | 選擇 | 理由 |
 |------|------|------|
 | Tool 切分 | Two-step（list_sections + get_section） | 避免單次注入 100K+ chars；業界 pattern（Claude Code offloading、LangGraph Deep Agents）|
-| Tool 命名 verb | `get` vs `search` | REST-style primitive，無 authority 偏見；Path 2 未來用 `sec_filing_search` |
+| Tool 命名 verb | `get` vs `search` | REST-style primitive，無 authority 偏見；未來 RAG retrieval tool 用 `sec_filing_search` |
 | `section_key` 格式 | 正規化 item number（`"1a"`）| 對齊 SEC 官方 Item 編號，避開 Part 結構 |
 | `item_title` 是否回傳 | 不回傳 | SEC 規定固定映射，agent 從 system prompt 查，省 token |
 | Stub section | `list_sections` 保留 + optional `is_stub` flag | 資料透明，agent 自主；stub 偵測誤判的 blast radius 最小 |
 | `fiscal_year` 語意 | 公司會計年度（`period_of_report.year`） | 對齊 SEC 慣例，跨公司一致；metadata 帶 `period_of_report` 讓 agent 看到實際時段 |
 | Filing caching | `@lru_cache(maxsize=64)` + edgartools disk cache | 避 SEC 10 req/s rate limit；10-K 一旦提交不變 → TTL 不需要 |
 | Error handling | `raise` exception（非 error dict） | Tool code 乾淨、observability 明確、未預期 bug 自然 bubble up |
-| Exception 基類 rename | `SECPipelineError` → `SECError` | 「Pipeline」語意僅適用 Path 2；rename 後中性、兩 path 共用 |
-| Shared module 位置 | `backend/common/sec_core.py` | 兩 path 對稱共用；避免「tool 擁有 shared」的反直覺結構 |
+| Exception 基類 rename | `SECPipelineError` → `SECError` | 「Pipeline」語意僅適用 SEC Ingestion Pipeline；rename 後中性、兩個子系統共用 |
+| Shared module 位置 | `backend/common/sec_core.py` | 兩子系統對稱共用；避免「tool 擁有 shared」的反直覺結構 |
 | Prompt render 層 | `Orchestrator.__init__`，用 `PromptTemplate` | config_loader 保持 pure；LangChain primitive 一致性 |
 | Threshold 動態化 | 本 PR 做 | threshold 本質 model-dependent；延後會留 tech debt |
 | `fraction` knob | Hardcode `0.4`（暫不暴露到 yaml） | YAGNI，目前無跨 model fine-tuning 需求 |
 | 舊 `sec.py` | 直接 delete，不 archive | 新 codebase，git history 已足夠 |
-| Path 2 code 改動 | 僅 `filing_models.py` 拆解，無 alias | `project_new_codebase.md` 允許直接 break internal contract |
+| Ingestion pipeline code 改動 | 僅 `filing_models.py` 拆解，無 alias | `project_new_codebase.md` 允許直接 break internal contract |
 
 ---
 
@@ -576,11 +596,11 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 | 項目 | 延到 |
 |------|------|
 | 10-Q 支援（`TENQ_STANDARD_TITLES`、tool input 擴展） | 未來 PR；本 PR 架構已預留 hook |
-| `sec_filing_search`（RAG retrieval tool）實作 | Path 2 的下一個 PR；本 PR 僅 reserve naming |
+| `sec_filing_search`（RAG retrieval tool）實作 | 未來獨立 PR；本 PR 僅 reserve naming |
 | Per-model `fraction` knob 暴露到 `orchestrator_config.yaml` | 未來 PR；YAGNI |
-| Path 2 完整重構（`sec_filing_pipeline/` archive + 簡化） | Path 2 獨立 PR |
+| SEC Ingestion Pipeline 完整重構（`sec_filing_pipeline/` archive + 簡化） | 獨立 PR |
 | v2-v5 system prompt 寫入 SEC 指引 | v2-v5 真正實作時 |
-| `FilingMetadata` 拆分（Path 1/Path 2 各自的 view） | 未來 Path 2 refactor |
+| `FilingMetadata` 拆分（agent-tool view vs ingestion-pipeline view） | 未來 ingestion pipeline refactor |
 | `SECError` hierarchy 搬到更 neutral 位置（`backend/core/` 等）| 未來 architecture pass |
 
 ---

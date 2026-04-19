@@ -41,7 +41,7 @@ edgartools 5.17.1 已提供 `filing.obj()` → `TenK[key]` 結構化 section API
 ```mermaid
 graph TB
     subgraph "backend/common/ — shared SEC domain"
-        SC["sec_core.py<br/>━━━━━━━━━━━━━━━━━━<br/>fetch_filing_obj (@lru_cache)<br/>TENK_STANDARD_TITLES<br/>parse_item_number<br/>is_stub_section<br/>compute_section_soft_cap_chars<br/>FilingType enum<br/>SECError hierarchy"]
+        SC["sec_core.py<br/>━━━━━━━━━━━━━━━━━━<br/>fetch_filing_obj (@lru_cache)<br/>TENK_STANDARD_TITLES<br/>parse_item_number<br/>is_stub_section<br/>FilingType enum<br/>SECError hierarchy"]
     end
 
     subgraph "backend/agent_engine/utils/"
@@ -106,15 +106,16 @@ sequenceDiagram
 
 ### 職責
 
-| 元素 | 說明 |
-|------|------|
-| `FilingType` enum | 從 `filing_models.py` 搬來，兩個子系統共用 |
-| `TENK_STANDARD_TITLES` | SEC 規定的 **10-K** Item 標題常數表（16 個 Items）。以 filing type prefix 命名，未來可新增 `TENQ_STANDARD_TITLES` |
-| `fetch_filing_obj(ticker, filing_type, fiscal_year=None)` | edgartools wrapper，`@lru_cache(maxsize=64)` 快取 `TenK` object |
-| `parse_item_number(section_key)` | edgartools native key（`part_i_item_1a`）↔ 正規化 item number（`1a`）雙向 mapping |
-| `is_stub_section(text)` | 偵測 "incorporated by reference" 空殼 section（主要 Items 10–14） |
-| `compute_section_soft_cap_chars(model_name, fraction=0.4)` | 回傳 soft cap 字元數，供 system prompt 注入 |
-| `SECError` + 子類別 | Exception hierarchy，從 `filing_models.py` 搬來 + rename（原 `SECPipelineError`） + 新增 `SectionNotFoundError` |
+| 元素                                                         | 說明                                                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `FilingType` enum                                          | 從 `filing_models.py` 搬來，兩個子系統共用                                                                        |
+| `TENK_STANDARD_TITLES`                                     | SEC 規定的 **10-K** Item 標題常數表（16 個 Items）。以 filing type prefix 命名，未來可新增 `TENQ_STANDARD_TITLES`           |
+| `fetch_filing_obj(ticker, filing_type, fiscal_year=None)`  | edgartools wrapper，`@lru_cache(maxsize=64)` 快取 `TenK` object                                           |
+| `parse_item_number(section_key)`                           | edgartools native key（`part_i_item_1a`）↔ 正規化 item number（`1a`）雙向 mapping                               |
+| `is_stub_section(text)`                                    | 偵測 "incorporated by reference" 空殼 section（主要 Items 10–14）                                              |
+| `SECError` + 子類別                                           | Exception hierarchy，從 `filing_models.py` 搬來 + rename（原 `SECPipelineError`） + 新增 `SectionNotFoundError` |
+
+> **Note**：`compute_section_soft_cap_chars` **不在 `sec_core`**。它是 agent-runtime 概念（LLM context budget），SEC Ingestion Pipeline 不用，因此放在 `backend/agent_engine/utils/model_context.py`（見下節）。
 
 ### Function signatures
 
@@ -163,12 +164,6 @@ def parse_item_number(section_key: str) -> str:
 
 def is_stub_section(text: str) -> tuple[bool, str | None]:
     """回傳 (is_stub, stub_reason)。"""
-
-def compute_section_soft_cap_chars(
-    model_name: str,
-    fraction: float = 0.4,
-) -> int:
-    """soft cap (chars) = context_window_tokens * fraction * 4."""
 ```
 
 ### Exception hierarchy
@@ -244,31 +239,54 @@ Tool output 必回傳 `period_of_report`，讓 agent 看得到實際涵蓋的時
 
 ## Utils：`backend/agent_engine/utils/model_context.py`
 
-通用封裝，不綁 SEC domain：
+容納兩個 agent-runtime helper：
+
+1. `get_model_context_window(model_name)` —— 純 model metadata 查詢
+2. `compute_section_soft_cap_chars(model_name, fraction=0.4)` —— 根據 context window 推導 SEC section 的 char 預算，供 system prompt 注入
+
+不放 `sec_core` 的原因：SEC Ingestion Pipeline 離線跑，不用管 LLM context budget；這兩個 helper 都是 agent runtime 概念。
+
+### 實作
 
 ```python
-from litellm import get_model_info
+# 硬編碼 registry — litellm 不是 project dependency，新增它只為單一 lookup 太重。
+# 當 orchestrator_config.yaml 引入新 model 時，同步更新這張表。
+MODEL_CONTEXT_WINDOWS: dict[str, int] = {
+    "gpt-4o-mini":                  128_000,
+    "gpt-4o":                       128_000,
+    "gpt-4-turbo":                  128_000,
+    "claude-3-5-sonnet-20241022":   200_000,
+    "claude-3-5-sonnet-latest":     200_000,
+    "claude-opus-4-20250514":       200_000,
+    "claude-sonnet-4-5-20250929":   200_000,
+    "claude-opus-4-6":              200_000,
+    "claude-opus-4-7":            1_000_000,
+}
 
-DEFAULT_CONTEXT_WINDOW = 128_000
+DEFAULT_CONTEXT_WINDOW = 128_000  # 保守 fallback，未知 model 走這條
 
 def get_model_context_window(model_name: str) -> int:
-    """回傳 model 的 max_input_tokens，無資訊時 fallback。"""
-    try:
-        info = get_model_info(model_name)
-        return info.get("max_input_tokens") or DEFAULT_CONTEXT_WINDOW
-    except Exception:
-        return DEFAULT_CONTEXT_WINDOW
-```
+    """回傳 model 的 max input tokens。未登錄 model 走 fallback 並 log warning。"""
+    return MODEL_CONTEXT_WINDOWS.get(model_name, DEFAULT_CONTEXT_WINDOW)
 
-`sec_core.compute_section_soft_cap_chars` 內部呼叫此函數：
-
-```python
-def compute_section_soft_cap_chars(model_name: str, fraction: float = 0.4) -> int:
+def compute_section_soft_cap_chars(
+    model_name: str,
+    fraction: float = 0.4,
+) -> int:
+    """回傳 agent 應觸發 sec_filing_search 的 char threshold。
+    fraction = 單一 SEC section 允許占用 context window 的比例（預設 40%）。
+    """
     ctx_tokens = get_model_context_window(model_name)
     return int(ctx_tokens * fraction * 4)  # 1 token ≈ 4 chars
 ```
 
 `fraction=0.4` 代表「單一 section 最多占 context window 的 40%」。此 knob 這次 PR 寫 hardcode，未來 templated 即可暴露到 `orchestrator_config.yaml`。
+
+### Registry 維護
+
+未登錄 model 走 `DEFAULT_CONTEXT_WINDOW=128_000`（保守值）。若 orchestrator_config.yaml 新增 model 卻沒更新此 registry，agent startup 不會 crash，但 soft cap 可能不準（threshold 偏保守）。啟動時若偵測到 model name 不在 registry，應 log warning。
+
+未來 model metadata 需求若成長到「litellm 級的完整支援」，可評估轉為 runtime lookup；目前需求單純（< 10 個 model），維護 dict 成本最低。
 
 ---
 
@@ -401,7 +419,7 @@ Stub section：
 
 ```python
 from langchain_core.prompts import PromptTemplate
-from backend.common.sec_core import compute_section_soft_cap_chars
+from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
 
 class Orchestrator:
     def __init__(self, config: VersionConfig, ...):
@@ -544,7 +562,8 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
 | 層級 | 範圍 | 機制 |
 |------|------|------|
-| Unit | `sec_core`：`parse_item_number`、`is_stub_section`、`compute_section_soft_cap_chars` | pytest，無外部依賴 |
+| Unit | `sec_core`：`parse_item_number`、`is_stub_section` | pytest，無外部依賴 |
+| Unit | `model_context`：`get_model_context_window`、`compute_section_soft_cap_chars` | pytest 覆蓋 registered model、unknown model fallback、fraction 計算 |
 | Unit | `fetch_filing_obj` | Mock `edgar.Company` + `get_filings`，驗證 cache hit、fiscal_year filter、exception 路徑 |
 | Unit | `sec_filing_list_sections` / `sec_filing_get_section` | Mock `fetch_filing_obj` 回傳 `TenK`-shaped fake；驗證 output schema、stream event、exception surface |
 | Unit | Orchestrator `_render_prompt` | 純 string-level 測試：有/無 placeholder、missing var crash、extra var ignored |
@@ -607,6 +626,16 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
 ## 開放問題 / 需驗證
 
-- [ ] `litellm.get_model_info()` 對目前在用的 `gpt-4o-mini`、`gpt-4o` 以及潛在替換 model 是否都有正確 `max_input_tokens`？第一次實作時需 smoke test 驗證並記錄 fallback 行為。
-- [ ] edgartools 5.17.1 的 `Company().get_filings(form="10-K")` 回傳的 filings list 與 `period_of_report` 的正確對應（`list filter by fiscal_year`）需 integration test 覆蓋三家公司以上。
-- [ ] `is_stub_section` 的 heuristic（從 `markdown_cleaner.py` 移植）對 Items 10–14 以外的罕見 stub 偵測準確度 —— 由 integration test 抽樣驗證。
+### 已驗證（2026-04-19）
+
+- [x] **Model context window metadata**：原本計劃用 `litellm.get_model_info()`，實測發現 `litellm` 不在 project dependency 也不在 transitive lock 裡。新增它只為一個 lookup 太重 → 改用 `MODEL_CONTEXT_WINDOWS` 硬編碼 dict（見 `model_context.py` 章節）。實測範圍：`gpt-4o-mini` / `gpt-4o` / `gpt-4-turbo`（128K）、Claude 3.5 Sonnet / Opus 4 / Sonnet 4.5 / Opus 4.6（200K）、Opus 4.7（1M）。
+
+- [x] **edgartools fiscal_year filter**：實測 `Company(ticker).get_filings(form="10-K")` 在 AAPL / MSFT / NVDA 三家各三年（FY2023–2025）都正確回傳 filings list，`period_of_report` 為 `"YYYY-MM-DD"` 字串格式，`int(period_of_report[:4])` 可直接作為 fiscal_year derive。三家 period month 分布（9 月、6 月、1 月）都驗證過，filter 邏輯在這些邊界上都能正確 round-trip。
+
+### 留待 integration test 覆蓋
+
+- [ ] `is_stub_section` 的 heuristic（從 `markdown_cleaner.py` 移植）在非 Items 10–14 的罕見 stub（如某些公司的 Item 3 或 Item 5）的偵測準確度。Integration test 應至少覆蓋：
+    - Common stub（AAPL Item 11 → `is_stub=True`）
+    - Non-stub long content（AAPL Item 1A → `is_stub=False`）
+    - 邊界 short-but-real（挑一個短但實質的 section）→ `is_stub=False`
+    - 可選：挑一家 Item 3 stub 的公司做 rare-case 樣本

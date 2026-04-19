@@ -673,8 +673,23 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
 ### 留待 integration test 覆蓋
 
-- [ ] `is_stub_section` 的 heuristic（從 `markdown_cleaner.py` 移植）在非 Items 10–14 的罕見 stub（如某些公司的 Item 3 或 Item 5）的偵測準確度。Integration test 應至少覆蓋：
-    - Common stub（AAPL Item 11 → `is_stub=True`）
-    - Non-stub long content（AAPL Item 1A → `is_stub=False`）
-    - 邊界 short-but-real（挑一個短但實質的 section）→ `is_stub=False`
-    - 可選：挑一家 Item 3 stub 的公司做 rare-case 樣本
+- [ ] **`is_stub_section` heuristic 的準確度邊界**
+
+    **要驗證什麼**：heuristic 能否正確分辨「真正的 stub（只是指向 proxy statement 等其他文件）」vs「真實內容」。
+
+    **為什麼重要（stakes 不對稱）**：
+    - **False positive**（真實 section 被誤判成 stub）→ `list_sections` 告訴 agent「這是 stub 別 fetch」→ agent 跳過 → **使用者資料真的遺失**（嚴重錯誤）
+    - **False negative**（漏偵測 stub）→ agent 多做一次 tool call、拿到 300 字 cross-reference（只是沒效率）
+
+    heuristic 必須**寧願漏偵測也不能誤判**。因此 test 重點在 negative case（short-but-real）。
+
+    **Integration test 至少要覆蓋的 4 種 case**：
+
+    | Case | 範例 | Expected | 驗什麼 |
+    |------|------|----------|--------|
+    | Common stub | AAPL Item 11「incorporated by reference from Proxy Statement...」 | `is_stub=True` | 基本 positive 命中 |
+    | Long real content | AAPL Item 1A（100K 字 Risk Factors） | `is_stub=False` | 不會誤判大 section |
+    | **Short real content** | AAPL Item 1B「None.」 | `is_stub=False` | ⚠️ heuristic 不能只靠長度判斷 |
+    | Rare location stub | 挑一家 Item 3 或 Item 5 stub 到其他文件的公司 | `is_stub=True` | heuristic 不依賴 item-number 白名單 |
+
+    第 3 個 case 最關鍵 —— 確保 heuristic 必須查「incorporated by reference」之類的關鍵字，不能用「字數 < N 就 stub」這種偷懶方式。

@@ -246,47 +246,68 @@ Tool output 必回傳 `period_of_report`，讓 agent 看得到實際涵蓋的時
 
 不放 `sec_core` 的原因：SEC Ingestion Pipeline 離線跑，不用管 LLM context budget；這兩個 helper 都是 agent runtime 概念。
 
-### 實作
+### Model context window 資料來源 — Materialized registry pattern
 
-```python
-# 硬編碼 registry — litellm 不是 project dependency，新增它只為單一 lookup 太重。
-# 當 orchestrator_config.yaml 引入新 model 時，同步更新這張表。
-MODEL_CONTEXT_WINDOWS: dict[str, int] = {
-    "gpt-4o-mini":                  128_000,
-    "gpt-4o":                       128_000,
-    "gpt-4-turbo":                  128_000,
-    "claude-3-5-sonnet-20241022":   200_000,
-    "claude-3-5-sonnet-latest":     200_000,
-    "claude-opus-4-20250514":       200_000,
-    "claude-sonnet-4-5-20250929":   200_000,
-    "claude-opus-4-6":              200_000,
-    "claude-opus-4-7":            1_000_000,
-}
+**為什麼不直接 runtime 呼叫 litellm？**
 
-DEFAULT_CONTEXT_WINDOW = 128_000  # 保守 fallback，未知 model 走這條
+- litellm 本體 57 MB、連帶 `tokenizers` + `typer` + `jsonschema` 等 10+ transitive deps（總計 ~80 MB）
+- litellm 安裝時會 downgrade `python-dotenv` / `importlib-metadata`，有潛在版本衝突
+- 我們只要一個 `get_model_info()` 查 `max_input_tokens`，runtime 背 80MB 不成比例
+- 實測 litellm 對某些 model ID（如 `claude-opus-4-5-20250929`、`claude-3-5-sonnet-latest`）還不認識，runtime lookup 也會 miss
 
-def get_model_context_window(model_name: str) -> int:
-    """回傳 model 的 max input tokens。未登錄 model 走 fallback 並 log warning。"""
-    return MODEL_CONTEXT_WINDOWS.get(model_name, DEFAULT_CONTEXT_WINDOW)
+**方案：litellm 作為 dev-dep + materialized YAML registry**
 
-def compute_section_soft_cap_chars(
-    model_name: str,
-    fraction: float = 0.4,
-) -> int:
-    """回傳 agent 應觸發 sec_filing_search 的 char threshold。
-    fraction = 單一 SEC section 允許占用 context window 的比例（預設 40%）。
-    """
-    ctx_tokens = get_model_context_window(model_name)
-    return int(ctx_tokens * fraction * 4)  # 1 token ≈ 4 chars
+```
+pyproject.toml [project.optional-dependencies].dev
+  +litellm >= 1.83.10    # 僅 dev-time，Docker production image 不含
+
+scripts/refresh_model_context_registry.py
+  └─ 讀所有 orchestrator_config.yaml 蒐集 model names
+  └─ for each model: litellm.get_model_info(name)
+  └─ 寫入 backend/agent_engine/utils/model_context_registry.yaml
+  └─ litellm miss 的 model → log warning + 留 TODO comment
+
+backend/agent_engine/utils/model_context_registry.yaml   (committed)
+  gpt-4o-mini:
+    max_input_tokens: 128000
+    source: litellm  (or: manual, if litellm didn't know)
+  claude-opus-4-20250514:
+    max_input_tokens: 200000
+    source: litellm
+  ...
+
+backend/agent_engine/utils/model_context.py   (runtime, no litellm import)
+  載入 YAML → dict cache
+  get_model_context_window(name) → dict lookup + DEFAULT fallback
+  compute_section_soft_cap_chars(name, fraction=0.4)
+    → uses get_model_context_window
+    → returns int(ctx_tokens * fraction * 4)  # 1 token ≈ 4 chars
 ```
 
-`fraction=0.4` 代表「單一 section 最多占 context window 的 40%」。此 knob 這次 PR 寫 hardcode，未來 templated 即可暴露到 `orchestrator_config.yaml`。
+**Registry refresh workflow（開發者加新 model 時）：**
 
-### Registry 維護
+```
+1. 更新 orchestrator_config.yaml 裡的 model.name
+2. uv run --extra dev python scripts/refresh_model_context_registry.py
+3. Review + commit 更新的 registry.yaml
+   (litellm miss 的 model 需手動填值 + 把 source 標為 manual)
+```
 
-未登錄 model 走 `DEFAULT_CONTEXT_WINDOW=128_000`（保守值）。若 orchestrator_config.yaml 新增 model 卻沒更新此 registry，agent startup 不會 crash，但 soft cap 可能不準（threshold 偏保守）。啟動時若偵測到 model name 不在 registry，應 log warning。
+**Runtime 行為：**
 
-未來 model metadata 需求若成長到「litellm 級的完整支援」，可評估轉為 runtime lookup；目前需求單純（< 10 個 model），維護 dict 成本最低。
+- `model_context_registry.yaml` 在模組 import 時 load 到 module-level dict，subsequent 呼叫都是 dict lookup
+- Model 不在 registry → fallback 到 `DEFAULT_CONTEXT_WINDOW = 128_000` + 一次 log warning（不 crash）
+- `compute_section_soft_cap_chars(model_name, fraction=0.4)` → `int(ctx_tokens * fraction * 4)`，`fraction=0.4` 代表「單一 section 最多占 context window 40%」
+
+### 設計 rationale
+
+| 選項 | Pros | Cons |
+|------|------|------|
+| litellm runtime dep | 永遠 fresh、authoritative | +80MB production image、版本衝突、coverage gap |
+| Hardcoded dict | 零 dep、簡單 | 手動維護、易漏、沒有權威性 |
+| **Materialized YAML（採用）** | litellm 權威來源、runtime 零 weight、可 diff 可 review | 加一層 refresh 流程 |
+
+Registry 是 frozen snapshot，加新 model 時 refresh，適合我們這種「model 數量有限、更新頻率低」的情境。未來若 model matrix 複雜到維護吃力，可升級為 runtime litellm 呼叫。
 
 ---
 
@@ -601,14 +622,17 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
 1. 新建 `backend/common/__init__.py` + `backend/common/sec_core.py`
 2. 新建 `backend/agent_engine/utils/__init__.py`（若無） + `backend/agent_engine/utils/model_context.py`
-3. 新建 `backend/agent_engine/tools/sec_filing_tools.py`（兩個新 tool 合一檔）
-4. 刪除 `backend/agent_engine/tools/sec.py`
-5. 拆解 `backend/ingestion/sec_filing_pipeline/filing_models.py` + 更新所有 internal import sites
-6. 改 `backend/agent_engine/agents/base.py` 加入 prompt render 機制
-7. 改 `backend/agent_engine/agents/versions/v1_baseline/system_prompt.md` 加入 SEC 指引段落與 `{section_soft_cap_chars}` placeholder
-8. 改 v1_baseline ~ v5_analyst 五個 `orchestrator_config.yaml` 的 tools list
-9. 改 `backend/agent_engine/tools/__init__.py` 的 `setup_tools()` tool registry
-10. 測試：unit + integration smoke
+3. 新建 `backend/agent_engine/utils/model_context_registry.yaml`（materialized 產物，committed）
+4. 新建 `scripts/refresh_model_context_registry.py`（dev-time 重跑 litellm 的工具）
+5. `pyproject.toml` 把 `litellm` 加到 `[project.optional-dependencies].dev`
+6. 新建 `backend/agent_engine/tools/sec_filing_tools.py`（兩個新 tool 合一檔）
+7. 刪除 `backend/agent_engine/tools/sec.py`
+8. 拆解 `backend/ingestion/sec_filing_pipeline/filing_models.py` + 更新所有 internal import sites
+9. 改 `backend/agent_engine/agents/base.py` 加入 prompt render 機制
+10. 改 `backend/agent_engine/agents/versions/v1_baseline/system_prompt.md` 加入 SEC 指引段落與 `{section_soft_cap_chars}` placeholder
+11. 改 v1_baseline ~ v5_analyst 五個 `orchestrator_config.yaml` 的 tools list
+12. 改 `backend/agent_engine/tools/__init__.py` 的 `setup_tools()` tool registry
+13. 測試：unit + integration smoke
 
 ### 不包含（Out of Scope）
 
@@ -628,9 +652,24 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
 ### 已驗證（2026-04-19）
 
-- [x] **Model context window metadata**：原本計劃用 `litellm.get_model_info()`，實測發現 `litellm` 不在 project dependency 也不在 transitive lock 裡。新增它只為一個 lookup 太重 → 改用 `MODEL_CONTEXT_WINDOWS` 硬編碼 dict（見 `model_context.py` 章節）。實測範圍：`gpt-4o-mini` / `gpt-4o` / `gpt-4-turbo`（128K）、Claude 3.5 Sonnet / Opus 4 / Sonnet 4.5 / Opus 4.6（200K）、Opus 4.7（1M）。
+- [x] **litellm dependency weight**：實測 `uv add litellm` 拉進 litellm 57 MB 本體 + 8.2 MB `tokenizers` + 約 10 個 transitive deps（總計 ~80 MB），並強制 downgrade `python-dotenv` 與 `importlib-metadata`（潛在版本衝突）。此外 litellm 對某些 model ID（如 `claude-opus-4-5-20250929`、`claude-3-5-sonnet-latest`）還不認識，runtime lookup 也會 miss。結論：不作 runtime dep；改採 **dev-dep + materialized YAML registry** pattern（見 `model_context.py` 章節）。
 
-- [x] **edgartools fiscal_year filter**：實測 `Company(ticker).get_filings(form="10-K")` 在 AAPL / MSFT / NVDA 三家各三年（FY2023–2025）都正確回傳 filings list，`period_of_report` 為 `"YYYY-MM-DD"` 字串格式，`int(period_of_report[:4])` 可直接作為 fiscal_year derive。三家 period month 分布（9 月、6 月、1 月）都驗證過，filter 邏輯在這些邊界上都能正確 round-trip。
+- [x] **edgartools `period_of_report` 推導跨公司一致性**：實測 12 家公司各 FY2023–2025（共 36 筆 filing）：
+    - Jan FY end: NVDA、WMT
+    - May FY end: ORCL
+    - Jun FY end: MSFT
+    - Jul FY end: CSCO
+    - Aug/Sep FY end: COST（2025 為 Aug 31、2024 為 Sep 1 — 52/53-week calendar 特性）
+    - Sep FY end: AAPL、DIS
+    - Dec FY end: GOOGL、AMZN、META、TSLA
+
+    全部 `period_of_report` 為 `"YYYY-MM-DD"` 字串、`int(period[:4])` 都正確推出 fiscal_year，無例外。
+
+- [x] **同一 fiscal year 多筆 filing（amendments）邊界**：TSLA FY2024 有兩筆 filing：
+    - `2025-01-30` filed, period `2024-12-31`（原版 10-K）
+    - `2025-04-30` filed, period `2024-12-31`（10-K/A 修正版）
+
+    `fetch_filing_obj` 的 fiscal_year filter 邏輯需在 matches 中取**最後 `filing_date`** 的一筆（即修正版），才拿到權威最終版本。
 
 ### 留待 integration test 覆蓋
 

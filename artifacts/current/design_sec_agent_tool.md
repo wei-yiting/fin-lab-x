@@ -648,52 +648,30 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
 ---
 
-## 開放問題 / 需驗證
-
-### 已驗證（2026-04-19）
-
-- [x] **litellm dependency weight**：實測 `uv add litellm` 拉進 litellm 57 MB 本體 + 8.2 MB `tokenizers` + 約 10 個 transitive deps（總計 ~80 MB），並強制 downgrade `python-dotenv` 與 `importlib-metadata`（潛在版本衝突）。此外 litellm 對某些 model ID（如 `claude-opus-4-5-20250929`、`claude-3-5-sonnet-latest`）還不認識，runtime lookup 也會 miss。結論：不作 runtime dep；改採 **dev-dep + materialized YAML registry** pattern（見 `model_context.py` 章節）。
-
-- [x] **edgartools `period_of_report` 推導跨公司一致性**：實測 12 家公司各 FY2023–2025（共 36 筆 filing）：
-    - Jan FY end: NVDA、WMT
-    - May FY end: ORCL
-    - Jun FY end: MSFT
-    - Jul FY end: CSCO
-    - Aug/Sep FY end: COST（2025 為 Aug 31、2024 為 Sep 1 — 52/53-week calendar 特性）
-    - Sep FY end: AAPL、DIS
-    - Dec FY end: GOOGL、AMZN、META、TSLA
-
-    全部 `period_of_report` 為 `"YYYY-MM-DD"` 字串、`int(period[:4])` 都正確推出 fiscal_year，無例外。
-
-- [x] **同一 fiscal year 多筆 filing（amendments）邊界**：TSLA FY2024 有兩筆 filing：
-    - `2025-01-30` filed, period `2024-12-31`（原版 10-K）
-    - `2025-04-30` filed, period `2024-12-31`（10-K/A 修正版）
-
-    `fetch_filing_obj` 的 fiscal_year filter 邏輯需在 matches 中取**最後 `filing_date`** 的一筆（即修正版），才拿到權威最終版本。
-
 ### 實作時需先 spot-check 的風險項
 
-- [ ] **`is_stub_section` 從 `markdown_cleaner.py` port 過來的行為是否仍有效**
+#### `is_stub_section` 從 `markdown_cleaner.py` port 的行為等效性
 
-    既有實作 `is_pure_part_iii_stub`（`backend/ingestion/sec_filing_pipeline/markdown_cleaner.py:478`）的核心算法是：
-    1. Sentence split → 2. 丟掉含 "incorporated...by reference" 的句子 → 3. 洗掉 markdown links/structural noise → 4. 剩餘非空白字元數 < threshold 即 stub
+既有 `is_pure_part_iii_stub`（`backend/ingestion/sec_filing_pipeline/markdown_cleaner.py:478`）核心算法：Sentence split → 丟掉含 "incorporated...by reference" 的句子 → 洗掉 markdown links / structural noise → 剩餘非空白字元數 < threshold 即 stub。
 
-    Port 到 `sec_core.is_stub_section` 會變動兩個前提，**需實測驗證**：
+Port 成一般化的 `sec_core.is_stub_section(text)` 會變動兩個前提，需實測驗證。
 
-    | 變動 | 風險 |
-    |------|------|
-    | **Scope**：既有只跑 Part III（Items 10–14），名稱與呼叫點都有此假設；port 後要對任意 section 呼叫 | 算法本身不查 item number，理論上可一般化；需測 `Item 1B="None."`、`Item 3="For a description ... see Note 15"` 等 non-Part-III 案例 |
-    | **輸入格式**：既有吃 Markdown（含 `[text](url)`、`\|`、`*`），port 後吃 `section.text()` 純文字 | Strip markdown 步驟變 no-op；threshold `_PURE_STUB_REMAINING_THRESHOLD` 是對 markdown 樣本調的，純文字下 threshold 可能需微調 |
+**Stakes 不對稱**：false positive（真實 section 誤判成 stub）→ agent 跳過 → 使用者資料遺失；false negative（漏偵測）→ 多一次 tool call。寧願漏也不誤判。
 
-    **Stakes 不對稱**：False positive（真實 section 誤判成 stub）→ agent 跳過 → 使用者資料遺失；False negative（漏偵測）→ 多一次 tool call。必須**寧願漏也不誤判**。
+**兩個前提變動**
 
-    **實作階段至少 spot-check 這 4 筆真實 filing，4 個 case 全過才可 port as-is**：
+| 前提 | 既有實作 | Port 後 | 風險 |
+|------|---------|--------|------|
+| Scope | 只跑 Part III（Items 10–14） | 任意 section | 算法本身不查 item number，理論可通用；需 non-Part-III 案例實測 |
+| 輸入格式 | Markdown | `section.text()` 純文字 | `_PURE_STUB_REMAINING_THRESHOLD` 是對 Markdown 樣本調的，純文字下可能需微調 |
 
-    | Case | 真實樣本 | Expected | 驗什麼 |
-    |------|----------|----------|--------|
-    | Common stub | AAPL 10-K Item 11 | `is_stub=True` | 基本 positive 命中 |
-    | Long real content | AAPL 10-K Item 1A | `is_stub=False` | 不會誤判大 section |
-    | **Short real content** | AAPL 10-K Item 1B（典型為「None.」或 1-2 句） | `is_stub=False` | ⚠️ 既有 heuristic 從沒跑過 non-Part-III，此 case 風險最高 |
-    | Rare location stub | 挑一家 Item 3 或 Item 5 incorporate by reference 的公司 | `is_stub=True` | 確認算法跨 Part 仍有效 |
+**Spot-check 4 個樣本（全過才可 port as-is）**
 
-    若任一 case fail，需微調 threshold 或邏輯 —— 這正是「port 時需決策」而非「直接搬」的部分。
+| # | Case | 樣本 | Expected | 重點 |
+|---|------|------|----------|------|
+| 1 | Common stub | AAPL 10-K Item 11 | `True` | Positive 基本命中 |
+| 2 | Long real content | AAPL 10-K Item 1A | `False` | 大 section 不誤判 |
+| 3 | ⚠️ Short real content | AAPL 10-K Item 1B（典型為「None.」） | `False` | Non-Part-III 首次驗，風險最高 |
+| 4 | Rare location stub | 某公司 Item 3 或 Item 5 incorporate by reference | `True` | 算法跨 Part 仍有效 |
+
+若任一 case fail，需微調 threshold 或邏輯 —— 這是「port 時需決策」而非「直接搬」的部分。

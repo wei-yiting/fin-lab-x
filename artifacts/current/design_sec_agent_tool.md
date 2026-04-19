@@ -671,25 +671,29 @@ v2-v5 的 `system_prompt.md` **不動**（它們 fallback 到 `_DEFAULT_SYSTEM_P
 
     `fetch_filing_obj` 的 fiscal_year filter 邏輯需在 matches 中取**最後 `filing_date`** 的一筆（即修正版），才拿到權威最終版本。
 
-### 留待 integration test 覆蓋
+### 實作時需先 spot-check 的風險項
 
-- [ ] **`is_stub_section` heuristic 的準確度邊界**
+- [ ] **`is_stub_section` 從 `markdown_cleaner.py` port 過來的行為是否仍有效**
 
-    **要驗證什麼**：heuristic 能否正確分辨「真正的 stub（只是指向 proxy statement 等其他文件）」vs「真實內容」。
+    既有實作 `is_pure_part_iii_stub`（`backend/ingestion/sec_filing_pipeline/markdown_cleaner.py:478`）的核心算法是：
+    1. Sentence split → 2. 丟掉含 "incorporated...by reference" 的句子 → 3. 洗掉 markdown links/structural noise → 4. 剩餘非空白字元數 < threshold 即 stub
 
-    **為什麼重要（stakes 不對稱）**：
-    - **False positive**（真實 section 被誤判成 stub）→ `list_sections` 告訴 agent「這是 stub 別 fetch」→ agent 跳過 → **使用者資料真的遺失**（嚴重錯誤）
-    - **False negative**（漏偵測 stub）→ agent 多做一次 tool call、拿到 300 字 cross-reference（只是沒效率）
+    Port 到 `sec_core.is_stub_section` 會變動兩個前提，**需實測驗證**：
 
-    heuristic 必須**寧願漏偵測也不能誤判**。因此 test 重點在 negative case（short-but-real）。
+    | 變動 | 風險 |
+    |------|------|
+    | **Scope**：既有只跑 Part III（Items 10–14），名稱與呼叫點都有此假設；port 後要對任意 section 呼叫 | 算法本身不查 item number，理論上可一般化；需測 `Item 1B="None."`、`Item 3="For a description ... see Note 15"` 等 non-Part-III 案例 |
+    | **輸入格式**：既有吃 Markdown（含 `[text](url)`、`\|`、`*`），port 後吃 `section.text()` 純文字 | Strip markdown 步驟變 no-op；threshold `_PURE_STUB_REMAINING_THRESHOLD` 是對 markdown 樣本調的，純文字下 threshold 可能需微調 |
 
-    **Integration test 至少要覆蓋的 4 種 case**：
+    **Stakes 不對稱**：False positive（真實 section 誤判成 stub）→ agent 跳過 → 使用者資料遺失；False negative（漏偵測）→ 多一次 tool call。必須**寧願漏也不誤判**。
 
-    | Case | 範例 | Expected | 驗什麼 |
-    |------|------|----------|--------|
-    | Common stub | AAPL Item 11「incorporated by reference from Proxy Statement...」 | `is_stub=True` | 基本 positive 命中 |
-    | Long real content | AAPL Item 1A（100K 字 Risk Factors） | `is_stub=False` | 不會誤判大 section |
-    | **Short real content** | AAPL Item 1B「None.」 | `is_stub=False` | ⚠️ heuristic 不能只靠長度判斷 |
-    | Rare location stub | 挑一家 Item 3 或 Item 5 stub 到其他文件的公司 | `is_stub=True` | heuristic 不依賴 item-number 白名單 |
+    **實作階段至少 spot-check 這 4 筆真實 filing，4 個 case 全過才可 port as-is**：
 
-    第 3 個 case 最關鍵 —— 確保 heuristic 必須查「incorporated by reference」之類的關鍵字，不能用「字數 < N 就 stub」這種偷懶方式。
+    | Case | 真實樣本 | Expected | 驗什麼 |
+    |------|----------|----------|--------|
+    | Common stub | AAPL 10-K Item 11 | `is_stub=True` | 基本 positive 命中 |
+    | Long real content | AAPL 10-K Item 1A | `is_stub=False` | 不會誤判大 section |
+    | **Short real content** | AAPL 10-K Item 1B（典型為「None.」或 1-2 句） | `is_stub=False` | ⚠️ 既有 heuristic 從沒跑過 non-Part-III，此 case 風險最高 |
+    | Rare location stub | 挑一家 Item 3 或 Item 5 incorporate by reference 的公司 | `is_stub=True` | 確認算法跨 Part 仍有效 |
+
+    若任一 case fail，需微調 threshold 或邏輯 —— 這正是「port 時需決策」而非「直接搬」的部分。

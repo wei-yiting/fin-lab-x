@@ -1,11 +1,9 @@
 import { useMemo } from "react"
 import { Markdown } from "@/components/organisms/Markdown"
 import { ToolCard } from "@/components/organisms/ToolCard"
-import { ErrorBlock } from "@/components/organisms/ErrorBlock"
 import { Sources } from "@/components/molecules/Sources"
 import { RegenerateButton } from "@/components/atoms/RegenerateButton"
 import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources"
-import { toFriendlyError } from "@/lib/error-messages"
 import { isRunningToolState } from "@/models"
 import type { ChatStatus } from "@/models"
 
@@ -79,23 +77,6 @@ export function AssistantMessage({
               part={part as Parameters<typeof ToolCard>[0]["part"]}
               isAborted={isAborted}
               progressText={toolProgress[toolCallId]}
-            />
-          )
-        }
-
-        if (part.type === "error") {
-          const errorText = (part.errorText ?? part.error ?? "") as string
-          const friendly = toFriendlyError({
-            source: "mid-stream-sse",
-            rawMessage: errorText,
-          })
-          return (
-            <ErrorBlock
-              key={`error-${i}`}
-              friendly={friendly}
-              onRetry={isLast && onRegenerate ? () => onRegenerate(message.id) : undefined}
-              source="mid-stream"
-              errorClass="mid-stream"
             />
           )
         }

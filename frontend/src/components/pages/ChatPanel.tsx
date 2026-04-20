@@ -109,12 +109,14 @@ export function ChatPanel() {
     sendMessage({ text: last.userText })
   }, [messages, regenerate, setMessages, sendMessage])
 
-  // Mid-stream error → mark running tools as aborted (deferred to avoid cascading render)
+  // When useChat enters error state, mark any running tools on the last assistant message as aborted.
+  // AI SDK v6 routes SSE `error` chunks to onError/status=error, not message.parts, so we cannot
+  // detect mid-stream errors by inspecting message parts — we must watch `status` instead.
   useEffect(() => {
+    if (status !== "error") return
     const lastMsg = messages.at(-1)
     if (!lastMsg || lastMsg.role !== "assistant") return
     const parts = lastMsg.parts as PartLike[]
-    if (!parts.some((p) => p.type === "error")) return
     const ids = parts
       .filter((p) => isToolPart(p) && isRunningToolState((p as PartLike).state as string))
       .map((p) => getToolCallId(p))
@@ -125,7 +127,7 @@ export function ChatPanel() {
         return merged.size !== prev.size ? merged : prev
       })
     }
-  }, [messages])
+  }, [status, messages])
 
   const showPreStreamError = status === "error" && error
   const preStreamFriendly = showPreStreamError

@@ -6,8 +6,8 @@ __pycache__/
 .env
 .vscode/
 .sisyphus/
-# artifacts/ — tracked during implementation phase per project policy; re-enable when feature ships
 .artifacts/
+artifacts/
 .superpowers/
 backend/evals/results/
 node_modules/

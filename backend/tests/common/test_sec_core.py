@@ -16,9 +16,9 @@ def test_filing_type_enum():
     assert FilingType("10-K") is FilingType.TEN_K
 
 
-def test_section_not_found_error_is_sec_error():
-    assert issubclass(SectionNotFoundError, SECError)
+def test_all_sec_errors_inherit_from_sec_error():
     for exc_cls in (
+        SectionNotFoundError,
         TickerNotFoundError,
         FilingNotFoundError,
         UnsupportedFilingTypeError,
@@ -43,3 +43,17 @@ def test_tenk_standard_titles_shape():
     for key, value in TENK_STANDARD_TITLES.items():
         assert isinstance(value, str)
         assert value, f"Title for key {key!r} must be non-empty"
+
+    # Spot-check against the canonical SEC Form 10-K / Reg S-K item titles —
+    # a typo in sec_core.py would fail these assertions.
+    assert TENK_STANDARD_TITLES["1"] == "Business"
+    assert TENK_STANDARD_TITLES["1a"] == "Risk Factors"
+    assert TENK_STANDARD_TITLES["6"] == "[Reserved]"
+    assert (
+        TENK_STANDARD_TITLES["7"]
+        == "Management's Discussion and Analysis of Financial Condition and Results of Operations"
+    )
+    assert (
+        TENK_STANDARD_TITLES["9c"]
+        == "Disclosure Regarding Foreign Jurisdictions that Prevent Inspections"
+    )

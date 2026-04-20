@@ -1,5 +1,7 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
+import httpx
 import pytest
 
 from backend.common.sec_core import (
@@ -12,6 +14,8 @@ from backend.common.sec_core import (
     TickerNotFoundError,
     TransientError,
     UnsupportedFilingTypeError,
+    _resolve_latest_fiscal_year,
+    fetch_filing_obj,
     is_stub_section,
     parse_item_number,
 )
@@ -170,3 +174,199 @@ def test_is_stub_section_threshold_boundary(
         assert expected_reason_substring in reason
     else:
         assert reason is None
+
+
+# ---------------------------------------------------------------------------
+# fetch_filing_obj / _resolve_latest_fiscal_year
+# ---------------------------------------------------------------------------
+
+
+class _TenKStub:
+    """Stand-in class for edgar.company_reports.TenK used as the isinstance
+    target after monkeypatching `edgar.company_reports.TenK`."""
+
+
+def _make_filing(period_of_report: str, tenk_stub_cls: type) -> MagicMock:
+    filing = MagicMock()
+    filing.period_of_report = period_of_report
+    obj_instance = tenk_stub_cls()
+    filing.obj = MagicMock(return_value=obj_instance)
+    return filing
+
+
+def _make_filings_collection(filings_list: list) -> MagicMock:
+    coll = MagicMock()
+    coll.__iter__ = lambda self: iter(filings_list)
+    coll.__len__ = lambda self: len(filings_list)
+    coll.latest = MagicMock(return_value=filings_list[-1] if filings_list else None)
+    return coll
+
+
+@pytest.fixture
+def mock_edgar(monkeypatch):
+    """Assemble a mock edgar.Company / Filings / Filing / TenK chain.
+
+    Returns a dict exposing `company_spy`, `company_instance`, `filings`,
+    `filings_by_form` (mapping form -> filings collection), `tenk_cls`, and
+    a helper `set_filings(form, filings_list)`.
+    """
+    monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
+
+    tenk_cls = _TenKStub
+
+    filings_by_form: dict[str, MagicMock] = {}
+
+    def get_filings(form: str):
+        return filings_by_form.get(form, _make_filings_collection([]))
+
+    company_instance = MagicMock()
+    company_instance.get_filings = MagicMock(side_effect=get_filings)
+
+    company_spy = MagicMock(return_value=company_instance)
+    monkeypatch.setattr("edgar.Company", company_spy)
+    monkeypatch.setattr("edgar.set_identity", MagicMock())
+    monkeypatch.setattr("edgar.company_reports.TenK", tenk_cls)
+
+    def set_filings(form: str, filings_list: list):
+        filings_by_form[form] = _make_filings_collection(filings_list)
+
+    return {
+        "company_spy": company_spy,
+        "company_instance": company_instance,
+        "set_filings": set_filings,
+        "tenk_cls": tenk_cls,
+    }
+
+
+def test_fetch_filing_obj_configuration_error_without_identity(monkeypatch):
+    monkeypatch.delenv("EDGAR_IDENTITY", raising=False)
+    with pytest.raises(ConfigurationError):
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+
+def test_fetch_filing_obj_caches_by_key(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    aapl_filing = _make_filing("2025-09-27", tenk_cls)
+    msft_filing = _make_filing("2025-06-30", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [aapl_filing])
+
+    # First AAPL call → Company called once.
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    assert mock_edgar["company_spy"].call_count == 1
+
+    # Second AAPL call (same key) → cache hit, no new Company call.
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    assert mock_edgar["company_spy"].call_count == 1
+
+    # Different ticker → new Company call.
+    mock_edgar["set_filings"]("10-K", [msft_filing])
+    fetch_filing_obj("MSFT", FilingType.TEN_K, 2025)
+    assert mock_edgar["company_spy"].call_count == 2
+
+
+def test_fetch_filing_obj_fiscal_year_filter(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    f2024 = _make_filing("2024-09-30", tenk_cls)
+    f2025 = _make_filing("2025-09-27", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [f2024, f2025])
+
+    obj_2024 = fetch_filing_obj("AAPL", FilingType.TEN_K, 2024)
+    # The 2024 filing's .obj() result should be what we got back.
+    assert obj_2024 is f2024.obj.return_value
+
+    with pytest.raises(FilingNotFoundError):
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2099)
+
+
+def test_fetch_filing_obj_skips_amendments(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_filing("2025-09-27", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    called_forms = [
+        call.kwargs.get("form") or (call.args[0] if call.args else None)
+        for call in mock_edgar["company_instance"].get_filings.call_args_list
+    ]
+    assert "10-K" in called_forms
+    assert "10-K/A" not in called_forms
+
+
+def test_fetch_filing_obj_ticker_not_found(monkeypatch):
+    monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
+
+    def _boom(ticker):
+        raise Exception("company not found")
+
+    monkeypatch.setattr("edgar.Company", _boom)
+    monkeypatch.setattr("edgar.set_identity", MagicMock())
+    monkeypatch.setattr("edgar.company_reports.TenK", _TenKStub)
+
+    with pytest.raises(TickerNotFoundError) as exc_info:
+        fetch_filing_obj("ZZZZ", FilingType.TEN_K, 2025)
+    assert "ZZZZ" in str(exc_info.value)
+
+
+def test_fetch_filing_obj_fpi_ticker_tsm(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    # 10-K is empty (default). Populate 20-F.
+    mock_edgar["set_filings"]("20-F", [_make_filing("2024-12-31", tenk_cls)])
+
+    with pytest.raises(UnsupportedFilingTypeError) as exc_info:
+        fetch_filing_obj("TSM", FilingType.TEN_K, 2024)
+    msg = str(exc_info.value)
+    assert "20-F" in msg
+    assert "foreign private issuer" in msg
+
+
+def test_fetch_filing_obj_transient_error(monkeypatch):
+    monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
+
+    company_instance = MagicMock()
+    http_error = httpx.HTTPStatusError(
+        message="503",
+        request=httpx.Request("GET", "https://sec.gov"),
+        response=httpx.Response(503),
+    )
+    company_instance.get_filings = MagicMock(side_effect=http_error)
+
+    monkeypatch.setattr("edgar.Company", MagicMock(return_value=company_instance))
+    monkeypatch.setattr("edgar.set_identity", MagicMock())
+    monkeypatch.setattr("edgar.company_reports.TenK", _TenKStub)
+
+    with pytest.raises(TransientError):
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+
+def test_resolve_latest_fiscal_year_reads_metadata_only(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_filing("2025-09-27", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    fy = _resolve_latest_fiscal_year("AAPL")
+    assert fy == 2025
+    filing.obj.assert_not_called()
+
+
+def test_resolve_latest_fiscal_year_cached(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_filing("2025-09-27", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    _resolve_latest_fiscal_year("AAPL")
+    _resolve_latest_fiscal_year("AAPL")
+    assert mock_edgar["company_spy"].call_count == 1
+
+
+def test_resolve_latest_fiscal_year_ticker_not_found(mock_edgar):
+    # Both forms empty → TickerNotFoundError.
+    with pytest.raises(TickerNotFoundError):
+        _resolve_latest_fiscal_year("ZZZZ")
+
+
+def test_resolve_latest_fiscal_year_fpi(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"]("20-F", [_make_filing("2024-12-31", tenk_cls)])
+    with pytest.raises(UnsupportedFilingTypeError):
+        _resolve_latest_fiscal_year("TSM")

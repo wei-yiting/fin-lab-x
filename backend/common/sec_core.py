@@ -1,5 +1,11 @@
+import os
 import re
 from enum import StrEnum
+from functools import lru_cache
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from edgar.company_reports.ten_k import TenK  # noqa: F401
 
 
 class FilingType(StrEnum):
@@ -118,3 +124,179 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
     if len(cleaned) < _STUB_REMAINING_THRESHOLD:
         return (True, "incorporated by reference from proxy statement")
     return (False, None)
+
+
+def _find_by_fiscal_year(filings, fiscal_year: int):
+    """Iterate edgartools Filings and return the filing whose
+    period_of_report year matches ``fiscal_year``, else None.
+    Does NOT raise — caller decides.
+    """
+    for filing in filings:
+        pr = getattr(filing, "period_of_report", None)
+        if pr and str(pr)[:4] == str(fiscal_year):
+            return filing
+    return None
+
+
+def _classify_edgar_error(
+    exc: Exception, ticker: str, filing_type: FilingType
+) -> SECError:
+    """Map a raw edgartools / HTTP exception to a SECError subclass.
+
+    Returns the mapped exception (caller uses ``raise mapped from exc``).
+
+    Rules:
+    - HTTP 5xx (``httpx.HTTPStatusError`` or ``requests.HTTPError``) →
+      ``TransientError``.
+    - Existing ``SECError`` → pass through unchanged.
+    - Anything else → ``TickerNotFoundError`` (empty-filings template).
+    """
+    try:
+        import httpx
+
+        if isinstance(exc, httpx.HTTPStatusError):
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is not None and 500 <= status < 600:
+                return TransientError(
+                    f"SEC EDGAR returned {status} for {ticker}."
+                )
+    except ImportError:
+        pass
+
+    try:
+        import requests
+
+        if isinstance(exc, requests.HTTPError):
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is not None and 500 <= status < 600:
+                return TransientError(
+                    f"SEC EDGAR returned {status} for {ticker}."
+                )
+    except ImportError:
+        pass
+
+    if isinstance(exc, SECError):
+        return exc
+    return TickerNotFoundError(
+        f"Ticker {ticker!r} not found on SEC EDGAR."
+    )
+
+
+@lru_cache(maxsize=16)
+def _resolve_latest_fiscal_year(ticker: str) -> int:
+    """Resolve the latest 10-K fiscal year for ``ticker`` using ONLY
+    filing-index metadata. Does NOT call ``filing.obj()`` — does NOT
+    download/parse the 10-K.
+
+    Same classification rules as ``fetch_filing_obj``'s empty-filings branch:
+    ``TickerNotFoundError`` if no 10-K exists, ``UnsupportedFilingTypeError``
+    if the ticker files 20-F instead.
+    """
+    identity = os.getenv("EDGAR_IDENTITY")
+    if not identity:
+        raise ConfigurationError(
+            "EDGAR_IDENTITY environment variable is not set."
+        )
+
+    from edgar import Company, set_identity
+
+    set_identity(identity)
+
+    ticker_upper = ticker.strip().upper()
+    try:
+        company = Company(ticker_upper)
+        filings = company.get_filings(form="10-K")
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper, FilingType.TEN_K) from exc
+
+    if filings is None or len(filings) == 0:
+        try:
+            alt_filings = company.get_filings(form="20-F")
+        except Exception:
+            alt_filings = None
+        if alt_filings is not None and len(alt_filings) > 0:
+            raise UnsupportedFilingTypeError(
+                f"Ticker {ticker_upper} appears to be a foreign private issuer "
+                f"that files 20-F; only '10-K' is supported."
+            )
+        raise TickerNotFoundError(
+            f"Ticker {ticker_upper!r} has no 10-K filings on SEC EDGAR."
+        )
+
+    latest = filings.latest()
+    return int(str(latest.period_of_report)[:4])
+
+
+@lru_cache(maxsize=64)
+def fetch_filing_obj(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> "TenK":
+    """Fetch and parse a TenK filing via edgartools.
+
+    Caches by ``(ticker_upper, filing_type, fiscal_year)``. ``fiscal_year=None``
+    resolves to the latest filing; agent tools should prefer passing the
+    resolved int so the cache key space stays unified.
+
+    Raises:
+        ConfigurationError: ``EDGAR_IDENTITY`` not set.
+        TickerNotFoundError: Ticker not found or no 10-K filings.
+        UnsupportedFilingTypeError: Ticker files 20-F instead (FPI).
+        FilingNotFoundError: No filing matches the requested ``fiscal_year``.
+        TransientError: SEC EDGAR returned 5xx.
+    """
+    identity = os.getenv("EDGAR_IDENTITY")
+    if not identity:
+        raise ConfigurationError(
+            "EDGAR_IDENTITY environment variable is not set."
+        )
+
+    from edgar import Company, set_identity
+    from edgar.company_reports import TenK
+
+    set_identity(identity)
+
+    ticker_upper = ticker.strip().upper()
+    try:
+        company = Company(ticker_upper)
+    except Exception as exc:
+        raise TickerNotFoundError(
+            f"Ticker {ticker_upper!r} not found on SEC EDGAR."
+        ) from exc
+
+    try:
+        filings = company.get_filings(form=str(filing_type))
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper, filing_type) from exc
+
+    if filings is None or len(filings) == 0:
+        try:
+            alt_filings = company.get_filings(form="20-F")
+        except Exception:
+            alt_filings = None
+        if alt_filings is not None and len(alt_filings) > 0:
+            raise UnsupportedFilingTypeError(
+                f"Ticker {ticker_upper} appears to be a foreign private issuer "
+                f"that files 20-F; only '10-K' is supported."
+            )
+        raise TickerNotFoundError(
+            f"Ticker {ticker_upper!r} has no 10-K filings on SEC EDGAR."
+        )
+
+    if fiscal_year is None:
+        filing = filings.latest()
+    else:
+        filing = _find_by_fiscal_year(filings, fiscal_year)
+        if filing is None:
+            raise FilingNotFoundError(
+                f"No {filing_type} filing for {ticker_upper} in fiscal year {fiscal_year}."
+            )
+
+    try:
+        obj = filing.obj()
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper, filing_type) from exc
+
+    assert isinstance(obj, TenK), f"Expected TenK, got {type(obj).__name__}"
+    return obj

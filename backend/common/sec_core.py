@@ -1,3 +1,4 @@
+import re
 from enum import StrEnum
 
 
@@ -53,3 +54,19 @@ TENK_STANDARD_TITLES: dict[str, str] = {
     "15": "Exhibits, Financial Statement Schedules",
     "16": "Form 10-K Summary",
 }
+
+
+_ITEM_PREFIX_RE = re.compile(r"^\s*item\s+", re.IGNORECASE)
+_NORMALIZED_ITEM_RE = re.compile(r"^[0-9]{1,2}[a-c]?$")
+
+
+def parse_item_number(section_key: str) -> str:
+    raw = section_key if isinstance(section_key, str) else ""
+    candidate = _ITEM_PREFIX_RE.sub("", raw.strip()).rstrip(".").strip()
+    candidate = candidate.lower()
+    if not _NORMALIZED_ITEM_RE.match(candidate) or candidate not in TENK_STANDARD_TITLES:
+        raise SectionNotFoundError(
+            f"Section key {section_key!r} is not a valid 10-K item number. "
+            "Call sec_filing_list_sections first to see available section keys."
+        )
+    return candidate

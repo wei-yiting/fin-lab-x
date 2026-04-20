@@ -1,3 +1,5 @@
+import pytest
+
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
     ConfigurationError,
@@ -8,6 +10,7 @@ from backend.common.sec_core import (
     TickerNotFoundError,
     TransientError,
     UnsupportedFilingTypeError,
+    parse_item_number,
 )
 
 
@@ -57,3 +60,37 @@ def test_tenk_standard_titles_shape():
         TENK_STANDARD_TITLES["9c"]
         == "Disclosure Regarding Foreign Jurisdictions that Prevent Inspections"
     )
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("1a", "1a"),
+        ("1A", "1a"),
+        ("Item 1a", "1a"),
+        ("1a.", "1a"),
+        (" 1a ", "1a"),
+    ],
+)
+def test_parse_item_number_variants_success(raw, expected):
+    assert parse_item_number(raw) == expected
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "1 a",
+        "part_i_item_1a",
+        "１ａ",
+        "99z",
+    ],
+)
+def test_parse_item_number_variants_failure(raw):
+    with pytest.raises(SectionNotFoundError):
+        parse_item_number(raw)
+
+
+def test_parse_item_number_error_message():
+    with pytest.raises(SectionNotFoundError) as exc_info:
+        parse_item_number("99z")
+    assert "sec_filing_list_sections" in str(exc_info.value)

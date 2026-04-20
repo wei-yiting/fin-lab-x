@@ -215,7 +215,7 @@ Defined in `__main__.py`. Uses `argparse`, no extra dependencies.
 
 `sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Returns metadata + local file path for downstream RAG consumption. Registered in `backend/agent_engine/tools/sec_filing.py`.
 
-Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), which calls edgartools directly without the pipeline.
+For section-level access without going through the full pipeline (no Markdown conversion, no local cache), see `sec_filing_list_sections` and `sec_filing_get_section` in `backend/agent_engine/tools/sec_filing_tools.py`.
 
 ## Key Design Decisions
 

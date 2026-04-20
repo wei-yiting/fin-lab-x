@@ -1,9 +1,8 @@
 """SEC filing pipeline tool for FinLab-X agent (v2+).
 
 Downloads and parses SEC filings via SECFilingPipeline, returning metadata and
-the local file path for downstream RAG consumption. Unlike sec_official_docs_retriever
-(v1), this tool uses the full pipeline with HTML preprocessing, Markdown conversion,
-and local caching.
+the local file path for downstream RAG consumption. Uses the full pipeline
+with HTML preprocessing, Markdown conversion, and local caching.
 """
 
 from __future__ import annotations

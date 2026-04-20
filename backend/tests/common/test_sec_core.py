@@ -130,3 +130,43 @@ def test_is_stub_section_boundary_samples(
 @pytest.mark.parametrize("empty", ["", "   ", "\n\n\t"])
 def test_is_stub_section_empty_input(empty):
     assert is_stub_section(empty) == (False, None)
+
+
+@pytest.mark.parametrize(
+    "text,expected_is_stub,expected_reason_substring",
+    [
+        # Below-threshold: incorp sentence + short trailer. After dropping
+        # the incorp sentence and stripping whitespace/structural noise,
+        # the remainder is ~16 chars (well under 100), so the classifier
+        # must flag this as an incorp stub.
+        (
+            "Item 9. The information required by this Item is incorporated herein "
+            "by reference from the Proxy Statement. See page 12.",
+            True,
+            "incorporated",
+        ),
+        # Above-threshold: incorp sentence + a substantive trailing
+        # paragraph. After the same strip, the remainder is ~201 chars
+        # (well above 100), so the item is NOT a stub despite containing
+        # the incorp phrase earlier in the text.
+        (
+            "Item 9. The information required by this Item is incorporated herein "
+            "by reference from the Proxy Statement. "
+            "Beyond the pointer above, the Company also discusses material agreements, "
+            "executive tenure, board composition, and a variety of long-running "
+            "governance practices that materially shape how disclosure is organized "
+            "for this item.",
+            False,
+            None,
+        ),
+    ],
+)
+def test_is_stub_section_threshold_boundary(
+    text, expected_is_stub, expected_reason_substring
+):
+    is_stub, reason = is_stub_section(text)
+    assert is_stub is expected_is_stub
+    if expected_is_stub:
+        assert expected_reason_substring in reason
+    else:
+        assert reason is None

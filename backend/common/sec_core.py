@@ -79,7 +79,7 @@ _STUB_INCORP_RE = re.compile(
 _STUB_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=\S)")
 _STUB_MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\([^)]*\)")
 _STUB_REMAINING_THRESHOLD = 100
-_RESERVED_RE = re.compile(r"\[\s*reserved\s*\]|^\s*reserved\s*$", re.IGNORECASE)
+_RESERVED_RE = re.compile(r"\[\s*reserved\s*\]", re.IGNORECASE)
 
 
 def is_stub_section(text: str) -> tuple[bool, str | None]:
@@ -89,7 +89,10 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
     - Incorporated-by-reference stubs (body is essentially a pointer to the
       proxy statement or another filing). Reason: "incorporated by reference
       from proxy statement".
-    - Reserved/deprecated items (Item 6 since 2021; one-line sentinels).
+    - Reserved/deprecated items (Item 6 since 2021). The reserved check
+      matches only the bracketed ``[Reserved]`` sentinel — that is the
+      documented SEC convention and the deliberate contract here. Bare
+      "Reserved" without brackets is not treated as a stub.
       Reason: "section marked as reserved/deprecated".
 
     Non-stub returns ``(False, None)``. Empty / whitespace-only input is

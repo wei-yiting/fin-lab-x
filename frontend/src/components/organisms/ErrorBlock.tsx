@@ -10,7 +10,7 @@ export function ErrorBlock({
   errorClass,
 }: {
   friendly: FriendlyError
-  onRetry: () => void
+  onRetry?: () => void
   source: "pre-stream" | "mid-stream"
   errorClass: string
 }) {
@@ -57,7 +57,7 @@ export function ErrorBlock({
             </pre>
           )}
           <div className="flex gap-2">
-            {friendly.retriable && (
+            {friendly.retriable && onRetry && (
               <Button
                 variant="outline"
                 size="sm"

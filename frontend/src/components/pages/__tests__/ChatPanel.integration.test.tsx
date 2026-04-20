@@ -114,6 +114,82 @@ describe('ChatPanel integration — smart retry (hook-level)', () => {
 })
 
 // ---------------------------------------------------------------------------
+// TC-int-retry-midstream-01: Mid-stream retry does not duplicate user history
+//
+// When an SSE error arrives mid-stream, the inline Retry button in the
+// AssistantMessage ErrorBlock must trigger regenerate() (which removes the
+// failed assistant turn and re-runs with the existing user turn intact),
+// NOT a pattern that re-appends the user message. Verify the message history
+// still has exactly one user turn after retry.
+// ---------------------------------------------------------------------------
+
+describe('ChatPanel integration — mid-stream retry preserves user history', () => {
+  let callCount = 0
+
+  const midStreamServer = setupServer(
+    http.post('/api/v1/chat', () => {
+      callCount++
+      const encoder = new TextEncoder()
+      if (callCount === 1) {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(sseFrame({ type: 'start', messageId: 'asst-mid-err' })))
+            controller.enqueue(encoder.encode(sseFrame({ type: 'text-start', id: 't1' })))
+            controller.enqueue(encoder.encode(sseFrame({ type: 'text-delta', id: 't1', delta: 'partial answer...' })))
+            controller.enqueue(encoder.encode(sseFrame({ type: 'error', errorText: 'context length exceeded' })))
+            controller.close()
+          },
+        })
+        return sseResponse(stream)
+      }
+      // Second request (from retry): succeeds
+      return sseResponse(happyStream('asst-recovered', 'full recovered response'))
+    }),
+  )
+
+  beforeAll(() => midStreamServer.listen({ onUnhandledRequest: 'bypass' }))
+  afterEach(() => {
+    callCount = 0
+    midStreamServer.resetHandlers()
+  })
+  afterAll(() => midStreamServer.close())
+
+  test('TC-int-retry-midstream-01: Retry after mid-stream error does not duplicate user turns', async () => {
+    const user = userEvent.setup()
+    render(<ChatPanel />)
+
+    const textarea = screen.getByTestId('composer-textarea')
+    await user.type(textarea, 'ask me something')
+    await user.click(screen.getByTestId('composer-send-btn'))
+
+    // Wait for the mid-stream error to surface (renders as pre-stream block
+    // since AI SDK v6 raises SSE `error` events via onError + status=error,
+    // not as an appended error-part on the assistant message).
+    await waitFor(() => {
+      expect(screen.getByTestId('error-retry-btn')).toBeInTheDocument()
+    }, { timeout: 5000 })
+
+    // Before retry: exactly one user turn is visible
+    expect(screen.getAllByTestId('user-bubble')).toHaveLength(1)
+    expect(callCount).toBe(1)
+
+    // Click Retry
+    await user.click(screen.getByTestId('error-retry-btn'))
+
+    // Recovery: second call fires, assistant finishes with recovered text
+    await waitFor(() => {
+      expect(callCount).toBe(2)
+    }, { timeout: 5000 })
+    await waitFor(() => {
+      expect(screen.getByText(/full recovered response/)).toBeInTheDocument()
+    }, { timeout: 5000 })
+
+    // After retry: still exactly one user turn — no duplication
+    expect(screen.getAllByTestId('user-bubble')).toHaveLength(1)
+  }, 15000)
+})
+
+// ---------------------------------------------------------------------------
 // TC-int-aborted-01: Aborted tools via stop
 //
 // When the user clicks stop while a tool is in input-available state, the

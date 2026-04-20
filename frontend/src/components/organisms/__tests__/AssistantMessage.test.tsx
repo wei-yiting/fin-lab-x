@@ -39,12 +39,12 @@ describe('AssistantMessage — parts dispatch', () => {
     expect(screen.getByText(/partial/)).toBeInTheDocument()
   })
 
-  test('TC-comp-assistant-01: mid-stream ErrorBlock fires onRetry when retry is clicked', async () => {
+  test('TC-comp-assistant-01: mid-stream ErrorBlock retry calls onRegenerate with message id', async () => {
     const userEvent = (await import('@testing-library/user-event')).default
     const user = userEvent.setup()
-    const onRetry = vi.fn()
+    const onRegenerate = vi.fn()
     const message = {
-      id: 'a1',
+      id: 'assistant-xyz',
       role: 'assistant' as const,
       parts: [
         { type: 'text' as const, text: 'partial...' },
@@ -58,12 +58,35 @@ describe('AssistantMessage — parts dispatch', () => {
         status="error"
         abortedTools={new Set()}
         toolProgress={{}}
-        onRetry={onRetry}
+        onRegenerate={onRegenerate}
       />,
     )
     const retryBtn = screen.getByTestId('error-retry-btn')
     await user.click(retryBtn)
-    expect(onRetry).toHaveBeenCalledTimes(1)
+    expect(onRegenerate).toHaveBeenCalledTimes(1)
+    expect(onRegenerate).toHaveBeenCalledWith('assistant-xyz')
+  })
+
+  test('TC-comp-assistant-01: mid-stream ErrorBlock hides Retry when not last message', () => {
+    const message = {
+      id: 'a1',
+      role: 'assistant' as const,
+      parts: [
+        { type: 'text' as const, text: 'partial...' },
+        { type: 'error' as const, errorText: 'context overflow' },
+      ],
+    }
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={false}
+        status="error"
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    )
+    expect(screen.queryByTestId('error-retry-btn')).not.toBeInTheDocument()
   })
 
   test('TC-comp-assistant-01: renders parallel tool parts in arrival order, stable', () => {

@@ -24,7 +24,6 @@ type AssistantMessageProps = {
   abortedTools: Set<string>
   toolProgress: Record<string, string>
   onRegenerate?: (messageId: string) => void
-  onRetry?: () => void
 }
 
 export function AssistantMessage({
@@ -34,7 +33,6 @@ export function AssistantMessage({
   abortedTools,
   toolProgress,
   onRegenerate,
-  onRetry,
 }: AssistantMessageProps) {
   const parts = message.parts
 
@@ -95,7 +93,7 @@ export function AssistantMessage({
             <ErrorBlock
               key={`error-${i}`}
               friendly={friendly}
-              onRetry={onRetry ?? (() => {})}
+              onRetry={isLast && onRegenerate ? () => onRegenerate(message.id) : undefined}
               source="mid-stream"
               errorClass="mid-stream"
             />

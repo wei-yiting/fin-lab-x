@@ -90,13 +90,24 @@ export function ChatPanel() {
   const handleRetry = useCallback(() => {
     const last = lastTriggerRef.current
     if (!last) return
-    // After any failure (send or regenerate), messages state is [user₀].
-    // AI SDK's regenerate() irreversibly removes the assistant before the request,
-    // so we can't retry with regenerate(). Unified path: remove user, re-send.
+    // Two failure shapes end up here:
+    //   1) Pre-stream failure — messages is [user₀]. Last message is the user turn.
+    //      Drop the trailing user and re-send the text (regenerate({messageId}) would
+    //      try to remove a non-existent assistant and throw).
+    //   2) Mid-stream SSE error — messages is [user₀, assistant(partial)]. Route through
+    //      regenerate({messageId}) so the SDK slices off the failed assistant turn and
+    //      re-runs the same user turn. Plain sendMessage({text}) here would append a
+    //      duplicate user message.
+    const lastMsg = messages.at(-1)
+    if (lastMsg && lastMsg.role === "assistant") {
+      lastTriggerRef.current = { type: "regenerate", messageId: lastMsg.id, userText: last.userText }
+      regenerate({ messageId: lastMsg.id })
+      return
+    }
     lastTriggerRef.current = { type: "send", userText: last.userText }
     setMessages(msgs => msgs.slice(0, -1))
     sendMessage({ text: last.userText })
-  }, [setMessages, sendMessage])
+  }, [messages, regenerate, setMessages, sendMessage])
 
   // Mid-stream error → mark running tools as aborted (deferred to avoid cascading render)
   useEffect(() => {
@@ -138,7 +149,6 @@ export function ChatPanel() {
         toolProgress={toolProgress}
         abortedTools={abortedTools}
         onRegenerate={handleRegenerate}
-        onRetry={handleRetry}
         emptyContent={
           !showPreStreamError ? (
             <EmptyState onPickPrompt={(text) => { composerRef.current?.setValue(text); composerRef.current?.focus() }} />

@@ -165,15 +165,20 @@
   transition: color 200ms ease-out;
 }
 
-/* Preserve child-element colors (links / inline code / bold / em) */
+/* Preserve child-element colors (links / inline code / bold / em).
+   Use explicit theme colors here — `color: inherit` would inherit the
+   shimmer's transparent fill and render these invisible. */
 .streaming-shimmer :where(a, code, strong, em, kbd) {
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
   -webkit-text-fill-color: initial;
-  color: inherit;
   animation: none;
 }
+
+.streaming-shimmer :where(a) { color: var(--chat-brand-accent); }
+.streaming-shimmer :where(code) { color: var(--chat-fg-secondary); }
+.streaming-shimmer :where(strong, em, kbd) { color: var(--foreground); }
 
 @media (prefers-reduced-motion: reduce) {
   .streaming-shimmer {

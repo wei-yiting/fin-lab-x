@@ -47,6 +47,29 @@ def test_compute_section_soft_cap_chars_formula(monkeypatch, ctx_tokens, expecte
     assert compute_section_soft_cap_chars("fake-model") == expected_chars
 
 
+@pytest.mark.parametrize("bad_fraction", [0, -0.1, 1.1, 2.0])
+def test_compute_section_soft_cap_chars_rejects_invalid_fraction(monkeypatch, bad_fraction):
+    monkeypatch.setattr(
+        model_context,
+        "_REGISTRY",
+        {"fake-model": {"max_input_tokens": 128_000, "source": "litellm"}},
+    )
+    with pytest.raises(ValueError):
+        compute_section_soft_cap_chars("fake-model", fraction=bad_fraction)
+
+
+def test_load_registry_handles_non_dict_yaml(tmp_path, monkeypatch, caplog):
+    bad_yaml = tmp_path / "bad.yaml"
+    bad_yaml.write_text("- just a list\n- not a mapping\n")
+    monkeypatch.setattr(model_context, "_REGISTRY_PATH", bad_yaml)
+    monkeypatch.setattr(model_context, "_REGISTRY", {})
+    with caplog.at_level("WARNING", logger=model_context.logger.name):
+        model_context._load_registry()
+    # Registry stays empty, no crash
+    assert model_context._REGISTRY == {}
+    assert any("did not parse to a mapping" in rec.getMessage() for rec in caplog.records)
+
+
 def test_registry_yaml_matches_orchestrator_configs():
     """Sanity: committed YAML covers every model referenced in versions/*."""
     from pathlib import Path

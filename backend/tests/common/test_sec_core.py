@@ -370,3 +370,24 @@ def test_resolve_latest_fiscal_year_fpi(mock_edgar):
     mock_edgar["set_filings"]("20-F", [_make_filing("2024-12-31", tenk_cls)])
     with pytest.raises(UnsupportedFilingTypeError):
         _resolve_latest_fiscal_year("TSM")
+
+
+def test_fetch_filing_obj_cache_key_normalizes_ticker(mock_edgar):
+    """Lowercase and uppercase ticker inputs must share one cache entry."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_filing("2025-09-27", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    fetch_filing_obj("aapl", FilingType.TEN_K, 2025)
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    # Same canonical key → only one underlying call to edgar.Company.
+    assert mock_edgar["company_spy"].call_count == 1
+
+
+def test_fetch_filing_obj_ticker_not_found_both_forms_empty(mock_edgar):
+    """Empty 10-K list + empty 20-F list on fetch_filing_obj → TickerNotFoundError."""
+    # Both forms default to empty in mock_edgar (filings_by_form uninitialized).
+    with pytest.raises(TickerNotFoundError) as exc_info:
+        fetch_filing_obj("ZZZZ", FilingType.TEN_K, 2025)
+    assert "ZZZZ" in str(exc_info.value)

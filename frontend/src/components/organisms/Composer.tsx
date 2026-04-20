@@ -34,8 +34,12 @@ export const Composer = forwardRef<ComposerHandle, Props>(
     const isActive = status === "submitted" || status === "streaming"
 
     return (
-      <form data-testid="composer" onSubmit={handleSubmit} className="border-t border-border px-4 py-3">
-        <div className="flex items-end gap-2">
+      <div className="mx-auto w-full max-w-[52rem] px-4 pt-2 pb-4">
+        <form
+          data-testid="composer"
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-1 rounded-xl border border-input bg-muted px-3.5 py-2"
+        >
           <Textarea
             ref={textareaRef}
             data-testid="composer-textarea"
@@ -49,38 +53,40 @@ export const Composer = forwardRef<ComposerHandle, Props>(
                 handleSubmit(e as unknown as React.FormEvent)
               }
             }}
-            className="min-h-[44px] resize-none"
+            className="min-h-[24px] resize-none border-0 bg-transparent px-0.5 py-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
             rows={1}
           />
-          {isActive ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              data-testid="composer-stop-btn"
-              aria-label="Stop response"
-              onClick={stop}
-              className="size-[44px] shrink-0"
-            >
-              <Square className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              size="icon"
-              data-testid="composer-send-btn"
-              aria-label="Send message"
-              disabled={!text.trim()}
-              className="size-[44px] shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+          <div className="flex items-center justify-end">
+            {isActive ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                data-testid="composer-stop-btn"
+                aria-label="Stop response"
+                onClick={stop}
+                className="size-8 shrink-0"
+              >
+                <Square className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                size="icon"
+                data-testid="composer-send-btn"
+                aria-label="Send message"
+                disabled={!text.trim()}
+                className="size-8 shrink-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </form>
         <p className="mt-2 text-center text-[10px] text-[var(--chat-fg-subtler)]">
           AI-generated responses may be inaccurate. Please verify important information.
         </p>
-      </form>
+      </div>
     )
   },
 )

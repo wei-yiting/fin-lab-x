@@ -57,7 +57,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
     }
 
     return (
-      <div data-testid="message-list" data-status={status} className="flex flex-1 flex-col overflow-hidden">
+      <div data-testid="message-list" data-status={status} className="relative flex flex-1 flex-col overflow-hidden">
         <div
           ref={viewportRef}
           data-testid="message-list-viewport"
@@ -95,6 +95,10 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
             {showTyping && <TypingIndicator />}
           </div>
         </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-linear-to-b from-background to-transparent"
+        />
       </div>
     )
   },

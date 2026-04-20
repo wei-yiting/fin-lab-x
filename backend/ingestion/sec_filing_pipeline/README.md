@@ -181,7 +181,7 @@ Defined in `filing_models.py`:
 
 ## Error Hierarchy
 
-All inherit from `SECPipelineError`:
+All inherit from `SECError` (defined in `backend/common/sec_core.py`):
 
 | Exception | Meaning | Retryable? |
 |-----------|---------|------------|

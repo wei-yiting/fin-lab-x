@@ -1,6 +1,6 @@
 import pytest
 
-from backend.ingestion.sec_filing_pipeline.filing_models import FilingType
+from backend.common.sec_core import FilingType
 
 
 @pytest.fixture()

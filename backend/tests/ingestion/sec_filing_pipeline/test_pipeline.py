@@ -6,14 +6,16 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from backend.ingestion.sec_filing_pipeline.filing_models import (
-    FilingMetadata,
+from backend.common.sec_core import (
     FilingNotFoundError,
     FilingType,
-    ParsedFiling,
-    RawFiling,
     TransientError,
     UnsupportedFilingTypeError,
+)
+from backend.ingestion.sec_filing_pipeline.filing_models import (
+    FilingMetadata,
+    ParsedFiling,
+    RawFiling,
 )
 from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
 from backend.ingestion.sec_filing_pipeline.html_preprocessor import HTMLPreprocessor

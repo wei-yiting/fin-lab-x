@@ -6,15 +6,17 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Literal
 
+from backend.common.sec_core import (
+    FilingType,
+    SECError,
+    TransientError,
+    UnsupportedFilingTypeError,
+)
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
-    FilingType,
     ParsedFiling,
     RawFiling,
     RetryCallback,
-    SECPipelineError,
-    TransientError,
-    UnsupportedFilingTypeError,
 )
 from backend.ingestion.sec_filing_pipeline.filing_store import (
     FilingStore,
@@ -40,7 +42,7 @@ _RETRY_BASE_DELAY = 1.0
 class BatchResult:
     status: Literal["success", "error"]
     filing: ParsedFiling | None
-    error: SECPipelineError | None
+    error: SECError | None
     from_cache: bool
 
 
@@ -107,7 +109,7 @@ class SECFilingPipeline:
         Single-filing entry point used by the agent tool and the default CLI
         invocation.  Honors the cache (skip download if hit) unless ``force``
         is set, retries transient errors up to ``_MAX_BATCH_RETRIES`` times,
-        and raises any :class:`SECPipelineError` on failure — so callers see
+        and raises any :class:`SECError` on failure — so callers see
         the original exception type and can branch on it.
 
         Use :meth:`process_batch` instead when you have many tickers and want
@@ -277,7 +279,7 @@ class SECFilingPipeline:
         """Per-ticker wrapper for the batch path: catch and box errors.
 
         Calls :meth:`_execute_with_retry` (which already does transient-error
-        retry) and converts both success and any :class:`SECPipelineError`
+        retry) and converts both success and any :class:`SECError`
         into a :class:`BatchResult`.  Used only by :meth:`process_batch` —
         the single-filing path lets exceptions propagate to the caller.
         """
@@ -286,7 +288,7 @@ class SECFilingPipeline:
             return BatchResult(
                 status="success", filing=filing, error=None, from_cache=from_cache
             )
-        except SECPipelineError as exc:
+        except SECError as exc:
             return BatchResult(
                 status="error", filing=None, error=exc, from_cache=False
             )

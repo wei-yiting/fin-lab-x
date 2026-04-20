@@ -1,25 +1,11 @@
 import pytest
 from pydantic import ValidationError
 
+from backend.common.sec_core import FilingType
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
-    FilingNotFoundError,
-    FilingType,
     ParsedFiling,
-    SECPipelineError,
-    TickerNotFoundError,
-    TransientError,
-    UnsupportedFilingTypeError,
 )
-
-
-class TestFilingType:
-    def test_ten_k_value(self):
-        assert FilingType.TEN_K == "10-K"
-        assert FilingType.TEN_K.value == "10-K"
-
-    def test_is_str_subclass(self):
-        assert isinstance(FilingType.TEN_K, str)
 
 
 class TestFilingMetadata:
@@ -81,28 +67,3 @@ class TestParsedFiling:
         metadata = FilingMetadata(**valid_metadata_kwargs)
         with pytest.raises(ValidationError):
             ParsedFiling(metadata=metadata)
-
-
-class TestExceptionHierarchy:
-    def test_all_exceptions_inherit_from_sec_pipeline_error(self):
-        assert issubclass(TickerNotFoundError, SECPipelineError)
-        assert issubclass(FilingNotFoundError, SECPipelineError)
-        assert issubclass(UnsupportedFilingTypeError, SECPipelineError)
-        assert issubclass(TransientError, SECPipelineError)
-
-    def test_sec_pipeline_error_inherits_from_exception(self):
-        assert issubclass(SECPipelineError, Exception)
-
-    def test_exceptions_are_catchable_as_sec_pipeline_error(self):
-        for exc_cls in [
-            TickerNotFoundError,
-            FilingNotFoundError,
-            UnsupportedFilingTypeError,
-            TransientError,
-        ]:
-            with pytest.raises(SECPipelineError):
-                raise exc_cls("test")
-
-    def test_exception_preserves_message(self):
-        err = TickerNotFoundError("INVALID ticker not found")
-        assert str(err) == "INVALID ticker not found"

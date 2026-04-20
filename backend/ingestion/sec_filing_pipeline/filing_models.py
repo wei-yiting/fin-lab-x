@@ -1,12 +1,9 @@
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Protocol
 
 from pydantic import BaseModel
 
-
-class FilingType(StrEnum):
-    TEN_K = "10-K"
+from backend.common.sec_core import FilingType, TransientError
 
 
 @dataclass(frozen=True)
@@ -39,25 +36,7 @@ class ParsedFiling(BaseModel):
     markdown_content: str
 
 
-class SECPipelineError(Exception): ...
-
-
-class TickerNotFoundError(SECPipelineError): ...
-
-
-class FilingNotFoundError(SECPipelineError): ...
-
-
-class UnsupportedFilingTypeError(SECPipelineError): ...
-
-
-class TransientError(SECPipelineError): ...
-
-
 class RetryCallback(Protocol):
     def __call__(
         self, attempt: int, max_attempts: int, error: TransientError
     ) -> None: ...
-
-
-class ConfigurationError(SECPipelineError): ...

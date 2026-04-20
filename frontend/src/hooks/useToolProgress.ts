@@ -4,6 +4,7 @@ import type { ToolProgressRecord } from "@/models"
 export function useToolProgress() {
   const [toolProgress, setProgress] = useState<ToolProgressRecord>({})
   const handleData = useCallback((dataPart: { type: string; id?: string; data: unknown }) => {
+    if (dataPart.type !== "data-tool-progress") return
     if (!dataPart.id) return
     const payload = dataPart.data as { message?: string } | undefined
     if (payload?.message) {

@@ -16,6 +16,7 @@ import scrollOverflow from './scroll-overflow'
 import happyCitation from './happy-citation'
 import regenerateHappy from './regenerate-happy'
 import regenerateFailThenSuccess from './regenerate-fail-then-success'
+import xssInlineBodyLink from './xss-inline-body-link'
 
 export const fixtures: Record<string, SSEFixture> = {
   'xss-javascript-url': xssJavascriptUrl,
@@ -35,4 +36,5 @@ export const fixtures: Record<string, SSEFixture> = {
   'happy-citation': happyCitation,
   'regenerate-happy': regenerateHappy,
   'regenerate-fail-then-success': regenerateFailThenSuccess,
+  'xss-inline-body-link': xssInlineBodyLink,
 }

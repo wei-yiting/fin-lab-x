@@ -54,6 +54,14 @@ describe('ToolCard — visual state via data-tool-state attribute', () => {
     expect(card).toHaveAttribute('data-tool-state', 'aborted')
     expect(screen.getByTestId('status-dot').className).not.toMatch(/animate-pulse/)
   })
+
+  test('isAborted=true with input-streaming → data-tool-state="aborted"', () => {
+    render(
+      <ToolCard part={{ ...baseToolPart, state: 'input-streaming' }} isAborted={true} />
+    )
+    const card = screen.getByTestId('tool-card')
+    expect(card).toHaveAttribute('data-tool-state', 'aborted')
+  })
 })
 
 test('TC-comp-toolcard-02: expanded state stable across parent re-render with same toolCallId', async () => {

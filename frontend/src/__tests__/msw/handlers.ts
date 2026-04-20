@@ -81,9 +81,10 @@ export const handlers = [
     return new HttpResponse(stream, {
       status: 200,
       headers: {
-        'Content-Type': 'text/event-stream',
+        'connection': 'keep-alive',
+        'content-type': 'text/event-stream',
+        'cache-control': 'no-cache',
         'x-vercel-ai-ui-message-stream': 'v1',
-        'Cache-Control': 'no-cache',
       },
     })
   }),

@@ -2,6 +2,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { ToolRow } from "@/components/molecules/ToolRow"
 import { ToolDetail } from "@/components/molecules/ToolDetail"
 import { toFriendlyError } from "@/lib/error-messages"
+import { isRunningToolState } from "@/models"
 import type { ToolUIState } from "@/models"
 
 type ToolPart = {
@@ -32,7 +33,7 @@ export function ToolCard({
   progressText?: string
 }) {
   const visualState: ToolUIState =
-    isAborted && part.state === "input-available" ? "aborted" : (part.state as ToolUIState)
+    isAborted && isRunningToolState(part.state) ? "aborted" : (part.state as ToolUIState)
 
   const friendly =
     part.state === "output-error" && part.errorText

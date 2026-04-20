@@ -39,6 +39,33 @@ describe('AssistantMessage — parts dispatch', () => {
     expect(screen.getByText(/partial/)).toBeInTheDocument()
   })
 
+  test('TC-comp-assistant-01: mid-stream ErrorBlock fires onRetry when retry is clicked', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    const user = userEvent.setup()
+    const onRetry = vi.fn()
+    const message = {
+      id: 'a1',
+      role: 'assistant' as const,
+      parts: [
+        { type: 'text' as const, text: 'partial...' },
+        { type: 'error' as const, errorText: 'context overflow' },
+      ],
+    }
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="error"
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRetry={onRetry}
+      />,
+    )
+    const retryBtn = screen.getByTestId('error-retry-btn')
+    await user.click(retryBtn)
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
   test('TC-comp-assistant-01: renders parallel tool parts in arrival order, stable', () => {
     const message = {
       id: 'a1',
@@ -72,6 +99,25 @@ describe('AssistantMessage — aborted tools', () => {
         message={message}
         isLast={false}
         abortedTools={new Set(['tc-aborted'])}
+        toolProgress={{}}
+      />
+    )
+    expect(screen.getByTestId('tool-card')).toHaveAttribute('data-tool-state', 'aborted')
+  })
+
+  test('TC-comp-assistant-02: input-streaming tool with id in abortedTools → ToolCard data-tool-state="aborted"', () => {
+    const message = {
+      id: 'a1',
+      role: 'assistant' as const,
+      parts: [
+        { type: 'tool' as const, state: 'input-streaming', toolCallId: 'tc-aborted-streaming', toolName: 'x', input: {} },
+      ],
+    }
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={false}
+        abortedTools={new Set(['tc-aborted-streaming'])}
         toolProgress={{}}
       />
     )
@@ -219,5 +265,78 @@ describe('AssistantMessage — citation rendering', () => {
 
     expect(screen.getByTestId('sources-block')).toBeInTheDocument()
     expect(screen.queryByText('**References**')).not.toBeInTheDocument()
+  })
+
+  test('TC-comp-citation-04: streaming strips definition lines (no flicker)', () => {
+    const streamingText =
+      'NVDA 很棒 [1]。\n\n' +
+      '[1]: https://reuters.com/report "Reuters"'
+
+    const msg = {
+      id: 'a3',
+      role: 'assistant' as const,
+      parts: [{ type: 'text' as const, text: streamingText }],
+    }
+
+    render(
+      <AssistantMessage
+        message={msg}
+        isLast={true}
+        status="streaming"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    )
+    expect(screen.queryByText(/reuters\.com\/report/)).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sources-block')).not.toBeInTheDocument()
+  })
+
+  test('TC-comp-citation-05: bullet-prefixed ref defs render Sources block', () => {
+    const bulletText =
+      'NVDA news [1].\n\n' +
+      '- [1]: https://reuters.com/nvda "Reuters NVDA"'
+
+    const msg = {
+      id: 'a4',
+      role: 'assistant' as const,
+      parts: [{ type: 'text' as const, text: bulletText }],
+    }
+
+    render(
+      <AssistantMessage
+        message={msg}
+        isLast={true}
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    )
+    expect(screen.getByTestId('sources-block')).toBeInTheDocument()
+    expect(screen.queryByText(/- \[1\]/)).not.toBeInTheDocument()
+  })
+
+  test('TC-comp-citation-06: Chinese source header stripped', () => {
+    const cnText =
+      '報告內容 [1]。\n\n' +
+      '來源：\n' +
+      '[1]: https://reuters.com/report "Reuters"'
+
+    const msg = {
+      id: 'a5',
+      role: 'assistant' as const,
+      parts: [{ type: 'text' as const, text: cnText }],
+    }
+
+    render(
+      <AssistantMessage
+        message={msg}
+        isLast={true}
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    )
+    expect(screen.queryByText('來源：')).not.toBeInTheDocument()
+    expect(screen.getByTestId('sources-block')).toBeInTheDocument()
   })
 })

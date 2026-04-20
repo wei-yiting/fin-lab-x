@@ -18,6 +18,7 @@ type MessageListProps = {
   toolProgress: Record<string, string>
   abortedTools: Set<string>
   onRegenerate: (id: string) => void
+  onRetry?: () => void
   emptyContent?: ReactNode
   errorContent?: ReactNode
 }
@@ -28,7 +29,7 @@ export type MessageListHandle = {
 
 export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
   function MessageList(
-    { messages, status, toolProgress, abortedTools, onRegenerate, emptyContent, errorContent },
+    { messages, status, toolProgress, abortedTools, onRegenerate, onRetry, emptyContent, errorContent },
     ref,
   ) {
     const viewportRef = useRef<HTMLDivElement>(null)
@@ -76,15 +77,17 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(
                 )
               }
               if (msg.role === "assistant") {
+                const isLast = i === messages.length - 1
                 return (
                   <AssistantMessage
                     key={msg.id}
                     message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
-                    isLast={i === messages.length - 1}
+                    isLast={isLast}
                     status={status}
                     abortedTools={abortedTools}
                     toolProgress={toolProgress}
                     onRegenerate={onRegenerate}
+                    onRetry={isLast ? onRetry : undefined}
                   />
                 )
               }

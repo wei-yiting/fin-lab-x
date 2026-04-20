@@ -13,6 +13,9 @@ export type ToolUIState =
   | "output-error"
   | "aborted"
 
+export const isRunningToolState = (state: string): boolean =>
+  state === "input-streaming" || state === "input-available"
+
 export type SourceRef = {
   label: string
   url: string

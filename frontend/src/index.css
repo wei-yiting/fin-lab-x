@@ -143,3 +143,43 @@
     font-size: 110%;
   }
 }
+
+@keyframes shimmer-text {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.streaming-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--chat-fg-secondary) 0%,
+    var(--foreground) 50%,
+    var(--chat-fg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shimmer-text 2s linear infinite;
+  transition: color 200ms ease-out;
+}
+
+/* Preserve child-element colors (links / inline code / bold / em) */
+.streaming-shimmer :where(a, code, strong, em, kbd) {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: initial;
+  color: inherit;
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streaming-shimmer {
+    animation: none;
+    color: var(--foreground);
+    -webkit-text-fill-color: initial;
+    background: none;
+  }
+}

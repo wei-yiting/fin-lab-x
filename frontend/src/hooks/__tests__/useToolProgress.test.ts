@@ -41,6 +41,16 @@ test('rapid 3 progress updates within same tick produce final = 3rd', () => {
   expect(result.current.toolProgress['tc-1']).toBe('step 3')
 })
 
+test('ignores non-"data-tool-progress" data parts (type discriminator guard)', () => {
+  const { result } = renderHook(() => useToolProgress())
+
+  act(() => {
+    result.current.handleData({ type: 'data-notification', id: 'x', data: { message: 'hi' } })
+  })
+
+  expect(result.current.toolProgress).toEqual({})
+})
+
 test('clearProgress empties the toolProgress record', () => {
   const { result } = renderHook(() => useToolProgress())
 

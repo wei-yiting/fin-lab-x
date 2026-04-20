@@ -12,6 +12,7 @@ import { classifyError } from "@/lib/error-classifier"
 import { toFriendlyError } from "@/lib/error-messages"
 import { statusAwareFetch } from "@/lib/status-aware-fetch"
 import { ChatHttpError } from "@/lib/chat-http-error"
+import { isRunningToolState } from "@/models"
 import type { ChatStatus, ToolCallId } from "@/models"
 
 type PartLike = Record<string, unknown>
@@ -67,7 +68,7 @@ export function ChatPanel() {
     if (lastMsg && lastMsg.role === "assistant") {
       for (const p of lastMsg.parts) {
         const part = p as PartLike
-        if (isToolPart(part) && part.state === "input-available") {
+        if (isToolPart(part) && isRunningToolState(part.state as string)) {
           runningIds.push(getToolCallId(part))
         }
       }
@@ -104,7 +105,7 @@ export function ChatPanel() {
     const parts = lastMsg.parts as PartLike[]
     if (!parts.some((p) => p.type === "error")) return
     const ids = parts
-      .filter((p) => isToolPart(p) && p.state === "input-available")
+      .filter((p) => isToolPart(p) && isRunningToolState((p as PartLike).state as string))
       .map((p) => getToolCallId(p))
     if (ids.length) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate: mid-stream error detection must update aborted set
@@ -137,6 +138,7 @@ export function ChatPanel() {
         toolProgress={toolProgress}
         abortedTools={abortedTools}
         onRegenerate={handleRegenerate}
+        onRetry={handleRetry}
         emptyContent={
           !showPreStreamError ? (
             <EmptyState onPickPrompt={(text) => { composerRef.current?.setValue(text); composerRef.current?.focus() }} />

@@ -4,8 +4,9 @@ import { ToolCard } from "@/components/organisms/ToolCard"
 import { ErrorBlock } from "@/components/organisms/ErrorBlock"
 import { Sources } from "@/components/molecules/Sources"
 import { RegenerateButton } from "@/components/atoms/RegenerateButton"
-import { extractSources } from "@/lib/markdown-sources"
+import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources"
 import { toFriendlyError } from "@/lib/error-messages"
+import { isRunningToolState } from "@/models"
 import type { ChatStatus } from "@/models"
 
 type MessagePart = Record<string, unknown>
@@ -23,6 +24,7 @@ type AssistantMessageProps = {
   abortedTools: Set<string>
   toolProgress: Record<string, string>
   onRegenerate?: (messageId: string) => void
+  onRetry?: () => void
 }
 
 export function AssistantMessage({
@@ -32,6 +34,7 @@ export function AssistantMessage({
   abortedTools,
   toolProgress,
   onRegenerate,
+  onRetry,
 }: AssistantMessageProps) {
   const parts = message.parts
 
@@ -44,29 +47,34 @@ export function AssistantMessage({
 
   const extractedSources = useMemo(
     () => (isStreaming ? [] : extractSources(concatenatedText)),
-    [isStreaming, concatenatedText],
+    [concatenatedText, isStreaming],
   )
 
   const displayText = useMemo(() => {
-    if (extractedSources.length === 0) return concatenatedText
-    let cleaned = concatenatedText
-      .replace(/^\*{0,2}References\*{0,2}\s*$/gm, "")
+    // Normalize bullet-prefixed ref defs and strip source headers,
+    // then strip definition lines — always, even during streaming, to prevent flickering
+    let cleaned = normalizeRefDefs(concatenatedText)
       .replace(/^\[(\d+)\]:?\s+\S+.*$/gm, "")
       .replace(/\n{3,}/g, "\n\n")
       .trimEnd()
-    cleaned = cleaned.replace(/【(\d+)】/g, "[$1]")
-    const syntheticDefs = extractedSources
-      .map((s) => `[${s.label}]: #src-${s.label}`)
-      .join("\n")
-    return `${cleaned}\n\n${syntheticDefs}`
-  }, [concatenatedText, extractedSources])
+
+    if (!isStreaming && extractedSources.length > 0) {
+      cleaned = cleaned.replace(/【(\d+)】/g, "[$1]")
+      const syntheticDefs = extractedSources
+        .map((s) => `[${s.label}]: #src-${s.label}`)
+        .join("\n")
+      return `${cleaned}\n\n${syntheticDefs}`
+    }
+
+    return cleaned
+  }, [concatenatedText, extractedSources, isStreaming])
 
   return (
     <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
         if (part.type === "tool" || (typeof part.type === "string" && part.type.startsWith("tool-")) || part.type === "dynamic-tool") {
           const toolCallId = part.toolCallId as string
-          const isAborted = abortedTools.has(toolCallId) && part.state === "input-available"
+          const isAborted = abortedTools.has(toolCallId) && isRunningToolState(part.state as string)
           return (
             <ToolCard
               key={toolCallId ?? i}
@@ -87,7 +95,7 @@ export function AssistantMessage({
             <ErrorBlock
               key={`error-${i}`}
               friendly={friendly}
-              onRetry={() => {}}
+              onRetry={onRetry ?? (() => {})}
               source="mid-stream"
               errorClass="mid-stream"
             />
@@ -103,7 +111,7 @@ export function AssistantMessage({
         </div>
       )}
 
-      {extractedSources.length > 0 && (
+      {!isStreaming && extractedSources.length > 0 && (
         <div className="pl-3">
           <Sources sources={extractedSources} />
         </div>

@@ -215,6 +215,111 @@ text [1] and [2].
   })
 })
 
+describe('extractSources — CommonMark formats', () => {
+  test('angle bracket URL: [1]: <URL>', () => {
+    const md = `
+text [1].
+
+[1]: <https://reuters.com/article?q=nvidia&page=1> "Reuters"
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].url).toBe('https://reuters.com/article?q=nvidia&page=1')
+    expect(result[0].title).toBe('Reuters')
+  })
+
+  test('single quote title', () => {
+    const md = `
+text [1].
+
+[1]: https://reuters.com/report 'Reuters Report'
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].title).toBe('Reuters Report')
+  })
+
+  test('parenthesis title', () => {
+    const md = `
+text [1].
+
+[1]: https://reuters.com/report (Reuters Report)
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].title).toBe('Reuters Report')
+  })
+
+  test('multi-line title on next line', () => {
+    const md = `
+text [1].
+
+[1]: https://reuters.com/report
+   "Reuters Report Title"
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].url).toBe('https://reuters.com/report')
+    expect(result[0].title).toBe('Reuters Report Title')
+  })
+})
+
+describe('extractSources — bullet-prefixed definitions', () => {
+  test('strips bullet prefix from ref defs', () => {
+    const md = `
+NVDA news [1] and [2].
+
+- [1]: https://reuters.com/nvda "Reuters NVDA"
+- [2]: https://cnbc.com/nvda "CNBC NVDA"
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].url).toBe('https://reuters.com/nvda')
+    expect(result[0].title).toBe('Reuters NVDA')
+    expect(result[1].url).toBe('https://cnbc.com/nvda')
+  })
+
+  test('handles real LLM output with preamble + bulleted refs', () => {
+    const md = `
+The stock has been volatile recently.
+
+For more detailed information, you can refer to the following sources:
+- [1]: https://www.reuters.com/markets/companies/NVDA.TO "NVDA.TO - Stock Price & Latest News"
+- [2]: https://www.cnbc.com/2026/02/25/stock-market-today.html "Stock market news - CNBC"
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].hostname).toBe('www.reuters.com')
+    expect(result[1].hostname).toBe('www.cnbc.com')
+  })
+
+  test('Chinese source header + bulleted refs', () => {
+    const md = `
+報告內容 [1]。
+
+來源：
+- [1]: https://reuters.com/report "Reuters"
+    `.trim()
+
+    const result = extractSources(md)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].title).toBe('Reuters')
+  })
+})
+
 test('TC-unit-md-07: orders Sources by numeric label, not by appearance order in markdown', () => {
   const md = `
 Body text [3] then [1] then [2].

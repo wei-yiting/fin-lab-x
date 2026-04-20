@@ -361,18 +361,15 @@ def test_get_section_bad_key_no_stream_event():
     assert captured_events == []
 
 
-@pytest.mark.parametrize(
-    "section_key,title_substring",
-    [
-        ("1a", "Risk Factors"),
-        ("7", "Management's Discussion"),
-        ("7a", "Quantitative and Qualitative Disclosures About Market Risk"),
-    ],
-)
-def test_get_section_stream_event_title_mapping(section_key, title_substring):
-    """Stream event must include the canonical title substring + ticker + FY."""
+@pytest.mark.parametrize("section_key", ["1a", "7", "7a"])
+def test_get_section_stream_event_title_mapping(section_key):
+    """Stream event must include the canonical title (sourced from
+    TENK_STANDARD_TITLES so the test stays in lock-step with the registry)
+    plus ticker + FY."""
     from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+    from backend.common.sec_core import TENK_STANDARD_TITLES
 
+    expected_title = TENK_STANDARD_TITLES[section_key]
     tenk = _make_tenk(
         {f"item {section_key}": _make_section(section_key, NON_STUB_TEXT)},
         period="2025-09-27",
@@ -394,7 +391,7 @@ def test_get_section_stream_event_title_mapping(section_key, title_substring):
     assert len(captured_events) == 1
     evt = captured_events[0]
     assert evt["status"] == "fetching_section"
-    assert title_substring in evt["message"]
+    assert expected_title in evt["message"]
     assert "AAPL" in evt["message"]
     assert "FY2025" in evt["message"]
     assert evt["toolName"] == "sec_filing_get_section"

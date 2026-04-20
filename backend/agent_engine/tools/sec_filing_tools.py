@@ -54,6 +54,22 @@ def _derive_item_from_name(name: str) -> str | None:
     return None
 
 
+def _iter_resolved_sections(tenk: Any):
+    """Yield `(normalized_item_key, section)` for each section in the filing
+    that resolves to a known TENK_STANDARD_TITLES key.
+
+    Single source of truth for the resolution rule shared by both
+    list_sections and get_section: prefer `Section.item` (lower-cased),
+    else fall back to `_derive_item_from_name(name)`. Sections that
+    don't resolve to a standard item are skipped silently.
+    """
+    for name, section in tenk.document.sections.items():
+        item = (section.item or "").lower() or _derive_item_from_name(name)
+        if item is None or item not in TENK_STANDARD_TITLES:
+            continue
+        yield item, section
+
+
 @tool("sec_filing_list_sections", args_schema=SecFilingListSectionsInput)
 @observe(name="sec_filing_list_sections")
 def sec_filing_list_sections(
@@ -91,13 +107,8 @@ def sec_filing_list_sections(
     period_of_report = tenk.period_of_report
 
     key_to_section: dict[str, Any] = {}
-    for name, section in tenk.document.sections.items():
-        item = section.item or _derive_item_from_name(name)
-        if item is None:
-            continue
-        normalized = item.lower()
-        if normalized in TENK_STANDARD_TITLES:
-            key_to_section.setdefault(normalized, section)
+    for normalized, section in _iter_resolved_sections(tenk):
+        key_to_section.setdefault(normalized, section)
 
     out_sections: list[dict[str, Any]] = []
     for key in TENK_STANDARD_TITLES:
@@ -139,17 +150,14 @@ class SecFilingGetSectionInput(BaseModel):
 
 
 def _locate_section(tenk: Any, normalized: str) -> Any | None:
-    """Find the Section whose item matches normalized ('1a', '7', ...).
+    """Find the Section whose resolved item key matches `normalized`.
 
-    Tries (1) Section.item.lower() == normalized, then (2) _derive_item_from_name(name)
-    for sections that didn't populate Section.item. Returns None if no match.
+    Uses `_iter_resolved_sections` so the resolution rule is identical to
+    `sec_filing_list_sections` — guarantees that any key reported by
+    list_sections can be retrieved by get_section.
     """
-    for name, section in tenk.document.sections.items():
-        item = (section.item or "").lower()
+    for item, section in _iter_resolved_sections(tenk):
         if item == normalized:
-            return section
-        derived = _derive_item_from_name(name)
-        if derived == normalized:
             return section
     return None
 
@@ -184,7 +192,8 @@ def sec_filing_get_section(
 
     tenk = fetch_filing_obj(ticker_upper, FilingType(doc_type), resolved_fy)
     period_of_report = tenk.period_of_report
-    resolved_fy = int(period_of_report[:4])
+    # fetch_filing_obj's _find_by_fiscal_year guarantees
+    # period_of_report[:4] == resolved_fy, so no re-derive needed.
 
     section = _locate_section(tenk, normalized)
     if section is None:

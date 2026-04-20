@@ -38,11 +38,10 @@ def _tool_call(tool_func, args: dict) -> dict:
     return json.loads(msg.content)
 
 
-def _make_section(item: str | None, text: str, name: str = "") -> MagicMock:
+def _make_section(item: str | None, text: str) -> MagicMock:
     s = MagicMock()
     s.item = item
     s.text.return_value = text
-    s.name = name or f"item_{item}"
     return s
 
 
@@ -78,11 +77,10 @@ def test_list_sections_canonical_order():
     from backend.agent_engine.tools.sec_filing_tools import sec_filing_list_sections
     from backend.common.sec_core import TENK_STANDARD_TITLES
 
-    # Provide sections in deliberately scrambled order: 7, 1a, 1
     scrambled = {
-        "item 7": _make_section("7", NON_STUB_TEXT, "item_7"),
-        "item 1a": _make_section("1a", NON_STUB_TEXT, "item_1a"),
-        "item 1": _make_section("1", NON_STUB_TEXT, "item_1"),
+        "item 7": _make_section("7", NON_STUB_TEXT),
+        "item 1a": _make_section("1a", NON_STUB_TEXT),
+        "item 1": _make_section("1", NON_STUB_TEXT),
     }
     tenk = _make_tenk(scrambled)
 
@@ -232,10 +230,20 @@ def test_list_sections_raises_ticker_not_found():
 
 
 def test_list_sections_observe_span_name():
-    """The @observe decorator must be applied: inner func has __wrapped__."""
+    """The @observe decorator from langfuse must wrap the tool function.
+
+    Proxy check (per plan note: full Langfuse test-harness assertion of span
+    name is deferred): verify the wrapper code object lives inside the
+    langfuse package, which only the @observe decorator produces. This
+    catches removal or replacement of @observe with a bare functools.wraps
+    (since functools.wraps copies __module__/__qualname__, those alone
+    can't tell you @observe is in play — but co_filename can).
+    """
     from backend.agent_engine.tools.sec_filing_tools import sec_filing_list_sections
 
     inner = getattr(sec_filing_list_sections, "func", sec_filing_list_sections)
-    assert hasattr(inner, "__wrapped__"), (
-        "sec_filing_list_sections inner func is missing @observe() decorator (__wrapped__)"
+    assert hasattr(inner, "__wrapped__"), "missing @observe() wrapper"
+    wrapper_file = inner.__code__.co_filename
+    assert "langfuse" in wrapper_file, (
+        f"wrapper file {wrapper_file!r} is not from langfuse — @observe decorator missing"
     )

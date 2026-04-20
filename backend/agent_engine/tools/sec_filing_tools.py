@@ -35,7 +35,16 @@ class SecFilingListSectionsInput(BaseModel):
 
 
 def _derive_item_from_name(name: str) -> str | None:
-    """Extract a normalized item number from a section name string."""
+    """Extract a normalized item number from an edgartools section name.
+
+    Distinct from `parse_item_number` (sec_core): that one normalizes
+    agent-provided keys like "Item 1a" with strict ^[0-9]{1,2}[a-c]?$
+    validation and raises on invalid input. This one searches inside
+    edgartools' internal naming convention (e.g. "part_i_item_1a",
+    "part_ii_item_7a") where the item number is a substring, not the
+    whole string. Returns None on no match — non-item sections (TOC,
+    signatures, etc.) are silently skipped.
+    """
     lowered = name.strip().lower()
     m = re.search(r"item[_ ]+([0-9]{1,2}[a-c]?)\b", lowered)
     if m:
@@ -107,6 +116,6 @@ def sec_filing_list_sections(
         "fiscal_year": resolved_fy,
         "period_of_report": period_of_report,
         "filing_date": str(tenk.filing_date) if tenk.filing_date else None,
-        "company_name": getattr(tenk.company, "name", None) or str(tenk.company),
+        "company_name": tenk.company.name,
         "sections": out_sections,
     }

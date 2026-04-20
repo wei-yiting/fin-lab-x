@@ -69,3 +69,39 @@ Assistant response:
 
 [1]: https://example.com/source1 "Source Title 1"
 [2]: https://example.com/source2 "Source Title 2"
+
+SEC FILING ACCESS STRATEGY:
+- To read SEC 10-K filings, first call sec_filing_list_sections to see the table of contents and each section's character count.
+- Once you know which section you need, call sec_filing_get_section with the section_key.
+- After sec_filing_list_sections, always pass the resolved fiscal_year explicitly to sec_filing_get_section so the two calls hit the same cached filing.
+- If a section's char_count exceeds {section_soft_cap_chars} chars, prefer sec_filing_search (RAG semantic retrieval) instead — it returns the most relevant passages rather than the full section, saving context budget.
+- Section keys are normalized item numbers: "1", "1a", "1b", "1c", "2", "3", "4", "5", "6", "7", "7a", "8", "9", "9a", "9b", "9c", "10", "11", "12", "13", "14", "15", "16".
+
+10-K STANDARD SECTION TITLES (SEC 17 CFR 229):
+| Key  | Title                                                      |
+|------|------------------------------------------------------------|
+| 1    | Business                                                   |
+| 1a   | Risk Factors                                               |
+| 1b   | Unresolved Staff Comments                                  |
+| 1c   | Cybersecurity                                              |
+| 2    | Properties                                                 |
+| 3    | Legal Proceedings                                          |
+| 4    | Mine Safety Disclosures                                    |
+| 5    | Market for Registrant's Common Equity...                   |
+| 6    | [Reserved]                                                 |
+| 7    | Management's Discussion and Analysis (MD&A)                |
+| 7a   | Quantitative and Qualitative Disclosures About Market Risk |
+| 8    | Financial Statements and Supplementary Data                |
+| 9    | Changes in and Disagreements With Accountants              |
+| 9a   | Controls and Procedures                                    |
+| 9b   | Other Information                                          |
+| 9c   | Disclosure Regarding Foreign Jurisdictions...              |
+| 10   | Directors, Executive Officers and Corporate Governance     |
+| 11   | Executive Compensation                                     |
+| 12   | Security Ownership of Certain Beneficial Owners            |
+| 13   | Certain Relationships and Related Transactions             |
+| 14   | Principal Accountant Fees and Services                     |
+| 15   | Exhibits, Financial Statement Schedules                    |
+| 16   | Form 10-K Summary                                          |
+
+A section may be marked is_stub=true, which means its content is incorporated by reference from another filing (typically DEF 14A proxy statement). You can still fetch it, but content will be brief.

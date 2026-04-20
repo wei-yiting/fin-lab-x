@@ -1,10 +1,14 @@
 """Tests for Orchestrator prompt rendering + EDGAR_IDENTITY fast-fail."""
 
+from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import pytest
+import yaml
 
 from backend.agent_engine.agents.base import Orchestrator
+from backend.agent_engine.agents.config_loader import VersionConfigLoader
 from backend.agent_engine.utils import model_context
 from backend.common.sec_core import ConfigurationError
 
@@ -82,3 +86,129 @@ def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
     config = SimpleNamespace(tools=["yfinance_stock_quote"])
     # Should NOT raise
     Orchestrator._validate_edgar_identity(config)
+
+
+# ---------------------------------------------------------------------------
+# Task 9: two-step SEC tool registration + v1_baseline prompt strategy
+# ---------------------------------------------------------------------------
+
+
+V1_BASELINE_PROMPT_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "agent_engine"
+    / "agents"
+    / "versions"
+    / "v1_baseline"
+    / "system_prompt.md"
+)
+
+VERSIONS_DIR = (
+    Path(__file__).resolve().parents[2] / "agent_engine" / "agents" / "versions"
+)
+
+
+_V1_BASELINE_TOOLS = [
+    "yfinance_stock_quote",
+    "yfinance_get_available_fields",
+    "tavily_financial_search",
+    "sec_filing_list_sections",
+    "sec_filing_get_section",
+]
+
+EXPECTED_TOOLS_BY_VERSION = {
+    "v1_baseline": _V1_BASELINE_TOOLS,
+    "v2_reader": _V1_BASELINE_TOOLS,
+    "v3_quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
+    "v4_graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
+    "v5_analyst": _V1_BASELINE_TOOLS
+    + ["duckdb_query", "text_to_sql", "neo4j_query", "text_to_cypher"],
+}
+
+
+def test_v1_baseline_system_prompt_contains_sec_strategy():
+    """The v1_baseline prompt must advertise the two-step SEC access strategy.
+
+    Asserts literal placeholder `{section_soft_cap_chars}` is preserved so
+    Orchestrator's PromptTemplate can render it at startup, plus the tool
+    names and the "explicit fiscal_year" directive from S-sec-10 Part B.
+    """
+    text = V1_BASELINE_PROMPT_PATH.read_text()
+    assert "{section_soft_cap_chars}" in text
+    assert "sec_filing_list_sections" in text
+    assert "sec_filing_get_section" in text
+    assert "fiscal_year" in text
+    assert "explicitly" in text.lower()
+
+
+def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
+    """Building the real v1_baseline Orchestrator must render the placeholder.
+
+    gpt-4o-mini has a 128_000-token context. Soft cap = 128_000 * 0.4 * 4 =
+    204_800 chars. The rendered prompt must contain "exceeds 204800 chars"
+    and must NOT leak the raw `{section_soft_cap_chars}` template token.
+
+    We patch init_chat_model / create_agent so the test does not require an
+    OpenAI API key — the assertion target is the rendered prompt string,
+    not actual model wiring.
+    """
+    monkeypatch.setenv("EDGAR_IDENTITY", "test@example.com")
+    config = VersionConfigLoader("v1_baseline").load()
+
+    with (
+        patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
+        patch("backend.agent_engine.agents.base.create_agent") as mock_create,
+        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch(
+            "backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()
+        ),
+    ):
+        mock_init.return_value = MagicMock()
+        mock_create.return_value = MagicMock()
+        orch = Orchestrator(config)
+
+    assert "exceeds 204800 chars" in orch.system_prompt
+    assert "{section_soft_cap_chars}" not in orch.system_prompt
+
+
+def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):
+    """setup_tools() wires the new two-step tools and unregisters the old one.
+
+    Resets the module-level idempotency flag and clears the registry so a
+    fresh setup_tools() reflects the current source of truth. monkeypatch
+    restores the flag at teardown to keep the rest of the suite isolated.
+    """
+    from backend.agent_engine import tools as tools_module
+    from backend.agent_engine.tools.registry import (
+        clear_registry,
+        get_tool,
+        get_tools_by_names,
+    )
+
+    monkeypatch.setattr(tools_module, "_tools_registered", False)
+    clear_registry()
+
+    tools_module.setup_tools()
+
+    resolved = get_tools_by_names(
+        ["sec_filing_list_sections", "sec_filing_get_section"]
+    )
+    assert len(resolved) == 2
+    assert all(t is not None for t in resolved)
+
+    assert get_tool("sec_official_docs_retriever") is None
+
+
+@pytest.mark.parametrize("version", sorted(EXPECTED_TOOLS_BY_VERSION.keys()))
+def test_all_versions_use_new_tool_names(version):
+    """Every version config must replace sec_official_docs_retriever with the
+    two-step pair and preserve all other tools in their original order.
+    """
+    yaml_path = VERSIONS_DIR / version / "orchestrator_config.yaml"
+    with yaml_path.open() as f:
+        config_dict = yaml.safe_load(f)
+
+    tools = config_dict.get("tools", [])
+    assert "sec_official_docs_retriever" not in tools
+    assert "sec_filing_list_sections" in tools
+    assert "sec_filing_get_section" in tools
+    assert tools == EXPECTED_TOOLS_BY_VERSION[version]

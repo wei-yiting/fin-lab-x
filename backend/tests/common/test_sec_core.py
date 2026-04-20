@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from backend.common.sec_core import (
@@ -10,8 +12,11 @@ from backend.common.sec_core import (
     TickerNotFoundError,
     TransientError,
     UnsupportedFilingTypeError,
+    is_stub_section,
     parse_item_number,
 )
+
+_FIXTURES = Path(__file__).parent / "fixtures" / "stub_samples"
 
 
 def test_filing_type_enum():
@@ -94,3 +99,34 @@ def test_parse_item_number_error_message():
     with pytest.raises(SectionNotFoundError) as exc_info:
         parse_item_number("99z")
     assert "sec_filing_list_sections" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "fixture_name,expected_is_stub,expected_reason_substring",
+    [
+        ("aapl_item_11.txt", True, "incorporated"),
+        ("aapl_item_1a.txt", False, None),
+        ("item_1b_none.txt", False, None),
+        ("item_6_reserved.txt", True, "reserved"),
+        ("rare_part_stub.txt", True, "incorporated"),
+    ],
+)
+def test_is_stub_section_boundary_samples(
+    fixture_name, expected_is_stub, expected_reason_substring
+):
+    text = (_FIXTURES / fixture_name).read_text()
+    is_stub, reason = is_stub_section(text)
+    assert is_stub is expected_is_stub
+    if expected_is_stub:
+        assert expected_reason_substring in reason
+        if fixture_name == "item_6_reserved.txt":
+            # Classification specificity: a reserved section must not be
+            # mislabeled as an incorporated-by-reference stub.
+            assert "incorporated by reference" not in reason
+    else:
+        assert reason is None
+
+
+@pytest.mark.parametrize("empty", ["", "   ", "\n\n\t"])
+def test_is_stub_section_empty_input(empty):
+    assert is_stub_section(empty) == (False, None)

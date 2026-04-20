@@ -70,3 +70,48 @@ def parse_item_number(section_key: str) -> str:
             "Call sec_filing_list_sections first to see available section keys."
         )
     return candidate
+
+
+_STUB_INCORP_RE = re.compile(
+    r"incorporated\s+(?:\w+\s+)?(?:in|into|to|by)\s+(?:\w+\s+)?reference",
+    re.IGNORECASE,
+)
+_STUB_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=\S)")
+_STUB_MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\([^)]*\)")
+_STUB_REMAINING_THRESHOLD = 100
+_RESERVED_RE = re.compile(r"\[\s*reserved\s*\]|^\s*reserved\s*$", re.IGNORECASE)
+
+
+def is_stub_section(text: str) -> tuple[bool, str | None]:
+    """Classify an SEC 10-K item body as stub vs real.
+
+    Stub types we care about:
+    - Incorporated-by-reference stubs (body is essentially a pointer to the
+      proxy statement or another filing). Reason: "incorporated by reference
+      from proxy statement".
+    - Reserved/deprecated items (Item 6 since 2021; one-line sentinels).
+      Reason: "section marked as reserved/deprecated".
+
+    Non-stub returns ``(False, None)``. Empty / whitespace-only input is
+    treated as non-stub to keep upstream code defensively simple.
+    """
+    if not text or not text.strip():
+        return (False, None)
+
+    # Reserved/deprecated check wins classification — must precede incorp
+    # check so "Item 6. [Reserved]" doesn't get classified as "incorporated".
+    compact = re.sub(r"\s+", " ", text).strip()
+    if len(compact) < 80 and _RESERVED_RE.search(compact):
+        return (True, "section marked as reserved/deprecated")
+
+    if not _STUB_INCORP_RE.search(text):
+        return (False, None)
+
+    sentences = _STUB_SENTENCE_SPLIT_RE.split(text)
+    kept = [s for s in sentences if not _STUB_INCORP_RE.search(s)]
+    remaining = " ".join(kept)
+    remaining = _STUB_MARKDOWN_LINK_RE.sub("", remaining)
+    cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
+    if len(cleaned) < _STUB_REMAINING_THRESHOLD:
+        return (True, "incorporated by reference from proxy statement")
+    return (False, None)

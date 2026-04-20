@@ -1,8 +1,4 @@
 from enum import StrEnum
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from edgar.company_reports.ten_k import TenK  # noqa: F401  (typing-only)
 
 
 class FilingType(StrEnum):

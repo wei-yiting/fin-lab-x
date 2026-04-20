@@ -142,7 +142,7 @@ export function ChatPanel() {
   const dataTestProps = import.meta.env.DEV ? { "data-chat-id": chatId } : {}
 
   return (
-    <div data-testid="chat-panel" {...dataTestProps} className="flex h-screen flex-col bg-background">
+    <div data-testid="chat-panel" {...dataTestProps} className="relative flex h-screen flex-col bg-background">
       <ChatHeader onClear={handleClearSession} messagesEmpty={messages.length === 0} />
       <MessageList
         ref={messageListRef}

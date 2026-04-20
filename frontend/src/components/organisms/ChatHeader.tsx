@@ -5,7 +5,10 @@ export function ChatHeader({ onClear, messagesEmpty }: {
   messagesEmpty: boolean
 }) {
   return (
-    <header data-testid="chat-header" className="flex items-center justify-between border-b border-border px-4 py-3">
+    <header
+      data-testid="chat-header"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-3 [&_*]:pointer-events-auto"
+    >
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-semibold text-foreground">FinLab-X</h1>
         <Badge variant="outline" className="text-[10px] uppercase">v1</Badge>

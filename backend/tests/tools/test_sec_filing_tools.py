@@ -120,6 +120,29 @@ def test_list_sections_output_schema():
     assert result["doc_type"] == "10-K"
 
 
+def test_list_sections_handles_str_company_field():
+    """Regression: real edgartools returns `tenk.company` as a plain str,
+    not an object with `.name`. Our code must handle both shapes without
+    AttributeError (caught only by integration tests in the original bug)."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_list_sections
+
+    tenk = MagicMock()
+    tenk.document.sections = {"item 1": _make_section("1", NON_STUB_TEXT)}
+    tenk.period_of_report = "2025-09-27"
+    tenk.filing_date = "2025-11-01"
+    # Simulate real edgartools shape: `.company` is a bare string.
+    tenk.company = "Apple Inc."
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+    ):
+        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+
+    assert result["company_name"] == "Apple Inc."
+
+
 def test_list_sections_stub_flag_optional_on_wire():
     """Non-stub entries must have exactly {key, char_count}; stub entries must
     have exactly {key, char_count, is_stub, stub_reason}."""

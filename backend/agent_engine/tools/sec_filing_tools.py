@@ -129,7 +129,9 @@ def sec_filing_list_sections(
         "fiscal_year": resolved_fy,
         "period_of_report": period_of_report,
         "filing_date": str(tenk.filing_date) if tenk.filing_date else None,
-        "company_name": tenk.company.name,
+        # edgartools returns `tenk.company` as a plain str in production,
+        # but our mocks set `.name` on a MagicMock — handle both shapes.
+        "company_name": getattr(tenk.company, "name", None) or str(tenk.company),
         "sections": out_sections,
     }
 

@@ -10,6 +10,7 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
+import os
 import time
 import uuid
 from collections.abc import AsyncGenerator
@@ -19,6 +20,7 @@ from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
+from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
@@ -35,11 +37,20 @@ from backend.agent_engine.streaming.event_mapper import StreamEventMapper
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
+from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
+from backend.common.sec_core import ConfigurationError
 
 
 # Captured once per Python process. Lets engineers distinguish pre/post-restart
 # traces sharing the same session_id (DD-06 silent post-restart amnesia).
 _PROCESS_START_TS = time.time()
+
+
+_SEC_TOOLS_REQUIRING_IDENTITY = {
+    "sec_filing_list_sections",
+    "sec_filing_get_section",
+    "sec_filing_downloader",
+}
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -120,9 +131,11 @@ class Orchestrator:
 
     def __init__(self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None):
         setup_tools()
+        self._validate_edgar_identity(config)
         self.config = config
         self.tools = get_tools_by_names(config.tools)
-        self.system_prompt = config.system_prompt or _DEFAULT_SYSTEM_PROMPT
+        raw_prompt = config.system_prompt or _DEFAULT_SYSTEM_PROMPT
+        self.system_prompt = self._render_prompt(raw_prompt, config.model.name)
 
         model = init_chat_model(config.model.name, temperature=config.model.temperature)
         tool_call_limit = ToolCallLimitMiddleware(
@@ -135,6 +148,44 @@ class Orchestrator:
             middleware=[tool_call_limit, handle_tool_errors],
             checkpointer=checkpointer,
         )
+
+    @staticmethod
+    def _render_prompt(raw: str, model_name: str) -> str:
+        """Render a system prompt template with orchestrator-provided variables.
+
+        Currently only ``{section_soft_cap_chars}`` is injected, computed from
+        the active model's context window. Prompts with no placeholders are
+        returned verbatim. Prompts referencing unknown variables raise
+        ``ValueError`` so misconfiguration fails fast at startup.
+        """
+        template = PromptTemplate.from_template(raw)
+        if not template.input_variables:
+            return raw
+        provided = {
+            "section_soft_cap_chars": compute_section_soft_cap_chars(model_name),
+        }
+        missing = set(template.input_variables) - set(provided.keys())
+        if missing:
+            raise ValueError(
+                f"Prompt references undefined variables: {sorted(missing)}"
+            )
+        return template.format(
+            **{k: provided[k] for k in template.input_variables}
+        )
+
+    @staticmethod
+    def _validate_edgar_identity(config: VersionConfig) -> None:
+        """Fast-fail at startup if the version config loads a SEC tool without
+        ``EDGAR_IDENTITY`` set. Versions without SEC tools skip the check so
+        non-SEC deployments stay unaffected.
+        """
+        needs_sec = any(
+            t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools
+        )
+        if needs_sec and not os.getenv("EDGAR_IDENTITY"):
+            raise ConfigurationError(
+                "EDGAR_IDENTITY environment variable is not set."
+            )
 
     def run(
         self,

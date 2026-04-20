@@ -16,9 +16,11 @@ from pydantic import BaseModel, Field
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
     FilingType,
+    SectionNotFoundError,
     _resolve_latest_fiscal_year,
     fetch_filing_obj,
     is_stub_section,
+    parse_item_number,
 )
 
 
@@ -119,3 +121,107 @@ def sec_filing_list_sections(
         "company_name": tenk.company.name,
         "sections": out_sections,
     }
+
+
+class SecFilingGetSectionInput(BaseModel):
+    """Input schema for sec_filing_get_section tool."""
+
+    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
+    doc_type: Literal["10-K"] = Field(
+        default="10-K", description="SEC filing type; only 10-K supported"
+    )
+    section_key: str = Field(
+        ..., description="Normalized item number such as '1', '1a', '7', '7a'"
+    )
+    fiscal_year: int | None = Field(
+        default=None, description="Fiscal year (omit for latest filing)"
+    )
+
+
+def _locate_section(tenk: Any, normalized: str) -> Any | None:
+    """Find the Section whose item matches normalized ('1a', '7', ...).
+
+    Tries (1) Section.item.lower() == normalized, then (2) _derive_item_from_name(name)
+    for sections that didn't populate Section.item. Returns None if no match.
+    """
+    for name, section in tenk.document.sections.items():
+        item = (section.item or "").lower()
+        if item == normalized:
+            return section
+        derived = _derive_item_from_name(name)
+        if derived == normalized:
+            return section
+    return None
+
+
+@tool("sec_filing_get_section", args_schema=SecFilingGetSectionInput)
+@observe(name="sec_filing_get_section")
+def sec_filing_get_section(
+    ticker: str,
+    section_key: str,
+    doc_type: str = "10-K",
+    fiscal_year: int | None = None,
+    tool_call_id: Annotated[str, InjectedToolCallId] = "",
+) -> dict[str, Any]:
+    """Return the full plaintext of a single 10-K section.
+
+    Resolves section_key (e.g. "1a", "Item 7") against the SEC standard item
+    map, fetches the filing, locates the matching section, and returns the
+    section text plus the filing's period_of_report. Stub sections include
+    is_stub and stub_reason; non-stub responses omit those keys entirely.
+    The input arguments (ticker / doc_type / fiscal_year / section_key) are
+    intentionally NOT echoed back — the agent already has them.
+    """
+    normalized = parse_item_number(section_key)
+    title = TENK_STANDARD_TITLES[normalized]
+
+    ticker_upper = ticker.strip().upper()
+
+    if fiscal_year is None:
+        resolved_fy = _resolve_latest_fiscal_year(ticker_upper)
+    else:
+        resolved_fy = fiscal_year
+
+    tenk = fetch_filing_obj(ticker_upper, FilingType(doc_type), resolved_fy)
+    period_of_report = tenk.period_of_report
+    resolved_fy = int(period_of_report[:4])
+
+    section = _locate_section(tenk, normalized)
+    if section is None:
+        if normalized == "1c" and resolved_fy < 2023:
+            raise SectionNotFoundError(
+                f"Section '1c' (Cybersecurity) was added by SEC in 2023 and is not "
+                f"present in FY{resolved_fy}."
+            )
+        raise SectionNotFoundError(
+            f"Section {section_key!r} not found in {ticker_upper} 10-K FY{resolved_fy}. "
+            "Call sec_filing_list_sections first to see available section keys."
+        )
+
+    try:
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
+
+    if writer:
+        writer({
+            "status": "fetching_section",
+            "message": (
+                f"Fetching Item {normalized.upper()}. {title} for "
+                f"{ticker_upper} FY{resolved_fy}..."
+            ),
+            "toolName": "sec_filing_get_section",
+            "toolCallId": tool_call_id,
+        })
+
+    content = section.text()
+    is_stub, stub_reason = is_stub_section(content)
+
+    out: dict[str, Any] = {
+        "period_of_report": period_of_report,
+        "content": content,
+    }
+    if is_stub:
+        out["is_stub"] = True
+        out["stub_reason"] = stub_reason
+    return out

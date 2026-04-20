@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.common.sec_core import (
+    SectionNotFoundError,
     TickerNotFoundError,
     _fetch_filing_obj_cached,
     _resolve_latest_fiscal_year_cached,
@@ -247,3 +248,250 @@ def test_list_sections_observe_span_name():
     assert "langfuse" in wrapper_file, (
         f"wrapper file {wrapper_file!r} is not from langfuse — @observe decorator missing"
     )
+
+
+# ---------------------------------------------------------------------------
+# Tests for sec_filing_get_section (Task 7)
+# ---------------------------------------------------------------------------
+
+def test_get_section_wire_format_non_stub():
+    """Non-stub get_section output must be exactly {period_of_report, content}."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    tenk = _make_tenk(
+        {"item 1a": _make_section("1a", NON_STUB_TEXT)},
+        period="2025-09-27",
+    )
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+    ):
+        result = _tool_call(
+            sec_filing_get_section,
+            {"ticker": "AAPL", "section_key": "1a", "fiscal_year": 2025},
+        )
+
+    assert set(result.keys()) == {"period_of_report", "content"}
+    assert result["period_of_report"] == "2025-09-27"
+    assert result["content"] == NON_STUB_TEXT
+
+
+def test_get_section_wire_format_stub():
+    """Stub get_section output must be exactly {period_of_report, content, is_stub, stub_reason}."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    tenk = _make_tenk(
+        {"item 11": _make_section("11", STUB_TEXT)},
+        period="2025-09-27",
+    )
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+    ):
+        result = _tool_call(
+            sec_filing_get_section,
+            {"ticker": "AAPL", "section_key": "11", "fiscal_year": 2025},
+        )
+
+    assert set(result.keys()) == {"period_of_report", "content", "is_stub", "stub_reason"}
+    assert result["is_stub"] is True
+    assert result["stub_reason"]
+    assert result["content"] == STUB_TEXT
+
+
+def test_get_section_char_count_matches_list():
+    """char_count from list_sections for a key must equal len(content) from get_section."""
+    from backend.agent_engine.tools.sec_filing_tools import (
+        sec_filing_get_section,
+        sec_filing_list_sections,
+    )
+
+    tenk = _make_tenk(
+        {
+            "item 1": _make_section("1", NON_STUB_TEXT),
+            "item 1a": _make_section("1a", NON_STUB_TEXT + "extra-tail"),
+        },
+        period="2025-09-27",
+    )
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+    ):
+        list_result = _tool_call(
+            sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
+        )
+        get_result = _tool_call(
+            sec_filing_get_section,
+            {"ticker": "AAPL", "section_key": "1a", "fiscal_year": 2025},
+        )
+
+    char_count_1a = next(s for s in list_result["sections"] if s["key"] == "1a")["char_count"]
+    assert char_count_1a == len(get_result["content"])
+
+
+def test_get_section_bad_key_no_stream_event():
+    """Invalid section_key must raise SectionNotFoundError BEFORE fetch and BEFORE event."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    captured_events: list[dict] = []
+    mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj") as mock_fetch,
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+    ):
+        with pytest.raises(SectionNotFoundError):
+            inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
+            inner(
+                ticker="AAPL",
+                section_key="99z",
+                fiscal_year=2025,
+                tool_call_id="test-call-id",
+            )
+
+    assert mock_writer.call_count == 0
+    assert mock_fetch.call_count == 0
+    assert captured_events == []
+
+
+@pytest.mark.parametrize(
+    "section_key,title_substring",
+    [
+        ("1a", "Risk Factors"),
+        ("7", "Management's Discussion"),
+        ("7a", "Quantitative and Qualitative Disclosures About Market Risk"),
+    ],
+)
+def test_get_section_stream_event_title_mapping(section_key, title_substring):
+    """Stream event must include the canonical title substring + ticker + FY."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    tenk = _make_tenk(
+        {f"item {section_key}": _make_section(section_key, NON_STUB_TEXT)},
+        period="2025-09-27",
+    )
+
+    captured_events: list[dict] = []
+    mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+    ):
+        _tool_call(
+            sec_filing_get_section,
+            {"ticker": "AAPL", "section_key": section_key, "fiscal_year": 2025},
+        )
+
+    assert len(captured_events) == 1
+    evt = captured_events[0]
+    assert evt["status"] == "fetching_section"
+    assert title_substring in evt["message"]
+    assert "AAPL" in evt["message"]
+    assert "FY2025" in evt["message"]
+    assert evt["toolName"] == "sec_filing_get_section"
+    assert evt["toolCallId"]
+
+
+def test_get_section_raises_section_not_found_with_hint():
+    """When the requested item isn't in the TenK, raise SectionNotFoundError
+    with a message that includes 'not found' and a pointer to list_sections."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    # Tenk only has Item 1 — request "5" will miss.
+    tenk = _make_tenk(
+        {"item 1": _make_section("1", NON_STUB_TEXT)},
+        period="2025-09-27",
+    )
+
+    captured_events: list[dict] = []
+    mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+    ):
+        with pytest.raises(SectionNotFoundError) as exc_info:
+            inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
+            inner(
+                ticker="AAPL",
+                section_key="5",
+                fiscal_year=2025,
+                tool_call_id="test-call-id",
+            )
+
+    msg = str(exc_info.value)
+    assert "not found" in msg
+    assert "sec_filing_list_sections" in msg
+    # No stream event since section not located
+    assert captured_events == []
+
+
+def test_get_section_1c_pre_2023_specific_message():
+    """Item 1c in pre-2023 filings must raise with a Cybersecurity-specific message,
+    NOT the generic 'not found ... call sec_filing_list_sections' hint."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    tenk = _make_tenk(
+        {"item 1": _make_section("1", NON_STUB_TEXT)},
+        period="2019-09-27",
+    )
+
+    captured_events: list[dict] = []
+    mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2019),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+    ):
+        with pytest.raises(SectionNotFoundError) as exc_info:
+            inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
+            inner(
+                ticker="AAPL",
+                section_key="1c",
+                fiscal_year=2019,
+                tool_call_id="test-call-id",
+            )
+
+    msg = str(exc_info.value)
+    assert "added by SEC in 2023" in msg
+    assert "FY2019" in msg
+    # Should NOT use the generic hint
+    assert "sec_filing_list_sections" not in msg
+    assert captured_events == []
+
+
+def test_get_section_parse_item_number_failure_no_event():
+    """Full-width digits like '１ａ' must fail parse_item_number BEFORE fetch."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    captured_events: list[dict] = []
+    mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj") as mock_fetch,
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+    ):
+        with pytest.raises(SectionNotFoundError):
+            inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
+            inner(
+                ticker="AAPL",
+                section_key="１ａ",
+                fiscal_year=2025,
+                tool_call_id="test-call-id",
+            )
+
+    assert mock_fetch.call_count == 0
+    assert mock_writer.call_count == 0
+    assert captured_events == []

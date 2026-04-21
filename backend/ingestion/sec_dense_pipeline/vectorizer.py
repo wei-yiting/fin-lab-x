@@ -10,7 +10,7 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from qdrant_client import AsyncQdrantClient, models
 
 from backend.ingestion.sec_dense_pipeline.collection_schema import (
-    _async_ensure_collection,
+    async_ensure_collection_and_indexes,
 )
 from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
@@ -94,7 +94,9 @@ async def ingest_filing(
 
     client = AsyncQdrantClient(url=qdrant_url)
     try:
-        await _async_ensure_collection(client, collection, vector_size=_EMBED_DIM)
+        await async_ensure_collection_and_indexes(
+            client, collection, vector_size=_EMBED_DIM
+        )
 
         sentinel_point_id = sentinel_id(ticker, year)
         sentinel_vector = [0.0] * _EMBED_DIM

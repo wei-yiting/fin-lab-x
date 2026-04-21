@@ -3,6 +3,8 @@ status: draft
 csv: dataset.csv
 task:
   function: backend.evals.eval_tasks.run_sec_retrieval
+pre_run:
+  function: backend.evals.eval_tasks.pre_run_sec_retrieval
 column_mapping:
   question: input.question
   expected_header_paths: expected.header_paths

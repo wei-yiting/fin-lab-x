@@ -71,13 +71,16 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
     )
 
 
-async def run_sec_retrieval(input: Any) -> dict:
-    """Retrieval-only eval task — calls search() directly, no agent, no filters."""
+def pre_run_sec_retrieval() -> dict[str, Any]:
+    """Validate Qdrant collection and return banner fields for startup output.
+
+    Runs once before the eval loop — surfaces collection + content-point count
+    in the startup banner so the reviewer never has to guess which Qdrant
+    collection an experiment was scored against.
+    """
     import os
 
     from qdrant_client import QdrantClient, models
-
-    from backend.ingestion.sec_dense_pipeline.retriever import search
 
     collection = os.environ.get(
         "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
@@ -108,6 +111,13 @@ async def run_sec_retrieval(input: Any) -> dict:
             f"Collection '{collection}' has 0 content points. "
             "Run the ingest pipeline before eval."
         )
+
+    return {"Collection": collection, "Points": content_count}
+
+
+async def run_sec_retrieval(input: Any) -> dict:
+    """Retrieval-only eval task — calls search() directly, no agent, no filters."""
+    from backend.ingestion.sec_dense_pipeline.retriever import search
 
     question = input["question"]
     chunks = await search(query=question, top_k=10)

@@ -60,7 +60,10 @@ def _is_already_exists_error(exc: BaseException) -> bool:
     return "already exists" in text or "already has" in text
 
 
-def _ensure_collection(client, collection: str, vector_size: int) -> None:
+def ensure_collection_and_indexes(client, collection: str, vector_size: int) -> None:
+    """Create the Qdrant collection if missing and ensure all payload indexes
+    (ticker as tenant, year, item) are present. Race-safe against concurrent
+    workers creating the same collection or index."""
     if client.collection_exists(collection):
         _ensure_indexes(client, collection)
         return
@@ -86,7 +89,10 @@ def _ensure_collection(client, collection: str, vector_size: int) -> None:
     _create_all_indexes(client, collection)
 
 
-async def _async_ensure_collection(client, collection: str, vector_size: int) -> None:
+async def async_ensure_collection_and_indexes(
+    client, collection: str, vector_size: int
+) -> None:
+    """Async mirror of :func:`ensure_collection_and_indexes`."""
     if await client.collection_exists(collection):
         await _async_ensure_indexes(client, collection)
         return

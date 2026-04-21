@@ -359,6 +359,18 @@ def run_scenario(
         config_path = scenario_dir / "eval_spec.yaml"
         config = load_scenario_config(config_path)
 
+        banner_fields: dict[str, Any] = {}
+        if config.pre_run is not None:
+            pre_run_fn = resolve_function(config.pre_run.function, label="pre_run")
+            result = pre_run_fn()
+            if result is not None:
+                banner_fields = dict(result)
+
+        banner_line = f"Eval scenario: {config.name}"
+        for key, value in banner_fields.items():
+            banner_line += f" | {key}: {value}"
+        print(banner_line, file=sys.stderr)
+
         if config.status == "draft":
             print(
                 f"\u26a0 Scenario '{config.name}' is draft "

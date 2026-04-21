@@ -68,6 +68,14 @@ class TaskConfig(BaseModel):
     timeout: float | None = None
 
 
+class PreRunConfig(BaseModel):
+    """Optional hook that runs once before evaluation, returning banner fields."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    function: str
+
+
 class ScenarioConfig(BaseModel):
     """Complete evaluation scenario configuration."""
 
@@ -77,6 +85,7 @@ class ScenarioConfig(BaseModel):
     status: str | None = None
     csv: str = "dataset.csv"
     task: TaskConfig
+    pre_run: PreRunConfig | None = None
     column_mapping: dict[str, str]
     scorers: list[ScorerConfig]
 

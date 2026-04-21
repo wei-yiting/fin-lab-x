@@ -7,7 +7,9 @@ from pydantic import BaseModel
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
 
-from backend.ingestion.sec_dense_pipeline.collection_schema import _ensure_collection
+from backend.ingestion.sec_dense_pipeline.collection_schema import (
+    ensure_collection_and_indexes,
+)
 from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
     check_sentinel_complete,
@@ -170,7 +172,7 @@ async def search(
                     f"pre-load ticker={ticker} via batch script"
                 )
 
-            _ensure_collection(client, collection, vector_size=_EMBED_DIM)
+            ensure_collection_and_indexes(client, collection, vector_size=_EMBED_DIM)
             year_filter = filters.get("year")
 
             # Resolve fiscal year before any cache lookup so the single

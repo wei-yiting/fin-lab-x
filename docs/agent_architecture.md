@@ -68,3 +68,71 @@ To maintain a clean architecture, the following dependency rules are enforced:
 3.  **Skills** can depend on `tools` and `mcp`.
 4.  **Tools** and **MCP** must be independent and stateless; they cannot depend on the orchestrator or skills.
 5.  **Circular Dependencies** are strictly prohibited.
+
+## 6. Data Pipeline Architecture
+
+The agent invokes two independent SEC data pipelines depending on the task. They share neither source format nor cache layer.
+
+```mermaid
+flowchart TD
+    Agent[Agent Orchestrator]
+
+    subgraph V2 [RAG Pipeline V2 current]
+        V2A[SEC EDGAR HTML]
+        V2B[LocalFilingStore Markdown]
+        V2C[Qdrant dense vectors]
+        V2A --> V2B --> V2C
+    end
+
+    subgraph V3 [Quant Pipeline V3 planned]
+        V3A[SEC EDGAR XBRL]
+        V3B[DuckDB tables]
+        V3A --> V3B
+    end
+
+    Agent -->|search_sec_filings| V2C
+    Agent -->|query_financial_data| V3B
+```
+
+### V2 — Current RAG Pipeline
+
+V2 retrieves unstructured text from 10-K filings. Two modules:
+
+- `backend/ingestion/sec_filing_pipeline/` — downloads HTML from EDGAR, converts to Markdown, persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)` returning a `ParsedFiling`. Granular methods (`resolve_latest_year`, `download_raw`, `parse_raw`) are also public for callers that need finer-grained control or per-step tracing.
+- `backend/ingestion/sec_dense_pipeline/` — chunks the Markdown, embeds with OpenAI `text-embedding-3-large`, stores in Qdrant. Idempotent via per-(ticker, year) sentinel points (status `pending` / `complete`).
+
+#### JIT cache-check flow
+
+When `search()` receives a ticker filter, it checks two independent caches in order (embedding sentinel → local filing store) and only falls through to EDGAR on a miss at both tiers:
+
+```mermaid
+flowchart TD
+    Q[search with ticker filter] --> Y{year supplied?}
+    Y -->|No| RL[pipeline.resolve_latest_year - EDGAR metadata only]
+    Y -->|Yes| ES
+    RL --> ES{embedding sentinel complete in Qdrant?}
+    ES -->|Yes| VS[Vector search]
+    ES -->|No| FS{filing in LocalFilingStore?}
+    FS -->|Yes| IN[ingest_filing - chunk, embed, upsert]
+    FS -->|No| DL[pipeline.download_raw then parse_raw]
+    DL --> IN
+    IN --> VS
+```
+
+1. **Year resolution.** If `year` is omitted, `pipeline.resolve_latest_year` hits EDGAR's filing index for metadata only (no HTML download). Local store is never consulted as the source of truth for "what is latest".
+2. **Embedding cache (dense vector layer).** Sentinel points in Qdrant track per-(ticker, year) ingest status. A `complete` sentinel means chunks are already embedded and upserted — skip JIT entirely and go straight to vector search.
+3. **Filing cache (markdown layer).** On embedding miss, check `LocalFilingStore` for the cached `ParsedFiling`. On hit, re-embed that markdown directly. On miss, call `pipeline.download_raw()` + `pipeline.parse_raw()` to fetch from EDGAR and persist the markdown locally.
+4. **Ingest.** Always runs on embedding miss regardless of filing-cache state. Idempotent via UUID5 point IDs (same content → same IDs → safe re-run).
+
+### V3 — Planned Quant Pipeline
+
+V3 will support structured numeric queries (e.g., "show me five-year revenue trend"). It will ingest XBRL — SEC's tagged financial data format — directly into DuckDB. **It does not share the V2 HTML→Markdown pipeline**: source format and downstream consumption pattern are fundamentally different. The two pipelines coexist as independent siblings.
+
+## 7. Observability and Tracing
+
+All agent and pipeline operations are traced via Langfuse. Span naming uses `snake_case` with a `sec_` prefix for SEC-specific operations.
+
+- **JIT path** through `search()` produces a full trace tree (cache check → EDGAR download → Markdown conversion → embedding → vector search).
+- **Batch CLI** (`embed_sec_filings.py`) intentionally runs without tracing — pipeline modules emit no spans on their own; spans are created by the calling layer (retriever) only when needed.
+
+For trace hierarchy, span definitions, and the rationale behind `@observe` vs. context-manager choices, see [`docs/observability.md`](./observability.md).

@@ -301,7 +301,8 @@ class TestProcessBatch:
         assert results["AAPL"].status == "success"
         assert results["MSFT"].status == "success"
         assert results["INVALID"].status == "error"
-        assert results["INVALID"].error is not None
+        assert isinstance(results["INVALID"].error, FilingNotFoundError)
+        assert "INVALID" in str(results["INVALID"].error)
 
 
 class TestBatchRetryTransientErrors:

@@ -8,7 +8,9 @@ This directory contains the backend services for FinLab-X, including the AI Agen
 
 - `agent_engine/`: Core Agent Engine components (orchestrator, tools, Langfuse tracing).
 - `api/`: HTTP/SSE routing and request handling (FastAPI).
-- `evaluation/`: LLMOps and evaluation workflows.
+- `evals/`: LLMOps and evaluation workflows (quality improvement + regression guardrail).
+- `ingestion/`: Data ingestion pipelines — `sec_filing_pipeline` (download + parse) and `sec_dense_pipeline` (chunk + embed + vector store).
+- `scripts/`: One-off analysis and developer tools (batch embed, dataset validation).
 - `tests/`: Programmatic tests for backend logic.
 - `../pyproject.toml`: Project dependency and tooling configuration (at project root).
 

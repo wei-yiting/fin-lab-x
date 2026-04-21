@@ -10,6 +10,7 @@ This directory contains **programmatic scorer functions** used by evaluation sce
 |---|---|
 | `__init__.py` | Re-exports all scorer functions for convenient imports. |
 | `language_policy_scorer.py` | Two programmatic scorers for language policy compliance: `response_language` (CJK character ratio check) and `tool_arg_no_cjk` (ensures tool arguments contain no CJK characters). |
+| `sec_retrieval_scorer.py` | Four retrieval-level scorers for SEC dense pipeline: `header_path_recall_at_5`, `header_path_recall_at_10` (fraction of expected header paths matched in top-K), `mean_reciprocal_rank`, and `mean_average_precision`. Uses composite hit logic: header_path startswith + optional answer snippet contains. |
 
 ## Architecture & Design
 

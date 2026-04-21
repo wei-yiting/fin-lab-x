@@ -17,12 +17,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from backend.ingestion.sec_filing_pipeline.filing_models import (
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+from backend.ingestion.sec_filing_pipeline.filing_models import (  # noqa: E402
     FilingMetadata,
     ParsedFiling,
     SECPipelineError,
 )
-from backend.ingestion.sec_filing_pipeline.pipeline import (
+from backend.ingestion.sec_filing_pipeline.pipeline import (  # noqa: E402
     SECFilingPipeline,
 )
 
@@ -137,7 +141,12 @@ def _run_batch(argv: list[str]) -> None:
                 output[ticker]["status"] = "success"
                 output[ticker]["from_cache"] = result.from_cache
             else:
-                output[ticker] = {"status": "error", "error": result.error}
+                assert result.error is not None
+                output[ticker] = {
+                    "status": "error",
+                    "error": str(result.error),
+                    "error_type": type(result.error).__name__,
+                }
                 has_error = True
         print(json.dumps(output, indent=2))
     elif args.verbose:

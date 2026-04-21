@@ -71,6 +71,59 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
     )
 
 
+def pre_run_sec_retrieval() -> dict[str, Any]:
+    """Validate Qdrant collection and return banner fields for startup output.
+
+    Runs once before the eval loop — surfaces collection + content-point count
+    in the startup banner so the reviewer never has to guess which Qdrant
+    collection an experiment was scored against.
+    """
+    import os
+
+    from qdrant_client import QdrantClient, models
+
+    collection = os.environ.get(
+        "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
+    )
+    qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
+    client = QdrantClient(url=qdrant_url)
+
+    if not client.collection_exists(collection):
+        raise RuntimeError(
+            f"Collection '{collection}' does not exist. "
+            "Run the ingest pipeline before eval."
+        )
+    # Sentinel points (status pending/complete) are bookkeeping markers — exclude
+    # them so the count reflects real chunk content.
+    content_count = client.count(
+        collection_name=collection,
+        count_filter=models.Filter(
+            must_not=[
+                models.FieldCondition(
+                    key="status",
+                    match=models.MatchAny(any=["pending", "complete"]),
+                ),
+            ],
+        ),
+    ).count
+    if content_count == 0:
+        raise RuntimeError(
+            f"Collection '{collection}' has 0 content points. "
+            "Run the ingest pipeline before eval."
+        )
+
+    return {"Collection": collection, "Points": content_count}
+
+
+async def run_sec_retrieval(input: Any) -> dict:
+    """Retrieval-only eval task — calls search() directly, no agent, no filters."""
+    from backend.ingestion.sec_dense_pipeline.retriever import search
+
+    question = input["question"]
+    chunks = await search(query=question, top_k=10)
+    return {"retrieved_chunks": [chunk.model_dump() for chunk in chunks]}
+
+
 async def run_v1(input: Any) -> OrchestratorResult:
     """Braintrust task function: run v1_baseline agent via async streaming.
 

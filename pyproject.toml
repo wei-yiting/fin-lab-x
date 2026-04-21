@@ -10,14 +10,20 @@ dependencies = [
     "html-to-markdown>=3.0.2,<4.0.0",
     "langchain>=1.2.10",
     "langchain-openai>=1.1.10",
+    "langchain-text-splitters>=0.3.0",
     "langfuse>=4.0.0",
     "langgraph>=0.5.0",
     "langgraph-checkpoint-sqlite>=2.0.0",
+    "llama-index-core>=0.12.0",
+    "llama-index-embeddings-openai>=0.3.0",
+    "llama-index-vector-stores-qdrant>=0.4.0",
     "markdownify>=1.2.0",
     "pydantic>=2.0",
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0.2",
+    "qdrant-client>=1.12.0",
     "tavily-python>=0.7.21",
+    "tiktoken>=0.9.0",
     "uvicorn>=0.41.0",
     "yfinance>=1.2.0",
 ]
@@ -28,6 +34,7 @@ dev = [
     "braintrust>=0.11.0",
     "braintrust-langchain>=0.2.1",
     "httpx>=0.28.0",
+    "numpy>=1.26.0",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "pytest-timeout>=2.3.0",
@@ -38,9 +45,10 @@ dev = [
 testpaths = ["backend/tests"]
 markers = [
     "eval: evaluation tests that hit real LLM APIs",
+    "integration: integration tests requiring external services (Qdrant, etc.)",
     "sec_integration: SEC integration tests that hit real SEC EDGAR APIs",
 ]
-addopts = "-m 'not eval and not sec_integration'"
+addopts = "-m 'not eval and not sec_integration and not integration'"
 
 [tool.ruff]
 line-length = 88

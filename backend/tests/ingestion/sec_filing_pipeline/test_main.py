@@ -147,7 +147,7 @@ def test_batch_partial_failure(sample_filing):
             status="success", filing=sample_filing, error=None, from_cache=False
         ),
         "ZZZZ": BatchResult(
-            status="error", filing=None, error="Ticker not found", from_cache=False
+            status="error", filing=None, error=TickerNotFoundError("Ticker not found"), from_cache=False
         ),
     }
     pipeline = MagicMock()
@@ -183,7 +183,7 @@ def test_batch_json(sample_filing, capsys):
             status="success", filing=sample_filing, error=None, from_cache=False
         ),
         "ZZZZ": BatchResult(
-            status="error", filing=None, error="Ticker not found", from_cache=False
+            status="error", filing=None, error=TickerNotFoundError("Ticker not found"), from_cache=False
         ),
     }
     pipeline = MagicMock()

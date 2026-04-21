@@ -62,6 +62,7 @@ Both tracks call real LLM/tools. Configure environment variables in `backend/.en
 | `OPENAI_API_KEY`     | Yes                | Yes                                  | Yes                                   | LLM calls         |
 | `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Search tool calls |
 | `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | SEC retrieval     |
+| `QDRANT_URL`         | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Vector store (sec_retrieval) |
 | `BRAINTRUST_API_KEY` | No                 | No                                   | Yes                                   | Braintrust upload |
 
 If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` fails fast.
@@ -106,9 +107,12 @@ Each subdirectory under `scenarios/` with an `eval_spec.yaml` is auto-discovered
 
 ```
 scenarios/
-└── language_policy/
-    ├── eval_spec.yaml     # Task function, column mapping, scorer list
-    └── dataset.csv        # Test cases (one row = one eval case)
+├── language_policy/
+│   ├── eval_spec.yaml     # Task function, column mapping, scorer list
+│   └── dataset.csv        # Test cases (one row = one eval case)
+└── sec_retrieval/
+    ├── eval_spec.yaml     # Retrieval scorers (recall, MRR, MAP), status: draft
+    └── dataset.csv        # 10 queries across 3 query types (see scenario README)
 ```
 
 ### Other files
@@ -131,6 +135,7 @@ Each scenario is configured by an `eval_spec.yaml` file. Full schema:
 
 ```yaml
 name: string                    # Scenario name, also used as Braintrust experiment name
+status: string                  # (optional) "draft" prints a warning; omit for production scenarios
 csv: string                     # Dataset filename (default: dataset.csv)
 
 task:

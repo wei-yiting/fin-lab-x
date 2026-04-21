@@ -359,6 +359,26 @@ def run_scenario(
         config_path = scenario_dir / "eval_spec.yaml"
         config = load_scenario_config(config_path)
 
+        banner_fields: dict[str, Any] = {}
+        if config.pre_run is not None:
+            pre_run_fn = resolve_function(config.pre_run.function, label="pre_run")
+            result = pre_run_fn()
+            if result is not None:
+                banner_fields = dict(result)
+
+        banner_line = f"Eval scenario: {config.name}"
+        for key, value in banner_fields.items():
+            banner_line += f" | {key}: {value}"
+        print(banner_line, file=sys.stderr)
+
+        if config.status == "draft":
+            print(
+                f"\u26a0 Scenario '{config.name}' is draft "
+                f"\u2014 results may be unreliable. "
+                f"Curate dataset before trusting metrics.",
+                file=sys.stderr,
+            )
+
         csv_path = scenario_dir / config.csv
         if not csv_path.is_file():
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
@@ -425,6 +445,10 @@ def run_scenario(
                     experiment_name=experiment_name,
                     no_send_logs=False,
                 )
+
+                import braintrust
+
+                braintrust.flush()
             except Exception:
                 logger.error("Braintrust upload failed", exc_info=True)
 
@@ -448,29 +472,35 @@ def _run_local_eval(
 
     is_async_task = asyncio.iscoroutinefunction(task_fn)
 
-    results: list[Any] = []
-    for row in raw_data:
-        input_val = row["input"]
+    def _score_row(row: dict[str, Any], output: Any) -> SimpleNamespace:
         expected_val = row.get("expected")
-        output = (
-            asyncio.run(task_fn(input_val))
-            if is_async_task
-            else task_fn(input_val)
-        )
-
         scores: dict[str, Any] = {}
         for scorer in scorers:
             name = getattr(scorer, "__name__", "unknown")
-            score = scorer(output=output, expected=expected_val, input=input_val)
+            score = scorer(output=output, expected=expected_val, input=row["input"])
             if score == _SKIPPED_MARKER:
                 scores[name] = _SKIPPED_MARKER
             elif score is not None and hasattr(score, "score"):
                 scores[name] = score.score
             else:
                 scores[name] = score
+        return SimpleNamespace(input=row["input"], output=output, scores=scores)
 
-        results.append(SimpleNamespace(input=input_val, output=output, scores=scores))
+    if is_async_task:
 
+        async def _run_all() -> list[SimpleNamespace]:
+            res: list[SimpleNamespace] = []
+            for row in raw_data:
+                output = await task_fn(row["input"])
+                res.append(_score_row(row, output))
+            return res
+
+        return SimpleNamespace(results=asyncio.run(_run_all()))
+
+    results: list[Any] = []
+    for row in raw_data:
+        output = task_fn(row["input"])
+        results.append(_score_row(row, output))
     return SimpleNamespace(results=results)
 
 

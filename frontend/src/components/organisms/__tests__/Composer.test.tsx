@@ -2,7 +2,7 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
-import { Composer } from "../Composer";
+import { Composer, type ComposerHandle } from "../Composer";
 
 describe("Composer — double-submit guard", () => {
   test("TC-comp-composer-01: rapid Enter twice triggers sendMessage exactly once", async () => {
@@ -61,7 +61,7 @@ describe("Composer — textarea preservation", () => {
 describe("Composer — chip click", () => {
   test("TC-comp-composer-03: chip click overwrites existing textarea content (last-wins)", async () => {
     const user = userEvent.setup();
-    const composerRef = createRef<{ setValue: (v: string) => void }>();
+    const composerRef = createRef<ComposerHandle>();
     render(<Composer ref={composerRef} sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
 
     const textarea = screen.getByTestId("composer-textarea") as HTMLTextAreaElement;

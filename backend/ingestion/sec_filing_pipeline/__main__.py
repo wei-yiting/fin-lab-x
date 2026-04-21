@@ -141,7 +141,12 @@ def _run_batch(argv: list[str]) -> None:
                 output[ticker]["status"] = "success"
                 output[ticker]["from_cache"] = result.from_cache
             else:
-                output[ticker] = {"status": "error", "error": result.error}
+                assert result.error is not None
+                output[ticker] = {
+                    "status": "error",
+                    "error": str(result.error),
+                    "error_type": type(result.error).__name__,
+                }
                 has_error = True
         print(json.dumps(output, indent=2))
     elif args.verbose:

@@ -40,7 +40,7 @@ _RETRY_BASE_DELAY = 1.0
 class BatchResult:
     status: Literal["success", "error"]
     filing: ParsedFiling | None
-    error: str | None
+    error: SECPipelineError | None
     from_cache: bool
 
 
@@ -288,7 +288,7 @@ class SECFilingPipeline:
             )
         except SECPipelineError as exc:
             return BatchResult(
-                status="error", filing=None, error=str(exc), from_cache=False
+                status="error", filing=None, error=exc, from_cache=False
             )
 
     @staticmethod

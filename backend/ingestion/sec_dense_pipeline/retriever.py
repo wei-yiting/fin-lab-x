@@ -5,6 +5,7 @@ import os
 from langfuse import get_client, observe
 from pydantic import BaseModel
 from qdrant_client import QdrantClient, models
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
@@ -18,6 +19,7 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import (
     ingest_filing,
 )
 from backend.ingestion.sec_filing_pipeline.filing_models import (
+    ConfigurationError,
     FilingNotFoundError,
     FilingType,
     TickerNotFoundError,
@@ -45,6 +47,14 @@ class Chunk(BaseModel):
 class JITTickerNotFoundError(Exception): ...
 
 
+class JITInvalidTickerError(JITTickerNotFoundError):
+    """EDGAR has no record of the requested ticker."""
+
+
+class JITFilingNotFoundError(JITTickerNotFoundError):
+    """Ticker exists in EDGAR but has no filing for the requested year/type."""
+
+
 class EmbeddingServiceError(Exception): ...
 
 
@@ -68,36 +78,51 @@ def _check_caches(
     return embedding_hit, filing_hit
 
 
-async def _resolve_latest_year(
-    pipeline: SECFilingPipeline, ticker: str, loop
-) -> int:
-    """EDGAR metadata call to learn the latest 10-K fiscal year."""
+async def _resolve_latest_year(pipeline: SECFilingPipeline, ticker: str) -> int:
+    """EDGAR metadata call to learn the latest 10-K fiscal year.
+
+    Runs the blocking EDGAR call via asyncio.to_thread so the active
+    OpenTelemetry context propagates to the worker thread — preserving
+    parent/child relationships for any spans emitted downstream.
+    """
     try:
-        return await loop.run_in_executor(
-            None, pipeline.resolve_latest_year, ticker, "10-K"
+        return await asyncio.to_thread(
+            pipeline.resolve_latest_year, ticker, "10-K"
         )
-    except (TickerNotFoundError, FilingNotFoundError) as exc:
-        raise JITTickerNotFoundError(f"No 10-K filing for ticker={ticker}") from exc
+    except TickerNotFoundError as exc:
+        raise JITInvalidTickerError(
+            f"Ticker '{ticker}' not found in SEC EDGAR"
+        ) from exc
+    except FilingNotFoundError as exc:
+        raise JITFilingNotFoundError(
+            f"No 10-K filing for ticker={ticker}"
+        ) from exc
 
 
 async def _download_and_parse(
-    pipeline: SECFilingPipeline, ticker: str, year: int, loop
+    pipeline: SECFilingPipeline, ticker: str, year: int
 ):
     """Fetch raw filing from EDGAR and parse to markdown.
 
     Emits `sec_edgar_download` and `sec_html_to_markdown` child spans under
-    whatever parent span is currently active.
+    whatever parent span is currently active. Blocking EDGAR I/O runs via
+    asyncio.to_thread, which copies the current contextvars (including the
+    active OTel span) into the worker thread.
     """
     with traced_span(
         "sec_edgar_download",
         input={"ticker": ticker, "year": year},
     ) as dl_span:
         try:
-            raw = await loop.run_in_executor(
-                None, pipeline.download_raw, ticker, "10-K", year
+            raw = await asyncio.to_thread(
+                pipeline.download_raw, ticker, "10-K", year
             )
-        except (TickerNotFoundError, FilingNotFoundError) as exc:
-            raise JITTickerNotFoundError(
+        except TickerNotFoundError as exc:
+            raise JITInvalidTickerError(
+                f"Ticker '{ticker}' not found in SEC EDGAR"
+            ) from exc
+        except FilingNotFoundError as exc:
+            raise JITFilingNotFoundError(
                 f"No 10-K filing for ticker={ticker}, year={year}"
             ) from exc
         dl_span.update(output={
@@ -109,9 +134,7 @@ async def _download_and_parse(
         "sec_html_to_markdown",
         input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
     ) as parse_span:
-        filing = await loop.run_in_executor(
-            None, pipeline.parse_raw, raw, "10-K"
-        )
+        filing = await asyncio.to_thread(pipeline.parse_raw, raw, "10-K")
         parse_span.update(output={
             "status": "complete",
             "markdown_length": len(filing.markdown_content),
@@ -132,6 +155,8 @@ async def search(
     )
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
+    jit_resolved_year: int | None = None
+
     try:
         client = QdrantClient(url=qdrant_url)
 
@@ -146,7 +171,6 @@ async def search(
 
             _ensure_collection(client, collection)
             year_filter = filters.get("year")
-            loop = asyncio.get_event_loop()
 
             # Resolve fiscal year before any cache lookup so the single
             # check_sec_cache span reflects the actual year we will serve.
@@ -156,8 +180,9 @@ async def search(
                     "resolve_latest_year",
                     input={"ticker": ticker, "filing_type": "10-K"},
                 ) as yr_span:
-                    year_to_use = await _resolve_latest_year(pipeline, ticker, loop)
+                    year_to_use = await _resolve_latest_year(pipeline, ticker)
                     yr_span.update(output={"resolved_year": year_to_use})
+                jit_resolved_year = year_to_use
             else:
                 year_to_use = year_filter
                 pipeline = None  # constructed lazily only if JIT needs it
@@ -189,7 +214,7 @@ async def search(
                     ) as pipeline_span:
                         try:
                             filing = await _download_and_parse(
-                                pipeline, ticker, year_to_use, loop
+                                pipeline, ticker, year_to_use
                             )
                         except Exception:
                             pipeline_span.update(output={"status": "error"})
@@ -213,6 +238,16 @@ async def search(
                     )
                     ing_span.update(output={"status": "complete"})
 
+        # Explicit pre-check so a missing collection surfaces as a typed
+        # CorpusUnavailableError instead of a substring match on Qdrant's
+        # error message.
+        if not client.collection_exists(collection):
+            raise CorpusUnavailableError(
+                f"Collection '{collection}' does not exist. "
+                f"Run backend/scripts/embed_sec_filings.py to ingest filings, "
+                f"or call search() with filters={{'ticker': ...}} to trigger JIT."
+            )
+
         with traced_span(
             "sec_query_embedding",
             input={"query": query, "model": _EMBED_MODEL},
@@ -225,9 +260,39 @@ async def search(
                 ) from e
             embed_span.update(output={"dimensions": len(query_vector)})
 
+        must_conditions: list[models.Condition] = []
+        applied_filters: dict = {}
+        if filters:
+            if "ticker" in filters:
+                ticker_value = canonicalize_ticker(filters["ticker"])
+                must_conditions.append(
+                    models.FieldCondition(
+                        key="ticker",
+                        match=models.MatchValue(value=ticker_value),
+                    )
+                )
+                applied_filters["ticker"] = ticker_value
+            # Use explicit year if caller passed one; otherwise fall back to the
+            # year JIT just resolved, so retrieval stays scoped to the ingested
+            # filing rather than bleeding across older cached years.
+            effective_year = filters.get("year", jit_resolved_year)
+            if effective_year is not None:
+                must_conditions.append(
+                    models.FieldCondition(
+                        key="year",
+                        match=models.MatchValue(value=effective_year),
+                    )
+                )
+                applied_filters["year"] = effective_year
+
         with traced_span(
             "sec_vector_search",
-            input={"query": query, "top_k": top_k, "collection": collection},
+            input={
+                "query": query,
+                "top_k": top_k,
+                "collection": collection,
+                "filters": applied_filters,
+            },
         ) as search_span:
             results = client.query_points(
                 collection_name=collection,
@@ -235,12 +300,13 @@ async def search(
                 limit=top_k,
                 with_payload=True,
                 query_filter=models.Filter(
+                    must=must_conditions or None,
                     must_not=[
                         models.FieldCondition(
                             key="status",
                             match=models.MatchAny(any=["pending", "complete"]),
                         )
-                    ]
+                    ],
                 ),
             )
             search_span.update(output={
@@ -271,7 +337,7 @@ async def search(
             metadata={
                 "collection_name": collection,
                 "embed_model": os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large"),
-                "filters_applied": False,
+                "filters_applied": applied_filters or False,
             }
         )
         return chunks
@@ -280,15 +346,18 @@ async def search(
         JITDisabledError,
         JITTickerNotFoundError,
         EmbeddingServiceError,
+        CorpusUnavailableError,
+        ConfigurationError,
     ):
         raise
-    except Exception as e:
-        # ConfigurationError from the filing pipeline should surface as-is
-        # so callers receive a clear signal about missing env vars.
-        if type(e).__name__ == "ConfigurationError":
-            raise
-        if "not found" in str(e).lower() or "doesn't exist" in str(e).lower():
+    except UnexpectedResponse as e:
+        # Qdrant surfaces missing collections/resources as HTTP 404.
+        # Anything else from the vector store is still treated as corpus-level
+        # unavailability, but we no longer derive that from message text.
+        if getattr(e, "status_code", None) == 404:
             raise CorpusUnavailableError(
-                f"Collection unavailable: {e}"
+                f"Qdrant resource missing: {e}"
             ) from e
+        raise CorpusUnavailableError(f"Qdrant error: {e}") from e
+    except Exception as e:
         raise CorpusUnavailableError(f"Search failed: {e}") from e

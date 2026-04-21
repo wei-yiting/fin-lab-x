@@ -42,7 +42,7 @@ No env-var toggling; the trace boundary is structural.
 - If valid, open a Langfuse child span under it.
 - If invalid (no outer trace, as with CLI or unit tests), yield a no-op object so callers can still call `.update(...)` without side effects.
 
-Sync helpers that run inside `run_in_executor` — `pipeline.download_raw`, `pipeline.parse_raw`, `pipeline.resolve_latest_year` — are wrapped with `traced_span` at the **call site in the event-loop thread** so the span is opened and closed around the `run_in_executor` call. Opening the span inside the executor thread would miss the OTel context entirely.
+Sync helpers that run in a worker thread — `pipeline.download_raw`, `pipeline.parse_raw`, `pipeline.resolve_latest_year` — are dispatched via `asyncio.to_thread(...)`, which copies the current `contextvars` (including the active OTel span) into the thread. The `traced_span` wrapper itself is still opened and closed on the event-loop thread around the `to_thread` call, so the parent/child relationship is captured on the coroutine side where `@observe` established the trace root.
 
 ### Where Spans Live
 

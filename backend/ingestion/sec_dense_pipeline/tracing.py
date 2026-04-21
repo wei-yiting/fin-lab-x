@@ -15,7 +15,7 @@ without per-entry-point env-var toggling.
 from contextlib import contextmanager
 from typing import Any
 
-from langfuse import Langfuse
+from langfuse import get_client
 from opentelemetry import trace as otel_trace
 
 
@@ -36,6 +36,6 @@ def traced_span(name: str, **kwargs: Any):
     if not current.get_span_context().is_valid:
         yield _NoOpSpan()
         return
-    lf = Langfuse()
+    lf = get_client()
     with lf.start_as_current_observation(name=name, **kwargs) as span:
         yield span

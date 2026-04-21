@@ -8,8 +8,11 @@ Dense vector retrieval pipeline for SEC 10-K filings. Chunks filing markdown wit
 # 1. Start Qdrant
 docker compose up -d qdrant
 
-# 2. Batch ingest filings (requires pre-downloaded markdown in data/sec_filings/)
+# 2. Batch ingest filings (downloads from EDGAR automatically; requires EDGAR_IDENTITY in env)
 uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
+
+# Optional: pin a fiscal year (default: latest 10-K per ticker)
+uv run python -m backend.scripts.embed_sec_filings NVDA --year 2024
 
 # 3. Search from Python
 from backend.ingestion.sec_dense_pipeline.retriever import search
@@ -60,9 +63,12 @@ Defined in `retriever.py`:
 | Exception | Meaning | Retryable? |
 |---|---|---|
 | `EmbeddingServiceError` | OpenAI embedding API failure | Yes |
-| `CorpusUnavailableError` | Qdrant connection or collection issue | Yes |
-| `JITTickerNotFoundError` | Ticker not found in SEC filings | No |
+| `CorpusUnavailableError` | Qdrant connection, collection-missing, or non-404 HTTP error | Yes |
+| `JITTickerNotFoundError` | Base class for EDGAR resolution failures | No |
+| `JITInvalidTickerError` | EDGAR has no record of the ticker (subclass of `JITTickerNotFoundError`) | No |
+| `JITFilingNotFoundError` | Ticker exists but no 10-K for the requested year (subclass of `JITTickerNotFoundError`) | No |
 | `JITDisabledError` | JIT requested but `SEC_DISABLE_JIT=1` | No |
+| `ConfigurationError` | Re-raised from `sec_filing_pipeline.filing_models` when EDGAR config is missing | No |
 
 ## JIT Ingest Contract
 
@@ -74,6 +80,6 @@ When `search()` receives a filter with `ticker` (and optionally `year`):
 4. **Ingestion.** Run `ingest_filing()` to chunk, embed, and upsert into Qdrant. Sentinel transitions `pending` → `complete`.
 5. **Disable.** If `SEC_DISABLE_JIT=1` is set, all of the above is skipped and `JITDisabledError` is raised.
 
-Error mapping: only `TickerNotFoundError` and `FilingNotFoundError` from EDGAR are converted to `JITTickerNotFoundError`. Other `SECPipelineError` subtypes (e.g., `TransientError`) propagate and are wrapped as `CorpusUnavailableError` by the outer handler.
+Error mapping: `TickerNotFoundError` from EDGAR becomes `JITInvalidTickerError`, `FilingNotFoundError` becomes `JITFilingNotFoundError` (both subclasses of `JITTickerNotFoundError` so a single `except JITTickerNotFoundError` still catches both). `ConfigurationError` propagates unchanged. Other `SECPipelineError` subtypes (e.g., `TransientError`) fall through to the outer handler and are wrapped as `CorpusUnavailableError`. Qdrant HTTP 404 responses also surface as `CorpusUnavailableError` via explicit `UnexpectedResponse.status_code` checking — no substring matching on error messages.
 
 `EDGAR_IDENTITY` must be set whenever JIT may trigger an EDGAR call (which now includes the year-resolution lookup, even when local cache is warm).

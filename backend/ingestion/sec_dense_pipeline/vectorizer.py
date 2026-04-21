@@ -45,7 +45,17 @@ _EMBED_DIM = int(os.environ.get("SEC_EMBED_DIM", "3072"))
 async def _embed_texts(texts: list[str]) -> list[list[float]]:
     """Low-level embedding via OpenAI. Patchable for testing."""
     embed_model = OpenAIEmbedding(model=_EMBED_MODEL, dimensions=_EMBED_DIM)
-    return await embed_model.aget_text_embedding_batch(texts)
+    try:
+        return await embed_model.aget_text_embedding_batch(texts)
+    finally:
+        # Close the underlying AsyncOpenAI httpx client explicitly.
+        # Without this, GC finalizes the client after asyncio.run() has
+        # closed the event loop, raising "Event loop is closed" from
+        # httpx's AsyncClient.aclose() — visible as a task-exception spam
+        # when eval_runner runs the local loop and Braintrust's loop back-to-back.
+        aclient = embed_model._aclient
+        if aclient is not None:
+            await aclient.close()
 
 
 async def embed_query(query: str) -> list[float]:

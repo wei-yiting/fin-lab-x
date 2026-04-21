@@ -8,6 +8,7 @@ This directory contains the backend services for FinLab-X, including the AI Agen
 
 - `agent_engine/`: Core Agent Engine components (orchestrator, tools, Langfuse tracing).
 - `api/`: HTTP/SSE routing and request handling (FastAPI).
+- `common/`: Cross-subsystem domain types — currently SEC core (`FilingType`, `SECError` hierarchy, section helpers, cached filing fetch) shared by `agent_engine/tools/` and `ingestion/sec_filing_pipeline/`.
 - `evals/`: LLMOps and evaluation workflows (quality improvement + regression guardrail).
 - `ingestion/`: Data ingestion pipelines — `sec_filing_pipeline` (download + parse) and `sec_dense_pipeline` (chunk + embed + vector store).
 - `scripts/`: One-off analysis and developer tools (batch embed, dataset validation).

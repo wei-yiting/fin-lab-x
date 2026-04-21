@@ -1,3 +1,16 @@
+"""SEC filing domain core — types and helpers shared across subsystems.
+
+Types: :class:`FilingType`, :class:`SECError` hierarchy,
+``TENK_STANDARD_TITLES`` (SEC 17 CFR 229 canonical item map).
+Helpers: :func:`parse_item_number` (agent-facing key normalization),
+:func:`is_stub_section` (incorp-by-reference / reserved detection),
+:func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch).
+
+Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
+:mod:`backend.ingestion.sec_filing_pipeline`. Do not add agent-layer or
+pipeline-layer concerns here — keep this module a thin, stateless core.
+"""
+
 import os
 import re
 from enum import StrEnum

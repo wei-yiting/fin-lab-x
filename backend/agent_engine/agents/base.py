@@ -11,6 +11,7 @@ propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
 import os
+import re
 import time
 import uuid
 from collections.abc import AsyncGenerator
@@ -20,7 +21,6 @@ from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
-from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
@@ -51,6 +51,12 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
     "sec_filing_get_section",
     "sec_filing_downloader",
 }
+
+
+# Matches `{identifier}` placeholders where `identifier` is a Python-style name.
+# Literal JSON fragments like `{"role": "user"}` have `"` as the first inner
+# char and are skipped, so they survive rendering untouched.
+_PROMPT_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -157,20 +163,23 @@ class Orchestrator:
         the active model's context window. Prompts with no placeholders are
         returned verbatim. Prompts referencing unknown variables raise
         ``ValueError`` so misconfiguration fails fast at startup.
+
+        Uses a narrow regex match on ``{identifier}`` (Python-style names) so
+        literal JSON fragments like ``{"role": "user"}`` pass through unchanged.
         """
-        template = PromptTemplate.from_template(raw)
-        if not template.input_variables:
+        found = _PROMPT_PLACEHOLDER_RE.findall(raw)
+        if not found:
             return raw
         provided = {
             "section_soft_cap_chars": compute_section_soft_cap_chars(model_name),
         }
-        missing = set(template.input_variables) - set(provided.keys())
+        missing = set(found) - set(provided.keys())
         if missing:
             raise ValueError(
                 f"Prompt references undefined variables: {sorted(missing)}"
             )
-        return template.format(
-            **{k: provided[k] for k in template.input_variables}
+        return _PROMPT_PLACEHOLDER_RE.sub(
+            lambda m: str(provided[m.group(1)]), raw
         )
 
     @staticmethod

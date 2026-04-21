@@ -84,6 +84,10 @@ _STUB_INCORP_RE = re.compile(
 )
 _STUB_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=\S)")
 _STUB_MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\([^)]*\)")
+# Empirical calibration: real incorp-by-reference stubs (e.g. AAPL Item 11) leave
+# <100 chars of residual prose after dropping the pointer sentence and markdown
+# links. Above this threshold the item usually contains substantive commentary
+# alongside the pointer, so we decline to classify it as a stub.
 _STUB_REMAINING_THRESHOLD = 100
 _RESERVED_RE = re.compile(r"\[\s*reserved\s*\]", re.IGNORECASE)
 
@@ -110,6 +114,10 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
     # Reserved/deprecated check wins classification — must precede incorp
     # check so "Item 6. [Reserved]" doesn't get classified as "incorporated".
     compact = re.sub(r"\s+", " ", text).strip()
+    # Real reserved items are terse ("Item 6. [Reserved]" is 17 chars). 80 is an
+    # intentionally generous upper bound so minor whitespace/punctuation variants
+    # still match; anything longer is likely a section that happens to contain
+    # the word "Reserved" in prose rather than an actual reserved sentinel.
     if len(compact) < 80 and _RESERVED_RE.search(compact):
         return (True, "section marked as reserved/deprecated")
 
@@ -250,12 +258,6 @@ def _fetch_filing_obj_cached(
 
     try:
         company = Company(ticker_upper)
-    except Exception as exc:
-        raise TickerNotFoundError(
-            f"Ticker {ticker_upper!r} not found on SEC EDGAR."
-        ) from exc
-
-    try:
         filings = company.get_filings(form=str(filing_type))
     except Exception as exc:
         raise _classify_edgar_error(exc, ticker_upper) from exc

@@ -74,7 +74,7 @@ SEC FILING ACCESS STRATEGY:
 - To read SEC 10-K filings, first call sec_filing_list_sections to see the table of contents and each section's character count.
 - Once you know which section you need, call sec_filing_get_section with the section_key.
 - After sec_filing_list_sections, always pass the resolved fiscal_year explicitly to sec_filing_get_section so the two calls hit the same cached filing.
-- If a section's char_count exceeds {section_soft_cap_chars} chars, prefer sec_filing_search (RAG semantic retrieval) instead — it returns the most relevant passages rather than the full section, saving context budget.
+- If a section's char_count exceeds {section_soft_cap_chars} chars, note that a future `sec_filing_search` (RAG semantic retrieval) tool is planned for this case; until it ships, summarize the most relevant passages you can fit within the budget and tell the user the full section is too large to inline.
 - Section keys are normalized item numbers: "1", "1a", "1b", "1c", "2", "3", "4", "5", "6", "7", "7a", "8", "9", "9a", "9b", "9c", "10", "11", "12", "13", "14", "15", "16".
 
 10-K STANDARD SECTION TITLES (SEC 17 CFR 229):

@@ -74,6 +74,29 @@ def test_render_prompt_no_placeholder_verbatim():
     assert Orchestrator._render_prompt(raw, "gpt-4o-mini") == "Pure prompt"
 
 
+def test_render_prompt_preserves_literal_json_braces(monkeypatch):
+    """Prompts containing literal `{...}` (e.g. a JSON example) must pass
+    through rendering untouched while named placeholders still substitute.
+
+    Without guarding the placeholder scan, a raw LangChain ``PromptTemplate``
+    would treat ``{"role": "user"}`` as an undefined variable and raise at
+    startup.
+    """
+    monkeypatch.setattr(
+        model_context,
+        "_REGISTRY",
+        {"gpt-4o-mini": {"max_input_tokens": 128_000, "source": "litellm"}},
+    )
+    raw = (
+        'Example tool call: {"role": "user", "content": "hi"}\n'
+        "BUDGET: exceeds {section_soft_cap_chars} chars"
+    )
+    rendered = Orchestrator._render_prompt(raw, "gpt-4o-mini")
+    assert '{"role": "user", "content": "hi"}' in rendered
+    assert "exceeds 204800 chars" in rendered
+    assert "{section_soft_cap_chars}" not in rendered
+
+
 def test_validate_edgar_identity_fast_fail(monkeypatch):
     monkeypatch.delenv("EDGAR_IDENTITY", raising=False)
     config = SimpleNamespace(tools=["sec_filing_list_sections"])

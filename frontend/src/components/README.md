@@ -23,4 +23,4 @@ Streaming lifecycle state lives in `pages/ChatPanel.tsx` only. Atoms and molecul
 
 ## Testing
 
-Every non-primitive layer has a sibling `__tests__/` directory. `data-testid="..."` attributes are permanently shipped (see `implementation_prerequisites_streaming_chat_ui.md` §1).
+Every non-primitive layer has a sibling `__tests__/` directory. `data-testid="..."` attributes are permanently shipped — see `docs/frontend_dom_contract.md` for the full selector / state-attribute contract and `docs/frontend_chat_architecture.md` for the broader architecture (state ownership, SSE wire format, AI SDK v6 contract findings).

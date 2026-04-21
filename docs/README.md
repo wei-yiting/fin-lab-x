@@ -9,6 +9,8 @@ Central repository for architectural specifications, design plans, and project g
 - `agent_architecture.md`: High-level architecture, Single Orchestrator pattern, and design principles.
 - `file_structure.md`: Comprehensive mapping of directory responsibilities and file roles.
 - `project_requirement.md`: Product Requirements Document (PRD) covering the v1-v5 evolutionary phases, architectural philosophy, and evaluation-driven development strategy.
+- `frontend_chat_architecture.md`: Streaming chat UI architecture — atomic 6-layer taxonomy, state ownership, SSE event handling, AI SDK v6 contract findings, defer-to-ready markdown strategy.
+- `frontend_dom_contract.md`: Stable `data-testid` / `data-status` / `aria-label` contract for the streaming chat UI, referenced by component tests and e2e specs.
 
 ## Design Pattern
 

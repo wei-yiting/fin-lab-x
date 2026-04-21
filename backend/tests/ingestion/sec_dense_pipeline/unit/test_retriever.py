@@ -161,7 +161,7 @@ async def test_resolve_latest_year_calls_edgar() -> None:
 
 @pytest.mark.asyncio
 async def test_resolve_latest_year_converts_ticker_not_found() -> None:
-    from backend.ingestion.sec_filing_pipeline.filing_models import TickerNotFoundError
+    from backend.common.sec_core import TickerNotFoundError
 
     pipeline = MagicMock()
     original = TickerNotFoundError("ZZZZZ not found")
@@ -175,7 +175,7 @@ async def test_resolve_latest_year_converts_ticker_not_found() -> None:
 
 @pytest.mark.asyncio
 async def test_resolve_latest_year_converts_filing_not_found() -> None:
-    from backend.ingestion.sec_filing_pipeline.filing_models import FilingNotFoundError
+    from backend.common.sec_core import FilingNotFoundError
 
     pipeline = MagicMock()
     original = FilingNotFoundError("No 10-K for NVDA")
@@ -210,7 +210,7 @@ async def test_download_and_parse_returns_filing() -> None:
 
 @pytest.mark.asyncio
 async def test_download_and_parse_converts_ticker_not_found() -> None:
-    from backend.ingestion.sec_filing_pipeline.filing_models import TickerNotFoundError
+    from backend.common.sec_core import TickerNotFoundError
 
     pipeline = MagicMock()
     original = TickerNotFoundError("ZZZZZ not found")
@@ -224,7 +224,7 @@ async def test_download_and_parse_converts_ticker_not_found() -> None:
 
 @pytest.mark.asyncio
 async def test_download_and_parse_converts_filing_not_found() -> None:
-    from backend.ingestion.sec_filing_pipeline.filing_models import FilingNotFoundError
+    from backend.common.sec_core import FilingNotFoundError
 
     pipeline = MagicMock()
     original = FilingNotFoundError("No 10-K for NVDA in 2099")

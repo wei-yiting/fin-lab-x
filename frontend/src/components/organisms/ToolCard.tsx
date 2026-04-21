@@ -1,26 +1,30 @@
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/primitives/collapsible"
-import { ToolRow } from "@/components/molecules/ToolRow"
-import { ToolDetail } from "@/components/molecules/ToolDetail"
-import { toFriendlyError } from "@/lib/error-messages"
-import { isRunningToolState } from "@/models"
-import type { ToolUIState } from "@/models"
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/primitives/collapsible";
+import { ToolRow } from "@/components/molecules/ToolRow";
+import { ToolDetail } from "@/components/molecules/ToolDetail";
+import { toFriendlyError } from "@/lib/error-messages";
+import { isRunningToolState } from "@/models";
+import type { ToolUIState } from "@/models";
 
 type ToolPart = {
-  type: string
-  toolCallId: string
-  toolName?: string
-  title?: string
-  state: string
-  input: unknown
-  output?: unknown
-  errorText?: string
-}
+  type: string;
+  toolCallId: string;
+  toolName?: string;
+  title?: string;
+  state: string;
+  input: unknown;
+  output?: unknown;
+  errorText?: string;
+};
 
 function resolveToolName(part: ToolPart): string {
-  if (part.toolName) return part.toolName
-  if (part.title) return part.title
-  if (part.type.startsWith("tool-")) return part.type.slice(5)
-  return part.type
+  if (part.toolName) return part.toolName;
+  if (part.title) return part.title;
+  if (part.type.startsWith("tool-")) return part.type.slice(5);
+  return part.type;
 }
 
 export function ToolCard({
@@ -28,17 +32,17 @@ export function ToolCard({
   isAborted,
   progressText,
 }: {
-  part: ToolPart
-  isAborted: boolean
-  progressText?: string
+  part: ToolPart;
+  isAborted: boolean;
+  progressText?: string;
 }) {
   const visualState: ToolUIState =
-    isAborted && isRunningToolState(part.state) ? "aborted" : (part.state as ToolUIState)
+    isAborted && isRunningToolState(part.state) ? "aborted" : (part.state as ToolUIState);
 
   const friendly =
     part.state === "output-error" && part.errorText
       ? toFriendlyError({ source: "tool-output-error", rawMessage: part.errorText })
-      : null
+      : null;
 
   return (
     <Collapsible>
@@ -69,5 +73,5 @@ export function ToolCard({
         </CollapsibleContent>
       </div>
     </Collapsible>
-  )
+  );
 }

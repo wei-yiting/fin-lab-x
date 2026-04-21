@@ -1,28 +1,28 @@
-import { useMemo } from "react"
-import { Markdown } from "@/components/organisms/Markdown"
-import { ToolCard } from "@/components/organisms/ToolCard"
-import { Sources } from "@/components/molecules/Sources"
-import { RegenerateButton } from "@/components/atoms/RegenerateButton"
-import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources"
-import { isRunningToolState } from "@/models"
-import type { ChatStatus } from "@/models"
+import { useMemo } from "react";
+import { Markdown } from "@/components/organisms/Markdown";
+import { ToolCard } from "@/components/organisms/ToolCard";
+import { Sources } from "@/components/molecules/Sources";
+import { RegenerateButton } from "@/components/atoms/RegenerateButton";
+import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources";
+import { isRunningToolState } from "@/models";
+import type { ChatStatus } from "@/models";
 
-type MessagePart = Record<string, unknown>
+type MessagePart = Record<string, unknown>;
 
 type AssistantMessageMessage = {
-  id: string
-  role: "system" | "user" | "assistant"
-  parts: MessagePart[]
-}
+  id: string;
+  role: "system" | "user" | "assistant";
+  parts: MessagePart[];
+};
 
 type AssistantMessageProps = {
-  message: AssistantMessageMessage
-  isLast: boolean
-  status?: ChatStatus
-  abortedTools: Set<string>
-  toolProgress: Record<string, string>
-  onRegenerate?: (messageId: string) => void
-}
+  message: AssistantMessageMessage;
+  isLast: boolean;
+  status?: ChatStatus;
+  abortedTools: Set<string>;
+  toolProgress: Record<string, string>;
+  onRegenerate?: (messageId: string) => void;
+};
 
 export function AssistantMessage({
   message,
@@ -32,19 +32,19 @@ export function AssistantMessage({
   toolProgress,
   onRegenerate,
 }: AssistantMessageProps) {
-  const parts = message.parts
+  const parts = message.parts;
 
   const concatenatedText = parts
     .filter((p) => p.type === "text")
     .map((p) => p.text as string)
-    .join("")
+    .join("");
 
-  const isStreaming = status === "streaming" && isLast
+  const isStreaming = status === "streaming" && isLast;
 
   const extractedSources = useMemo(
     () => (isStreaming ? [] : extractSources(concatenatedText)),
     [concatenatedText, isStreaming],
-  )
+  );
 
   const displayText = useMemo(() => {
     // Normalize bullet-prefixed ref defs and strip source headers,
@@ -52,25 +52,28 @@ export function AssistantMessage({
     let cleaned = normalizeRefDefs(concatenatedText)
       .replace(/^\[(\d+)\]:?\s+\S+.*$/gm, "")
       .replace(/\n{3,}/g, "\n\n")
-      .trimEnd()
+      .trimEnd();
 
     if (!isStreaming && extractedSources.length > 0) {
-      cleaned = cleaned.replace(/【(\d+)】/g, "[$1]")
-      const syntheticDefs = extractedSources
-        .map((s) => `[${s.label}]: #src-${s.label}`)
-        .join("\n")
-      return `${cleaned}\n\n${syntheticDefs}`
+      cleaned = cleaned.replace(/【(\d+)】/g, "[$1]");
+      const syntheticDefs = extractedSources.map((s) => `[${s.label}]: #src-${s.label}`).join("\n");
+      return `${cleaned}\n\n${syntheticDefs}`;
     }
 
-    return cleaned
-  }, [concatenatedText, extractedSources, isStreaming])
+    return cleaned;
+  }, [concatenatedText, extractedSources, isStreaming]);
 
   return (
     <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
-        if (part.type === "tool" || (typeof part.type === "string" && part.type.startsWith("tool-")) || part.type === "dynamic-tool") {
-          const toolCallId = part.toolCallId as string
-          const isAborted = abortedTools.has(toolCallId) && isRunningToolState(part.state as string)
+        if (
+          part.type === "tool" ||
+          (typeof part.type === "string" && part.type.startsWith("tool-")) ||
+          part.type === "dynamic-tool"
+        ) {
+          const toolCallId = part.toolCallId as string;
+          const isAborted =
+            abortedTools.has(toolCallId) && isRunningToolState(part.state as string);
           return (
             <ToolCard
               key={toolCallId ?? i}
@@ -78,10 +81,10 @@ export function AssistantMessage({
               isAborted={isAborted}
               progressText={toolProgress[toolCallId]}
             />
-          )
+          );
         }
 
-        return null
+        return null;
       })}
 
       {displayText && (
@@ -100,5 +103,5 @@ export function AssistantMessage({
         <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />
       )}
     </article>
-  )
+  );
 }

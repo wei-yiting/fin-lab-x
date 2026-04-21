@@ -1,7 +1,7 @@
-import { useState } from "react"
-import { AlertCircle } from "lucide-react"
-import { Button } from "@/components/primitives/button"
-import type { FriendlyError } from "@/lib/error-messages"
+import { useState } from "react";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/primitives/button";
+import type { FriendlyError } from "@/lib/error-messages";
 
 export function ErrorBlock({
   friendly,
@@ -9,19 +9,20 @@ export function ErrorBlock({
   source,
   errorClass,
 }: {
-  friendly: FriendlyError
-  onRetry?: () => void
-  source: "pre-stream" | "mid-stream"
-  errorClass: string
+  friendly: FriendlyError;
+  onRetry?: () => void;
+  source: "pre-stream" | "mid-stream";
+  errorClass: string;
 }) {
-  const [showDetail, setShowDetail] = useState(false)
-  const [showMore, setShowMore] = useState(false)
+  const [showDetail, setShowDetail] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
-  const testId = source === "pre-stream" ? "stream-error-block" : "inline-error-block"
-  const truncateThreshold = 200
-  const displayDetail = friendly.detail && !showMore && friendly.detail.length > truncateThreshold
-    ? friendly.detail.slice(0, truncateThreshold) + "..."
-    : friendly.detail
+  const testId = source === "pre-stream" ? "stream-error-block" : "inline-error-block";
+  const truncateThreshold = 200;
+  const displayDetail =
+    friendly.detail && !showMore && friendly.detail.length > truncateThreshold
+      ? friendly.detail.slice(0, truncateThreshold) + "..."
+      : friendly.detail;
 
   return (
     <div
@@ -47,10 +48,16 @@ export function ErrorBlock({
             </button>
           )}
           {showDetail && friendly.detail && (
-            <pre data-testid="error-raw-detail" className="overflow-auto rounded bg-muted/50 p-2 text-xs font-mono text-muted-foreground">
+            <pre
+              data-testid="error-raw-detail"
+              className="overflow-auto rounded bg-muted/50 p-2 text-xs font-mono text-muted-foreground"
+            >
               {displayDetail}
               {friendly.detail.length > truncateThreshold && !showMore && (
-                <button onClick={() => setShowMore(true)} className="ml-1 text-[var(--chat-brand-accent)] hover:underline">
+                <button
+                  onClick={() => setShowMore(true)}
+                  className="ml-1 text-[var(--chat-brand-accent)] hover:underline"
+                >
                   Show more
                 </button>
               )}
@@ -73,5 +80,5 @@ export function ErrorBlock({
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -6,5 +6,5 @@ export function UserMessage({ content }: { content: string }) {
     >
       {content}
     </div>
-  )
+  );
 }

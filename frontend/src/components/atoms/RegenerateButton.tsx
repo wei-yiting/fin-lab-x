@@ -1,5 +1,5 @@
-import { Button } from "@/components/primitives/button"
-import { RefreshCw } from "lucide-react"
+import { Button } from "@/components/primitives/button";
+import { RefreshCw } from "lucide-react";
 
 export function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
   return (
@@ -14,5 +14,5 @@ export function RegenerateButton({ onRegenerate }: { onRegenerate: () => void })
       <RefreshCw className="h-3 w-3" />
       Regenerate
     </Button>
-  )
+  );
 }

@@ -1,8 +1,11 @@
-import { Badge } from "@/components/primitives/badge"
+import { Badge } from "@/components/primitives/badge";
 
-export function ChatHeader({ onClear, messagesEmpty }: {
-  onClear: () => void
-  messagesEmpty: boolean
+export function ChatHeader({
+  onClear,
+  messagesEmpty,
+}: {
+  onClear: () => void;
+  messagesEmpty: boolean;
 }) {
   return (
     <header
@@ -11,7 +14,9 @@ export function ChatHeader({ onClear, messagesEmpty }: {
     >
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-semibold text-foreground">FinLab-X</h1>
-        <Badge variant="outline" className="text-[10px] uppercase">v1</Badge>
+        <Badge variant="outline" className="text-[10px] uppercase">
+          v1
+        </Badge>
       </div>
       <button
         data-testid="composer-clear-btn"
@@ -23,5 +28,5 @@ export function ChatHeader({ onClear, messagesEmpty }: {
         Clear conversation
       </button>
     </header>
-  )
+  );
 }

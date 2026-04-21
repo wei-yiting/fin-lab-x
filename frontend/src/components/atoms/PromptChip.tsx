@@ -1,5 +1,5 @@
-import { Button } from "@/components/primitives/button"
-import type { LucideIcon } from "lucide-react"
+import { Button } from "@/components/primitives/button";
+import type { LucideIcon } from "lucide-react";
 
 export function PromptChip({
   icon: Icon,
@@ -7,10 +7,10 @@ export function PromptChip({
   index,
   onClick,
 }: {
-  icon: LucideIcon
-  text: string
-  index: number
-  onClick: () => void
+  icon: LucideIcon;
+  text: string;
+  index: number;
+  onClick: () => void;
 }) {
   return (
     <Button
@@ -24,5 +24,5 @@ export function PromptChip({
       <Icon className="h-4 w-4 shrink-0" />
       <span>{text}</span>
     </Button>
-  )
+  );
 }

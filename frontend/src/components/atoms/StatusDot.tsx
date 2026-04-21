@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 export function StatusDot({ state }: { state: "running" | "success" | "error" | "aborted" }) {
   return (
@@ -13,5 +13,5 @@ export function StatusDot({ state }: { state: "running" | "success" | "error" | 
         state === "aborted" && "bg-[var(--status-aborted)]",
       )}
     />
-  )
+  );
 }

@@ -95,17 +95,17 @@
   --popover-foreground: oklch(0.9567 0.0052 247.88);
   --primary: oklch(0.42 0.13 255);
   --primary-foreground: oklch(0.9567 0.0052 247.88);
-  --secondary: oklch(0.2914 0.0357 250.70);
+  --secondary: oklch(0.2914 0.0357 250.7);
   --secondary-foreground: oklch(0.9567 0.0052 247.88);
-  --muted: oklch(0.2130 0.0144 239.42);
-  --muted-foreground: oklch(0.6210 0.0230 248.20);
-  --accent: oklch(0.2914 0.0357 250.70);
+  --muted: oklch(0.213 0.0144 239.42);
+  --muted-foreground: oklch(0.621 0.023 248.2);
+  --accent: oklch(0.2914 0.0357 250.7);
   --accent-foreground: oklch(0.9567 0.0052 247.88);
-  --destructive: oklch(0.7282 0.1610 27.12);
+  --destructive: oklch(0.7282 0.161 27.12);
   --destructive-foreground: oklch(0.9567 0.0052 247.88);
   --border: oklch(0.9567 0.0052 247.88 / 0.06);
   --input: oklch(0.9567 0.0052 247.88 / 0.08);
-  --ring: oklch(0.42 0.13 255 / 0.30);
+  --ring: oklch(0.42 0.13 255 / 0.3);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -115,20 +115,20 @@
   --sidebar-foreground: oklch(0.9567 0.0052 247.88);
   --sidebar-primary: oklch(0.42 0.13 255);
   --sidebar-primary-foreground: oklch(0.9567 0.0052 247.88);
-  --sidebar-accent: oklch(0.2914 0.0357 250.70);
+  --sidebar-accent: oklch(0.2914 0.0357 250.7);
   --sidebar-accent-foreground: oklch(0.9567 0.0052 247.88);
   --sidebar-border: oklch(0.9567 0.0052 247.88 / 0.06);
-  --sidebar-ring: oklch(0.42 0.13 255 / 0.30);
+  --sidebar-ring: oklch(0.42 0.13 255 / 0.3);
 
   --chat-brand-accent: oklch(0.6425 0.1682 255.13);
   --chat-brand-accent-hover: oklch(0.7055 0.1403 253.62);
   --status-running: oklch(0.7677 0.1513 69.88);
   --status-success: oklch(0.7771 0.1882 154.28);
-  --status-error: oklch(0.7282 0.1610 27.12);
-  --status-aborted: oklch(0.5500 0.0100 250.00);
-  --chat-fg-secondary: oklch(0.8462 0.0100 252.82);
+  --status-error: oklch(0.7282 0.161 27.12);
+  --status-aborted: oklch(0.55 0.01 250);
+  --chat-fg-secondary: oklch(0.8462 0.01 252.82);
   --chat-fg-subtle: oklch(0.4368 0.0253 261.66);
-  --chat-fg-subtler: oklch(0.3690 0.0159 255.61);
+  --chat-fg-subtler: oklch(0.369 0.0159 255.61);
 }
 
 @layer base {
@@ -145,8 +145,12 @@
 }
 
 @keyframes shimmer-text {
-  0%   { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 .streaming-shimmer {
@@ -176,9 +180,15 @@
   animation: none;
 }
 
-.streaming-shimmer :where(a) { color: var(--chat-brand-accent); }
-.streaming-shimmer :where(code) { color: var(--chat-fg-secondary); }
-.streaming-shimmer :where(strong, em, kbd) { color: var(--foreground); }
+.streaming-shimmer :where(a) {
+  color: var(--chat-brand-accent);
+}
+.streaming-shimmer :where(code) {
+  color: var(--chat-fg-secondary);
+}
+.streaming-shimmer :where(strong, em, kbd) {
+  color: var(--foreground);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .streaming-shimmer {

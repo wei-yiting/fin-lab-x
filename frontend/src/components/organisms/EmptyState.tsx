@@ -1,16 +1,19 @@
-import { PromptChip } from "@/components/atoms/PromptChip"
-import { Newspaper, DollarSign, BarChart3, FileText } from "lucide-react"
+import { PromptChip } from "@/components/atoms/PromptChip";
+import { Newspaper, DollarSign, BarChart3, FileText } from "lucide-react";
 
 const CHIPS = [
   { icon: Newspaper, text: "Latest market news for NVDA" },
   { icon: DollarSign, text: "Show AAPL stock quote" },
   { icon: BarChart3, text: "Compare NVDA and AMD financials" },
   { icon: FileText, text: "Summarize the latest 10-K of MSFT" },
-] as const
+] as const;
 
 export function EmptyState({ onPickPrompt }: { onPickPrompt: (text: string) => void }) {
   return (
-    <div data-testid="empty-state" className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+    <div
+      data-testid="empty-state"
+      className="flex flex-1 flex-col items-center justify-center px-4 py-12"
+    >
       <h2 className="text-[28px] font-bold tracking-tight text-foreground">
         What would you like to know?
       </h2>
@@ -29,5 +32,5 @@ export function EmptyState({ onPickPrompt }: { onPickPrompt: (text: string) => v
         ))}
       </div>
     </div>
-  )
+  );
 }

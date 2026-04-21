@@ -243,13 +243,6 @@ Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), whi
 | html-to-markdown is single-maintainer | Long-term maintenance risk | Adapter pattern allows switching to markdownify at any time |
 | html-to-markdown major version churn | v3 lifecycle may be short | Pinned `<4.0.0`; adapter isolates library internals |
 
-## Extension Guidelines
-
-- **New filing type**: Add value to `FilingType` enum. Preprocessor heading patterns are 10-K specific — new types may need new patterns.
-- **New preprocessor rule**: Add a method to `HTMLPreprocessor`, call it in `preprocess()`. Rules execute sequentially.
-- **New converter**: Implement `HTMLToMarkdownConverter` protocol (`.name` property + `.convert()` method).
-- **New cleanup rule**: Add a private `_strip_*` or `_normalize_*` method to `MarkdownCleaner`, call it from `clean()`. Run `backend/scripts/validation/validate_sec_md_cleanup.py` against the cache before and after to confirm the new rule's impact and absence of regressions.
-
 ## Markdown Cleanup
 
 `MarkdownCleaner` runs after `convert_with_fallback()` to strip boilerplate and normalize headings. It operates at the markdown layer because page separators (`---`) are converter artifacts invisible in HTML, and heading casing inconsistencies only manifest after conversion.

@@ -94,19 +94,10 @@ def _compute_mrr(chunks: list[dict], expected: dict) -> float:
 
 
 def _compute_map(chunks: list[dict], expected: dict) -> float:
-    """Canonical Average Precision.
+    """Average Precision with fixed denominator R = total expected entries.
 
-    AP = (1 / R) * sum over relevant ranks k of Precision@k
-      where Precision@k = (# relevant chunks found in top-k) / k
-      and R = total number of expected entries (denominator is fixed, not
-      just the number found — unmatched entries reduce AP).
-
-    A single chunk can satisfy at most one expected entry; each chunk is
-    greedily bound to the first unmatched expected entry it matches, in rank
-    order.
-
-    Reference: Manning, Raghavan, Schütze, "Introduction to Information
-    Retrieval", Ch. 8.
+    Each chunk greedily binds to the first unmatched expected entry it hits,
+    so unmatched entries pull AP down.
     """
     expected_paths = expected["header_paths"]
     snippets = expected.get("answer_snippets") or []

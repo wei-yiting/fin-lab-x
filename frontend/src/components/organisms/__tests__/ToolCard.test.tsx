@@ -12,14 +12,14 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
   };
 
   test('input-streaming → data-tool-state="input-streaming", running status dot', () => {
-    render(<ToolCard part={{ ...baseToolPart, state: "input-streaming" }} isAborted={false} />);
+    render(<ToolCard toolPart={{ ...baseToolPart, state: "input-streaming" }} isAborted={false} />);
     const card = screen.getByTestId("tool-card");
     expect(card).toHaveAttribute("data-tool-state", "input-streaming");
     expect(screen.getByTestId("status-dot")).toHaveAttribute("data-status-state", "running");
   });
 
   test('input-available → data-tool-state="input-available", running status dot', () => {
-    render(<ToolCard part={{ ...baseToolPart, state: "input-available" }} isAborted={false} />);
+    render(<ToolCard toolPart={{ ...baseToolPart, state: "input-available" }} isAborted={false} />);
     const card = screen.getByTestId("tool-card");
     expect(card).toHaveAttribute("data-tool-state", "input-available");
     expect(card).toHaveAttribute("data-tool-call-id", "tc-1");
@@ -29,7 +29,7 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
   test('output-available → data-tool-state="output-available", success status dot', () => {
     render(
       <ToolCard
-        part={{ ...baseToolPart, state: "output-available", output: { price: 1045 } }}
+        toolPart={{ ...baseToolPart, state: "output-available", output: { price: 1045 } }}
         isAborted={false}
       />,
     );
@@ -41,7 +41,7 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
   test('output-error → data-tool-state="output-error" + friendly error inline', () => {
     render(
       <ToolCard
-        part={{ ...baseToolPart, state: "output-error", errorText: "API rate limit exceeded" }}
+        toolPart={{ ...baseToolPart, state: "output-error", errorText: "API rate limit exceeded" }}
         isAborted={false}
       />,
     );
@@ -52,14 +52,14 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
   });
 
   test('isAborted=true with input-available → data-tool-state="aborted", aborted status dot', () => {
-    render(<ToolCard part={{ ...baseToolPart, state: "input-available" }} isAborted={true} />);
+    render(<ToolCard toolPart={{ ...baseToolPart, state: "input-available" }} isAborted={true} />);
     const card = screen.getByTestId("tool-card");
     expect(card).toHaveAttribute("data-tool-state", "aborted");
     expect(screen.getByTestId("status-dot")).toHaveAttribute("data-status-state", "aborted");
   });
 
   test('isAborted=true with input-streaming → data-tool-state="aborted"', () => {
-    render(<ToolCard part={{ ...baseToolPart, state: "input-streaming" }} isAborted={true} />);
+    render(<ToolCard toolPart={{ ...baseToolPart, state: "input-streaming" }} isAborted={true} />);
     const card = screen.getByTestId("tool-card");
     expect(card).toHaveAttribute("data-tool-state", "aborted");
     expect(screen.getByTestId("status-dot")).toHaveAttribute("data-status-state", "aborted");
@@ -70,7 +70,7 @@ test("TC-comp-toolcard-02: expanded state stable across parent re-render with sa
   const user = userEvent.setup();
   const { rerender } = render(
     <ToolCard
-      part={{
+      toolPart={{
         type: "tool",
         toolCallId: "tc-stable",
         toolName: "yfinance",
@@ -86,7 +86,7 @@ test("TC-comp-toolcard-02: expanded state stable across parent re-render with sa
 
   rerender(
     <ToolCard
-      part={{
+      toolPart={{
         type: "tool",
         toolCallId: "tc-stable",
         toolName: "yfinance",

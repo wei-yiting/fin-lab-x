@@ -1,5 +1,5 @@
 import type { ExtractedSources } from "@/models";
-import { SourceLink } from "./SourceLink";
+import { SourceLink } from "@/components/atoms/SourceLink";
 
 export function Sources({ sources }: { sources: ExtractedSources }) {
   const safe = sources.filter((s) => /^https?:/.test(s.url));

@@ -1,20 +1,40 @@
-export type ErrorContext = {
+import type { ErrorClass } from "@/models";
+
+export interface ErrorContext {
   source: "pre-stream-http" | "mid-stream-sse" | "tool-output-error" | "network";
   status?: number;
   rawMessage?: string;
-};
+}
 
-export type FriendlyError = {
+export interface FriendlyError {
   title: string;
   detail?: string;
   retriable: boolean;
-};
+}
 
-const preStreamHttpMap: Record<number, { title: string; retriable: boolean }> = {
-  422: { title: "Couldn't regenerate that message. Please try again.", retriable: true },
-  404: { title: "Conversation not found. Refresh to start a new one.", retriable: false },
-  409: { title: "The system is busy. Please try again in a moment.", retriable: true },
-  500: { title: "Server error. Please try again.", retriable: true },
+interface PreStreamHttpEntry {
+  class: ErrorClass;
+  title: string;
+  retriable: boolean;
+}
+
+export const preStreamHttpMap: Record<number, PreStreamHttpEntry> = {
+  422: {
+    class: "pre-stream-422",
+    title: "Couldn't regenerate that message. Please try again.",
+    retriable: true,
+  },
+  404: {
+    class: "pre-stream-404",
+    title: "Conversation not found. Refresh to start a new one.",
+    retriable: false,
+  },
+  409: {
+    class: "pre-stream-409",
+    title: "The system is busy. Please try again in a moment.",
+    retriable: true,
+  },
+  500: { class: "pre-stream-500", title: "Server error. Please try again.", retriable: true },
 };
 
 const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boolean }> = [

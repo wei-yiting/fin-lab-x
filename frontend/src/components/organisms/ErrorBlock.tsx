@@ -2,25 +2,23 @@ import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/primitives/button";
 import type { FriendlyError } from "@/lib/error-messages";
+import type { ErrorClass } from "@/lib/error-classifier";
 
-export function ErrorBlock({
-  friendly,
-  onRetry,
-  source,
-  errorClass,
-}: {
+interface ErrorBlockProps {
   friendly: FriendlyError;
   onRetry?: () => void;
   source: "pre-stream" | "mid-stream";
-  errorClass: string;
-}) {
-  const [showDetail, setShowDetail] = useState(false);
-  const [showMore, setShowMore] = useState(false);
+  errorClass: ErrorClass | "";
+}
+
+export function ErrorBlock({ friendly, onRetry, source, errorClass }: ErrorBlockProps) {
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [showFullDetail, setShowFullDetail] = useState(false);
 
   const testId = source === "pre-stream" ? "stream-error-block" : "inline-error-block";
   const truncateThreshold = 200;
   const displayDetail =
-    friendly.detail && !showMore && friendly.detail.length > truncateThreshold
+    friendly.detail && !showFullDetail && friendly.detail.length > truncateThreshold
       ? friendly.detail.slice(0, truncateThreshold) + "..."
       : friendly.detail;
 
@@ -40,22 +38,22 @@ export function ErrorBlock({
           {friendly.detail && (
             <button
               data-testid="error-detail-toggle"
-              aria-expanded={showDetail}
-              onClick={() => setShowDetail(!showDetail)}
+              aria-expanded={isDetailOpen}
+              onClick={() => setIsDetailOpen(!isDetailOpen)}
               className="text-xs text-muted-foreground hover:underline"
             >
-              {showDetail ? "Hide details" : "Show details"}
+              {isDetailOpen ? "Hide details" : "Show details"}
             </button>
           )}
-          {showDetail && friendly.detail && (
+          {isDetailOpen && friendly.detail && (
             <pre
               data-testid="error-raw-detail"
               className="overflow-auto rounded bg-muted/50 p-2 text-xs font-mono text-muted-foreground"
             >
               {displayDetail}
-              {friendly.detail.length > truncateThreshold && !showMore && (
+              {friendly.detail.length > truncateThreshold && !showFullDetail && (
                 <button
-                  onClick={() => setShowMore(true)}
+                  onClick={() => setShowFullDetail(true)}
                   className="ml-1 text-[var(--chat-brand-accent)] hover:underline"
                 >
                   Show more

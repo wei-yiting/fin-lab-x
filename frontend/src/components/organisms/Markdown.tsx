@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { RefSup } from "@/components/atoms/RefSup";
@@ -6,6 +6,13 @@ import { Cursor } from "@/components/atoms/Cursor";
 import { markdownSourcesPlugin } from "@/lib/markdown-sources";
 import { cn } from "@/lib/utils";
 import type { ExtractedSources } from "@/models";
+
+// Sentinel that the streaming Markdown renderer appends to the raw text
+// so that ReactMarkdown's `p` element override can swap it for a real
+// <Cursor /> inline with the final paragraph. Rendering <Cursor/> as a
+// sibling of <ReactMarkdown> (the previous approach) put the cursor on
+// the next line because ReactMarkdown emits a block <p>.
+const CURSOR_MARKER = "⌧CURSOR⌧";
 
 export function Markdown({
   text,
@@ -17,6 +24,8 @@ export function Markdown({
   sources: ExtractedSources;
 }) {
   const remarkPlugins = useMemo(() => [remarkGfm, markdownSourcesPlugin(sources)], [sources]);
+
+  const markdownText = isStreaming ? `${text}${CURSOR_MARKER}` : text;
 
   return (
     <div
@@ -40,11 +49,34 @@ export function Markdown({
               </a>
             );
           },
+          p: ({ children }) => <p>{replaceCursorMarker(children)}</p>,
+          li: ({ children }) => <li>{replaceCursorMarker(children)}</li>,
         }}
       >
-        {text}
+        {markdownText}
       </ReactMarkdown>
-      {isStreaming && <Cursor />}
     </div>
   );
+}
+
+function replaceCursorMarker(node: ReactNode): ReactNode {
+  if (typeof node === "string") {
+    if (!node.includes(CURSOR_MARKER)) return node;
+    const [before, ...rest] = node.split(CURSOR_MARKER);
+    return (
+      <>
+        {before}
+        <Cursor />
+        {rest.join(CURSOR_MARKER)}
+      </>
+    );
+  }
+  if (Array.isArray(node)) {
+    return node.map((child, i) => (
+      <span key={i} style={{ display: "contents" }}>
+        {replaceCursorMarker(child)}
+      </span>
+    ));
+  }
+  return node;
 }

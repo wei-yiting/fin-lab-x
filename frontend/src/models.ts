@@ -16,10 +16,20 @@ export type ToolUIState =
 export const isRunningToolState = (state: string): boolean =>
   state === "input-streaming" || state === "input-available";
 
-export type SourceRef = {
+export type ErrorClass =
+  | "pre-stream-422"
+  | "pre-stream-404"
+  | "pre-stream-409"
+  | "pre-stream-500"
+  | "pre-stream-5xx"
+  | "network"
+  | "mid-stream"
+  | "unknown";
+
+export interface SourceRef {
   label: string;
   url: string;
   title?: string;
   hostname: string;
-};
+}
 export type ExtractedSources = ReadonlyArray<SourceRef>;

@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
-import { shouldShowTypingIndicator } from "../typing-indicator-logic";
+import { shouldShowReasoningIndicator } from "../reasoning-indicator-logic";
 
-describe("shouldShowTypingIndicator — truth table", () => {
+describe("shouldShowReasoningIndicator — truth table", () => {
   type Case = {
     name: string;
     status: "submitted" | "streaming" | "ready" | "error";
@@ -68,6 +68,8 @@ describe("shouldShowTypingIndicator — truth table", () => {
 
   test.each(cases)("$name", ({ status, lastMessage, expected }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test data uses loose types
-    expect(shouldShowTypingIndicator({ status, lastMessage: lastMessage as any })).toBe(expected);
+    expect(shouldShowReasoningIndicator({ status, lastMessage: lastMessage as any })).toBe(
+      expected,
+    );
   });
 });

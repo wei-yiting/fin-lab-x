@@ -1,6 +1,6 @@
-export function TypingIndicator() {
+export function ReasoningIndicator() {
   return (
-    <div data-testid="typing-indicator" className="flex items-center gap-1 py-4 px-2">
+    <div data-testid="reasoning-indicator" className="flex items-center gap-1 py-4 px-2">
       {[0, 1, 2].map((i) => (
         <span
           key={i}

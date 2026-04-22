@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { classifyError } from "../error-classifier";
-import { ChatHttpError } from "../chat-http-error";
+import { ChatHttpError } from "../chat-http";
 
 describe("classifyError", () => {
   test('TypeError with "fetch" in message → network', () => {

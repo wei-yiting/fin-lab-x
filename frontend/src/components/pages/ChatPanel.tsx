@@ -10,8 +10,7 @@ import { ErrorBlock } from "@/components/organisms/ErrorBlock";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
-import { statusAwareFetch } from "@/lib/status-aware-fetch";
-import { ChatHttpError } from "@/lib/chat-http-error";
+import { ChatHttpError, statusAwareFetch } from "@/lib/chat-http";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
 

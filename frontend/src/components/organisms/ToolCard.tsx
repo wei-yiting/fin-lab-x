@@ -9,7 +9,7 @@ import { toFriendlyError } from "@/lib/error-messages";
 import { isRunningToolState } from "@/models";
 import type { ToolUIState } from "@/models";
 
-type ToolPart = {
+export interface ToolPart {
   type: string;
   toolCallId: string;
   toolName?: string;
@@ -18,37 +18,35 @@ type ToolPart = {
   input: unknown;
   output?: unknown;
   errorText?: string;
-};
-
-function resolveToolName(part: ToolPart): string {
-  if (part.toolName) return part.toolName;
-  if (part.title) return part.title;
-  if (part.type.startsWith("tool-")) return part.type.slice(5);
-  return part.type;
 }
 
-export function ToolCard({
-  part,
-  isAborted,
-  progressText,
-}: {
-  part: ToolPart;
+function resolveToolName(toolPart: ToolPart): string {
+  if (toolPart.toolName) return toolPart.toolName;
+  if (toolPart.title) return toolPart.title;
+  if (toolPart.type.startsWith("tool-")) return toolPart.type.slice(5);
+  return toolPart.type;
+}
+
+interface ToolCardProps {
+  toolPart: ToolPart;
   isAborted: boolean;
   progressText?: string;
-}) {
+}
+
+export function ToolCard({ toolPart, isAborted, progressText }: ToolCardProps) {
   const visualState: ToolUIState =
-    isAborted && isRunningToolState(part.state) ? "aborted" : (part.state as ToolUIState);
+    isAborted && isRunningToolState(toolPart.state) ? "aborted" : (toolPart.state as ToolUIState);
 
   const friendly =
-    part.state === "output-error" && part.errorText
-      ? toFriendlyError({ source: "tool-output-error", rawMessage: part.errorText })
+    toolPart.state === "output-error" && toolPart.errorText
+      ? toFriendlyError({ source: "tool-output-error", rawMessage: toolPart.errorText })
       : null;
 
   return (
     <Collapsible>
       <div
         data-testid="tool-card"
-        data-tool-call-id={part.toolCallId}
+        data-tool-call-id={toolPart.toolCallId}
         data-tool-state={visualState}
         className="mt-1 mb-4 rounded-lg border border-border bg-card"
       >
@@ -59,16 +57,16 @@ export function ToolCard({
         >
           <ToolRow
             visualState={visualState}
-            toolName={resolveToolName(part)}
+            toolName={resolveToolName(toolPart)}
             progressText={progressText}
             friendlyTitle={friendly?.title}
           />
         </CollapsibleTrigger>
         <CollapsibleContent>
           <ToolDetail
-            input={part.input}
-            output={part.output}
-            errorDetail={part.state === "output-error" ? part.errorText : undefined}
+            input={toolPart.input}
+            output={toolPart.output}
+            errorDetail={toolPart.state === "output-error" ? toolPart.errorText : undefined}
           />
         </CollapsibleContent>
       </div>

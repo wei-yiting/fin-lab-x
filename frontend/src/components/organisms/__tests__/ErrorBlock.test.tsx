@@ -77,7 +77,7 @@ describe("ErrorBlock", () => {
         friendly={{ title: "Connection lost mid-response.", retriable: true }}
         onRetry={vi.fn()}
         source="mid-stream"
-        errorClass="mid-stream-network"
+        errorClass="mid-stream"
       />,
     );
     expect(screen.getByTestId("inline-error-block")).toBeInTheDocument();
@@ -93,7 +93,7 @@ describe("ErrorBlock", () => {
       <ErrorBlock
         friendly={{ title: "Something went wrong.", retriable: false }}
         source="pre-stream"
-        errorClass="pre-stream-unknown"
+        errorClass="unknown"
       />,
     );
     expect(screen.getByTestId("error-title")).toBeInTheDocument();

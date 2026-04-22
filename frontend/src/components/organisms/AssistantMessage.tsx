@@ -9,20 +9,20 @@ import type { ChatStatus } from "@/models";
 
 type MessagePart = Record<string, unknown>;
 
-type AssistantMessageMessage = {
+interface AssistantMessageMessage {
   id: string;
   role: "system" | "user" | "assistant";
   parts: MessagePart[];
-};
+}
 
-type AssistantMessageProps = {
+interface AssistantMessageProps {
   message: AssistantMessageMessage;
   isLast: boolean;
   status?: ChatStatus;
   abortedTools: Set<string>;
   toolProgress: Record<string, string>;
   onRegenerate?: (messageId: string) => void;
-};
+}
 
 export function AssistantMessage({
   message,
@@ -77,7 +77,7 @@ export function AssistantMessage({
           return (
             <ToolCard
               key={toolCallId ?? i}
-              part={part as Parameters<typeof ToolCard>[0]["part"]}
+              toolPart={part as unknown as Parameters<typeof ToolCard>[0]["toolPart"]}
               isAborted={isAborted}
               progressText={toolProgress[toolCallId]}
             />

@@ -1,14 +1,8 @@
 import { StatusDot } from "@/components/atoms/StatusDot";
 import { ChevronRight } from "lucide-react";
+import type { ToolUIState } from "@/models";
 
-type ToolRowState =
-  | "input-streaming"
-  | "input-available"
-  | "output-available"
-  | "output-error"
-  | "aborted";
-
-function stateToStatusDot(state: ToolRowState): "running" | "success" | "error" | "aborted" {
+function stateToStatusDot(state: ToolUIState): "running" | "success" | "error" | "aborted" {
   switch (state) {
     case "input-streaming":
     case "input-available":
@@ -23,7 +17,7 @@ function stateToStatusDot(state: ToolRowState): "running" | "success" | "error" 
 }
 
 function stateLabel(
-  state: ToolRowState,
+  state: ToolUIState,
   toolName: string,
   progressText?: string,
   friendlyTitle?: string,
@@ -41,17 +35,14 @@ function stateLabel(
   }
 }
 
-export function ToolRow({
-  visualState,
-  toolName,
-  progressText,
-  friendlyTitle,
-}: {
-  visualState: ToolRowState;
+interface ToolRowProps {
+  visualState: ToolUIState;
   toolName: string;
   progressText?: string;
   friendlyTitle?: string;
-}) {
+}
+
+export function ToolRow({ visualState, toolName, progressText, friendlyTitle }: ToolRowProps) {
   return (
     <div className="flex items-center gap-2 py-1.5 px-2 text-sm">
       <StatusDot state={stateToStatusDot(visualState)} />

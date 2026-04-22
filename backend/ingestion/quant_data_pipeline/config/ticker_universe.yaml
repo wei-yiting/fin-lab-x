@@ -1,0 +1,11 @@
+tickers:
+  - MSFT   # Software + Cloud
+  - NVDA   # Semiconductor
+  - CRM    # SaaS
+  - WMT    # Retail
+  - JPM    # Banking
+  - BRK.B  # Insurance / Holdco
+  - JNJ    # Pharma / Healthcare
+  - KO     # Consumer staples
+  - XOM    # Integrated Energy
+  - CAT    # Industrial

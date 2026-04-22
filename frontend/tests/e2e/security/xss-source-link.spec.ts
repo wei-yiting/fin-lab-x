@@ -1,65 +1,45 @@
 import { test, expect } from "../fixtures";
 
+// Sanitization detail (javascript: stripped, mailto preserved, rel attrs on https
+// links) is covered by Markdown RTL. This E2E verifies only the end-to-end
+// security invariant that cannot be asserted in jsdom: in a real browser, no
+// `javascript:` anchor is rendered and no `dialog` event fires when the page
+// is loaded with a hostile fixture.
+async function assertNoXss(
+  chat: {
+    gotoFixture: (n: string) => Promise<void>;
+    sendMessage: (t: string) => Promise<void>;
+    waitReady: () => Promise<void>;
+  },
+  page: import("@playwright/test").Page,
+  fixture: string,
+) {
+  let dialogTriggered = false;
+  page.on("dialog", async (dialog) => {
+    dialogTriggered = true;
+    await dialog.dismiss();
+  });
+
+  await chat.gotoFixture(fixture);
+  await chat.sendMessage("test");
+  await chat.waitReady();
+
+  await expect(page.locator('a[href^="javascript:"]')).toHaveCount(0);
+  expect(dialogTriggered).toBe(false);
+}
+
 test(
-  "inline body links with javascript: URL are sanitized",
+  "inline javascript: URL is sanitized end-to-end",
   { tag: ["@security", "@regression"] },
   async ({ chat, page }) => {
-    let dialogTriggered = false;
-    page.on("dialog", async (dialog) => {
-      dialogTriggered = true;
-      await dialog.dismiss();
-    });
-
-    await chat.gotoFixture("xss-inline-body-link");
-    await chat.sendMessage("show me inline links");
-    await chat.waitReady();
-
-    // Anchor queries scoped to assistant-message body; sources-block is separate.
-    const assistantBody = page.getByTestId("assistant-message");
-    const bodyAnchors = assistantBody.locator("a").filter({
-      hasNot: page.getByTestId("sources-block").locator("a"),
-    });
-
-    // No javascript: URL allowed anywhere in body
-    const jsAnchors = assistantBody.locator('a[href^="javascript:"]');
-    await expect(jsAnchors).toHaveCount(0);
-
-    // Safe https link renders with secure attributes
-    const safeAnchor = bodyAnchors.filter({ hasText: "safe" }).first();
-    await expect(safeAnchor).toHaveAttribute("href", "https://example.com");
-    await expect(safeAnchor).toHaveAttribute("target", "_blank");
-    await expect(safeAnchor).toHaveAttribute("rel", /noopener/);
-    await expect(safeAnchor).toHaveAttribute("rel", /noreferrer/);
-
-    // mailto: is allowed by react-markdown's defaultUrlTransform — the sanitizer
-    // strips javascript: only. Assert the mailto link is kept as-is.
-    const mailAnchor = bodyAnchors.filter({ hasText: "mail link" }).first();
-    await expect(mailAnchor).toHaveAttribute("href", "mailto:x@y.com");
-
-    expect(dialogTriggered).toBe(false);
+    await assertNoXss(chat, page, "xss-inline-body-link");
   },
 );
 
 test(
-  "javascript: URL in source reference is sanitized",
+  "source-reference javascript: URL is sanitized end-to-end",
   { tag: ["@security", "@regression"] },
   async ({ chat, page }) => {
-    let dialogTriggered = false;
-    page.on("dialog", async (dialog) => {
-      dialogTriggered = true;
-      await dialog.dismiss();
-    });
-
-    await chat.gotoFixture("xss-javascript-url");
-    await chat.sendMessage("show me sources");
-    await chat.waitReady();
-
-    const xssAnchors = page.locator('a[href^="javascript:"]');
-    await expect(xssAnchors).toHaveCount(0);
-
-    const mailtoAnchors = page.locator('a[href^="mailto:"]');
-    await expect(mailtoAnchors).toHaveCount(0);
-
-    expect(dialogTriggered).toBe(false);
+    await assertNoXss(chat, page, "xss-javascript-url");
   },
 );

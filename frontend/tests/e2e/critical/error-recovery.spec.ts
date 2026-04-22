@@ -1,6 +1,10 @@
 import { test, expect } from "../fixtures";
 import { E2E_TIMEOUTS } from "../constants";
 
+// Hook-level invariants (no user-bubble duplication, error-title text matching,
+// status transitions) are covered by ChatPanel integration RTL. This E2E
+// verifies only what the real browser can: error UI surfaces + retry completes
+// the flow end-to-end.
 test(
   "pre-stream error recovery via Retry",
   { tag: ["@critical", "@regression"] },
@@ -9,25 +13,18 @@ test(
 
     await chat.sendMessage("test");
 
+    // 1. Error UI surfaces
     await expect(page.getByTestId("stream-error-block")).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });
-    await expect(page.getByTestId("error-title")).toContainText("Server error");
     await expect(page.getByTestId("error-retry-btn")).toBeVisible();
 
-    await expect(page.getByTestId("user-bubble")).toBeVisible();
-    await expect(page.getByTestId("user-bubble")).toHaveCount(1);
-
+    // 2. Retry click actually recovers
     await page.getByTestId("error-retry-btn").click();
 
-    await expect(page.getByTestId("stream-error-block")).not.toBeVisible({
-      timeout: E2E_TIMEOUTS.streamComplete,
-    });
-
+    // 3. Stream completes after retry
     await chat.waitReady();
-
-    await expect(page.getByTestId("user-bubble")).toHaveCount(1);
-
+    await expect(page.getByTestId("stream-error-block")).not.toBeVisible();
     await expect(page.getByTestId("assistant-message")).toBeVisible();
   },
 );

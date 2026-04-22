@@ -34,15 +34,26 @@ Filter with `pnpm exec playwright test --grep @tag-name`.
 | Test                                                          | Tags                       |
 | ------------------------------------------------------------- | -------------------------- |
 | app shell loads and displays heading                          | `@smoke`, `@regression`    |
-| tool + text streaming completes successfully                  | `@smoke`, `@regression`    |
-| citations render as RefSup with Sources block                 | `@smoke`, `@regression`    |
 | clear session resets messages and chatId                      | `@smoke`, `@regression`    |
-| regenerate replaces assistant response                        | `@smoke`, `@regression`    |
 | overflowed content is scrollable                              | `@smoke`, `@regression`    |
 | sending new message auto-scrolls to bottom                    | `@smoke`, `@regression`    |
 | pre-stream error recovery via Retry                           | `@critical`, `@regression` |
 | page refresh produces new chatId and clean state              | `@critical`, `@regression` |
 | regenerate failure → retry succeeds without duplicate history | `@critical`, `@regression` |
 | stop preserves partial text and resets Composer               | `@critical`, `@regression` |
-| inline body links with javascript: URL are sanitized          | `@security`, `@regression` |
-| javascript: URL in source reference is sanitized              | `@security`, `@regression` |
+| inline javascript: URL is sanitized end-to-end                | `@security`, `@regression` |
+| source-reference javascript: URL is sanitized end-to-end      | `@security`, `@regression` |
+
+## Layer policy
+
+Tests that verify pure component render / state / prop behavior belong in
+Vitest + RTL, not E2E. This suite deliberately excludes duplicate coverage of:
+
+- Tool card state rendering (`ToolCard.test.tsx`)
+- Citation render / Sources block (`AssistantMessage.test.tsx` TC-comp-citation-\*)
+- Regenerate button visibility + click dispatch (`AssistantMessage.test.tsx` + `ChatPanel.integration.test.tsx`)
+- Markdown URL sanitization detail (`Markdown.test.tsx` TC-comp-markdown-xss-\*)
+
+E2E scope is reserved for real-browser-only concerns: streaming abort, page
+refresh, scroll, and the end-to-end security invariant that no hostile link
+survives sanitization through to a rendered dialog.

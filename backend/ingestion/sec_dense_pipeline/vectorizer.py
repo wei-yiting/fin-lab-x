@@ -16,7 +16,7 @@ from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
     sentinel_id,
 )
-from backend.ingestion.sec_dense_pipeline.tracing import traced_span
+from backend.utils.span_tracing import traced_span
 
 
 def parse_item(raw_header_path: str) -> str:

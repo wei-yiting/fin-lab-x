@@ -14,7 +14,7 @@ from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
     check_sentinel_complete,
 )
-from backend.ingestion.sec_dense_pipeline.tracing import traced_span
+from backend.utils.span_tracing import traced_span
 from backend.ingestion.sec_dense_pipeline.vectorizer import (
     _EMBED_DIM,
     _EMBED_MODEL,

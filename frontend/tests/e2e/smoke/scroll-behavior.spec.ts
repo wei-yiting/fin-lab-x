@@ -37,7 +37,6 @@ test("S-scroll-e2e-02 @smoke: sending new message auto-scrolls to bottom", async
   await viewport.evaluate((el) => {
     el.scrollTop = 0;
   });
-  await page.waitForTimeout(100);
 
   const notAtBottom = await viewport.evaluate(
     (el) => el.scrollHeight - el.scrollTop - el.clientHeight > 100,

@@ -58,6 +58,43 @@ describe("Composer — textarea preservation", () => {
   });
 });
 
+describe("Composer — send button disabled state", () => {
+  test("TC-comp-composer-04: send button is disabled when textarea is empty", () => {
+    render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
+
+    expect(screen.getByTestId("composer-send-btn")).toBeDisabled();
+  });
+
+  test("TC-comp-composer-04: send button stays disabled for whitespace-only input", async () => {
+    const user = userEvent.setup();
+    render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "   ");
+
+    expect(screen.getByTestId("composer-send-btn")).toBeDisabled();
+  });
+
+  test("TC-comp-composer-04: send button becomes enabled once real content is typed", async () => {
+    const user = userEvent.setup();
+    render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "hello");
+
+    expect(screen.getByTestId("composer-send-btn")).toBeEnabled();
+  });
+
+  test("TC-comp-composer-04: submitting whitespace-only via Enter does not call sendMessage", async () => {
+    const user = userEvent.setup();
+    const sendMessage = vi.fn();
+    render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "   ");
+    await user.keyboard("{Enter}");
+
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+});
+
 describe("Composer — chip click", () => {
   test("TC-comp-composer-03: chip click overwrites existing textarea content (last-wins)", async () => {
     const user = userEvent.setup();

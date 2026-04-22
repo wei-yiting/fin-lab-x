@@ -67,7 +67,7 @@ describe("AssistantMessage — parts dispatch", () => {
         },
       ],
     };
-    const { container } = render(
+    render(
       <AssistantMessage
         message={message}
         isLast={false}
@@ -75,7 +75,7 @@ describe("AssistantMessage — parts dispatch", () => {
         toolProgress={{}}
       />,
     );
-    const cards = container.querySelectorAll('[data-testid="tool-card"]');
+    const cards = screen.getAllByTestId("tool-card");
     expect(cards).toHaveLength(2);
     expect(cards[0]).toHaveAttribute("data-tool-call-id", "tc-A");
     expect(cards[1]).toHaveAttribute("data-tool-call-id", "tc-B");

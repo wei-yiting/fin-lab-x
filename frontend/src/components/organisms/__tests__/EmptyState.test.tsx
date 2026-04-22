@@ -12,16 +12,14 @@ describe("EmptyState", () => {
     expect(chips).toHaveLength(4);
   });
 
-  test("TC-comp-empty-01: chip click invokes onPickPrompt with chip text, does NOT auto-send", async () => {
+  test("TC-comp-empty-01: chip click invokes onPickPrompt with chip text (populates Composer, not auto-send)", async () => {
     const user = userEvent.setup();
     const onPickPrompt = vi.fn();
-    const onSend = vi.fn();
     render(<EmptyState onPickPrompt={onPickPrompt} />);
 
     await user.click(screen.getAllByTestId("prompt-chip")[1]);
 
     expect(onPickPrompt).toHaveBeenCalledTimes(1);
     expect(onPickPrompt).toHaveBeenCalledWith(expect.any(String));
-    expect(onSend).not.toHaveBeenCalled();
   });
 });

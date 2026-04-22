@@ -16,14 +16,14 @@ describe("Sources molecule", () => {
 
   test('TC-comp-sources-01: SourceLink has anchor id="src-{label}" for in-page jump', () => {
     const extractedSources = [{ label: "3", url: "https://x.com", title: "X", hostname: "x.com" }];
-    const { container } = render(<Sources sources={extractedSources} />);
-    expect(container.querySelector("#src-3")).toBeInTheDocument();
+    render(<Sources sources={extractedSources} />);
+    expect(screen.getByTestId("source-link")).toHaveAttribute("id", "src-3");
   });
 
-  test("TC-comp-sources-02: source with javascript: URL is filtered out before rendering anchor", () => {
+  test("TC-comp-sources-02: source with javascript: URL is filtered out, block does not render", () => {
     const evilSources = [{ label: "1", url: "javascript:alert(1)", title: "Evil", hostname: "" }];
-    const { container } = render(<Sources sources={evilSources} />);
+    render(<Sources sources={evilSources} />);
 
-    expect(container.querySelector('a[href^="javascript:"]')).toBeNull();
+    expect(screen.queryByTestId("sources-block")).not.toBeInTheDocument();
   });
 });

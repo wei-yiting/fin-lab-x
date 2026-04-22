@@ -34,10 +34,10 @@ def test_ensure_schema_true_creates_all_tables(tmp_path):
     db_path = tmp_path / "schema.db"
     conn = get_connection(str(db_path), ensure_schema=True)
     try:
-        count = conn.execute(
+        row = conn.execute(
             "SELECT count(*) FROM duckdb_tables() WHERE table_name='companies'"
-        ).fetchone()[0]
-        assert count == 1
+        ).fetchone()
+        assert row is not None and row[0] == 1
 
         actual_tables = {
             row[0]

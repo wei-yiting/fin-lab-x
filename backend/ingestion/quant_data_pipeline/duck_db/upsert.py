@@ -20,6 +20,8 @@ def upsert_rows(
         "Row DTO must not declare updated_at; it is managed by upsert_rows()"
     )
     non_pk = [c for c in columns if c not in pk_columns]
+    # DuckDB's binder parses bare CURRENT_TIMESTAMP as a column reference inside
+    # ON CONFLICT DO UPDATE SET, so use now() (CURRENT_TIMESTAMP() doesn't exist).
     set_clause = ", ".join(
         [f"{c} = EXCLUDED.{c}" for c in non_pk]
         + ["updated_at = now()"]

@@ -31,21 +31,21 @@ Filter with `pnpm exec playwright test --grep @tag-name`.
 
 ## Current inventory
 
-| Test                                                            | Tags                       |
-| --------------------------------------------------------------- | -------------------------- |
-| app shell loads and displays heading                            | `@smoke`, `@regression`    |
-| clear session resets messages and chatId                        | `@smoke`, `@regression`    |
-| overflowed content is scrollable                                | `@smoke`, `@regression`    |
-| sending new message auto-scrolls to bottom                      | `@smoke`, `@regression`    |
-| typing indicator persists during slow stream start              | `@smoke`, `@regression`    |
-| pre-stream error recovery via Retry                             | `@critical`, `@regression` |
-| pre-stream 409 surfaces retriable 'system busy' error           | `@critical`, `@regression` |
-| mid-stream error preserves partial text + surfaces error block  | `@critical`, `@regression` |
-| page refresh produces new chatId and clean state                | `@critical`, `@regression` |
-| regenerate failure → retry succeeds without duplicate history   | `@critical`, `@regression` |
-| stop preserves partial text and resets Composer                 | `@critical`, `@regression` |
-| inline javascript: URL is sanitized end-to-end                  | `@security`, `@regression` |
-| source-reference javascript: URL is sanitized end-to-end        | `@security`, `@regression` |
+| Test                                                           | Tags                       |
+| -------------------------------------------------------------- | -------------------------- |
+| app shell loads and displays heading                           | `@smoke`, `@regression`    |
+| clear session resets messages and chatId                       | `@smoke`, `@regression`    |
+| overflowed content is scrollable                               | `@smoke`, `@regression`    |
+| sending new message auto-scrolls to bottom                     | `@smoke`, `@regression`    |
+| typing indicator persists during slow stream start             | `@smoke`, `@regression`    |
+| pre-stream error recovery via Retry                            | `@critical`, `@regression` |
+| pre-stream 409 surfaces retriable 'system busy' error          | `@critical`, `@regression` |
+| mid-stream error preserves partial text + surfaces error block | `@critical`, `@regression` |
+| page refresh produces new chatId and clean state               | `@critical`, `@regression` |
+| regenerate failure → retry succeeds without duplicate history  | `@critical`, `@regression` |
+| stop preserves partial text and resets Composer                | `@critical`, `@regression` |
+| inline javascript: URL is sanitized end-to-end                 | `@security`, `@regression` |
+| source-reference javascript: URL is sanitized end-to-end       | `@security`, `@regression` |
 
 ## Layer policy
 

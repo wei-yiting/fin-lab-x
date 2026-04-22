@@ -5,7 +5,7 @@ The streaming chat UI exposes a stable set of `data-*` attributes and `aria-labe
 ## Principles
 
 1. **ARIA first, `data-testid` second.** Interactive elements (`button`, `textarea`) always carry an `aria-label`. `data-testid` is added only where ARIA cannot express the semantic — status indicators, message containers, internal state markers.
-2. **`data-testid` is permanent in production.** No babel-plugin strip, no dev-only gate. The bundle-size impact is negligible (~1KB gzipped across the app) and maintaining two build pipelines is not worth it. Exception: `data-chat-id` on `ChatPanel` is gated behind `import.meta.env.DEV` to avoid exposing UUIDs in prod HTML.
+2. **`data-testid` is permanent in production.** No babel-plugin strip, no dev-only gate. The bundle-size impact is negligible (~1KB gzipped across the app) and maintaining two build pipelines is not worth it. Test-only attributes like `data-chat-id` on `ChatPanel` are also rendered in all environments — the UUID is already client-generated and carries no secret.
 3. **`data-status` / `data-tool-state` are dual-purpose.** They serve both as test selectors and as CSS state-driven style hooks (the same pattern shadcn's `Collapsible` uses for `data-state`).
 4. **Naming convention.** `kebab-case`, with a prefix matching the component domain: `composer-`, `tool-card-`, `chat-`, `stream-`, `error-`.
 5. **Attributes must stay live.** `data-status` / `data-tool-state` must reflect current React state. Do not cache for performance.
@@ -26,7 +26,7 @@ These enums drive both test selectors and rendering logic. They are **not** deri
 
 ### `data-error-source` (on `ErrorBlock` root)
 
-`pre-stream | mid-stream` — selects which variant of the block renders (pre-stream appears below `MessageList`; mid-stream appears at the end of the last assistant turn).
+`pre-stream | mid-stream` — selects which variant of the block renders. Both variants currently render through the same `errorContent` slot inside `MessageList` (after the last message). The distinction drives the friendly-title source (pre-stream-http / network vs mid-stream-sse in `lib/error-messages.ts`) and the `data-testid` (`stream-error-block` vs `inline-error-block`).
 
 ### `data-error-class` (on `ErrorBlock` root)
 

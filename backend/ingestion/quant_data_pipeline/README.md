@@ -62,6 +62,7 @@ with get_connection(":memory:") as conn:
 - **`updated_at` is managed by `upsert_rows()`**: Do not declare `updated_at` in any row DTO. The upsert sets it to `now()` on every write.
 - **`span_tracing.py` lives in `backend/utils/`** (cross-pipeline utility shared with the SEC dense pipeline). `quant_retry.py` lives in this package because retry behavior is pipeline-scoped.
 - **`get_connection` signature**: Pass an explicit path or `":memory:"` for tests. In production the path falls back to `$DUCKDB_PATH` env var, then `data/quant.db`.
+- **Audit semantics**: `ingestion_run()` records `report.rows_written_total` on both success and error paths. Callers should increment only AFTER a successful write (e.g., `report.rows_written_total += upsert_rows(...)`), so partial-write counts remain accurate when an exception interrupts mid-batch.
 
 ---
 

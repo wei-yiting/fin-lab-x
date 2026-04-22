@@ -1,4 +1,5 @@
 from typing import TypeVar
+from uuid import uuid4
 
 import pandas as pd
 from duckdb import DuckDBPyConnection
@@ -16,9 +17,10 @@ def upsert_rows(
     if not rows:
         return 0
     columns = list(type(rows[0]).model_fields.keys())
-    assert "updated_at" not in columns, (
-        "Row DTO must not declare updated_at; it is managed by upsert_rows()"
-    )
+    if "updated_at" in columns:
+        raise ValueError(
+            "Row DTO must not declare updated_at; it is managed by upsert_rows()"
+        )
     non_pk = [c for c in columns if c not in pk_columns]
     # DuckDB's binder parses bare CURRENT_TIMESTAMP as a column reference inside
     # ON CONFLICT DO UPDATE SET, so use now() (CURRENT_TIMESTAMP() doesn't exist).
@@ -26,15 +28,16 @@ def upsert_rows(
         [f"{c} = EXCLUDED.{c}" for c in non_pk]
         + ["updated_at = now()"]
     )
+    staging_name = f"__quant_upsert_staging_{uuid4().hex[:8]}"
     sql = (
         f"INSERT INTO {table} ({', '.join(columns)}) "
-        f"SELECT {', '.join(columns)} FROM staging "
+        f"SELECT {', '.join(columns)} FROM {staging_name} "
         f"ON CONFLICT ({', '.join(pk_columns)}) DO UPDATE SET {set_clause}"
     )
     df = pd.DataFrame([r.model_dump() for r in rows])
-    conn.register("staging", df)
+    conn.register(staging_name, df)
     try:
         conn.execute(sql)
     finally:
-        conn.unregister("staging")
+        conn.unregister(staging_name)
     return len(rows)

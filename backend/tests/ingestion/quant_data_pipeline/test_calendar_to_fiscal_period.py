@@ -53,3 +53,9 @@ def test_normalize_fiscal_period_raises(
         normalize_fiscal_period(period_end, fye_month)
     with pytest.raises(ValueError, match=str(period_end)):
         normalize_fiscal_period(period_end, fye_month)
+
+
+@pytest.mark.parametrize("bad_month", [0, 13, -1, 100])
+def test_normalize_fiscal_period_rejects_out_of_range_month(bad_month):
+    with pytest.raises(ValueError, match="must be 1-12"):
+        normalize_fiscal_period(date(2024, 6, 30), bad_month)

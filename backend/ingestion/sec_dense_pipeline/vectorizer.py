@@ -93,7 +93,7 @@ async def ingest_filing(
     """Chunk, embed, and upsert a filing into Qdrant.
 
     No Langfuse spans are emitted unless the caller is already inside an
-    active trace (see `tracing.traced_span`). Batch CLI and unit-test callers
+    active trace (see `backend.utils.span_tracing.traced_span`). Batch CLI and unit-test callers
     run silently; `search()`'s JIT path produces a nested span tree.
     """
     ticker = canonicalize_ticker(ticker)

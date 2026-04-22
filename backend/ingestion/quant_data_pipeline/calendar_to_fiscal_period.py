@@ -10,6 +10,10 @@ def normalize_fiscal_period(
     Month-precision (day is ignored) to tolerate 52/53-week calendar drift.
     Raises ValueError if period_end is not on a quarter boundary relative to FYE.
     """
+    if not 1 <= fiscal_year_end_month <= 12:
+        raise ValueError(
+            f"fiscal_year_end_month must be 1-12, got {fiscal_year_end_month}"
+        )
     fye_month = fiscal_year_end_month
     if period_end.month <= fye_month:
         fy = period_end.year

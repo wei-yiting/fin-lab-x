@@ -37,3 +37,31 @@ def test_parse_error(tmp_path):
 def test_file_not_found(tmp_path):
     with pytest.raises(ConfigurationError, match="not found"):
         load_ticker_universe(tmp_path / "nonexistent.yaml")
+
+
+def test_loader_rejects_scalar_string(tmp_path):
+    p = tmp_path / "u.yaml"
+    p.write_text('tickers: "MSFT"\n')
+    with pytest.raises(ConfigurationError, match="must be a list"):
+        load_ticker_universe(p)
+
+
+def test_loader_rejects_dict(tmp_path):
+    p = tmp_path / "u.yaml"
+    p.write_text('tickers:\n  MSFT: 1\n')
+    with pytest.raises(ConfigurationError, match="must be a list"):
+        load_ticker_universe(p)
+
+
+def test_loader_rejects_empty_string_in_list(tmp_path):
+    p = tmp_path / "u.yaml"
+    p.write_text('tickers:\n  - MSFT\n  - ""\n')
+    with pytest.raises(ConfigurationError, match="non-empty string"):
+        load_ticker_universe(p)
+
+
+def test_loader_rejects_null_in_list(tmp_path):
+    p = tmp_path / "u.yaml"
+    p.write_text('tickers:\n  - MSFT\n  - null\n')
+    with pytest.raises(ConfigurationError, match="non-empty string"):
+        load_ticker_universe(p)

@@ -38,12 +38,16 @@ def test_error_path(tmp_duckdb):
 def test_partial_metadata_preserved_on_error(tmp_duckdb):
     with pytest.raises(RuntimeError, match="boom"):
         with ingestion_run(tmp_duckdb, "yfinance", "NVDA") as report:
+            report.rows_written_total = 3
             report.metadata["api_latency_ms"] = {"info": 120}
             raise RuntimeError("boom")
 
-    row = tmp_duckdb.execute("SELECT metadata FROM ingestion_runs").fetchone()
+    row = tmp_duckdb.execute(
+        "SELECT rows_written_total, metadata FROM ingestion_runs"
+    ).fetchone()
     assert row is not None
-    parsed_meta = json.loads(row[0])
+    assert row[0] == 3
+    parsed_meta = json.loads(row[1])
     assert parsed_meta["api_latency_ms"] == {"info": 120}
 
 

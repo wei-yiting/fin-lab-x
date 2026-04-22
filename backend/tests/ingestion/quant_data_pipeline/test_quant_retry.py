@@ -131,3 +131,18 @@ def test_warning_logged_on_retry(fake_sleep, caplog):
 
     retrying_records = [r for r in caplog.records if "Retrying in" in r.message]
     assert len(retrying_records) >= 1
+
+
+def test_with_retry_rejects_zero_max_attempts():
+    with pytest.raises(ValueError, match="max_attempts must be >= 1"):
+        with_retry(max_attempts=0)
+
+
+def test_with_retry_rejects_negative_max_attempts():
+    with pytest.raises(ValueError, match="max_attempts must be >= 1"):
+        with_retry(max_attempts=-1)
+
+
+def test_with_retry_rejects_negative_base_delay():
+    with pytest.raises(ValueError, match="base_delay_seconds must be >= 0"):
+        with_retry(base_delay_seconds=-0.5)

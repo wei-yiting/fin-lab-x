@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -147,4 +148,4 @@ class IngestionRunRow(BaseModel):
     error_class: str | None = None
     error_message: str | None = None
     rows_written_total: int | None = None
-    metadata: str | None = None
+    metadata: dict[str, Any] | None = None

@@ -61,3 +61,39 @@ def test_foundation_roundtrip(tmp_duckdb):
         WHERE pipeline='yfinance' AND ticker='MSFT'
     """).fetchone()
     assert audit == ("yfinance", "MSFT", "success", 1)
+
+
+def test_segment_financials_supports_both_period_types(tmp_duckdb):
+    tmp_duckdb.execute(
+        """
+        INSERT INTO segment_financials (
+            ticker, fiscal_year, period_type, fiscal_quarter,
+            period_end, segment_name, segment_revenue_usd
+        ) VALUES
+            ('MSFT', 2024, 'quarterly', 3, DATE '2024-09-30', 'Azure', 25000000000),
+            ('MSFT', 2024, 'annual', NULL, DATE '2024-06-30', 'Azure', 100000000000)
+        """
+    )
+    rows = tmp_duckdb.execute(
+        "SELECT period_type, fiscal_quarter FROM segment_financials "
+        "WHERE ticker='MSFT' ORDER BY period_type"
+    ).fetchall()
+    assert rows == [('annual', None), ('quarterly', 3)]
+
+
+def test_geographic_revenue_supports_both_period_types(tmp_duckdb):
+    tmp_duckdb.execute(
+        """
+        INSERT INTO geographic_revenue (
+            ticker, fiscal_year, period_type, fiscal_quarter,
+            period_end, region_name, revenue_usd
+        ) VALUES
+            ('MSFT', 2024, 'quarterly', 3, DATE '2024-09-30', 'Americas', 30000000000),
+            ('MSFT', 2024, 'annual', NULL, DATE '2024-06-30', 'Americas', 120000000000)
+        """
+    )
+    rows = tmp_duckdb.execute(
+        "SELECT period_type, fiscal_quarter FROM geographic_revenue "
+        "WHERE ticker='MSFT' ORDER BY period_type"
+    ).fetchall()
+    assert rows == [('annual', None), ('quarterly', 3)]

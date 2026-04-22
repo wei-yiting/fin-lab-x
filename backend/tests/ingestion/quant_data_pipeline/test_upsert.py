@@ -116,14 +116,14 @@ def test_column_level_merge(tmp_duckdb):
 
 
 def test_updated_at_assertion_guard(tmp_duckdb):
-    """DTO that declares updated_at must trigger AssertionError before touching DB."""
+    """DTO that declares updated_at must trigger ValueError before touching DB."""
 
     class BadRow(BaseModel):
         ticker: str
         updated_at: datetime
 
     bad_row = BadRow(ticker="BAD", updated_at=datetime.now())
-    with pytest.raises(AssertionError, match="updated_at"):
+    with pytest.raises(ValueError, match="updated_at"):
         upsert_rows(tmp_duckdb, "companies", ["ticker"], [bad_row])
 
 

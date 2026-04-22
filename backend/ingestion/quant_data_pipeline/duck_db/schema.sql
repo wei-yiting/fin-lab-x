@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS market_valuations (
     PRIMARY KEY (ticker, as_of_date)
 );
 
+COMMENT ON COLUMN market_valuations.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN market_valuations.as_of_date IS
   'Snapshot date of market data (typically today when ETL runs).';
 COMMENT ON COLUMN market_valuations.market_cap_usd IS
@@ -71,6 +73,8 @@ COMMENT ON COLUMN market_valuations.beta IS
   'Beta. Volatility relative to broad market (S&P 500).';
 COMMENT ON COLUMN market_valuations.held_pct_institutions IS
   'Institutional ownership as percentage.';
+COMMENT ON COLUMN market_valuations.updated_at IS
+  'Last time this row was upserted by ETL.';
 
 -- 6.3 quarterly_financials
 CREATE TABLE IF NOT EXISTS quarterly_financials (
@@ -135,16 +139,26 @@ CREATE TABLE IF NOT EXISTS quarterly_financials (
     PRIMARY KEY (ticker, fiscal_year, fiscal_quarter)
 );
 
+COMMENT ON COLUMN quarterly_financials.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN quarterly_financials.fiscal_year IS
   'Fiscal year (US SEC convention: year in which the fiscal year ENDS). AAPL FY2024 ends 2024-09-28.';
 COMMENT ON COLUMN quarterly_financials.fiscal_quarter IS
   'Fiscal quarter 1-4. Q4 is the quarter ending on the fiscal year end.';
+COMMENT ON COLUMN quarterly_financials.period_start IS
+  'First calendar day of the reporting period. NULL when source does not disclose.';
 COMMENT ON COLUMN quarterly_financials.period_end IS
   'Calendar date of fiscal period end (from data source, varies slightly year-to-year for 52/53-week calendars).';
 COMMENT ON COLUMN quarterly_financials.total_revenue_usd IS
   'Total revenue in USD for the quarter.';
+COMMENT ON COLUMN quarterly_financials.cost_of_revenue_usd IS
+  'Cost of revenue (COGS) in USD for the quarter.';
 COMMENT ON COLUMN quarterly_financials.gross_profit_usd IS
   'Gross profit = total_revenue - cost_of_revenue.';
+COMMENT ON COLUMN quarterly_financials.research_and_development_usd IS
+  'Research and development expense in USD.';
+COMMENT ON COLUMN quarterly_financials.selling_general_admin_usd IS
+  'Selling, general, and administrative expense in USD.';
 COMMENT ON COLUMN quarterly_financials.operating_income_usd IS
   'Operating income = gross_profit - operating expenses (R&D + SG&A).';
 COMMENT ON COLUMN quarterly_financials.ebit_usd IS
@@ -213,6 +227,8 @@ COMMENT ON COLUMN quarterly_financials.current_rpo_usd IS
   'Remaining performance obligation expected to be recognized within 12 months. NULL if company does not disclose (typically SaaS/Cloud only).';
 COMMENT ON COLUMN quarterly_financials.noncurrent_rpo_usd IS
   'Remaining performance obligation expected to be recognized beyond 12 months. NULL if company does not disclose.';
+COMMENT ON COLUMN quarterly_financials.updated_at IS
+  'Last time this row was upserted by ETL.';
 
 -- 6.4 annual_financials
 -- Same columns as quarterly_financials except fiscal_quarter; PK = (ticker, fiscal_year)
@@ -277,14 +293,24 @@ CREATE TABLE IF NOT EXISTS annual_financials (
     PRIMARY KEY (ticker, fiscal_year)
 );
 
+COMMENT ON COLUMN annual_financials.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN annual_financials.fiscal_year IS
   'Fiscal year (US SEC convention: year in which the fiscal year ENDS). AAPL FY2024 ends 2024-09-28.';
+COMMENT ON COLUMN annual_financials.period_start IS
+  'First calendar day of the reporting period. NULL when source does not disclose.';
 COMMENT ON COLUMN annual_financials.period_end IS
   'Calendar date of fiscal period end (from data source, varies slightly year-to-year for 52/53-week calendars).';
 COMMENT ON COLUMN annual_financials.total_revenue_usd IS
   'Total revenue in USD for the quarter.';
+COMMENT ON COLUMN annual_financials.cost_of_revenue_usd IS
+  'Cost of revenue (COGS) in USD for the quarter.';
 COMMENT ON COLUMN annual_financials.gross_profit_usd IS
   'Gross profit = total_revenue - cost_of_revenue.';
+COMMENT ON COLUMN annual_financials.research_and_development_usd IS
+  'Research and development expense in USD.';
+COMMENT ON COLUMN annual_financials.selling_general_admin_usd IS
+  'Selling, general, and administrative expense in USD.';
 COMMENT ON COLUMN annual_financials.operating_income_usd IS
   'Operating income = gross_profit - operating expenses (R&D + SG&A).';
 COMMENT ON COLUMN annual_financials.ebit_usd IS
@@ -353,11 +379,14 @@ COMMENT ON COLUMN annual_financials.current_rpo_usd IS
   'Remaining performance obligation expected to be recognized within 12 months. NULL if company does not disclose (typically SaaS/Cloud only).';
 COMMENT ON COLUMN annual_financials.noncurrent_rpo_usd IS
   'Remaining performance obligation expected to be recognized beyond 12 months. NULL if company does not disclose.';
+COMMENT ON COLUMN annual_financials.updated_at IS
+  'Last time this row was upserted by ETL.';
 
 -- 6.5 segment_financials
 CREATE TABLE IF NOT EXISTS segment_financials (
     ticker VARCHAR NOT NULL,
     fiscal_year INTEGER NOT NULL,
+    period_type VARCHAR NOT NULL CHECK (period_type IN ('quarterly', 'annual')),
     fiscal_quarter INTEGER,                     -- NULL for annual
     period_start DATE,
     period_end DATE NOT NULL,
@@ -367,11 +396,21 @@ CREATE TABLE IF NOT EXISTS segment_financials (
     segment_assets_usd BIGINT,
     segment_capex_usd BIGINT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ticker, fiscal_year, fiscal_quarter, period_end, segment_name)
+    PRIMARY KEY (ticker, fiscal_year, period_type, period_end, segment_name)
 );
 
+COMMENT ON COLUMN segment_financials.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
+COMMENT ON COLUMN segment_financials.fiscal_year IS
+  'Fiscal year (e.g., MSFT FY2024 ends June 2024).';
+COMMENT ON COLUMN segment_financials.period_type IS
+  'Reporting granularity: ''quarterly'' (one calendar quarter) or ''annual'' (full fiscal year).';
 COMMENT ON COLUMN segment_financials.fiscal_quarter IS
-  'Fiscal quarter 1-4, or NULL for annual (full-year) segment reporting.';
+  'Fiscal quarter 1-4 when period_type=''quarterly''; NULL when period_type=''annual''.';
+COMMENT ON COLUMN segment_financials.period_start IS
+  'First calendar day of the reporting period. NULL when source does not disclose.';
+COMMENT ON COLUMN segment_financials.period_end IS
+  'Last calendar day of the reporting period (canonical identity date).';
 COMMENT ON COLUMN segment_financials.segment_name IS
   'Company-defined business segment name. E.g. AWS, Reality Labs, Services.';
 COMMENT ON COLUMN segment_financials.segment_revenue_usd IS
@@ -382,24 +421,41 @@ COMMENT ON COLUMN segment_financials.segment_assets_usd IS
   'Segment assets. NULL if not disclosed at segment level.';
 COMMENT ON COLUMN segment_financials.segment_capex_usd IS
   'Segment capital expenditure. NULL if not disclosed at segment level.';
+COMMENT ON COLUMN segment_financials.updated_at IS
+  'Last time this row was upserted by ETL.';
 
 -- 6.6 geographic_revenue
 CREATE TABLE IF NOT EXISTS geographic_revenue (
     ticker VARCHAR NOT NULL,
     fiscal_year INTEGER NOT NULL,
+    period_type VARCHAR NOT NULL CHECK (period_type IN ('quarterly', 'annual')),
     fiscal_quarter INTEGER,                     -- NULL for annual
     period_start DATE,
     period_end DATE NOT NULL,
     region_name VARCHAR NOT NULL,
     revenue_usd BIGINT NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ticker, fiscal_year, fiscal_quarter, period_end, region_name)
+    PRIMARY KEY (ticker, fiscal_year, period_type, period_end, region_name)
 );
 
+COMMENT ON COLUMN geographic_revenue.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
+COMMENT ON COLUMN geographic_revenue.fiscal_year IS
+  'Fiscal year (e.g., MSFT FY2024 ends June 2024).';
+COMMENT ON COLUMN geographic_revenue.period_type IS
+  'Reporting granularity: ''quarterly'' (one calendar quarter) or ''annual'' (full fiscal year).';
+COMMENT ON COLUMN geographic_revenue.fiscal_quarter IS
+  'Fiscal quarter 1-4 when period_type=''quarterly''; NULL when period_type=''annual''.';
+COMMENT ON COLUMN geographic_revenue.period_start IS
+  'First calendar day of the reporting period. NULL when source does not disclose.';
+COMMENT ON COLUMN geographic_revenue.period_end IS
+  'Last calendar day of the reporting period (canonical identity date).';
 COMMENT ON COLUMN geographic_revenue.region_name IS
   'Company-defined geographic region name. E.g. Americas, Greater China, Europe.';
 COMMENT ON COLUMN geographic_revenue.revenue_usd IS
   'Revenue attributed to this region for the period.';
+COMMENT ON COLUMN geographic_revenue.updated_at IS
+  'Last time this row was upserted by ETL.';
 
 -- 6.7 customer_concentration
 CREATE TABLE IF NOT EXISTS customer_concentration (
@@ -411,10 +467,16 @@ CREATE TABLE IF NOT EXISTS customer_concentration (
     PRIMARY KEY (ticker, fiscal_year, customer_identifier)
 );
 
+COMMENT ON COLUMN customer_concentration.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
+COMMENT ON COLUMN customer_concentration.fiscal_year IS
+  'Fiscal year (e.g., MSFT FY2024 ends June 2024).';
 COMMENT ON COLUMN customer_concentration.customer_identifier IS
   'Customer name if disclosed (e.g. Apple Inc.), or anonymized label (e.g. Customer A) depending on filing.';
 COMMENT ON COLUMN customer_concentration.revenue_pct IS
   'Percentage of total company revenue from this customer. Only disclosed when >10%.';
+COMMENT ON COLUMN customer_concentration.updated_at IS
+  'Last time this row was upserted by ETL.';
 
 -- 6.8 ingestion_runs
 CREATE TABLE IF NOT EXISTS ingestion_runs (
@@ -444,9 +506,31 @@ CREATE INDEX IF NOT EXISTS idx_runs_pipeline_ticker_started
 
 COMMENT ON TABLE ingestion_runs IS
   'Audit log of every ETL invocation. Tracks WHO/WHEN/HOW data got in. For "WHAT data exists" query data tables directly (they carry fiscal_year/fiscal_quarter).';
+COMMENT ON COLUMN ingestion_runs.run_id IS
+  'Unique run identifier (UUID). Auto-generated when caller omits it.';
 COMMENT ON COLUMN ingestion_runs.pipeline IS
   'Pipeline name: yfinance | sec_xbrl.';
+COMMENT ON COLUMN ingestion_runs.ticker IS
+  'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
+COMMENT ON COLUMN ingestion_runs.target_filing_type IS
+  'SEC filing type (''10-K'' or ''10-Q''). NULL for yfinance runs.';
+COMMENT ON COLUMN ingestion_runs.target_fiscal_year IS
+  'Fiscal year targeted by the run. NULL when pipeline processes all available years.';
+COMMENT ON COLUMN ingestion_runs.target_fiscal_quarter IS
+  'Fiscal quarter targeted by the run. NULL for 10-K (annual) or when processing all quarters.';
 COMMENT ON COLUMN ingestion_runs.target_accession_number IS
   'SEC filing immutable identity. NULL for yfinance (no single-filing target).';
+COMMENT ON COLUMN ingestion_runs.started_at IS
+  'UTC timestamp when the run began.';
+COMMENT ON COLUMN ingestion_runs.finished_at IS
+  'UTC timestamp when the run ended (success or error). NULL if the row was pre-inserted before completion.';
+COMMENT ON COLUMN ingestion_runs.status IS
+  'Terminal outcome: ''success'' or ''error''.';
+COMMENT ON COLUMN ingestion_runs.error_class IS
+  'Exception class name when status=''error''. NULL on success.';
+COMMENT ON COLUMN ingestion_runs.error_message IS
+  'Exception message when status=''error''. NULL on success.';
+COMMENT ON COLUMN ingestion_runs.rows_written_total IS
+  'Total rows upserted across all target tables for this run. May be partial on error.';
 COMMENT ON COLUMN ingestion_runs.metadata IS
   'Per-run summary. Free-form JSON: {periods_covered, rows_per_table, api_latency_ms, ...}.';

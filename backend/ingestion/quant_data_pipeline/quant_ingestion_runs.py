@@ -93,7 +93,7 @@ def ingestion_run(
             status="error",
             error_class=type(exc).__name__,
             error_message=str(exc),
-            rows_written_total=0,
+            rows_written_total=report.rows_written_total,
             metadata=report.metadata,
         )
         raise

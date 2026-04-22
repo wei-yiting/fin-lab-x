@@ -24,4 +24,15 @@ def load_ticker_universe(path: Path | None = None) -> list[str]:
         raise ConfigurationError(
             f"Ticker universe YAML at {target} is missing 'tickers' key"
         ) from exc
-    return [str(t).upper() for t in tickers]
+    if not isinstance(tickers, list):
+        raise ConfigurationError(
+            f"'tickers' in {target} must be a list, got {type(tickers).__name__}"
+        )
+    normalized: list[str] = []
+    for idx, t in enumerate(tickers):
+        if not isinstance(t, str) or not t.strip():
+            raise ConfigurationError(
+                f"tickers[{idx}] in {target} must be a non-empty string, got {t!r}"
+            )
+        normalized.append(t.upper())
+    return normalized

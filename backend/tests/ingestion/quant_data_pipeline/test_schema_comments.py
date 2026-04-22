@@ -47,34 +47,47 @@ def test_every_column_has_a_comment(tmp_duckdb):
 def test_quarterly_annual_full_schema_mirror(tmp_duckdb):
     """
     quarterly_financials and annual_financials must be identical in every respect
-    (column name, type, nullability, default) except fiscal_quarter, which only
-    exists in quarterly_financials.
+    (column name, type, nullability, default, and column order) except fiscal_quarter,
+    which only exists in quarterly_financials.
     """
     rows = tmp_duckdb.execute(
         """
-        SELECT table_name, column_name, data_type, is_nullable, column_default
+        SELECT table_name, column_name, column_index, data_type, is_nullable, column_default
         FROM duckdb_columns()
         WHERE table_name IN ('quarterly_financials', 'annual_financials')
+        ORDER BY table_name, column_index
         """
     ).fetchall()
-    by_table: dict[str, dict[str, tuple]] = {}
-    for table, col, dtype, nullable, default in rows:
-        by_table.setdefault(table, {})[col] = (dtype, nullable, default)
 
-    q = by_table["quarterly_financials"]
-    a = by_table["annual_financials"]
+    q: list[tuple] = []  # [(name, dtype, nullable, default), ...]
+    a: list[tuple] = []
+    for table, col, _idx, dtype, nullable, default in rows:
+        meta = (col, dtype, nullable, default)
+        if table == "quarterly_financials":
+            q.append(meta)
+        else:
+            a.append(meta)
 
-    # fiscal_quarter is the only allowed asymmetry
-    assert "fiscal_quarter" in q
-    assert "fiscal_quarter" not in a
+    # Only allowed asymmetry: fiscal_quarter exists in quarterly, not annual.
+    assert any(col == "fiscal_quarter" for col, *_ in q), (
+        "quarterly_financials must declare fiscal_quarter"
+    )
+    assert not any(col == "fiscal_quarter" for col, *_ in a), (
+        "annual_financials must not declare fiscal_quarter"
+    )
 
-    shared = (set(q) & set(a))
+    q_without_fq = [m for m in q if m[0] != "fiscal_quarter"]
+
+    assert [m[0] for m in q_without_fq] == [m[0] for m in a], (
+        "Column name list (with fiscal_quarter removed from quarterly) must be "
+        "identical between quarterly_financials and annual_financials, "
+        "preserving column order."
+    )
+
     mismatches = [
-        (col, q[col], a[col]) for col in sorted(shared) if q[col] != a[col]
+        (qm, am) for qm, am in zip(q_without_fq, a, strict=True) if qm != am
     ]
     assert not mismatches, (
-        "Schema mirror drift (type/nullable/default) between quarterly and annual:\n"
-        + "\n".join(
-            f"- {col}\n  Q: {qv}\n  A: {av}" for col, qv, av in mismatches
-        )
+        "Column metadata drift (type/nullable/default) between quarterly and annual:\n"
+        + "\n".join(f"- Q: {qm}\n  A: {am}" for qm, am in mismatches)
     )

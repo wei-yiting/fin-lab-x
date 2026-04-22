@@ -396,6 +396,11 @@ CREATE TABLE IF NOT EXISTS segment_financials (
     segment_assets_usd BIGINT,
     segment_capex_usd BIGINT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (
+        (period_type = 'annual'    AND fiscal_quarter IS NULL) OR
+        (period_type = 'quarterly' AND fiscal_quarter IS NOT NULL
+                                   AND fiscal_quarter BETWEEN 1 AND 4)
+    ),
     PRIMARY KEY (ticker, fiscal_year, period_type, period_end, segment_name)
 );
 
@@ -435,6 +440,11 @@ CREATE TABLE IF NOT EXISTS geographic_revenue (
     region_name VARCHAR NOT NULL,
     revenue_usd BIGINT NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (
+        (period_type = 'annual'    AND fiscal_quarter IS NULL) OR
+        (period_type = 'quarterly' AND fiscal_quarter IS NOT NULL
+                                   AND fiscal_quarter BETWEEN 1 AND 4)
+    ),
     PRIMARY KEY (ticker, fiscal_year, period_type, period_end, region_name)
 );
 

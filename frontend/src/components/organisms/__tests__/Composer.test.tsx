@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import { Composer, type ComposerHandle } from "../Composer";
@@ -92,6 +92,35 @@ describe("Composer — send button disabled state", () => {
     await user.keyboard("{Enter}");
 
     expect(sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("Composer — IME composition guard", () => {
+  // fireEvent is used here because userEvent cannot express nativeEvent.isComposing,
+  // which is the exact browser-level signal Composer guards against (CJK IME commit).
+  test("TC-comp-composer-05: Enter during IME composition does not trigger sendMessage", async () => {
+    const user = userEvent.setup();
+    const sendMessage = vi.fn();
+    render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "你好");
+
+    fireEvent.keyDown(textarea, { key: "Enter", isComposing: true });
+
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("TC-comp-composer-05: Enter after IME commit (isComposing=false) triggers sendMessage", () => {
+    const sendMessage = vi.fn();
+    render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    fireEvent.change(textarea, { target: { value: "你好" } });
+    fireEvent.keyDown(textarea, { key: "Enter", isComposing: false });
+
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+    expect(sendMessage).toHaveBeenCalledWith({ text: "你好" });
   });
 });
 

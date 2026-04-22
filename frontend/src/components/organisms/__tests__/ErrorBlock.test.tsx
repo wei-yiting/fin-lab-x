@@ -70,4 +70,34 @@ describe("ErrorBlock", () => {
     const detail = screen.getByTestId("error-raw-detail");
     expect(detail.textContent!.length).toBeLessThan(longDetail.length);
   });
+
+  test('source="mid-stream" renders with inline-error-block testId', () => {
+    render(
+      <ErrorBlock
+        friendly={{ title: "Connection lost mid-response.", retriable: true }}
+        onRetry={vi.fn()}
+        source="mid-stream"
+        errorClass="mid-stream-network"
+      />,
+    );
+    expect(screen.getByTestId("inline-error-block")).toBeInTheDocument();
+    expect(screen.getByTestId("inline-error-block")).toHaveAttribute(
+      "data-error-source",
+      "mid-stream",
+    );
+    expect(screen.queryByTestId("stream-error-block")).not.toBeInTheDocument();
+  });
+
+  test("toggle button is not rendered when friendly.detail is absent", () => {
+    render(
+      <ErrorBlock
+        friendly={{ title: "Something went wrong.", retriable: false }}
+        source="pre-stream"
+        errorClass="pre-stream-unknown"
+      />,
+    );
+    expect(screen.getByTestId("error-title")).toBeInTheDocument();
+    expect(screen.queryByTestId("error-detail-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-raw-detail")).not.toBeInTheDocument();
+  });
 });

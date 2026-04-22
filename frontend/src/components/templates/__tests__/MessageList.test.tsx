@@ -45,3 +45,36 @@ describe("MessageList — TypingIndicator visibility", () => {
     expect(screen.getByTestId("empty-state")).toBeInTheDocument();
   });
 });
+
+describe("MessageList — errorContent slot", () => {
+  test("status=error with errorContent renders the error slot inside viewport", () => {
+    render(
+      <MessageList
+        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
+        status="error"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+        errorContent={<div data-testid="error-slot-fixture">Oops</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("error-slot-fixture")).toBeInTheDocument();
+    expect(screen.getByTestId("message-list")).toHaveAttribute("data-status", "error");
+  });
+
+  test("errorContent not provided at status=error still renders messages without crashing", () => {
+    render(
+      <MessageList
+        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
+        status="error"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("message-list")).toHaveAttribute("data-status", "error");
+    expect(screen.getByText("q")).toBeInTheDocument();
+  });
+});

@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
 
 test("S-md-03-inline @security: inline body links with javascript: URL are sanitized", async ({
+  chat,
   page,
 }) => {
   let dialogTriggered = false;
@@ -9,14 +10,9 @@ test("S-md-03-inline @security: inline body links with javascript: URL are sanit
     await dialog.dismiss();
   });
 
-  await page.goto("/?msw_fixture=xss-inline-body-link");
-
-  await page.getByTestId("composer-textarea").fill("show me inline links");
-  await page.getByTestId("composer-send-btn").click();
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+  await chat.gotoFixture("xss-inline-body-link");
+  await chat.sendMessage("show me inline links");
+  await chat.waitReady();
 
   // Anchor queries scoped to assistant-message body; sources-block is separate.
   const assistantBody = page.getByTestId("assistant-message");
@@ -50,21 +46,16 @@ test("S-md-03-inline @security: inline body links with javascript: URL are sanit
   expect(dialogTriggered).toBe(false);
 });
 
-test("S-md-03 @security: javascript: URL is sanitized", async ({ page }) => {
+test("S-md-03 @security: javascript: URL is sanitized", async ({ chat, page }) => {
   let dialogTriggered = false;
   page.on("dialog", async (dialog) => {
     dialogTriggered = true;
     await dialog.dismiss();
   });
 
-  await page.goto("/?msw_fixture=xss-javascript-url");
-
-  await page.getByTestId("composer-textarea").fill("show me sources");
-  await page.getByTestId("composer-send-btn").click();
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+  await chat.gotoFixture("xss-javascript-url");
+  await chat.sendMessage("show me sources");
+  await chat.waitReady();
 
   const xssAnchors = page.locator('a[href^="javascript:"]');
   await expect(xssAnchors).toHaveCount(0);

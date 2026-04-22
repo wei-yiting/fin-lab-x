@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "preview:e2e": "vite build --mode e2e && vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

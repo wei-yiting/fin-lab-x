@@ -1,21 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
 
-test("J-regen-01 @smoke: regenerate replaces assistant response", async ({ page }) => {
-  await page.goto("/?msw_fixture=regenerate-happy");
-
-  await page.getByTestId("composer-textarea").fill("Tell me about MSFT");
-  await page.getByTestId("composer-send-btn").click();
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+test("J-regen-01 @smoke: regenerate replaces assistant response", async ({ chat, page }) => {
+  await chat.gotoFixture("regenerate-happy");
+  await chat.sendMessage("Tell me about MSFT");
+  await chat.waitReady();
   await expect(page.getByTestId("assistant-message")).toContainText("Original response.");
 
   await page.getByTestId("regenerate-btn").click();
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+  await chat.waitReady();
   await expect(page.getByTestId("assistant-message")).toContainText("Regenerated response.");
 
   await expect(page.getByTestId("user-bubble")).toHaveCount(1);

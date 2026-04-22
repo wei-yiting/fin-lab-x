@@ -1,18 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
 
 const VIEWPORT = "message-list-viewport";
 
-async function sendAndWait(page: import("@playwright/test").Page, text: string) {
-  await page.getByTestId("composer-textarea").fill(text);
-  await page.getByTestId("composer-send-btn").click();
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
-}
-
-test("S-scroll-e2e-01 @smoke: overflowed content is scrollable", async ({ page }) => {
-  await page.goto("/?msw_fixture=scroll-overflow");
-  await sendAndWait(page, "Generate long content");
+test("S-scroll-e2e-01 @smoke: overflowed content is scrollable", async ({ chat, page }) => {
+  await chat.gotoFixture("scroll-overflow");
+  await chat.sendMessage("Generate long content");
+  await chat.waitReady();
 
   const viewport = page.getByTestId(VIEWPORT);
 
@@ -26,10 +19,13 @@ test("S-scroll-e2e-01 @smoke: overflowed content is scrollable", async ({ page }
   expect(canScrollUp).toBe(true);
 });
 
-test("S-scroll-e2e-02 @smoke: sending new message auto-scrolls to bottom", async ({ page }) => {
-  await page.goto("/?msw_fixture=scroll-overflow");
-
-  await sendAndWait(page, "First message");
+test("S-scroll-e2e-02 @smoke: sending new message auto-scrolls to bottom", async ({
+  chat,
+  page,
+}) => {
+  await chat.gotoFixture("scroll-overflow");
+  await chat.sendMessage("First message");
+  await chat.waitReady();
 
   const viewport = page.getByTestId(VIEWPORT);
 
@@ -44,7 +40,8 @@ test("S-scroll-e2e-02 @smoke: sending new message auto-scrolls to bottom", async
   expect(notAtBottom).toBe(true);
 
   // Send new message — should auto-scroll to bottom
-  await sendAndWait(page, "Second message");
+  await chat.sendMessage("Second message");
+  await chat.waitReady();
 
   const isAtBottom = await viewport.evaluate(
     (el) => el.scrollHeight - el.scrollTop - el.clientHeight < 100,

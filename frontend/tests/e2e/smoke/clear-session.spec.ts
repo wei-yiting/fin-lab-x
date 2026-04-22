@@ -1,13 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
 
-test("J-clear-01 @smoke: clear session resets messages and chatId", async ({ page }) => {
-  await page.goto("/?msw_fixture=happy-text");
-
-  await page.getByTestId("composer-textarea").fill("first question");
-  await page.getByTestId("composer-send-btn").click();
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+test("J-clear-01 @smoke: clear session resets messages and chatId", async ({ chat, page }) => {
+  await chat.gotoFixture("happy-text");
+  await chat.sendMessage("first question");
+  await chat.waitReady();
 
   const oldChatId = await page.getByTestId("chat-panel").getAttribute("data-chat-id");
   expect(oldChatId).toBeTruthy();

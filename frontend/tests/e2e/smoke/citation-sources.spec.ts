@@ -1,16 +1,12 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
 
 test("TC-e2e-citation-01 @smoke: citations render as RefSup with Sources block", async ({
+  chat,
   page,
 }) => {
-  await page.goto("/?msw_fixture=happy-citation");
-
-  await page.getByTestId("composer-textarea").fill("Show me analysis");
-  await page.getByTestId("composer-send-btn").click();
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+  await chat.gotoFixture("happy-citation");
+  await chat.sendMessage("Show me analysis");
+  await chat.waitReady();
 
   const refSups = page.getByTestId("ref-sup");
   await expect(refSups).toHaveCount(2);

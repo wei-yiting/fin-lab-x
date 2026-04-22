@@ -69,6 +69,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
       <div
         ref={viewportRef}
         data-testid="message-list-viewport"
+        data-at-bottom={shouldFollowBottom ? "true" : "false"}
         onScroll={handleScroll}
         className="min-h-0 flex-1 overflow-y-auto"
         style={{ maskImage: maskGradient, WebkitMaskImage: maskGradient }}

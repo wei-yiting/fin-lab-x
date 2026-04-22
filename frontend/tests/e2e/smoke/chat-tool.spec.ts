@@ -1,16 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
 
-test("J-stream-02 @smoke: tool + text streaming completes successfully", async ({ page }) => {
-  await page.goto("/?msw_fixture=happy-tool-then-text");
-
-  await page.getByTestId("composer-textarea").fill("What is AAPL price?");
-  await page.getByTestId("composer-send-btn").click();
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
-  });
+test("J-stream-02 @smoke: tool + text streaming completes successfully", async ({ chat, page }) => {
+  await chat.gotoFixture("happy-tool-then-text");
+  await chat.sendMessage("What is AAPL price?");
+  await chat.waitReady();
 
   await expect(page.locator('[data-tool-state="output-available"]')).toBeVisible();
-
   await expect(page.getByTestId("composer-send-btn")).toBeVisible();
 });

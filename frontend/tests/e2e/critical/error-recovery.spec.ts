@@ -1,12 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures";
+import { E2E_TIMEOUTS } from "../constants";
 
-test("J-err-01 @critical: pre-stream error recovery via Retry", async ({ page }) => {
-  await page.goto("/?msw_fixture=pre-stream-500-then-success");
+test("J-err-01 @critical: pre-stream error recovery via Retry", async ({ chat, page }) => {
+  await chat.gotoFixture("pre-stream-500-then-success");
 
-  await page.getByTestId("composer-textarea").fill("test");
-  await page.getByTestId("composer-send-btn").click();
+  await chat.sendMessage("test");
 
-  await expect(page.getByTestId("stream-error-block")).toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId("stream-error-block")).toBeVisible({
+    timeout: E2E_TIMEOUTS.streamComplete,
+  });
   await expect(page.getByTestId("error-title")).toContainText("Server error");
   await expect(page.getByTestId("error-retry-btn")).toBeVisible();
 
@@ -15,11 +17,11 @@ test("J-err-01 @critical: pre-stream error recovery via Retry", async ({ page })
 
   await page.getByTestId("error-retry-btn").click();
 
-  await expect(page.getByTestId("stream-error-block")).not.toBeVisible({ timeout: 10000 });
-
-  await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
-    timeout: 10000,
+  await expect(page.getByTestId("stream-error-block")).not.toBeVisible({
+    timeout: E2E_TIMEOUTS.streamComplete,
   });
+
+  await chat.waitReady();
 
   await expect(page.getByTestId("user-bubble")).toHaveCount(1);
 

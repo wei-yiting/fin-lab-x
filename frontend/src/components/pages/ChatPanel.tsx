@@ -150,12 +150,10 @@ export function ChatPanel() {
     : null;
   const preStreamErrorClass = showPreStreamError ? classifyError(error) : "";
 
-  const dataTestProps = import.meta.env.DEV ? { "data-chat-id": chatId } : {};
-
   return (
     <div
       data-testid="chat-panel"
-      {...dataTestProps}
+      data-chat-id={chatId}
       className="relative flex h-screen flex-col bg-background"
     >
       <ChatHeader onClear={handleClearSession} messagesEmpty={messages.length === 0} />

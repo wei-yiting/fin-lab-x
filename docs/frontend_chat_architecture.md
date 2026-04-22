@@ -10,6 +10,8 @@ This document records the architecture of the streaming chat UI (`frontend/src/c
 
 ## 2. Atomic 6-Layer Component Tree
 
+### 2.1 Layer rule
+
 ```mermaid
 flowchart BT
     subgraph primitives["primitives (shadcn + lucide)"]
@@ -22,16 +24,16 @@ flowchart BT
         StatusDot
         RefSup
         Cursor
-        TypingIndicator
+        ReasoningIndicator
         PromptChip
         RegenerateButton
+        SourceLink
+        UserMessage
     end
 
     subgraph molecules
-        SourceLink
         ToolRow
         ToolDetail
-        UserMessage
         Sources
     end
 
@@ -57,18 +59,79 @@ flowchart BT
     organisms --> MessageList
     MessageList --> ChatPanel
     organisms --> ChatPanel
+
+    classDef primitiveCls fill:#eef2ff,stroke:#6366f1,color:#1e1b4b
+    classDef atomCls fill:#ecfeff,stroke:#06b6d4,color:#083344
+    classDef moleculeCls fill:#f0fdf4,stroke:#22c55e,color:#14532d
+    classDef organismCls fill:#fff7ed,stroke:#f97316,color:#7c2d12
+    classDef templateCls fill:#fef3c7,stroke:#eab308,color:#713f12
+    classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
+
+    class P1,P2,P3 primitiveCls
+    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
+    class ToolRow,ToolDetail,Sources moleculeCls
+    class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
+    class MessageList templateCls
+    class ChatPanel pageCls
 ```
 
 | Layer | Classification rule | Examples |
 |---|---|---|
 | **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw` |
-| **atoms** | Leaf component OR trivial primitive wrapper (primitive + 1–2 inline elements, no structural layout). | `StatusDot`, `RefSup`, `Cursor`, `TypingIndicator`, `PromptChip`, `RegenerateButton` |
-| **molecules** | Structural composition (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no state/hooks/business logic. | `SourceLink`, `ToolRow`, `ToolDetail`, `UserMessage`, `Sources` |
-| **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState`, `ChatHeader` |
+| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ReasoningIndicator`, `PromptChip`, `RegenerateButton`, `SourceLink`, `UserMessage` |
+| **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ToolRow`, `ToolDetail`, `Sources` |
+| **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState` |
 | **templates** | Layout shell that accepts data via props; does not wire `useChat`. | `MessageList` |
 | **pages** | Top-level orchestrator — the only layer that wires `useChat` and owns the chat lifecycle. | `ChatPanel` |
 
 **Extension rule** — inline a new visual element at first use; extract to `atoms/` only on the second occurrence. Do not introduce `features/` or `hooks/` subfolders under `components/`; hooks live in `frontend/src/hooks/`.
+
+### 2.2 Concrete composition graph
+
+The layer diagram above shows which layer *may* depend on which. This graph shows the *actual* compositions that ship — what each component wraps in its render tree. Use it to trace which atom change affects which organism.
+
+```mermaid
+flowchart LR
+    ChatPanel --> ChatHeader
+    ChatPanel --> MessageList
+    ChatPanel --> Composer
+    ChatPanel --> EmptyState
+    ChatPanel --> ErrorBlock
+
+    MessageList --> UserMessage
+    MessageList --> AssistantMessage
+    MessageList --> ReasoningIndicator
+
+    AssistantMessage --> ToolCard
+    AssistantMessage --> Markdown
+    AssistantMessage --> Sources
+    AssistantMessage --> RegenerateButton
+
+    ToolCard --> ToolRow
+    ToolCard --> ToolDetail
+    ToolRow --> StatusDot
+
+    Markdown --> RefSup
+    Markdown --> Cursor
+
+    Sources --> SourceLink
+
+    EmptyState --> PromptChip
+
+    classDef atomCls fill:#ecfeff,stroke:#06b6d4,color:#083344
+    classDef moleculeCls fill:#f0fdf4,stroke:#22c55e,color:#14532d
+    classDef organismCls fill:#fff7ed,stroke:#f97316,color:#7c2d12
+    classDef templateCls fill:#fef3c7,stroke:#eab308,color:#713f12
+    classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
+
+    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
+    class ToolRow,ToolDetail,Sources moleculeCls
+    class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
+    class MessageList templateCls
+    class ChatPanel pageCls
+```
+
+Design / review history that shaped this tree is captured under `artifacts/current/` (not tracked in git — see `artifacts/current/manual-verification-issues.md` and `code-review-improvement-report.md` in the local workspace).
 
 ## 3. State Ownership
 
@@ -81,11 +144,29 @@ Streaming lifecycle state lives in `ChatPanel` only. Atoms and molecules never i
 | `toolProgress: Record<ToolCallId, string>` | `useToolProgress` hook | Subscribes to `useChat.onData`; writes transient `data-tool-progress` messages into a record. Cleared explicitly by `ChatPanel` on session reset. |
 | `abortedTools: Set<ToolCallId>` | `ChatPanel` | Frontend-only marker for the 4th tool state (§5). Added on `stop()` or mid-stream `error` when tool is still `input-available`. Cleared on session reset or when the same turn is regenerated. |
 | `lastTriggerRef` | `ChatPanel` `useRef` | Remembers the most recent `sendMessage` / `regenerate` metadata so `handleRetry` can dispatch correctly (§6). |
-| `shouldFollowBottom` | `useFollowBottom` hook | MessageList scroll tracking with a 100px threshold; force-overrides on new user message. |
+| `shouldFollowBottom` | `useFollowBottom` hook | Viewport scroll tracking with a 100px threshold; force-overrides on new user message. The hook owns both the state and the scroll side-effect. |
 
 **Why `ChatPanel` owns `chatId` even though `useChat` has an `id` field**: `useChat.id` is read-only — there is no `setId`. To implement session reset we need to change the `id` prop from outside. Letting `useChat` auto-generate the id would forfeit reset control.
 
 ## 4. SSE Wire Format → UI Mapping
+
+### Glossary: `UIMessage.parts`
+
+AI SDK v6 models an assistant turn as a `UIMessage` whose content is an array of typed **parts**:
+
+```ts
+type UIMessage = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  parts: UIMessagePart[];
+};
+```
+
+Each incoming SSE chunk is reduced into the corresponding part. The renderer simply does `message.parts.map(part => renderByType(part))`. The word `part` in this codebase (`part: ToolPart`, `parts.map((part) => ...)`) always refers to an element of `UIMessage.parts[]` — it is the SDK's own term, not a project invention.
+
+Tool-specific parts are narrowed: `ToolCard` receives a `toolPart` prop after `AssistantMessage` has already filtered for `type === "tool-…"` or `type === "dynamic-tool"`.
+
+### Chunk → part mapping
 
 The backend emits AI SDK v6 `uiMessageChunkSchema`-compatible chunks. The frontend interprets them as follows:
 
@@ -126,47 +207,11 @@ stateDiagram-v2
 | Last message is `assistant` with partial parts (mid-stream error) | `regenerate({ messageId: lastAssistantMessage.id })` |
 | Any pre-stream **4xx** on a regenerate attempt (race window) | Fall back to `sendMessage(originalUserText)` to avoid a 4xx loop on a stale `messageId` |
 
-**No manual `messageId` stash is needed**. AI SDK v6 writes `start.messageId` directly into `state.message.id`, so `regenerate({ messageId: lastAssistantMessage.id })` already carries the backend-issued `lc_run--...` ID. Verified in `ai@6.0.142` (`node_modules/ai/dist/index.js`, chat store reducer) and against the live backend (V-1 probe).
+**No manual `messageId` stash is needed**. AI SDK v6 writes `start.messageId` directly into `state.message.id`, so `regenerate({ messageId: lastAssistantMessage.id })` already carries the backend-issued `lc_run--...` ID. Verified in `ai@6.0.142` (`node_modules/ai/dist/index.js`, chat store reducer) and against the live backend (see `scripts/v1-partial-regen-probe.sh`).
 
 ## 7. AI SDK v6 Contract Findings
 
-These behaviors are not documented in AI SDK release notes. They were verified against `@ai-sdk/react@3.0.144` + `ai@6.0.142` and the S1 backend during pre-coding contract probes (V-1/V-2/V-3) and the code review loop. Record them so a future reader does not re-derive them from SDK internals.
-
-### 7.1 SSE `error` chunks do **not** persist into `message.parts[]`
-
-AI SDK v6's chat store reducer (`case "error"`) only calls `onError` and sets `status` to `"error"`. It does not push an `error`-typed part into the message. Consequences:
-
-- `UIMessage.parts` never contains an item with `type === "error"`.
-- Any `useEffect` that expects to fire on `parts.some(p => p.type === 'error')` will never run.
-- The correct signal for stream-level errors is `status === 'error'` combined with the top-level `error` field from `useChat`.
-
-The mid-stream ErrorBlock therefore renders at the **`ChatPanel` level** (reading `useChat.error`), not inline inside `AssistantMessage`.
-
-### 7.2 `useChat.stop()` is clean — it does not pollute `error`
-
-Calling `stop()` during streaming:
-- transitions `status` back to `'ready'`
-- leaves `error` as `undefined` (not `null`, not an `AbortError`)
-
-No `try/catch` wrapper, no `AbortError` filter, and no manual `setStatus` is required inside `handleStop`.
-
-Two implementation notes that surfaced from V-3:
-- The SDK's `error` field is typed `Error | undefined`. Use `.toBeUndefined()` in tests, not `.toBeNull()`.
-- MSW handlers for stream fixtures **must** listen to `request.signal.abort` and close the server-side stream when the client aborts. Otherwise the SDK waits for end-of-stream that never comes, producing false-negative abort tests.
-
-### 7.3 S1 accepts `regenerate` on a partial turn (HTTP 200)
-
-When the client disconnects mid-stream, LangGraph has already persisted the partial AIMessage to its checkpointer. `POST /api/v1/chat` with `trigger: regenerate-message` and the partial `messageId` returns HTTP 200 and a fresh SSE stream (new `messageId`, tool calls re-issued).
-
-The race window: if the client disconnects before LangGraph commits any AIMessage, the backend falls back to an earlier turn or raises "No assistant message to regenerate" (HTTP 404). This is why `handleRetry` must fall back to `sendMessage` on any pre-stream 4xx — not just 422.
-
-### 7.4 SSE text-delta field name is `delta`, not `textDelta`
-
-The v6 `UIMessageChunk` type uses `delta` for incremental text. Fixtures that write `textDelta` are silently dropped by the SDK (the chunk fails schema validation), producing a stream that looks valid to the test runner but is actually empty. The backend serializer (`sse_serializer.py`) already uses `delta`; frontend fixtures must match.
-
-### 7.5 AI SDK v6 request body is nested
-
-The backend expects `{ id, messages: [{role, parts: [{type, text}]}], trigger, messageId? }`. Flat `{ message: string }` payloads from v5-style clients are rejected. See `StreamChatRequest` in `backend/api/routers/chat.py`.
+The non-obvious behaviors of `@ai-sdk/react@3.0.144` + `ai@6.0.142` — SSE error routing, `stop()` semantics, partial-turn regenerate, wire format quirks — are documented in a dedicated reference: [`ai_sdk_v6_contract_findings.md`](./ai_sdk_v6_contract_findings.md).
 
 ## 8. Markdown & Sources: Defer-to-Ready
 
@@ -182,26 +227,54 @@ The shipped strategy is **defer-to-ready**:
 
 The UX is a "pop-in" at stream end, similar to ChatGPT / Claude.ai. Partial sources on error/stop are preserved because the `useMemo` also fires when the stream stops on error.
 
-### Citation structure
+### 8.1 Parse flow — raw text to Sources block and RefSup
 
-`extractSources` uses `remark-parse` (the same CommonMark parser `react-markdown` uses internally) to find `definition` nodes — this eliminates the drift that a custom regex would have against CommonMark. A separate `markdownSourcesPlugin` (registered on `<ReactMarkdown>`) runs at render time to tag `linkReference` nodes with `data-citation` and resolve `href` to the source URL. The anchor override reads the attribute rather than sniffing link text, so a normal `[3](url)` whose text happens to be `3` is never mistaken for a citation.
+```mermaid
+flowchart TD
+    rawText["concatenated text-delta<br/>(raw assistant output)"]
 
-## 9. UI String Language Policy (V1)
+    rawText --> normalize["normalizeRefDefs(text)<br/>· strip bullet prefixes<br/>· strip source headers<br/>· ensure blank line before [N]:"]
 
-All frontend-controlled user-facing strings are **English**. No i18n framework in V1. Rationale:
-- mixed-language chrome within a single viewport produces visual noise
-- error titles map to backend HTTP status / tool names — English keeps the mapping stable
-- the empty-state prompt chips are already English; mixing in Traditional Chinese for placeholder/disclaimer/clear button would conflict
+    normalize --> parser["unified().use(remarkParse)<br/>parse cleaned text → AST"]
 
-Backend-provided strings are shown as-is:
-- `data-tool-progress.message` (backend-language)
-- Assistant text body (LLM follows the user's language)
-- Tool output JSON (raw)
-- Backend raw error `rawMessage` — **never rendered directly**; only surfaced inside an expandable "Show details" pane after being mapped to a friendly English title via `lib/error-messages.ts`.
+    parser --> defVisit{"walk AST nodes<br/>node.type === 'definition'?"}
 
-## 10. Related Documents
+    defVisit -->|yes| addSource["addSource(label, url, title)<br/>· label must be numeric<br/>· url must be http(s)<br/>· hostname must contain '.'"]
 
+    defVisit -->|fallback| regex["regex fallback for<br/>non-standard [N] URL (no colon)"]
+
+    regex --> addSource
+
+    addSource --> sources[["ExtractedSources<br/>sorted by label"]]
+
+    sources --> sourcesBlock["Sources molecule<br/>(renders <SourceLink> per entry)"]
+
+    sources --> plugin["markdownSourcesPlugin(sources)<br/>(remark plugin)"]
+
+    plugin --> linkRef{"walk AST<br/>type === 'linkReference'?"}
+
+    linkRef -->|identifier in sources| tag["rewrite node to hast <a><br/>· data-citation='true'<br/>· data-source-label=label<br/>· href=sourceUrl"]
+
+    tag --> markdown["Markdown organism<br/>ReactMarkdown + overridden a:<br/>→ <RefSup/> when data-citation='true'"]
+
+    classDef transformCls fill:#f0fdf4,stroke:#22c55e,color:#14532d
+    classDef dataCls fill:#eef2ff,stroke:#6366f1,color:#1e1b4b
+    classDef uiCls fill:#fff7ed,stroke:#f97316,color:#7c2d12
+
+    class normalize,parser,addSource,plugin,tag,regex transformCls
+    class rawText,sources,defVisit,linkRef dataCls
+    class sourcesBlock,markdown uiCls
+```
+
+### 8.2 Citation structure
+
+`extractSources` uses `remark-parse` (the same CommonMark parser `react-markdown` uses internally) to find `definition` nodes — this eliminates the drift that a custom regex would have against CommonMark. A separate `markdownSourcesPlugin` (registered on `<ReactMarkdown>`) runs at render time to tag `linkReference` nodes with `data-citation` and resolve `href` to the source URL. The anchor override in `Markdown.tsx` reads that attribute rather than sniffing link text, so a normal `[3](url)` whose text happens to be `3` is never mistaken for a citation.
+
+## 9. Related Documents
+
+- [`ai_sdk_v6_contract_findings.md`](./ai_sdk_v6_contract_findings.md) — SDK behaviors and wire-format quirks
 - `frontend/src/components/README.md` — short structure map for contributors
 - `frontend/src/__tests__/msw/README.md` — MSW test infrastructure and URL-gated worker
-- `docs/frontend_dom_contract.md` — `data-testid` / `data-status` / `data-tool-state` contract (kept as the testing surface of record)
+- `docs/frontend_dom_contract.md` — `data-testid` / `data-status` / `data-tool-state` principles and the `data-error-class` enum (testing surface of record)
 - `backend/api/routers/chat.py` + `backend/tests/api/test_chat.py` — backend wire format
+- `scripts/v1-partial-regen-probe.sh` — S1 partial-turn regenerate probe (see §7 findings)

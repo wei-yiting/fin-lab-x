@@ -1,6 +1,6 @@
 # Frontend DOM Observability Contract
 
-The streaming chat UI exposes a stable set of `data-*` attributes and `aria-label`s that tests and tooling rely on. This document is the source of truth for those selectors. It is paired with `frontend_chat_architecture.md`.
+The streaming chat UI exposes a stable set of `data-*` attributes and `aria-label`s that tests and tooling rely on. This document describes the **rules and semantic enums** that govern those selectors. For the per-component list of `data-testid` values, the component source files themselves are the source of truth — grep `data-testid=` under `frontend/src/components/`.
 
 ## Principles
 
@@ -10,56 +10,27 @@ The streaming chat UI exposes a stable set of `data-*` attributes and `aria-labe
 4. **Naming convention.** `kebab-case`, with a prefix matching the component domain: `composer-`, `tool-card-`, `chat-`, `stream-`, `error-`.
 5. **Attributes must stay live.** `data-status` / `data-tool-state` must reflect current React state. Do not cache for performance.
 
-## Atoms
+## Semantic enums
 
-| Component | Contract |
-|---|---|
-| `StatusDot` | `<span data-testid="status-dot" data-status-state="running\|success\|error\|aborted">` |
-| `RefSup` | `<sup data-testid="ref-sup" data-ref-label={label}><a href={href}>` |
-| `Cursor` | `<span data-testid="cursor">` |
-| `TypingIndicator` | `<div data-testid="typing-indicator">` |
-| `PromptChip` | `<button data-testid="prompt-chip" data-chip-index={index} aria-label={chipText}>` |
-| `RegenerateButton` | `<button data-testid="regenerate-btn" aria-label="Regenerate response">` |
+These enums drive both test selectors and rendering logic. They are **not** derivable from scanning the JSX; they encode product decisions and so belong in this document.
 
-## Molecules
+### `data-tool-state` (on `ToolCard` root)
 
-| Component | Contract |
-|---|---|
-| `SourceLink` | `<div data-testid="source-link" data-source-label={label} id={'src-' + label}>` — `id` is the anchor target for RefSup jump. |
-| `UserMessage` | `<div data-testid="user-bubble">` |
-| `Sources` | `<section data-testid="sources-block">` |
-| `ToolDetail` | Root `<div data-testid="tool-detail">`; INPUT `<pre data-testid="tool-input-json">`; OUTPUT `<pre data-testid="tool-output-json">`; ERROR `<pre data-testid="tool-error-detail">` |
+`input-streaming | input-available | output-available | output-error | aborted`
 
-`ToolRow` has no separate testid — it is a structural child of `ToolCard`.
+- `aborted` is a frontend-only 4th state (see architecture §5). AI SDK's native `ToolUIPart.state` enum has only three values.
 
-## Organisms
+### `data-status` (on `MessageList` root)
 
-| Component | Contract |
-|---|---|
-| `ChatHeader` | Root `<header data-testid="chat-header">`. Clear button `<button data-testid="composer-clear-btn" aria-label="Clear conversation" disabled={messages.length === 0}>`. |
-| `AssistantMessage` | `<article data-testid="assistant-message">` |
-| `ToolCard` | Root `<div data-testid="tool-card" data-tool-call-id={toolCallId} data-tool-state={visualState}>`. Expand button `<button data-testid="tool-card-expand" aria-expanded={isOpen} aria-label="Toggle tool details">`. `visualState ∈ input-streaming \| input-available \| output-available \| output-error \| aborted`. |
-| `ErrorBlock` | Pre-stream variant `<div data-testid="stream-error-block" data-error-source="pre-stream" data-error-class={errorClass}>`; mid-stream variant `<div data-testid="inline-error-block" data-error-source="mid-stream" data-error-class={errorClass}>`. Title `<h3 data-testid="error-title">` (friendly English). Detail toggle `<button data-testid="error-detail-toggle" aria-expanded={isOpen}>`. Raw detail `<pre data-testid="error-raw-detail">`. Retry `<button data-testid="error-retry-btn" aria-label="Retry">` (only when `retriable` is true). |
-| `Composer` | `<form data-testid="composer">`. Textarea `<textarea data-testid="composer-textarea" aria-label="Message input" placeholder="Ask about markets, companies, or filings...">`. Send `<button data-testid="composer-send-btn" aria-label="Send message">`. Stop `<button data-testid="composer-stop-btn" aria-label="Stop response">`. |
-| `EmptyState` | `<div data-testid="empty-state">` |
+`submitted | streaming | ready | error` — mirrors `useChat.status`.
 
-`Markdown` is a transparent wrapper and carries no testid; queries go through `AssistantMessage`.
+### `data-error-source` (on `ErrorBlock` root)
 
-## Template
+`pre-stream | mid-stream` — selects which variant of the block renders (pre-stream appears below `MessageList`; mid-stream appears at the end of the last assistant turn).
 
-| Component | Contract |
-|---|---|
-| `MessageList` | Root `<div data-testid="message-list" data-status={chatStatus}>`; viewport `<div data-testid="message-list-viewport">` (the ScrollArea internal div that supplies the scroll target). `chatStatus ∈ submitted \| streaming \| ready \| error`. |
+### `data-error-class` (on `ErrorBlock` root)
 
-## Page
-
-| Component | Contract |
-|---|---|
-| `ChatPanel` | `<div data-testid="chat-panel" data-chat-id={chatId}>`. `data-chat-id` is rendered only in dev builds (`import.meta.env.DEV`). |
-
-## `data-error-class` values
-
-Emitted by `ErrorBlock` so tests can distinguish error flavors. The ErrorClass enum currently covers:
+Emitted so tests can distinguish error flavors and so the component can choose a friendly title + Retry visibility.
 
 - `pre-stream-422` — regenerate validation failed
 - `pre-stream-404` — conversation not found
@@ -68,8 +39,13 @@ Emitted by `ErrorBlock` so tests can distinguish error flavors. The ErrorClass e
 - `pre-stream-5xx` — other 5xx
 - `network` — `fetch` TypeError / offline
 - `mid-stream` — SSE-level `error` event
+- `unknown` — classifier fallback
 
 These classes drive both the friendly title (via `lib/error-messages.ts`) and the Retry button visibility (`retriable` field per class).
+
+### `data-status-state` (on `StatusDot`)
+
+`running | success | error | aborted`
 
 ## Adding new components
 
@@ -77,5 +53,5 @@ DOM contract is part of a component spec, alongside props / state / behavior. Wh
 
 1. Pick an `aria-label` for every interactive element.
 2. Add a `data-testid` only if tests need to query something ARIA cannot express.
-3. If the component has state that matters to tests or CSS, add a `data-{domain}-state` attribute that mirrors the React state.
-4. Update this document in the same PR.
+3. If the component has state that matters to tests or CSS, add a `data-{domain}-state` attribute that mirrors the React state — and if the value set is closed and meaningful, add its enum to the "Semantic enums" section above.
+4. Follow the naming convention (§Principles 4).

@@ -45,19 +45,33 @@ function addSource(
 }
 
 /**
- * Normalize text so that reference definitions are in standard CommonMark form.
- * - Strips bullet prefixes: "- [1]: URL" → "[1]: URL"
- * - Strips source headers: "來源：", "References", etc.
- * - Ensures a blank line before the first [N]: so CommonMark treats them as definitions
+ * Normalize text so `remark-parse` recognises every `[N]: url "title"`
+ * line as a CommonMark definition node. The LLM does not consistently
+ * emit spec-compliant definitions — each of the three regex rewrites
+ * below corrects one observed failure mode seen in real responses:
+ *
+ * 1. Bullet-prefixed definitions (`- [1]: URL`). CommonMark requires
+ *    definitions to start at column 0; a leading `- ` turns them into
+ *    a list item whose body happens to contain a definition, so both
+ *    `remark-parse` and the AssistantMessage strip regex miss it.
+ *    Removing the bullet prefix pulls them back to column 0.
+ *
+ * 2. Source headers (`來源：`, `References`, `參考資料`). These headers
+ *    attach to the first definition as a paragraph, which again blocks
+ *    CommonMark from recognising the definition. Wiping the header line
+ *    is safe: the Sources block supplies its own heading.
+ *
+ * 3. Missing blank line before the first `[N]:` line. Without the blank
+ *    separator CommonMark keeps the definition inside the preceding
+ *    paragraph. Injecting `\n\n` is a no-op when one already exists
+ *    because the negative lookahead `[^\n]` only matches non-newline
+ *    characters before the definition.
  */
 export function normalizeRefDefs(text: string): string {
-  return (
-    text
-      .replace(BULLET_REF_RE, "$1")
-      .replace(SOURCE_HEADER_RE, "")
-      // Ensure blank line before first ref def so CommonMark doesn't merge it with preceding paragraph
-      .replace(/([^\n])\n(\[(\d+)\]:\s)/gm, "$1\n\n$2")
-  );
+  return text
+    .replace(BULLET_REF_RE, "$1")
+    .replace(SOURCE_HEADER_RE, "")
+    .replace(/([^\n])\n(\[(\d+)\]:\s)/gm, "$1\n\n$2");
 }
 
 /**
@@ -93,20 +107,28 @@ export function extractSources(text: string): ExtractedSources {
     const seen = new Map<string, SourceRef>();
     const cleaned = normalizeRefDefs(text);
 
-    // Primary: use the same CommonMark parser as ReactMarkdown
+    // Step 1 — primary extraction via CommonMark AST. Using the same
+    // parser ReactMarkdown uses internally guarantees that a definition
+    // we surface in the Sources block is identical to the one
+    // ReactMarkdown hides from the rendered body.
     const tree = parser.parse(cleaned) as Root;
     for (const node of tree.children) {
       if (node.type !== "definition") continue;
       addSource(seen, node.identifier, node.url, node.title);
     }
 
-    // Fallback: non-standard [N] URL (no colon) that remark-parse skips
+    // Step 2 — fallback for `[N] URL` with no colon. This is non-standard
+    // CommonMark so `remark-parse` ignores it, but the LLM emits it
+    // often enough that we cannot drop these citations.
     let match: RegExpExecArray | null;
     while ((match = FALLBACK_RE.exec(cleaned)) !== null) {
       const [, label, rawUrl, rawTitle] = match;
       addSource(seen, label, rawUrl, rawTitle);
     }
 
+    // Step 3 — stable numeric order. Labels are numeric-only (enforced
+    // by addSource); sorting keeps [1]/[2]/[3] in reading order across
+    // re-renders so RefSup jump-links land where the reader expects.
     return Array.from(seen.values()).sort((a, b) => parseInt(a.label) - parseInt(b.label));
   } catch {
     return [];

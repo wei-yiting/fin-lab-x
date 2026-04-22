@@ -140,15 +140,34 @@ export function ChatPanel() {
     }
   }, [status, messages]);
 
-  const showPreStreamError = status === "error" && error;
-  const preStreamFriendly = showPreStreamError
-    ? toFriendlyError({
-        source: error instanceof TypeError ? "network" : "pre-stream-http",
-        status: error instanceof ChatHttpError ? error.status : undefined,
-        rawMessage: error?.message,
-      })
+  const showError = status === "error" && error;
+  // A mid-stream SSE error is one that arrives after the stream has already
+  // produced an assistant message with content. HTTP-layer errors (ChatHttpError)
+  // are always pre-stream even if a previous assistant turn happens to exist.
+  const lastMsg = messages.at(-1);
+  const isMidStreamError =
+    showError &&
+    !(error instanceof ChatHttpError) &&
+    !(error instanceof TypeError) &&
+    lastMsg?.role === "assistant" &&
+    Array.isArray(lastMsg.parts) &&
+    lastMsg.parts.length > 0;
+
+  const errorFriendly = showError
+    ? toFriendlyError(
+        isMidStreamError
+          ? { source: "mid-stream-sse", rawMessage: error?.message }
+          : {
+              source: error instanceof TypeError ? "network" : "pre-stream-http",
+              status: error instanceof ChatHttpError ? error.status : undefined,
+              rawMessage: error?.message,
+            },
+      )
     : null;
-  const preStreamErrorClass = showPreStreamError ? classifyError(error) : "";
+  const errorBlockSource: "pre-stream" | "mid-stream" = isMidStreamError
+    ? "mid-stream"
+    : "pre-stream";
+  const errorClass = isMidStreamError ? "mid-stream" : showError ? classifyError(error) : "";
 
   return (
     <div
@@ -165,7 +184,7 @@ export function ChatPanel() {
         abortedTools={abortedTools}
         onRegenerate={handleRegenerate}
         emptyContent={
-          !showPreStreamError ? (
+          !showError ? (
             <EmptyState
               onPickPrompt={(text) => {
                 composerRef.current?.setValue(text);
@@ -175,12 +194,12 @@ export function ChatPanel() {
           ) : undefined
         }
         errorContent={
-          showPreStreamError && preStreamFriendly ? (
+          errorFriendly ? (
             <ErrorBlock
-              friendly={preStreamFriendly}
+              friendly={errorFriendly}
               onRetry={handleRetry}
-              source="pre-stream"
-              errorClass={preStreamErrorClass}
+              source={errorBlockSource}
+              errorClass={errorClass}
             />
           ) : undefined
         }

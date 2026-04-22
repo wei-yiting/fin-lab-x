@@ -142,8 +142,10 @@ describe("ChatPanel integration — mid-stream retry preserves user history", ()
                 sseFrame({ type: "text-delta", id: "t1", delta: "partial answer..." }),
               ),
             );
+            // "rate limit" maps to a retriable mid-stream friendly error, so the
+            // Retry button is rendered; see error-messages.ts midStreamPatterns.
             controller.enqueue(
-              encoder.encode(sseFrame({ type: "error", errorText: "context length exceeded" })),
+              encoder.encode(sseFrame({ type: "error", errorText: "rate limit exceeded" })),
             );
             controller.close();
           },
@@ -170,15 +172,16 @@ describe("ChatPanel integration — mid-stream retry preserves user history", ()
     await user.type(textarea, "ask me something");
     await user.click(screen.getByTestId("composer-send-btn"));
 
-    // Wait for the mid-stream error to surface (renders as pre-stream block
-    // since AI SDK v6 raises SSE `error` events via onError + status=error,
-    // not as an appended error-part on the assistant message).
+    // Wait for the mid-stream error to surface as an inline-error-block (not
+    // stream-error-block — ChatPanel detects the partial assistant message and
+    // routes through the mid-stream-sse friendly mapper).
     await waitFor(
       () => {
-        expect(screen.getByTestId("error-retry-btn")).toBeInTheDocument();
+        expect(screen.getByTestId("inline-error-block")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
+    expect(screen.getByTestId("error-retry-btn")).toBeInTheDocument();
 
     // Before retry: exactly one user turn is visible
     expect(screen.getAllByTestId("user-bubble")).toHaveLength(1);

@@ -1,14 +1,8 @@
 import { test, expect } from "../fixtures";
 import { E2E_TIMEOUTS } from "../constants";
 
-// NOTE: ChatPanel currently classifies mid-stream SSE errors via the
-// `pre-stream-http` codepath, so the user sees the generic "Something went
-// wrong" block (not the "conversation too long" mid-stream-sse friendly title)
-// and retry is offered. The intended `inline-error-block` rendering is not
-// wired up. This test documents the actual current behavior; tighten the
-// assertions when ChatPanel correctly distinguishes mid-stream errors.
 test(
-  "mid-stream error preserves partial text + surfaces retriable error block",
+  "mid-stream error preserves partial text + surfaces non-retriable inline error",
   { tag: ["@critical", "@regression"] },
   async ({ chat, page }) => {
     await chat.gotoFixture("mid-stream-error-after-text");
@@ -20,11 +14,15 @@ test(
       timeout: E2E_TIMEOUTS.streamComplete,
     });
 
-    // Error block surfaces (currently the pre-stream variant, see note above)
-    await expect(page.getByTestId("stream-error-block")).toBeVisible({
+    // Mid-stream errors render the inline variant (NOT the pre-stream block)
+    await expect(page.getByTestId("inline-error-block")).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });
-    await expect(page.getByTestId("error-retry-btn")).toBeVisible();
+    await expect(page.getByTestId("stream-error-block")).not.toBeVisible();
+
+    // "context length exceeded" maps to a non-retriable friendly error
+    await expect(page.getByTestId("error-title")).toContainText(/too long/i);
+    await expect(page.getByTestId("error-retry-btn")).not.toBeVisible();
 
     // Partial text + already-extracted sources persist alongside the error
     await expect(assistantMessage).toContainText("NVDA Q2");

@@ -1,19 +1,22 @@
 import { test, expect } from "../fixtures";
 
-test("J-clear-01 @smoke: clear session resets messages and chatId", async ({ chat, page }) => {
-  await chat.gotoFixture("happy-text");
-  await chat.sendMessage("first question");
-  await chat.waitReady();
+test(
+  "clear session resets messages and chatId",
+  { tag: ["@smoke", "@regression"] },
+  async ({ chat, page }) => {
+    await chat.gotoFixture("happy-text");
+    await chat.sendMessage("first question");
+    await chat.waitReady();
 
-  const oldChatId = await page.getByTestId("chat-panel").getAttribute("data-chat-id");
-  expect(oldChatId).toBeTruthy();
+    const chatPanel = page.getByTestId("chat-panel");
+    await expect(chatPanel).toHaveAttribute("data-chat-id", /.+/);
+    const oldChatId = await chatPanel.getAttribute("data-chat-id");
 
-  await page.getByTestId("composer-clear-btn").click();
+    await page.getByTestId("composer-clear-btn").click();
 
-  await expect(page.getByTestId("empty-state")).toBeVisible();
-  await expect(page.getByTestId("user-bubble")).toHaveCount(0);
+    await expect(page.getByTestId("empty-state")).toBeVisible();
+    await expect(page.getByTestId("user-bubble")).toHaveCount(0);
 
-  const newChatId = await page.getByTestId("chat-panel").getAttribute("data-chat-id");
-  expect(newChatId).toBeTruthy();
-  expect(newChatId).not.toBe(oldChatId);
-});
+    await expect.poll(() => chatPanel.getAttribute("data-chat-id")).not.toBe(oldChatId);
+  },
+);

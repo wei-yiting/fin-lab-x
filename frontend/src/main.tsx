@@ -23,9 +23,9 @@ function renderApp() {
   );
 }
 
-// Render even if MSW setup fails or hangs — firefox has been observed to hang worker.start()
-// when re-registering an already-active service worker on page reload. Falling back after 3s
-// keeps the app visible so tests that don't depend on fixture routing can still run.
+// Belt-and-suspenders: render even if MSW setup fails or hangs. The refresh-invariant
+// test-side fix (unregister SWs before reload) covers the specific Firefox hang we saw,
+// but keeping a 3s escape hatch here protects against future regressions of similar shape.
 const mockingReady = enableMocking().catch((err) => {
   console.warn("[msw] enableMocking failed:", err);
 });

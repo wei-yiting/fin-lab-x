@@ -30,7 +30,6 @@ export default defineConfig({
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
-      testIgnore: /critical\/refresh-invariant\.spec\.ts/,
     },
   ],
   webServer: {

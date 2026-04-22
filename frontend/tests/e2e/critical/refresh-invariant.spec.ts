@@ -14,6 +14,14 @@ test(
     const chatIdBefore = await chatPanel.getAttribute("data-chat-id");
     expect(chatIdBefore).toMatch(/.+/);
 
+    // Firefox-specific: clear the MSW service worker before reload to avoid a
+    // stale-controller handshake where `worker.start()` never resolves on the
+    // fresh page. Chromium doesn't need this but it's harmless there.
+    await page.evaluate(async () => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    });
+
     await page.reload();
 
     // Firefox + MSW service worker re-registration on reload needs a beat before app remounts;

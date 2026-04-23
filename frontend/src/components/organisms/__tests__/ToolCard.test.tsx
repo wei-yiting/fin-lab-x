@@ -66,7 +66,7 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
   });
 });
 
-test("TC-comp-toolcard-02: expanded state stable across parent re-render with same toolCallId", async () => {
+test("expanded state stable across parent re-render with same toolCallId", async () => {
   const user = userEvent.setup();
   const { rerender } = render(
     <ToolCard

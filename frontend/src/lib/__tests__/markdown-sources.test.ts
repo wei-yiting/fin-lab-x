@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { extractSources } from "../markdown-sources";
 
 describe("extractSources — happy paths", () => {
-  test("TC-unit-md-01: extracts single reference with title attribute", () => {
+  test("extracts single reference with title attribute", () => {
     const md = `
 NVDA 宣布擴大 Blackwell 產能 [1]。
 
@@ -21,7 +21,7 @@ NVDA 宣布擴大 Blackwell 產能 [1]。
     ]);
   });
 
-  test("TC-unit-md-02: falls back to hostname when title is missing", () => {
+  test("falls back to hostname when title is missing", () => {
     const md = `
 NVDA Q2 [2] reported.
 
@@ -40,7 +40,7 @@ NVDA Q2 [2] reported.
     ]);
   });
 
-  test("TC-unit-md-03: first-wins dedup when [1] is defined twice", () => {
+  test("first-wins dedup when [1] is defined twice", () => {
     const md = `
 NVDA [1] 漲。
 
@@ -67,7 +67,7 @@ describe("extractSources — security: scheme allowlist", () => {
     ["mailto:ir@nvidia.com", "mailto:"],
     ["file:///etc/hosts", "file:"],
     ["vbscript:msgbox(1)", "vbscript:"],
-  ])("TC-unit-md-04: drops or sanitizes %s scheme", (url) => {
+  ])("drops or sanitizes %s scheme", (url) => {
     const md = `
 See [1] for the report.
 
@@ -97,7 +97,7 @@ See [1] for the report.
 });
 
 describe("extractSources — incremental parse robustness", () => {
-  test("TC-unit-md-05: does not throw on partial URL (chunk boundary mid-URL)", () => {
+  test("does not throw on partial URL (chunk boundary mid-URL)", () => {
     const md = `
 NVDA [1]。
 
@@ -129,7 +129,7 @@ NVDA [1]。
 });
 
 describe("extractSources — orphan handling", () => {
-  test("TC-unit-md-06: def orphan: definition exists but body never references it → still in result", () => {
+  test("def orphan: definition exists but body never references it → still in result", () => {
     const md = `
 NVDA 很棒。
 
@@ -158,7 +158,7 @@ NVDA 很棒 [3]。
 });
 
 describe("extractSources — real backend format fallback", () => {
-  test("TC-unit-md-08: extracts [N] URL format (no colon)", () => {
+  test("extracts [N] URL format (no colon)", () => {
     const md = `
 text [1] and [2].
 
@@ -183,7 +183,7 @@ text [1] and [2].
     });
   });
 
-  test("TC-unit-md-09: handles trailing spaces (markdown line break)", () => {
+  test("handles trailing spaces (markdown line break)", () => {
     const md = `
 text [1].
 
@@ -196,7 +196,7 @@ text [1].
     expect(result[0].url).toBe("https://reuters.com/report");
   });
 
-  test("TC-unit-md-10: handles mixed formats in same response", () => {
+  test("handles mixed formats in same response", () => {
     const md = `
 text [1] and [2].
 
@@ -317,7 +317,7 @@ For more detailed information, you can refer to the following sources:
   });
 });
 
-test("TC-unit-md-07: orders Sources by numeric label, not by appearance order in markdown", () => {
+test("orders Sources by numeric label, not by appearance order in markdown", () => {
   const md = `
 Body text [3] then [1] then [2].
 

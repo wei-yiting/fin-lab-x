@@ -133,22 +133,7 @@ flowchart LR
 
 Design / review history that shaped this tree is captured under `artifacts/current/` (not tracked in git — see `artifacts/current/manual-verification-issues.md` and `code-review-improvement-report.md` in the local workspace).
 
-## 3. State Ownership
-
-Streaming lifecycle state lives in `ChatPanel` only. Atoms and molecules never import from `@ai-sdk/react`. Organisms accept `status` / `messages` as props but do not subscribe to chat state themselves.
-
-| State | Owner | Responsibility |
-|---|---|---|
-| `messages`, `status`, `error`, `sendMessage`, `regenerate`, `stop`, `id` | `useChat` hook | AI SDK manages SSE lifecycle, message reconciliation, tool part state. |
-| `chatId` | `ChatPanel` `useState<ChatId>` | Initialized with `crypto.randomUUID()`. `"Clear conversation"` sets a new UUID, passed as the `id` prop to `useChat`, which triggers an internal reset. |
-| `toolProgress: Record<ToolCallId, string>` | `useToolProgress` hook | Subscribes to `useChat.onData`; writes transient `data-tool-progress` messages into a record. Cleared explicitly by `ChatPanel` on session reset. |
-| `abortedTools: Set<ToolCallId>` | `ChatPanel` | Frontend-only marker for the 4th tool state (§5). Added on `stop()` or mid-stream `error` when tool is still `input-available`. Cleared on session reset or when the same turn is regenerated. |
-| `lastTriggerRef` | `ChatPanel` `useRef` | Remembers the most recent `sendMessage` / `regenerate` metadata so `handleRetry` can dispatch correctly (§6). |
-| `shouldFollowBottom` | `useFollowBottom` hook | Viewport scroll tracking with a 100px threshold; force-overrides on new user message. The hook owns both the state and the scroll side-effect. |
-
-**Why `ChatPanel` owns `chatId` even though `useChat` has an `id` field**: `useChat.id` is read-only — there is no `setId`. To implement session reset we need to change the `id` prop from outside. Letting `useChat` auto-generate the id would forfeit reset control.
-
-## 4. SSE Wire Format → UI Mapping
+## 3. SSE Wire Format → UI Mapping
 
 ### Glossary: `UIMessage.parts`
 
@@ -177,11 +162,11 @@ The backend emits AI SDK v6 `uiMessageChunkSchema`-compatible chunks. The fronte
 | `tool-output-available` | `output-available` | 🟢 StatusDot success + generic label `Completed` + expandable INPUT/OUTPUT JSON |
 | `tool-output-error` | `output-error` | 🔴 StatusDot error + friendly translated title (via `lib/error-messages.ts`) + expandable raw detail |
 | `text-start` / `text-delta` / `text-end` | text part | Markdown incremental re-render + trailing `Cursor` while streaming |
-| `error` | — (stream-level) | `useChat.error` set; `status → 'error'`. Does **not** append an `error` part to `messages` (see §7). |
+| `error` | — (stream-level) | `useChat.error` set; `status → 'error'`. Does **not** append an `error` part to `messages` (see §6). |
 | `finish` | — | `status → 'ready'` |
 | _(no SSE — frontend-only)_ | `aborted` | ⚫ StatusDot gray + label `Aborted` + expandable INPUT |
 
-## 5. Tool Card State Machine
+## 4. Tool Card State Machine
 
 ```mermaid
 stateDiagram-v2
@@ -197,7 +182,7 @@ stateDiagram-v2
 
 `aborted` is a frontend-only 4th state — AI SDK's `ToolUIPart.state` enum has only three values (`input-available`, `output-available`, `output-error`). Entering `aborted` is triggered by `useChat.stop()` or a mid-stream `error` event while a tool is still `input-available`. Without this, a stopped tool would keep its pulsing dot and falsely imply "still running". `ChatPanel` tracks which tool call IDs are aborted via `abortedTools: Set<ToolCallId>`; `AssistantMessage` overrides the visual to `aborted` when dispatching parts.
 
-## 6. Smart Retry Routing
+## 5. Smart Retry Routing
 
 `handleRetry` dispatches by the shape of `messages` at the time of retry:
 
@@ -209,11 +194,11 @@ stateDiagram-v2
 
 **No manual `messageId` stash is needed**. AI SDK v6 writes `start.messageId` directly into `state.message.id`, so `regenerate({ messageId: lastAssistantMessage.id })` already carries the backend-issued `lc_run--...` ID. Verified in `ai@6.0.142` (`node_modules/ai/dist/index.js`, chat store reducer) and against the live backend (see `scripts/v1-partial-regen-probe.sh`).
 
-## 7. AI SDK v6 Contract Findings
+## 6. AI SDK v6 Contract Findings
 
 The non-obvious behaviors of `@ai-sdk/react@3.0.144` + `ai@6.0.142` — SSE error routing, `stop()` semantics, partial-turn regenerate, wire format quirks — are documented in a dedicated reference: [`ai_sdk_v6_contract_findings.md`](./ai_sdk_v6_contract_findings.md).
 
-## 8. Markdown & Sources: Defer-to-Ready
+## 7. Markdown & Sources: Defer-to-Ready
 
 `react-markdown` does not expose unified's `file.data`, so a remark plugin cannot return `ExtractedSources` back to React. Two options were considered and rejected:
 
@@ -227,7 +212,7 @@ The shipped strategy is **defer-to-ready**:
 
 The UX is a "pop-in" at stream end, similar to ChatGPT / Claude.ai. Partial sources on error/stop are preserved because the `useMemo` also fires when the stream stops on error.
 
-### 8.1 Parse flow — raw text to Sources block and RefSup
+### 7.1 Parse flow — raw text to Sources block and RefSup
 
 ```mermaid
 flowchart TD
@@ -266,15 +251,15 @@ flowchart TD
     class sourcesBlock,markdown uiCls
 ```
 
-### 8.2 Citation structure
+### 7.2 Citation structure
 
 `extractSources` uses `remark-parse` (the same CommonMark parser `react-markdown` uses internally) to find `definition` nodes — this eliminates the drift that a custom regex would have against CommonMark. A separate `markdownSourcesPlugin` (registered on `<ReactMarkdown>`) runs at render time to tag `linkReference` nodes with `data-citation` and resolve `href` to the source URL. The anchor override in `Markdown.tsx` reads that attribute rather than sniffing link text, so a normal `[3](url)` whose text happens to be `3` is never mistaken for a citation.
 
-## 9. Related Documents
+## 8. Related Documents
 
 - [`ai_sdk_v6_contract_findings.md`](./ai_sdk_v6_contract_findings.md) — SDK behaviors and wire-format quirks
 - `frontend/src/components/README.md` — short structure map for contributors
 - `frontend/src/__tests__/msw/README.md` — MSW test infrastructure and URL-gated worker
 - `docs/frontend_dom_contract.md` — `data-testid` / `data-status` / `data-tool-state` principles and the `data-error-class` enum (testing surface of record)
 - `backend/api/routers/chat.py` + `backend/tests/api/test_chat.py` — backend wire format
-- `scripts/v1-partial-regen-probe.sh` — S1 partial-turn regenerate probe (see §7 findings)
+- `scripts/v1-partial-regen-probe.sh` — S1 partial-turn regenerate probe (see §6 findings)

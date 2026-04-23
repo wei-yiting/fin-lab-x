@@ -18,7 +18,7 @@ These enums drive both test selectors and rendering logic. They are **not** deri
 
 `input-streaming | input-available | output-available | output-error | aborted`
 
-- `aborted` is a frontend-only 4th state (see architecture §5). AI SDK's native `ToolUIPart.state` enum has only three values.
+- `aborted` is a frontend-only 4th state (see architecture §4). AI SDK's native `ToolUIPart.state` enum has only three values.
 
 ### `data-status` (on `MessageList` root)
 

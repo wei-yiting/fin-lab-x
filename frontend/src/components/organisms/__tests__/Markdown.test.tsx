@@ -38,7 +38,7 @@ describe("Markdown — citation vs inline link disambiguation", () => {
 });
 
 describe("Markdown — URL sanitization (inline body links)", () => {
-  test("TC-comp-markdown-xss-01: javascript: URL has href stripped, anchor text preserved", () => {
+  test("javascript: URL has href stripped, anchor text preserved", () => {
     // Anchor with empty/stripped href loses the `link` ARIA role, so we locate by text
     // and assert the sanitization invariant directly.
     const text = "Visit [bad site](javascript:alert('xss')) now.";
@@ -49,7 +49,7 @@ describe("Markdown — URL sanitization (inline body links)", () => {
     expect(anchor!.getAttribute("href") ?? "").not.toMatch(/^javascript:/i);
   });
 
-  test("TC-comp-markdown-xss-02: mailto: URL in inline link is preserved as-is", () => {
+  test("mailto: URL in inline link is preserved as-is", () => {
     const text = "Contact [mail link](mailto:x@y.com).";
     render(<Markdown text={text} isStreaming={false} sources={[]} />);
 
@@ -57,7 +57,7 @@ describe("Markdown — URL sanitization (inline body links)", () => {
     expect(anchor).toHaveAttribute("href", "mailto:x@y.com");
   });
 
-  test("TC-comp-markdown-xss-03: safe https link renders with target=_blank + rel noopener noreferrer", () => {
+  test("safe https link renders with target=_blank + rel noopener noreferrer", () => {
     const text = "Read [safe](https://example.com).";
     render(<Markdown text={text} isStreaming={false} sources={[]} />);
 
@@ -67,7 +67,7 @@ describe("Markdown — URL sanitization (inline body links)", () => {
     expect(anchor).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  test("TC-comp-markdown-xss-04: mixed links — javascript: sanitized, others preserved", () => {
+  test("mixed links — javascript: sanitized, others preserved", () => {
     const text =
       "Bad [bad](javascript:alert('xss')), mail [mail link](mailto:x@y.com), safe [safe](https://example.com).";
     render(<Markdown text={text} isStreaming={false} sources={[]} />);

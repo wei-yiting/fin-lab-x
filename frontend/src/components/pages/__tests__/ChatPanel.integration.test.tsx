@@ -36,7 +36,7 @@ function sseResponse(stream: ReadableStream) {
 }
 
 // ---------------------------------------------------------------------------
-// TC-int-retry-01: Smart retry
+// Smart retry
 //
 // The AI SDK v6 DefaultChatTransport throws a plain Error (no .status) on
 // HTTP errors. The ChatPanel's classifyError needs .status to detect
@@ -81,7 +81,7 @@ describe("ChatPanel integration — smart retry (hook-level)", () => {
   });
   afterAll(() => retryServer.close());
 
-  test("TC-int-retry-01: after 422 on regenerate, sendMessage with same text recovers", async () => {
+  test("after 422 on regenerate, sendMessage with same text recovers", async () => {
     const transport = new DefaultChatTransport({ api: "/api/v1/chat" });
     const { result } = renderHook(() => useChat({ transport, id: "retry-test" }));
 
@@ -114,7 +114,7 @@ describe("ChatPanel integration — smart retry (hook-level)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// TC-int-retry-midstream-01: Mid-stream retry does not duplicate user history
+// Mid-stream retry does not duplicate user history
 //
 // When an SSE error arrives mid-stream, the inline Retry button in the
 // AssistantMessage ErrorBlock must trigger regenerate() (which removes the
@@ -164,7 +164,7 @@ describe("ChatPanel integration — mid-stream retry preserves user history", ()
   });
   afterAll(() => midStreamServer.close());
 
-  test("TC-int-retry-midstream-01: Retry after mid-stream error does not duplicate user turns", async () => {
+  test("Retry after mid-stream error does not duplicate user turns", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -210,7 +210,7 @@ describe("ChatPanel integration — mid-stream retry preserves user history", ()
 });
 
 // ---------------------------------------------------------------------------
-// TC-int-aborted-01: Aborted tools via stop
+// Aborted tools via stop
 //
 // When the user clicks stop while a tool is in input-available state, the
 // ChatPanel's handleStop marks those tools as aborted. The ToolCard should
@@ -269,7 +269,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
   afterEach(() => abortedServer.resetHandlers());
   afterAll(() => abortedServer.close());
 
-  test("TC-int-aborted-01: stop during streaming with running tool → ToolCard becomes aborted", async () => {
+  test("stop during streaming with running tool → ToolCard becomes aborted", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -307,7 +307,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 });
 
 // ---------------------------------------------------------------------------
-// TC-int-stop-clear-01: Stop + clear race
+// Stop + clear race
 //
 // During active streaming, clicking clear should stop the stream, reset the
 // chat ID, and show EmptyState with no residual messages.
@@ -356,7 +356,7 @@ describe("ChatPanel integration — stop + clear", () => {
   afterEach(() => clearServer.resetHandlers());
   afterAll(() => clearServer.close());
 
-  test("TC-int-stop-clear-01: streaming → click clear → EmptyState, no residual messages", async () => {
+  test("streaming → click clear → EmptyState, no residual messages", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 

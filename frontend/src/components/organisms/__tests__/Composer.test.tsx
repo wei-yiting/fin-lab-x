@@ -5,7 +5,7 @@ import { createRef } from "react";
 import { Composer, type ComposerHandle } from "../Composer";
 
 describe("Composer — double-submit guard", () => {
-  test("TC-comp-composer-01: rapid Enter twice triggers sendMessage exactly once", async () => {
+  test("rapid Enter twice triggers sendMessage exactly once", async () => {
     const user = userEvent.setup();
     const sendMessage = vi.fn();
     render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
@@ -18,7 +18,7 @@ describe("Composer — double-submit guard", () => {
     expect(sendMessage).toHaveBeenCalledWith({ text: "hello" });
   });
 
-  test("TC-comp-composer-01: Send button click during submitted state is ignored", async () => {
+  test("Send button click during submitted state is ignored", async () => {
     render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="submitted" />);
 
     expect(screen.queryByTestId("composer-send-btn")).not.toBeInTheDocument();
@@ -27,7 +27,7 @@ describe("Composer — double-submit guard", () => {
 });
 
 describe("Composer — textarea preservation", () => {
-  test("TC-comp-composer-02: textarea value is not cleared when status transitions streaming → ready", async () => {
+  test("textarea value is not cleared when status transitions streaming → ready", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <Composer sendMessage={vi.fn()} stop={vi.fn()} status="streaming" />,
@@ -43,7 +43,7 @@ describe("Composer — textarea preservation", () => {
     expect(textarea.value).toBe("next question");
   });
 
-  test("TC-comp-composer-02: textarea value is not cleared when status transitions submitted → ready (regenerate)", async () => {
+  test("textarea value is not cleared when status transitions submitted → ready (regenerate)", async () => {
     const user = userEvent.setup();
     const { rerender } = render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
 
@@ -59,13 +59,13 @@ describe("Composer — textarea preservation", () => {
 });
 
 describe("Composer — send button disabled state", () => {
-  test("TC-comp-composer-04: send button is disabled when textarea is empty", () => {
+  test("send button is disabled when textarea is empty", () => {
     render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
 
     expect(screen.getByTestId("composer-send-btn")).toBeDisabled();
   });
 
-  test("TC-comp-composer-04: send button stays disabled for whitespace-only input", async () => {
+  test("send button stays disabled for whitespace-only input", async () => {
     const user = userEvent.setup();
     render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
 
@@ -74,7 +74,7 @@ describe("Composer — send button disabled state", () => {
     expect(screen.getByTestId("composer-send-btn")).toBeDisabled();
   });
 
-  test("TC-comp-composer-04: send button becomes enabled once real content is typed", async () => {
+  test("send button becomes enabled once real content is typed", async () => {
     const user = userEvent.setup();
     render(<Composer sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);
 
@@ -83,7 +83,7 @@ describe("Composer — send button disabled state", () => {
     expect(screen.getByTestId("composer-send-btn")).toBeEnabled();
   });
 
-  test("TC-comp-composer-04: submitting whitespace-only via Enter does not call sendMessage", async () => {
+  test("submitting whitespace-only via Enter does not call sendMessage", async () => {
     const user = userEvent.setup();
     const sendMessage = vi.fn();
     render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
@@ -98,7 +98,7 @@ describe("Composer — send button disabled state", () => {
 describe("Composer — IME composition guard", () => {
   // fireEvent is used here because userEvent cannot express nativeEvent.isComposing,
   // which is the exact browser-level signal Composer guards against (CJK IME commit).
-  test("TC-comp-composer-05: Enter during IME composition does not trigger sendMessage", async () => {
+  test("Enter during IME composition does not trigger sendMessage", async () => {
     const user = userEvent.setup();
     const sendMessage = vi.fn();
     render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
@@ -111,7 +111,7 @@ describe("Composer — IME composition guard", () => {
     expect(sendMessage).not.toHaveBeenCalled();
   });
 
-  test("TC-comp-composer-05: Enter after IME commit (isComposing=false) triggers sendMessage", () => {
+  test("Enter after IME commit (isComposing=false) triggers sendMessage", () => {
     const sendMessage = vi.fn();
     render(<Composer sendMessage={sendMessage} stop={vi.fn()} status="ready" />);
 
@@ -125,7 +125,7 @@ describe("Composer — IME composition guard", () => {
 });
 
 describe("Composer — chip click", () => {
-  test("TC-comp-composer-03: chip click overwrites existing textarea content (last-wins)", async () => {
+  test("chip click overwrites existing textarea content (last-wins)", async () => {
     const user = userEvent.setup();
     const composerRef = createRef<ComposerHandle>();
     render(<Composer ref={composerRef} sendMessage={vi.fn()} stop={vi.fn()} status="ready" />);

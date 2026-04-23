@@ -12,7 +12,7 @@ const server = setupServer(
 beforeAll(() => server.listen());
 afterAll(() => server.close());
 
-test("V-2: user message remains in messages array after pre-stream HTTP 500", async () => {
+test("user message remains in messages array after pre-stream HTTP 500", async () => {
   const transport = new DefaultChatTransport({ api: "/api/v1/chat" });
   const { result } = renderHook(() => useChat({ transport, id: "test" }));
 

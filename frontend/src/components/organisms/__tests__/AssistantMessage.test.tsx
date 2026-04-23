@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { AssistantMessage } from "../AssistantMessage";
 
 describe("AssistantMessage — parts dispatch", () => {
-  test("TC-comp-assistant-01: renders text part as Markdown", () => {
+  test("renders text part as Markdown", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -20,7 +20,7 @@ describe("AssistantMessage — parts dispatch", () => {
     expect(screen.getByText(/hello/)).toBeInTheDocument();
   });
 
-  test("TC-comp-assistant-01: renders tool part as ToolCard", () => {
+  test("renders tool part as ToolCard", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -45,7 +45,7 @@ describe("AssistantMessage — parts dispatch", () => {
     expect(screen.getByTestId("tool-card")).toBeInTheDocument();
   });
 
-  test("TC-comp-assistant-01: renders parallel tool parts in arrival order, stable", () => {
+  test("renders parallel tool parts in arrival order, stable", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -83,7 +83,7 @@ describe("AssistantMessage — parts dispatch", () => {
 });
 
 describe("AssistantMessage — aborted tools", () => {
-  test('TC-comp-assistant-02: input-available tool with id in abortedTools → ToolCard data-tool-state="aborted"', () => {
+  test('input-available tool with id in abortedTools → ToolCard data-tool-state="aborted"', () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -108,7 +108,7 @@ describe("AssistantMessage — aborted tools", () => {
     expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "aborted");
   });
 
-  test('TC-comp-assistant-02: input-streaming tool with id in abortedTools → ToolCard data-tool-state="aborted"', () => {
+  test('input-streaming tool with id in abortedTools → ToolCard data-tool-state="aborted"', () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -133,7 +133,7 @@ describe("AssistantMessage — aborted tools", () => {
     expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "aborted");
   });
 
-  test("TC-comp-assistant-02: output-available tool not affected by abortedTools", () => {
+  test("output-available tool not affected by abortedTools", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -167,7 +167,7 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     parts: [{ type: "text" as const, text: "done" }],
   };
 
-  test("TC-comp-assistant-03: isLast=true and status=ready → button visible", () => {
+  test("isLast=true and status=ready → button visible", () => {
     render(
       <AssistantMessage
         message={baseMsg}
@@ -181,7 +181,7 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
   });
 
-  test("TC-comp-assistant-03: isLast=true but status=streaming → button hidden", () => {
+  test("isLast=true but status=streaming → button hidden", () => {
     render(
       <AssistantMessage
         message={baseMsg}
@@ -194,7 +194,7 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
   });
 
-  test("TC-comp-assistant-03: isLast=false → button hidden regardless of status", () => {
+  test("isLast=false → button hidden regardless of status", () => {
     render(
       <AssistantMessage
         message={baseMsg}
@@ -220,7 +220,7 @@ describe("AssistantMessage — citation rendering", () => {
     parts: [{ type: "text" as const, text: commonMarkText }],
   };
 
-  test("TC-comp-citation-01: CommonMark citations render as RefSup after streaming", () => {
+  test("CommonMark citations render as RefSup after streaming", () => {
     render(
       <AssistantMessage
         message={commonMarkMsg}
@@ -240,7 +240,7 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.getByText("bloomberg.com")).toBeInTheDocument();
   });
 
-  test("TC-comp-citation-02: no RefSup or Sources block during streaming", () => {
+  test("no RefSup or Sources block during streaming", () => {
     render(
       <AssistantMessage
         message={commonMarkMsg}
@@ -254,7 +254,7 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.queryByTestId("sources-block")).not.toBeInTheDocument();
   });
 
-  test("TC-comp-citation-03: fallback format — [N] URL + full-width【N】inline", () => {
+  test("fallback format — [N] URL + full-width【N】inline", () => {
     const fallbackText =
       "最新報導顯示成長【1】，Bloomberg 確認趨勢【2】。\n\n" +
       "**References**\n" +
@@ -283,7 +283,7 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.queryByText("**References**")).not.toBeInTheDocument();
   });
 
-  test("TC-comp-citation-04: streaming strips definition lines (no flicker)", () => {
+  test("streaming strips definition lines (no flicker)", () => {
     const streamingText = "NVDA 很棒 [1]。\n\n" + '[1]: https://reuters.com/report "Reuters"';
 
     const msg = {
@@ -305,7 +305,7 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.queryByTestId("sources-block")).not.toBeInTheDocument();
   });
 
-  test("TC-comp-citation-05: bullet-prefixed ref defs render Sources block", () => {
+  test("bullet-prefixed ref defs render Sources block", () => {
     const bulletText = "NVDA news [1].\n\n" + '- [1]: https://reuters.com/nvda "Reuters NVDA"';
 
     const msg = {
@@ -327,7 +327,7 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.queryByText(/- \[1\]/)).not.toBeInTheDocument();
   });
 
-  test("TC-comp-citation-06: Chinese source header stripped", () => {
+  test("Chinese source header stripped", () => {
     const cnText = "報告內容 [1]。\n\n" + "來源：\n" + '[1]: https://reuters.com/report "Reuters"';
 
     const msg = {

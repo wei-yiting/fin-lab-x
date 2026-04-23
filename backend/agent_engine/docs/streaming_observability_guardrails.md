@@ -33,27 +33,54 @@ Examples:
 - parsing, transformation, or normalization functions
 - post-processing functions
 
-Do NOT apply `@observe()` to tools executed through LangGraph/LangChain `CallbackHandler` — they are automatically traced. Only use `@observe()` on a tool if it has independent sub-operations that need separate tracing (e.g., a tool that internally calls another LLM).
+For tools executed through LangGraph/LangChain `CallbackHandler`, basic I/O tracing (arguments, return value, duration) is already captured by the handler. Add `@observe()` on a tool only when you need one of:
+
+- nested sub-spans inside the tool body (e.g., the tool calls another LLM or multiple retrieval steps you want separately attributed)
+- custom metadata attached to that tool observation via `update_current_span(...)`
+- access to `get_current_observation_id()` inside the tool body
+
+If none of the above applies, rely on the handler and skip `@observe()` to avoid same-name double-nesting.
 
 Reason:
-Single-return functions are the most stable tracing unit. They map naturally to one observation with one input, one output, and one error boundary.
+Single-return functions are the most stable tracing unit. They map naturally to one observation with one input, one output, and one error boundary. Stacking `@observe()` on top of the CallbackHandler's auto-trace creates a visible duplicate span (same name) with no new information.
 
-### Rule 4: Never Decorate Async Generator Streaming Boundaries with `@observe()`
+### Rule 4: Require `langfuse>=4.5.0` When Decorating Async Generators or SSE Streams
 
-Do not apply `@observe()` to:
+`@observe()` on async generators and on functions returning `StreamingResponse` / `EventSourceResponse` is supported on `langfuse>=4.5.0` ([PR #1628](https://github.com/langfuse/langfuse-python/pull/1628) wraps `isasyncgen` and `StreamingResponse.body_iterator`, defers `span.end()` until stream exhaustion, and preserves nested context propagation).
 
-- `async def` functions that `yield`
-- `astream()` wrappers
-- SSE serializers
-- body iterators for `StreamingResponse` or `EventSourceResponse`
-- functions whose main purpose is chunk forwarding
+Pre-4.5 issue history that used to justify a blanket ban:
+- [#7226](https://github.com/langfuse/langfuse/issues/7226) — async gen wrapped as sync; output captured as `<async_generator>`
+- [#8216](https://github.com/langfuse/langfuse/issues/8216) — `StreamingResponse` broke into separate traces
+- [#8447](https://github.com/langfuse/langfuse/issues/8447) — "No active span in current context" inside `@observe`-decorated async gens
 
-Reason:
-This is the highest-risk `Langfuse` path. It forces the SDK to manage lifecycle across multiple `yield` boundaries, preserve nested context over time, and handle cancellation and errors correctly. The official issue history shows this is where trace fragmentation and swallowed exceptions have occurred.
+All three are closed. The ban is lifted for 4.5+.
+
+Still prefer the metadata path (see Rule 5) when all you need is to rename the trace — fewer moving parts than decorating the generator itself.
 
 ### Rule 5: Correlation Must Start at the Request Boundary
 
-Set request-level correlation attributes such as `session_id`, `request_id`, and user-scoped metadata at the orchestration entry point with `propagate_attributes()`.
+Set request-level correlation attributes (`session_id`, `request_id`, `trace_name`, user-scoped metadata) at the orchestration entry point. Two equivalent paths:
+
+1. **LangChain config metadata** (preferred post-Langfuse 4.3.1 — see [PR #1626](https://github.com/langfuse/langfuse-python/pull/1626)):
+   ```
+   config = {
+       "callbacks": [handler],
+       "run_name": "chat-turn",
+       "metadata": {
+           "langfuse_trace_name": "v1_baseline_stream",
+           "langfuse_session_id": session_id,
+           "request_id": request_id,
+       },
+   }
+   ```
+   The CallbackHandler reads these at `on_chain_start` of the root run and renames the trace / sets session_id automatically.
+2. **`propagate_attributes()` context manager** (works any time, including when no LangChain config is in scope):
+   ```
+   with propagate_attributes(trace_name=..., session_id=..., metadata={...}):
+       ...
+   ```
+
+Both paths can coexist (e.g., session_id via `propagate_attributes` for scope that outlives the chain, plus `langfuse_trace_name` via LangChain metadata).
 
 Reason:
 Correlation should be established once at the top, then inherited downward. Passing IDs manually through every tool or helper increases noise and creates mismatch risk.
@@ -92,6 +119,7 @@ The more business logic or observability logic is packed into the generator wrap
 Whenever code introduces:
 
 - `asyncio.create_task`
+- `loop.run_in_executor` or raw `ThreadPoolExecutor.submit`
 - background tasks
 - thread pools
 - nested async generators
@@ -99,8 +127,16 @@ Whenever code introduces:
 
 the change must explicitly verify trace parent-child continuity.
 
+Remediation for thread-pool / executor boundaries (Langfuse [advanced-usage docs](https://langfuse.com/docs/observability/sdk/python/advanced-usage) confirm OTel contextvars do NOT propagate to worker threads by default), in order of preference:
+
+1. `asyncio.to_thread(fn, *args)` — Python 3.9+, copies contextvars automatically
+2. `ctx = contextvars.copy_context(); loop.run_in_executor(executor, ctx.run, fn, *args)`
+3. `from opentelemetry.instrumentation.threading import ThreadingInstrumentor; ThreadingInstrumentor().instrument()` at app startup (monkey-patches `threading.Thread` and `ThreadPoolExecutor.submit`)
+
+`asyncio.create_task` and `asyncio.gather` are both safe without workarounds — both go through `Task.__init__` which calls `copy_context()` per [PEP 567](https://peps.python.org/pep-0567/).
+
 Reason:
-Async boundaries are the main place where context propagation silently fails.
+Async boundaries are the main place where context propagation silently fails. The failure mode is subtle — orphan spans under the SDK's default trace rather than an error.
 
 ### Rule 10: Future `LlamaIndex` Work Must Use Official `Langfuse` Integration
 
@@ -121,7 +157,11 @@ Hybrid observability is not a small implementation detail. It changes the debugg
 When running evaluations with `set_global_handler(BraintrustCallbackHandler())`, eval cases must execute sequentially (one `astream_run()` at a time). Do not use `asyncio.gather()` or concurrent tasks for multiple eval cases in the same process.
 
 Reason:
-`set_global_handler()` registers a process-level singleton handler with mutable internal state. Concurrent `astream()` calls share this singleton — `contextvars` copy-on-write only applies to `asyncio.create_task()`, not `asyncio.gather()`. Concurrent eval cases corrupt each other's trace attribution (spans from case A appear under case B). Sequential execution ensures each case's callbacks complete before the next begins. (Discovered via Three Amigos BDD analysis, 2026-04-02)
+`set_global_handler()` registers a process-level singleton handler with **mutable internal state** (active-span stacks, per-case buffers, etc.). Concurrent `astream()` calls that share this singleton interleave their mutations and corrupt trace attribution — spans from case A may end up under case B's trace.
+
+This is **handler-state** contamination, not a contextvars problem. `contextvars` are copied per-`Task` by [PEP 567](https://peps.python.org/pep-0567/) in BOTH `asyncio.gather` and `asyncio.create_task` (gather auto-schedules awaitables as Tasks via `ensure_future` → `Task.__init__` → `copy_context()`). So telemetry contextvars are safe; the global handler's non-contextvar fields are not.
+
+Sequential execution ensures each case's callbacks complete before the next begins. (Discovered via Three Amigos BDD analysis, 2026-04-02; mechanism corrected 2026-04-23 after verifying against PEP 567.)
 
 ### Rule 13: Handler Failure Must Not Propagate Across Platforms
 
@@ -140,11 +180,11 @@ LangChain's `AsyncCallbackManager` callback dispatch behavior for handler-level 
 
 Stop and ask before proceeding if a change requires any of the following:
 
-- decorating an async generator with `@observe()`
 - adding `LangSmith` to this subtree
 - introducing a second observability backend
 - relying on per-chunk current-trace mutation as a core design mechanism
 - shipping a new streaming path without an observability POC
+- decorating an async generator with `@observe()` on Langfuse < 4.5.0
 
 ## POC Gate Criteria
 

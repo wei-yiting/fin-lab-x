@@ -1,6 +1,7 @@
 """Streaming chat API router for FinLab-X."""
 
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -99,6 +100,8 @@ async def stream_chat(
         raise HTTPException(status_code=409, detail="Session busy")
     _active_sessions.add(body.id)
 
+    request_id = uuid.uuid4().hex
+
     async def generate():
         try:
             async for event in orchestrator.astream_run(
@@ -106,6 +109,7 @@ async def stream_chat(
                 session_id=body.id,
                 trigger=body.normalized_trigger,
                 message_id=body.messageId,
+                request_id=request_id,
             ):
                 if await request.is_disconnected():
                     break

@@ -10,10 +10,9 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
-import logging
 import uuid
 from collections.abc import AsyncGenerator
-from typing import Any
+from typing import Any, Literal
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
@@ -36,43 +35,6 @@ from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_er
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
 
-
-class _SuppressOTelDetachError(logging.Filter):
-    """Suppress harmless 'Failed to detach context' from OpenTelemetry.
-
-    In async generators (astream_run), propagate_attributes() context manager
-    detach can fail when yield boundaries cross async contexts. The error is
-    benign — attributes propagate correctly during streaming, and the context
-    is cleaned up when the asyncio Task completes.
-
-    Uses reference counting so concurrent astream_run() calls safely share
-    one filter instance — the filter is only removed when the last active
-    stream finishes.
-    """
-
-    _instance: "_SuppressOTelDetachError | None" = None
-    _refcount: int = 0
-
-    @classmethod
-    def acquire(cls, logger: logging.Logger) -> "_SuppressOTelDetachError":
-        if cls._instance is None:
-            cls._instance = cls()
-        cls._refcount += 1
-        if cls._refcount == 1:
-            logger.addFilter(cls._instance)
-        return cls._instance
-
-    @classmethod
-    def release(cls, logger: logging.Logger) -> None:
-        cls._refcount = max(0, cls._refcount - 1)
-        if cls._refcount == 0 and cls._instance is not None:
-            logger.removeFilter(cls._instance)
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        return "Failed to detach context" not in record.getMessage()
-
-
-_otel_logger = logging.getLogger("opentelemetry.context")
 
 _DEFAULT_SYSTEM_PROMPT = """\
 You are FinLab-X, a strict, data-driven financial AI Agent.
@@ -144,6 +106,7 @@ class OrchestratorResult(TypedDict):
 
 class _LangfusePropagationAttributes(TypedDict, total=False):
     session_id: str
+    trace_name: str
 
 
 class Orchestrator:
@@ -167,9 +130,18 @@ class Orchestrator:
             checkpointer=checkpointer,
         )
 
-    def run(self, prompt: str, **kwargs: object) -> OrchestratorResult:
-        config, propagation = self._build_langfuse_config(**kwargs)
-        session_id = kwargs.get("session_id")
+    def run(
+        self,
+        prompt: str,
+        *,
+        session_id: str | None = None,
+        request_id: str | None = None,
+    ) -> OrchestratorResult:
+        config, propagation = self._build_langfuse_config(
+            mode="invoke",
+            session_id=session_id,
+            request_id=request_id or uuid.uuid4().hex,
+        )
         thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
@@ -179,13 +151,22 @@ class Orchestrator:
             )
         return self._extract_result(result)
 
-    async def arun(self, prompt: str, **kwargs: object) -> OrchestratorResult:
+    async def arun(
+        self,
+        prompt: str,
+        *,
+        session_id: str | None = None,
+        request_id: str | None = None,
+    ) -> OrchestratorResult:
         """Execute the agent asynchronously (non-blocking).
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
-        config, propagation = self._build_langfuse_config(**kwargs)
-        session_id = kwargs.get("session_id")
+        config, propagation = self._build_langfuse_config(
+            mode="invoke",
+            session_id=session_id,
+            request_id=request_id or uuid.uuid4().hex,
+        )
         thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
@@ -202,12 +183,18 @@ class Orchestrator:
         session_id: str,
         trigger: str | None = None,
         message_id: str | None = None,
+        request_id: str | None = None,
     ) -> AsyncGenerator[DomainEvent, None]:
-        config, propagation = self._build_langfuse_config(session_id=session_id)
+        config, propagation = self._build_langfuse_config(
+            mode="stream",
+            session_id=session_id,
+            request_id=request_id or uuid.uuid4().hex,
+            trigger=trigger,
+            message_id=message_id,
+        )
         config["configurable"] = {"thread_id": session_id}
         mapper = StreamEventMapper(session_id=session_id)
 
-        _SuppressOTelDetachError.acquire(_otel_logger)
         with propagate_attributes(**propagation):
             try:
                 if trigger == "regenerate":
@@ -237,8 +224,6 @@ class Orchestrator:
                         yield event
                 yield StreamError(error_text=sanitize_tool_error(str(e)))
                 yield Finish(finish_reason="error")
-            finally:
-                _SuppressOTelDetachError.release(_otel_logger)
 
     @staticmethod
     def _find_regenerate_target(
@@ -313,14 +298,40 @@ class Orchestrator:
 
     def _build_langfuse_config(
         self,
-        **kwargs: object,
+        *,
+        mode: Literal["invoke", "stream"],
+        request_id: str,
+        session_id: str | None = None,
+        **extra_metadata: object,
     ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
+        """Build the LangChain RunnableConfig + propagate_attributes kwargs.
+
+        trace_name is derived from agent version + endpoint mode, e.g.
+        ``v1_baseline_stream``. request_id + extras (trigger, message_id, ...)
+        go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
+        attaches them to the root trace via the ``langfuse_trace_name`` path.
+        """
         handler = CallbackHandler()
-        propagation: _LangfusePropagationAttributes = {}
-        session_id = kwargs.get("session_id")
+        trace_name = f"{self.config.name}_{mode}"
+
+        metadata: dict[str, object] = {
+            "langfuse_trace_name": trace_name,
+            "request_id": request_id,
+        }
+        for key, value in extra_metadata.items():
+            if value is not None:
+                metadata[key] = value
+
+        propagation: _LangfusePropagationAttributes = {"trace_name": trace_name}
         if isinstance(session_id, str) and session_id:
             propagation["session_id"] = session_id
-        return {"callbacks": [handler]}, propagation
+
+        config: RunnableConfig = {
+            "callbacks": [handler],
+            "run_name": "chat-turn",
+            "metadata": metadata,
+        }
+        return config, propagation
 
     def _extract_result(self, agent_output: dict[str, Any]) -> OrchestratorResult:
         messages: list[BaseMessage] = agent_output.get("messages", [])

@@ -2,7 +2,7 @@
 Version-agnostic Orchestrator and configuration loading. This module provides the central reasoning engine that loads capabilities and constraints from versioned configuration files.
 
 ## Map
-- `base.py`: Defines the `Orchestrator` class, which uses LangChain to manage the ReAct tool-calling loop, injects Langfuse `CallbackHandler` via `_build_langfuse_config()`, propagates request attributes with `propagate_attributes()`, and extracts results.
+- `base.py`: Defines the `Orchestrator` class, which uses LangChain to manage the ReAct tool-calling loop. `_build_langfuse_config()` attaches a per-request `CallbackHandler` plus a `RunnableConfig` carrying `run_name="chat-turn"` and `metadata={langfuse_trace_name: f"{config.name}_{mode}", request_id: ...}`; `propagate_attributes(trace_name=..., session_id=...)` wraps the invocation for OTel-context correlation. Extracts results via `_extract_result`.
 - `config_loader.py`: Implements `VersionConfigLoader` and `VersionConfig` Pydantic models for loading `orchestrator_config.yaml` and `system_prompt.md` from version directories.
 - `versions/`: Subdirectory containing versioned workflow configurations (v1-v5).
 

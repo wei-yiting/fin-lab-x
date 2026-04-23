@@ -9,11 +9,27 @@ Both domains share one Langfuse project and emit `snake_case` spans (`sec_` pref
 
 ## Agent Layer
 
-`backend/agent_engine/agents/base.py` constructs a per-request `CallbackHandler` in `_build_langfuse_config()` and passes it through LangChain's `config` dict. `propagate_attributes()` is used so `@observe()`-decorated tool functions inherit the same trace root rather than creating sibling traces.
+`backend/agent_engine/agents/base.py` constructs a per-request `CallbackHandler` in `_build_langfuse_config()` and wires three pieces of trace metadata through LangChain's `config` dict (Langfuse ≥4.3.1 honors these automatically at `on_chain_start`, see [PR #1626](https://github.com/langfuse/langfuse-python/pull/1626)):
 
-Tools under `backend/agent_engine/tools/` decorate their callable with `@observe(name=...)` to surface as a child span under the orchestrator trace. Example: `sec_filing.py` uses `@observe(name="sec_filing_downloader")` so every tool invocation becomes a named span.
+| Config key | Value | Effect in Langfuse |
+|---|---|---|
+| `metadata.langfuse_trace_name` | `f"{VersionConfig.name}_{mode}"` (e.g., `v1_baseline_stream`, `v1_baseline_invoke`) | Renames the root trace so product/version/endpoint are visible |
+| `run_name` | `"chat-turn"` | Renames the LangChain root chain span (otherwise defaults to the Runnable class name `LangGraph`) |
+| `metadata.request_id` | `uuid.uuid4().hex` minted by each FastAPI handler | Per-request correlation attribute |
 
-Detailed patterns for the agent layer (session threading, streaming, guardrails) live under `backend/agent_engine/docs/`.
+`propagate_attributes(trace_name=..., session_id=...)` is still wrapped around the agent invocation to cover the session correlation path and to also set `trace_name` defensively on the active OTel context.
+
+### Tool tracing
+
+Tools executed through `CallbackHandler` (Tavily, yfinance, SEC filing, etc.) have their inputs, outputs, and duration captured automatically — no decorator is needed for that baseline. Add `@observe()` on a tool **only when** you need one of:
+
+- nested sub-spans inside the tool body
+- custom metadata attached via `update_current_span(...)`
+- access to `get_current_observation_id()` from within the tool
+
+`sec_filing.py` currently retains `@observe(name="sec_filing_downloader")` — this is allowed by the above criteria but not required; most tools (Tavily, yfinance) run decorator-less and still produce a clean tool span via the handler.
+
+Detailed operational rules for the agent layer (streaming boundaries, thread-pool propagation, SDK version constraints) live in [`backend/agent_engine/docs/streaming_observability_guardrails.md`](../backend/agent_engine/docs/streaming_observability_guardrails.md).
 
 ## SEC Ingestion Pipeline
 

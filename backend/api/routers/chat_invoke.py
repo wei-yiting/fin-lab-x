@@ -41,7 +41,10 @@ async def chat(
     """Process financial analysis chat message."""
     try:
         session_id = body.session_id or str(uuid.uuid4())
-        result = await orchestrator.arun(body.message, session_id=session_id)
+        request_id = uuid.uuid4().hex
+        result = await orchestrator.arun(
+            body.message, session_id=session_id, request_id=request_id
+        )
 
         return ChatResponse(
             response=result["response"],

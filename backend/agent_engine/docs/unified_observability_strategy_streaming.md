@@ -35,15 +35,18 @@ That makes unified backend coverage more important than maximizing elegance for 
 
 ### The Main `Langfuse` Risk Is Real but Localized
 
-The main `Langfuse` risk is not "streaming as a whole." It is the narrower path where tracing is attached directly to async generator boundaries, SSE iterators, or per-chunk current-trace mutation.
+The main `Langfuse` risk historically lived in the narrower path where tracing is attached directly to async generator boundaries, SSE iterators, or per-chunk current-trace mutation.
 
-That path has enough bug history that it should not be treated as the default design center.
+The most prominent bugs in that path — [#7226](https://github.com/langfuse/langfuse/issues/7226), [#8216](https://github.com/langfuse/langfuse/issues/8216), [#8447](https://github.com/langfuse/langfuse/issues/8447) — are all closed, and [PR #1628](https://github.com/langfuse/langfuse-python/pull/1628) in Langfuse Python SDK v4.5.0 explicitly wraps `isasyncgen` and `StreamingResponse.body_iterator` with deferred `span.end()`. On `langfuse>=4.5.0` the path works, and live tests in this codebase show no OTel detach noise under SSE streaming or under `run_in_executor` handoff to `edgartools`.
 
-At the same time, that risk can be reduced substantially if:
+Even so, we keep generator-boundary `@observe()` off the default design center. The metadata-based path (`config={"metadata": {"langfuse_trace_name": ...}, "run_name": ...}`, handled by `CallbackHandler` on Langfuse ≥4.3.1) achieves the same naming outcomes with less moving lifecycle machinery, so it wins on simplicity rather than on bug avoidance.
 
-- framework-native orchestration tracing is used at the streaming boundary
-- `@observe()` is reserved for deterministic single-return units
+Remaining risk-reduction levers:
+
+- framework-native orchestration tracing at the streaming boundary (`CallbackHandler`)
+- `@observe()` reserved for deterministic single-return units; on generators only when there is a product reason beyond naming
 - `LlamaIndex` uses its official `Langfuse` integration path
+- thread-pool / `run_in_executor` boundaries use `asyncio.to_thread` or `copy_context().run` to keep OTel contextvars attached (see guardrails Rule 9)
 
 ### Dual Backends Create Ongoing Cost
 

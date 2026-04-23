@@ -1,5 +1,4 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 import { Button } from "@/components/primitives/button";
 import { Textarea } from "@/components/primitives/textarea";
 import { Send, Square } from "lucide-react";
@@ -23,13 +22,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
     useImperativeHandle(
       ref,
       () => ({
-        // flushSync commits the state update before setValue returns so
-        // callers that do `setValue(...); focus()` on the next line see
-        // the textarea value already updated. Without it React batches
-        // the update with surrounding imperative work and the focus
-        // lands on the pre-update value, which confuses tests and makes
-        // a Composer `ref` API visibly async.
-        setValue: (v: string) => flushSync(() => setText(v)),
+        setValue: (v: string) => setText(v),
         focus: () => textareaRef.current?.focus(),
       }),
       [],

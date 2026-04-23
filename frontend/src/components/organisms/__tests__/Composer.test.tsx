@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import { Composer, type ComposerHandle } from "../Composer";
@@ -133,7 +133,11 @@ describe("Composer — chip click", () => {
     const textarea = screen.getByTestId("composer-textarea") as HTMLTextAreaElement;
     await user.type(textarea, "已輸入一半");
 
-    composerRef.current?.setValue("Latest market news");
+    // setValue is a React state setter under the hood — wrap the imperative
+    // call in act() so the resulting re-render commits before we read the DOM.
+    act(() => {
+      composerRef.current?.setValue("Latest market news");
+    });
 
     expect(textarea.value).toBe("Latest market news");
     expect(textarea.value).not.toContain("已輸入一半");

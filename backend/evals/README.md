@@ -42,14 +42,8 @@ uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --man
 # Braintrust platform mode
 uv run python -m backend.evals.eval_runner near_v1_diagnostic --run-label smoke-platform --output-dir /tmp/near-v1-diagnostic-platform
 
-# Provision Langfuse score configs and annotation queues
-uv run python -m backend.evals.diagnostic.langfuse_annotation_setup --profile all
-
-# First-pass good/bad triage only
-uv run python -m backend.evals.diagnostic.langfuse_annotation_setup --profile triage_binary
-
-# Full diagnostic annotation schema only
-uv run python -m backend.evals.diagnostic.langfuse_annotation_setup --profile diagnostic_v1
+# Provision one Langfuse annotation queue with triage + diagnostic score configs
+uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
 
 # Join Langfuse scores export back to dataset rows
 uv run python -m backend.evals.diagnostic.annotation_export_joiner \
@@ -68,14 +62,18 @@ uv run python -m backend.evals.diagnostic.compare_guard \
 
 Braintrust Project Settings 應設定穩定的 diagnostic comparison key，例如 `row_id`。這樣 compare UI 才會對齊同一筆 dataset row，而不是只靠 trace 順序或 experiment 內部索引。
 
-Langfuse Human Annotation 需要先建立 Score Config。`langfuse_annotation_setup`
-會建立兩種 annotation profile：
+Langfuse Human Annotation 需要先建立 Score Config。Free plan 若只能使用一個 Annotation Queue，直接使用預設的 `diagnostic_triage_v1` profile：
 
-- `triage_binary`: 第一輪只標 `triage_outcome=good/bad`，用來篩出需要後續追蹤的 traces
-- `diagnostic_v1`: 完整 `observed_*` / `review_*` schema，給第二輪深入診斷使用
+```bash
+uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
+```
 
-預設也會為每個 profile 建一個 Annotation Queue。若只想建立 Score Config，可加
-`--score-configs-only`。
+它會建立一個 queue：`near-v1-diagnostic-review-v1`，並綁定同一組 score configs：
+
+- `triage_outcome`: 第一輪只標 `good` / `bad`，用來篩出需要後續追蹤的 traces
+- `observed_*` / `review_*`: 第二輪深入診斷使用
+
+若只想建立 Score Config，不建立 Annotation Queue，可加 `--score-configs-only`。
 
 ## Running Evaluations
 

@@ -83,6 +83,8 @@ TRIAGE_BINARY_PROFILE = AnnotationProfile(
     ),
 )
 
+_TRIAGE_OUTCOME_SCORE_CONFIG = TRIAGE_BINARY_PROFILE.score_configs[0]
+
 
 _FAILURE_MECHANISM_LABELS = (
     "tool_routing_error",
@@ -169,7 +171,23 @@ DIAGNOSTIC_V1_PROFILE = AnnotationProfile(
 )
 
 
+DIAGNOSTIC_TRIAGE_V1_PROFILE = AnnotationProfile(
+    key="diagnostic_triage_v1",
+    default_queue_name="near-v1-diagnostic-review-v1",
+    description=(
+        "Single-queue near-v1 diagnostic review schema. Start with "
+        "triage_outcome=good/bad, then fill the full diagnostic fields only for "
+        "traces that need deeper review."
+    ),
+    score_configs=(
+        _TRIAGE_OUTCOME_SCORE_CONFIG,
+        *DIAGNOSTIC_V1_PROFILE.score_configs,
+    ),
+)
+
+
 PROFILES = {
+    DIAGNOSTIC_TRIAGE_V1_PROFILE.key: DIAGNOSTIC_TRIAGE_V1_PROFILE,
     TRIAGE_BINARY_PROFILE.key: TRIAGE_BINARY_PROFILE,
     DIAGNOSTIC_V1_PROFILE.key: DIAGNOSTIC_V1_PROFILE,
 }
@@ -238,7 +256,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--profile",
         choices=[*PROFILES.keys(), "all"],
-        default="all",
+        default=DIAGNOSTIC_TRIAGE_V1_PROFILE.key,
         help="Annotation profile to provision",
     )
     parser.add_argument(
@@ -256,9 +274,7 @@ def main(argv: list[str] | None = None) -> None:
         parser.error("--queue-name can only be used with a single --profile")
 
     client = cast(_LangfuseApiClient, build_langfuse_api_from_env())
-    selected_profiles = (
-        tuple(PROFILES.values()) if args.profile == "all" else (PROFILES[args.profile],)
-    )
+    selected_profiles = _select_profiles(args.profile)
 
     for profile in selected_profiles:
         result = provision_annotation_setup(
@@ -275,6 +291,12 @@ def main(argv: list[str] | None = None) -> None:
                 "  annotation_queue: "
                 f"{result.annotation_queue.name} id={result.annotation_queue.id}"
             )
+
+
+def _select_profiles(profile_key: str) -> tuple[AnnotationProfile, ...]:
+    if profile_key == "all":
+        return (DIAGNOSTIC_TRIAGE_V1_PROFILE,)
+    return (PROFILES[profile_key],)
 
 
 def _list_score_configs(client: _LangfuseApiClient) -> list[Any]:

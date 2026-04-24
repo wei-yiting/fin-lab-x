@@ -18,17 +18,17 @@
 
 ## Langfuse Annotation Schema v1
 
-Langfuse Human Annotation / Annotation Queue 需要先建立 Score Config。可用本地 setup script 建立兩種 profile：
+Langfuse Human Annotation / Annotation Queue 需要先建立 Score Config。Free plan 若只能使用一個 Annotation Queue，可用本地 setup script 建立單一 combined queue：
 
 ```bash
-uv run python -m backend.evals.diagnostic.langfuse_annotation_setup --profile all
+uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
 ```
 
-第一輪 triage profile 只有一個欄位：
+這個 queue 會同時包含第一輪 triage 欄位與完整 diagnostic 欄位。第一輪先填：
 
 - `triage_outcome`: `good` / `bad`
 
-這一輪用來降低後續 annotation noise：先把明顯 good 的 traces 排除，只有 `bad` 或需要追蹤的 traces 再進完整診斷。
+這一輪用來降低後續 annotation noise：先把明顯 good 的 traces filter 掉，只有 `bad` 或需要追蹤的 traces 再補完整診斷欄位。
 
 人工標註匯出預期至少包含以下欄位：
 

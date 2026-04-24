@@ -8,9 +8,11 @@ import pytest
 
 from backend.evals.diagnostic.langfuse_annotation_setup import (
     DIAGNOSTIC_V1_PROFILE,
+    DIAGNOSTIC_TRIAGE_V1_PROFILE,
     TRIAGE_BINARY_PROFILE,
     ProvisioningError,
     provision_annotation_setup,
+    _select_profiles,
 )
 
 
@@ -95,19 +97,46 @@ def test_diagnostic_v1_profile_matches_joiner_columns() -> None:
     ]
 
 
+def test_diagnostic_triage_v1_profile_combines_triage_and_diagnostic_fields() -> None:
+    assert DIAGNOSTIC_TRIAGE_V1_PROFILE.key == "diagnostic_triage_v1"
+    assert DIAGNOSTIC_TRIAGE_V1_PROFILE.default_queue_name == (
+        "near-v1-diagnostic-review-v1"
+    )
+    assert [spec.name for spec in DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs] == [
+        "triage_outcome",
+        "observed_outcome",
+        "observed_alignment_to_prompt",
+        "review_confidence",
+        "review_comment",
+        "observed_primary_failure_mechanism",
+        "observed_secondary_failure_mechanism",
+        "observed_tuning_lever",
+        "needs_followup",
+        "followup_note",
+    ]
+
+
+def test_all_profile_aliases_to_single_combined_queue_profile() -> None:
+    assert _select_profiles("all") == (DIAGNOSTIC_TRIAGE_V1_PROFILE,)
+
+
 def test_provision_annotation_setup_creates_configs_and_queue() -> None:
     api = _FakeLangfuseApi()
 
     result = provision_annotation_setup(
         client=api,
-        profile=TRIAGE_BINARY_PROFILE,
-        queue_name="near-v1-triage",
+        profile=DIAGNOSTIC_TRIAGE_V1_PROFILE,
     )
 
-    assert [config.name for config in result.score_configs] == ["triage_outcome"]
+    assert [config.name for config in result.score_configs] == [
+        spec.name for spec in DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs
+    ]
     assert result.annotation_queue is not None
-    assert result.annotation_queue.name == "near-v1-triage"
-    assert api.annotation_queues.created[0]["score_config_ids"] == ["score-config-1"]
+    assert result.annotation_queue.name == "near-v1-diagnostic-review-v1"
+    assert api.annotation_queues.created[0]["score_config_ids"] == [
+        f"score-config-{index}"
+        for index in range(1, len(DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs) + 1)
+    ]
 
 
 def test_provision_annotation_setup_reuses_existing_configs_and_queue() -> None:

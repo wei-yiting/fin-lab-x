@@ -10,6 +10,7 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
+import time
 import uuid
 from collections.abc import AsyncGenerator
 from typing import Any, Literal
@@ -34,6 +35,11 @@ from backend.agent_engine.streaming.event_mapper import StreamEventMapper
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
+
+
+# Captured once per Python process. Lets engineers distinguish pre/post-restart
+# traces sharing the same session_id (DD-06 silent post-restart amnesia).
+_PROCESS_START_TS = time.time()
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -317,6 +323,7 @@ class Orchestrator:
         metadata: dict[str, object] = {
             "langfuse_trace_name": trace_name,
             "request_id": request_id,
+            "process_start_ts": _PROCESS_START_TS,
         }
         for key, value in extra_metadata.items():
             if value is not None:

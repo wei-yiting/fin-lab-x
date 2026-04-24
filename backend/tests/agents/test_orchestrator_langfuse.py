@@ -113,6 +113,30 @@ class TestRunInjectsLangfuseCallback:
             config_arg = call_args[1].get("config")
             assert "callbacks" in config_arg
 
+    def test_run_attaches_process_start_ts_to_metadata(self):
+        """S-obs-04: every trace must carry process_start_ts so engineers can
+        distinguish traces from different backend processes sharing a session_id
+        (DD-06 post-restart silent amnesia boundary)."""
+        from backend.agent_engine.agents.base import _PROCESS_START_TS
+
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        agent.invoke.return_value = _mock_agent_response()
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler") as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            mock_handler_cls.return_value = MagicMock()
+            orch.run("test prompt", request_id="req-abc")
+
+        metadata = agent.invoke.call_args[1]["config"]["metadata"]
+        assert metadata["process_start_ts"] == _PROCESS_START_TS
+
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
         orch = _create_orchestrator(config)

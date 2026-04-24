@@ -206,6 +206,25 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     );
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
   });
+
+  // S-regen-02: button must be hidden for every non-ready status so no second
+  // POST can be issued while one is already in flight or mid-stream.
+  test.each(["submitted", "streaming", "error"] as const)(
+    "isLast=true but status=%s → button hidden",
+    (status) => {
+      render(
+        <AssistantMessage
+          message={baseMsg}
+          isLast={true}
+          status={status}
+          abortedTools={new Set()}
+          toolProgress={{}}
+          onRegenerate={vi.fn()}
+        />,
+      );
+      expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+    },
+  );
 });
 
 describe("AssistantMessage — citation rendering", () => {

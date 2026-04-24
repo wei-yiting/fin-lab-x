@@ -17,6 +17,8 @@ import happyCitation from "./happy-citation";
 import regenerateHappy from "./regenerate-happy";
 import regenerateFailThenSuccess from "./regenerate-fail-then-success";
 import xssInlineBodyLink from "./xss-inline-body-link";
+import gatewaySseError from "./gateway-sse-error";
+import threeParallelToolsOneFailure from "./three-parallel-tools-one-failure";
 
 export const fixtures: Record<string, SSEFixture> = {
   "xss-javascript-url": xssJavascriptUrl,
@@ -37,4 +39,6 @@ export const fixtures: Record<string, SSEFixture> = {
   "regenerate-happy": regenerateHappy,
   "regenerate-fail-then-success": regenerateFailThenSuccess,
   "xss-inline-body-link": xssInlineBodyLink,
+  "gateway-sse-error": gatewaySseError,
+  "three-parallel-tools-one-failure": threeParallelToolsOneFailure,
 };

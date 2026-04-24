@@ -14,8 +14,8 @@ import os
 import re
 import time
 import uuid
-from collections.abc import AsyncGenerator
-from typing import Any, Literal
+from collections.abc import AsyncGenerator, Mapping
+from typing import Any, Literal, cast
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
@@ -226,11 +226,15 @@ class Orchestrator:
         tool_call_limit = RunBudgetMiddleware(
             run_limit=config.constraints.max_tool_calls_per_run,
         )
+        middleware = cast(
+            list[AgentMiddleware[Any, Any, Any]],
+            [tool_call_limit, handle_tool_errors],
+        )
         self.agent = create_agent(
             model=model,
             tools=self.tools,
             system_prompt=self.system_prompt,
-            middleware=[tool_call_limit, handle_tool_errors],
+            middleware=middleware,
             checkpointer=checkpointer,
         )
 
@@ -342,6 +346,7 @@ class Orchestrator:
         trigger: str | None = None,
         message_id: str | None = None,
         request_id: str | None = None,
+        trace_metadata: Mapping[str, object] | None = None,
     ) -> AsyncGenerator[DomainEvent, None]:
         config, propagation = self._build_langfuse_config(
             mode="stream",
@@ -349,6 +354,7 @@ class Orchestrator:
             request_id=request_id or uuid.uuid4().hex,
             trigger=trigger,
             message_id=message_id,
+            trace_metadata=trace_metadata,
         )
         config["configurable"] = {"thread_id": session_id}
         mapper = StreamEventMapper(session_id=session_id)
@@ -361,7 +367,8 @@ class Orchestrator:
                 else:
                     input_data = {"messages": [{"role": "user", "content": message}]}
 
-                async for raw_chunk in self.agent.astream(
+                agent = cast(Any, self.agent)
+                async for raw_chunk in agent.astream(
                     input_data,
                     config=config,
                     stream_mode=["messages", "updates", "custom"],
@@ -413,7 +420,9 @@ class Orchestrator:
         for i in range(last_ai_idx, -1, -1):
             if isinstance(messages[i], AIMessage):
                 turn_start = i
-                turn_ids.add(messages[i].id)
+                message_id_value = messages[i].id
+                if message_id_value is not None:
+                    turn_ids.add(message_id_value)
             elif isinstance(messages[i], ToolMessage):
                 continue
             else:
@@ -434,7 +443,7 @@ class Orchestrator:
 
         Raises ValueError with descriptive message on failure.
         """
-        config: dict = {"configurable": {"thread_id": session_id}}
+        config: RunnableConfig = {"configurable": {"thread_id": session_id}}
         state = await self.agent.aget_state(config)
         messages = state.values.get("messages", [])
 
@@ -444,7 +453,7 @@ class Orchestrator:
         self._find_regenerate_target(messages, message_id)
 
     async def _prepare_regenerate(
-        self, config: dict, message_id: str | None
+        self, config: RunnableConfig, message_id: str | None
     ) -> None:
         state = await self.agent.aget_state(config)
         messages = state.values.get("messages", [])
@@ -460,6 +469,7 @@ class Orchestrator:
         mode: Literal["invoke", "stream"],
         request_id: str,
         session_id: str | None = None,
+        trace_metadata: Mapping[str, object] | None = None,
         **extra_metadata: object,
     ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
@@ -479,6 +489,13 @@ class Orchestrator:
         }
         for key, value in extra_metadata.items():
             if value is not None:
+                metadata[key] = value
+        if trace_metadata is not None:
+            for key, value in trace_metadata.items():
+                if key in metadata and metadata[key] != value:
+                    raise ValueError(
+                        f"trace_metadata key collides with reserved metadata: {key}"
+                    )
                 metadata[key] = value
 
         propagation: _LangfusePropagationAttributes = {"trace_name": trace_name}

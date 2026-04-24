@@ -688,6 +688,94 @@ class TestLangfuseTraceMetadata:
         assert metadata["trigger"] == "regenerate"
 
     @pytest.mark.asyncio
+    async def test_astream_trace_metadata_merges_into_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={
+                    "reference_expected_behavior": "may_pass_with_tuning",
+                    "reference_best_source": "mixed",
+                },
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["langfuse_trace_name"] == "v1_baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert metadata["reference_expected_behavior"] == "may_pass_with_tuning"
+        assert metadata["reference_best_source"] == "mixed"
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_rejects_reserved_key_collision(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+
+        with pytest.raises(
+            ValueError, match="trace_metadata key collides with reserved metadata"
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={"request_id": "req-2"},
+            ):
+                pass
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_allows_identical_reserved_value(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={"request_id": "req-1"},
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["request_id"] == "req-1"
+
+    @pytest.mark.asyncio
     async def test_trace_name_follows_config_version_dynamically(self):
         """Swap in a v2 config — trace_name must track, no code change needed."""
         config = VersionConfig(

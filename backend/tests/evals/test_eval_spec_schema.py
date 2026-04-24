@@ -4,9 +4,11 @@ from pathlib import Path
 import textwrap
 
 import pytest
+from pydantic import ValidationError
 
 from backend.evals.eval_spec_schema import (
     BraintrustConfig,
+    DiagnosticScenarioConfig,
     ScenarioConfig,
     load_braintrust_config,
     load_scenario_config,
@@ -235,6 +237,110 @@ scorers:
     assert config.scorers[1].model == "gpt-4.1"
     assert config.scorers[1].use_cot is False
     assert config.scorers[1].choice_scores == {"Y": 1.0, "N": 0.0}
+
+
+def test_load_scenario_config_parses_diagnostic_block_with_defaults(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: near_v1_diagnostic
+csv: dataset.csv
+diagnostic:
+  dataset_name: near_v1_diagnostic
+  dataset_version: "2026-04-24"
+task:
+  function: backend.evals.eval_tasks.run_near_v1_diagnostic
+column_mapping:
+  question: input.question
+scorers:
+  - name: diagnostic_execution_health
+    function: backend.evals.diagnostic.execution_scorer.execution_health
+""".strip()
+    )
+
+    config = load_scenario_config(config_path)
+
+    assert isinstance(config.diagnostic, DiagnosticScenarioConfig)
+    assert config.diagnostic.dataset_name == "near_v1_diagnostic"
+    assert config.diagnostic.dataset_version == "2026-04-24"
+    assert config.diagnostic.row_id_column == "id"
+    assert config.diagnostic.question_column == "question"
+    assert config.diagnostic.agent_version == "v1_baseline"
+
+
+def test_load_scenario_config_rejects_unknown_diagnostic_field(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: near_v1_diagnostic
+diagnostic:
+  dataset_name: near_v1_diagnostic
+  dataset_version: "2026-04-24"
+  unknown_field: nope
+task:
+  function: backend.evals.eval_tasks.run_near_v1_diagnostic
+column_mapping:
+  question: input.question
+scorers:
+  - name: diagnostic_execution_health
+    function: backend.evals.diagnostic.execution_scorer.execution_health
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
+        load_scenario_config(config_path)
+
+
+@pytest.mark.parametrize(
+    ("field_name", "field_value"),
+    [
+        ("dataset_name", ""),
+        ("dataset_version", ""),
+        ("row_id_column", ""),
+        ("question_column", ""),
+        ("agent_version", ""),
+    ],
+)
+def test_diagnostic_config_rejects_empty_identity_fields(
+    field_name: str,
+    field_value: str,
+) -> None:
+    payload = {
+        "dataset_name": "near_v1_diagnostic",
+        "dataset_version": "2026-04-24",
+        "row_id_column": "id",
+        "question_column": "question",
+        "agent_version": "v1_baseline",
+    }
+    payload[field_name] = field_value
+
+    with pytest.raises(ValidationError):
+        DiagnosticScenarioConfig.model_validate(payload)
+
+
+def test_checked_in_near_v1_diagnostic_spec_loads_and_resolves_contract() -> None:
+    from backend.evals.scorer_registry import resolve_function
+
+    config_path = (
+        Path(__file__).resolve().parents[2]
+        / "evals"
+        / "scenarios"
+        / "near_v1_diagnostic"
+        / "eval_spec.yaml"
+    )
+
+    config = load_scenario_config(config_path)
+    task_fn = resolve_function(config.task.function, label="task")
+    scorer_fn = resolve_function(config.scorers[0].function or "", label="scorer")
+
+    assert config.name == "near_v1_diagnostic"
+    assert config.diagnostic is not None
+    assert callable(task_fn)
+    assert callable(scorer_fn)
 
 
 def test_load_braintrust_config_applies_project_default_when_omitted(

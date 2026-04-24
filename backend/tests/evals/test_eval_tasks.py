@@ -14,6 +14,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextEnd,
     TextStart,
     ToolCall,
+    ToolError,
     ToolResult,
     Usage,
 )
@@ -166,3 +167,52 @@ def test_run_v1_list_input_converted_to_string(mock_get_orch: MagicMock) -> None
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "['a', 'b']"
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_astream_collect_records_tool_errors_in_tool_outputs(
+    mock_get_orch: MagicMock,
+) -> None:
+    events = [
+        MessageStart(message_id="msg-1", session_id="sess-1"),
+        ToolCall(tool_call_id="tc-1", tool_name="tavily_financial_search", args={"query": "UNH news"}),
+        ToolError(tool_call_id="tc-1", error="timeout"),
+        Finish(finish_reason="stop", usage=Usage(input_tokens=1, output_tokens=1)),
+    ]
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_near_v1_diagnostic
+
+    result = asyncio.run(run_near_v1_diagnostic({"question": "UNH 發生什麼事？"}))
+
+    assert result["tool_outputs"] == [
+        {
+            "tool": "tavily_financial_search",
+            "args": {"query": "UNH news"},
+            "error": "timeout",
+        }
+    ]
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_near_v1_diagnostic_extracts_question_field(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_near_v1_diagnostic
+
+    asyncio.run(run_near_v1_diagnostic({"question": "Disney 最近怎麼了？"}))
+
+    call_kwargs = mock_orchestrator.astream_run.call_args[1]
+    assert call_kwargs["message"] == "Disney 最近怎麼了？"

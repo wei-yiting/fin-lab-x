@@ -56,6 +56,11 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
                 "result": event.result,
             })
         elif isinstance(event, ToolError):
+            tool_outputs.append({
+                "tool": tool_names.get(event.tool_call_id, "unknown"),
+                "args": tool_args.get(event.tool_call_id, {}),
+                "error": event.error,
+            })
             errors.append(event.error)
         elif isinstance(event, StreamError):
             errors.append(event.error_text)
@@ -134,6 +139,22 @@ async def run_v1(input: Any) -> OrchestratorResult:
         prompt = input
     elif isinstance(input, Mapping):
         prompt = input.get("prompt", str(input))
+    else:
+        prompt = str(input)
+    return await _astream_collect(orchestrator, prompt)
+
+
+async def run_near_v1_diagnostic(input: Any) -> OrchestratorResult:
+    """Diagnostic task wrapper for near-v1 scenario rows.
+
+    Keeps the current contract deliberately small: use the v1_baseline
+    orchestrator and extract the eval prompt from ``question``.
+    """
+    orchestrator = _get_orchestrator("v1_baseline")
+    if isinstance(input, str):
+        prompt = input
+    elif isinstance(input, Mapping):
+        prompt = input.get("question", str(input))
     else:
         prompt = str(input)
     return await _astream_collect(orchestrator, prompt)

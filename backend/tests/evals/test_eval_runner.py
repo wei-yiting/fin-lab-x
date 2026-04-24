@@ -661,6 +661,17 @@ class TestWrapScorer:
         assert result is None
         assert call_count == 0
 
+    def test_diagnostic_scorer_runs_on_error_row(self) -> None:
+        from backend.evals.diagnostic.execution_scorer import execution_health
+        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_scorer
+
+        wrapped = _wrap_scorer(execution_health, "diagnostic_execution_health")
+        result = wrapped(output=_ERROR_MARKER, expected={})
+
+        assert result is not None
+        assert result["score"] == 0.0
+        assert result["metadata"]["execution_complete"] is False
+
     def test_extra_kwargs_filtered_for_strict_scorer(self) -> None:
         """V-5.1 regression: scorers without **kwargs must not receive extra
         keyword arguments like ``metadata`` that Braintrust passes."""
@@ -839,3 +850,22 @@ class TestRunLocalEvalInputForwarding:
         assert score_val != _ERROR_MARKER, "Scorer should not produce ERROR"
         assert isinstance(score_val, (int, float))
         assert score_val == 1.0
+
+    def test_local_eval_diagnostic_scorer_observes_error_row(self) -> None:
+        from backend.evals.diagnostic.execution_scorer import execution_health
+        from backend.evals.eval_runner import _run_local_eval, _wrap_scorer, _wrap_task
+
+        def task_fn(inp: Any) -> str:
+            raise RuntimeError("boom")
+
+        raw_data = [{"input": {"question": "UNH 發生什麼事？"}, "expected": {}}]
+        result = _run_local_eval(
+            raw_data,
+            _wrap_task(task_fn),
+            [_wrap_scorer(execution_health, "diagnostic_execution_health")],
+        )
+
+        score_val = result.results[0].scores["diagnostic_execution_health"]
+        assert isinstance(score_val, dict)
+        assert score_val["score"] == 0.0
+        assert score_val["metadata"]["execution_complete"] is False

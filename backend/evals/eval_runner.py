@@ -221,7 +221,8 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
     """Wrap a scorer to isolate failures from other scorers."""
 
     def wrapped(*, output: Any, expected: Any, **kwargs: Any) -> Any:
-        if output == _ERROR_MARKER:
+        should_score_error_row = scorer_name == "diagnostic_execution_health"
+        if output == _ERROR_MARKER and not should_score_error_row:
             return None
         try:
             filtered = _filter_kwargs_for(scorer_fn, kwargs)
@@ -311,11 +312,10 @@ def write_result_csv(
 
             # Score columns
             for name in scorer_names:
-                if is_error_row:
-                    row[f"score_{name}"] = _ERROR_MARKER
-                    continue
                 score_val = result.scores.get(name)
-                if score_val is None:
+                if is_error_row and score_val is None:
+                    row[f"score_{name}"] = _ERROR_MARKER
+                elif score_val is None:
                     row[f"score_{name}"] = _ERROR_MARKER
                 elif score_val == _SKIPPED_MARKER:
                     row[f"score_{name}"] = _SKIPPED_MARKER

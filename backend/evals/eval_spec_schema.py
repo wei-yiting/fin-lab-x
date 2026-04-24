@@ -4,7 +4,13 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 
 class ScorerConfig(BaseModel):
@@ -76,6 +82,32 @@ class PreRunConfig(BaseModel):
     function: str
 
 
+class DiagnosticScenarioConfig(BaseModel):
+    """Optional diagnostic scenario contract for dataset identity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    dataset_name: str
+    dataset_version: str
+    row_id_column: str = "id"
+    question_column: str = "question"
+    agent_version: str = "v1_baseline"
+
+    @field_validator(
+        "dataset_name",
+        "dataset_version",
+        "row_id_column",
+        "question_column",
+        "agent_version",
+    )
+    @classmethod
+    def validate_non_empty_string(cls, value: str) -> str:
+        """Reject empty identity fields."""
+        if value.strip() == "":
+            raise ValueError("diagnostic identity fields must not be empty")
+        return value
+
+
 class ScenarioConfig(BaseModel):
     """Complete evaluation scenario configuration."""
 
@@ -86,6 +118,7 @@ class ScenarioConfig(BaseModel):
     csv: str = "dataset.csv"
     task: TaskConfig
     pre_run: PreRunConfig | None = None
+    diagnostic: DiagnosticScenarioConfig | None = None
     column_mapping: dict[str, str]
     scorers: list[ScorerConfig]
 

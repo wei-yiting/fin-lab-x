@@ -50,6 +50,22 @@ def test_resolve_scorers_raises_import_error_for_missing_function() -> None:
         resolve_scorers([scorer_config])
 
 
+def test_resolve_scorers_resolves_diagnostic_execution_health() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+    from backend.evals.scorer_registry import resolve_scorers
+
+    scorers = resolve_scorers(
+        [
+            ScorerConfig(
+                name="diagnostic_execution_health",
+                function="backend.evals.diagnostic.execution_scorer.execution_health",
+            )
+        ]
+    )
+
+    assert scorers == [execution_health]
+
+
 def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) -> None:
     from backend.evals import scorer_registry
 
@@ -129,6 +145,75 @@ def test_tool_arg_no_cjk_passes_for_english_arguments() -> None:
 
     assert result["name"] == "tool_arg_no_cjk"
     assert result["score"] == 1.0
+
+
+def test_execution_health_passes_when_execution_completes_and_tools_succeed() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {
+            "response": "done",
+            "tool_outputs": [
+                {"tool": "search_news", "result": "ok"},
+                {"tool": "fetch_quote", "result": {"price": 123}},
+            ],
+        },
+        {
+            "draft_pass_signals": ["do not read me"],
+            "expected_best_source": "ignore me",
+        },
+        input={"question": "What changed?"},
+    )
+
+    assert result["name"] == "diagnostic_execution_health"
+    assert result["score"] == 1.0
+    assert result["metadata"] == {
+        "execution_complete": True,
+        "tool_call_all_successful": True,
+        "tool_error_names": [],
+    }
+
+
+def test_execution_health_fails_when_execution_hits_error_marker() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {"response": "__ERROR__", "tool_outputs": []},
+        {"draft_pass_signals": ["still ignored"]},
+        input="Any question",
+    )
+
+    assert result["score"] == 0.0
+    assert result["metadata"] == {
+        "execution_complete": False,
+        "tool_call_all_successful": True,
+        "tool_error_names": [],
+    }
+
+
+def test_execution_health_fails_and_emits_tool_error_names() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {
+            "response": "Partial answer",
+            "tool_outputs": [
+                {"tool": "search_news", "result": "ok"},
+                {"tool": "fetch_quote", "error": "timeout"},
+                {"tool": "sec_lookup", "result": "__ERROR__"},
+                {"tool": "tool_without_name", "error": None},
+            ],
+        },
+        {},
+        input="Question",
+    )
+
+    assert result["score"] == 0.0
+    assert result["metadata"] == {
+        "execution_complete": True,
+        "tool_call_all_successful": False,
+        "tool_error_names": ["fetch_quote", "sec_lookup"],
+    }
 
 
 def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:

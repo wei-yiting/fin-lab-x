@@ -16,6 +16,8 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextEnd,
     TextStart,
 )
+from backend.evals.diagnostic.metadata_projector import project_diagnostic_metadata
+from backend.evals.diagnostic.models import DiagnosticSliceIdentity
 
 
 def _make_config() -> VersionConfig:
@@ -53,6 +55,16 @@ def _create_orchestrator(config: VersionConfig) -> Orchestrator:
         mock_create.return_value = mock_agent
         orch = Orchestrator(config, checkpointer=MagicMock())
         return orch
+
+
+def _make_diagnostic_slice_identity() -> DiagnosticSliceIdentity:
+    return DiagnosticSliceIdentity(
+        slice_label="filter-capability-band-boundary",
+        slice_type="field_filter",
+        slice_selector="capability_band=boundary",
+        selected_row_ids=("17",),
+        slice_hash="abc123",
+    )
 
 
 class TestRunInjectsLangfuseCallback:
@@ -725,6 +737,71 @@ class TestLangfuseTraceMetadata:
         assert metadata["request_id"] == "req-1"
         assert metadata["reference_expected_behavior"] == "may_pass_with_tuning"
         assert metadata["reference_best_source"] == "mixed"
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_accepts_projected_diagnostic_langfuse_metadata(
+        self,
+    ):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        projection = project_diagnostic_metadata(
+            row={
+                "id": "17",
+                "category": "regulatory_or_legal_risk",
+                "capability_band": "boundary",
+                "expected_near_v1_behavior": "may_pass_with_tuning",
+                "primary_failure_mechanism": "tool_routing_error",
+                "secondary_failure_mechanism": None,
+                "expected_best_source": "mixed",
+                "likely_tuning_lever": "tool_description",
+                "draft_pass_signals": [
+                    "區分已發生行動與潛在壓力",
+                    "不要把媒體推測當成已落地結果",
+                ],
+            },
+            dataset_name="near_v1_diagnostic",
+            dataset_version="2026-04-24",
+            run_label="baseline",
+            run_group="near-v1",
+            agent_version="v1_baseline",
+            experiment_name="near_v1_diagnostic_20260424_120000",
+            slice_identity=_make_diagnostic_slice_identity(),
+        )
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata=projection.langfuse_metadata,
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["langfuse_trace_name"] == "v1_baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert metadata["reference_secondary_failure_mechanism"] is None
+        assert metadata["reference_pass_signals"] == [
+            "區分已發生行動與潛在壓力",
+            "不要把媒體推測當成已落地結果",
+        ]
 
     @pytest.mark.asyncio
     async def test_astream_trace_metadata_rejects_reserved_key_collision(self):

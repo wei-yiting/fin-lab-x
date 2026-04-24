@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Mapping
 
@@ -69,14 +70,14 @@ def project_diagnostic_metadata(
         "reference_primary_failure_mechanism": _require_str(
             row, "primary_failure_mechanism"
         ),
-        "reference_secondary_failure_mechanism": _require_str(
+        "reference_secondary_failure_mechanism": _optional_str(
             row, "secondary_failure_mechanism"
         ),
         "reference_best_source": _require_str(row, "expected_best_source"),
         "reference_likely_tuning_lever": _require_str(
             row, "likely_tuning_lever"
         ),
-        "reference_pass_signals": row["draft_pass_signals"],
+        "reference_pass_signals": deepcopy(row["draft_pass_signals"]),
     }
 
     return DiagnosticMetadataProjection(
@@ -99,4 +100,13 @@ def _require_str(row: Mapping[str, object], key: str) -> str:
     value = row[key]
     if not isinstance(value, str):
         raise TypeError(f"{key} must be a string")
+    return value
+
+
+def _optional_str(row: Mapping[str, object], key: str) -> str | None:
+    value = row.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{key} must be a string when provided")
     return value

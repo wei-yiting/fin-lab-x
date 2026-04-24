@@ -92,6 +92,77 @@ def test_project_diagnostic_metadata_emits_exact_projection() -> None:
     )
 
 
+@pytest.mark.parametrize("secondary_value", [None, ""])
+def test_project_diagnostic_metadata_preserves_sparse_optional_reference_field(
+    secondary_value: object,
+) -> None:
+    row = _make_row()
+    row["secondary_failure_mechanism"] = secondary_value
+
+    projection = project_diagnostic_metadata(
+        row=row,
+        dataset_name="near_v1_diagnostic",
+        dataset_version="2026-04-24",
+        run_label="baseline",
+        run_group="near-v1",
+        agent_version="v1_baseline",
+        experiment_name="near_v1_diagnostic_20260424_120000",
+        slice_identity=_make_slice_identity(),
+    )
+
+    assert "reference_secondary_failure_mechanism" in projection.langfuse_metadata
+    assert (
+        projection.langfuse_metadata["reference_secondary_failure_mechanism"]
+        == secondary_value
+    )
+
+
+def test_project_diagnostic_metadata_defaults_missing_optional_reference_field_to_none() -> None:
+    row = _make_row()
+    row.pop("secondary_failure_mechanism")
+
+    projection = project_diagnostic_metadata(
+        row=row,
+        dataset_name="near_v1_diagnostic",
+        dataset_version="2026-04-24",
+        run_label="baseline",
+        run_group="near-v1",
+        agent_version="v1_baseline",
+        experiment_name="near_v1_diagnostic_20260424_120000",
+        slice_identity=_make_slice_identity(),
+    )
+
+    assert "reference_secondary_failure_mechanism" in projection.langfuse_metadata
+    assert (
+        projection.langfuse_metadata["reference_secondary_failure_mechanism"]
+        is None
+    )
+
+
+def test_project_diagnostic_metadata_copies_reference_pass_signals_defensively() -> None:
+    row = _make_row()
+    original_signals = row["draft_pass_signals"]
+    projection = project_diagnostic_metadata(
+        row=row,
+        dataset_name="near_v1_diagnostic",
+        dataset_version="2026-04-24",
+        run_label="baseline",
+        run_group="near-v1",
+        agent_version="v1_baseline",
+        experiment_name="near_v1_diagnostic_20260424_120000",
+        slice_identity=_make_slice_identity(),
+    )
+
+    assert isinstance(original_signals, list)
+    original_signals.append("later mutation")
+    cast_signals = projection.langfuse_metadata["reference_pass_signals"]
+    assert cast_signals == [
+        "區分已發生行動與潛在壓力",
+        "不要把媒體推測當成已落地結果",
+    ]
+    assert cast_signals is not original_signals
+
+
 def test_build_diagnostic_session_id_is_parseable() -> None:
     session_id = build_diagnostic_session_id(
         dataset_name="near_v1_diagnostic",

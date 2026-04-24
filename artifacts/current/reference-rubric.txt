@@ -1,0 +1,14 @@
+Score 0: One or more key concepts contain information that is not present in the lesson content, introduce inaccuracies, or reinterpret the lesson in a way that changes its original meaning.
+Score 1: All key concepts strictly reflect the lesson content, containing only information explicitly stated or clearly implied, with no added details, assumptions, or distortions.
+
+Score 0 example:
+Key concept: Butter chicken is a versatile dish that can be served with a variety of accompaniments, such as rice or naan bread.
+Lesson content:
+An easy butter chicken recipe I've perfected over the years and shared with many others. The sauce is perfect when creamy and not too thick or too thin. The level of salt and spices can be suited to your taste. Garam and tandoori masala can be found in the ethnic aisle of your grocery store.
+Score explanation: The key concept introduces information about serving accompaniments (rice or naan) that is not mentioned or implied in the lesson content, resulting in a deviation from the source material.
+
+Score 1 example:
+Key concept: Adjusting the sauce consistency and seasoning to personal preference is important for achieving the desired flavor profile.
+Lesson content:
+An easy butter chicken recipe I've perfected over the years and shared with many others. The sauce is perfect when creamy and not too thick or too thin. The level of salt and spices can be suited to your taste. Garam and tandoori masala can be found in the ethnic aisle of your grocery store.
+Score explanation: The key concept accurately reflects information explicitly stated in the lesson content by focusing on sauce consistency and adjustable seasoning, without adding any new or unsupported details.

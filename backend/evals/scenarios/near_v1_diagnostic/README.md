@@ -102,6 +102,10 @@ join key 不是直接拼字串比對而已；joiner 會先 parse `session_id`，
 - `partial_annotation`: 有部分 reviewer annotation，但還不完整
 - `missing_annotation`: 這列還沒有 trace-level annotation
 
+Langfuse Score Config name 最長 35 字元，因此 UI 裡的
+`obs_secondary_failure_mechanism` 會在 export join 時映射回
+`observed_secondary_failure_mechanism`。
+
 ## Compare Guard
 
 在 Analyst 解讀 Braintrust compare 前，先用本地 compare guard 檢查兩個 diagnostic run 是否真的可比：

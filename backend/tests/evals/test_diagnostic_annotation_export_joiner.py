@@ -198,6 +198,42 @@ def test_join_annotation_export_normalizes_boolean_and_filters_non_annotation_ro
     assert joined[0]["observed_outcome"] == ""
 
 
+def test_join_annotation_export_maps_short_langfuse_score_name_aliases(
+    tmp_path: Path,
+) -> None:
+    dataset_path = tmp_path / "dataset.csv"
+    scores_path = tmp_path / "scores.csv"
+    _write_dataset_csv(dataset_path)
+    _write_scores_csv(
+        scores_path,
+        [
+            {
+                "trace_id": "trace-1",
+                "session_id": "near_v1_diagnostic::smoke-local::1",
+                "name": "obs_secondary_failure_mechanism",
+                "source": "ANNOTATION",
+                "observation_id": "",
+                "data_type": "CATEGORICAL",
+                "value": "",
+                "string_value": "source_coverage_gap",
+                "comment": "",
+                "created_at": "2026-04-24T12:00:00Z",
+                "updated_at": "",
+            },
+        ],
+    )
+
+    joined = join_annotation_export(
+        dataset_path=dataset_path,
+        scores_export_path=scores_path,
+        dataset_name="near_v1_diagnostic",
+        run_label="smoke-local",
+    )
+
+    assert joined[0]["observed_secondary_failure_mechanism"] == "source_coverage_gap"
+    assert "obs_secondary_failure_mechanism" not in joined[0]
+
+
 def test_join_annotation_export_does_not_fallback_to_comment_for_non_review_text_fields(
     tmp_path: Path,
 ) -> None:

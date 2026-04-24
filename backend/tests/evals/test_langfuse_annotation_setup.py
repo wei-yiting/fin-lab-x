@@ -90,7 +90,7 @@ def test_diagnostic_v1_profile_matches_joiner_columns() -> None:
         "review_confidence",
         "review_comment",
         "observed_primary_failure_mechanism",
-        "observed_secondary_failure_mechanism",
+        "obs_secondary_failure_mechanism",
         "observed_tuning_lever",
         "needs_followup",
         "followup_note",
@@ -109,11 +109,16 @@ def test_diagnostic_triage_v1_profile_combines_triage_and_diagnostic_fields() ->
         "review_confidence",
         "review_comment",
         "observed_primary_failure_mechanism",
-        "observed_secondary_failure_mechanism",
+        "obs_secondary_failure_mechanism",
         "observed_tuning_lever",
         "needs_followup",
         "followup_note",
     ]
+
+
+def test_langfuse_score_config_names_fit_platform_limit() -> None:
+    for spec in DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs:
+        assert len(spec.name) <= 35
 
 
 def test_all_profile_aliases_to_single_combined_queue_profile() -> None:

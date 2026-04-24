@@ -31,6 +31,10 @@ _REQUIRED_ANNOTATION_FIELDS = [
     "review_comment",
 ]
 
+_SCORE_NAME_ALIASES = {
+    "obs_secondary_failure_mechanism": "observed_secondary_failure_mechanism",
+}
+
 
 @dataclass(frozen=True)
 class DiagnosticSessionIdentity:
@@ -81,7 +85,8 @@ def join_annotation_export(
             output_row[column] = ""
 
         for score_name, selected_score in row_scores.items():
-            output_row[score_name] = selected_score.value
+            output_column = _normalize_score_name(score_name)
+            output_row[output_column] = selected_score.value
             output_row["langfuse_trace_id"] = selected_score.trace_id
             output_row["langfuse_session_id"] = selected_score.session_id
 
@@ -174,7 +179,9 @@ def _select_latest_annotation_scores(
             )
             sort_key = _score_sort_key(row, index)
             selected[(session_identity.row_id, score_name)] = max(
-                selected.get((session_identity.row_id, score_name), (("", "", -1), selected_row)),
+                selected.get(
+                    (session_identity.row_id, score_name), (("", "", -1), selected_row)
+                ),
                 (sort_key, selected_row),
                 key=lambda item: item[0],
             )
@@ -186,7 +193,7 @@ def _select_latest_annotation_scores(
 
 
 def _extract_score_value(row: dict[str, str | None]) -> str:
-    score_name = (row.get("name") or "").strip()
+    score_name = _normalize_score_name((row.get("name") or "").strip())
     data_type = (row.get("data_type") or "").strip().upper()
     raw_value = (row.get("value") or "").strip()
     string_value = (row.get("string_value") or "").strip()
@@ -199,6 +206,10 @@ def _extract_score_value(row: dict[str, str | None]) -> str:
     if data_type in {"TEXT", "CATEGORICAL"}:
         return string_value
     return string_value or comment or raw_value
+
+
+def _normalize_score_name(score_name: str) -> str:
+    return _SCORE_NAME_ALIASES.get(score_name, score_name)
 
 
 def _normalize_boolean_value(value: str) -> str:
@@ -221,7 +232,9 @@ def _score_sort_key(row: dict[str, str | None], index: int) -> tuple[str, str, i
 
 
 def _build_join_status(row: dict[str, str]) -> str:
-    annotation_values = [row.get(column, "") for column in ANNOTATION_OUTPUT_COLUMNS[:-3]]
+    annotation_values = [
+        row.get(column, "") for column in ANNOTATION_OUTPUT_COLUMNS[:-3]
+    ]
     has_any_annotation = any(value != "" for value in annotation_values)
     if not has_any_annotation:
         return "missing_annotation"

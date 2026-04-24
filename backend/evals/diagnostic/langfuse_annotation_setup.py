@@ -140,7 +140,7 @@ DIAGNOSTIC_V1_PROFILE = AnnotationProfile(
             description="Primary reviewer-observed failure mechanism.",
         ),
         ScoreConfigSpec(
-            name="observed_secondary_failure_mechanism",
+            name="obs_secondary_failure_mechanism",
             data_type="CATEGORICAL",
             category_labels=_FAILURE_MECHANISM_LABELS,
             description="Optional secondary reviewer-observed failure mechanism.",

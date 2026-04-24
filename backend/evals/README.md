@@ -16,6 +16,49 @@ Use this rule:
 - If the question is "did we break critical behavior?" -> **Regression Guardrail** (`pytest`)
 - If the question is "did quality improve across scenarios?" -> **Quality Improvement** (`eval_runner`)
 
+## Diagnostic Human Review
+
+`near_v1_diagnostic` 是一條獨立的人工診斷軌，不是 golden-answer scoring，也不是 LLM judge。
+
+- Braintrust: 看 execution、experiment compare、trace drill-down
+- Langfuse: 看 trace metadata、人工 annotation、scores export
+- 本地工具: `annotation_export_joiner` 把 Langfuse export 回接 dataset；`compare_guard` 先檢查兩個 run 能不能比
+
+常用指令：
+
+```bash
+# Full local diagnostic run
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only
+
+# Single-row subset
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --row-ids 1 --run-label smoke-local
+
+# Field-filter subset
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --field-filter capability_band=boundary --run-label boundary-local
+
+# Manifest-defined subset
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --manifest /tmp/diagnostic-row-ids.txt --run-label manifest-local
+
+# Braintrust platform mode
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --run-label smoke-platform --output-dir /tmp/near-v1-diagnostic-platform
+
+# Join Langfuse scores export back to dataset rows
+uv run python -m backend.evals.diagnostic.annotation_export_joiner \
+  --dataset backend/evals/scenarios/near_v1_diagnostic/dataset.csv \
+  --scores-export /path/to/langfuse_scores.csv \
+  --dataset-name near_v1_diagnostic \
+  --run-label smoke-local \
+  --output /tmp/near-v1-diagnostic-discussion.csv
+
+# Check whether two diagnostic runs are comparable before reading Braintrust compare
+uv run python -m backend.evals.diagnostic.compare_guard \
+  --run-a-manifest /tmp/run-a-manifest.csv \
+  --run-b-manifest /tmp/run-b-manifest.csv \
+  --output /tmp/diagnostic-compare-guard.json
+```
+
+Braintrust Project Settings 應設定穩定的 diagnostic comparison key，例如 `row_id`。這樣 compare UI 才會對齊同一筆 dataset row，而不是只靠 trace 順序或 experiment 內部索引。
+
 ## Running Evaluations
 
 ### 1) Quality Improvement (Scenario Runner)
@@ -64,6 +107,9 @@ Both tracks call real LLM/tools. Configure environment variables in `backend/.en
 | `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | SEC retrieval     |
 | `QDRANT_URL`         | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Vector store (sec_retrieval) |
 | `BRAINTRUST_API_KEY` | No                 | No                                   | Yes                                   | Braintrust upload |
+| `LANGFUSE_PUBLIC_KEY`| No                 | Diagnostic export review only        | Diagnostic export review only         | Langfuse read/write |
+| `LANGFUSE_SECRET_KEY`| No                 | Diagnostic export review only        | Diagnostic export review only         | Langfuse read/write |
+| `LANGFUSE_BASE_URL`  | No                 | Diagnostic export review only        | Diagnostic export review only         | Langfuse host      |
 
 If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` fails fast.
 

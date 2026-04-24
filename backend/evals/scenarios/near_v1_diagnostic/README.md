@@ -47,3 +47,45 @@
 
 - 這個 scenario 不使用 LLM judge
 - 這個 scenario 的 scorer 不讀 reference answer hints，也不評斷回答內容好壞
+
+## Annotation Export Join
+
+Langfuse scores export 需要先匯出成 CSV，再用本地 joiner 回接原始 dataset：
+
+```bash
+uv run python -m backend.evals.diagnostic.annotation_export_joiner \
+  --dataset backend/evals/scenarios/near_v1_diagnostic/dataset.csv \
+  --scores-export /path/to/langfuse_scores.csv \
+  --dataset-name near_v1_diagnostic \
+  --run-label smoke-local \
+  --output /tmp/near-v1-diagnostic-discussion.csv
+```
+
+join key 不是直接拼字串比對而已；joiner 會先 parse `session_id`，確認：
+
+- `dataset_name`
+- `run_label`
+- `row_id`
+
+只有符合 diagnostic session contract、`source=ANNOTATION`、而且是 trace-level annotation 的 score row 會被接受。
+
+輸出會保留原始 dataset 欄位，並另外附上：
+
+- `observed_outcome`
+- `observed_alignment_to_prompt`
+- `review_confidence`
+- `review_comment`
+- `observed_primary_failure_mechanism`
+- `observed_secondary_failure_mechanism`
+- `observed_tuning_lever`
+- `needs_followup`
+- `followup_note`
+- `langfuse_trace_id`
+- `langfuse_session_id`
+- `join_status`
+
+`join_status` 語意：
+
+- `annotated`: 核心 reviewer 欄位都已存在
+- `partial_annotation`: 有部分 reviewer annotation，但還不完整
+- `missing_annotation`: 這列還沒有 trace-level annotation

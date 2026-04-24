@@ -315,14 +315,15 @@ def _get_or_create_score_config(
         _validate_existing_score_config(existing, spec)
         return existing
 
-    created = client.score_configs.create(
-        name=spec.name,
-        data_type=ScoreConfigDataType(spec.data_type),
-        categories=_build_categories(spec.category_labels)
-        if spec.data_type == "CATEGORICAL"
-        else None,
-        description=spec.description,
-    )
+    create_kwargs: dict[str, object] = {
+        "name": spec.name,
+        "data_type": ScoreConfigDataType(spec.data_type),
+        "description": spec.description,
+    }
+    if spec.data_type == "CATEGORICAL":
+        create_kwargs["categories"] = _build_categories(spec.category_labels)
+
+    created = client.score_configs.create(**create_kwargs)
     existing_configs.append(created)
     return created
 

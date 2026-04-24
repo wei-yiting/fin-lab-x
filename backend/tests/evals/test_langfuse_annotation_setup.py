@@ -139,6 +139,24 @@ def test_provision_annotation_setup_creates_configs_and_queue() -> None:
     ]
 
 
+def test_provision_annotation_setup_omits_categories_for_non_categorical_configs() -> (
+    None
+):
+    api = _FakeLangfuseApi()
+
+    provision_annotation_setup(
+        client=api,
+        profile=DIAGNOSTIC_TRIAGE_V1_PROFILE,
+        create_queue=False,
+    )
+
+    created_by_name = {config["name"]: config for config in api.score_configs.created}
+    assert "categories" in created_by_name["triage_outcome"]
+    assert "categories" not in created_by_name["review_comment"]
+    assert "categories" not in created_by_name["needs_followup"]
+    assert "categories" not in created_by_name["followup_note"]
+
+
 def test_provision_annotation_setup_reuses_existing_configs_and_queue() -> None:
     existing_config = SimpleNamespace(
         id="existing-config",

@@ -65,6 +65,7 @@ class _SuppressContextDetach(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         return "Failed to detach context" not in record.getMessage()
 
+
 logger = logging.getLogger(__name__)
 
 _ERROR_MARKER = "ERROR"
@@ -134,18 +135,14 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
 
     if asyncio.iscoroutinefunction(task_fn):
 
-        async def wrapped(input: Any) -> Any:
+        async def wrapped_async(input: Any) -> Any:
             try:
                 if timeout is not None:
-                    result = await asyncio.wait_for(
-                        task_fn(input), timeout=timeout
-                    )
+                    result = await asyncio.wait_for(task_fn(input), timeout=timeout)
                 else:
                     result = await task_fn(input)
             except asyncio.TimeoutError:
-                logger.error(
-                    "Task function timed out after %.1f seconds", timeout
-                )
+                logger.error("Task function timed out after %.1f seconds", timeout)
                 return _ERROR_MARKER
             except Exception:
                 logger.error("Task function raised an exception", exc_info=True)
@@ -158,9 +155,9 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
                 return _ERROR_MARKER
             return result
 
-        return wrapped
+        return wrapped_async
 
-    def wrapped(input: Any) -> Any:
+    def wrapped_sync(input: Any) -> Any:
         if timeout is not None:
             import queue
             import threading
@@ -178,9 +175,7 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
             try:
                 status, value = result_q.get(timeout=timeout)
             except queue.Empty:
-                logger.error(
-                    "Task function timed out after %.1f seconds", timeout
-                )
+                logger.error("Task function timed out after %.1f seconds", timeout)
                 return _ERROR_MARKER
             if status == "error":
                 logger.error("Task function raised an exception: %s", value)
@@ -199,7 +194,7 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
             return _ERROR_MARKER
         return result
 
-    return wrapped
+    return wrapped_sync
 
 
 def _filter_kwargs_for(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -605,7 +600,10 @@ def run_scenario(
                         "session_id": row["input"]["session_id"],
                         "experiment_name": experiment_name,
                         "run_label": effective_run_label,
+                        "dataset_version": diagnostic_config.dataset_version,
                         "slice_label": slice_identity.slice_label,
+                        "slice_type": slice_identity.slice_type,
+                        "selected_row_ids": list(slice_identity.selected_row_ids),
                         "git_commit": git_commit,
                         "braintrust_project": bt_config.project,
                     }
@@ -624,6 +622,8 @@ def run_scenario(
     finally:
         otel_logger.removeFilter(otel_filter)
 
+    raise AssertionError("run_scenario did not return a result path")
+
 
 def _build_diagnostic_eval_rows(
     *,
@@ -641,9 +641,7 @@ def _build_diagnostic_eval_rows(
     _validate_column_mapping(column_mapping)
 
     object_buckets = {
-        target.split(".", 1)[0]
-        for target in column_mapping.values()
-        if "." in target
+        target.split(".", 1)[0] for target in column_mapping.values() if "." in target
     }
 
     rows: list[dict[str, Any]] = []

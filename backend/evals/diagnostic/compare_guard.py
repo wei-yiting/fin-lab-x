@@ -159,10 +159,7 @@ def _parse_selected_row_ids(raw_value: str) -> set[str]:
 
 
 def _is_full_dataset(manifest: dict[str, Any]) -> bool:
-    return (
-        manifest["slice_type"] == "full_dataset"
-        or manifest["slice_label"] == "full"
-    )
+    return manifest["slice_type"] == "full_dataset" or manifest["slice_label"] == "full"
 
 
 if __name__ == "__main__":

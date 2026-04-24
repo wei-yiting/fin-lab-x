@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import csv
+import json
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Mapping
@@ -12,7 +14,10 @@ _REQUIRED_COLUMNS = [
     "session_id",
     "experiment_name",
     "run_label",
+    "dataset_version",
     "slice_label",
+    "slice_type",
+    "selected_row_ids",
     "git_commit",
     "braintrust_project",
 ]
@@ -23,9 +28,9 @@ def write_run_manifest_csv(
     *,
     scenario_name: str,
     output_dir: Path,
-    original_columns: list[str] | None = None,
-    original_rows: list[dict[str, str]] | None = None,
-    manifest_rows: list[Mapping[str, object]],
+    original_columns: Sequence[str] | None = None,
+    original_rows: Sequence[dict[str, str]] | None = None,
+    manifest_rows: Sequence[Mapping[str, object]],
 ) -> Path:
     """Write a platform-mode run manifest without any output columns."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -68,11 +73,15 @@ def write_run_manifest_csv(
 def _serialize_manifest_value(value: object) -> str:
     if value is None:
         return ""
+    if isinstance(value, (list, dict, tuple)):
+        return json.dumps(value, ensure_ascii=False)
     return str(value)
 
 
-def _validate_original_columns(original_columns: list[str]) -> None:
-    invalid_columns = [column for column in original_columns if _is_output_column(column)]
+def _validate_original_columns(original_columns: Sequence[str]) -> None:
+    invalid_columns = [
+        column for column in original_columns if _is_output_column(column)
+    ]
     if invalid_columns:
         invalid_list = ", ".join(invalid_columns)
         raise ValueError(

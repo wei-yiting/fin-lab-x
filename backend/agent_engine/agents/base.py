@@ -31,7 +31,7 @@ from typing_extensions import override
 from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 from backend.agent_engine.agents.config_loader import VersionConfig
 from backend.agent_engine.streaming.domain_events_schema import (
@@ -193,7 +193,8 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
 class ToolOutput(TypedDict):
     tool: str
     args: dict[str, object]
-    result: str
+    result: NotRequired[object]
+    error: NotRequired[str]
 
 
 class OrchestratorResult(TypedDict):
@@ -211,7 +212,9 @@ class _LangfusePropagationAttributes(TypedDict, total=False):
 class Orchestrator:
     """Version-agnostic Orchestrator that loads capabilities from config."""
 
-    def __init__(self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None):
+    def __init__(
+        self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None
+    ):
         setup_tools()
         self._validate_edgar_identity(config)
         self.config = config
@@ -305,7 +308,11 @@ class Orchestrator:
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
         )
-        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        thread_id = (
+            session_id
+            if isinstance(session_id, str) and session_id
+            else str(uuid.uuid4())
+        )
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = self.agent.invoke(
@@ -330,7 +337,11 @@ class Orchestrator:
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
         )
-        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        thread_id = (
+            session_id
+            if isinstance(session_id, str) and session_id
+            else str(uuid.uuid4())
+        )
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = await self.agent.ainvoke(
@@ -431,9 +442,7 @@ class Orchestrator:
 
         if message_id:
             if message_id not in turn_ids:
-                raise ValueError(
-                    "messageId does not match the last assistant message"
-                )
+                raise ValueError("messageId does not match the last assistant message")
 
         return turn_start
 
@@ -462,7 +471,9 @@ class Orchestrator:
         target_idx = self._find_regenerate_target(messages, message_id)
 
         to_remove = [RemoveMessage(id=m.id) for m in messages[target_idx:]]
-        await self.agent.aupdate_state(config, {"messages": to_remove}, as_node="__start__")
+        await self.agent.aupdate_state(
+            config, {"messages": to_remove}, as_node="__start__"
+        )
 
     def _build_langfuse_config(
         self,

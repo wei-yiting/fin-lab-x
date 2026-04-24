@@ -20,7 +20,10 @@ def test_write_run_manifest_csv_preserves_original_columns_and_identity_fields(
                 "session_id": "near_v1_diagnostic::smoke::1",
                 "experiment_name": "near_v1_diagnostic_20260424_120000",
                 "run_label": "smoke",
+                "dataset_version": "2026-04-24",
                 "slice_label": "rows-1",
+                "slice_type": "row_ids",
+                "selected_row_ids": ["1"],
                 "git_commit": "abc123",
                 "braintrust_project": "finlab-x",
             }
@@ -38,7 +41,10 @@ def test_write_run_manifest_csv_preserves_original_columns_and_identity_fields(
         "session_id",
         "experiment_name",
         "run_label",
+        "dataset_version",
         "slice_label",
+        "slice_type",
+        "selected_row_ids",
         "git_commit",
         "braintrust_project",
     ]
@@ -50,7 +56,10 @@ def test_write_run_manifest_csv_preserves_original_columns_and_identity_fields(
             "session_id": "near_v1_diagnostic::smoke::1",
             "experiment_name": "near_v1_diagnostic_20260424_120000",
             "run_label": "smoke",
+            "dataset_version": "2026-04-24",
             "slice_label": "rows-1",
+            "slice_type": "row_ids",
+            "selected_row_ids": '["1"]',
             "git_commit": "abc123",
             "braintrust_project": "finlab-x",
         }
@@ -81,6 +90,7 @@ def test_write_run_manifest_csv_rejects_missing_required_identity_columns(
                 {
                     "row_id": "1",
                     "run_label": "smoke",
+                    "dataset_version": "2026-04-24",
                     "slice_label": "rows-1",
                     "git_commit": "abc123",
                 }
@@ -101,7 +111,10 @@ def test_write_run_manifest_csv_rejects_original_output_columns(tmp_path: Path) 
                     "session_id": "near_v1_diagnostic::smoke::1",
                     "experiment_name": "near_v1_diagnostic_20260424_120000",
                     "run_label": "smoke",
+                    "dataset_version": "2026-04-24",
                     "slice_label": "rows-1",
+                    "slice_type": "row_ids",
+                    "selected_row_ids": ["1"],
                     "git_commit": "abc123",
                     "braintrust_project": "finlab-x",
                 }

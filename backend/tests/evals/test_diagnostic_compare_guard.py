@@ -71,7 +71,9 @@ def test_compare_manifests_reports_same_row_set(tmp_path: Path) -> None:
     assert result["warnings"] == []
 
 
-def test_compare_manifests_reports_overlap_only_for_full_vs_subset(tmp_path: Path) -> None:
+def test_compare_manifests_reports_overlap_only_for_full_vs_subset(
+    tmp_path: Path,
+) -> None:
     run_a = tmp_path / "run-a.csv"
     run_b = tmp_path / "run-b.csv"
     _write_manifest(

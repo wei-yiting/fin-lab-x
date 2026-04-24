@@ -36,12 +36,16 @@ def _mock_astream_events(
     events.append(TextEnd(text_id="t-1"))
 
     if tool_name and tool_result:
-        events.extend([
-            ToolCall(tool_call_id="tc-1", tool_name=tool_name, args={}),
-            ToolResult(tool_call_id="tc-1", result=tool_result),
-        ])
+        events.extend(
+            [
+                ToolCall(tool_call_id="tc-1", tool_name=tool_name, args={}),
+                ToolResult(tool_call_id="tc-1", result=tool_result),
+            ]
+        )
 
-    events.append(Finish(finish_reason="stop", usage=Usage(input_tokens=10, output_tokens=20)))
+    events.append(
+        Finish(finish_reason="stop", usage=Usage(input_tokens=10, output_tokens=20))
+    )
     return events
 
 
@@ -110,6 +114,7 @@ def test_run_v1_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
     assert result["response"] == "蘋果公司最新財報表現良好"
     assert len(result["tool_outputs"]) == 1
     assert result["tool_outputs"][0]["tool"] == "tavily_financial_search"
+    assert "result" in result["tool_outputs"][0]
     assert result["tool_outputs"][0]["result"] == "Earnings beat expectations..."
     assert result["model"] == "gpt-4o"
     assert result["version"] == "v1_baseline"
@@ -175,7 +180,11 @@ def test_astream_collect_records_tool_errors_in_tool_outputs(
 ) -> None:
     events = [
         MessageStart(message_id="msg-1", session_id="sess-1"),
-        ToolCall(tool_call_id="tc-1", tool_name="tavily_financial_search", args={"query": "UNH news"}),
+        ToolCall(
+            tool_call_id="tc-1",
+            tool_name="tavily_financial_search",
+            args={"query": "UNH news"},
+        ),
         ToolError(tool_call_id="tc-1", error="timeout"),
         Finish(finish_reason="stop", usage=Usage(input_tokens=1, output_tokens=1)),
     ]

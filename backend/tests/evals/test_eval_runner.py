@@ -364,9 +364,7 @@ class TestRunScenario:
                 "question_column": "question",
                 "agent_version": "v1_baseline",
             },
-            "task": {
-                "function": "backend.evals.eval_tasks.run_near_v1_diagnostic"
-            },
+            "task": {"function": "backend.evals.eval_tasks.run_near_v1_diagnostic"},
             "column_mapping": {"question": "input.question"},
             "scorers": [
                 {
@@ -382,9 +380,9 @@ class TestRunScenario:
             "id,question,capability_band,category,expected_near_v1_behavior,"
             "primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,"
             "likely_tuning_lever,draft_pass_signals\n"
-            '1,First question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,'
+            "1,First question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,"
             'tool_routing_error,evidence_synthesis_limit,mixed,tool_description,"[""signal1""]"\n'
-            '2,Second question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,'
+            "2,Second question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,"
             'tool_routing_error,,mixed,tool_description,"[""signal2""]"\n'
         )
 
@@ -425,6 +423,7 @@ class TestRunScenario:
             rows = list(reader)
 
         assert len(rows) == 2
+        assert reader.fieldnames is not None
         assert "prompt" in reader.fieldnames
         assert "output" in reader.fieldnames
         assert "score_test_scorer" in reader.fieldnames
@@ -635,9 +634,9 @@ class TestRunScenario:
             return SimpleNamespace(results=[], summary=SimpleNamespace())
 
         braintrust_module = ModuleType("braintrust")
-        braintrust_module.Eval = fake_eval
-        braintrust_module.EvalCase = FakeEvalCase
-        braintrust_module.flush = MagicMock()
+        setattr(braintrust_module, "Eval", fake_eval)
+        setattr(braintrust_module, "EvalCase", FakeEvalCase)
+        setattr(braintrust_module, "flush", MagicMock())
 
         monkeypatch.setitem(sys.modules, "braintrust", braintrust_module)
 
@@ -691,7 +690,10 @@ class TestRunScenario:
         assert rows[0]["session_id"] == "near_v1_diagnostic::slice-run::2"
         assert rows[0]["experiment_name"] == eval_call["experiment_name"]
         assert rows[0]["run_label"] == "slice-run"
+        assert rows[0]["dataset_version"] == "2026-04-24"
         assert rows[0]["slice_label"] == "focused-boundary"
+        assert rows[0]["slice_type"] == "row_ids"
+        assert rows[0]["selected_row_ids"] == '["2"]'
         assert rows[0]["git_commit"] == "12f85db"
         assert rows[0]["braintrust_project"] == "finlab-x"
 
@@ -869,8 +871,25 @@ class TestRunScenario:
         assert len(eval_cases) == 1
         assert eval_cases[0]["id"] == "2"
         assert eval_cases[0]["metadata"]["row_id"] == "2"
-        assert eval_calls[0]["kwargs"]["metadata"]["dataset_name"] == "near_v1_diagnostic"
+        assert (
+            eval_calls[0]["kwargs"]["metadata"]["dataset_name"] == "near_v1_diagnostic"
+        )
         assert eval_calls[0]["kwargs"]["metadata"]["selected_row_count"] == 1
+        manifest_rows = mock_write_manifest.call_args.kwargs["manifest_rows"]
+        assert manifest_rows == [
+            {
+                "row_id": "2",
+                "session_id": "near_v1_diagnostic::baseline::2",
+                "experiment_name": eval_calls[0]["kwargs"]["experiment_name"],
+                "run_label": "baseline",
+                "dataset_version": "2026-04-24",
+                "slice_label": "rows-2",
+                "slice_type": "row_ids",
+                "selected_row_ids": ["2"],
+                "git_commit": "abc1234",
+                "braintrust_project": "finlab-x",
+            }
+        ]
         assert flushed == [True]
 
 

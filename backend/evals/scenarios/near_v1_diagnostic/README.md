@@ -89,3 +89,31 @@ join key 不是直接拼字串比對而已；joiner 會先 parse `session_id`，
 - `annotated`: 核心 reviewer 欄位都已存在
 - `partial_annotation`: 有部分 reviewer annotation，但還不完整
 - `missing_annotation`: 這列還沒有 trace-level annotation
+
+## Compare Guard
+
+在 Analyst 解讀 Braintrust compare 前，先用本地 compare guard 檢查兩個 diagnostic run 是否真的可比：
+
+```bash
+uv run python -m backend.evals.diagnostic.compare_guard \
+  --run-a-manifest /path/to/run-a-manifest.csv \
+  --run-b-manifest /path/to/run-b-manifest.csv \
+  --output /tmp/diagnostic-compare-guard.json
+```
+
+compare guard 不會取代 Braintrust 的 row-by-row compare；它只負責先標示 comparability semantics，例如：
+
+- `same_row_set`
+- `intersection`
+- `overlap_only`
+- `dataset_version_mismatch`
+- `empty_intersection`
+
+判讀原則：
+
+- 同版、同 row set 才能直接讀 aggregate compare
+- 同版 subset-vs-subset 若有交集，會標成 `intersection`
+- 同版 full-vs-subset 會標成 `overlap_only`
+- 跨 version 的 full-vs-full 仍可看交集 row，但會在 warning 內標示 `dataset_version_drift`
+- 跨 dataset version 的 subset compare 預設視為 `dataset_version_mismatch`
+- 若沒有交集 row，直接視為 `empty_intersection`

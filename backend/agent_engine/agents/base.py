@@ -10,6 +10,7 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
+import json
 import os
 import re
 import time
@@ -485,18 +486,19 @@ class Orchestrator:
         metadata: dict[str, object] = {
             "langfuse_trace_name": trace_name,
             "request_id": request_id,
-            "process_start_ts": _PROCESS_START_TS,
+            "process_start_ts": _normalize_langfuse_metadata_value(_PROCESS_START_TS),
         }
         for key, value in extra_metadata.items():
             if value is not None:
-                metadata[key] = value
+                metadata[key] = _normalize_langfuse_metadata_value(value)
         if trace_metadata is not None:
             for key, value in trace_metadata.items():
-                if key in metadata and metadata[key] != value:
+                normalized_value = _normalize_langfuse_metadata_value(value)
+                if key in metadata and metadata[key] != normalized_value:
                     raise ValueError(
                         f"trace_metadata key collides with reserved metadata: {key}"
                     )
-                metadata[key] = value
+                metadata[key] = normalized_value
 
         propagation: _LangfusePropagationAttributes = {"trace_name": trace_name}
         if isinstance(session_id, str) and session_id:
@@ -546,3 +548,12 @@ class Orchestrator:
             model=self.config.model.name,
             version=self.config.version,
         )
+
+
+def _normalize_langfuse_metadata_value(value: object) -> object:
+    """Coerce metadata values into Langfuse-propagatable scalars."""
+    if value is None or isinstance(value, str):
+        return value
+    if isinstance(value, (int, float, bool, list, dict, tuple)):
+        return json.dumps(value, ensure_ascii=False, sort_keys=True)
+    return str(value)

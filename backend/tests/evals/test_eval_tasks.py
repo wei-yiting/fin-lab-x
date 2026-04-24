@@ -254,7 +254,7 @@ def test_run_near_v1_diagnostic_forwards_session_and_trace_metadata(
     }
 
 
-def test_astream_collect_omits_trace_metadata_when_none() -> None:
+def test_astream_collect_uses_default_session_id_when_none_provided() -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
     mock_orchestrator.config.version = "v1_baseline"

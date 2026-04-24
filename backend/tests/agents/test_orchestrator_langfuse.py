@@ -147,7 +147,7 @@ class TestRunInjectsLangfuseCallback:
             orch.run("test prompt", request_id="req-abc")
 
         metadata = agent.invoke.call_args[1]["config"]["metadata"]
-        assert metadata["process_start_ts"] == _PROCESS_START_TS
+        assert metadata["process_start_ts"] == str(_PROCESS_START_TS)
 
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
@@ -798,10 +798,9 @@ class TestLangfuseTraceMetadata:
         assert metadata["langfuse_trace_name"] == "v1_baseline_stream"
         assert metadata["request_id"] == "req-1"
         assert metadata["reference_secondary_failure_mechanism"] is None
-        assert metadata["reference_pass_signals"] == [
-            "區分已發生行動與潛在壓力",
-            "不要把媒體推測當成已落地結果",
-        ]
+        assert metadata["reference_pass_signals"] == (
+            '["區分已發生行動與潛在壓力", "不要把媒體推測當成已落地結果"]'
+        )
 
     @pytest.mark.asyncio
     async def test_astream_trace_metadata_rejects_reserved_key_collision(self):

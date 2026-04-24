@@ -347,7 +347,7 @@ class TestRunScenario:
 
         return scenarios_dir, scenario_dir
 
-    def _setup_diagnostic_scenario(
+    def _setup_diagnostic_scenario_contract_csv(
         self, tmp_path: Path, scenario_name: str = "near_v1_diagnostic"
     ) -> tuple[Path, Path]:
         scenarios_dir = tmp_path / "scenarios"
@@ -383,9 +383,9 @@ class TestRunScenario:
             "primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,"
             "likely_tuning_lever,draft_pass_signals\n"
             '1,First question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,'
-            'tool_routing_error,evidence_synthesis_limit,mixed,tool_description,"[\\"signal1\\"]"\n'
+            'tool_routing_error,evidence_synthesis_limit,mixed,tool_description,"[""signal1""]"\n'
             '2,Second question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,'
-            'tool_routing_error,,mixed,tool_description,"[\\"signal2\\"]"\n'
+            'tool_routing_error,,mixed,tool_description,"[""signal2""]"\n'
         )
 
         return scenarios_dir, scenario_dir
@@ -513,7 +513,7 @@ class TestRunScenario:
 
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
-    def test_run_scenario_rejects_diagnostic_flags_for_non_diagnostic_scenario(
+    def test_run_scenario_rejects_diagnostic_flags_for_non_diagnostic_scenario_contract_csv(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
@@ -527,7 +527,7 @@ class TestRunScenario:
 
         from backend.evals.eval_runner import run_scenario
 
-        with pytest.raises(ValueError, match="diagnostic flags"):
+        with pytest.raises(ValueError, match="Diagnostic flags"):
             run_scenario(
                 "test_scenario",
                 local_only=True,
@@ -539,14 +539,14 @@ class TestRunScenario:
     @patch("backend.evals.eval_runner.resolve_git_commit", return_value="12f85db")
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
-    def test_run_scenario_diagnostic_local_only_runs_selected_rows_and_aligns_csv(
+    def test_run_scenario_diagnostic_local_only_runs_selected_rows_and_aligns_csv_contract_csv(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
         mock_resolve_git_commit: MagicMock,
         tmp_path: Path,
     ) -> None:
-        scenarios_dir, _ = self._setup_diagnostic_scenario(tmp_path)
+        scenarios_dir, _ = self._setup_diagnostic_scenario_contract_csv(tmp_path)
         output_dir = tmp_path / "results"
 
         def fake_task(input: Any) -> dict[str, Any]:
@@ -591,7 +591,7 @@ class TestRunScenario:
     @patch("backend.evals.eval_runner._run_local_eval")
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
-    def test_run_scenario_diagnostic_platform_uses_eval_once_and_writes_manifest(
+    def test_run_scenario_diagnostic_platform_uses_eval_once_and_writes_manifest_contract_csv(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
@@ -601,7 +601,7 @@ class TestRunScenario:
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        scenarios_dir, _ = self._setup_diagnostic_scenario(tmp_path)
+        scenarios_dir, _ = self._setup_diagnostic_scenario_contract_csv(tmp_path)
         output_dir = tmp_path / "results"
         monkeypatch.setenv("BRAINTRUST_API_KEY", "test-key")
 

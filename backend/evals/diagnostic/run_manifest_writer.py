@@ -16,6 +16,7 @@ _REQUIRED_COLUMNS = [
     "git_commit",
     "braintrust_project",
 ]
+_OUTPUT_COLUMN_PREFIXES = ("output", "output.")
 
 
 def write_run_manifest_csv(
@@ -30,6 +31,7 @@ def write_run_manifest_csv(
     output_dir.mkdir(parents=True, exist_ok=True)
     if original_rows is not None and len(original_rows) != len(manifest_rows):
         raise ValueError("original_rows and manifest_rows must have the same length")
+    _validate_original_columns(original_columns or [])
 
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
     csv_path = output_dir / f"{scenario_name}_run_manifest_{timestamp}.csv"
@@ -41,10 +43,11 @@ def write_run_manifest_csv(
 
     for manifest_row in manifest_rows:
         for key in manifest_row:
-            if key.startswith("output."):
+            if _is_output_column(key):
                 raise ValueError("run manifest rows must not include output.* columns")
             if key not in fieldnames:
                 fieldnames.append(key)
+        _validate_required_columns(manifest_row)
 
     with csv_path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -66,3 +69,27 @@ def _serialize_manifest_value(value: object) -> str:
     if value is None:
         return ""
     return str(value)
+
+
+def _validate_original_columns(original_columns: list[str]) -> None:
+    invalid_columns = [column for column in original_columns if _is_output_column(column)]
+    if invalid_columns:
+        invalid_list = ", ".join(invalid_columns)
+        raise ValueError(
+            f"run manifest original columns must not include output columns: {invalid_list}"
+        )
+
+
+def _validate_required_columns(manifest_row: Mapping[str, object]) -> None:
+    missing_columns = [
+        column
+        for column in _REQUIRED_COLUMNS
+        if column not in manifest_row or manifest_row[column] in (None, "")
+    ]
+    if missing_columns:
+        missing_list = ", ".join(missing_columns)
+        raise ValueError(f"run manifest row missing required columns: {missing_list}")
+
+
+def _is_output_column(column_name: str) -> bool:
+    return column_name in _OUTPUT_COLUMN_PREFIXES or column_name.startswith("output.")

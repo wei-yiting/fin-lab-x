@@ -1,6 +1,7 @@
 """Streaming chat API router for FinLab-X."""
 
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -40,6 +41,15 @@ class StreamChatRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_request(self):
+        is_regenerate = self.trigger == "regenerate-message"
+        self._normalized_trigger = "regenerate" if is_regenerate else None
+
+        if is_regenerate:
+            if not self.messageId:
+                raise ValueError("messageId required for regenerate")
+            self._user_text = None
+            return self
+
         user_text = None
         for msg in reversed(self.messages):
             if msg.role == "user":
@@ -49,18 +59,9 @@ class StreamChatRequest(BaseModel):
                 if joined:
                     user_text = joined
                     break
+        if not user_text:
+            raise ValueError("Must have a user message for submit")
         self._user_text = user_text
-        self._normalized_trigger = "regenerate" if self.trigger == "regenerate-message" else None
-
-        has_message = bool(self._user_text)
-        is_regenerate = self._normalized_trigger == "regenerate"
-
-        if has_message and is_regenerate:
-            raise ValueError("Cannot have both message and regenerate trigger")
-        if not has_message and not is_regenerate:
-            raise ValueError("Must have either a user message or regenerate trigger")
-        if is_regenerate and not self.messageId:
-            raise ValueError("messageId required for regenerate")
         return self
 
     @property
@@ -99,6 +100,8 @@ async def stream_chat(
         raise HTTPException(status_code=409, detail="Session busy")
     _active_sessions.add(body.id)
 
+    request_id = uuid.uuid4().hex
+
     async def generate():
         try:
             async for event in orchestrator.astream_run(
@@ -106,6 +109,7 @@ async def stream_chat(
                 session_id=body.id,
                 trigger=body.normalized_trigger,
                 message_id=body.messageId,
+                request_id=request_id,
             ):
                 if await request.is_disconnected():
                     break

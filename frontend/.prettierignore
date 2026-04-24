@@ -1,3 +1,6 @@
 dist/
 node_modules/
 pnpm-lock.yaml
+public/mockServiceWorker.js
+test-results/
+playwright-report/

@@ -92,7 +92,12 @@ def test_chat_with_session_id(client):
         )
         assert response.status_code == 200
         assert response.json()["session_id"] == "sess_123"
-        mock_orch.arun.assert_awaited_once_with("test", session_id="sess_123")
+        # request_id is generated per-request; only assert stable kwargs
+        call = mock_orch.arun.await_args
+        assert call.args == ("test",)
+        assert call.kwargs["session_id"] == "sess_123"
+        assert isinstance(call.kwargs.get("request_id"), str)
+        assert call.kwargs["request_id"]
     finally:
         _clear_overrides()
 

@@ -43,50 +43,67 @@ To add a new component (tool, skill, or agent version):
 
 - **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
-- **Observability**: Langfuse tracing via CallbackHandler + propagate_attributes() + @observe()
+- **Observability**: Langfuse tracing via `CallbackHandler` + LangChain `config.metadata` (trace_name, request_id) + `propagate_attributes()` for session correlation
 
 ## Observability
 
-Langfuse integration traces all AI agent execution in FinLab-X.
+Langfuse integration traces all AI agent execution in FinLab-X. Requires `langfuse>=4.5.0`.
 
 ### Tracing Mechanisms
 
-| Mechanism | Where | What It Traces |
-|-----------|-------|----------------|
-| `CallbackHandler` | Injected once in `Orchestrator.run()`/`arun()` | All LangChain activity: LLM calls, tool dispatch, chain steps |
-| `propagate_attributes()` | Wrapped around `invoke()`/`ainvoke()` in `Orchestrator` | Request attributes like `session_id` propagated to nested `@observe()` observations |
-| `@observe()` | Applied directly on tool functions | Deterministic code paths (data transforms, API calls) |
+| Mechanism | Where | What It Does |
+|---|---|---|
+| `CallbackHandler` | Per-request instance built in `_build_langfuse_config()` | Auto-traces LLM calls, tool dispatch, chain steps (including tool I/O) |
+| `config["metadata"]["langfuse_trace_name"]` | `f"{VersionConfig.name}_{mode}"` in `_build_langfuse_config()` | Renames root trace (`v1_baseline_stream` / `v1_baseline_invoke`) via Langfuse ≥4.3.1 PR #1626 |
+| `config["run_name"]` | `"chat-turn"` in `_build_langfuse_config()` | Renames the LangChain root chain span so it's not called `LangGraph` |
+| `config["metadata"]["request_id"]` | `uuid.uuid4().hex` minted per FastAPI request | Per-request correlation attribute |
+| `propagate_attributes(trace_name=..., session_id=...)` | Wraps `invoke`/`ainvoke`/`astream` in `Orchestrator` | Sets `trace_name` on OTel context + propagates session_id to children (incl. any `@observe` tools) |
+| `@observe()` | Applied selectively on deterministic helpers and on a tool when it needs sub-spans / custom metadata | Traces a function as a single observation |
 
-`CallbackHandler` provides automatic parent-child trace hierarchy, and
-`propagate_attributes()` ensures attributes such as `session_id` are inherited by
-tool-level observations.
+Trace name follows the agent `VersionConfig.name` dynamically — switching to a future `v2_xxx` config automatically re-names traces to `v2_xxx_{mode}` with no code change.
 
 ### When to Use Which
 
-- **LLM calls, tool dispatch, chain steps**: Automatic via `CallbackHandler`.
-- **Cross-observation attributes (`session_id`)**: Set via `propagate_attributes()` in `Orchestrator.run()`/`arun()`.
-- **New deterministic tool code**: Add `@observe(name="my_function")` decorator.
+- **LLM calls, tool I/O, chain steps** — automatic via `CallbackHandler`; no decorator needed.
+- **Rename root trace / inner root span** — done once in `_build_langfuse_config()`, callers only choose `mode="invoke"` vs `mode="stream"`.
+- **Per-request `request_id`** — generated in the FastAPI router (`chat.py`, `chat_invoke.py`), passed into the orchestrator method.
+- **Session correlation (`session_id`, `trace_name`)** — `propagate_attributes()` inside `Orchestrator.run`/`arun`/`astream_run`.
+- **A new deterministic helper with nested work worth separating** — add `@observe(name="...")`.
+- **A tool that needs sub-spans, custom metadata, or the observation id from inside its body** — add `@observe(name="tool_name")` on that specific tool (uncommon; most tools work well without it).
 
 ### Environment Variables
 
 | Variable | Description |
-|----------|-------------|
+|---|---|
 | `LANGFUSE_SECRET_KEY` | Langfuse project secret key |
 | `LANGFUSE_PUBLIC_KEY` | Langfuse project public key |
 | `LANGFUSE_HOST` | Langfuse host URL (default: `https://cloud.langfuse.com`) |
 
-### Adding Observability to New Tools
+### Adding a New Tool (default — no `@observe`)
 
 ```python
-from langfuse import observe
-
 @tool("my_new_tool", args_schema=MyInputModel)
-@observe(name="my_new_tool")
 def my_new_tool(param: str) -> dict[str, Any]:
     ...
 ```
 
-Decorator stacking order: `@tool` (outer) -> `@observe` (inner).
+`CallbackHandler` will emit a tool span with input args, return value, and duration.
+
+### Adding a Tool That Needs Its Own `@observe`
+
+Reserve this for tools with sub-operations you want individually timed or annotated.
+
+```python
+from langfuse import observe
+
+@tool("my_heavy_tool", args_schema=MyInputModel)
+@observe(name="my_heavy_tool")
+def my_heavy_tool(param: str) -> dict[str, Any]:
+    # e.g., uses traced_span(...) internally, or calls get_current_observation_id()
+    ...
+```
+
+Decorator stacking order: `@tool` (outer) → `@observe` (inner).
 
 ## Design Principles
 

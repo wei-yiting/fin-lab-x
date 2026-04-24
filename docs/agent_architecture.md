@@ -19,7 +19,7 @@ The core AI runtime resides in `backend/agent_engine/`. The directory is organiz
 - `agents/`: Central reasoning engine (version-agnostic Orchestrator). Contains `base.py`, `config_loader.py`, and `versions/`.
 - `tools/`: A library of atomic functions (e.g., `get_stock_price`, `search_sec_filings`).
 - `skills/`: Complex, reusable capabilities (e.g., `perform_discounted_cash_flow_analysis`).
-- `observability/`: Integration with LangSmith and internal logging for tracing and evaluation.
+- `docs/`: Observability strategy and guardrails for Langfuse tracing; tracing wiring itself lives in `agents/base.py` (`CallbackHandler` + `propagate_attributes` + LangChain `config.metadata`).
 - `mcp/`: (Planned) MCP integrations for external ecosystems.
 - `subagents/`: (Planned) Short-lived specialized agents.
 - `core/`: (Planned) Shared core primitives (state, memory).

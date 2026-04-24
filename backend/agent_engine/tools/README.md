@@ -10,13 +10,13 @@ Atomic, stateless tool functions and central registry. This module provides the 
 
 ## Design Pattern
 - **Registry Pattern**: Tools are maintained in a central `TOOL_REGISTRY` dictionary, allowing the `Orchestrator` to dynamically load only the tools required by a specific version configuration.
-- **Decorator Pattern**: 
+- **Decorator Pattern**:
     - Uses LangChain's `@tool` decorator to automatically generate tool schemas from function signatures and Pydantic models.
-    - Uses Langfuse's `@observe()` decorator (from `langfuse` SDK) to trace tool execution.
+    - Langfuse tracing for tool invocations is provided by the orchestrator's `CallbackHandler` — individual tools do **not** need `@observe()` for baseline tracing. Add `@observe(name=...)` only when a tool has its own sub-spans, custom metadata, or needs `get_current_observation_id()` from inside its body (see `backend/agent_engine/docs/streaming_observability_guardrails.md` Rule 3).
 
 ## Extension Algorithm
 1. **Implement Tool Function**: Create a new function in `financial.py`, `sec.py`, or a new module. Ensure it returns a JSON-serializable dictionary.
 2. **Define Input Schema**: Create a Pydantic `BaseModel` to define the tool's input arguments and descriptions.
-3. **Apply Decorators**: Wrap the function with `@tool("tool_name", args_schema=YourInputModel)` and `@observe(name="tool_name")` (from `langfuse`).
+3. **Apply Decorators**: Wrap the function with `@tool("tool_name", args_schema=YourInputModel)`. Do **not** add `@observe()` unless the tool meets one of the criteria in the Design Pattern note above; the `CallbackHandler` in `Orchestrator` already captures tool inputs, outputs, and duration automatically.
 4. **Register the Tool**: Import the new tool in `backend/agent_engine/tools/__init__.py` and add a `register_tool("tool_name", your_tool_function)` call inside `setup_tools()`.
 5. **Enable in Config**: Add the new `"tool_name"` to the `tools` list in one or more `orchestrator_config.yaml` files in the `versions/` directory.

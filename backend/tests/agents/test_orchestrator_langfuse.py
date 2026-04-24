@@ -74,10 +74,13 @@ class TestRunInjectsLangfuseCallback:
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
 
-            orch.run("test prompt")
+            orch.run("test prompt", request_id="req-abc")
 
             mock_handler_cls.assert_called_once()
-            mock_propagate_attributes.assert_called_once_with()
+            # trace_name is always set; session_id only when present
+            prop_kwargs = mock_propagate_attributes.call_args.kwargs
+            assert prop_kwargs["trace_name"] == "v1_baseline_invoke"
+            assert "session_id" not in prop_kwargs
             call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
             assert config_arg is not None, "agent.invoke was not called with config="
@@ -101,13 +104,38 @@ class TestRunInjectsLangfuseCallback:
         ):
             mock_handler_cls.return_value = MagicMock()
 
-            result = orch.run("test prompt")
+            result = orch.run("test prompt", request_id="req-abc")
 
             assert result["response"] == "Test response"
-            mock_propagate_attributes.assert_called_once_with()
+            prop_kwargs = mock_propagate_attributes.call_args.kwargs
+            assert prop_kwargs == {"trace_name": "v1_baseline_invoke"}
             call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
             assert "callbacks" in config_arg
+
+    def test_run_attaches_process_start_ts_to_metadata(self):
+        """S-obs-04: every trace must carry process_start_ts so engineers can
+        distinguish traces from different backend processes sharing a session_id
+        (DD-06 post-restart silent amnesia boundary)."""
+        from backend.agent_engine.agents.base import _PROCESS_START_TS
+
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        agent.invoke.return_value = _mock_agent_response()
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler") as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            mock_handler_cls.return_value = MagicMock()
+            orch.run("test prompt", request_id="req-abc")
+
+        metadata = agent.invoke.call_args[1]["config"]["metadata"]
+        assert metadata["process_start_ts"] == _PROCESS_START_TS
 
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
@@ -126,9 +154,13 @@ class TestRunInjectsLangfuseCallback:
         ):
             mock_handler_cls.return_value = MagicMock()
 
-            orch.run("test prompt", session_id="sess-456")
+            orch.run("test prompt", session_id="sess-456", request_id="req-abc")
 
-            mock_propagate_attributes.assert_called_once_with(session_id="sess-456")
+            prop_kwargs = mock_propagate_attributes.call_args.kwargs
+            assert prop_kwargs == {
+                "trace_name": "v1_baseline_invoke",
+                "session_id": "sess-456",
+            }
             call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
             assert "callbacks" in config_arg
@@ -154,10 +186,11 @@ class TestArunInjectsLangfuseCallback:
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
 
-            await orch.arun("test prompt")
+            await orch.arun("test prompt", request_id="req-abc")
 
             mock_handler_cls.assert_called_once()
-            mock_propagate_attributes.assert_called_once_with()
+            prop_kwargs = mock_propagate_attributes.call_args.kwargs
+            assert prop_kwargs == {"trace_name": "v1_baseline_invoke"}
             call_args = agent.ainvoke.call_args
             config_arg = call_args[1].get("config")
             assert config_arg is not None
@@ -182,9 +215,13 @@ class TestArunInjectsLangfuseCallback:
         ):
             mock_handler_cls.return_value = MagicMock()
 
-            await orch.arun("test prompt", session_id="sess-123")
+            await orch.arun("test prompt", session_id="sess-123", request_id="req-abc")
 
-            mock_propagate_attributes.assert_called_once_with(session_id="sess-123")
+            prop_kwargs = mock_propagate_attributes.call_args.kwargs
+            assert prop_kwargs == {
+                "trace_name": "v1_baseline_invoke",
+                "session_id": "sess-123",
+            }
             call_args = agent.ainvoke.call_args
             config_arg = call_args[1].get("config")
             assert "callbacks" in config_arg
@@ -310,7 +347,11 @@ class TestAstreamRun:
                 pass
 
         mock_handler_cls.assert_called_once()
-        mock_propagate.assert_called_once_with(session_id="sess-99")
+        prop_kwargs = mock_propagate.call_args.kwargs
+        assert prop_kwargs == {
+            "trace_name": "v1_baseline_stream",
+            "session_id": "sess-99",
+        }
         config_arg = captured_kwargs.get("config", {})
         assert mock_handler in config_arg["callbacks"]
 
@@ -538,3 +579,141 @@ class TestAstreamRun:
                 pass
 
         assert captured_args[0] is None
+
+
+class TestLangfuseTraceMetadata:
+    """Tests for the trace_name / run_name / metadata wiring on the LangChain config."""
+
+    @pytest.mark.asyncio
+    async def test_arun_config_carries_invoke_trace_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            await orch.arun("test", session_id="sess-1", request_id="req-1")
+
+            config_arg = agent.ainvoke.call_args[1]["config"]
+            assert config_arg["run_name"] == "chat-turn"
+            metadata = config_arg["metadata"]
+            assert metadata["langfuse_trace_name"] == "v1_baseline_invoke"
+            assert metadata["request_id"] == "req-1"
+
+    @pytest.mark.asyncio
+    async def test_astream_config_carries_stream_trace_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            # submit path (trigger=None): prepare_regenerate is skipped and
+            # astream receives the full config. trigger key is omitted from
+            # metadata because the value is None.
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+            ):
+                pass
+
+        config_arg = captured_kwargs["config"]
+        assert config_arg["run_name"] == "chat-turn"
+        metadata = config_arg["metadata"]
+        assert metadata["langfuse_trace_name"] == "v1_baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert "trigger" not in metadata
+
+    @pytest.mark.asyncio
+    async def test_astream_regenerate_populates_trigger_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        state_mock = MagicMock()
+        state_mock.values = {
+            "messages": [
+                HumanMessage(content="Hi", id="human-1"),
+                AIMessage(content="Hello!", id="ai-1"),
+            ]
+        }
+        agent.aget_state = AsyncMock(return_value=state_mock)
+        agent.aupdate_state = AsyncMock()
+
+        captured_kwargs: dict = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                session_id="sess-1",
+                trigger="regenerate",
+                request_id="req-1",
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["trigger"] == "regenerate"
+
+    @pytest.mark.asyncio
+    async def test_trace_name_follows_config_version_dynamically(self):
+        """Swap in a v2 config — trace_name must track, no code change needed."""
+        config = VersionConfig(
+            version="0.2.0",
+            name="v2_test",
+            description="Hypothetical v2",
+            tools=[],
+            model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
+        )
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ) as mock_propagate,
+        ):
+            await orch.arun("test", session_id="sess-1", request_id="req-1")
+
+            config_arg = agent.ainvoke.call_args[1]["config"]
+            assert (
+                config_arg["metadata"]["langfuse_trace_name"] == "v2_test_invoke"
+            )
+            assert (
+                mock_propagate.call_args.kwargs["trace_name"] == "v2_test_invoke"
+            )

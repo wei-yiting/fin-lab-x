@@ -179,8 +179,8 @@ class TestStreamChatAiSdkV6Format:
         finally:
             _clear_overrides()
 
-    def test_regenerate_message_trigger_is_normalized(self, client):
-        """確認 trigger: regenerate-message 被正規化為 regenerate 傳給 orchestrator。"""
+    def test_regenerate_with_message_history_returns_200(self, client):
+        """AI SDK sends messages history with regenerate trigger — must not 422."""
         captured = {}
 
         mock = MagicMock()
@@ -190,6 +190,7 @@ class TestStreamChatAiSdkV6Format:
 
         async def _astream_run(**kwargs):
             captured["trigger"] = kwargs["trigger"]
+            captured["message"] = kwargs["message"]
             yield MessageStart(message_id="msg-1", session_id=kwargs["session_id"])
             yield TextStart(text_id="t-1")
             yield TextDelta(text_id="t-1", delta="ok")
@@ -205,13 +206,18 @@ class TestStreamChatAiSdkV6Format:
                 "/api/v1/chat",
                 json={
                     "id": "s1",
-                    "messages": [],
+                    "messages": [
+                        _msg("user", "first question", "m1"),
+                        _msg("assistant", "answer", "m2"),
+                        _msg("user", "follow-up", "m3"),
+                    ],
                     "trigger": "regenerate-message",
                     "messageId": "msg-to-regen",
                 },
             )
             assert response.status_code == 200
             assert captured["trigger"] == "regenerate"
+            assert captured["message"] is None
         finally:
             _clear_overrides()
 

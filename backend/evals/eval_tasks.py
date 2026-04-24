@@ -30,9 +30,15 @@ def _get_orchestrator(version: str) -> Orchestrator:
     return Orchestrator(config, checkpointer=None)
 
 
-async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> OrchestratorResult:
+async def _astream_collect(
+    orchestrator: Orchestrator,
+    prompt: str,
+    *,
+    session_id: str | None = None,
+    trace_metadata: Mapping[str, object] | None = None,
+) -> OrchestratorResult:
     """Run astream_run and collect domain events into OrchestratorResult."""
-    session_id = f"eval-{uuid.uuid4()}"
+    effective_session_id = session_id or f"eval-{uuid.uuid4()}"
 
     text_parts: list[str] = []
     tool_outputs: list[dict[str, Any]] = []
@@ -40,10 +46,14 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
     tool_args: dict[str, dict] = {}
     errors: list[str] = []
 
-    async for event in orchestrator.astream_run(
-        message=prompt,
-        session_id=session_id,
-    ):
+    stream_kwargs: dict[str, object] = {
+        "message": prompt,
+        "session_id": effective_session_id,
+    }
+    if trace_metadata is not None:
+        stream_kwargs["trace_metadata"] = trace_metadata
+
+    async for event in orchestrator.astream_run(**stream_kwargs):
         if isinstance(event, TextDelta):
             text_parts.append(event.delta)
         elif isinstance(event, ToolCall):
@@ -151,10 +161,21 @@ async def run_near_v1_diagnostic(input: Any) -> OrchestratorResult:
     orchestrator and extract the eval prompt from ``question``.
     """
     orchestrator = _get_orchestrator("v1_baseline")
-    if isinstance(input, str):
-        prompt = input
-    elif isinstance(input, Mapping):
-        prompt = input.get("question", str(input))
-    else:
-        prompt = str(input)
-    return await _astream_collect(orchestrator, prompt)
+    if not isinstance(input, Mapping):
+        raise TypeError("near_v1_diagnostic input must be a mapping")
+
+    prompt = str(input["question"])
+    session_id_value = input.get("session_id")
+    session_id = str(session_id_value) if session_id_value is not None else None
+    trace_metadata_value = input.get("trace_metadata")
+    if trace_metadata_value is not None and not isinstance(trace_metadata_value, Mapping):
+        raise TypeError("trace_metadata must be a mapping")
+
+    return await _astream_collect(
+        orchestrator,
+        prompt,
+        session_id=session_id,
+        trace_metadata=(
+            dict(trace_metadata_value) if trace_metadata_value is not None else None
+        ),
+    )

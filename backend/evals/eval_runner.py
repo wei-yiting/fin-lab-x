@@ -23,7 +23,22 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from backend.evals.dataset_loader import load_dataset, load_raw_csv_rows
+from backend.evals.dataset_loader import (
+    _convert_cell,
+    _set_nested_value,
+    _validate_column_mapping,
+    load_dataset,
+    load_raw_csv_rows,
+)
+from backend.evals.diagnostic.dataset_selector import (
+    parse_diagnostic_slice_args,
+    select_diagnostic_slice,
+)
+from backend.evals.diagnostic.metadata_projector import project_diagnostic_metadata
+from backend.evals.diagnostic.models import resolve_git_commit
+from backend.evals.diagnostic.run_manifest_writer import (
+    write_run_manifest_csv as write_diagnostic_run_manifest,
+)
 from backend.evals.eval_spec_schema import (
     load_braintrust_config,
     load_scenario_config,
@@ -337,6 +352,13 @@ def run_scenario(
     local_only: bool,
     output_dir: Path,
     scenarios_dir: Path = SCENARIOS_DIR,
+    run_label: str | None = None,
+    run_group: str | None = None,
+    agent_version: str | None = None,
+    slice_label: str | None = None,
+    row_ids: str | None = None,
+    field_filter: str | None = None,
+    manifest: str | None = None,
 ) -> Path:
     """Execute a single evaluation scenario.
 
@@ -369,8 +391,6 @@ def run_scenario(
         banner_line = f"Eval scenario: {config.name}"
         for key, value in banner_fields.items():
             banner_line += f" | {key}: {value}"
-        print(banner_line, file=sys.stderr)
-
         if config.status == "draft":
             print(
                 f"\u26a0 Scenario '{config.name}' is draft "
@@ -384,7 +404,6 @@ def run_scenario(
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
         original_columns, original_rows = load_raw_csv_rows(csv_path)
-        raw_data = load_dataset(csv_path, config.column_mapping)
 
         scorers = resolve_scorers(config.scorers)
         task_fn = resolve_function(config.task.function, label="task")
@@ -396,24 +415,141 @@ def run_scenario(
         ]
 
         bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
-        experiment_name = (
-            f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-        )
-
-        # Always run local eval first to guarantee local CSV output
-        eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
-
-        result_path = write_result_csv(
-            eval_result,
-            scenario_name,
-            scorer_names,
-            output_dir,
-            original_columns=original_columns,
-            original_rows=original_rows,
-        )
+        timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
+        experiment_name = f"{config.name}_{timestamp}"
+        git_commit = resolve_git_commit()
 
         # Merge local_mode: CLI --local-only overrides config default
         effective_local = local_only or bt_config.local_mode
+
+        diagnostic_flag_values = [
+            run_label,
+            run_group,
+            agent_version,
+            slice_label,
+            row_ids,
+            field_filter,
+            manifest,
+        ]
+
+        if config.diagnostic is None:
+            if any(value is not None for value in diagnostic_flag_values):
+                raise ValueError(
+                    "Diagnostic flags are only supported for diagnostic scenarios"
+                )
+
+            print(banner_line, file=sys.stderr)
+
+            raw_data = load_dataset(csv_path, config.column_mapping)
+
+            # Always run local eval first to guarantee local CSV output
+            eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
+
+            result_path = write_result_csv(
+                eval_result,
+                scenario_name,
+                scorer_names,
+                output_dir,
+                original_columns=original_columns,
+                original_rows=original_rows,
+            )
+
+            if not effective_local:
+                try:
+                    from braintrust import Eval, EvalCase
+
+                    api_key = os.environ.get(bt_config.api_key_env)
+                    if not api_key:
+                        raise RuntimeError(
+                            f"API key not found in environment variable "
+                            f"'{bt_config.api_key_env}'. "
+                            "Set the key or use --local-only."
+                        )
+                    _init_platform_tracing(bt_config.project, api_key)
+
+                    eval_cases = [
+                        EvalCase(
+                            input=row["input"],
+                            expected=row.get("expected"),
+                            metadata=row.get("metadata"),
+                        )
+                        for row in raw_data
+                    ]
+
+                    Eval(
+                        bt_config.project,
+                        data=eval_cases,
+                        task=wrapped_task,
+                        scores=wrapped_scorers,
+                        experiment_name=experiment_name,
+                        no_send_logs=False,
+                        max_concurrency=1,
+                    )
+
+                    import braintrust
+
+                    braintrust.flush()
+                except Exception:
+                    logger.error("Braintrust upload failed", exc_info=True)
+
+            return result_path
+
+        diagnostic_config = config.diagnostic
+        effective_run_label = run_label or _build_default_run_label()
+        effective_run_group = run_group or "manual"
+        effective_agent_version = agent_version or diagnostic_config.agent_version
+        banner_line += (
+            f" | Run label: {effective_run_label}"
+            f" | Run group: {effective_run_group}"
+            f" | Git commit: {git_commit}"
+        )
+
+        slice_args = parse_diagnostic_slice_args(
+            row_ids=row_ids,
+            field_filter=field_filter,
+            manifest=manifest,
+            slice_label=slice_label,
+        )
+        selected_rows, slice_identity = select_diagnostic_slice(
+            original_columns,
+            original_rows,
+            slice_args,
+            row_id_column=diagnostic_config.row_id_column,
+        )
+        diagnostic_data = _build_diagnostic_eval_rows(
+            selected_rows=selected_rows,
+            column_mapping=config.column_mapping,
+            diagnostic_config=diagnostic_config,
+            dataset_name=diagnostic_config.dataset_name,
+            dataset_version=diagnostic_config.dataset_version,
+            run_label=effective_run_label,
+            run_group=effective_run_group,
+            agent_version=effective_agent_version,
+            experiment_name=experiment_name,
+            slice_identity=slice_identity,
+        )
+        banner_line += (
+            f" | Slice label: {slice_identity.slice_label}"
+            f" | Slice type: {slice_identity.slice_type}"
+            f" | Rows: {len(selected_rows)}"
+        )
+        print(banner_line, file=sys.stderr)
+
+        if effective_local:
+            eval_result = _run_local_eval(
+                diagnostic_data,
+                wrapped_task,
+                wrapped_scorers,
+            )
+
+            return write_result_csv(
+                eval_result,
+                scenario_name,
+                scorer_names,
+                output_dir,
+                original_columns=original_columns,
+                original_rows=selected_rows,
+            )
 
         if not effective_local:
             try:
@@ -430,11 +566,12 @@ def run_scenario(
 
                 eval_cases = [
                     EvalCase(
+                        id=row["id"],
                         input=row["input"],
-                        expected=row.get("expected"),
+                        expected={},
                         metadata=row.get("metadata"),
                     )
-                    for row in raw_data
+                    for row in diagnostic_data
                 ]
 
                 Eval(
@@ -443,18 +580,144 @@ def run_scenario(
                     task=wrapped_task,
                     scores=wrapped_scorers,
                     experiment_name=experiment_name,
+                    metadata={
+                        "dataset_name": diagnostic_config.dataset_name,
+                        "dataset_version": diagnostic_config.dataset_version,
+                        "run_label": effective_run_label,
+                        "run_group": effective_run_group,
+                        "slice_label": slice_identity.slice_label,
+                        "slice_type": slice_identity.slice_type,
+                        "selected_row_count": len(selected_rows),
+                        "slice_hash": slice_identity.slice_hash,
+                        "agent_version": effective_agent_version,
+                        "git_commit": git_commit,
+                    },
                     no_send_logs=False,
+                    max_concurrency=1,
                 )
 
                 import braintrust
 
                 braintrust.flush()
+                manifest_rows = [
+                    {
+                        "row_id": row["metadata"]["row_id"],
+                        "session_id": row["input"]["session_id"],
+                        "experiment_name": experiment_name,
+                        "run_label": effective_run_label,
+                        "slice_label": slice_identity.slice_label,
+                        "git_commit": git_commit,
+                        "braintrust_project": bt_config.project,
+                    }
+                    for row in diagnostic_data
+                ]
+                return write_diagnostic_run_manifest(
+                    scenario_name=scenario_name,
+                    output_dir=output_dir,
+                    original_columns=original_columns,
+                    original_rows=selected_rows,
+                    manifest_rows=manifest_rows,
+                )
             except Exception:
                 logger.error("Braintrust upload failed", exc_info=True)
-
-        return result_path
+                raise
     finally:
         otel_logger.removeFilter(otel_filter)
+
+
+def _build_diagnostic_eval_rows(
+    *,
+    selected_rows: list[dict[str, str]],
+    column_mapping: dict[str, str],
+    diagnostic_config: Any,
+    dataset_name: str,
+    dataset_version: str,
+    run_label: str,
+    run_group: str,
+    agent_version: str,
+    experiment_name: str,
+    slice_identity: Any,
+) -> list[dict[str, Any]]:
+    _validate_column_mapping(column_mapping)
+
+    object_buckets = {
+        target.split(".", 1)[0]
+        for target in column_mapping.values()
+        if "." in target
+    }
+
+    rows: list[dict[str, Any]] = []
+    for raw_row in selected_rows:
+        normalized_row = _normalize_diagnostic_row(raw_row)
+        projection = project_diagnostic_metadata(
+            row=normalized_row,
+            dataset_name=dataset_name,
+            dataset_version=dataset_version,
+            run_label=run_label,
+            run_group=run_group,
+            agent_version=agent_version,
+            experiment_name=experiment_name,
+            slice_identity=slice_identity,
+        )
+        row_data: dict[str, Any] = {"input": {}, "expected": {}, "metadata": {}}
+        scalar_input: Any = None
+        has_scalar_input = False
+
+        for source_column, target_path in column_mapping.items():
+            converted_value = _convert_cell(raw_row.get(source_column))
+            target_parts = target_path.split(".")
+            bucket_name = target_parts[0]
+
+            if len(target_parts) == 1:
+                if bucket_name == "input":
+                    if bucket_name not in object_buckets:
+                        scalar_input = converted_value
+                        has_scalar_input = True
+                else:
+                    if bucket_name not in object_buckets:
+                        row_data[bucket_name] = converted_value
+                continue
+
+            bucket_value = row_data.get(bucket_name)
+            if not isinstance(bucket_value, dict):
+                bucket_value = {}
+                row_data[bucket_name] = bucket_value
+            _set_nested_value(bucket_value, target_parts[1:], converted_value)
+
+        if "input" in object_buckets:
+            if not isinstance(row_data["input"], dict):
+                row_data["input"] = {}
+        elif has_scalar_input:
+            row_data["input"] = scalar_input
+
+        if not isinstance(row_data["input"], dict):
+            raise TypeError("Diagnostic task input must be a mapping")
+        row_data["input"]["session_id"] = projection.session_id
+        row_data["input"]["trace_metadata"] = projection.langfuse_metadata
+        row_data["expected"] = {}
+        row_data["metadata"] = projection.braintrust_metadata
+        row_data["id"] = projection.braintrust_metadata["row_id"]
+        rows.append(row_data)
+
+    return rows
+
+
+def _normalize_diagnostic_row(raw_row: dict[str, str]) -> dict[str, object]:
+    normalized: dict[str, object] = {}
+    for key, value in raw_row.items():
+        if value == "":
+            normalized[key] = None
+            continue
+        if key == "draft_pass_signals":
+            normalized[key] = json.loads(value)
+            continue
+        normalized[key] = value
+    return normalized
+
+
+def _build_default_run_label() -> str:
+    """Build the default manual diagnostic run label in UTC."""
+    return f"manual-{datetime.now(tz=timezone.utc).strftime('%Y%m%d-%H%M%S')}"
 
 
 def _run_local_eval(
@@ -474,10 +737,16 @@ def _run_local_eval(
 
     def _score_row(row: dict[str, Any], output: Any) -> SimpleNamespace:
         expected_val = row.get("expected")
+        metadata_val = row.get("metadata")
         scores: dict[str, Any] = {}
         for scorer in scorers:
             name = getattr(scorer, "__name__", "unknown")
-            score = scorer(output=output, expected=expected_val, input=row["input"])
+            score = scorer(
+                output=output,
+                expected=expected_val,
+                input=row["input"],
+                metadata=metadata_val,
+            )
             if score == _SKIPPED_MARKER:
                 scores[name] = _SKIPPED_MARKER
             elif score is not None and hasattr(score, "score"):
@@ -543,6 +812,13 @@ def main(
     parser.add_argument(
         "--output-dir", type=Path, default=None, help="Output directory for results"
     )
+    parser.add_argument("--run-label", help="Diagnostic run label")
+    parser.add_argument("--run-group", help="Diagnostic run group")
+    parser.add_argument("--agent-version", help="Diagnostic agent version")
+    parser.add_argument("--slice-label", help="Diagnostic slice label override")
+    parser.add_argument("--row-ids", help="Diagnostic comma-separated row ids")
+    parser.add_argument("--field-filter", help="Diagnostic field filter column=value")
+    parser.add_argument("--manifest", help="Diagnostic manifest file path")
 
     args = parser.parse_args(argv)
 
@@ -571,6 +847,13 @@ def main(
                     local_only=args.local_only,
                     output_dir=output_dir,
                     scenarios_dir=scenarios_dir,
+                    run_label=args.run_label,
+                    run_group=args.run_group,
+                    agent_version=args.agent_version,
+                    slice_label=args.slice_label,
+                    row_ids=args.row_ids,
+                    field_filter=args.field_filter,
+                    manifest=args.manifest,
                 )
                 print(f"  {name}: {result_path}")
                 succeeded += 1
@@ -593,6 +876,13 @@ def main(
         local_only=args.local_only,
         output_dir=output_dir,
         scenarios_dir=scenarios_dir,
+        run_label=args.run_label,
+        run_group=args.run_group,
+        agent_version=args.agent_version,
+        slice_label=args.slice_label,
+        row_ids=args.row_ids,
+        field_filter=args.field_filter,
+        manifest=args.manifest,
     )
     print(f"Result: {result_path}")
 

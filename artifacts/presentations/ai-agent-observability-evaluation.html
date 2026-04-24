@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Agent Observability &amp; Evaluation</title>
+<style>
+  :root {
+    --bg: #1a2333;
+    --bg-2: #232d40;
+    --bg-3: #2a3654;
+    --surface: #d8dde6;
+    --surface-2: #e9ecf2;
+    --surface-text: #1f2937;
+    --surface-text-muted: #475569;
+    --border: #2f3a52;
+    --border-strong: #3d4a64;
+    --text: #f1f4fa;
+    --text-muted: #94a0b8;
+    --accent-blue: #4a90e2;
+    --accent-blue-soft: rgba(74, 144, 226, 0.15);
+    --accent-green: #22c55e;
+    --accent-red: #ef4444;
+    --accent-amber: #f59e0b;
+    --accent-purple: #a78bfa;
+    --code-bg: #0f1521;
+    --code-text: #d1d5db;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", Inter, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 48px 72px 72px;
+    display: none;
+    flex-direction: column;
+  }
+
+  .slide.active { display: flex; }
+
+  .slide-tag {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .slide h1 {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+
+  .slide h2 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  .slide h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.005em;
+  }
+
+  .slide-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    min-height: 0;
+  }
+
+  .slide-body.top { justify-content: flex-start; }
+
+  /* Footer */
+  .hud {
+    position: absolute;
+    bottom: 18px;
+    left: 72px;
+    right: 72px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .progress {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--accent-blue);
+    transition: width 0.3s ease;
+  }
+
+  /* Boxes */
+  .box {
+    background: var(--surface);
+    color: var(--surface-text);
+    border-radius: 10px;
+    padding: 22px 26px;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .box .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--surface-text-muted);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .box-dark {
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 22px 26px;
+  }
+
+  .box-outline {
+    background: transparent;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 22px 26px;
+  }
+
+  .callout {
+    border-radius: 8px;
+    padding: 18px 24px;
+    color: white;
+    font-weight: 500;
+    line-height: 1.5;
+    font-size: 17px;
+  }
+  .callout.blue { background: var(--accent-blue); }
+  .callout.green { background: var(--accent-green); color: #0c1f0e; }
+  .callout.red { background: var(--accent-red); }
+  .callout.amber { background: var(--accent-amber); color: #1f1404; }
+  .callout.purple { background: var(--accent-purple); color: #1d1238; }
+
+  .callout-title {
+    font-weight: 700;
+    font-size: 19px;
+    margin-bottom: 6px;
+    letter-spacing: -0.005em;
+  }
+  .callout-body {
+    font-size: 17px;
+    font-weight: 500;
+    opacity: 0.95;
+    line-height: 1.5;
+  }
+
+  .row { display: flex; gap: 20px; align-items: stretch; }
+  .col { flex: 1; }
+  .center { text-align: center; align-items: center; justify-content: center; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  /* Cover slide */
+  .cover {
+    align-items: flex-start;
+    justify-content: center;
+    background: radial-gradient(ellipse at top right, rgba(74,144,226,0.08) 0%, transparent 60%);
+  }
+  .cover-tag {
+    font-size: 13px;
+    color: var(--accent-blue);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    font-weight: 600;
+  }
+  .cover-title {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #ffffff 0%, #b8c5dc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cover-subtitle {
+    font-size: 26px;
+    color: var(--text-muted);
+    margin-top: 24px;
+    max-width: 900px;
+    line-height: 1.4;
+    font-weight: 400;
+  }
+  .cover-footer {
+    margin-top: 56px;
+    color: var(--text-muted);
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Section divider */
+  .section-divider {
+    align-items: flex-start;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a2333 0%, #2a3858 100%);
+  }
+  .section-num {
+    font-size: 14px;
+    color: var(--accent-blue);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    font-weight: 700;
+  }
+  .section-title {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .section-blurb {
+    font-size: 20px;
+    color: var(--text-muted);
+    max-width: 820px;
+    margin-top: 24px;
+    line-height: 1.5;
+  }
+
+  /* Code block */
+  .code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 20px 24px;
+    border-radius: 8px;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+    white-space: pre;
+    overflow: auto;
+  }
+  .code .kw { color: #c084fc; }
+  .code .str { color: #fca5a5; }
+  .code .com { color: #6b7280; font-style: italic; }
+  .code .fn { color: #93c5fd; }
+  .code .num { color: #fbbf24; }
+  .code .key { color: #fde68a; }
+
+  /* Lists */
+  ul.bullets {
+    list-style: none;
+    padding: 0;
+  }
+  ul.bullets li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 12px;
+    line-height: 1.55;
+    font-size: 18px;
+  }
+  ul.bullets li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--accent-blue);
+  }
+
+  ul.bullets-dark li::before { color: var(--accent-blue); }
+  ul.bullets-light li::before { color: var(--accent-blue); }
+
+  /* Ordered lists (numbered playbook lists) */
+  .slide ol {
+    padding-left: 26px;
+  }
+  .slide ol li {
+    font-size: 17px;
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 17px;
+  }
+  th, td {
+    text-align: left;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  td { line-height: 1.5; }
+  th {
+    color: var(--accent-blue);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Diagrams */
+  svg.diagram {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    display: block;
+  }
+  svg.diagram text {
+    font-weight: 500;
+  }
+
+  /* Big quote */
+  .pullquote {
+    font-size: 24px;
+    line-height: 1.4;
+    color: var(--text);
+    border-left: 4px solid var(--accent-blue);
+    padding: 12px 24px;
+    font-weight: 500;
+    font-style: italic;
+  }
+  .pullquote .attr {
+    display: block;
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--text-muted);
+    font-style: normal;
+    letter-spacing: 0.05em;
+  }
+
+  /* Stat / metric block */
+  .stat {
+    text-align: center;
+    padding: 18px;
+  }
+  .stat .num {
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--accent-blue);
+    line-height: 1;
+  }
+  .stat .label {
+    margin-top: 10px;
+    font-size: 15px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+  }
+
+  /* Pill */
+  .pill {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .pill.blue { background: rgba(74,144,226,0.18); color: #93c5fd; }
+  .pill.green { background: rgba(34,197,94,0.18); color: #86efac; }
+  .pill.red { background: rgba(239,68,68,0.18); color: #fca5a5; }
+  .pill.amber { background: rgba(245,158,11,0.18); color: #fcd34d; }
+  .pill.purple { background: rgba(167,139,250,0.20); color: #c4b5fd; }
+
+  /* Card with accent top border */
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border-strong);
+    border-top: 3px solid var(--accent-blue);
+    border-radius: 8px;
+    padding: 24px 26px;
+  }
+  .card.green { border-top-color: var(--accent-green); }
+  .card.red { border-top-color: var(--accent-red); }
+  .card.amber { border-top-color: var(--accent-amber); }
+  .card.purple { border-top-color: var(--accent-purple); }
+
+  .card .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.005em;
+  }
+  .card .card-body {
+    font-size: 17px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  .nav-hint {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Print: show all slides */
+  @media print {
+    html, body { overflow: visible; }
+    .slide { display: flex !important; position: relative; height: 100vh; page-break-after: always; }
+    .hud, .progress, .nav-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 1 — Cover                                                -->
+  <!-- ============================================================ -->
+  <section class="slide cover active" data-section="Introduction">
+    <div class="slide-body">
+      <div class="cover-tag">Tech Sharing</div>
+      <div class="cover-title">AI Agent<br/>Observability &amp; Evaluation</div>
+      <div class="cover-subtitle">From black box to engineering discipline — how to build agents you can trust, measure, and improve.</div>
+      <div class="cover-footer">A walkthrough of the methodology, then the tools.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 2 — Agenda                                               -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="Agenda">
+    <div class="slide-tag">Agenda</div>
+    <h1>What we'll cover</h1>
+    <div class="slide-body top">
+      <div class="grid-2" style="gap:12px;">
+        <div class="card">
+          <div class="card-title">1 · Why this matters</div>
+          <div class="card-body">The black box problem and why "vibes-driven" AI development collapses in production.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">2 · Tracing</div>
+          <div class="card-body">What a trace really is. What hides inside a trace tree. The minimum unit of truth for debugging agents.</div>
+        </div>
+        <div class="card green">
+          <div class="card-title">3 · Build → Look → Improve</div>
+          <div class="card-body">The iterative cycle. Building a quick eval. Spotting errors in traces.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">4 · Evaluation design concept</div>
+          <div class="card-body">The 2×2 matrix. Observability vs evaluation. Three layers of evaluation. When to use which.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">5 · Recommended evaluation design process</div>
+          <div class="card-body">Manual error analysis first. The 5-step workflow. First Failure Rule. Open codes → failure modes.</div>
+        </div>
+        <div class="card purple">
+          <div class="card-title">6 · Component-level thinking</div>
+          <div class="card-body">Attribution. Improvement playbook for LLM and non-LLM components. Building LLM intuition.</div>
+        </div>
+        <div class="card red">
+          <div class="card-title">7 · Tooling landscape</div>
+          <div class="card-body">What an observability platform gives you. OTel. LLM-as-a-judge. Annotation queues.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">8 · Continuous loop &amp; production</div>
+          <div class="card-body">Closing the offline ↔ online loop. Cost and latency as the next problem to have.</div>
+        </div>
+        <div class="card green">
+          <div class="card-title">9 · Wrap-up</div>
+          <div class="card-body">Key takeaways and what's next.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 3 — The Black Box Problem                                -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="1 · Why this matters">
+    <div class="slide-tag">Chapter 1 · Why this matters</div>
+    <h1>The black box problem</h1>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div class="box">
+          <div class="label">Traditional Software</div>
+          <h3 style="color:var(--surface-text); font-size:22px; margin-bottom:14px;">Logic is in the code</h3>
+          <ul class="bullets" style="color:var(--surface-text);">
+            <li><strong>Deterministic.</strong> Same input → same output.</li>
+            <li>Bugs are findable: read the code, set a breakpoint.</li>
+            <li>Coverage means something. Tests pass = it works.</li>
+          </ul>
+        </div>
+        <div class="box-dark" style="border-top:3px solid var(--accent-red);">
+          <div class="label" style="color:var(--text-muted);">Generative AI</div>
+          <h3 style="font-size:22px; margin-bottom:14px;">Logic is hidden in billions of weights</h3>
+          <ul class="bullets">
+            <li><strong>Probabilistic.</strong> Same prompt → different outputs.</li>
+            <li><strong>Errors</strong> emerge from behavior — not stack traces.</li>
+            <li>Tests passing ≠ feature working. Need a different discipline.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout blue" style="margin-top:8px;">
+        <span class="callout-title">The shift:</span>
+        <span class="callout-body">In traditional software you debug code. In AI you debug <em>behavior</em> — and behavior only exists in observed outputs.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 4 — Where failures hide in any agent                     -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="1 · Why this matters">
+    <div class="slide-tag">Chapter 1 · Why this matters</div>
+    <h1>Where failures hide in any agent</h1>
+    <div class="slide-body">
+      <p style="font-size:18px; color:var(--text-muted); max-width:1000px; line-height:1.55; margin-top:-4px;">Every agent has roughly the same anatomy — and so do its failure modes, in three predictable places.</p>
+      <svg class="diagram" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w-s4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+          <marker id="arr-blue-s4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4a90e2"/>
+          </marker>
+          <marker id="arr-red-s4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/>
+          </marker>
+          <marker id="arr-amber-s4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/>
+          </marker>
+        </defs>
+
+        <!-- TOP LEFT: UNDERSPECIFICATION (you) -->
+        <rect x="100" y="10" width="420" height="115" rx="8" fill="#4a90e2"/>
+        <text x="310" y="42" text-anchor="middle" fill="white" font-size="17" font-weight="700" letter-spacing="2">UNDERSPECIFICATION (you)</text>
+        <text x="310" y="72" text-anchor="middle" fill="white" font-size="16">Vague spec, no examples,</text>
+        <text x="310" y="93" text-anchor="middle" fill="white" font-size="16">no production-data anchor</text>
+        <text x="310" y="116" text-anchor="middle" fill="white" font-size="14" font-style="italic" opacity="0.9">→ ground in real examples</text>
+
+        <!-- TOP RIGHT: GENERALIZATION (LLM) -->
+        <rect x="680" y="10" width="420" height="115" rx="8" fill="#ef4444"/>
+        <text x="890" y="42" text-anchor="middle" fill="white" font-size="17" font-weight="700" letter-spacing="2">GENERALIZATION (LLM)</text>
+        <text x="890" y="72" text-anchor="middle" fill="white" font-size="16">Strays from your domain,</text>
+        <text x="890" y="93" text-anchor="middle" fill="white" font-size="16">hallucinates off-brand answers</text>
+        <text x="890" y="116" text-anchor="middle" fill="white" font-size="14" font-style="italic" opacity="0.9">→ evals + guardrails</text>
+
+        <!-- DASHED arrows from top callouts down INTO Agent -->
+        <line x1="310" y1="125" x2="565" y2="220" stroke="#4a90e2" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-blue-s4)"/>
+        <line x1="890" y1="125" x2="635" y2="220" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-red-s4)"/>
+
+        <!-- MAIN ROW: Input → Agent → Output (with details) -->
+        <rect x="80" y="225" width="240" height="170" rx="8" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+        <text x="200" y="263" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Input</text>
+        <text x="200" y="302" text-anchor="middle" fill="#475569" font-size="15">User intent</text>
+        <text x="200" y="324" text-anchor="middle" fill="#475569" font-size="15">Ambiguity</text>
+        <text x="200" y="346" text-anchor="middle" fill="#475569" font-size="15">Missing constraints</text>
+
+        <rect x="480" y="225" width="240" height="170" rx="8" fill="#e9ecf2" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
+        <text x="600" y="263" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Agent</text>
+        <text x="600" y="302" text-anchor="middle" fill="#475569" font-size="15">Planning · Routing</text>
+        <text x="600" y="324" text-anchor="middle" fill="#475569" font-size="15">Decomposition</text>
+        <text x="600" y="346" text-anchor="middle" fill="#475569" font-size="15">Memory</text>
+
+        <rect x="880" y="225" width="240" height="170" rx="8" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+        <text x="1000" y="263" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Output</text>
+        <text x="1000" y="302" text-anchor="middle" fill="#475569" font-size="15">Synthesis · Tone</text>
+        <text x="1000" y="324" text-anchor="middle" fill="#475569" font-size="15">Citations · Structure</text>
+        <text x="1000" y="346" text-anchor="middle" fill="#475569" font-size="15">Correctness</text>
+
+        <!-- forward arrows + edge labels -->
+        <line x1="320" y1="310" x2="480" y2="310" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s4)"/>
+        <text x="400" y="298" text-anchor="middle" fill="#94a0b8" font-size="13" font-weight="700" letter-spacing="2">HANDOFF</text>
+
+        <line x1="720" y1="310" x2="880" y2="310" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s4)"/>
+        <text x="800" y="298" text-anchor="middle" fill="#94a0b8" font-size="13" font-weight="700" letter-spacing="2">COMPOSE</text>
+
+        <!-- TOOLS below Agent + bidirectional arrows -->
+        <line x1="582" y1="395" x2="582" y2="425" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s4)"/>
+        <line x1="618" y1="425" x2="618" y2="395" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s4)"/>
+        <text x="700" y="416" fill="#94a0b8" font-size="13" font-weight="700" letter-spacing="2">↻ TOOLING</text>
+
+        <rect x="450" y="430" width="300" height="80" rx="8" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+        <text x="600" y="462" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Tools</text>
+        <text x="600" y="490" text-anchor="middle" fill="#475569" font-size="15">RAG · Search · APIs · MCPs</text>
+
+        <!-- DASHED arrows from I/O Blindness UP to Input + Output -->
+        <line x1="200" y1="535" x2="200" y2="400" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-amber-s4)"/>
+        <line x1="1000" y1="535" x2="1000" y2="400" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-amber-s4)"/>
+
+        <!-- BOTTOM (wide): I/O BLINDNESS (you) -->
+        <rect x="200" y="535" width="800" height="60" rx="8" fill="#f59e0b"/>
+        <text x="600" y="563" text-anchor="middle" fill="#1f1404" font-size="16" font-weight="700" letter-spacing="2">I/O BLINDNESS (you)</text>
+        <text x="600" y="585" text-anchor="middle" fill="#1f1404" font-size="14">Don't know what users actually ask · don't know what the model returns · → look at data + feedback</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 4B — High-level metrics are not enough                   -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="1 · Why this matters">
+    <div class="slide-tag">Chapter 1 · Why this matters</div>
+    <h1>High-level metrics are not enough</h1>
+    <div class="slide-body">
+      <p style="font-size:19px; color:var(--text-muted); max-width:980px; line-height:1.5; margin-top:-4px;">A single accuracy number can tell you <em>that</em> something is wrong, but it rarely tells you <em>what to fix</em>.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="pill blue" style="font-size:12px; margin-bottom:10px;">What the metric hides</div>
+          <div class="card-title" style="font-size:22px;">The failure path</div>
+          <div class="card-body" style="margin-top:10px; line-height:1.55;">The agent may have taken the wrong route through tools, prompts, or context long before the answer reached the user.</div>
+        </div>
+        <div class="card amber">
+          <div class="pill amber" style="font-size:12px; margin-bottom:10px;">Why teams get stuck</div>
+          <div class="card-title" style="font-size:22px;">Blind debugging</div>
+          <div class="card-body" style="margin-top:10px; line-height:1.55;">Without traces and structured review, improvements become guesswork, not engineering — and yesterday's errors reappear with every change.</div>
+        </div>
+        <div class="card green">
+          <div class="pill green" style="font-size:12px; margin-bottom:10px;">What we actually need</div>
+          <div class="card-title" style="font-size:22px;">Failure-mode visibility</div>
+          <div class="card-body" style="margin-top:10px; line-height:1.55;">We need to know the repeatable ways the system falls short so we can prioritize fixes rationally — by impact, not by intuition.</div>
+        </div>
+      </div>
+
+      <div class="callout blue">
+        <span class="callout-title">The shift in question:</span>
+        <span class="callout-body">From <em>"what's our accuracy?"</em> → <em>"which failure modes are dragging us down, and where in the trace do they originate?"</em></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 5 — The Discipline Gap                                   -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="1 · Why this matters">
+    <div class="slide-tag">Chapter 1 · Why this matters</div>
+    <h1>The discipline gap between teams</h1>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div class="box-dark" style="border-top:3px solid var(--accent-red);">
+          <div class="pill red">Less experienced</div>
+          <h3 style="margin-top:14px; font-size:22px;">Blindly building</h3>
+          <ul class="bullets" style="margin-top:10px;">
+            <li>Try a new prompt. "Looks better?" Ship it.</li>
+            <li>Swap models. Hope the next one is smarter.</li>
+            <li>No quantified signal. Just vibes.</li>
+            <li>Same errors reappear after every change.</li>
+          </ul>
+        </div>
+        <div class="box-dark" style="border-top:3px solid var(--accent-green);">
+          <div class="pill green">Experienced</div>
+          <h3 style="margin-top:14px; font-size:22px;">Analysis-driven building</h3>
+          <ul class="bullets" style="margin-top:10px;">
+            <li>Look at outputs first. Categorize the failures.</li>
+            <li>Build the smallest eval that proves the error exists.</li>
+            <li>Each change is targeted, measured, repeatable.</li>
+            <li>Regressions caught before users see them.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pullquote">
+        Don't spend weeks theorizing about how to build the system. Build a quick one and look at it.
+        <span class="attr">— the most reliable shortcut in agentic AI development</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 2 — Section Divider: Tracing                          -->
+  <!-- ============================================================ -->
+  <section class="slide section-divider" data-section="2 · Tracing">
+    <div class="slide-body">
+      <div class="section-num">Chapter 2</div>
+      <div class="section-title">Tracing</div>
+      <div class="section-blurb">Before you can measure or improve anything, you need to see inside the agent. A trace is the minimum unit of truth — the full lifecycle of one run.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 2 — What is a trace?                                  -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="2 · Tracing">
+    <div class="slide-tag">Chapter 2 · Tracing</div>
+    <h1>What is a trace?</h1>
+    <div class="slide-body">
+      <p style="font-size:18px; color:var(--text-muted); max-width:1080px; line-height:1.55; margin-top:-4px;">A trace is the full lifecycle of one interaction — not just the final answer. It is the minimum unit of truth for debugging agents.</p>
+
+      <!-- Lifecycle row 1: INPUT → PROMPTING → REASONING -->
+      <div style="display:flex; align-items:stretch; gap:12px;">
+        <div class="box" style="flex:1; min-width:0; padding:18px 20px;">
+          <div class="label" style="margin-bottom:10px;">INPUT</div>
+          <div style="font-size:15px; color:var(--surface-text); line-height:1.5;">User query and metadata.</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--text-muted); font-size:22px;">→</div>
+        <div class="box" style="flex:1; min-width:0; padding:18px 20px;">
+          <div class="label" style="margin-bottom:10px;">PROMPTING</div>
+          <div style="font-size:15px; color:var(--surface-text); line-height:1.5;">System prompt, examples, prompt version.</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--text-muted); font-size:22px;">→</div>
+        <div class="box" style="flex:1; min-width:0; padding:18px 20px;">
+          <div class="label" style="margin-bottom:10px;">REASONING</div>
+          <div style="font-size:15px; color:var(--surface-text); line-height:1.5;">Planning and intermediate model decisions.</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--accent-blue); font-size:26px; font-weight:700;">↩</div>
+      </div>
+
+      <!-- Lifecycle row 2 (indented): TOOLS → OUTPUT → FEEDBACK -->
+      <div style="display:flex; align-items:stretch; gap:12px; padding-left:140px;">
+        <div class="box" style="flex:1; min-width:0; padding:18px 20px;">
+          <div class="label" style="margin-bottom:10px;">TOOLS</div>
+          <div style="font-size:15px; color:var(--surface-text); line-height:1.5;">Search, retrieval, MCP calls, SQL, APIs.</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--text-muted); font-size:22px;">→</div>
+        <div class="box" style="flex:1; min-width:0; padding:18px 20px;">
+          <div class="label" style="margin-bottom:10px;">OUTPUT</div>
+          <div style="font-size:15px; color:var(--surface-text); line-height:1.5;">Final response and citations.</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--text-muted); font-size:22px;">→</div>
+        <div class="box" style="flex:1; min-width:0; padding:18px 20px;">
+          <div class="label" style="margin-bottom:10px;">FEEDBACK</div>
+          <div style="font-size:15px; color:var(--surface-text); line-height:1.5;">Thumbs, copy events, human review, labels.</div>
+        </div>
+      </div>
+
+      <!-- Concept callouts: dark cards with colored top borders (distinct from the sequential diagram) -->
+      <div class="grid-2" style="gap:18px; margin-top:10px;">
+        <div class="card">
+          <div class="card-title" style="font-size:20px;">Why traces matter</div>
+          <div class="card-body">Without this chain, you only know that the answer disappointed the user. With it, you can see where logic, retrieval, or orchestration started to diverge.</div>
+        </div>
+        <div class="card green">
+          <div class="card-title" style="font-size:20px;">Trace literacy</div>
+          <div class="card-body">If you cannot inspect a single run end-to-end, you do not yet have an engineerable agent system.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 2 — Tracing anatomy (simplified)                      -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="2 · Tracing">
+    <div class="slide-tag">Chapter 2 · Tracing</div>
+    <h1>Tracing — anatomy of an agent run</h1>
+    <div class="slide-body">
+      <div class="row">
+        <div class="col" style="max-width:420px;">
+          <div class="box-dark">
+            <h3 style="font-size:20px;">Trace</h3>
+            <p style="margin-top:8px; color:var(--text-muted); font-size:15px; line-height:1.55;">The complete record of one agent execution — every input, every intermediate step, every output, with timing and cost.</p>
+          </div>
+          <div class="box-dark" style="margin-top:14px;">
+            <h3 style="font-size:20px;">Span</h3>
+            <p style="margin-top:8px; color:var(--text-muted); font-size:15px; line-height:1.55;">One unit of work inside the trace — an LLM call, a tool invocation, a retrieval, a sub-agent. Spans nest into a tree.</p>
+          </div>
+          <div class="callout blue" style="margin-top:14px;">
+            <span class="callout-body">A trace is the flight recorder. Without it, you're guessing why the plane crashed.</span>
+          </div>
+        </div>
+        <div class="col">
+          <svg class="diagram" viewBox="0 0 720 470" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="680" height="50" rx="6" fill="#4a90e2"/>
+            <text x="40" y="52" fill="white" font-size="16" font-weight="700">▼ trace · invoice-agent · 2.4s · $0.018</text>
+
+            <rect x="50" y="86" width="650" height="42" rx="5" fill="#d8dde6"/>
+            <text x="68" y="113" fill="#1f2937" font-size="15" font-weight="600">▾ span: classify_intent · LLM (gpt-4o-mini) · 0.3s</text>
+
+            <rect x="50" y="138" width="650" height="42" rx="5" fill="#d8dde6"/>
+            <text x="68" y="165" fill="#1f2937" font-size="15" font-weight="600">▾ span: extract_fields · LLM (gpt-4o) · 0.9s · 412 tokens</text>
+
+            <rect x="80" y="190" width="620" height="38" rx="5" fill="#e9ecf2"/>
+            <text x="98" y="215" fill="#1f2937" font-size="14">└─ tool: call_ocr · 0.2s · "due date: 2025/01/15"</text>
+
+            <rect x="80" y="236" width="620" height="38" rx="5" fill="#e9ecf2"/>
+            <text x="98" y="261" fill="#1f2937" font-size="14">└─ tool: parse_date · 0.05s · returned "2025-01-15" ✓</text>
+
+            <rect x="50" y="284" width="650" height="42" rx="5" fill="#d8dde6"/>
+            <text x="68" y="311" fill="#1f2937" font-size="15" font-weight="600">▾ span: validate_amount · LLM (gpt-4o) · 0.6s</text>
+
+            <rect x="50" y="336" width="650" height="42" rx="5" fill="#fee2e2"/>
+            <text x="68" y="363" fill="#7f1d1d" font-size="15" font-weight="600">▾ span: format_response · LLM · 0.6s · ⚠ returned issue date instead of due date</text>
+
+            <rect x="50" y="388" width="650" height="42" rx="5" fill="#d1fae5"/>
+            <text x="68" y="415" fill="#065f46" font-size="15" font-weight="600">▾ output: { "due_date": "2025/01/12", "amount": 1240.00 } · ⚠ wrong</text>
+
+            <text x="360" y="455" text-anchor="middle" fill="#94a0b8" font-size="14" font-style="italic">A trace turns "wrong answer" into "this specific span produced the wrong value."</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 2 — What hides inside a trace tree?                   -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="2 · Tracing">
+    <div class="slide-tag">Chapter 2 · Tracing</div>
+    <h1>What hides inside a trace tree?</h1>
+    <div class="slide-body">
+      <p style="font-size:18px; color:var(--text-muted); max-width:1080px; line-height:1.55; margin-top:-4px;">The final answer is often only the symptom. The root cause usually appears earlier in the execution tree.</p>
+
+      <div class="grid-2" style="gap:24px; align-items:stretch;">
+        <div class="box" style="padding:24px;">
+          <h3 style="font-size:18px; color:var(--surface-text); margin-bottom:18px;">Example failure cascade</h3>
+
+          <!-- USER QUESTION: 100% width -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:14px 16px; border-radius:8px; width:100%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">USER QUESTION</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:6px; line-height:1.5;">Explain the impact and provide supporting evidence.</div>
+          </div>
+
+          <!-- PLAN arrow: aligned with SEARCH SPAN below (ml 10%, w 90%) -->
+          <div style="display:flex; align-items:center; margin-left:10%; width:90%; padding:10px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">PLAN →</span>
+          </div>
+
+          <!-- SEARCH SPAN (first failure): ml 10%, width 90% -->
+          <div style="background:#fef3c7; border:2px solid #f59e0b; padding:14px 16px; border-radius:8px; margin-left:10%; width:90%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#92400e;">★ SEARCH SPAN — first failure</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:6px; line-height:1.5;">Bad retrieval result returns shallow or irrelevant evidence.</div>
+          </div>
+
+          <!-- DOWNSTREAM EFFECT: aligned with SYNTHESIS SPAN (ml 22%, w 78%) -->
+          <div style="display:flex; align-items:center; margin-left:22%; width:78%; padding:10px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">DOWNSTREAM EFFECT →</span>
+          </div>
+
+          <!-- SYNTHESIS SPAN: ml 22%, width 78% -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:14px 16px; border-radius:8px; margin-left:22%; width:78%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">SYNTHESIS SPAN</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:6px; line-height:1.5;">Model fills gaps with unsupported claims because the context is weak.</div>
+          </div>
+
+          <!-- VISIBLE SYMPTOM: aligned with FINAL ANSWER (ml 36%, w 64%) -->
+          <div style="display:flex; align-items:center; margin-left:36%; width:64%; padding:10px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">VISIBLE SYMPTOM →</span>
+          </div>
+
+          <!-- FINAL ANSWER: ml 36%, width 64% -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:14px 16px; border-radius:8px; margin-left:36%; width:64%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">FINAL ANSWER</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:6px; line-height:1.5;">The response sounds fluent but is not trustworthy.</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div class="callout amber">
+            <span class="callout-title">★ Fix the first failure</span>
+            <span class="callout-body">Don't over-index on the final hallucination if a bad tool result created it. The cascade only ends when the root span is fixed.</span>
+          </div>
+          <div class="box-dark" style="border-top:3px solid var(--accent-blue); flex:1;">
+            <h3 style="font-size:18px;">What a trace tree gives you</h3>
+            <ul class="bullets" style="margin-top:12px;">
+              <li>Span-level attribution — which step failed?</li>
+              <li>Root-cause analysis instead of symptom chasing</li>
+              <li>A path from debugging to formal evals</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 3 — Section Divider: Build → Look → Improve           -->
+  <!-- ============================================================ -->
+  <section class="slide section-divider" data-section="3 · Build → Look → Improve">
+    <div class="slide-body">
+      <div class="section-num">Chapter 3</div>
+      <div class="section-title">Build → Look → Improve</div>
+      <div class="section-blurb">The iterative cycle that makes "vibes" safe to start with — and the moment you graduate from vibes to a real evaluation.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 7 — The Iterative Development Cycle                      -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="3 · Build → Look → Improve">
+    <div class="slide-tag">Chapter 3 · Build → Look → Improve</div>
+    <h1>The iterative development cycle</h1>
+    <div class="slide-body">
+      <p style="font-size:18px; color:var(--text-muted); max-width:1080px; line-height:1.55; margin-top:-4px;">Strong agent engineering starts with rapid iteration — not long speculative design cycles.</p>
+      <svg class="diagram" viewBox="0 0 1200 410" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+        </defs>
+
+        <!-- 4 boxes -->
+        <g>
+          <rect x="15" y="40" width="270" height="240" rx="10" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+          <text x="150" y="80" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">1 · BUILD</text>
+          <text x="150" y="124" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Quick prototype</text>
+          <text x="150" y="180" text-anchor="middle" fill="#475569" font-size="15">Get a working system into</text>
+          <text x="150" y="204" text-anchor="middle" fill="#475569" font-size="15">the world safely so there is</text>
+          <text x="150" y="228" text-anchor="middle" fill="#475569" font-size="15">something concrete to examine.</text>
+        </g>
+
+        <g>
+          <rect x="315" y="40" width="270" height="240" rx="10" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+          <text x="450" y="80" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">2 · INSPECT</text>
+          <text x="450" y="124" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Look at outputs</text>
+          <text x="450" y="180" text-anchor="middle" fill="#475569" font-size="15">Review a small batch of</text>
+          <text x="450" y="204" text-anchor="middle" fill="#475569" font-size="15">real cases, not only</text>
+          <text x="450" y="228" text-anchor="middle" fill="#475569" font-size="15">synthetic happy paths.</text>
+        </g>
+
+        <g>
+          <rect x="615" y="40" width="270" height="240" rx="10" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+          <text x="750" y="80" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">3 · FOCUS</text>
+          <text x="750" y="124" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Prioritize bottleneck</text>
+          <text x="750" y="180" text-anchor="middle" fill="#475569" font-size="15">Fix the thing that creates</text>
+          <text x="750" y="204" text-anchor="middle" fill="#475569" font-size="15">the most friction instead of</text>
+          <text x="750" y="228" text-anchor="middle" fill="#475569" font-size="15">polishing the wrong layer.</text>
+        </g>
+
+        <g>
+          <rect x="915" y="40" width="270" height="240" rx="10" fill="#d8dde6" stroke="rgba(0,0,0,0.1)"/>
+          <text x="1050" y="80" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">4 · IMPROVE</text>
+          <text x="1050" y="124" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">Repeat with evidence</text>
+          <text x="1050" y="180" text-anchor="middle" fill="#475569" font-size="15">If recurring or strategic,</text>
+          <text x="1050" y="204" text-anchor="middle" fill="#475569" font-size="15">formalize it into an eval</text>
+          <text x="1050" y="228" text-anchor="middle" fill="#475569" font-size="15">and keep iterating.</text>
+        </g>
+
+        <!-- forward arrows -->
+        <line x1="285" y1="160" x2="315" y2="160" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w2)"/>
+        <line x1="585" y1="160" x2="615" y2="160" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w2)"/>
+        <line x1="885" y1="160" x2="915" y2="160" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w2)"/>
+
+        <!-- loop arrow -->
+        <path d="M 1050,280 Q 1050,355 600,355 Q 150,355 150,280" fill="none" stroke="#4a90e2" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-w2)"/>
+        <text x="600" y="395" text-anchor="middle" fill="#4a90e2" font-size="15" font-weight="700" letter-spacing="2">REPEAT — every cycle compounds</text>
+      </svg>
+      <div class="callout blue">
+        <span class="callout-title">Core claim:</span>
+        <span class="callout-body">The fastest path to reliability is usually <strong>build → inspect → focus → improve</strong> — not weeks of guessing how the system might behave.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 8 — Step 1 + 2 detail                                    -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="3 · Build → Look → Improve">
+    <div class="slide-tag">Chapter 3 · Build → Look → Improve</div>
+    <h1>The decision moment: fix it, or measure it?</h1>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div class="box-dark">
+          <div class="pill blue">Path A</div>
+          <h3 style="margin-top:14px; font-size:20px;">You see the error → you know the fix</h3>
+          <ul class="bullets" style="margin-top:10px;">
+            <li>Just fix it. Don't over-engineer.</li>
+            <li>Single-line prompt tweak, missing tool description, wrong temperature.</li>
+            <li>Re-run the same 10–20 cases to confirm.</li>
+          </ul>
+          <div class="callout green" style="margin-top:14px;">
+            <span class="callout-body">Resist building infrastructure for a problem you can solve in 5 minutes.</span>
+          </div>
+        </div>
+        <div class="box-dark">
+          <div class="pill amber">Path B</div>
+          <h3 style="margin-top:14px; font-size:20px;">The fix is unclear or will take many iterations</h3>
+          <ul class="bullets" style="margin-top:10px;">
+            <li>Stop. Build an <strong>eval</strong> first.</li>
+            <li>Without a quantified signal, every change is a guess.</li>
+            <li>The eval becomes your compass for the rest of the work.</li>
+          </ul>
+          <div class="callout blue" style="margin-top:14px;">
+            <span class="callout-body">Evals turn "feels better" into "measurably better."</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout amber">
+        <span class="callout-title">Heuristic:</span>
+        <span class="callout-body">If you'd need to re-test the same case more than 3 times to know if a change helped → build the eval.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 9 — From observation to eval (invoice example)           -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="3 · Build → Look → Improve">
+    <div class="slide-tag">Chapter 3 · Build → Look → Improve</div>
+    <h1>Building an eval for a quick-to-spot error</h1>
+    <div class="slide-body">
+      <svg class="diagram" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid meet" style="max-height:none; flex:1; min-height:0; width:100%; height:100%;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w-s10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+          <marker id="arr-mute-s10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#94a0b8"/>
+          </marker>
+        </defs>
+
+        <!-- SHARED COLUMN HEADERS -->
+        <text x="150" y="32" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="700" letter-spacing="2">1 · OBSERVE</text>
+        <text x="450" y="32" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">2 · DEFINE METRIC</text>
+        <text x="750" y="32" text-anchor="middle" fill="#22c55e" font-size="14" font-weight="700" letter-spacing="2">3 · LABEL GROUND TRUTH</text>
+        <text x="1050" y="32" text-anchor="middle" fill="#a78bfa" font-size="14" font-weight="700" letter-spacing="2">4 · AUTOMATE</text>
+        <line x1="15" y1="50" x2="1185" y2="50" stroke="#3d4a64" stroke-width="1"/>
+
+        <!-- ROW 1 LABEL -->
+        <text x="15" y="78" fill="#94a0b8" font-size="13" font-weight="700" letter-spacing="2">CASE A · INVOICE  —  per-example ground truth</text>
+
+        <!-- ROW 1 BOXES (h 160, y 92-252) -->
+        <g>
+          <rect x="15" y="92" width="270" height="160" rx="10" fill="#d8dde6"/>
+          <text x="150" y="128" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">Look at 20 invoices</text>
+          <text x="150" y="170" text-anchor="middle" fill="#475569" font-size="14">Agent returns the</text>
+          <text x="150" y="192" text-anchor="middle" fill="#475569" font-size="14"><tspan font-weight="700">issue date</tspan> instead of the</text>
+          <text x="150" y="214" text-anchor="middle" fill="#475569" font-size="14"><tspan font-weight="700">payment due date</tspan></text>
+        </g>
+
+        <g>
+          <rect x="315" y="92" width="270" height="160" rx="10" fill="#d8dde6"/>
+          <text x="450" y="135" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">due_date accuracy</text>
+          <text x="450" y="180" text-anchor="middle" fill="#475569" font-size="14">A single, specific,</text>
+          <text x="450" y="202" text-anchor="middle" fill="#475569" font-size="14">solvable failure mode</text>
+        </g>
+
+        <g>
+          <rect x="615" y="92" width="270" height="160" rx="10" fill="#d8dde6"/>
+          <text x="750" y="125" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">10–20 invoices,</text>
+          <text x="750" y="147" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">each with correct date</text>
+          <text x="750" y="186" text-anchor="middle" fill="#475569" font-size="14">Standardize format</text>
+          <text x="750" y="212" text-anchor="middle" fill="#475569" font-size="15" font-family="monospace" font-weight="700">YYYY-MM-DD</text>
+        </g>
+
+        <g>
+          <rect x="915" y="92" width="270" height="160" rx="10" fill="#d8dde6"/>
+          <text x="1050" y="135" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">Regex / string compare</text>
+          <text x="1050" y="180" text-anchor="middle" fill="#475569" font-size="14">against per-row</text>
+          <text x="1050" y="202" text-anchor="middle" fill="#475569" font-size="14">expected date</text>
+        </g>
+
+        <!-- ROW 1 ARROWS -->
+        <line x1="285" y1="172" x2="315" y2="172" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s10)"/>
+        <line x1="585" y1="172" x2="615" y2="172" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s10)"/>
+        <line x1="885" y1="172" x2="915" y2="172" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s10)"/>
+
+        <!-- ROW 2 LABEL -->
+        <text x="15" y="280" fill="#94a0b8" font-size="13" font-weight="700" letter-spacing="2">CASE B · LANGUAGE_POLICY  —  global rule, no per-example label</text>
+
+        <!-- ROW 2 BOXES (h 180, y 294-474) -->
+        <g>
+          <rect x="15" y="294" width="270" height="180" rx="10" fill="#d8dde6"/>
+          <text x="150" y="328" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">Try 中文 vs English</text>
+          <text x="150" y="370" text-anchor="middle" fill="#475569" font-size="14">Agent replies in the</text>
+          <text x="150" y="392" text-anchor="middle" fill="#475569" font-size="14">wrong language; CJK</text>
+          <text x="150" y="414" text-anchor="middle" fill="#475569" font-size="14">leaks into search-tool</text>
+          <text x="150" y="436" text-anchor="middle" fill="#475569" font-size="14">args (broken results)</text>
+        </g>
+
+        <g>
+          <rect x="315" y="294" width="270" height="180" rx="10" fill="#d8dde6"/>
+          <text x="450" y="325" text-anchor="middle" fill="#1f2937" font-size="14" font-style="italic">For each prompt_language:</text>
+          <text x="450" y="357" text-anchor="middle" fill="#1f2937" font-size="15" font-weight="700" font-family="monospace">response_language</text>
+          <text x="450" y="376" text-anchor="middle" fill="#475569" font-size="13">CJK ratio in target range</text>
+          <text x="450" y="408" text-anchor="middle" fill="#1f2937" font-size="15" font-weight="700" font-family="monospace">tool_arg_no_cjk</text>
+          <text x="450" y="427" text-anchor="middle" fill="#475569" font-size="13">search args must be ASCII</text>
+        </g>
+
+        <!-- COL 3 SKIPPED for Row 2 -->
+        <rect x="615" y="294" width="270" height="180" rx="10" fill="none" stroke="#3d4a64" stroke-width="2" stroke-dasharray="6 5"/>
+        <text x="750" y="328" text-anchor="middle" fill="#94a0b8" font-size="13" font-weight="700" letter-spacing="2">— SKIP —</text>
+        <text x="750" y="375" text-anchor="middle" fill="#94a0b8" font-size="15" font-style="italic">Same rule applies to</text>
+        <text x="750" y="397" text-anchor="middle" fill="#94a0b8" font-size="15" font-style="italic">every output —</text>
+        <text x="750" y="419" text-anchor="middle" fill="#94a0b8" font-size="15" font-style="italic">no per-example label</text>
+
+        <g>
+          <rect x="915" y="294" width="270" height="180" rx="10" fill="#d8dde6"/>
+          <text x="1050" y="328" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">Regex on response</text>
+          <text x="1050" y="350" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="700">+ tool args</text>
+          <text x="1050" y="395" text-anchor="middle" fill="#475569" font-size="13" font-family="monospace" font-weight="700">/[一-鿿㐀-䶿]/</text>
+          <text x="1050" y="420" text-anchor="middle" fill="#475569" font-size="14">+ CJK ratio threshold</text>
+        </g>
+
+        <!-- ROW 2 ARROWS -->
+        <line x1="285" y1="384" x2="315" y2="384" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w-s10)"/>
+        <line x1="585" y1="384" x2="615" y2="384" stroke="#94a0b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr-mute-s10)"/>
+        <line x1="885" y1="384" x2="915" y2="384" stroke="#94a0b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr-mute-s10)"/>
+      </svg>
+    </div>
+  </section>
+
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 3 — Spot the error from tracing (answer relevancy)     -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="3 · Build → Look → Improve">
+    <div class="slide-tag">Chapter 3 · Build → Look → Improve</div>
+    <h1>Spot the error from tracing</h1>
+    <div class="slide-body">
+      <div class="grid-2" style="gap:24px; align-items:stretch;">
+        <div class="box" style="padding:24px;">
+          <h3 style="font-size:18px; color:var(--surface-text); margin-bottom:18px;">Example cascade — answer relevancy</h3>
+
+          <!-- USER QUESTION: 100% width -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:12px 16px; border-radius:8px; width:100%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">USER QUESTION</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:4px; line-height:1.5;">"What's the latest on MSFT?"</div>
+          </div>
+
+          <!-- PLAN arrow: aligned with AGENT PLAN (ml 10%, w 90%) -->
+          <div style="display:flex; align-items:center; margin-left:10%; width:90%; padding:8px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">PLAN →</span>
+          </div>
+
+          <!-- AGENT PLAN: ml 10%, w 90% -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:12px 16px; border-radius:8px; margin-left:10%; width:90%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">AGENT PLAN</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:4px; line-height:1.5;">Decide to search news about MSFT.</div>
+          </div>
+
+          <!-- TOOL CALL arrow: aligned with TOOL FETCH (ml 22%, w 78%) -->
+          <div style="display:flex; align-items:center; margin-left:22%; width:78%; padding:8px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">TOOL CALL →</span>
+          </div>
+
+          <!-- TOOL FETCH: ml 22%, w 78% -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:12px 16px; border-radius:8px; margin-left:22%; width:78%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">TOOL FETCH</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:4px; line-height:1.5;">Article covers MSFT, GOOGL &amp; AMZN — valid but multi-company.</div>
+          </div>
+
+          <!-- SYNTHESIZE arrow: aligned with SYNTHESIS (ml 34%, w 66%) -->
+          <div style="display:flex; align-items:center; margin-left:34%; width:66%; padding:8px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">SYNTHESIZE →</span>
+          </div>
+
+          <!-- ★ SYNTHESIS SPAN — first failure: ml 34%, w 66%, HIGHLIGHTED -->
+          <div style="background:#fef3c7; border:2px solid #f59e0b; padding:12px 16px; border-radius:8px; margin-left:34%; width:66%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#92400e;">★ SYNTHESIS SPAN — first failure</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:4px; line-height:1.5;">Pulls GOOGL &amp; AMZN into the answer, not just MSFT.</div>
+          </div>
+
+          <!-- VISIBLE SYMPTOM arrow: aligned with FINAL ANSWER (ml 46%, w 54%) -->
+          <div style="display:flex; align-items:center; margin-left:46%; width:54%; padding:8px 0;">
+            <div style="flex:1; height:1px; background:rgba(0,0,0,0.18);"></div>
+            <span style="padding-left:12px; color:#475569; font-size:11px; font-weight:700; letter-spacing:2px;">VISIBLE SYMPTOM →</span>
+          </div>
+
+          <!-- FINAL ANSWER: ml 46%, w 54% -->
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.1); padding:12px 16px; border-radius:8px; margin-left:46%; width:54%; box-sizing:border-box;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#475569;">FINAL ANSWER</div>
+            <div style="font-size:14px; color:#1f2937; margin-top:4px; line-height:1.5;">Reads fluent, but drifts into GOOGL &amp; AMZN details.</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div class="callout amber">
+            <span class="callout-title">★ The output is wrong — but why?</span>
+            <span class="callout-body">The final answer sounds fluent, but it drifts into companies the user didn't ask about. Without tracing, the only way to notice is to carefully compare every reply to the question. Tracing tells you <em>where</em> it went wrong, not just <em>that</em> it did.</span>
+          </div>
+          <div class="box-dark" style="border-top:3px solid var(--accent-blue); flex:1;">
+            <h3 style="font-size:18px;">Walking the trace, span by span</h3>
+            <ul class="bullets" style="margin-top:12px;">
+              <li><strong style="color:#22c55e;">AGENT PLAN ✓</strong> — the search plan was on-topic for MSFT.</li>
+              <li><strong style="color:#22c55e;">TOOL FETCH ✓</strong> — the article is valid and really does cover MSFT.</li>
+              <li><strong style="color:#f59e0b;">SYNTHESIS ★</strong> — the agent pulled GOOGL &amp; AMZN content in. <em>First failure lives here.</em></li>
+              <li><strong style="color:#ef4444;">FINAL ANSWER ✗</strong> — the visible symptom, but the cascade started upstream.</li>
+            </ul>
+            <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); color:var(--text-muted); font-size:14px;">Maps to <strong>Q4 of the 2×2</strong>: LLM-judge + global rule — no regex catches this.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 4 — Section Divider: Evaluation Design                -->
+  <!-- ============================================================ -->
+  <section class="slide section-divider" data-section="4 · Evaluation Design Concept">
+    <div class="slide-body">
+      <div class="section-num">Chapter 4</div>
+      <div class="section-title">Evaluation design concept</div>
+      <div class="section-blurb">Before picking metrics, know the shapes you can pick from. The core frameworks for <em>how</em> an eval is structured — ground truth, judge type, evaluation layer.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 4 — The 2x2 evaluation design matrix                  -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="4 · Evaluation Design Concept">
+    <div class="slide-tag">Chapter 4 · Evaluation Design Concept</div>
+    <h1>The 2×2 evaluation design matrix</h1>
+    <div class="slide-body">
+      <svg class="diagram" viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg">
+        <text x="600" y="30" text-anchor="middle" fill="#94a0b8" font-size="14" letter-spacing="3" font-weight="700">EVALUATION METHOD</text>
+        <text x="36" y="260" text-anchor="middle" fill="#94a0b8" font-size="14" letter-spacing="3" font-weight="700" transform="rotate(-90 36 260)">PER-EXAMPLE GROUND TRUTH</text>
+
+        <text x="430" y="62" text-anchor="middle" fill="#f1f4fa" font-size="19" font-weight="700">Code-based (Objective)</text>
+        <text x="900" y="62" text-anchor="middle" fill="#f1f4fa" font-size="19" font-weight="700">LLM-as-a-judge (Subjective)</text>
+
+        <text x="120" y="180" text-anchor="middle" fill="#f1f4fa" font-size="17" font-weight="700">YES</text>
+        <text x="120" y="200" text-anchor="middle" fill="#94a0b8" font-size="13">unique answer per case</text>
+        <text x="120" y="380" text-anchor="middle" fill="#f1f4fa" font-size="17" font-weight="700">NO</text>
+        <text x="120" y="400" text-anchor="middle" fill="#94a0b8" font-size="13">global rule</text>
+
+        <rect x="180" y="85" width="500" height="190" rx="8" fill="#d8dde6"/>
+        <text x="200" y="118" fill="#22c55e" font-size="14" font-weight="700" letter-spacing="2">Q1 · CODE + GT</text>
+        <text x="200" y="156" fill="#1f2937" font-size="22" font-weight="700">Invoice due-date extraction</text>
+        <text x="200" y="190" fill="#475569" font-size="16">Each invoice has its own correct date.</text>
+        <text x="200" y="214" fill="#475569" font-size="16">Regex / string compare against ground truth.</text>
+        <text x="200" y="248" fill="#94a0b8" font-size="14" font-style="italic">Cheapest, fastest, most reliable. Use this whenever possible.</text>
+
+        <rect x="700" y="85" width="480" height="190" rx="8" fill="#d8dde6"/>
+        <text x="720" y="118" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">Q2 · LLM-JUDGE + GT</text>
+        <text x="720" y="156" fill="#1f2937" font-size="22" font-weight="700">Report covers gold talking points</text>
+        <text x="720" y="190" fill="#475569" font-size="16">Each topic has its own list of expected facts.</text>
+        <text x="720" y="214" fill="#475569" font-size="16">A judge LLM checks if each fact is covered.</text>
+        <text x="720" y="248" fill="#94a0b8" font-size="14" font-style="italic">Use when correctness needs language understanding.</text>
+
+        <rect x="180" y="295" width="500" height="190" rx="8" fill="#d8dde6"/>
+        <text x="200" y="328" fill="#22c55e" font-size="14" font-weight="700" letter-spacing="2">Q3 · CODE + NO GT</text>
+        <text x="200" y="366" fill="#1f2937" font-size="22" font-weight="700">language_policy · global rule</text>
+        <text x="200" y="400" fill="#475569" font-size="16">Same rule applies to every output.</text>
+        <text x="200" y="424" fill="#475569" font-size="16">Regex CJK check, word count, schema, JSON parse.</text>
+        <text x="200" y="458" fill="#94a0b8" font-size="14" font-style="italic">Format / safety / structural guards.</text>
+
+        <rect x="700" y="295" width="480" height="190" rx="8" fill="#d8dde6"/>
+        <text x="720" y="328" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">Q4 · LLM-JUDGE + NO GT</text>
+        <text x="720" y="366" fill="#1f2937" font-size="22" font-weight="700">Answer relevancy</text>
+        <text x="720" y="400" fill="#475569" font-size="16">Global rule: response stays focused on what user asked.</text>
+        <text x="720" y="424" fill="#475569" font-size="16">Judge LLM checks if response drifts to irrelevant topics.</text>
+        <text x="720" y="458" fill="#94a0b8" font-size="14" font-style="italic">Also: toxicity, helpfulness, brand voice.</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 4 — Observability vs Evaluation (Boundary)            -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="4 · Evaluation Design Concept">
+    <div class="slide-tag">Chapter 4 · Evaluation Design Concept</div>
+    <h1>Observability vs evaluation</h1>
+    <p style="font-size:19px; color:var(--text-muted); margin-top:-2px; margin-bottom:22px;">Seeing what happened is not the same as measuring whether the outcome was good.</p>
+    <div class="slide-body top">
+      <div class="grid-2" style="gap:18px;">
+        <div class="box-dark" style="border-top:3px solid var(--accent-blue);">
+          <div class="pill blue">Observability</div>
+          <h3 style="margin-top:12px; font-size:20px;">What happened inside the run?</h3>
+          <ul class="bullets" style="margin-top:12px;">
+            <li>What input came in?</li>
+            <li>Which model and prompt were used?</li>
+            <li>Which tools were called, in what order?</li>
+            <li>How long did it take and what did it cost?</li>
+          </ul>
+        </div>
+        <div class="box-dark" style="border-top:3px solid var(--accent-amber);">
+          <div class="pill amber">Evaluation</div>
+          <h3 style="margin-top:12px; font-size:20px;">Was the outcome good enough?</h3>
+          <ul class="bullets" style="margin-top:12px;">
+            <li>Was the answer correct enough for the use case?</li>
+            <li>Did the agent choose the right path?</li>
+            <li>Did it satisfy the business constraint or rubric?</li>
+            <li>Did this release get better or worse?</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout green" style="margin-top:18px;">
+        <span class="callout-title">You need both.</span>
+        <span class="callout-body">Observability gives you <strong>explanatory visibility</strong>. Evaluation gives you <strong>quality judgment</strong>. Dashboards without evals leave you guessing if quality changed; evals without traces leave you guessing <em>why</em>.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 4 — Three layers of evaluation                        -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="4 · Evaluation Design Concept" style="padding-right:110px;">
+    <div class="slide-tag">Chapter 4 · Evaluation Design Concept</div>
+    <!-- Vertical title on right (frees up height for the SVG) -->
+    <div style="position:absolute; right:28px; top:80px; bottom:80px; display:flex; align-items:center; justify-content:center;">
+      <h1 style="writing-mode:vertical-rl; font-size:44px; margin:0; letter-spacing:-0.01em; line-height:1.1;">Three layers of evaluation</h1>
+    </div>
+    <div class="slide-body top" style="gap:0; margin-top:-8px;">
+      <svg class="diagram" viewBox="0 0 1380 920" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%; max-height:none;">
+        <defs>
+          <marker id="arr-eval" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+        </defs>
+
+        <!-- ===== EVAL ZONES ===== -->
+        <!-- END-TO-END (outermost, GLOBAL scope, very wide L/R, taller bottom) -->
+        <text x="1362" y="18" text-anchor="end" fill="#22c55e" font-size="20" font-style="italic">— final answer vs user intent —</text>
+        <rect x="1092" y="28" width="270" height="36" rx="4" fill="#22c55e"/>
+        <text x="1227" y="54" text-anchor="middle" fill="#0c1f0e" font-size="19" font-weight="700" letter-spacing="2.5">END-TO-END EVAL</text>
+        <rect x="4" y="64" width="1372" height="852" rx="14" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-dasharray="10 6" opacity="0.85"/>
+
+        <!-- TRAJECTORY (matches END-TO-END right edge area, wraps return path) -->
+        <text x="1304" y="168" text-anchor="end" fill="#a78bfa" font-size="20" font-style="italic">— right tools, right order, right args —</text>
+        <rect x="1036" y="178" width="270" height="36" rx="4" fill="#a78bfa"/>
+        <text x="1171" y="204" text-anchor="middle" fill="#1d1238" font-size="19" font-weight="700" letter-spacing="2.5">TRAJECTORY EVAL</text>
+        <rect x="68" y="214" width="1238" height="552" rx="12" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="8 6" opacity="0.9"/>
+
+        <!-- COMPONENT EVAL (amber — wraps ONLY Tavily container, NOT the return arrow area) -->
+        <rect x="960" y="270" width="224" height="32" rx="4" fill="#f59e0b"/>
+        <text x="1072" y="293" text-anchor="middle" fill="#1f1404" font-size="18" font-weight="700" letter-spacing="2.5">COMPONENT EVAL</text>
+        <rect x="548" y="302" width="636" height="124" rx="10" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="8 6" opacity="0.95"/>
+
+        <!-- ===== ACTORS ===== -->
+        <!-- Input -->
+        <rect x="152" y="82" width="140" height="56" rx="28" fill="#4a90e2"/>
+        <text x="222" y="120" text-anchor="middle" fill="white" font-size="24" font-weight="700">Input</text>
+
+        <!-- LLM Router (Reasoning + Act subtitle) -->
+        <rect x="126" y="248" width="192" height="160" rx="12" fill="#2a3a5c" stroke="#ef4444" stroke-width="3"/>
+        <text x="222" y="276" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="700" letter-spacing="2.5">LLM · ROUTER</text>
+        <text x="222" y="320" text-anchor="middle" fill="#f1f4fa" font-size="30" font-weight="700">gpt-5-mini</text>
+        <text x="222" y="362" text-anchor="middle" fill="#c0c7d4" font-size="22" font-weight="600">Reasoning</text>
+        <text x="222" y="390" text-anchor="middle" fill="#c0c7d4" font-size="22" font-weight="600">+ Act</text>
+
+        <!-- Output -->
+        <rect x="152" y="824" width="140" height="56" rx="28" fill="#4a90e2"/>
+        <text x="222" y="862" text-anchor="middle" fill="white" font-size="24" font-weight="700">Output</text>
+
+        <!-- ===== TOOL ROWS (no STEP labels, larger fonts) ===== -->
+        <!-- Row 1: Tavily Web search (single step, inside COMPONENT EVAL) -->
+        <rect x="560" y="316" width="620" height="96" rx="10" fill="none" stroke="#94a0b8" stroke-width="2"/>
+        <rect x="576" y="304" width="240" height="32" rx="4" fill="#3a465d"/>
+        <text x="696" y="326" text-anchor="middle" fill="#f1f4fa" font-size="20" font-weight="700">Tavily Web search</text>
+        <rect x="576" y="342" width="588" height="64" rx="6" fill="#d8dde6"/>
+        <text x="870" y="370" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">tavily_financial_search</text>
+        <text x="870" y="396" text-anchor="middle" fill="#475569" font-size="20">(query, max_results)</text>
+
+        <!-- Row 2: SEC filing (2 steps, no STEP labels) -->
+        <rect x="560" y="446" width="620" height="120" rx="10" fill="none" stroke="#94a0b8" stroke-width="2"/>
+        <rect x="576" y="434" width="160" height="32" rx="4" fill="#3a465d"/>
+        <text x="656" y="456" text-anchor="middle" fill="#f1f4fa" font-size="20" font-weight="700">SEC filing</text>
+        <rect x="576" y="472" width="282" height="80" rx="6" fill="#d8dde6"/>
+        <text x="717" y="502" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">list_sections</text>
+        <text x="717" y="530" text-anchor="middle" fill="#475569" font-size="20">(ticker, fiscal_year)</text>
+        <rect x="878" y="472" width="282" height="80" rx="6" fill="#d8dde6"/>
+        <text x="1019" y="502" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">get_section</text>
+        <text x="1019" y="530" text-anchor="middle" fill="#475569" font-size="20">(section_name)</text>
+        <line x1="858" y1="512" x2="876" y2="512" stroke="#94a0b8" stroke-width="2" marker-end="url(#arr-eval)"/>
+
+        <!-- Row 3: yFinance (2 steps, no STEP labels) -->
+        <rect x="560" y="600" width="620" height="120" rx="10" fill="none" stroke="#94a0b8" stroke-width="2"/>
+        <rect x="576" y="588" width="144" height="32" rx="4" fill="#3a465d"/>
+        <text x="648" y="610" text-anchor="middle" fill="#f1f4fa" font-size="20" font-weight="700">yFinance</text>
+        <rect x="576" y="626" width="282" height="80" rx="6" fill="#d8dde6"/>
+        <text x="717" y="656" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">get_available_fields</text>
+        <text x="717" y="684" text-anchor="middle" fill="#475569" font-size="20">(ticker)</text>
+        <rect x="878" y="626" width="282" height="80" rx="6" fill="#d8dde6"/>
+        <text x="1019" y="656" text-anchor="middle" fill="#1f2937" font-size="22" font-weight="700">stock_quote</text>
+        <text x="1019" y="684" text-anchor="middle" fill="#475569" font-size="20">(ticker, field)</text>
+        <line x1="858" y1="666" x2="876" y2="666" stroke="#94a0b8" stroke-width="2" marker-end="url(#arr-eval)"/>
+
+        <!-- ===== ARROWS ===== -->
+        <!-- Input → LLM -->
+        <line x1="222" y1="138" x2="222" y2="246" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-eval)"/>
+        <text x="240" y="200" fill="#c0c7d4" font-size="20" font-style="italic">query</text>
+
+        <!-- LLM → tools: shared horizontal TRUNK + 3 L-shape branches -->
+        <line x1="320" y1="328" x2="520" y2="328" stroke="#f1f4fa" stroke-width="2.5"/>
+        <text x="420" y="316" text-anchor="middle" fill="#c0c7d4" font-size="22" font-style="italic" font-weight="600">function calling</text>
+        <!-- Branch 1: Tavily (down + right) -->
+        <path d="M 520 328 L 520 364 L 558 364" fill="none" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-eval)"/>
+        <!-- Branch 2: SEC (down + right) -->
+        <path d="M 520 328 L 520 506 L 558 506" fill="none" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-eval)"/>
+        <!-- Branch 3: yFinance (down + right) -->
+        <path d="M 520 328 L 520 660 L 558 660" fill="none" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-eval)"/>
+
+        <!-- LLM → Output -->
+        <line x1="222" y1="410" x2="222" y2="822" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-eval)"/>
+        <text x="240" y="620" fill="#c0c7d4" font-size="20" font-style="italic">final answer</text>
+
+        <!-- Tool returns -->
+        <line x1="1162" y1="374" x2="1240" y2="374" stroke="#f1f4fa" stroke-width="2"/>
+        <line x1="1160" y1="512" x2="1240" y2="512" stroke="#f1f4fa" stroke-width="2"/>
+        <line x1="1160" y1="666" x2="1240" y2="666" stroke="#f1f4fa" stroke-width="2"/>
+        <path d="M 1240 374 L 1240 748 L 92 748 L 92 290 L 124 290"
+              fill="none" stroke="#f1f4fa" stroke-width="2" marker-end="url(#arr-eval)"/>
+        <text x="666" y="740" text-anchor="middle" fill="#c0c7d4" font-size="20" font-style="italic">tool results → Router decides next step, or emits final answer</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 4 — When to use which evaluation layer                -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="4 · Evaluation Design Concept">
+    <div class="slide-tag">Chapter 4 · Evaluation Design Concept</div>
+    <h1>When to use which evaluation layer</h1>
+    <div class="slide-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>What it measures</th>
+            <th>Strength</th>
+            <th>Weakness</th>
+            <th>Use when…</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill green">End-to-End</span></td>
+            <td>The final answer / artifact the user actually receives.</td>
+            <td>Survives refactors. Closest to user value.</td>
+            <td>Black box. Right answer can hide a bad path. Slow.</td>
+            <td>Always. This is your North Star.</td>
+          </tr>
+          <tr>
+            <td><span class="pill purple">Trajectory</span></td>
+            <td>Did the agent take the expected path of tool calls?</td>
+            <td>Catches inefficient or unsafe routes.</td>
+            <td>Tied to your current tool set. Rewrite when you change tools.</td>
+            <td>Multi-step agents where <em>how</em> matters (cost, safety, audit).</td>
+          </tr>
+          <tr>
+            <td><span class="pill amber">Component</span></td>
+            <td>One specific component, given a known input.</td>
+            <td>Fast, cheap, low-noise. Tight feedback loop.</td>
+            <td>Passing components don't guarantee a passing system.</td>
+            <td>You've identified the bottleneck and want to iterate fast.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="grid-2" style="margin-top:8px;">
+        <div class="callout blue">
+          <span class="callout-title">Pair them.</span>
+          <span class="callout-body">End-to-end is your acceptance test. Component-level is your unit test. You need both — for the same reasons traditional software does.</span>
+        </div>
+        <div class="callout green">
+          <span class="callout-title">Why component-level accelerates you:</span>
+          <span class="callout-body">Cuts noise from the rest of the pipeline. Lets different teams own different metrics. Iterations get 10× cheaper.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 5 — Section Divider: Recommended Evaluation Design   -->
+  <!-- ============================================================ -->
+  <section class="slide section-divider" data-section="5 · Recommended Evaluation Design Process">
+    <div class="slide-body">
+      <div class="section-num">Chapter 5</div>
+      <div class="section-title">Recommended evaluation design process</div>
+      <div class="section-blurb">Knowing the eval shapes is not enough — you still need a process for choosing which ones to build. A concrete workflow: manual error analysis, failure modes, then automation.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE — Manual error analysis comes first                     -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="5 · Recommended Evaluation Design Process">
+    <div class="slide-tag">Chapter 5 · Recommended Evaluation Design Process</div>
+    <h1>Manual error analysis comes <em>before</em> automated metrics</h1>
+    <div class="slide-body">
+      <div class="row">
+        <div class="col stat" style="max-width:280px;">
+          <div class="num">50–100</div>
+          <div class="label">traces · the sweet spot</div>
+          <p style="margin-top:18px; font-size:16px; color:var(--text-muted); line-height:1.5;">Big enough to reveal patterns. Small enough that one engineer can read them all in an afternoon.</p>
+        </div>
+        <div class="col">
+          <div class="box-dark">
+            <h3>Why before automation?</h3>
+            <ul class="bullets" style="margin-top:10px;">
+              <li>You can't write an LLM-as-a-judge prompt for a failure mode you haven't named yet.</li>
+              <li>Dashboards show <em>symptoms</em>; manual reading reveals <em>root causes</em>.</li>
+              <li>Hand-labeled traces become the gold standard your future evaluators are calibrated against.</li>
+            </ul>
+          </div>
+          <div class="callout amber" style="margin-top:14px;">
+            <span class="callout-title">Insight:</span>
+            <span class="callout-body">Understanding your <strong>failure modes</strong> — the specific, repeatable ways your system falls short — is infinitely more valuable than a generic accuracy score.</span>
+          </div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Production traces</div>
+          <div class="card-body">If the app is live, sample 50–100 across different user intents. Don't cherry-pick.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Synthetic data</div>
+          <div class="card-body">No users yet? Generate 50–100 realistic personas + queries. Imperfect &gt; nothing.</div>
+        </div>
+        <div class="card green">
+          <div class="card-title">Diversity matters</div>
+          <div class="card-body">Cover your top intents. Otherwise you fix edge cases while the silent majority breaks.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 14 — The 5-Step Error Analysis Workflow                  -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="5 · Recommended Evaluation Design Process">
+    <div class="slide-tag">Chapter 5 · Recommended Evaluation Design Process</div>
+    <h1>The 5-step error analysis workflow</h1>
+    <div class="slide-body">
+      <svg class="diagram" viewBox="0 0 1200 230" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+        </defs>
+        <g>
+          <rect x="10" y="40" width="220" height="140" rx="8" fill="#d8dde6"/>
+          <text x="120" y="78" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">STEP 1</text>
+          <text x="120" y="118" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Gather traces</text>
+          <text x="120" y="150" text-anchor="middle" fill="#475569" font-size="15">50–100, representative</text>
+        </g>
+        <g>
+          <rect x="250" y="40" width="220" height="140" rx="8" fill="#d8dde6"/>
+          <text x="360" y="78" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">STEP 2</text>
+          <text x="360" y="118" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Open coding</text>
+          <text x="360" y="150" text-anchor="middle" fill="#475569" font-size="15">free-form failure notes</text>
+        </g>
+        <g>
+          <rect x="490" y="40" width="220" height="140" rx="8" fill="#d8dde6"/>
+          <text x="600" y="78" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">STEP 3</text>
+          <text x="600" y="118" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Structure labels</text>
+          <text x="600" y="150" text-anchor="middle" fill="#475569" font-size="15">cluster into 5–7 modes</text>
+        </g>
+        <g>
+          <rect x="730" y="40" width="220" height="140" rx="8" fill="#d8dde6"/>
+          <text x="840" y="78" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">STEP 4</text>
+          <text x="840" y="118" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Reapply labels</text>
+          <text x="840" y="150" text-anchor="middle" fill="#475569" font-size="15">consistent across traces</text>
+        </g>
+        <g>
+          <rect x="970" y="40" width="220" height="140" rx="8" fill="#d8dde6"/>
+          <text x="1080" y="78" text-anchor="middle" fill="#4a90e2" font-size="14" font-weight="700" letter-spacing="2">STEP 5</text>
+          <text x="1080" y="118" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Quantify</text>
+          <text x="1080" y="150" text-anchor="middle" fill="#475569" font-size="15">pivot table, frequency</text>
+        </g>
+
+        <line x1="230" y1="110" x2="250" y2="110" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w4)"/>
+        <line x1="470" y1="110" x2="490" y2="110" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w4)"/>
+        <line x1="710" y1="110" x2="730" y2="110" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w4)"/>
+        <line x1="950" y1="110" x2="970" y2="110" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w4)"/>
+      </svg>
+
+      <div class="grid-3" style="margin-top:8px;">
+        <div class="card">
+          <div class="card-title">From qualitative → quantitative</div>
+          <div class="card-body">The endgame is a frequency chart of failure modes you can sort by. That sort order is your roadmap.</div>
+        </div>
+        <div class="card green">
+          <div class="card-title">An LLM can help cluster</div>
+          <div class="card-body">After open coding, paste your notes into ChatGPT and ask it to propose 5–7 categories. Then revise.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Pareto applies</div>
+          <div class="card-body">Usually 2–3 failure modes account for 60–80% of bad outputs. Fix those first.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 15 — First Pass + First Failure Rule                     -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="5 · Recommended Evaluation Design Process">
+    <div class="slide-tag">Chapter 5 · Recommended Evaluation Design Process</div>
+    <h1>Two techniques that change everything</h1>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div class="box-dark">
+          <div class="pill blue">Technique 1</div>
+          <h3 style="margin-top:12px; font-size:22px;">First Pass — binary triage</h3>
+          <p style="margin-top:8px; color:var(--text-muted); font-size:14px;">Before you analyze anything deeply, label every trace just <strong>Good</strong> or <strong>Bad</strong>.</p>
+          <ul class="bullets" style="margin-top:12px;">
+            <li>Filters out the noise immediately</li>
+            <li>Tells you your overall pass rate in one number</li>
+            <li>Focuses the deep dive on the 20–30% that actually fail</li>
+          </ul>
+          <div class="callout green" style="margin-top:14px;">
+            <span class="callout-body">Don't try to invent rich labels on pass 1. Sort first, classify second.</span>
+          </div>
+        </div>
+
+        <div class="box-dark">
+          <div class="pill red">Technique 2</div>
+          <h3 style="margin-top:12px; font-size:22px;">First Failure Rule</h3>
+          <p style="margin-top:8px; color:var(--text-muted); font-size:14px;">When a chain breaks, only document the <strong>first</strong> thing that went wrong. Everything downstream is a symptom.</p>
+
+          <svg viewBox="0 0 500 160" style="margin-top:14px;">
+            <rect x="0" y="48" width="140" height="64" rx="6" fill="#ef4444"/>
+            <text x="70" y="76" text-anchor="middle" fill="white" font-size="15" font-weight="700">RAG returns</text>
+            <text x="70" y="96" text-anchor="middle" fill="white" font-size="15" font-weight="700">wrong docs</text>
+            <text x="70" y="28" text-anchor="middle" fill="#ef4444" font-size="13" font-weight="700">★ FIRST FAILURE</text>
+
+            <rect x="180" y="48" width="140" height="64" rx="6" fill="#3a465d"/>
+            <text x="250" y="76" text-anchor="middle" fill="white" font-size="15">Model</text>
+            <text x="250" y="96" text-anchor="middle" fill="white" font-size="15">hallucinates</text>
+            <text x="250" y="138" text-anchor="middle" fill="#94a0b8" font-size="12" font-style="italic">symptom</text>
+
+            <rect x="360" y="48" width="140" height="64" rx="6" fill="#3a465d"/>
+            <text x="430" y="76" text-anchor="middle" fill="white" font-size="15">Wrong final</text>
+            <text x="430" y="96" text-anchor="middle" fill="white" font-size="15">answer</text>
+            <text x="430" y="138" text-anchor="middle" fill="#94a0b8" font-size="12" font-style="italic">symptom</text>
+
+            <line x1="140" y1="80" x2="180" y2="80" stroke="white" stroke-width="2.5"/>
+            <line x1="320" y1="80" x2="360" y2="80" stroke="white" stroke-width="2.5"/>
+          </svg>
+
+          <div class="callout amber" style="margin-top:8px;">
+            <span class="callout-body">Fix the source, the cascade disappears. Tag downstream symptoms and you'll triple-count one root error.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 16 — From comments to failure modes + pitfalls           -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="5 · Recommended Evaluation Design Process">
+    <div class="slide-tag">Chapter 5 · Recommended Evaluation Design Process</div>
+    <h1>From open codes → failure modes (and pitfalls to avoid)</h1>
+    <div class="slide-body">
+      <div class="row">
+        <div class="col">
+          <svg class="diagram" viewBox="0 0 620 440" xmlns="http://www.w3.org/2000/svg">
+            <!-- Many sticky notes -->
+            <g fill="#1f2937">
+              <rect x="10"  y="20"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="22" y="46" font-size="11">"missed talking point"</text>
+              <rect x="155" y="20"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="167" y="46" font-size="11">"wrong file cited"</text>
+              <rect x="300" y="20"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="312" y="46" font-size="11">"refused valid query"</text>
+              <rect x="445" y="20"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="457" y="46" font-size="11">"output too long"</text>
+
+              <rect x="10"  y="72"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="22" y="98" font-size="11">"retriever empty"</text>
+              <rect x="155" y="72"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="167" y="98" font-size="11">"summary not focused"</text>
+              <rect x="300" y="72"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="312" y="98" font-size="11">"loops on tool call"</text>
+              <rect x="445" y="72"  width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="457" y="98" font-size="11">"format inconsistent"</text>
+
+              <rect x="10"  y="124" width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="22" y="150" font-size="11">"hallucinated source"</text>
+              <rect x="155" y="124" width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="167" y="150" font-size="11">"answered off-topic"</text>
+              <rect x="300" y="124" width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="312" y="150" font-size="11">"wrong file cited"</text>
+              <rect x="445" y="124" width="135" height="42" rx="4" fill="#fef3c7"/>
+              <text x="457" y="150" font-size="11">"missed key fact"</text>
+            </g>
+
+            <!-- arrow -->
+            <text x="300" y="195" text-anchor="middle" fill="#94a0b8" font-size="15" font-weight="700">↓ cluster ↓</text>
+
+            <!-- 4 buckets -->
+            <g>
+              <rect x="10"  y="220" width="140" height="200" rx="8" fill="#4a90e2"/>
+              <text x="80" y="252" text-anchor="middle" fill="white" font-size="15" font-weight="700">RAG /</text>
+              <text x="80" y="272" text-anchor="middle" fill="white" font-size="15" font-weight="700">retrieval</text>
+              <text x="80" y="306" text-anchor="middle" fill="white" font-size="13">retriever empty,</text>
+              <text x="80" y="324" text-anchor="middle" fill="white" font-size="13">wrong file,</text>
+              <text x="80" y="342" text-anchor="middle" fill="white" font-size="13">hallucinated source</text>
+              <text x="80" y="395" text-anchor="middle" fill="white" font-size="30" font-weight="800">42%</text>
+            </g>
+
+            <g>
+              <rect x="160" y="220" width="140" height="200" rx="8" fill="#a78bfa"/>
+              <text x="230" y="252" text-anchor="middle" fill="#1d1238" font-size="15" font-weight="700">Off-topic</text>
+              <text x="230" y="272" text-anchor="middle" fill="#1d1238" font-size="15" font-weight="700">engagement</text>
+              <text x="230" y="306" text-anchor="middle" fill="#1d1238" font-size="13">refused valid query,</text>
+              <text x="230" y="324" text-anchor="middle" fill="#1d1238" font-size="13">answered off-topic</text>
+              <text x="230" y="395" text-anchor="middle" fill="#1d1238" font-size="30" font-weight="800">21%</text>
+            </g>
+
+            <g>
+              <rect x="310" y="220" width="140" height="200" rx="8" fill="#22c55e"/>
+              <text x="380" y="252" text-anchor="middle" fill="#0c1f0e" font-size="15" font-weight="700">Reasoning</text>
+              <text x="380" y="272" text-anchor="middle" fill="#0c1f0e" font-size="15" font-weight="700">loops</text>
+              <text x="380" y="306" text-anchor="middle" fill="#0c1f0e" font-size="13">loops on tool call,</text>
+              <text x="380" y="324" text-anchor="middle" fill="#0c1f0e" font-size="13">missed key fact</text>
+              <text x="380" y="395" text-anchor="middle" fill="#0c1f0e" font-size="30" font-weight="800">22%</text>
+            </g>
+
+            <g>
+              <rect x="460" y="220" width="140" height="200" rx="8" fill="#f59e0b"/>
+              <text x="530" y="252" text-anchor="middle" fill="#1f1404" font-size="15" font-weight="700">Format /</text>
+              <text x="530" y="272" text-anchor="middle" fill="#1f1404" font-size="15" font-weight="700">structure</text>
+              <text x="530" y="306" text-anchor="middle" fill="#1f1404" font-size="13">too long,</text>
+              <text x="530" y="324" text-anchor="middle" fill="#1f1404" font-size="13">format inconsistent</text>
+              <text x="530" y="395" text-anchor="middle" fill="#1f1404" font-size="30" font-weight="800">15%</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="col" style="max-width:480px;">
+          <h3 style="font-size:18px; margin-bottom:10px;">Critical pitfalls</h3>
+          <table>
+            <thead><tr><th>Pitfall</th><th>SOP</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Too generic.</strong><br/><span style="color:var(--text-muted); font-size:16px;">"Hallucination" doesn't tell engineering what to fix.</span></td>
+                <td><strong>Use-case specific labels.</strong><br/><span style="color:var(--text-muted); font-size:16px;">"Inaccurate legal citation", "Python syntax error".</span></td>
+              </tr>
+              <tr>
+                <td><strong>One-time analysis.</strong><br/><span style="color:var(--text-muted); font-size:16px;">"We did error analysis at the start of the project."</span></td>
+                <td><strong>Iterative process.</strong><br/><span style="color:var(--text-muted); font-size:16px;">Re-run on every model change, every quarter, every feature.</span></td>
+              </tr>
+              <tr>
+                <td><strong>Counting symptoms.</strong><br/><span style="color:var(--text-muted); font-size:16px;">Tagging every step of a cascade inflates counts.</span></td>
+                <td><strong>First Failure Rule.</strong><br/><span style="color:var(--text-muted); font-size:16px;">One label per trace = one root cause.</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- CHAPTER 6 — Section Divider: Component-Level Thinking         -->
+  <!-- ============================================================ -->
+  <section class="slide section-divider" data-section="6 · Component-Level Thinking">
+    <div class="slide-body">
+      <div class="section-num">Chapter 6</div>
+      <div class="section-title">Component-level thinking</div>
+      <div class="section-blurb">An agent is a system of components. The art is figuring out which one is dragging the system down — and how to improve only that one.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 18 — The Component Attribution Principle                 -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="6 · Component-Level Thinking">
+    <div class="slide-tag">Chapter 6 · Component-Level Thinking</div>
+    <h1>The component attribution principle</h1>
+    <div class="slide-body">
+      <p style="font-size:17px; color:var(--text-muted); margin-top:-4px;">A research agent is failing. <strong style="color:var(--text);">Where</strong> is it failing? Tag every span as <em>good</em> or <em>subpar</em> — but only relative to the input it received.</p>
+
+      <svg class="diagram" viewBox="0 0 1200 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+        </defs>
+
+        <!-- Pipeline -->
+        <g>
+          <rect x="10" y="90" width="210" height="130" rx="8" fill="#d8dde6"/>
+          <text x="115" y="128" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">Search query</text>
+          <text x="115" y="150" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">generation</text>
+          <text x="115" y="195" text-anchor="middle" fill="#22c55e" font-size="30" font-weight="800">5%</text>
+          <text x="115" y="270" text-anchor="middle" fill="#94a0b8" font-size="14">Subpar rate</text>
+          <text x="115" y="293" text-anchor="middle" fill="#22c55e" font-size="15" font-weight="700">✓ healthy</text>
+        </g>
+
+        <line x1="220" y1="155" x2="265" y2="155" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w5)"/>
+
+        <g>
+          <rect x="270" y="90" width="210" height="130" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+          <text x="375" y="128" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">Web search</text>
+          <text x="375" y="150" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">engine</text>
+          <text x="375" y="195" text-anchor="middle" fill="#ef4444" font-size="30" font-weight="800">45%</text>
+          <text x="375" y="270" text-anchor="middle" fill="#94a0b8" font-size="14">Subpar rate</text>
+          <text x="375" y="293" text-anchor="middle" fill="#ef4444" font-size="15" font-weight="700">★ ROOT CAUSE</text>
+        </g>
+
+        <line x1="480" y1="155" x2="525" y2="155" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w5)"/>
+
+        <g>
+          <rect x="530" y="90" width="210" height="130" rx="8" fill="#d8dde6"/>
+          <text x="635" y="128" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">Doc</text>
+          <text x="635" y="150" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">summarization</text>
+          <text x="635" y="195" text-anchor="middle" fill="#f59e0b" font-size="30" font-weight="800">12%</text>
+          <text x="635" y="270" text-anchor="middle" fill="#94a0b8" font-size="14">Subpar rate</text>
+          <text x="635" y="293" text-anchor="middle" fill="#94a0b8" font-size="14" font-style="italic">judged on bad input</text>
+        </g>
+
+        <line x1="740" y1="155" x2="785" y2="155" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w5)"/>
+
+        <g>
+          <rect x="790" y="90" width="210" height="130" rx="8" fill="#d8dde6"/>
+          <text x="895" y="128" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">Final report</text>
+          <text x="895" y="150" text-anchor="middle" fill="#1f2937" font-size="17" font-weight="700">writing</text>
+          <text x="895" y="195" text-anchor="middle" fill="#22c55e" font-size="30" font-weight="800">8%</text>
+          <text x="895" y="270" text-anchor="middle" fill="#94a0b8" font-size="14">Subpar rate</text>
+          <text x="895" y="293" text-anchor="middle" fill="#22c55e" font-size="15" font-weight="700">✓ healthy</text>
+        </g>
+
+        <!-- Decision callout -->
+        <rect x="1020" y="70" width="170" height="180" rx="8" fill="#22c55e"/>
+        <text x="1105" y="110" text-anchor="middle" fill="#0c1f0e" font-size="14" font-weight="700" letter-spacing="2">DECISION</text>
+        <text x="1105" y="155" text-anchor="middle" fill="#0c1f0e" font-size="17" font-weight="700">Improve the</text>
+        <text x="1105" y="178" text-anchor="middle" fill="#0c1f0e" font-size="17" font-weight="700">search engine</text>
+        <text x="1105" y="220" text-anchor="middle" fill="#0c1f0e" font-size="14">not the prompts</text>
+      </svg>
+
+      <div class="callout blue">
+        <span class="callout-title">Attribution rule:</span>
+        <span class="callout-body">A component is judged on the <strong>quality of its input</strong>. If summarization gets garbage docs and produces a garbage summary, that's not its fault. Don't penalize a component for upstream failure.</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 21 — Improvement playbook                                -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="6 · Component-Level Thinking">
+    <div class="slide-tag">Chapter 6 · Component-Level Thinking</div>
+    <h1>Improvement playbook — once you know which component</h1>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div class="box-dark">
+          <div class="pill amber">Non-LLM components</div>
+          <h3 style="margin-top:12px; font-size:20px;">Search, retrieval, parsers, classifiers</h3>
+          <ul class="bullets" style="margin-top:10px;">
+            <li><strong>Tune parameters.</strong> Top-k, similarity threshold, chunk size, date range, recency boost.</li>
+            <li><strong>Replace the component.</strong> Try a different search engine, a different embedding model, a different RAG provider.</li>
+            <li><strong>Pre/post-process.</strong> Query rewriting, filter low-score hits, deduplicate.</li>
+          </ul>
+          <div class="callout blue" style="margin-top:14px;">
+            <span class="callout-body">Often a 30-minute parameter sweep beats a week of prompt engineering downstream.</span>
+          </div>
+        </div>
+
+        <div class="box-dark">
+          <div class="pill blue">LLM components</div>
+          <h3 style="margin-top:12px; font-size:20px;">In escalating order of cost</h3>
+          <ol style="margin-top:10px; padding-left:20px;">
+            <li style="margin-bottom:8px;"><strong>Improve the prompt.</strong> Sharper instructions, few-shot examples, output format spec. <span class="pill blue" style="font-size:11px;">CHEAPEST</span></li>
+            <li style="margin-bottom:8px;"><strong>Try a different model.</strong> Stronger / cheaper / faster — match the model to the task.</li>
+            <li style="margin-bottom:8px;"><strong>Decompose the task.</strong> Split one hard call into two simpler calls (generate → reflect / critique).</li>
+            <li style="margin-bottom:8px;"><strong>Fine-tune.</strong> Last resort. Worth it only when you've hit 90–95% and need the last few points. <span class="pill amber" style="font-size:11px;">HIGHEST ROI BAR</span></li>
+          </ol>
+        </div>
+      </div>
+      <div class="callout amber">
+        <span class="callout-title">Stop-rule:</span>
+        <span class="callout-body">Don't reach for fine-tuning when you haven't tried decomposition. Don't try a new model when you haven't tried 3 prompt variants. Walk the ladder.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 22 — Building LLM intuition                              -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="6 · Component-Level Thinking">
+    <div class="slide-tag">Chapter 6 · Component-Level Thinking</div>
+    <h1>Building intuition for which model fits which job</h1>
+    <div class="slide-body">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Play with new models often</div>
+          <div class="card-body">When a model drops, give it 5 of your hardest tasks. Build a personal feel for its strengths and quirks before you ever wire it into a system.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Read other people's prompts</div>
+          <div class="card-body">Open-source agent repos are a goldmine. Open the source, find the system prompt, see how senior practitioners actually talk to models.</div>
+        </div>
+        <div class="card green">
+          <div class="card-title">Assess in your own workflow</div>
+          <div class="card-body">Generic benchmarks don't predict your task. Run candidate models through <em>your</em> component-level eval. Decide on cost / latency / quality together.</div>
+        </div>
+      </div>
+
+      <div class="box-dark" style="margin-top:8px;">
+        <h3 style="font-size:18px;">Worked example — PII removal</h3>
+        <table style="margin-top:8px;">
+          <thead><tr><th>Model class</th><th>Behavior on a multi-step PII-strip prompt</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Smaller open model</strong> (e.g. 8B-class)</td>
+              <td>Answers simple questions fine. Misses one of three names. Adds an extra trailing list. Doesn't honor the output format.</td>
+            </tr>
+            <tr>
+              <td><strong>Frontier model</strong></td>
+              <td>Follows the multi-step instructions reliably. Catches all PII. Output schema clean.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top:10px; color:var(--text-muted); font-size:16px;">→ The "right" model depends on instruction-following pressure, not parameter count. Build the intuition firsthand.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE — Section Divider: Tooling Landscape                    -->
+  <!-- ============================================================ -->
+  <section class="slide section-divider" data-section="7 · Tooling Landscape">
+    <div class="slide-body">
+      <div class="section-num">Chapter 7</div>
+      <div class="section-title">The tooling landscape</div>
+      <div class="section-blurb">Now — and only now — the tools. Everything you've learned applies whether you build it yourself or use a platform. The platform just removes the toil.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 24 — What an observability platform gives you            -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="7 · Tooling Landscape">
+    <div class="slide-tag">Chapter 7 · Tooling Landscape</div>
+    <h1>What an observability platform gives you</h1>
+    <div class="slide-body">
+      <div class="grid-4">
+        <div class="card">
+          <div class="card-title">Observability</div>
+          <div class="card-body" style="font-size:16px;">
+            <ul class="bullets" style="margin-top:4px;">
+              <li>Log traces &amp; spans</li>
+              <li>Cost &amp; latency by step</li>
+              <li>Search, filter, replay</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Prompt management</div>
+          <div class="card-body" style="font-size:16px;">
+            <ul class="bullets" style="margin-top:4px;">
+              <li>Version control</li>
+              <li>Labels &amp; environments</li>
+              <li>A/B between versions</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card green">
+          <div class="card-title">Evaluation</div>
+          <div class="card-body" style="font-size:16px;">
+            <ul class="bullets" style="margin-top:4px;">
+              <li>Datasets &amp; experiments</li>
+              <li>LLM-as-a-judge library</li>
+              <li>Online + offline evals</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card purple">
+          <div class="card-title">Platform</div>
+          <div class="card-body" style="font-size:16px;">
+            <ul class="bullets" style="margin-top:4px;">
+              <li>API-first</li>
+              <li>Self-host or SaaS</li>
+              <li>Annotation queues, RBAC</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="box-dark">
+        <h3>Common players in this space</h3>
+        <p style="margin-top:8px; color:var(--text-muted); font-size:14px; line-height:1.6;">
+          <strong style="color:var(--text);">Langfuse</strong> · open source, OTel-native, self-hostable<br/>
+          <strong style="color:var(--text);">LangSmith</strong> · LangChain-tight, hosted<br/>
+          <strong style="color:var(--text);">Braintrust</strong> · experiment-first, dataset-centric<br/>
+          <strong style="color:var(--text);">Arize Phoenix</strong> · OSS, ML-team origin<br/>
+          <strong style="color:var(--text);">Helicone, W&amp;B Weave, OpenLLMetry</strong> · adjacent options
+        </p>
+        <p style="margin-top:10px; color:var(--text-muted); font-size:16px; font-style:italic;">The four pillars look similar across vendors. Pick on integration fit, hosting model, and how their datasets / evaluators / annotation flows feel in practice.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 25 — OpenTelemetry & GenAI Semantic Conventions          -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="7 · Tooling Landscape">
+    <div class="slide-tag">Chapter 7 · Tooling Landscape</div>
+    <h1>OpenTelemetry — the open standard underneath</h1>
+    <div class="slide-body">
+      <div class="row">
+        <div class="col" style="max-width:380px;">
+          <svg viewBox="0 0 380 400">
+            <defs>
+              <marker id="arr-w7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+              </marker>
+            </defs>
+            <rect x="40" y="20" width="300" height="100" rx="8" fill="#d8dde6"/>
+            <text x="190" y="60" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">Auto-Instrumentation</text>
+            <text x="190" y="90" text-anchor="middle" fill="#475569" font-size="15">SDKs, framework adapters</text>
+
+            <line x1="190" y1="120" x2="190" y2="160" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w7)"/>
+
+            <rect x="40" y="160" width="300" height="100" rx="8" fill="#d8dde6"/>
+            <text x="190" y="200" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">Exporter</text>
+            <text x="190" y="230" text-anchor="middle" fill="#475569" font-size="15">OTLP, batch, retry</text>
+
+            <line x1="190" y1="260" x2="190" y2="300" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w7)"/>
+
+            <rect x="40" y="300" width="300" height="100" rx="8" fill="#d8dde6"/>
+            <text x="190" y="340" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">OTel Backend</text>
+            <text x="190" y="370" text-anchor="middle" fill="#475569" font-size="15">Langfuse / Phoenix / your tap</text>
+          </svg>
+        </div>
+
+        <div class="col">
+          <h3>GenAI Semantic Conventions</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin-top:6px;">Standardized attributes so traces are portable across vendors.</p>
+          <div class="code" style="margin-top:10px;">
+<span class="key">attributes</span>: {
+  <span class="key">operation.name</span>: <span class="str">"ai.streamText"</span>,
+  <span class="key">ai.model.provider</span>: <span class="str">"openai.responses"</span>,
+  <span class="key">ai.model.id</span>: <span class="str">"gpt-5"</span>,
+  <span class="key">ai.settings.maxRetries</span>: <span class="num">2</span>,
+  <span class="key">ai.usage.inputTokens</span>: <span class="num">37231</span>,
+  <span class="key">ai.usage.outputTokens</span>: <span class="num">985</span>,
+  <span class="key">ai.usage.cachedInputTokens</span>: <span class="num">13568</span>,
+  <span class="key">ai.usage.reasoningTokens</span>: <span class="num">192</span>,
+  <span class="key">ai.response.finishReason</span>: <span class="str">"stop"</span>,
+  ...
+}</div>
+        </div>
+      </div>
+      <div class="grid-4" style="margin-top:8px;">
+        <div class="card"><div class="card-title">SDK</div><div class="card-body" style="font-size:16px;">@observe(), trace() — manual or decorator-based</div></div>
+        <div class="card amber"><div class="card-title">Framework</div><div class="card-body" style="font-size:16px;">LangChain, LangGraph, LlamaIndex, Vercel AI SDK, CrewAI…</div></div>
+        <div class="card green"><div class="card-title">OTel collector</div><div class="card-body" style="font-size:16px;">Java / Go / .NET / Python — language-agnostic pipe</div></div>
+        <div class="card purple"><div class="card-title">Proxy / gateway</div><div class="card-body" style="font-size:16px;">LiteLLM or your own — instrument at the API boundary</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 26 — LLM-as-a-Judge in practice                          -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="7 · Tooling Landscape">
+    <div class="slide-tag">Chapter 7 · Tooling Landscape</div>
+    <h1>LLM-as-a-judge — out of the box and custom</h1>
+    <div class="slide-body">
+      <div class="row">
+        <div class="col">
+          <div class="box-dark">
+            <h3>Library evaluators (off-the-shelf)</h3>
+            <p style="color:var(--text-muted); font-size:16px; margin-top:6px;">Most platforms ship a catalog. Pick, configure, run.</p>
+            <div class="grid-2" style="margin-top:12px; gap:8px;">
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill green" style="font-size:11px;">RAG</span> Faithfulness</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill green" style="font-size:11px;">RAG</span> Context precision</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill green" style="font-size:11px;">RAG</span> Context recall</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill blue" style="font-size:11px;">QA</span> Answer relevance</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill blue" style="font-size:11px;">QA</span> Answer correctness</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill red" style="font-size:11px;">SAFETY</span> Toxicity</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill red" style="font-size:11px;">SAFETY</span> Hallucination</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill amber" style="font-size:11px;">AGENT</span> Tool-call accuracy</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill amber" style="font-size:11px;">AGENT</span> Goal accuracy</div>
+              <div style="padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:16px;"><span class="pill purple" style="font-size:11px;">UX</span> Conciseness</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <h3>Custom judge — what to encode</h3>
+          <div class="code" style="margin-top:8px;">
+<span class="com"># dataset item</span>
+{
+  <span class="key">"input"</span>: { <span class="key">"question"</span>: <span class="str">"How do I trace a Python app?"</span> },
+  <span class="key">"expected_output"</span>: {
+    <span class="key">"response_facts"</span>: [
+      <span class="str">"Use the @observe() decorator"</span>,
+      <span class="str">"Many integrations: LangChain, LlamaIndex, …"</span>
+    ],
+    <span class="key">"trajectory"</span>: [<span class="str">"get_overview"</span>, <span class="str">"search_docs"</span>],
+    <span class="key">"search_term"</span>: <span class="str">"Python tracing"</span>
+  }
+}
+
+<span class="com"># judge prompt structure</span>
+<span class="kw">SYSTEM</span>: You are a strict grader.
+<span class="kw">RUBRIC</span>:
+  - For each fact in expected_output, decide
+    if the agent's answer covers it.
+  - Score = covered_facts / total_facts.
+<span class="kw">RETURN</span>: {<span class="str">"score"</span>: 0–1, <span class="str">"reasoning"</span>: "..."}</div>
+        </div>
+      </div>
+
+      <div class="callout amber">
+        <span class="callout-title">Calibrate the judge.</span>
+        <span class="callout-body">Run the judge on your hand-labeled traces. If it disagrees with you &gt; 20% of the time, your judge prompt is the error — not the agent.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 27 — Datasets & Annotation Queues                        -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="7 · Tooling Landscape">
+    <div class="slide-tag">Chapter 7 · Tooling Landscape</div>
+    <h1>Datasets &amp; annotation queues — keeping humans in the loop</h1>
+    <div class="slide-body">
+      <svg class="diagram" viewBox="0 0 1200 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+          <marker id="arr-green-s27" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/>
+          </marker>
+        </defs>
+
+        <text x="600" y="40" text-anchor="middle" fill="#94a0b8" font-size="17" font-style="italic">The flywheel: production failures become tomorrow's regression tests.</text>
+
+        <rect x="20" y="110" width="220" height="130" rx="8" fill="#d8dde6"/>
+        <text x="130" y="155" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">Production</text>
+        <text x="130" y="180" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">traces</text>
+        <text x="130" y="215" text-anchor="middle" fill="#475569" font-size="14">all of them, sampled</text>
+
+        <line x1="240" y1="175" x2="285" y2="175" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w8)"/>
+        <text x="262" y="163" text-anchor="middle" fill="#94a0b8" font-size="13" font-weight="600">filter</text>
+
+        <rect x="290" y="110" width="220" height="130" rx="8" fill="#d8dde6"/>
+        <text x="400" y="155" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">Annotation</text>
+        <text x="400" y="180" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">queue</text>
+        <text x="400" y="208" text-anchor="middle" fill="#475569" font-size="13">user 👎 / low judge score</text>
+        <text x="400" y="226" text-anchor="middle" fill="#475569" font-size="13">/ edge cases</text>
+
+        <line x1="510" y1="175" x2="555" y2="175" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w8)"/>
+        <text x="532" y="163" text-anchor="middle" fill="#94a0b8" font-size="13" font-weight="600">expert</text>
+
+        <rect x="560" y="110" width="220" height="130" rx="8" fill="#d8dde6"/>
+        <text x="670" y="155" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">Human review</text>
+        <text x="670" y="195" text-anchor="middle" fill="#475569" font-size="14">👍 👎  ✏ correction</text>
+        <text x="670" y="218" text-anchor="middle" fill="#475569" font-size="14">+ failure-mode label</text>
+
+        <line x1="780" y1="175" x2="825" y2="175" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w8)"/>
+        <text x="802" y="163" text-anchor="middle" fill="#94a0b8" font-size="13" font-weight="600">promote</text>
+
+        <rect x="830" y="110" width="220" height="130" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+        <text x="940" y="155" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">Golden</text>
+        <text x="940" y="180" text-anchor="middle" fill="#1f2937" font-size="19" font-weight="700">dataset</text>
+        <text x="940" y="215" text-anchor="middle" fill="#475569" font-size="14">your regression suite</text>
+
+        <line x1="1050" y1="175" x2="1110" y2="175" stroke="#22c55e" stroke-width="2.5" marker-end="url(#arr-green-s27)"/>
+        <text x="1080" y="163" text-anchor="middle" fill="#22c55e" font-size="13" font-weight="700">→ experiments</text>
+      </svg>
+
+      <div class="grid-3">
+        <div class="card"><div class="card-title">Smart queue routing</div><div class="card-body">Auto-route low-confidence outputs, user 👎, or judge-score &lt; 0.5 into the queue. Don't ask humans to review easy cases.</div></div>
+        <div class="card green"><div class="card-title">Score configs</div><div class="card-body">Pre-define the labels reviewers can apply (failure mode, severity). Consistency &gt; freedom.</div></div>
+        <div class="card amber"><div class="card-title">Promotion gate</div><div class="card-body">Don't auto-promote everything. Review and curate before adding to golden dataset.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 28 — The Continuous Evaluation Loop                      -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="8 · Continuous Loop &amp; Production">
+    <div class="slide-tag">Chapter 8 · Continuous Loop &amp; Production</div>
+    <h1>The continuous evaluation loop</h1>
+    <div class="slide-body">
+      <svg class="diagram" viewBox="0 0 1200 510" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-w9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f1f4fa"/>
+          </marker>
+          <marker id="arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/>
+          </marker>
+        </defs>
+
+        <!-- offline label -->
+        <text x="40" y="40" fill="#94a0b8" font-size="15" font-weight="700" letter-spacing="3">OFFLINE — DEVELOPMENT</text>
+
+        <!-- 3 offline boxes -->
+        <rect x="40" y="60" width="320" height="170" rx="8" fill="#d8dde6"/>
+        <text x="200" y="98" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Test Datasets</text>
+        <text x="200" y="130" text-anchor="middle" fill="#475569" font-size="15">• Happy paths</text>
+        <text x="200" y="154" text-anchor="middle" fill="#475569" font-size="15">• Edge cases</text>
+        <text x="200" y="178" text-anchor="middle" fill="#475569" font-size="15">• Adversarial inputs</text>
+        <text x="200" y="206" text-anchor="middle" fill="#475569" font-size="15">• Regression cases from prod</text>
+
+        <rect x="440" y="60" width="320" height="170" rx="8" fill="#d8dde6"/>
+        <text x="600" y="98" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Run Experiments</text>
+        <text x="600" y="130" text-anchor="middle" fill="#475569" font-size="15">• Iterate models, prompts, tools</text>
+        <text x="600" y="154" text-anchor="middle" fill="#475569" font-size="15">• Component or end-to-end</text>
+        <text x="600" y="178" text-anchor="middle" fill="#475569" font-size="15">• Compare against last version</text>
+
+        <rect x="840" y="60" width="320" height="170" rx="8" fill="#d8dde6"/>
+        <text x="1000" y="98" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Evaluate</text>
+        <text x="1000" y="130" text-anchor="middle" fill="#475569" font-size="15">• Manual annotation</text>
+        <text x="1000" y="154" text-anchor="middle" fill="#475569" font-size="15">• Automated judges</text>
+        <text x="1000" y="178" text-anchor="middle" fill="#475569" font-size="15">• Threshold gate for CI</text>
+
+        <line x1="360" y1="145" x2="440" y2="145" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w9)"/>
+        <line x1="760" y1="145" x2="840" y2="145" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w9)"/>
+        <path d="M 600,230 Q 720,265 840,230" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arr-amber)"/>
+        <text x="720" y="262" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="700">tighten / iterate</text>
+
+        <!-- divider -->
+        <line x1="40" y1="285" x2="1160" y2="285" stroke="#3d4a64" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="600" y="307" text-anchor="middle" fill="#94a0b8" font-size="15" font-style="italic">— deploy —</text>
+
+        <!-- online label -->
+        <text x="40" y="345" fill="#94a0b8" font-size="15" font-weight="700" letter-spacing="3">ONLINE — PRODUCTION</text>
+
+        <rect x="440" y="365" width="320" height="140" rx="8" fill="#d8dde6"/>
+        <text x="600" y="402" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Tracing</text>
+        <text x="600" y="438" text-anchor="middle" fill="#475569" font-size="15">• Capture every real interaction</text>
+        <text x="600" y="462" text-anchor="middle" fill="#475569" font-size="15">• Cost, latency, token usage</text>
+
+        <rect x="840" y="365" width="320" height="140" rx="8" fill="#d8dde6"/>
+        <text x="1000" y="402" text-anchor="middle" fill="#1f2937" font-size="20" font-weight="700">Monitoring</text>
+        <text x="1000" y="438" text-anchor="middle" fill="#475569" font-size="15">• Online quality evals</text>
+        <text x="1000" y="462" text-anchor="middle" fill="#475569" font-size="15">• Manual review of failures</text>
+
+        <line x1="840" y1="435" x2="760" y2="435" stroke="#f1f4fa" stroke-width="2.5" marker-end="url(#arr-w9)"/>
+
+        <!-- feedback loops -->
+        <path d="M 600,365 Q 600,300 200,230" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arr-amber)"/>
+        <text x="320" y="318" fill="#f59e0b" font-size="13" font-weight="700">add real failures as test cases</text>
+
+        <path d="M 1000,365 Q 1000,295 600,230" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arr-amber)"/>
+        <text x="860" y="318" fill="#f59e0b" font-size="13" font-weight="700">re-run experiments to fix</text>
+      </svg>
+      <div class="callout green">
+        <span class="callout-title">The loop closes here.</span>
+        <span class="callout-body">Production failures become offline test cases. Every regression you catch in prod is one you'll never ship again.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 29 — Cost & Latency in Production                        -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="8 · Continuous Loop &amp; Production">
+    <div class="slide-tag">Chapter 8 · Continuous Loop &amp; Production</div>
+    <h1>Cost &amp; latency — a good problem to have</h1>
+    <div class="slide-body">
+      <p style="font-size:17px; color:var(--text-muted); margin-top:-4px;">Optimize quality first. When quality is good enough that users actually use the thing, cost and latency become the next frontier — and that's a sign the product is working.</p>
+      <div class="grid-2">
+        <div class="box-dark">
+          <h3>Latency</h3>
+          <ol style="margin-top:10px; padding-left:20px;">
+            <li style="margin-bottom:8px;"><strong>Benchmark first.</strong> Measure per-span latency. Find the bottleneck before guessing.</li>
+            <li style="margin-bottom:8px;"><strong>Parallelize.</strong> Run independent tool calls concurrently — agent code is often serial out of habit.</li>
+            <li style="margin-bottom:8px;"><strong>Right-size the model.</strong> Use a small/fast model for routing &amp; classification, frontier model only for the hard step.</li>
+            <li><strong>Stream + cache.</strong> Stream tokens to the user. Cache repeated context (system prompts, RAG chunks).</li>
+          </ol>
+        </div>
+        <div class="box-dark">
+          <h3>Cost</h3>
+          <ol style="margin-top:10px; padding-left:20px;">
+            <li style="margin-bottom:8px;"><strong>Cost per span, per intent.</strong> Find the heavy hitters. Often one component eats &gt; 50% of cost.</li>
+            <li style="margin-bottom:8px;"><strong>Prompt diet.</strong> Token-count your system prompt &amp; retrieved context. Most are 2–3× larger than they need to be.</li>
+            <li style="margin-bottom:8px;"><strong>Caching tokens.</strong> Prompt caching turns repeated context into a fraction of the price.</li>
+            <li><strong>Cheaper API for cheaper steps.</strong> Routing, intent detection, summarization rarely need a frontier model.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="callout blue">
+        <span class="callout-title">Same discipline as quality.</span>
+        <span class="callout-body">Trace it, attribute the cost/latency to a specific span, decide on the smallest change that moves the metric. Then re-measure.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 30 — Key Takeaways                                       -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="9 · Wrap-up">
+    <div class="slide-tag">Chapter 9 · Wrap-up</div>
+    <h1>Key takeaways</h1>
+    <div class="slide-body">
+      <div class="grid-2" style="gap:18px;">
+        <div class="card">
+          <div class="card-title">1 · Build → Look → Improve, on repeat</div>
+          <div class="card-body">Don't theorize. Build a quick prototype, look at outputs, then decide whether to fix directly or build an eval.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-title">2 · Trace before you measure</div>
+          <div class="card-body">Without traces you have no evidence. With them, every "the agent is bad" becomes "this specific span produced this specific failure."</div>
+        </div>
+        <div class="card green">
+          <div class="card-title">3 · Manual error analysis defines what to automate</div>
+          <div class="card-body">50–100 hand-read traces. Cluster into 5–7 failure modes. Now you know what your LLM-as-a-judge should grade.</div>
+        </div>
+        <div class="card purple">
+          <div class="card-title">4 · Attribute failure to a component</div>
+          <div class="card-body">Tag every span as good/subpar relative to its input. Improve the component with the highest subpar rate, not the loudest one.</div>
+        </div>
+        <div class="card red">
+          <div class="card-title">5 · Walk the improvement ladder</div>
+          <div class="card-body">Prompt → model → decompose → fine-tune. Cheapest first. Don't skip rungs.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">6 · Close the loop</div>
+          <div class="card-body">Production failures → annotation queue → golden dataset → next experiment. The loop is the product.</div>
+        </div>
+      </div>
+      <div class="pullquote">
+        Start manual, find the truth, then automate the rigor.
+        <span class="attr">— the fastest path to an AI app users actually trust</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 31 — What's Next / Demo handoff                          -->
+  <!-- ============================================================ -->
+  <section class="slide" data-section="9 · Wrap-up">
+    <div class="slide-tag">Chapter 9 · Wrap-up</div>
+    <h1>What's next</h1>
+    <div class="slide-body center">
+      <div style="text-align:center; max-width:900px;">
+        <div class="cover-tag" style="color:var(--accent-blue);">Up next · Live demo</div>
+        <h2 style="font-size:48px; margin-top:8px; margin-bottom:24px;">Let's apply this to a real pipeline</h2>
+        <p style="font-size:20px; color:var(--text-muted); line-height:1.5;">We'll walk through traces, evals, and the continuous loop on an actual project — watching the methodology become muscle memory.</p>
+        <div style="margin-top:48px; display:flex; gap:14px; justify-content:center;">
+          <div class="pill blue" style="font-size:16px; padding:8px 16px;">Tracing</div>
+          <div class="pill green" style="font-size:16px; padding:8px 16px;">Evals</div>
+          <div class="pill amber" style="font-size:16px; padding:8px 16px;">Failure modes</div>
+          <div class="pill purple" style="font-size:16px; padding:8px 16px;">Continuous loop</div>
+        </div>
+        <div style="margin-top:80px; color:var(--text-muted); font-size:14px;">Questions before we dive in?</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="hud">
+  <span id="section-label"></span>
+  <span id="counter"></span>
+</div>
+<div class="progress"><div id="progress-bar" class="progress-bar"></div></div>
+<div class="nav-hint">← → · space · home/end</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function show(idx) {
+    idx = Math.max(0, Math.min(slides.length - 1, idx));
+    current = idx;
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('section-label').textContent = slides[idx].dataset.section || '';
+    document.getElementById('counter').textContent = (idx + 1) + ' / ' + slides.length;
+    document.getElementById('progress-bar').style.width = (((idx + 1) / slides.length) * 100) + '%';
+    history.replaceState(null, '', '#' + (idx + 1));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { show(current + 1); e.preventDefault(); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { show(current - 1); e.preventDefault(); }
+    else if (e.key === 'Home') { show(0); e.preventDefault(); }
+    else if (e.key === 'End') { show(slides.length - 1); e.preventDefault(); }
+  });
+
+  // Click left/right halves to navigate
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a, button, input, .code')) return;
+    const x = e.clientX;
+    const w = window.innerWidth;
+    if (x < w * 0.25) show(current - 1);
+    else if (x > w * 0.75) show(current + 1);
+  });
+
+  // hash navigation on load
+  const initial = parseInt(location.hash.replace('#', ''), 10);
+  show(isNaN(initial) ? 0 : initial - 1);
+</script>
+</body>
+</html>

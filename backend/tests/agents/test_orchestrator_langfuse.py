@@ -45,7 +45,7 @@ def _create_orchestrator(config: VersionConfig) -> Orchestrator:
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.init_chat_model"),
-        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
         patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
     ):
         mock_get_tools.return_value = []
@@ -490,7 +490,7 @@ class TestAstreamRun:
             ) as mock_get_tools,
             patch("backend.agent_engine.agents.base.create_agent") as mock_create,
             patch("backend.agent_engine.agents.base.init_chat_model"),
-            patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+            patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
             patch(
                 "backend.agent_engine.agents.base.handle_tool_errors",
                 new=MagicMock(),

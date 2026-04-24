@@ -23,7 +23,7 @@ def client():
             "backend.agent_engine.agents.base.create_agent",
             return_value=mock_agent,
         ),
-        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
         patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
         patch("backend.api.main.AsyncSqliteSaver") as mock_sqlite_cls,
     ):

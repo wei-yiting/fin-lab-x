@@ -9,6 +9,7 @@ from backend.common.sec_core import (
     ConfigurationError,
     FilingNotFoundError,
     FilingType,
+    RateLimitError,
     SECError,
     SectionNotFoundError,
     TickerNotFoundError,
@@ -35,6 +36,7 @@ def test_all_sec_errors_inherit_from_sec_error():
         FilingNotFoundError,
         UnsupportedFilingTypeError,
         TransientError,
+        RateLimitError,
         ConfigurationError,
     ):
         assert issubclass(exc_cls, SECError)
@@ -337,6 +339,75 @@ def test_fetch_filing_obj_transient_error(monkeypatch):
 
     with pytest.raises(TransientError):
         fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+
+def _make_429_httpx_error(retry_after: str | None = None) -> httpx.HTTPStatusError:
+    headers = {"Retry-After": retry_after} if retry_after is not None else {}
+    response = httpx.Response(429, headers=headers)
+    return httpx.HTTPStatusError(
+        message="429",
+        request=httpx.Request("GET", "https://sec.gov"),
+        response=response,
+    )
+
+
+def test_fetch_filing_obj_429_raises_rate_limit_error_immediately(monkeypatch):
+    """429 → RateLimitError with retry_after populated, no retry attempt.
+
+    edgartools already runs its own exponential-backoff retries before any
+    429 reaches this layer. We intentionally do NOT wrap an additional
+    retry here — the caller must wait (typically ~10 minutes) before
+    retrying on its own. This test pins that contract: exactly one
+    ``get_filings`` call, no sleep, ``retry_after`` surfaced from the
+    SEC-provided header.
+    """
+    monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
+
+    company_instance = MagicMock()
+    company_instance.get_filings = MagicMock(
+        side_effect=_make_429_httpx_error(retry_after="5")
+    )
+    monkeypatch.setattr("edgar.Company", MagicMock(return_value=company_instance))
+    monkeypatch.setattr("edgar.set_identity", MagicMock())
+    monkeypatch.setattr("edgar.company_reports.TenK", _TenKStub)
+
+    import time as _time
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(_time, "sleep", lambda s: sleeps.append(s))
+
+    with pytest.raises(RateLimitError) as exc_info:
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    assert exc_info.value.retry_after == 5
+    assert sleeps == []
+    assert company_instance.get_filings.call_count == 1
+
+
+def test_fetch_filing_obj_429_http_date_retry_after_falls_back_to_none(monkeypatch):
+    """Retry-After in HTTP-date form → retry_after is None (documented).
+
+    ``_parse_retry_after_seconds_header`` is deliberately narrow: SEC
+    EDGAR emits integer seconds in practice, so the HTTP-date form is
+    intentionally unsupported to keep the hot path simple. This test
+    pins that contract — a date-form header must surface as
+    ``RateLimitError.retry_after is None`` rather than an exception.
+    """
+    monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
+
+    company_instance = MagicMock()
+    company_instance.get_filings = MagicMock(
+        side_effect=_make_429_httpx_error(retry_after="Wed, 21 Oct 2015 07:28:00 GMT")
+    )
+    monkeypatch.setattr("edgar.Company", MagicMock(return_value=company_instance))
+    monkeypatch.setattr("edgar.set_identity", MagicMock())
+    monkeypatch.setattr("edgar.company_reports.TenK", _TenKStub)
+
+    with pytest.raises(RateLimitError) as exc_info:
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    assert exc_info.value.retry_after is None
+    assert company_instance.get_filings.call_count == 1
 
 
 def test_resolve_latest_fiscal_year_reads_metadata_only(mock_edgar):

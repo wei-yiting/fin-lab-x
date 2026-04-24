@@ -180,7 +180,7 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
     with (
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
-        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
         patch(
             "backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()
         ),

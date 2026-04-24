@@ -24,4 +24,4 @@ model:
   temperature: 0.0
 
 constraints:
-  max_tool_calls_per_step: 15
+  max_tool_calls_per_run: 15

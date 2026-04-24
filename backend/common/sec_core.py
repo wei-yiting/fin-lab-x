@@ -42,6 +42,20 @@ class UnsupportedFilingTypeError(SECError): ...
 class TransientError(SECError): ...
 
 
+class RateLimitError(SECError):
+    """SEC EDGAR returned HTTP 429. Carries ``retry_after`` when SEC provides
+    the ``Retry-After`` header; ``None`` means SEC did not tell us how long
+    to wait (typically corresponds to the default 10-minute IP block).
+    """
+
+    def __init__(self, ticker: str, retry_after: int | None):
+        self.retry_after = retry_after
+        msg = f"SEC EDGAR rate-limited {ticker}"
+        if retry_after is not None:
+            msg += f" (Retry-After={retry_after}s)"
+        super().__init__(msg)
+
+
 class ConfigurationError(SECError): ...
 
 
@@ -165,16 +179,33 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
     Returns the mapped exception (caller uses ``raise mapped from exc``).
 
     Rules:
+    - edgartools ``TooManyRequestsError`` or HTTP 429 → ``RateLimitError``
+      (carries ``retry_after`` when SEC provides the header).
     - HTTP 5xx (``httpx.HTTPStatusError`` or ``requests.HTTPError``) →
       ``TransientError``.
     - Existing ``SECError`` → pass through unchanged.
     - Anything else → ``TickerNotFoundError`` (empty-filings template).
     """
     try:
+        from edgar.httprequests import TooManyRequestsError
+
+        if isinstance(exc, TooManyRequestsError):
+            return RateLimitError(
+                ticker, retry_after=getattr(exc, "retry_after", None)
+            )
+    except ImportError:
+        pass
+
+    try:
         import httpx
 
         if isinstance(exc, httpx.HTTPStatusError):
             status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status == 429:
+                return RateLimitError(
+                    ticker,
+                    retry_after=_parse_retry_after_seconds_header(exc.response),
+                )
             if status is not None and 500 <= status < 600:
                 return TransientError(
                     f"SEC EDGAR returned {status} for {ticker}."
@@ -187,6 +218,11 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
 
         if isinstance(exc, requests.HTTPError):
             status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status == 429:
+                return RateLimitError(
+                    ticker,
+                    retry_after=_parse_retry_after_seconds_header(exc.response),
+                )
             if status is not None and 500 <= status < 600:
                 return TransientError(
                     f"SEC EDGAR returned {status} for {ticker}."
@@ -199,6 +235,32 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
     return TickerNotFoundError(
         f"Ticker {ticker!r} not found on SEC EDGAR."
     )
+
+
+def _parse_retry_after_seconds_header(response) -> int | None:
+    """Parse a SEC EDGAR ``Retry-After`` header as integer seconds.
+
+    The name encodes the contract: this helper intentionally accepts only
+    the integer-seconds form of ``Retry-After``. Returns the parsed number
+    of seconds, or ``None`` when the header is absent or cannot be parsed
+    as an integer.
+
+    Per RFC 7231 ``Retry-After`` may also be an HTTP-date (e.g.
+    ``Wed, 21 Oct 2015 07:28:00 GMT``), but SEC EDGAR is observed to emit
+    integer seconds exclusively. Date-form headers deliberately fall back
+    to ``None`` — SEC does not use them in practice and supporting the
+    format would complicate the hot path for no observed benefit. If a
+    future SEC-adjacent caller begins relying on date-form ``Retry-After``
+    headers, broaden the parser rather than silently changing its name.
+    """
+    headers = getattr(response, "headers", None) or {}
+    raw = headers.get("Retry-After") if hasattr(headers, "get") else None
+    if not raw:
+        return None
+    try:
+        return int(str(raw).strip())
+    except ValueError:
+        return None
 
 
 @lru_cache(maxsize=16)
@@ -329,5 +391,10 @@ def fetch_filing_obj(
         UnsupportedFilingTypeError: Ticker files 20-F instead (FPI).
         FilingNotFoundError: No filing matches the requested ``fiscal_year``.
         TransientError: SEC EDGAR returned 5xx.
+        RateLimitError: SEC EDGAR returned 429. edgartools' own
+            retry/backoff has already been exhausted; the caller must
+            wait (typically ~10 minutes) before retrying. ``retry_after``
+            is populated when SEC supplies the header and ``None``
+            otherwise (which typically indicates the ~10-minute IP block).
     """
     return _fetch_filing_obj_cached(ticker.strip().upper(), filing_type, fiscal_year)

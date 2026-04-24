@@ -12,7 +12,7 @@ def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Orchestrato
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
-        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
         patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
     ):
         mock_get_tools.return_value = mock_tools
@@ -89,7 +89,17 @@ def test_orchestrator_falls_back_to_default_prompt():
     )
 
     orch = _create_orchestrator(config, [])
-    assert orch.system_prompt == _DEFAULT_SYSTEM_PROMPT
+    expected = Orchestrator._render_prompt(
+        _DEFAULT_SYSTEM_PROMPT,
+        config.model.name,
+        max_tool_calls_per_run=config.constraints.max_tool_calls_per_run,
+    )
+    assert orch.system_prompt == expected
+    assert "{max_tool_calls_per_run}" not in orch.system_prompt
+    assert (
+        f"at most {config.constraints.max_tool_calls_per_run} tool calls"
+        in orch.system_prompt
+    )
 
 
 def test_orchestrator_result_has_typed_structure():

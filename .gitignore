@@ -6,8 +6,8 @@ __pycache__/
 .env
 .vscode/
 .sisyphus/
-# artifacts/ — temporarily tracked during planning/implementation
 .artifacts/
+artifacts/
 .superpowers/
 backend/evals/results/
 node_modules/

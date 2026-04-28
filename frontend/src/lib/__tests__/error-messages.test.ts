@@ -39,11 +39,7 @@ describe("toFriendlyError — tool-output-error pattern matching", () => {
     "describe this to the user as a network or API failure.";
 
   test.each([
-    [
-      BUDGET_REACHED_BACKEND_MESSAGE,
-      "Tool-call budget reached for this request.",
-      false,
-    ],
+    [BUDGET_REACHED_BACKEND_MESSAGE, "Tool-call budget reached for this request.", false],
     ["API rate limit exceeded", "Too many requests. Please wait a moment and try again.", true],
     ["ticker not found", "We couldn't find that data.", false],
     ["Connection timeout after 30s", "The tool timed out. Please try again.", true],

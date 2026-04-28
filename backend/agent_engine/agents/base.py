@@ -73,7 +73,7 @@ LANGUAGE POLICY:
 
 TOOL CALL BUDGET:
 - You may make at most {max_tool_calls_per_run} tool calls per request (across the entire run). Plan before you call: if a question needs more data than the budget allows, prioritize the most decision-relevant calls first and summarize with what you have.
-- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT a rate limit from SEC, Yahoo Finance, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
+- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT an external rate limit from SEC, Yahoo Finance, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
 
 ZERO HALLUCINATION POLICY:
 - Only use data from provided tools
@@ -143,10 +143,11 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
         return (
             "Per-run tool-call budget reached for this request. "
             f"Do not call {scope} again in this run. "
-            "This is an INTERNAL orchestration budget — it is NOT a rate "
-            "limit from SEC EDGAR, Yahoo Finance, Tavily, or any other "
-            "external API. Summarize with the data already collected; "
-            "do not describe this to the user as a network or API failure."
+            "This is an INTERNAL orchestration budget — it is NOT an "
+            "external rate limit from SEC EDGAR, Yahoo Finance, Tavily, "
+            "or any other external API. Summarize with the data already "
+            "collected; do not describe this to the user as a network or "
+            "API failure."
         )
 
     def _rewrite_messages(self, result: dict[str, Any] | None) -> dict[str, Any] | None:

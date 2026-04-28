@@ -26,7 +26,24 @@ test("network failure → connection-lost message", () => {
 });
 
 describe("toFriendlyError — tool-output-error pattern matching", () => {
+  // The actual sentinel produced by backend RunBudgetMiddleware._budget_message().
+  // Includes the "NOT an external rate limit" disambiguation phrase the LLM
+  // sees, which historically was misclassified as a rate-limit error by the
+  // /rate limit/i pattern when it appeared anywhere in the body.
+  const BUDGET_REACHED_BACKEND_MESSAGE =
+    "Per-run tool-call budget reached for this request. " +
+    "Do not call 'sec_filing_list_sections' again in this run. " +
+    "This is an INTERNAL orchestration budget — it is NOT an external " +
+    "rate limit from SEC EDGAR, Yahoo Finance, Tavily, or any other " +
+    "external API. Summarize with the data already collected; do not " +
+    "describe this to the user as a network or API failure.";
+
   test.each([
+    [
+      BUDGET_REACHED_BACKEND_MESSAGE,
+      "Tool-call budget reached for this request.",
+      false,
+    ],
     ["API rate limit exceeded", "Too many requests. Please wait a moment and try again.", true],
     ["ticker not found", "We couldn't find that data.", false],
     ["Connection timeout after 30s", "The tool timed out. Please try again.", true],

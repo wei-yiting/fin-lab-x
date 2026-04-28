@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from backend.common.sec_core import FilingType
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
-    FilingType,
     ParsedFiling,
 )
 from backend.ingestion.sec_filing_pipeline.filing_store import (

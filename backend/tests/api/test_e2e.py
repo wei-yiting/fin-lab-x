@@ -37,7 +37,7 @@ def test_e2e_chat_flow():
 
     with (
         patch("backend.agent_engine.agents.base.init_chat_model"),
-        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
         patch(
             "backend.agent_engine.agents.base.create_agent",
             return_value=mock_agent,

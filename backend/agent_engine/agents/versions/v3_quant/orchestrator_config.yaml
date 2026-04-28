@@ -12,7 +12,8 @@ tools:
   - yfinance_stock_quote
   - yfinance_get_available_fields
   - tavily_financial_search
-  - sec_official_docs_retriever
+  - sec_filing_list_sections
+  - sec_filing_get_section
   - duckdb_query
   - text_to_sql
 
@@ -21,4 +22,4 @@ model:
   temperature: 0.0
 
 constraints:
-  max_tool_calls_per_step: 8
+  max_tool_calls_per_run: 8

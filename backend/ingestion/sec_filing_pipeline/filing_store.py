@@ -8,9 +8,9 @@ from typing import Protocol, runtime_checkable
 
 import yaml
 
+from backend.common.sec_core import FilingType
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
-    FilingType,
     ParsedFiling,
 )
 

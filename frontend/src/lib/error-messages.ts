@@ -39,6 +39,16 @@ export const preStreamHttpMap: Record<number, PreStreamHttpEntry> = {
 
 const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boolean }> = [
   {
+    // Backend RunBudgetMiddleware sentinel — must be matched before
+    // /rate limit/ so the budget message (which contains the phrase
+    // "NOT an external rate limit" for the LLM's benefit) doesn't fall
+    // through to the rate-limit case. Per-run budgets are not retriable
+    // within the same request.
+    pattern: /per-run tool-call budget reached/i,
+    title: "Tool-call budget reached for this request.",
+    retriable: false,
+  },
+  {
     pattern: /rate limit/i,
     title: "Too many requests. Please wait a moment and try again.",
     retriable: true,

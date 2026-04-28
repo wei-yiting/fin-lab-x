@@ -8,11 +8,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.ingestion.sec_filing_pipeline.__main__ import main
+from backend.common.sec_core import FilingType, TickerNotFoundError
 from backend.ingestion.sec_filing_pipeline.filing_models import (
     FilingMetadata,
-    FilingType,
     ParsedFiling,
-    TickerNotFoundError,
 )
 from backend.ingestion.sec_filing_pipeline.pipeline import BatchResult
 

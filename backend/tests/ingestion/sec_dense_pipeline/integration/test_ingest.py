@@ -219,7 +219,7 @@ def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys
     from unittest.mock import MagicMock
 
     from backend.ingestion.sec_dense_pipeline.common import sentinel_id
-    from backend.ingestion.sec_filing_pipeline.filing_models import (
+    from backend.common.sec_core import (
         FilingNotFoundError,
         FilingType,
     )

@@ -41,7 +41,7 @@ async def test_nonexistent_ticker_raises_invalid_ticker(
         JITInvalidTickerError,
         search,
     )
-    from backend.ingestion.sec_filing_pipeline.filing_models import (
+    from backend.common.sec_core import (
         TickerNotFoundError,
     )
 
@@ -67,7 +67,7 @@ async def test_future_year_raises_filing_not_found(
         JITFilingNotFoundError,
         search,
     )
-    from backend.ingestion.sec_filing_pipeline.filing_models import (
+    from backend.common.sec_core import (
         FilingNotFoundError,
     )
 

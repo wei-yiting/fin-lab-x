@@ -21,7 +21,7 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import (
     embed_query,
     ingest_filing,
 )
-from backend.ingestion.sec_filing_pipeline.filing_models import (
+from backend.common.sec_core import (
     ConfigurationError,
     FilingNotFoundError,
     FilingType,

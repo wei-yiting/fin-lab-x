@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ModelConfig(BaseModel):
     """Model configuration for a workflow version."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str = "gpt-4o-mini"
     temperature: float = 0.0
@@ -17,7 +19,9 @@ class ModelConfig(BaseModel):
 class ConstraintsConfig(BaseModel):
     """Constraints configuration for a workflow version."""
 
-    max_tool_calls_per_step: int = 5
+    model_config = ConfigDict(extra="forbid")
+
+    max_tool_calls_per_run: int = 5
 
 
 class VersionConfig(BaseModel):
@@ -30,10 +34,12 @@ class VersionConfig(BaseModel):
         tools: List of tool names to load from the tool registry
         model: LLM model configuration
         constraints: Runtime constraints. Currently enforced:
-            - max_tool_calls_per_step (via ToolCallLimitMiddleware)
+            - max_tool_calls_per_run (via ToolCallLimitMiddleware)
         system_prompt: System prompt text, loaded from system_prompt.md
             in the version directory by VersionConfigLoader
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     version: str
     name: str

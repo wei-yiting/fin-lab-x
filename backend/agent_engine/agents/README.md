@@ -10,6 +10,19 @@ Version-agnostic Orchestrator and configuration loading. This module provides th
 - **Strategy Pattern**: The `Orchestrator` behavior is determined by the `VersionConfig` passed at initialization, allowing different analysis strategies (baseline, reader, quant, etc.) without changing the core logic.
 - **Singleton Pattern**: The `Orchestrator` is typically managed as a singleton within the application lifecycle to maintain consistent state and resource usage.
 
+## Prompt Template Rendering
+
+`Orchestrator._render_prompt()` substitutes `{identifier}` placeholders in system prompts at construction time. Unknown placeholders raise `ValueError` at startup — drift fails fast.
+
+| Placeholder | Source |
+|-------------|--------|
+| `{section_soft_cap_chars}` | `backend.agent_engine.utils.model_context.compute_section_soft_cap_chars(model_name)` |
+| `{max_tool_calls_per_run}` | `config.constraints.max_tool_calls_per_run` (same value `RunBudgetMiddleware` enforces) |
+
+## Startup Validation
+
+`Orchestrator.__init__` runs `_validate_edgar_identity(config)` before instantiating tools — versions that load any SEC EDGAR tool require `EDGAR_IDENTITY` or raise `backend.common.sec_core.ConfigurationError`. Tests that mock edgartools get a placeholder identity via the autouse fixture in `backend/tests/conftest.py`.
+
 ## Extension Algorithm
 1. **Modify Orchestrator Logic**: Update the `Orchestrator` class in `base.py` to change how agents are initialized or how results are extracted.
 2. **Add Configuration Fields**: Update the `VersionConfig`, `ModelConfig`, or `ConstraintsConfig` classes in `config_loader.py` to support new configuration parameters.

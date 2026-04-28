@@ -2,6 +2,8 @@
 
 Downloads SEC 10-K filings, converts them to RAG-friendly Markdown with YAML frontmatter, and caches locally.
 
+This pipeline is the batch / RAG side of FinLab-X's two-path SEC architecture; the agent's real-time `sec_filing_list_sections` + `sec_filing_get_section` pair lives in `backend/agent_engine/tools/sec_filing_tools.py`. Both paths share the `FilingType` enum, `SECError` hierarchy, and edgartools-error classification via `backend.common.sec_core` — see [`sec_core.md`](../../agent_engine/docs/sec_core.md) for the cross-path architecture diagram.
+
 ## Architecture
 
 ```mermaid
@@ -181,7 +183,7 @@ Defined in `filing_models.py`:
 
 ## Error Hierarchy
 
-All inherit from `SECPipelineError`:
+All inherit from `SECError` (defined in `backend/common/sec_core.py`):
 
 | Exception | Meaning | Retryable? |
 |-----------|---------|------------|
@@ -215,7 +217,7 @@ Defined in `__main__.py`. Uses `argparse`, no extra dependencies.
 
 `sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Returns metadata + local file path for downstream RAG consumption. Registered in `backend/agent_engine/tools/sec_filing.py`.
 
-Separate from the v1 tool `sec_official_docs_retriever` (in `tools/sec.py`), which calls edgartools directly without the pipeline.
+For section-level access without going through the full pipeline (no Markdown conversion, no local cache), see `sec_filing_list_sections` and `sec_filing_get_section` in `backend/agent_engine/tools/sec_filing_tools.py`.
 
 ## Key Design Decisions
 

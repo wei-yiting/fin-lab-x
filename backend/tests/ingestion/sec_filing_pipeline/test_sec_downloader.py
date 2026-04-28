@@ -3,14 +3,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.ingestion.sec_filing_pipeline.filing_models import (
+from backend.common.sec_core import (
     ConfigurationError,
     FilingNotFoundError,
-    RawFiling,
     TickerNotFoundError,
     TransientError,
     UnsupportedFilingTypeError,
 )
+from backend.ingestion.sec_filing_pipeline.filing_models import RawFiling
 from backend.ingestion.sec_filing_pipeline.sec_downloader import SECDownloader
 
 

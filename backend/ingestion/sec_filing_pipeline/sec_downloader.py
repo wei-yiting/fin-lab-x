@@ -4,15 +4,15 @@ import os
 
 from edgar import Company, CompanyNotFoundError, set_identity
 
-from backend.ingestion.sec_filing_pipeline.filing_models import (
+from backend.common.sec_core import (
     ConfigurationError,
     FilingNotFoundError,
     FilingType,
-    RawFiling,
     TickerNotFoundError,
     TransientError,
     UnsupportedFilingTypeError,
 )
+from backend.ingestion.sec_filing_pipeline.filing_models import RawFiling
 
 
 class SECDownloader:

@@ -24,7 +24,7 @@ def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Any:
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
-        patch("backend.agent_engine.agents.base.ToolCallLimitMiddleware"),
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
         patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
     ):
         mock_get_tools.return_value = mock_tools
@@ -143,11 +143,11 @@ def test_sec_tool_integration():
         version="0.1.0",
         name="v1_baseline",
         description="Test version",
-        tools=["sec_official_docs_retriever"],
+        tools=["sec_filing_list_sections"],
     )
 
     mock_tool = Mock()
-    mock_tool.name = "sec_official_docs_retriever"
+    mock_tool.name = "sec_filing_list_sections"
 
     orch = _create_orchestrator(config, [mock_tool])
 
@@ -158,7 +158,7 @@ def test_sec_tool_integration():
                 content="",
                 tool_calls=[
                     {
-                        "name": "sec_official_docs_retriever",
+                        "name": "sec_filing_list_sections",
                         "args": {"ticker": "MSFT", "doc_type": "10-K"},
                         "id": "call_1",
                     }
@@ -167,7 +167,7 @@ def test_sec_tool_integration():
             ToolMessage(
                 content='{"ticker": "MSFT", "doc_type": "10-K"}',
                 tool_call_id="call_1",
-                name="sec_official_docs_retriever",
+                name="sec_filing_list_sections",
             ),
             AIMessage(content="MSFT 10-K filing retrieved."),
         ]
@@ -176,7 +176,7 @@ def test_sec_tool_integration():
     result = orch.run("Get the latest 10-K for MSFT")
 
     assert len(result["tool_outputs"]) > 0
-    assert result["tool_outputs"][0]["tool"] == "sec_official_docs_retriever"
+    assert result["tool_outputs"][0]["tool"] == "sec_filing_list_sections"
     assert result["tool_outputs"][0]["args"]["ticker"] == "MSFT"
     assert result["tool_outputs"][0]["args"]["doc_type"] == "10-K"
 

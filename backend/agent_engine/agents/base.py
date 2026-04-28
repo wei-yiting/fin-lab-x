@@ -10,6 +10,8 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
+import os
+import re
 import time
 import uuid
 from collections.abc import AsyncGenerator
@@ -17,9 +19,14 @@ from typing import Any, Literal
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
+from langchain.agents.middleware.tool_call_limit import ToolCallLimitState
+from langchain.agents.middleware.types import ResponseT, hook_config
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
+from langgraph.runtime import Runtime
+from langgraph.typing import ContextT
+from typing_extensions import override
 from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -35,11 +42,26 @@ from backend.agent_engine.streaming.event_mapper import StreamEventMapper
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
+from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
+from backend.common.sec_core import ConfigurationError
 
 
 # Captured once per Python process. Lets engineers distinguish pre/post-restart
 # traces sharing the same session_id (DD-06 silent post-restart amnesia).
 _PROCESS_START_TS = time.time()
+
+
+_SEC_TOOLS_REQUIRING_IDENTITY = {
+    "sec_filing_list_sections",
+    "sec_filing_get_section",
+    "sec_filing_downloader",
+}
+
+
+# Matches `{identifier}` placeholders where `identifier` is a Python-style name.
+# Literal JSON fragments like `{"role": "user"}` have `"` as the first inner
+# char and are skipped, so they survive rendering untouched.
+_PROMPT_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -48,6 +70,10 @@ You are FinLab-X, a strict, data-driven financial AI Agent.
 LANGUAGE POLICY:
 - All tool arguments (search queries, etc.) MUST be in English regardless of the user's language. Example: user asks "微軟最近有什麼新聞？" → search "MSFT recent news", NOT "微軟最近新聞".
 - Detect the language of the user's query. Respond in that SAME language. If the user writes in Chinese, your final answer MUST be in Chinese. If the user writes in English, respond in English.
+
+TOOL CALL BUDGET:
+- You may make at most {max_tool_calls_per_run} tool calls per request (across the entire run). Plan before you call: if a question needs more data than the budget allows, prioritize the most decision-relevant calls first and summarize with what you have.
+- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT an external rate limit from SEC, Yahoo Finance, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
 
 ZERO HALLUCINATION POLICY:
 - Only use data from provided tools
@@ -97,6 +123,72 @@ class _HandleToolErrors(AgentMiddleware):
 handle_tool_errors = _HandleToolErrors()
 
 
+class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
+    """Per-run tool-call budget with an LLM-disambiguated error message.
+
+    The upstream ``ToolCallLimitMiddleware`` injects a ToolMessage reading
+    "Tool call limit exceeded. Do not call '<name>' again." When the model
+    reads that phrase it tends to paraphrase it to the user as "I hit a
+    rate limit", conflating our internal budget with a real SEC / Yahoo /
+    Tavily 429. This subclass reuses the upstream counting logic via
+    ``super().after_model()`` and rewrites the injected message to an
+    explicit, non-ambiguous form that tells the model both (a) not to
+    retry the tool, and (b) not to describe the block as a remote-service
+    failure.
+    """
+
+    @staticmethod
+    def _budget_message(tool_name: str | None) -> str:
+        scope = f"'{tool_name}'" if tool_name else "any further tools"
+        return (
+            "Per-run tool-call budget reached for this request. "
+            f"Do not call {scope} again in this run. "
+            "This is an INTERNAL orchestration budget — it is NOT an "
+            "external rate limit from SEC EDGAR, Yahoo Finance, Tavily, "
+            "or any other external API. Summarize with the data already "
+            "collected; do not describe this to the user as a network or "
+            "API failure."
+        )
+
+    def _rewrite_messages(self, result: dict[str, Any] | None) -> dict[str, Any] | None:
+        if not result or "messages" not in result:
+            return result
+        msg = self._budget_message(self.tool_name)
+        rewritten: list[Any] = []
+        for item in result["messages"]:
+            if isinstance(item, ToolMessage) and item.status == "error":
+                rewritten.append(
+                    ToolMessage(
+                        content=msg,
+                        tool_call_id=item.tool_call_id,
+                        name=item.name,
+                        status="error",
+                    )
+                )
+            else:
+                rewritten.append(item)
+        result["messages"] = rewritten
+        return result
+
+    @hook_config(can_jump_to=["end"])
+    @override
+    def after_model(
+        self,
+        state: ToolCallLimitState[ResponseT],
+        runtime: Runtime[ContextT],
+    ) -> dict[str, Any] | None:
+        return self._rewrite_messages(super().after_model(state, runtime))
+
+    @hook_config(can_jump_to=["end"])
+    @override
+    async def aafter_model(
+        self,
+        state: ToolCallLimitState[ResponseT],
+        runtime: Runtime[ContextT],
+    ) -> dict[str, Any] | None:
+        return self._rewrite_messages(super().after_model(state, runtime))
+
+
 class ToolOutput(TypedDict):
     tool: str
     args: dict[str, object]
@@ -120,13 +212,19 @@ class Orchestrator:
 
     def __init__(self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None):
         setup_tools()
+        self._validate_edgar_identity(config)
         self.config = config
         self.tools = get_tools_by_names(config.tools)
-        self.system_prompt = config.system_prompt or _DEFAULT_SYSTEM_PROMPT
+        raw_prompt = config.system_prompt or _DEFAULT_SYSTEM_PROMPT
+        self.system_prompt = self._render_prompt(
+            raw_prompt,
+            config.model.name,
+            max_tool_calls_per_run=config.constraints.max_tool_calls_per_run,
+        )
 
         model = init_chat_model(config.model.name, temperature=config.model.temperature)
-        tool_call_limit = ToolCallLimitMiddleware(
-            run_limit=config.constraints.max_tool_calls_per_step,
+        tool_call_limit = RunBudgetMiddleware(
+            run_limit=config.constraints.max_tool_calls_per_run,
         )
         self.agent = create_agent(
             model=model,
@@ -135,6 +233,60 @@ class Orchestrator:
             middleware=[tool_call_limit, handle_tool_errors],
             checkpointer=checkpointer,
         )
+
+    @staticmethod
+    def _render_prompt(
+        raw: str,
+        model_name: str,
+        *,
+        max_tool_calls_per_run: int | None = None,
+    ) -> str:
+        """Render a system prompt template with orchestrator-provided variables.
+
+        Supported placeholders:
+        - ``{section_soft_cap_chars}`` — computed from the active model's
+          context window
+        - ``{max_tool_calls_per_run}`` — passed through from the version's
+          ``constraints.max_tool_calls_per_run``; ``None`` means the prompt
+          doesn't reference this variable (tests may omit it)
+
+        Prompts with no placeholders are returned verbatim. Prompts referencing
+        unknown variables raise ``ValueError`` so misconfiguration fails fast
+        at startup.
+
+        Uses a narrow regex match on ``{identifier}`` (Python-style names) so
+        literal JSON fragments like ``{"role": "user"}`` pass through unchanged.
+        """
+        found = _PROMPT_PLACEHOLDER_RE.findall(raw)
+        if not found:
+            return raw
+        provided: dict[str, object] = {
+            "section_soft_cap_chars": compute_section_soft_cap_chars(model_name),
+        }
+        if max_tool_calls_per_run is not None:
+            provided["max_tool_calls_per_run"] = max_tool_calls_per_run
+        missing = set(found) - set(provided.keys())
+        if missing:
+            raise ValueError(
+                f"Prompt references undefined variables: {sorted(missing)}"
+            )
+        return _PROMPT_PLACEHOLDER_RE.sub(
+            lambda m: str(provided[m.group(1)]), raw
+        )
+
+    @staticmethod
+    def _validate_edgar_identity(config: VersionConfig) -> None:
+        """Fast-fail at startup if the version config loads a SEC tool without
+        ``EDGAR_IDENTITY`` set. Versions without SEC tools skip the check so
+        non-SEC deployments stay unaffected.
+        """
+        needs_sec = any(
+            t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools
+        )
+        if needs_sec and not os.getenv("EDGAR_IDENTITY"):
+            raise ConfigurationError(
+                "EDGAR_IDENTITY environment variable is not set."
+            )
 
     def run(
         self,

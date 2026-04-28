@@ -1,6 +1,27 @@
 """Shared pytest fixtures for the backend test suite."""
 
+import os
+
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def _edgar_identity_placeholder(monkeypatch):
+    """Provide a synthetic ``EDGAR_IDENTITY`` for tests that don't set one.
+
+    ``Orchestrator.__init__`` fast-fails when a version config loads any SEC
+    tool without ``EDGAR_IDENTITY`` set. Most unit/integration tests fully
+    mock the underlying edgartools, so the value is meaningless to them —
+    but the startup check still fires. CI doesn't export the variable, so
+    every Orchestrator-constructing test would crash there.
+
+    Use ``setdefault`` semantics: never override an already-populated env
+    (so ``sec_integration`` tests keep hitting real EDGAR with the
+    developer's identity), and any test that explicitly ``monkeypatch.delenv``
+    or ``monkeypatch.setenv`` keeps full control within its own scope.
+    """
+    if not os.environ.get("EDGAR_IDENTITY"):
+        monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
 
 
 @pytest.fixture(autouse=True)

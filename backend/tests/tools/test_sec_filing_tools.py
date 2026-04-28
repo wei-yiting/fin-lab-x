@@ -253,6 +253,39 @@ def test_list_sections_raises_ticker_not_found():
     assert len(captured_events) == 0
 
 
+def test_list_sections_includes_reading_guide():
+    """list_sections must attach a reading_guide carrying the canonical 10-K
+    item map and access strategy. This is the progressive-disclosure target:
+    the orchestrator system prompt no longer holds this knowledge — it lives
+    here and only enters LLM context when the SEC tool is actually called.
+    """
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_list_sections
+
+    tenk = _make_tenk(
+        {"item 1": _make_section("1", NON_STUB_TEXT)},
+        period="2025-09-27",
+    )
+
+    with (
+        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
+        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
+        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+    ):
+        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+
+    guide = result["reading_guide"]
+    assert isinstance(guide, str)
+    # Canonical reference table is rendered from TENK_STANDARD_TITLES
+    assert "10-K STANDARD SECTIONS" in guide
+    assert "| 1a   | Risk Factors" in guide
+    assert "| 7" in guide  # MD&A row
+    # Resolved fiscal year is baked into the access notes
+    assert "fiscal_year=2025" in guide
+    # Access strategy directives that USED to live in system_prompt.md
+    assert "do NOT call sec_filing_list_sections again" in guide
+    assert "is_stub" in guide
+
+
 def test_list_sections_observe_span_name():
     """The @observe decorator from langfuse must wrap the tool function.
 
@@ -296,7 +329,19 @@ def test_get_section_wire_format_non_stub():
             {"ticker": "AAPL", "section_key": "1a", "fiscal_year": 2025},
         )
 
-    assert set(result.keys()) == {"period_of_report", "content"}
+    assert set(result.keys()) == {
+        "language_directive_pre",
+        "period_of_report",
+        "content",
+        "language_directive_post",
+    }
+    # Sandwich contract: directives MUST be the first and last keys so
+    # serialization (e.g. json.dumps) places them around the English content.
+    keys_ordered = list(result.keys())
+    assert keys_ordered[0] == "language_directive_pre"
+    assert keys_ordered[-1] == "language_directive_post"
+    assert "LANGUAGE DIRECTIVE" in result["language_directive_pre"]
+    assert "LANGUAGE DIRECTIVE" in result["language_directive_post"]
     assert result["period_of_report"] == "2025-09-27"
     assert result["content"] == NON_STUB_TEXT
 
@@ -320,7 +365,19 @@ def test_get_section_wire_format_stub():
             {"ticker": "AAPL", "section_key": "11", "fiscal_year": 2025},
         )
 
-    assert set(result.keys()) == {"period_of_report", "content", "is_stub", "stub_reason"}
+    assert set(result.keys()) == {
+        "language_directive_pre",
+        "period_of_report",
+        "content",
+        "is_stub",
+        "stub_reason",
+        "language_directive_post",
+    }
+    # Sandwich contract holds even with stub flags inserted between content
+    # and the post directive.
+    keys_ordered = list(result.keys())
+    assert keys_ordered[0] == "language_directive_pre"
+    assert keys_ordered[-1] == "language_directive_post"
     assert result["is_stub"] is True
     assert result["stub_reason"]
     assert result["content"] == STUB_TEXT

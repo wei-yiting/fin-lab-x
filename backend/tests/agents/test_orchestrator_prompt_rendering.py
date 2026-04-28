@@ -148,27 +148,29 @@ EXPECTED_TOOLS_BY_VERSION = {
 }
 
 
-def test_v1_baseline_system_prompt_contains_sec_strategy():
-    """The v1_baseline prompt must advertise the two-step SEC access strategy.
+def test_v1_baseline_system_prompt_advertises_sec_tools():
+    """The v1_baseline prompt must point the agent at the two-step SEC tools.
 
-    Asserts literal placeholder `{section_soft_cap_chars}` is preserved so
-    Orchestrator's PromptTemplate can render it at startup, plus the tool
-    names and the "explicit fiscal_year" directive from S-sec-10 Part B.
+    The detailed strategy (10-K item table, fiscal_year-passing rules, stub
+    semantics, soft-cap behavior) was moved into the sec_filing_list_sections
+    tool's reading_guide output for progressive disclosure — the system
+    prompt now only carries a high-level pointer.
     """
     text = V1_BASELINE_PROMPT_PATH.read_text()
-    assert "{section_soft_cap_chars}" in text
     assert "sec_filing_list_sections" in text
     assert "sec_filing_get_section" in text
-    assert "fiscal_year" in text
-    assert "explicitly" in text.lower()
+    # Detailed strategy is no longer in the prompt — it lives in the tool output.
+    assert "10-K STANDARD SECTION TITLES" not in text
+    assert "{section_soft_cap_chars}" not in text
 
 
 def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
-    """Building the real v1_baseline Orchestrator must render the placeholder.
+    """Building the real v1_baseline Orchestrator must produce a non-empty
+    rendered system prompt with no unsubstituted placeholders.
 
-    gpt-4o-mini has a 128_000-token context. Soft cap = 128_000 * 0.4 * 4 =
-    204_800 chars. The rendered prompt must contain "exceeds 204800 chars"
-    and must NOT leak the raw `{section_soft_cap_chars}` template token.
+    The v1_baseline prompt no longer references {section_soft_cap_chars}
+    (it was moved to the SEC tool's reading_guide), so this test now only
+    checks that rendering succeeds and the SEC tool pointer survives.
 
     We patch init_chat_model / create_agent so the test does not require an
     OpenAI API key — the assertion target is the rendered prompt string,
@@ -189,8 +191,11 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
         mock_create.return_value = MagicMock()
         orch = Orchestrator(config)
 
-    assert "exceeds 204800 chars" in orch.system_prompt
+    assert orch.system_prompt
+    assert "sec_filing_list_sections" in orch.system_prompt
+    # No leaked template tokens.
     assert "{section_soft_cap_chars}" not in orch.system_prompt
+    assert "{max_tool_calls_per_run}" not in orch.system_prompt
 
 
 def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):

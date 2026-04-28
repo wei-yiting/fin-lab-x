@@ -55,6 +55,44 @@ def _derive_item_from_name(name: str) -> str | None:
     return None
 
 
+_LANGUAGE_DIRECTIVE_PRE = (
+    "[LANGUAGE DIRECTIVE] The following SEC filing section is in English. "
+    "When answering the user, respond in the user's original language per the "
+    "LANGUAGE POLICY in your system prompt. Do NOT switch to English just because "
+    "this content is in English."
+)
+_LANGUAGE_DIRECTIVE_POST = (
+    "[LANGUAGE DIRECTIVE] End of English filing content. "
+    "Reminder: respond to the user in their original language (e.g. 繁體中文 if the "
+    "user wrote in Chinese), not English."
+)
+
+
+def _build_reading_guide(fiscal_year: int) -> str:
+    """Render the 10-K reading guide attached to sec_filing_list_sections output.
+
+    Single source of truth for both the canonical item map (derived from
+    `TENK_STANDARD_TITLES`) and the access strategy. Lives here — not in the
+    orchestrator system prompt — so this knowledge only enters the LLM
+    context after the SEC tool is actually called (progressive disclosure).
+    """
+    table_rows = "\n".join(
+        f"| {key:<4} | {title} |" for key, title in TENK_STANDARD_TITLES.items()
+    )
+    return (
+        "10-K STANDARD SECTIONS (SEC 17 CFR 229):\n"
+        "| Key  | Title |\n"
+        "|------|-------|\n"
+        f"{table_rows}\n\n"
+        "ACCESS NOTES:\n"
+        f"- Pass fiscal_year={fiscal_year} explicitly to sec_filing_get_section so both calls hit the same cached filing.\n"
+        "- Section keys are normalized item numbers (e.g. \"1\", \"1a\", \"7\", \"7a\"). Use the Key column above.\n"
+        "- Stub sections (is_stub=true) have content incorporated by reference from another filing (typically DEF 14A proxy); fetching returns a brief notice.\n"
+        "- If a section's char_count is large, summarize the most relevant passages within the tool budget — sec_filing_search (RAG) is planned for large sections.\n"
+        "- This table of contents is stable; do NOT call sec_filing_list_sections again for the same (ticker, fiscal_year) in this conversation. Issue multiple sec_filing_get_section calls instead."
+    )
+
+
 def _iter_resolved_sections(tenk: Any):
     """Yield `(normalized_item_key, section)` for each section in the filing
     that resolves to a known TENK_STANDARD_TITLES key.
@@ -138,6 +176,7 @@ def sec_filing_list_sections(
         # but our mocks set `.name` on a MagicMock — handle both shapes.
         "company_name": getattr(tenk.company, "name", None) or str(tenk.company),
         "sections": out_sections,
+        "reading_guide": _build_reading_guide(resolved_fy),
     }
 
 
@@ -234,10 +273,17 @@ def sec_filing_get_section(
     is_stub, stub_reason = is_stub_section(content)
 
     out: dict[str, Any] = {
+        # First key: pre-content language directive. Python 3.7+ dicts and
+        # json.dumps preserve insertion order, so the LLM sees this BEFORE
+        # the English filing content — anchoring the language policy at the
+        # boundary where in-context English would otherwise dominate.
+        "language_directive_pre": _LANGUAGE_DIRECTIVE_PRE,
         "period_of_report": period_of_report,
         "content": content,
     }
     if is_stub:
         out["is_stub"] = True
         out["stub_reason"] = stub_reason
+    # Last key: post-content language directive (sandwich back-half).
+    out["language_directive_post"] = _LANGUAGE_DIRECTIVE_POST
     return out

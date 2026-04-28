@@ -6,7 +6,7 @@ Cross-subsystem domain types and helpers that more than one feature area depends
 
 | Module | Companion doc | Summary |
 |--------|---------------|---------|
-| `sec_core.py` | [sec_core.md](./sec_core.md) | Shared SEC filing layer: `FilingType`, `SECError` hierarchy, canonical 10-K item table, LRU-cached `fetch_filing_obj`, edgartools-error classification. |
+| `sec_core.py` | [sec_core.md](../agent_engine/docs/sec_core.md) | Shared SEC filing layer: `FilingType`, `SECError` hierarchy, canonical 10-K item table, LRU-cached `fetch_filing_obj`, edgartools-error classification. |
 
 ## Conventions
 

@@ -12,18 +12,16 @@ Version-agnostic Orchestrator and configuration loading. This module provides th
 
 ## Prompt Template Rendering
 
-System prompts may reference orchestrator-provided variables using `{identifier}` placeholders. `Orchestrator._render_prompt()` substitutes them at construction time:
+`Orchestrator._render_prompt()` substitutes `{identifier}` placeholders in system prompts at construction time. Unknown placeholders raise `ValueError` at startup — drift fails fast.
 
-| Placeholder | Source | Notes |
-|-------------|--------|-------|
-| `{section_soft_cap_chars}` | `backend.agent_engine.utils.model_context.compute_section_soft_cap_chars(model_name)` | Computed from the active model's context window — recomputes when the version config swaps the model. |
-| `{max_tool_calls_per_run}` | `config.constraints.max_tool_calls_per_run` | Same value the `RunBudgetMiddleware` enforces, so the prompt and the runtime tell the agent the same number. |
-
-The renderer matches `{name}` only where `name` is a Python-style identifier, so literal JSON fragments such as `{"role": "user"}` pass through unchanged. Any placeholder that is not in the provided table raises `ValueError` at construction time — prompts that drift away from the rendering contract fail fast at startup, never silently at first request.
+| Placeholder | Source |
+|-------------|--------|
+| `{section_soft_cap_chars}` | `backend.agent_engine.utils.model_context.compute_section_soft_cap_chars(model_name)` |
+| `{max_tool_calls_per_run}` | `config.constraints.max_tool_calls_per_run` (same value `RunBudgetMiddleware` enforces) |
 
 ## Startup Validation
 
-`Orchestrator.__init__` runs `_validate_edgar_identity(config)` before instantiating tools. If the version config loads any tool that requires SEC EDGAR access and `EDGAR_IDENTITY` is not set, the orchestrator raises `backend.common.sec_core.ConfigurationError` immediately. Versions that don't reference SEC tools are unaffected; tests that fully mock edgartools provide a placeholder via the autouse fixture in `backend/tests/conftest.py`.
+`Orchestrator.__init__` runs `_validate_edgar_identity(config)` before instantiating tools — versions that load any SEC EDGAR tool require `EDGAR_IDENTITY` or raise `backend.common.sec_core.ConfigurationError`. Tests that mock edgartools get a placeholder identity via the autouse fixture in `backend/tests/conftest.py`.
 
 ## Extension Algorithm
 1. **Modify Orchestrator Logic**: Update the `Orchestrator` class in `base.py` to change how agents are initialized or how results are extracted.

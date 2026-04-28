@@ -33,6 +33,21 @@ When to run:
 - When pre-warming Qdrant for a new dev environment or eval run
 - When EDGAR publishes a new fiscal year for a covered ticker
 
+### `refresh_model_context_registry.py`
+
+Regenerates the committed `backend/agent_engine/utils/model_context_registry.yaml` from `litellm` model metadata. Reads every `versions/*/orchestrator_config.yaml`, collects the unique model names, and writes back a fresh `(context_window, source)` mapping. Existing `source: manual` entries are preserved on lookup failures; unknown models are logged and skipped.
+
+```bash
+uv run --extra dev python backend/scripts/refresh_model_context_registry.py
+```
+
+Dev-only because `litellm` is a ~80MB dependency we deliberately keep out of the production path — the runtime reads the materialized YAML directly.
+
+When to run:
+
+- After adding a new `model.name` to any version's `orchestrator_config.yaml`
+- When `litellm` publishes updated context-window metadata for an existing model
+
 ## Validation Scripts
 
 Read-only inspection tools that do not modify state. See [`backend/scripts/validation/README.md`](validation/README.md) for details.

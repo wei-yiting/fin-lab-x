@@ -1,6 +1,6 @@
 # sec_core
 
-Shared SEC filing layer used by both the agent's two-step section tools and the RAG ingestion pipeline.
+Shared SEC filing layer used by both the agent's two-step section tools and the RAG ingestion pipeline. Implementation lives at `backend/common/sec_core.py`.
 
 ## Why a shared core
 
@@ -59,25 +59,9 @@ The thicker dependency on the agent side is intentional: agent calls are the lat
 
 Section titles in 10-K filings are governed by SEC 17 CFR 229 — they are a fixed, regulator-defined list. Parsing them out of `section.text()` is unreliable in practice: the first line varies by issuer (`ITEM 1.BUSINESS` vs `Item 1.\xa0\xa0\xa0\xa0Business` vs the literal string `Table of Contents` for some sections of some filers). Looking up the title in a 23-entry constant map is correct by construction; parsing is correct only when issuers happen to format consistently.
 
-### `section_key` is a normalized item number, not the native edgartools key
-
-`edgar.TenK.document.sections` exposes keys like `part_i_item_1a` or `Item 1A.` depending on the filing. Agents should not have to know which form of the key the underlying library happens to return. `parse_item_number` accepts forgiving inputs (`"1a"`, `"Item 1A"`, `"  ITEM 1A. "`) and yields a canonical lowercase key (`1a`) that maps directly into `TENK_STANDARD_TITLES`. Anything that doesn't normalize raises `SectionNotFoundError` with guidance to call `list_sections` first.
-
-### Item number alone is enough — Part is intentionally dropped
-
-Item numbers are unique within a 10-K (there is no second "Item 7"), so Part I/II/III/IV adds no identification value over `1a / 7 / 7a`. Both the agent's TOC payload and any downstream metadata would only get noisier by including Part. If a future filing type breaks this assumption (e.g. 10-Q with overlapping item numbers across parts), the right move is a per-filing-type key scheme, not retrofitting Part onto 10-K.
-
 ### `fetch_filing_obj` cache key includes `fiscal_year`
 
 The LRU cache is keyed by `(ticker_upper, filing_type, fiscal_year)`. `fiscal_year=None` resolves "latest" and is its own cache slot; passing the resolved integer is a different slot. The agent's system prompt instructs the model to forward the resolved FY from `list_sections` into `get_section` so the two calls share one cache entry. Without that hint, `None`-then-int would fetch the filing twice on a follow-up turn.
-
-### `fiscal_year` follows the company's accounting calendar, not the calendar year
-
-A filing's fiscal year is the year that contains the company's `period_of_report`. NVDA's FY2026 ends 2026-01-25; AAPL's FY2025 ends 2025-09-27. The metadata-only resolver `_resolve_latest_fiscal_year` reads `period_of_report` from the filing index without calling `filing.obj()`, so callers can resolve "latest" cheaply before deciding whether to download the full 10-K.
-
-### Stub detection: bracketed `[Reserved]` only, with a 100-char residual threshold
-
-`is_stub_section` classifies an item body as either an incorporated-by-reference stub (Items 10–14 commonly point to the proxy statement) or a Reserved/deprecated sentinel (Item 6 since 2021). The Reserved match is intentionally narrow — only the literal `[Reserved]` bracket form, not bare "Reserved" in prose, since the latter appears in real section bodies. The incorp-by-reference branch drops the pointer sentence and any markdown links, then requires fewer than 100 residual characters before classifying as stub; above that threshold the section likely contains substantive commentary alongside the pointer and we decline to suppress it.
 
 ### No app-level retry on SEC 429
 

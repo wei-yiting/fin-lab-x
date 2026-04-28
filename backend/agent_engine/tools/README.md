@@ -10,7 +10,7 @@ Atomic, stateless tool functions and central registry. This module provides the 
 
 ## Why two SEC paths
 
-`sec_filing_tools.py` and `sec_filing.py` both operate on 10-K filings but serve different consumers: the structured two-step pair gives the agent low-latency, item-level reads that fit inside a single chat turn, while the pipeline-backed downloader produces persistent Markdown for downstream RAG ingestion. Both share the `FilingType` enum, the `SECError` hierarchy, and edgartools-error classification through `backend.common.sec_core` — see [`backend/common/sec_core.md`](../../common/sec_core.md) for the architecture diagram and the rationale that ties the two paths together.
+`sec_filing_tools.py` and `sec_filing.py` both operate on 10-K filings but serve different consumers: the structured two-step pair gives the agent low-latency, item-level reads that fit inside a single chat turn, while the pipeline-backed downloader produces persistent Markdown for downstream RAG ingestion. Both share the `FilingType` enum, the `SECError` hierarchy, and edgartools-error classification through `backend.common.sec_core` — see [`sec_core.md`](../docs/sec_core.md) for the architecture diagram and the rationale that ties the two paths together.
 
 ## Design Pattern
 - **Registry Pattern**: Tools are maintained in a central `TOOL_REGISTRY` dictionary, allowing the `Orchestrator` to dynamically load only the tools required by a specific version configuration.

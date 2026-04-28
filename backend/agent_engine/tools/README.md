@@ -8,6 +8,10 @@ Atomic, stateless tool functions and central registry. This module provides the 
 - `sec_filing.py`: `sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Downloads 10-K filings on demand (JIT), returns metadata + local file path for downstream RAG. Separate from the edgartools-direct path in `sec_filing_tools.py`.
 - `__init__.py`: Contains the `setup_tools()` function, which serves as the central entry point for tool registration.
 
+## Why two SEC paths
+
+`sec_filing_tools.py` and `sec_filing.py` both operate on 10-K filings but serve different consumers: the structured two-step pair gives the agent low-latency, item-level reads that fit inside a single chat turn, while the pipeline-backed downloader produces persistent Markdown for downstream RAG ingestion. Both share the `FilingType` enum, the `SECError` hierarchy, and edgartools-error classification through `backend.common.sec_core` — see [`backend/common/README.md`](../../common/README.md) for the architecture diagram and the rationale that ties the two paths together.
+
 ## Design Pattern
 - **Registry Pattern**: Tools are maintained in a central `TOOL_REGISTRY` dictionary, allowing the `Orchestrator` to dynamically load only the tools required by a specific version configuration.
 - **Decorator Pattern**:

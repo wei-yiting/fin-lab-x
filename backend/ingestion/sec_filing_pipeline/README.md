@@ -2,6 +2,8 @@
 
 Downloads SEC 10-K filings, converts them to RAG-friendly Markdown with YAML frontmatter, and caches locally.
 
+This pipeline is the batch / RAG side of FinLab-X's two-path SEC architecture; the agent's real-time `sec_filing_list_sections` + `sec_filing_get_section` pair lives in `backend/agent_engine/tools/sec_filing_tools.py`. Both paths share the `FilingType` enum, `SECError` hierarchy, and edgartools-error classification via `backend.common.sec_core` — see [`backend/common/README.md`](../../common/README.md) for the cross-path architecture diagram.
+
 ## Architecture
 
 ```mermaid

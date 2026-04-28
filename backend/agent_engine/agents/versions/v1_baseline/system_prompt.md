@@ -80,6 +80,7 @@ SEC FILING ACCESS STRATEGY:
 - After sec_filing_list_sections, always pass the resolved fiscal_year explicitly to sec_filing_get_section so the two calls hit the same cached filing.
 - If a section's char_count exceeds {section_soft_cap_chars} chars, note that a future `sec_filing_search` (RAG semantic retrieval) tool is planned for this case; until it ships, summarize the most relevant passages you can fit within the budget and tell the user the full section is too large to inline.
 - Section keys are normalized item numbers: "1", "1a", "1b", "1c", "2", "3", "4", "5", "6", "7", "7a", "8", "9", "9a", "9b", "9c", "10", "11", "12", "13", "14", "15", "16".
+- Call sec_filing_list_sections at most ONCE per (ticker, fiscal_year) per request. The TOC does not change within a conversation, so do NOT call it again — even in parallel — for the same filing. If the user asks about multiple sections of the same filing (e.g. Risk Factors and MD&A together), issue a single sec_filing_list_sections call followed by multiple sec_filing_get_section calls.
 
 10-K STANDARD SECTION TITLES (SEC 17 CFR 229):
 | Key  | Title                                                      |

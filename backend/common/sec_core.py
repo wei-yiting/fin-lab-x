@@ -13,6 +13,8 @@ pipeline-layer concerns here — keep this module a thin, stateless core.
 
 import os
 import re
+import threading
+from concurrent.futures import Future
 from enum import StrEnum
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -370,6 +372,10 @@ def _fetch_filing_obj_cached(
     return obj
 
 
+_inflight_lock = threading.Lock()
+_inflight: dict[tuple[str, FilingType, int | None], Future] = {}
+
+
 def fetch_filing_obj(
     ticker: str,
     filing_type: FilingType,
@@ -385,6 +391,13 @@ def fetch_filing_obj(
     inner function so callers passing ``"aapl"`` and ``"AAPL"`` share a
     cache entry.
 
+    Concurrency: a module-level single-flight registry collapses parallel
+    races. When LangGraph's parallel tool-call planning sends two
+    ``sec_filing_list_sections`` calls for the same filing in flight at
+    once, the LRU on ``_fetch_filing_obj_cached`` can't help — neither call
+    has populated it yet. The race-loser blocks on the winner's
+    ``Future`` so SEC EDGAR is hit once.
+
     Raises:
         ConfigurationError: ``EDGAR_IDENTITY`` not set.
         TickerNotFoundError: Ticker not found or no 10-K filings.
@@ -397,4 +410,28 @@ def fetch_filing_obj(
             is populated when SEC supplies the header and ``None``
             otherwise (which typically indicates the ~10-minute IP block).
     """
-    return _fetch_filing_obj_cached(ticker.strip().upper(), filing_type, fiscal_year)
+    key = (ticker.strip().upper(), filing_type, fiscal_year)
+
+    with _inflight_lock:
+        existing = _inflight.get(key)
+        if existing is not None:
+            fut = existing
+            am_winner = False
+        else:
+            fut = Future()
+            _inflight[key] = fut
+            am_winner = True
+
+    if not am_winner:
+        return fut.result()
+
+    try:
+        result = _fetch_filing_obj_cached(*key)
+        fut.set_result(result)
+        return result
+    except BaseException as exc:
+        fut.set_exception(exc)
+        raise
+    finally:
+        with _inflight_lock:
+            _inflight.pop(key, None)

@@ -19,6 +19,7 @@ from backend.common.sec_core import (
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
+    trim_text_to_item_boundary,
 )
 
 _FIXTURES = Path(__file__).parent / "fixtures" / "stub_samples"
@@ -105,6 +106,73 @@ def test_parse_item_number_error_message():
     with pytest.raises(SectionNotFoundError) as exc_info:
         parse_item_number("99z")
     assert "sec_filing_list_sections" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# trim_text_to_item_boundary
+# ---------------------------------------------------------------------------
+
+
+def test_trim_text_to_item_boundary_cuts_at_next_item():
+    """The exact bleed shape observed for AAPL FY2025 Item 11."""
+    text = (
+        "Item 11.    Executive Compensation\n"
+        "The information required by this Item will be included in the 2026 Proxy Statement.\n"
+        "Item 12.    Security Ownership of Certain Beneficial Owners\n"
+        "The information required by this Item will be included in the 2026 Proxy Statement.\n"
+        "Item 13.    Certain Relationships\n"
+    )
+    trimmed = trim_text_to_item_boundary(text, "11")
+    assert "Item 11." in trimmed
+    assert "Item 12." not in trimmed
+    assert "Item 13." not in trimmed
+
+
+def test_trim_text_to_item_boundary_preserves_self_header():
+    """The first 'Item N.' line — the section's own header — must survive."""
+    text = "Item 7.    Management's Discussion and Analysis\nFirst paragraph.\n"
+    assert trim_text_to_item_boundary(text, "7") == text
+
+
+def test_trim_text_to_item_boundary_no_boundary_passthrough():
+    """A clean section without any 'Item N.' substring is returned unchanged."""
+    text = "First paragraph of body text.\nSecond paragraph.\n"
+    assert trim_text_to_item_boundary(text, "1") == text
+
+
+@pytest.mark.parametrize(
+    "current_item,heading_form",
+    [
+        ("11", "Item 11."),
+        ("11", "ITEM 11."),
+        ("11", "Item 11 ."),
+        ("9c", "Item 9C."),
+        ("1a", "Item 1A."),
+    ],
+)
+def test_trim_text_to_item_boundary_case_and_subitem_letter(current_item, heading_form):
+    """Match is case-insensitive and recognizes 1A/7A/9C-style sub-items."""
+    text = f"{heading_form}    Title here\nBody.\nItem 99.    Something else.\n"
+    trimmed = trim_text_to_item_boundary(text, current_item)
+    assert heading_form in trimmed
+    assert "Item 99." not in trimmed
+
+
+def test_trim_text_to_item_boundary_does_not_match_inside_word():
+    """A literal substring 'item 5.' inside a sentence body must NOT trigger
+    a boundary cut — only line-leading or whitespace-leading matches do.
+    """
+    text = (
+        "Item 7.    MD&A\n"
+        "We also reference customer item 5.4 in the discussion below.\n"
+        "Continuing the body of Item 7.\n"
+    )
+    # The 'item 5.4' inside the sentence has '5' as a digit prefix that the
+    # boundary regex cares about — make sure word-boundary style anchoring
+    # keeps that out of contention.
+    trimmed = trim_text_to_item_boundary(text, "7")
+    # If this assertion fails, the regex anchor is too loose.
+    assert "Continuing the body of Item 7." in trimmed
 
 
 @pytest.mark.parametrize(

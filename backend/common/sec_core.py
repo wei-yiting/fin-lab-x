@@ -107,6 +107,42 @@ def parse_item_number(section_key: str) -> str:
     return candidate
 
 
+_ITEM_BOUNDARY_RE = re.compile(r"(?i)(?<![A-Za-z])item\s+(\d{1,2}[a-c]?)\s*\.(?!\d)")
+
+
+def trim_text_to_item_boundary(text: str, current_item: str) -> str:
+    """Cut ``text`` at the first ``Item N.`` heading whose item number differs
+    from ``current_item``.
+
+    edgartools' ``TenK.document.sections`` occasionally returns a section
+    body that runs past its own item header into the next item(s) — empirically
+    observed for AAPL FY2025 ``Item 11`` (bleeds through 12/13/14 into 15)
+    and ``Item 9C`` (bleeds into the Item 15 region). Both the agent's
+    structured access tools and any downstream RAG markdown processor that
+    reuses the same source need a shared rule for trimming a section body
+    back to its own item.
+
+    ``current_item`` is the normalized item key (``"11"``, ``"9c"``);
+    matching is case-insensitive. The first ``Item N.`` heading in the body
+    — usually the section's own header — is preserved; the cut is at the
+    earliest *subsequent* ``Item N.`` line whose number differs.
+
+    Returns the input unchanged when no second boundary is found, so
+    well-formed sections are pass-through. Strips trailing whitespace at
+    the cut point.
+    """
+    matches = list(_ITEM_BOUNDARY_RE.finditer(text))
+    if not matches:
+        return text
+    target = current_item.lower()
+    # The first match is the section's own header; scan from the second.
+    for m in matches[1:]:
+        next_item = m.group(1).lower()
+        if next_item != target:
+            return text[: m.start()].rstrip()
+    return text
+
+
 _STUB_INCORP_RE = re.compile(
     r"incorporated\s+(?:\w+\s+)?(?:in|into|to|by)\s+(?:\w+\s+)?reference",
     re.IGNORECASE,

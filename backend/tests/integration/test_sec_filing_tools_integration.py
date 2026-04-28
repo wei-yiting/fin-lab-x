@@ -152,17 +152,14 @@ def test_list_sections_metadata(ticker: str, expected_fy: int) -> None:
 
 
 def test_list_sections_stub_marker_aapl() -> None:
-    """S-sec-03: AAPL Item 10 (Directors, Executive Officers and Corporate
-    Governance) is incorporated by reference from the proxy statement, so
-    it must surface as is_stub=True with stub_reason mentioning 'proxy'
-    or 'incorporated'.
+    """S-sec-03: AAPL Items 10 and 11 are both incorporated by reference
+    from the proxy statement and must surface as is_stub=True.
 
-    Note: the BDD scenario originally named Item 11 (Executive Compensation)
-    as the exemplar stub, but edgartools' section boundary detection in
-    AAPL FY2025 lumps extra content into the Item 11 section (Items 15 etc.
-    bleed in), exceeding the stub threshold. Item 10 has clean boundaries
-    and the same semantic role — proxy-incorporated — so it's the reliable
-    integration-level exemplar.
+    Both items historically posed different problems: Item 11 used to bleed
+    Items 12/13/14 content into its body via edgartools' section detection,
+    pushing it past the stub threshold. ``trim_text_to_item_boundary`` now
+    cuts the body at the next item heading, so Item 11 is recognized as a
+    stub as well as Item 10.
     """
     from backend.agent_engine.tools.sec_filing_tools import sec_filing_list_sections
 
@@ -171,18 +168,42 @@ def test_list_sections_stub_marker_aapl() -> None:
         {"ticker": "AAPL", "fiscal_year": 2025},
     )
 
-    item_10 = next((s for s in result["sections"] if s["key"] == "10"), None)
-    assert item_10 is not None, "AAPL FY2025 must list a section with key '10'"
+    for key in ("10", "11"):
+        section = next((s for s in result["sections"] if s["key"] == key), None)
+        assert section is not None, (
+            f"AAPL FY2025 must list a section with key {key!r}"
+        )
+        assert section.get("is_stub") is True, (
+            f"Item {key} must be flagged is_stub=True; got {section!r}"
+        )
+        reason = (section.get("stub_reason") or "").lower()
+        assert "proxy" in reason or "incorporated" in reason, (
+            f"Item {key} stub_reason should reference 'proxy' or 'incorporated'; "
+            f"got {section.get('stub_reason')!r}"
+        )
 
-    assert item_10.get("is_stub") is True, (
-        f"Item 10 must be flagged is_stub=True; got {item_10!r}"
+
+def test_get_section_does_not_bleed_into_next_item_aapl() -> None:
+    """``get_section("11")`` must return Item 11 body only — not the bleed
+    that edgartools' section detection produces (Items 12/13/14 content
+    appended to Item 11 in AAPL FY2025).
+    """
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    result = _tool_call(
+        sec_filing_get_section,
+        {"ticker": "AAPL", "fiscal_year": 2025, "section_key": "11"},
     )
 
-    reason = item_10.get("stub_reason") or ""
-    reason_lower = reason.lower()
-    assert "proxy" in reason_lower or "incorporated" in reason_lower, (
-        f"stub_reason should reference 'proxy' or 'incorporated'; got {reason!r}"
-    )
+    content = result["content"]
+    assert "Item 11" in content, "Item 11 body must include its own heading"
+    # The bleed signature: Items 12/13/14 headings appearing inside what
+    # should be Item 11 alone.
+    for next_heading in ("Item 12.", "Item 13.", "Item 14."):
+        assert next_heading not in content, (
+            f"get_section('11') content must not contain {next_heading!r} — "
+            f"trim_text_to_item_boundary should cut the bleed"
+        )
 
 
 # ---------------------------------------------------------------------------

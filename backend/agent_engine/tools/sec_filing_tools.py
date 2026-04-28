@@ -21,6 +21,7 @@ from backend.common.sec_core import (
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
+    trim_text_to_item_boundary,
 )
 
 
@@ -115,7 +116,11 @@ def sec_filing_list_sections(
         section = key_to_section.get(key)
         if section is None:
             continue
-        text = section.text()
+        # edgartools occasionally returns a section body that runs past
+        # its own item header (AAPL FY2025 Item 11 bleeds through 12/13/14).
+        # Trim to the next item boundary so char_count and stub detection
+        # see the same body get_section will return.
+        text = trim_text_to_item_boundary(section.text(), key)
         entry: dict[str, Any] = {"key": key, "char_count": len(text)}
         is_stub, stub_reason = is_stub_section(text)
         if is_stub:
@@ -225,7 +230,7 @@ def sec_filing_get_section(
             "toolCallId": tool_call_id,
         })
 
-    content = section.text()
+    content = trim_text_to_item_boundary(section.text(), normalized)
     is_stub, stub_reason = is_stub_section(content)
 
     out: dict[str, Any] = {

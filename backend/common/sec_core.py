@@ -111,25 +111,14 @@ _ITEM_BOUNDARY_RE = re.compile(r"(?i)(?<![A-Za-z])item\s+(\d{1,2}[a-c]?)\s*\.(?!
 
 
 def trim_text_to_item_boundary(text: str, current_item: str) -> str:
-    """Cut ``text`` at the first ``Item N.`` heading whose item number differs
-    from ``current_item``.
+    """Cut ``text`` at the first ``Item N.`` heading whose number differs
+    from ``current_item`` (normalized item key, e.g. ``"11"``, ``"9c"``).
 
-    edgartools' ``TenK.document.sections`` occasionally returns a section
-    body that runs past its own item header into the next item(s) — empirically
-    observed for AAPL FY2025 ``Item 11`` (bleeds through 12/13/14 into 15)
-    and ``Item 9C`` (bleeds into the Item 15 region). Both the agent's
-    structured access tools and any downstream RAG markdown processor that
-    reuses the same source need a shared rule for trimming a section body
-    back to its own item.
-
-    ``current_item`` is the normalized item key (``"11"``, ``"9c"``);
-    matching is case-insensitive. The first ``Item N.`` heading in the body
-    — usually the section's own header — is preserved; the cut is at the
-    earliest *subsequent* ``Item N.`` line whose number differs.
-
-    Returns the input unchanged when no second boundary is found, so
-    well-formed sections are pass-through. Strips trailing whitespace at
-    the cut point.
+    Works around edgartools occasionally returning a section body that
+    runs past its own item header into the next item(s) — observed for
+    AAPL FY2025 Item 11 (bleeds 12/13/14) and Item 9C. The section's
+    own leading heading is preserved; returns input unchanged when no
+    second boundary is found.
     """
     matches = list(_ITEM_BOUNDARY_RE.finditer(text))
     if not matches:
@@ -417,34 +406,17 @@ def fetch_filing_obj(
     filing_type: FilingType,
     fiscal_year: int | None = None,
 ) -> "TenK":
-    """Fetch and parse a TenK filing via edgartools.
+    """Fetch and parse a 10-K via edgartools, normalizing ``ticker`` to upper.
 
-    Caches by ``(ticker_upper, filing_type, fiscal_year)``. ``fiscal_year=None``
-    resolves to the latest filing; agent tools should prefer passing the
-    resolved int so the cache key space stays unified.
+    LRU-cached by ``(ticker_upper, filing_type, fiscal_year)``;
+    ``fiscal_year=None`` resolves to the latest filing. A module-level
+    single-flight registry collapses parallel races so SEC EDGAR is hit
+    once even when concurrent callers race past the LRU.
 
-    Normalizes ``ticker`` (strip + upper) before delegating to the cached
-    inner function so callers passing ``"aapl"`` and ``"AAPL"`` share a
-    cache entry.
-
-    Concurrency: a module-level single-flight registry collapses parallel
-    races. When LangGraph's parallel tool-call planning sends two
-    ``sec_filing_list_sections`` calls for the same filing in flight at
-    once, the LRU on ``_fetch_filing_obj_cached`` can't help — neither call
-    has populated it yet. The race-loser blocks on the winner's
-    ``Future`` so SEC EDGAR is hit once.
-
-    Raises:
-        ConfigurationError: ``EDGAR_IDENTITY`` not set.
-        TickerNotFoundError: Ticker not found or no 10-K filings.
-        UnsupportedFilingTypeError: Ticker files 20-F instead (FPI).
-        FilingNotFoundError: No filing matches the requested ``fiscal_year``.
-        TransientError: SEC EDGAR returned 5xx.
-        RateLimitError: SEC EDGAR returned 429. edgartools' own
-            retry/backoff has already been exhausted; the caller must
-            wait (typically ~10 minutes) before retrying. ``retry_after``
-            is populated when SEC supplies the header and ``None``
-            otherwise (which typically indicates the ~10-minute IP block).
+    Raises ``ConfigurationError`` (no ``EDGAR_IDENTITY``),
+    ``TickerNotFoundError``, ``UnsupportedFilingTypeError`` (20-F filer),
+    ``FilingNotFoundError``, ``TransientError`` (5xx), or
+    ``RateLimitError`` (429; edgartools' retry already exhausted).
     """
     key = (ticker.strip().upper(), filing_type, fiscal_year)
 

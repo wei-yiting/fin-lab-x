@@ -78,22 +78,6 @@ Subsystem code should subclass one of the four leaf error classes — `Transient
 
 ---
 
-## Testing
-
-```bash
-uv run pytest backend/tests/ingestion/quant_data_pipeline/
-```
-
-`conftest.py` ships a `tmp_duckdb` fixture that yields an in-memory `DuckDBPyConnection` with the schema applied. Subsystem test files can reuse it by adding:
-
-```python
-pytest_plugins = ["backend.tests.ingestion.quant_data_pipeline.conftest"]
-```
-
-or by importing the fixture directly.
-
----
-
 ## Schema Evolution
 
 During the iteration phase, edit `duck_db/schema.sql`, delete the local `data/quant.db`, and re-run the ETL. There is no Alembic migration layer yet; the schema is applied in full on every `get_connection()` call via `CREATE TABLE IF NOT EXISTS` statements.

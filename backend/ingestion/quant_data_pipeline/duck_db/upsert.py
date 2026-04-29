@@ -14,8 +14,30 @@ def upsert_rows(
     pk_columns: list[str],
     rows: list[_T],
 ) -> int:
+    """Bulk-upsert Pydantic row DTOs into a table with column-level merge.
+
+    The DTO defines which columns this call writes; the SQL ``DO UPDATE SET``
+    clause lists only those columns, so columns owned by other subsystems on
+    the same row survive untouched. ``updated_at`` is managed by this helper
+    (DTOs must not declare it).
+
+    Args:
+        conn: Open DuckDB connection with schema applied.
+        table: Target table name.
+        pk_columns: Columns forming the conflict target.
+        rows: Same-typed Pydantic DTOs; ``[]`` short-circuits to 0.
+
+    Returns:
+        Number of input rows processed (not DB-reported affected rows).
+
+    Raises:
+        ValueError: DTO declares ``updated_at`` (helper-managed column).
+    """
     if not rows:
         return 0
+    # DTO drives the column set: same-typed DTOs are assumed, so the first
+    # row's class determines which columns participate in INSERT and the
+    # DO UPDATE SET clause.
     columns = list(type(rows[0]).model_fields.keys())
     if "updated_at" in columns:
         raise ValueError(

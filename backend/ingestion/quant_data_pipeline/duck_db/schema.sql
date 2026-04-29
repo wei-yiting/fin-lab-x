@@ -2,7 +2,7 @@
 -- Quant Data Pipeline — DuckDB Schema
 -- ============================================================
 
--- 6.1 companies
+-- companies
 CREATE TABLE IF NOT EXISTS companies (
     ticker VARCHAR PRIMARY KEY,
     company_name VARCHAR NOT NULL,
@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS companies (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+COMMENT ON TABLE companies IS
+  'Company metadata. Grain: one row per ticker.';
 COMMENT ON COLUMN companies.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN companies.company_name IS
@@ -28,7 +30,7 @@ COMMENT ON COLUMN companies.fy_end_day IS
 COMMENT ON COLUMN companies.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.2 market_valuations
+-- market_valuations
 CREATE TABLE IF NOT EXISTS market_valuations (
     ticker VARCHAR NOT NULL,
     as_of_date DATE NOT NULL,
@@ -47,6 +49,8 @@ CREATE TABLE IF NOT EXISTS market_valuations (
     PRIMARY KEY (ticker, as_of_date)
 );
 
+COMMENT ON TABLE market_valuations IS
+  'Daily market valuation snapshots. Grain: one row per (ticker, as_of_date).';
 COMMENT ON COLUMN market_valuations.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN market_valuations.as_of_date IS
@@ -76,7 +80,7 @@ COMMENT ON COLUMN market_valuations.held_pct_institutions IS
 COMMENT ON COLUMN market_valuations.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.3 quarterly_financials
+-- quarterly_financials
 CREATE TABLE IF NOT EXISTS quarterly_financials (
     ticker VARCHAR NOT NULL,
     fiscal_year INTEGER NOT NULL,
@@ -139,6 +143,8 @@ CREATE TABLE IF NOT EXISTS quarterly_financials (
     PRIMARY KEY (ticker, fiscal_year, fiscal_quarter)
 );
 
+COMMENT ON TABLE quarterly_financials IS
+  'Per-quarter financial statements (income / balance / cash flow). Grain: one row per (ticker, fiscal_year, fiscal_quarter).';
 COMMENT ON COLUMN quarterly_financials.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN quarterly_financials.fiscal_year IS
@@ -230,7 +236,7 @@ COMMENT ON COLUMN quarterly_financials.noncurrent_rpo_usd IS
 COMMENT ON COLUMN quarterly_financials.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.4 annual_financials
+-- annual_financials
 -- Same columns as quarterly_financials except fiscal_quarter; PK = (ticker, fiscal_year)
 CREATE TABLE IF NOT EXISTS annual_financials (
     ticker VARCHAR NOT NULL,
@@ -293,6 +299,8 @@ CREATE TABLE IF NOT EXISTS annual_financials (
     PRIMARY KEY (ticker, fiscal_year)
 );
 
+COMMENT ON TABLE annual_financials IS
+  'Per-year financial statements; column-wise mirror of quarterly_financials minus fiscal_quarter. Grain: one row per (ticker, fiscal_year).';
 COMMENT ON COLUMN annual_financials.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN annual_financials.fiscal_year IS
@@ -382,7 +390,7 @@ COMMENT ON COLUMN annual_financials.noncurrent_rpo_usd IS
 COMMENT ON COLUMN annual_financials.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.5 segment_financials
+-- segment_financials
 CREATE TABLE IF NOT EXISTS segment_financials (
     ticker VARCHAR NOT NULL,
     fiscal_year INTEGER NOT NULL,
@@ -404,6 +412,8 @@ CREATE TABLE IF NOT EXISTS segment_financials (
     PRIMARY KEY (ticker, fiscal_year, period_type, period_end, segment_name)
 );
 
+COMMENT ON TABLE segment_financials IS
+  'Operating-segment revenue/earnings; supports both quarterly and annual via period_type discriminator. Grain: one row per (ticker, fiscal_year, period_type, period_end, segment_name).';
 COMMENT ON COLUMN segment_financials.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN segment_financials.fiscal_year IS
@@ -429,7 +439,7 @@ COMMENT ON COLUMN segment_financials.segment_capex_usd IS
 COMMENT ON COLUMN segment_financials.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.6 geographic_revenue
+-- geographic_revenue
 CREATE TABLE IF NOT EXISTS geographic_revenue (
     ticker VARCHAR NOT NULL,
     fiscal_year INTEGER NOT NULL,
@@ -448,6 +458,8 @@ CREATE TABLE IF NOT EXISTS geographic_revenue (
     PRIMARY KEY (ticker, fiscal_year, period_type, period_end, region_name)
 );
 
+COMMENT ON TABLE geographic_revenue IS
+  'Geographic revenue split; supports both quarterly and annual via period_type discriminator. Grain: one row per (ticker, fiscal_year, period_type, period_end, region_name).';
 COMMENT ON COLUMN geographic_revenue.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN geographic_revenue.fiscal_year IS
@@ -467,7 +479,7 @@ COMMENT ON COLUMN geographic_revenue.revenue_usd IS
 COMMENT ON COLUMN geographic_revenue.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.7 customer_concentration
+-- customer_concentration
 CREATE TABLE IF NOT EXISTS customer_concentration (
     ticker VARCHAR NOT NULL,
     fiscal_year INTEGER NOT NULL,
@@ -477,6 +489,8 @@ CREATE TABLE IF NOT EXISTS customer_concentration (
     PRIMARY KEY (ticker, fiscal_year, customer_identifier)
 );
 
+COMMENT ON TABLE customer_concentration IS
+  'Major-customer concentration disclosed in 10-K (annual-only). Grain: one row per (ticker, fiscal_year, customer_identifier).';
 COMMENT ON COLUMN customer_concentration.ticker IS
   'Stock ticker symbol, uppercase. E.g. AAPL, MSFT, NVDA.';
 COMMENT ON COLUMN customer_concentration.fiscal_year IS
@@ -488,7 +502,7 @@ COMMENT ON COLUMN customer_concentration.revenue_pct IS
 COMMENT ON COLUMN customer_concentration.updated_at IS
   'Last time this row was upserted by ETL.';
 
--- 6.8 ingestion_runs
+-- ingestion_runs
 CREATE TABLE IF NOT EXISTS ingestion_runs (
     run_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pipeline VARCHAR NOT NULL,
@@ -515,7 +529,7 @@ CREATE INDEX IF NOT EXISTS idx_runs_pipeline_ticker_started
     ON ingestion_runs(pipeline, ticker, started_at DESC);
 
 COMMENT ON TABLE ingestion_runs IS
-  'Audit log of every ETL invocation. Tracks WHO/WHEN/HOW data got in. For "WHAT data exists" query data tables directly (they carry fiscal_year/fiscal_quarter).';
+  'Audit log: one row per ETL invocation (success or error), written by track_ingestion_run(). For "WHAT data exists" query data tables directly. Grain: one row per run_id.';
 COMMENT ON COLUMN ingestion_runs.run_id IS
   'Unique run identifier (UUID). Auto-generated when caller omits it.';
 COMMENT ON COLUMN ingestion_runs.pipeline IS

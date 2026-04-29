@@ -3,7 +3,7 @@
 This document covers Langfuse tracing patterns across the two tracing domains in the codebase:
 
 1. **Agent layer** — orchestrator, LLM calls, tool invocations. Traced through LangChain's Langfuse `CallbackHandler` (injected per request) plus `@observe` on individual tool functions.
-2. **SEC ingestion pipeline** — chunking, embedding, Qdrant upsert, EDGAR download/parse. `search()` is the single Langfuse trace entry point; all inner spans only emit when a trace is already active.
+2. **Ingestion pipelines** — chunking, embedding, Qdrant upsert, EDGAR download/parse for SEC, and (planned) fetch/upsert for the quant subsystem. SEC entry point `search()` opens the trace root; all inner spans only emit when a trace is already active. The shared `traced_span()` helper in `backend/utils/span_tracing.py` is the single mechanism used by any ingestion pipeline that needs structural (not env-toggled) trace boundaries.
 
 Both domains share one Langfuse project and emit `snake_case` spans (`sec_` prefix for SEC-specific operations).
 
@@ -54,7 +54,7 @@ No env-var toggling; the trace boundary is structural.
 
 `@observe` on `search()` uses Langfuse's OpenTelemetry tracer and relies on `contextvars` for nesting. This works within a single async function or a chain of awaits on the same event-loop thread.
 
-`traced_span(name, **kwargs)` (in `backend/ingestion/sec_dense_pipeline/tracing.py`) consults the current OTel span:
+`traced_span(name, **kwargs)` (in `backend/utils/span_tracing.py`, a shared cross-pipeline utility) consults the current OTel span:
 - If valid, open a Langfuse child span under it.
 - If invalid (no outer trace, as with CLI or unit tests), yield a no-op object so callers can still call `.update(...)` without side effects.
 

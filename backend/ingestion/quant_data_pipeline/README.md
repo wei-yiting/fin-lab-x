@@ -12,10 +12,12 @@ Shared infrastructure for yfinance and SEC XBRL quant ETL pipelines: DuckDB conn
 from backend.ingestion.quant_data_pipeline.duck_db.connection import get_connection
 from backend.ingestion.quant_data_pipeline.duck_db.row_models import CompanyRow
 from backend.ingestion.quant_data_pipeline.duck_db.upsert import upsert_rows
-from backend.ingestion.quant_data_pipeline.quant_ingestion_runs import ingestion_run
+from backend.ingestion.quant_data_pipeline.ingestion_run_tracker import (
+    track_ingestion_run,
+)
 
 with get_connection(":memory:") as conn:
-    with ingestion_run(conn, "yfinance", "MSFT") as report:
+    with track_ingestion_run(conn, "yfinance", "MSFT") as report:
         report.rows_written_total = upsert_rows(
             conn, "companies", ["ticker"],
             [CompanyRow(
@@ -26,7 +28,7 @@ with get_connection(":memory:") as conn:
         )
 ```
 
-`get_connection(":memory:")` applies `schema.sql` automatically. `ingestion_run` writes one audit row to `ingestion_runs` on exit — success or exception.
+`get_connection(":memory:")` applies `schema.sql` automatically. `track_ingestion_run` writes one audit row to `ingestion_runs` on exit — success or exception.
 
 ---
 
@@ -43,8 +45,8 @@ with get_connection(":memory:") as conn:
 | `IngestionRunRow` | `.duck_db.row_models` | DTO for the `ingestion_runs` table; used for direct audit inserts (advanced). |
 | `normalize_fiscal_period` | `.calendar_to_fiscal_period` | Convert a calendar `period_end` date to `(fiscal_year, fiscal_quarter)` using FYE month. |
 | `load_ticker_universe` | `.ticker_universe_loader` | Load the canonical ticker list from `config/ticker_universe.yaml`. |
-| `ingestion_run` | `.quant_ingestion_runs` | Context manager that writes one `ingestion_runs` audit row (success or error). |
-| `RunReport` | `.quant_ingestion_runs` | Mutable dataclass yielded by `ingestion_run`; caller sets `rows_written_total` and `metadata`. |
+| `track_ingestion_run` | `.ingestion_run_tracker` | Context manager that writes one `ingestion_runs` audit row (success or error). |
+| `RunReport` | `.ingestion_run_tracker` | Mutable dataclass yielded by `track_ingestion_run`; caller sets `rows_written_total` and `metadata`. |
 | `with_retry` | `.quant_retry` | Decorator that retries `TransientError` subclasses with exponential backoff. |
 | `QuantPipelineError` | `.quant_pipeline_errors` | Base exception for all pipeline errors. |
 | `TransientError` | `.quant_pipeline_errors` | Retryable: network blip, 5xx, rate limit. |
@@ -62,7 +64,7 @@ with get_connection(":memory:") as conn:
 - **`updated_at` is managed by `upsert_rows()`**: Do not declare `updated_at` in any row DTO. The upsert sets it to `now()` on every write.
 - **`span_tracing.py` lives in `backend/utils/`** (cross-pipeline utility shared with the SEC dense pipeline). `quant_retry.py` lives in this package because retry behavior is pipeline-scoped.
 - **`get_connection` signature**: Pass an explicit path or `":memory:"` for tests. In production the path falls back to `$DUCKDB_PATH` env var, then `data/quant.db`.
-- **Audit semantics**: `ingestion_run()` records `report.rows_written_total` on both success and error paths. Callers should increment only AFTER a successful write (e.g., `report.rows_written_total += upsert_rows(...)`), so partial-write counts remain accurate when an exception interrupts mid-batch.
+- **Audit semantics**: `track_ingestion_run()` records `report.rows_written_total` on both success and error paths. Callers should increment only AFTER a successful write (e.g., `report.rows_written_total += upsert_rows(...)`), so partial-write counts remain accurate when an exception interrupts mid-batch.
 
 ---
 

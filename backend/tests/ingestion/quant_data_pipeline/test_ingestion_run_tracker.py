@@ -2,12 +2,14 @@ import json
 
 import pytest
 
-from backend.ingestion.quant_data_pipeline.quant_ingestion_runs import ingestion_run
+from backend.ingestion.quant_data_pipeline.ingestion_run_tracker import (
+    track_ingestion_run,
+)
 from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import TickerNotFoundError
 
 
 def test_success_path(tmp_duckdb):
-    with ingestion_run(tmp_duckdb, "yfinance", "NVDA") as report:
+    with track_ingestion_run(tmp_duckdb, "yfinance", "NVDA") as report:
         report.rows_written_total = 5
         report.metadata["periods_covered"] = {"quarterly": ["2025Q3"]}
 
@@ -25,7 +27,7 @@ def test_success_path(tmp_duckdb):
 
 def test_error_path(tmp_duckdb):
     with pytest.raises(TickerNotFoundError, match="NVDA not found"):
-        with ingestion_run(tmp_duckdb, "yfinance", "NVDA") as _:
+        with track_ingestion_run(tmp_duckdb, "yfinance", "NVDA") as _:
             raise TickerNotFoundError("NVDA not found")
 
     row = tmp_duckdb.execute(
@@ -37,7 +39,7 @@ def test_error_path(tmp_duckdb):
 
 def test_partial_metadata_preserved_on_error(tmp_duckdb):
     with pytest.raises(RuntimeError, match="boom"):
-        with ingestion_run(tmp_duckdb, "yfinance", "NVDA") as report:
+        with track_ingestion_run(tmp_duckdb, "yfinance", "NVDA") as report:
             report.rows_written_total = 3
             report.metadata["api_latency_ms"] = {"info": 120}
             raise RuntimeError("boom")
@@ -52,7 +54,7 @@ def test_partial_metadata_preserved_on_error(tmp_duckdb):
 
 
 def test_sec_only_kwargs(tmp_duckdb):
-    with ingestion_run(
+    with track_ingestion_run(
         tmp_duckdb,
         "sec_xbrl",
         "NVDA",
@@ -69,9 +71,9 @@ def test_sec_only_kwargs(tmp_duckdb):
 
 
 def test_distinct_run_ids(tmp_duckdb):
-    with ingestion_run(tmp_duckdb, "yfinance", "AAPL"):
+    with track_ingestion_run(tmp_duckdb, "yfinance", "AAPL"):
         pass
-    with ingestion_run(tmp_duckdb, "yfinance", "MSFT"):
+    with track_ingestion_run(tmp_duckdb, "yfinance", "MSFT"):
         pass
 
     count = tmp_duckdb.execute(

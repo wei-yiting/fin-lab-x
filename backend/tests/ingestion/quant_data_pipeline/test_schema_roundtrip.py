@@ -9,7 +9,9 @@ from backend.ingestion.quant_data_pipeline.duck_db.row_models import (
     YFinanceQuarterlyRow,
 )
 from backend.ingestion.quant_data_pipeline.duck_db.upsert import upsert_rows
-from backend.ingestion.quant_data_pipeline.quant_ingestion_runs import ingestion_run
+from backend.ingestion.quant_data_pipeline.ingestion_run_tracker import (
+    track_ingestion_run,
+)
 
 
 def test_foundation_roundtrip(tmp_duckdb):
@@ -40,7 +42,7 @@ def test_foundation_roundtrip(tmp_duckdb):
     fy, fq = normalize_fiscal_period(date(2024, 9, 30), fiscal_year_end_month=6)
     assert (fy, fq) == (2025, 1)
 
-    with ingestion_run(tmp_duckdb, "yfinance", "MSFT") as report:
+    with track_ingestion_run(tmp_duckdb, "yfinance", "MSFT") as report:
         n = upsert_rows(
             tmp_duckdb,
             "quarterly_financials",

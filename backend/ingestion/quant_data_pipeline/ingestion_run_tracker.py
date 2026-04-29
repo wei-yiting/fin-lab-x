@@ -1,3 +1,11 @@
+"""Audit wrapper for quant ingestion runs.
+
+Wraps a fetcher invocation in a context manager that writes one
+``ingestion_runs`` row per call (success or error) with caller-supplied
+counters and metadata. Callers do not write audit rows directly; they
+mutate the yielded ``RunReport`` and the wrapper persists it on exit.
+"""
+
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -15,7 +23,7 @@ class RunReport:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-def _insert_run(
+def _record_run(
     conn: DuckDBPyConnection,
     run_id: str,
     pipeline: str,
@@ -62,7 +70,7 @@ def _insert_run(
 
 
 @contextmanager
-def ingestion_run(
+def track_ingestion_run(
     conn: DuckDBPyConnection,
     pipeline: str,
     ticker: str,
@@ -79,7 +87,7 @@ def ingestion_run(
     try:
         yield report
     except Exception as exc:
-        _insert_run(
+        _record_run(
             conn,
             run_id,
             pipeline,
@@ -97,7 +105,7 @@ def ingestion_run(
             metadata=report.metadata,
         )
         raise
-    _insert_run(
+    _record_run(
         conn,
         run_id,
         pipeline,

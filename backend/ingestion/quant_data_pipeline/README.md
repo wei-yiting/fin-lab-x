@@ -42,11 +42,9 @@ with get_connection(":memory:") as conn:
 | `MarketValuationRow` | `.duck_db.row_models` | DTO for the `market_valuations` table (market cap, ratios, beta). |
 | `YFinanceQuarterlyRow` | `.duck_db.row_models` | DTO for the `quarterly_financials` table (income, balance sheet, cash flow). |
 | `YFinanceAnnualRow` | `.duck_db.row_models` | DTO for the `annual_financials` table (same schema as quarterly, no `fiscal_quarter`). |
-| `IngestionRunRow` | `.duck_db.row_models` | DTO for the `ingestion_runs` table; used for direct audit inserts (advanced). |
 | `normalize_fiscal_period` | `.calendar_to_fiscal_period` | Convert a calendar `period_end` date to `(fiscal_year, fiscal_quarter)` using FYE month. |
 | `load_ticker_universe` | `.ticker_universe_loader` | Load the canonical ticker list from `config/ticker_universe.yaml`. |
-| `track_ingestion_run` | `.ingestion_run_tracker` | Context manager that writes one `ingestion_runs` audit row (success or error). |
-| `RunReport` | `.ingestion_run_tracker` | Mutable dataclass yielded by `track_ingestion_run`; caller sets `rows_written_total` and `metadata`. |
+| `track_ingestion_run` | `.ingestion_run_tracker` | Context manager that writes one `ingestion_runs` audit row (success or error). Yields a `RunReport` dataclass (`rows_written_total: int`, `metadata: dict`) the caller mutates during the block. |
 | `with_retry` | `.quant_retry` | Decorator that retries `TransientError` subclasses with exponential backoff. |
 | `QuantPipelineError` | `.quant_pipeline_errors` | Base exception for all pipeline errors. |
 | `TransientError` | `.quant_pipeline_errors` | Retryable: network blip, 5xx, rate limit. |

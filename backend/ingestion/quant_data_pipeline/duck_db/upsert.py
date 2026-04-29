@@ -5,14 +5,14 @@ import pandas as pd
 from duckdb import DuckDBPyConnection
 from pydantic import BaseModel
 
-T = TypeVar("T", bound=BaseModel)
+_T = TypeVar("_T", bound=BaseModel)
 
 
 def upsert_rows(
     conn: DuckDBPyConnection,
     table: str,
     pk_columns: list[str],
-    rows: list[T],
+    rows: list[_T],
 ) -> int:
     if not rows:
         return 0

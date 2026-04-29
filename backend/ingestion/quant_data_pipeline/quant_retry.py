@@ -6,7 +6,7 @@ from typing import TypeVar
 
 from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import TransientError
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def with_retry(
     max_attempts: int = 3,
     base_delay_seconds: float = 1.0,
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
     """Retry TransientError (and subclasses) with exponential backoff.
 
     Non-transient exceptions propagate immediately. Retry count is NOT
@@ -28,9 +28,9 @@ def with_retry(
             f"base_delay_seconds must be >= 0, got {base_delay_seconds}"
         )
 
-    def decorator(fn: Callable[..., T]) -> Callable[..., T]:
+    def decorator(fn: Callable[..., _T]) -> Callable[..., _T]:
         @wraps(fn)
-        def wrapper(*args, **kwargs) -> T:
+        def wrapper(*args, **kwargs) -> _T:
             last_exc: TransientError | None = None
             for attempt in range(max_attempts):
                 try:

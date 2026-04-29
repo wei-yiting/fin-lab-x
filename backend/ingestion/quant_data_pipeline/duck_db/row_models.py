@@ -1,5 +1,4 @@
-from datetime import date, datetime
-from typing import Any
+from datetime import date
 
 from pydantic import BaseModel
 
@@ -132,20 +131,3 @@ class YFinanceAnnualRow(BaseModel):
     stock_based_compensation_usd: int | None = None
 
 
-class IngestionRunRow(BaseModel):
-    """Pipeline audit owner — table: ingestion_runs — excludes: nothing (full insert, no updated_at column on this table)."""
-
-    run_id: str
-    pipeline: str
-    ticker: str
-    target_filing_type: str | None = None
-    target_fiscal_year: int | None = None
-    target_fiscal_quarter: int | None = None
-    target_accession_number: str | None = None
-    started_at: datetime
-    finished_at: datetime | None = None
-    status: str
-    error_class: str | None = None
-    error_message: str | None = None
-    rows_written_total: int | None = None
-    metadata: dict[str, Any] | None = None

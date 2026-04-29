@@ -8,6 +8,8 @@ Shared infrastructure for yfinance and SEC XBRL quant ETL pipelines: DuckDB conn
 
 ## Quick Start
 
+> **Temporary section.** This snippet exists as a compositional reference for upcoming fetcher subsystem authors (yfinance, SEC XBRL). Once both fetchers ship and carry their own end-to-end examples, remove this section — the Public API table below plus working fetcher code will supersede it.
+
 ```python
 from backend.ingestion.quant_data_pipeline.duck_db.connection import get_connection
 from backend.ingestion.quant_data_pipeline.duck_db.row_models import CompanyRow

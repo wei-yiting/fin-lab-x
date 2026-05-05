@@ -118,6 +118,14 @@ def _(event: ReasoningStatus) -> str:
         "data": {"text": event.text},
         "transient": True,
     }
+    # DEV-ONLY: FORCE_REASONING_NON_TRANSIENT strips the transient flag so
+    # the wire emits a malformed payload. In APP_ENV=production the helper
+    # downgrades to a warning, letting Playwright assert that the frontend
+    # filter discards non-transient data-reasoning-status events
+    # (S-chan-03). In dev/CI the helper raises so accidental flag-on
+    # tests fail loudly. Production must NOT set FORCE_REASONING_NON_TRANSIENT.
+    if os.environ.get("FORCE_REASONING_NON_TRANSIENT"):
+        payload.pop("transient", None)
     _assert_reasoning_transient(payload)
     return _sse(payload)
 

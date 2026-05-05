@@ -437,6 +437,17 @@ class Orchestrator:
 
         with propagate_attributes(**propagation):
             try:
+                # DEV-ONLY: FORCE_LLM_FAIL short-circuits before agent.astream
+                # to simulate a deterministic provider failure. The existing
+                # except-Exception block converts this into StreamError +
+                # Finish(error), exercising the mid-stream error path
+                # (S-stream-04) without depending on a flaky upstream API.
+                # Production must NOT set FORCE_LLM_FAIL.
+                if os.environ.get("FORCE_LLM_FAIL"):
+                    raise RuntimeError(
+                        "FORCE_LLM_FAIL: simulated provider failure"
+                    )
+
                 if trigger == "regenerate":
                     await self._prepare_regenerate(config, message_id)
                     input_data = None

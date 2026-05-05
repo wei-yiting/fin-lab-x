@@ -7,6 +7,8 @@ across stream modes.
 
 from __future__ import annotations
 
+import os
+
 from langchain_core.messages import AIMessage, ToolMessage
 
 from backend.agent_engine.streaming.domain_events_schema import (
@@ -53,6 +55,10 @@ class StreamEventMapper:
         # Idempotent finalize — Task 6's ReasoningTraceCallback may invoke
         # finalize() from multiple cleanup paths (natural / abort / error).
         self._finalized = False
+        # DEV-ONLY: tracks whether the EMIT_DELAYED_REASONING flag has already
+        # released its single allowed reasoning chunk for this mapper instance.
+        # Production must NOT set EMIT_DELAYED_REASONING.
+        self._delayed_reasoning_emitted = False
 
     def _next_text_id(self) -> str:
         # Within a single assistant turn we can emit multiple text blocks
@@ -100,8 +106,9 @@ class StreamEventMapper:
         # Iterate the LangChain v1 normalized content_blocks (D1). The lazy
         # property handles all three providers' raw shapes (string content,
         # list of blocks with text/reasoning/tool_call_chunk types).
+        blocks = self._apply_dev_flag_block_filters(msg_chunk.content_blocks)
         prev_block_type: str | None = None
-        for block in msg_chunk.content_blocks:
+        for block in blocks:
             block_type = block.get("type")
             if block_type == "reasoning":
                 self._handle_reasoning_block(
@@ -147,6 +154,19 @@ class StreamEventMapper:
         events: list[DomainEvent],
         prepend_separator: bool = False,
     ) -> None:
+        # DEV-ONLY: EMIT_DELAYED_REASONING releases ONE reasoning chunk total
+        # then drops the rest. The natural stream's silence between that lone
+        # emission and finish exceeds the frontend STALLED_THRESHOLD_MS and
+        # flips ``stalled=true`` — the Playwright spec asserts that visual
+        # state. A real per-chunk sleep is impossible here (sync path) and
+        # anyway not needed: the observable contract is a single reasoning
+        # chunk followed by silence, which this branch produces directly.
+        # Production must NOT set EMIT_DELAYED_REASONING.
+        if os.environ.get("EMIT_DELAYED_REASONING"):
+            if self._delayed_reasoning_emitted:
+                return
+            self._delayed_reasoning_emitted = True
+
         # Lazy-mount reasoning_id at the first reasoning block of an LLM
         # call; same id is reused for every reasoning block within the
         # same chunk.id (D27.2 — frontend setText updates a single
@@ -164,6 +184,33 @@ class StreamEventMapper:
             events.append(
                 ReasoningStatus(reasoning_id=self._current_reasoning_id, text=sentence)
             )
+
+    @staticmethod
+    def _apply_dev_flag_block_filters(blocks: list[dict]) -> list[dict]:
+        """DEV-ONLY filters that mutate the per-chunk block stream.
+
+        Two flags are honored:
+
+        - ``STUB_REASONING_ONLY`` — drop ``text`` and ``tool_call_chunk``
+          blocks so the resulting stream is reasoning-only. Drives
+          S-trace-05 (trace tail emits reasoning even when no text/tool
+          blocks reach the wire).
+        - ``STUB_CONTENT_BLOCKS_NO_REASONING=<provider>`` — drop
+          ``reasoning`` blocks to simulate a regression where the
+          LangChain v1 content_blocks normalizer stops surfacing
+          reasoning for that provider. Drives S-trace-09. The value is
+          treated as a non-empty truthy switch; the per-provider scope
+          is documented but not enforced here because the mapper has no
+          provider context — Playwright sets the flag only when the
+          backend is configured for the matching provider.
+
+        Production must NOT set either flag.
+        """
+        if os.environ.get("STUB_REASONING_ONLY"):
+            return [b for b in blocks if b.get("type") == "reasoning"]
+        if os.environ.get("STUB_CONTENT_BLOCKS_NO_REASONING"):
+            return [b for b in blocks if b.get("type") != "reasoning"]
+        return list(blocks)
 
     def _handle_text_block(self, block: dict, events: list[DomainEvent]) -> None:
         # D28 hold-and-flush: any buffered reasoning tail must reach the
@@ -253,4 +300,16 @@ class StreamEventMapper:
                 ),
             )
         )
+        # DEV-ONLY: EMIT_LATE_REASONING injects a synthetic ReasoningStatus
+        # AFTER Finish. The frontend's ``finishedRef`` (latched on the
+        # ``finish`` SSE event) MUST drop this, leaving the indicator
+        # cleared. Drives S-rsn-12 (post-finish reasoning event leakage).
+        # Production must NOT set EMIT_LATE_REASONING.
+        if os.environ.get("EMIT_LATE_REASONING"):
+            events.append(
+                ReasoningStatus(
+                    reasoning_id="reasoning-late",
+                    text="late thought after finish",
+                )
+            )
         return events

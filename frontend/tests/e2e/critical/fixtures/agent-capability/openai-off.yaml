@@ -1,0 +1,6 @@
+# Matrix row 6 — OpenAI Responses API reasoning OFF.
+model:
+  name: "openai:gpt-5-mini"
+  temperature: 0.0
+  reasoning: "off"
+  thinking_budget: null

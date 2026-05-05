@@ -1,0 +1,6 @@
+# Matrix row 1 — Gemini reasoning ON (default v3_quant config; runs end-to-end without extra keys).
+model:
+  name: "google_genai:gemini-2.5-flash"
+  temperature: 0.0
+  reasoning: "on"
+  thinking_budget: null

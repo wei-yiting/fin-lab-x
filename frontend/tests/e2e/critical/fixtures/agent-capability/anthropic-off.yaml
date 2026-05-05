@@ -1,0 +1,6 @@
+# Matrix row 4 — Anthropic reasoning OFF.
+model:
+  name: "anthropic:claude-3-5-sonnet-latest"
+  temperature: 0.0
+  reasoning: "off"
+  thinking_budget: null

@@ -1,7 +1,8 @@
 """StreamEventMapper — stateful translator from LangGraph astream(version='v2') chunks to domain events.
 
 Handles TextStart/TextEnd pairing, MessageStart/Finish framing,
-and tool call lifecycle assembly across stream modes.
+tool call lifecycle assembly, and reasoning sentence dispatch
+across stream modes.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
     MessageStart,
+    ReasoningStatus,
     TextDelta,
     TextEnd,
     TextStart,
@@ -21,9 +23,19 @@ from backend.agent_engine.streaming.domain_events_schema import (
     ToolResult,
     Usage,
 )
+from backend.agent_engine.streaming.reasoning_segmenter import ReasoningSegmenter
 
 
 class StreamEventMapper:
+    """Per-request stateful translator (D33).
+
+    One instance per chat HTTP request — never share across requests or
+    sessions. Multi-tab concurrent streaming relies on this isolation;
+    request-scoped state (segmenter buffer, reasoning_id counter, text_id
+    counter, pending tool calls) would corrupt across concurrent streams
+    if the mapper were per-session.
+    """
+
     def __init__(self, session_id: str) -> None:
         self._session_id = session_id
         self._message_started = False
@@ -33,6 +45,14 @@ class StreamEventMapper:
         self._text_id_counter = 0
         self._total_input_tokens = 0
         self._total_output_tokens = 0
+        # Reasoning state — D26/D27/D28/D34
+        self._segmenter = ReasoningSegmenter()
+        self._current_llm_call_id: str | None = None
+        self._current_reasoning_id: str | None = None
+        self._reasoning_id_counter = 0
+        # Idempotent finalize — Task 6's ReasoningTraceCallback may invoke
+        # finalize() from multiple cleanup paths (natural / abort / error).
+        self._finalized = False
 
     def _next_text_id(self) -> str:
         # Within a single assistant turn we can emit multiple text blocks
@@ -62,17 +82,41 @@ class StreamEventMapper:
         if isinstance(msg_chunk, ToolMessage):
             return events
 
+        # D27.1: chunk.id transitions are LLM-call boundaries — flush any
+        # buffered reasoning tail under the prior reasoning_id, reset
+        # segmenter, and arm a new reasoning_id for the next reasoning
+        # block. id=None is treated as continuation (some providers emit
+        # None on intermediate chunks).
+        if msg_chunk.id is not None and msg_chunk.id != self._current_llm_call_id:
+            self._flush_segmenter_into(events)
+            self._segmenter.reset()
+            self._current_llm_call_id = msg_chunk.id
+            self._current_reasoning_id = None
+
         if not self._message_started:
             events.append(MessageStart(message_id=msg_chunk.id, session_id=self._session_id))
             self._message_started = True
 
-        if msg_chunk.content:
-            if not self._text_block_open:
-                self._current_text_id = self._next_text_id()
-                events.append(TextStart(text_id=self._current_text_id))
-                self._text_block_open = True
-            events.append(TextDelta(text_id=self._current_text_id, delta=msg_chunk.content))
+        # Iterate the LangChain v1 normalized content_blocks (D1). The lazy
+        # property handles all three providers' raw shapes (string content,
+        # list of blocks with text/reasoning/tool_call_chunk types).
+        prev_block_type: str | None = None
+        for block in msg_chunk.content_blocks:
+            block_type = block.get("type")
+            if block_type == "reasoning":
+                self._handle_reasoning_block(
+                    block, events, prepend_separator=(prev_block_type == "reasoning")
+                )
+            elif block_type == "text":
+                self._handle_text_block(block, events)
+            elif block_type == "tool_call_chunk":
+                self._handle_tool_call_chunk_block(block, events)
+            prev_block_type = block_type
 
+        # Backup path — a few providers' content_blocks may not surface
+        # tool_call_chunks; the legacy attribute keeps the tool path alive
+        # in that case. Safe to run unconditionally because
+        # _pending_tool_calls is a set-like dict (no duplicates).
         if getattr(msg_chunk, "tool_call_chunks", None):
             if self._text_block_open:
                 events.append(TextEnd(text_id=self._current_text_id))
@@ -96,6 +140,62 @@ class StreamEventMapper:
             self._total_output_tokens += msg_chunk.usage_metadata.get("output_tokens", 0)
 
         return events
+
+    def _handle_reasoning_block(
+        self,
+        block: dict,
+        events: list[DomainEvent],
+        prepend_separator: bool = False,
+    ) -> None:
+        # Lazy-mount reasoning_id at the first reasoning block of an LLM
+        # call; same id is reused for every reasoning block within the
+        # same chunk.id (D27.2 — frontend setText updates a single
+        # reasoning indicator).
+        if self._current_reasoning_id is None:
+            self._current_reasoning_id = f"reasoning-{self._reasoning_id_counter}"
+            self._reasoning_id_counter += 1
+        # D12: consecutive reasoning blocks within one chunk get a `\n`
+        # separator so different summaries (e.g. OpenAI multi-summary
+        # explode) don't fuse. `\n` is itself an immediate terminator,
+        # so the prior block's buffered content emits as a complete
+        # ReasoningStatus before this block's text feeds.
+        delta = ("\n" if prepend_separator else "") + block.get("reasoning", "")
+        for sentence in self._segmenter.feed(delta):
+            events.append(
+                ReasoningStatus(reasoning_id=self._current_reasoning_id, text=sentence)
+            )
+
+    def _handle_text_block(self, block: dict, events: list[DomainEvent]) -> None:
+        # D28 hold-and-flush: any buffered reasoning tail must reach the
+        # wire BEFORE TextStart so the frontend can clear the reasoning
+        # indicator on text-start without losing the last visible sentence.
+        self._flush_segmenter_into(events)
+        text = block.get("text", "")
+        if not text:
+            return
+        if not self._text_block_open:
+            self._current_text_id = self._next_text_id()
+            events.append(TextStart(text_id=self._current_text_id))
+            self._text_block_open = True
+        events.append(TextDelta(text_id=self._current_text_id, delta=text))
+
+    def _handle_tool_call_chunk_block(self, block: dict, events: list[DomainEvent]) -> None:
+        # D28 hold-and-flush — same rationale as _handle_text_block.
+        self._flush_segmenter_into(events)
+        if self._text_block_open:
+            events.append(TextEnd(text_id=self._current_text_id))
+            self._text_block_open = False
+        tc_id = block.get("id")
+        tc_name = block.get("name")
+        if tc_id and tc_name and tc_id not in self._pending_tool_calls:
+            self._pending_tool_calls[tc_id] = tc_name
+
+    def _flush_segmenter_into(self, events: list[DomainEvent]) -> None:
+        tail = self._segmenter.flush()
+        if tail and self._current_reasoning_id is not None:
+            events.append(
+                ReasoningStatus(reasoning_id=self._current_reasoning_id, text=tail)
+            )
 
     def _handle_updates(self, chunk: dict) -> list[DomainEvent]:
         events: list[DomainEvent] = []
@@ -133,7 +233,14 @@ class StreamEventMapper:
         return []
 
     def finalize(self) -> list[DomainEvent]:
+        if self._finalized:
+            return []
+        self._finalized = True
         events: list[DomainEvent] = []
+        # D34: reasoning may be the last block of the last LLM call with no
+        # terminator and no following text/tool. flush() here closes that
+        # gap so the buffer is never lost.
+        self._flush_segmenter_into(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))
             self._text_block_open = False

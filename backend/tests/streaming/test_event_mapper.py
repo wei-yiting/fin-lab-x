@@ -5,6 +5,7 @@ from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningStatus,
     TextDelta,
     TextEnd,
     TextStart,
@@ -271,3 +272,197 @@ class TestUsageAccumulation:
         events = mapper.finalize()
         finish = next(e for e in events if isinstance(e, Finish))
         assert finish.usage == Usage(input_tokens=15, output_tokens=35)
+
+
+def make_messages_chunk_reasoning(text: str, msg_id: str = "msg-1") -> dict:
+    msg = AIMessageChunk(
+        content=[{"type": "reasoning", "reasoning": text}],
+        id=msg_id,
+    )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
+def make_messages_chunk_reasoning_then_text(
+    reasoning: str,
+    text: str,
+    msg_id: str = "msg-1",
+) -> dict:
+    msg = AIMessageChunk(
+        content=[
+            {"type": "reasoning", "reasoning": reasoning},
+            {"type": "text", "text": text},
+        ],
+        id=msg_id,
+    )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
+class TestReasoningHappyPath:
+    """A reasoning block with a terminator emits ReasoningStatus immediately."""
+
+    def test_single_reasoning_sentence(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("理解問題。", msg_id="msg-A")
+        )
+
+        assert events == [
+            MessageStart(message_id="msg-A", session_id=SESSION_ID),
+            ReasoningStatus(reasoning_id="reasoning-0", text="理解問題。"),
+        ]
+
+
+class TestReasoningHoldAndFlushOrdering:
+    """D28: reasoning sentences must emit BEFORE TextStart in the same chunk."""
+
+    def test_reasoning_then_text_in_same_chunk(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning_then_text(
+                reasoning="分析中。",
+                text="answer",
+                msg_id="msg-A",
+            )
+        )
+
+        types_in_order = [type(e).__name__ for e in events]
+        assert types_in_order == [
+            "MessageStart",
+            "ReasoningStatus",
+            "TextStart",
+            "TextDelta",
+        ]
+        rs = next(e for e in events if isinstance(e, ReasoningStatus))
+        assert rs.text == "分析中。"
+
+    def test_reasoning_tail_flushed_before_tool_call(self):
+        # Buffer a reasoning fragment with no terminator, then receive a
+        # tool_call_chunk in the next chunk — the buffered fragment must
+        # be flushed as ReasoningStatus before the text block closes.
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(make_messages_chunk_reasoning("partial-thought", msg_id="msg-A"))
+
+        events = mapper.process_chunk(
+            make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
+        )
+
+        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
+        assert len(rs_events) == 1
+        assert rs_events[0].text == "partial-thought"
+
+
+class TestChunkIdBoundary:
+    """D27.1: chunk.id transitions trigger segmenter flush + reset."""
+
+    def test_same_id_continuation_no_flush(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        # Buffer "step 1" (no terminator) under msg-A
+        mapper.process_chunk(make_messages_chunk_reasoning("step 1", msg_id="msg-A"))
+        # Same chunk.id arrives — must NOT trigger flush
+        events = mapper.process_chunk(make_messages_chunk_reasoning(" continues", msg_id="msg-A"))
+
+        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
+        assert rs_events == []
+
+    def test_none_id_treated_as_continuation(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(make_messages_chunk_reasoning("partial", msg_id="msg-A"))
+        # id=None is continuation per D27.1, no boundary flush
+        events = mapper.process_chunk(make_messages_chunk_reasoning(" more", msg_id=None))
+
+        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
+        assert rs_events == []
+
+    def test_different_id_triggers_flush_and_new_reasoning_id(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        # Buffer "tail-A" with no terminator under msg-A
+        mapper.process_chunk(make_messages_chunk_reasoning("tail-A", msg_id="msg-A"))
+        # New chunk.id msg-B → boundary: flush buffered tail. The new reasoning
+        # ends with `\n` (immediate terminator) so it emits in the same call.
+        events = mapper.process_chunk(make_messages_chunk_reasoning("new B.\n", msg_id="msg-B"))
+
+        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
+        assert len(rs_events) == 2
+        # First emit is the flushed tail under the OLD reasoning_id
+        assert rs_events[0].text == "tail-A"
+        assert rs_events[0].reasoning_id == "reasoning-0"
+        # Second emit is the new sentence under the NEW reasoning_id
+        assert rs_events[1].text == "new B."
+        assert rs_events[1].reasoning_id == "reasoning-1"
+
+
+class TestReasoningIdLifecycle:
+    """D27.2: same chunk.id → same reasoning_id; new chunk.id → new reasoning_id."""
+
+    def test_three_reasoning_blocks_same_call_share_id(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = []
+        events += mapper.process_chunk(make_messages_chunk_reasoning("first.\n", msg_id="msg-A"))
+        events += mapper.process_chunk(make_messages_chunk_reasoning("second.\n", msg_id="msg-A"))
+        events += mapper.process_chunk(make_messages_chunk_reasoning("third.\n", msg_id="msg-A"))
+
+        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
+        assert len(rs_events) == 3
+        ids = {e.reasoning_id for e in rs_events}
+        assert ids == {"reasoning-0"}
+
+    def test_new_llm_call_gets_new_reasoning_id(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events_a = mapper.process_chunk(
+            make_messages_chunk_reasoning("call-A.\n", msg_id="msg-A")
+        )
+        events_b = mapper.process_chunk(
+            make_messages_chunk_reasoning("call-B.\n", msg_id="msg-B")
+        )
+
+        rs_a = [e for e in events_a if isinstance(e, ReasoningStatus)]
+        rs_b = [e for e in events_b if isinstance(e, ReasoningStatus)]
+        assert rs_a[0].reasoning_id == "reasoning-0"
+        assert rs_b[0].reasoning_id == "reasoning-1"
+
+
+class TestFinalizeReasoningTail:
+    """D34: finalize() emits any buffered segmenter tail before Finish."""
+
+    def test_finalize_flushes_reasoning_tail(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("no terminator here", msg_id="msg-A")
+        )
+        events = mapper.finalize()
+
+        types_in_order = [type(e).__name__ for e in events]
+        # Tail flushed first, then Finish (no TextEnd because no text block opened)
+        assert types_in_order == ["ReasoningStatus", "Finish"]
+        rs = next(e for e in events if isinstance(e, ReasoningStatus))
+        assert rs.text == "no terminator here"
+
+    def test_finalize_no_segmenter_content_emits_only_finish(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(make_messages_chunk_text("done.", msg_id="msg-A"))
+        mapper.process_chunk(make_messages_chunk_tool_call("tc-1", "fn", msg_id="msg-A"))
+
+        events = mapper.finalize()
+
+        # Text block already closed by tool call; no buffered reasoning;
+        # only Finish should remain.
+        assert len(events) == 1
+        assert isinstance(events[0], Finish)
+
+    def test_finalize_called_twice_emits_only_one_finish(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(make_messages_chunk_text("hi", msg_id="msg-A"))
+
+        first = mapper.finalize()
+        second = mapper.finalize()
+
+        assert any(isinstance(e, Finish) for e in first)
+        assert second == []

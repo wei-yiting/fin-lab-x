@@ -47,6 +47,7 @@ export function ChatPanel() {
   const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
   const {
     reasoningStatusText,
+    stalled: reasoningStalled,
     handleData: handleReasoningData,
     clearReasoningStatus,
     resetForNewTurn,
@@ -241,6 +242,7 @@ export function ChatPanel() {
         abortedTools={abortedTools}
         onRegenerate={handleRegenerate}
         reasoningStatusText={reasoningStatusText}
+        reasoningStalled={reasoningStalled}
         emptyContent={
           !showError ? (
             <EmptyState

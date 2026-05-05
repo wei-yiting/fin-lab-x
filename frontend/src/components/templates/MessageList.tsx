@@ -22,6 +22,7 @@ interface MessageListProps {
   abortedTools: Set<string>;
   onRegenerate: (id: string) => void;
   reasoningStatusText: string | null;
+  reasoningStalled?: boolean;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
 }
@@ -38,6 +39,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     abortedTools,
     onRegenerate,
     reasoningStatusText,
+    reasoningStalled = false,
     emptyContent,
     errorContent,
   },
@@ -114,6 +116,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             <ReasoningIndicator
               text={reasoningDisplayText}
               state={status === "error" ? "frozen" : "streaming"}
+              stalled={reasoningStalled}
             />
           )}
         </div>

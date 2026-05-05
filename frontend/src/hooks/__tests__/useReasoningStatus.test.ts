@@ -1,6 +1,6 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useReasoningStatus } from "../useReasoningStatus";
+import { useReasoningStatus, STALLED_THRESHOLD_MS } from "../useReasoningStatus";
 
 describe("useReasoningStatus — initial state", () => {
   test("reasoningStatusText defaults to null", () => {
@@ -337,6 +337,96 @@ describe("useReasoningStatus — routing isolation", () => {
     });
 
     expect(result.current.reasoningStatusText).toBe("thinking");
+  });
+});
+
+describe("useReasoningStatus — D14 stalled modifier (10s silence)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("STALLED_THRESHOLD_MS is exported as 10_000", () => {
+    expect(STALLED_THRESHOLD_MS).toBe(10_000);
+  });
+
+  test("stalled defaults to false", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const { result } = renderHook(() => useReasoningStatus());
+    expect(result.current.stalled).toBe(false);
+  });
+
+  test("after handleData: stalled stays false at 9s, flips to true past 10s, resets on next chunk", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const { result } = renderHook(() => useReasoningStatus());
+
+    act(() => {
+      result.current.handleData({
+        type: "data-reasoning-status",
+        data: { text: "thinking" },
+      });
+    });
+    expect(result.current.stalled).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(9_000);
+    });
+    expect(result.current.stalled).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(2_000);
+    });
+    expect(result.current.stalled).toBe(true);
+
+    act(() => {
+      result.current.handleData({
+        type: "data-reasoning-status",
+        data: { text: "thinking more" },
+      });
+    });
+    expect(result.current.stalled).toBe(false);
+    expect(result.current.reasoningStatusText).toBe("thinking more");
+  });
+
+  test("interval is cleaned up on unmount (no timer leaks)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const { result, unmount } = renderHook(() => useReasoningStatus());
+
+    act(() => {
+      result.current.handleData({
+        type: "data-reasoning-status",
+        data: { text: "thinking" },
+      });
+    });
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
+
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  test("stalled clears when text is cleared (e.g. by finish)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const { result } = renderHook(() => useReasoningStatus());
+
+    act(() => {
+      result.current.handleData({
+        type: "data-reasoning-status",
+        data: { text: "thinking" },
+      });
+    });
+    act(() => {
+      vi.advanceTimersByTime(11_000);
+    });
+    expect(result.current.stalled).toBe(true);
+
+    act(() => {
+      result.current.handleData({ type: "finish" });
+    });
+    expect(result.current.reasoningStatusText).toBeNull();
+    expect(result.current.stalled).toBe(false);
   });
 });
 

@@ -51,37 +51,15 @@ export function ChatPanel() {
   } = useReasoningStatus();
   const [lastSSEEvent, setLastSSEEvent] = useState<AnnouncedEvent | null>(null);
 
+  // AI SDK v6's onData only fires for data-* chunks (gated by isDataUIMessageChunk
+  // in node_modules/ai/dist/index.mjs:5765). Generic SSE events (start, tool-*,
+  // finish, error) reach onFinish / onError / status state instead — never here.
+  // We still forward every chunk to toolProgress + reasoning handlers because
+  // those care about data-tool-progress / data-reasoning-status which DO arrive.
   const onData = useCallback(
     (dataPart: { type: string; id?: string; data: unknown }) => {
       toolProgressHandleData(dataPart);
       handleReasoningData(dataPart as Parameters<typeof handleReasoningData>[0]);
-
-      // Map only the events the announcer recognises; everything else (text-delta,
-      // data-reasoning-status, data-tool-progress, etc.) leaves lastSSEEvent intact.
-      const part = dataPart as { type: string; toolName?: string; errorText?: string };
-      switch (part.type) {
-        case "start":
-          setLastSSEEvent({ type: "start" });
-          break;
-        case "tool-input-available":
-          setLastSSEEvent({ type: "tool-input-available", toolName: part.toolName });
-          break;
-        case "tool-output-available":
-          setLastSSEEvent({ type: "tool-output-available", toolName: part.toolName });
-          break;
-        case "tool-output-error":
-          setLastSSEEvent({
-            type: "tool-output-error",
-            toolName: part.toolName,
-            errorText: part.errorText,
-          });
-          break;
-        case "finish":
-          setLastSSEEvent({ type: "finish" });
-          break;
-        default:
-          break;
-      }
     },
     [toolProgressHandleData, handleReasoningData],
   );
@@ -90,6 +68,18 @@ export function ChatPanel() {
     id: chatId,
     transport,
     onData,
+    onFinish: () => {
+      // AI SDK v6 routes the SSE `finish` chunk through onFinish, not onData.
+      // Latch finishedRef and surface "Response complete" to screen readers.
+      handleReasoningData({ type: "finish" });
+      setLastSSEEvent({ type: "finish" });
+    },
+    onError: () => {
+      // AI SDK v6 routes the SSE `error` chunk through onError, not onData.
+      // Latch finishedRef so any late reasoning events are dropped. The
+      // status === "error" path in LiveStatusAnnouncer handles the announcement.
+      handleReasoningData({ type: "error" });
+    },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
   const lastTriggerRef = useRef<LastTrigger | null>(null);

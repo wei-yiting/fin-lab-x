@@ -1,11 +1,14 @@
 """Tests for domain event value objects — frozen immutability, construction, equality."""
 
+from typing import get_args
+
 import pytest
 
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
     MessageStart,
+    ReasoningStatus,
     StreamError,
     TextDelta,
     TextEnd,
@@ -159,6 +162,7 @@ class TestDomainEventUnion:
             ToolResult(tool_call_id="tc1", result="ok"),
             ToolError(tool_call_id="tc1", error="fail"),
             ToolProgress(tool_call_id="tc1", data={}),
+            ReasoningStatus(reasoning_id="r1", text="思考中"),
             StreamError(error_text="err"),
             Finish(finish_reason="stop"),
         ],
@@ -173,7 +177,30 @@ class TestDomainEventUnion:
             ToolResult,
             ToolError,
             ToolProgress,
+            ReasoningStatus,
             StreamError,
             Finish,
         )
         assert isinstance(event, event_types)
+
+
+class TestReasoningStatus:
+    """ReasoningStatus domain event — frozen, equality, DomainEvent union membership."""
+
+    def test_is_frozen(self):
+        evt = ReasoningStatus(reasoning_id="r-0", text="理解問題")
+        with pytest.raises(AttributeError):
+            evt.text = "changed"  # type: ignore[misc]
+
+    def test_construction(self):
+        evt = ReasoningStatus(reasoning_id="r-0", text="理解問題")
+        assert evt.reasoning_id == "r-0"
+        assert evt.text == "理解問題"
+
+    def test_equality(self):
+        assert ReasoningStatus(reasoning_id="r-0", text="理解問題") == ReasoningStatus(
+            reasoning_id="r-0", text="理解問題"
+        )
+
+    def test_is_member_of_domain_event_union(self):
+        assert ReasoningStatus in get_args(DomainEvent)

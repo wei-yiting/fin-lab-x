@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import functools
 import json
+import logging
+import os
 
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningStatus,
     StreamError,
     TextDelta,
     TextEnd,
@@ -22,9 +25,22 @@ from backend.agent_engine.streaming.domain_events_schema import (
     ToolResult,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def _sse(payload: dict) -> str:
     return f"data: {json.dumps(payload)}\n\n"
+
+
+# D39.c: reasoning events must always carry transient=True. ToolProgress predates this contract and is intentionally not guarded.
+def _assert_reasoning_transient(payload: dict) -> None:
+    if not (payload.get("type", "").startswith("data-reasoning-")
+            and payload.get("transient") is True):
+        msg = "reasoning SSE event missing transient=True flag"
+        if os.environ.get("APP_ENV", "").lower() == "production":
+            logger.warning(msg, extra={"payload_type": payload.get("type")})
+        else:
+            raise AssertionError(msg)
 
 
 @functools.singledispatch
@@ -92,6 +108,18 @@ def _(event: ToolProgress) -> str:
         "data": event.data,
         "transient": True,
     })
+
+
+@serialize_event.register
+def _(event: ReasoningStatus) -> str:
+    payload = {
+        "type": "data-reasoning-status",
+        "id": event.reasoning_id,
+        "data": {"text": event.text},
+        "transient": True,
+    }
+    _assert_reasoning_transient(payload)
+    return _sse(payload)
 
 
 @serialize_event.register

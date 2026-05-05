@@ -1,12 +1,15 @@
 """Tests for SSE serializer — singledispatch conversion of domain events to wire format."""
 
 import json
+import logging
 
 import pytest
 
+from backend.agent_engine.streaming import sse_serializer
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningStatus,
     StreamError,
     TextDelta,
     TextEnd,
@@ -17,7 +20,10 @@ from backend.agent_engine.streaming.domain_events_schema import (
     ToolResult,
     Usage,
 )
-from backend.agent_engine.streaming.sse_serializer import serialize_event
+from backend.agent_engine.streaming.sse_serializer import (
+    _assert_reasoning_transient,
+    serialize_event,
+)
 
 
 def _parse_sse(raw: str) -> dict:
@@ -171,6 +177,50 @@ class TestUnknownEventType:
     def test_raises_type_error(self):
         with pytest.raises(TypeError, match="Unhandled event type"):
             serialize_event("not an event")
+
+
+class TestReasoningStatusSerializer:
+    """SSE wire format for ReasoningStatus — S-chan-01 transient contract + S-chan-04 guard."""
+
+    def test_happy_path_full_payload(self):
+        evt = ReasoningStatus(reasoning_id="r-0", text="理解問題")
+        payload = _parse_sse(serialize_event(evt))
+        assert payload == {
+            "type": "data-reasoning-status",
+            "id": "r-0",
+            "data": {"text": "理解問題"},
+            "transient": True,
+        }
+
+    def test_assert_guard_called_through_serialize_event(self, monkeypatch):
+        """If the literal payload in the registered fn ever lost transient=True,
+        serialize_event would raise. Patch the helper to record calls."""
+        captured = []
+
+        def fake(payload):
+            captured.append(payload)
+
+        monkeypatch.setattr(sse_serializer, "_assert_reasoning_transient", fake)
+        sse_serializer.serialize_event(ReasoningStatus(reasoning_id="r-0", text="x"))
+        assert len(captured) == 1
+        assert captured[0]["transient"] is True
+        assert captured[0]["type"] == "data-reasoning-status"
+
+    def test_assert_guard_raises_in_dev(self, monkeypatch):
+        """S-chan-04: missing transient flag raises AssertionError in dev/CI."""
+        monkeypatch.delenv("APP_ENV", raising=False)
+        bad_payload = {"type": "data-reasoning-status", "id": "r-0"}
+        with pytest.raises(AssertionError, match="reasoning SSE event missing transient=True flag"):
+            _assert_reasoning_transient(bad_payload)
+
+    def test_assert_guard_warns_in_production(self, monkeypatch, caplog):
+        """S-chan-04: missing transient flag logs a warning in production, no raise."""
+        monkeypatch.setenv("APP_ENV", "production")
+        bad_payload = {"type": "data-reasoning-status", "id": "r-0"}
+        with caplog.at_level(logging.WARNING, logger="backend.agent_engine.streaming.sse_serializer"):
+            _assert_reasoning_transient(bad_payload)
+        assert "reasoning SSE event missing transient=True flag" in caplog.text
+        assert caplog.records[0].payload_type == "data-reasoning-status"
 
 
 class TestJsonSpecialCharacters:

@@ -29,10 +29,30 @@ def _load_registry() -> None:
 _load_registry()
 
 
+def _strip_provider_prefix(model_name: str) -> str:
+    """Return the bare model name for a ``provider:model`` identifier.
+
+    Registry keys live as bare model names (``gemini-2.5-flash``) while agent
+    configs store provider-prefixed names accepted by ``init_chat_model``
+    (``google_genai:gemini-2.5-flash``). This keeps the registry portable
+    across LangChain provider naming churn.
+    """
+    return model_name.split(":", 1)[1] if ":" in model_name else model_name
+
+
 def get_model_context_window(model_name: str) -> int:
     """Return max input tokens for ``model_name``; falls back to
-    ``DEFAULT_CONTEXT_WINDOW`` with a warn-once log on miss."""
+    ``DEFAULT_CONTEXT_WINDOW`` with a warn-once log on miss.
+
+    Looks up the raw name first (so callers passing bare names keep working),
+    then falls back to the prefix-stripped form to match registry entries
+    keyed without provider prefix.
+    """
     entry = _REGISTRY.get(model_name)
+    if not (entry and "max_input_tokens" in entry):
+        bare = _strip_provider_prefix(model_name)
+        if bare != model_name:
+            entry = _REGISTRY.get(bare)
     if entry and "max_input_tokens" in entry:
         return int(entry["max_input_tokens"])
     if model_name not in _WARNED_MODELS:

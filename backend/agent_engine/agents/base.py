@@ -22,6 +22,7 @@ from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitState
 from langchain.agents.middleware.types import ResponseT, hook_config
 from langchain.chat_models import init_chat_model
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.runtime import Runtime
@@ -32,7 +33,7 @@ from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import TypedDict
 
-from backend.agent_engine.agents.config_loader import VersionConfig
+from backend.agent_engine.agents.config_loader import ModelConfig, VersionConfig
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
@@ -62,6 +63,78 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
 # Literal JSON fragments like `{"role": "user"}` have `"` as the first inner
 # char and are skipped, so they survive rendering untouched.
 _PROMPT_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def _provider_prefix(name: str) -> str:
+    """Return the provider segment of a ``provider:model`` identifier.
+
+    Bare names without a colon default to ``"openai"`` to preserve
+    pre-multi-provider behavior.
+    """
+    return name.split(":", 1)[0] if ":" in name else "openai"
+
+
+def _init_model(config: ModelConfig) -> BaseChatModel:
+    """Build a chat model with provider-aware reasoning kwargs.
+
+    Maps ``ModelConfig.reasoning`` + ``thinking_budget`` to the right
+    ``init_chat_model`` keyword for each provider:
+
+    - ``google_genai`` — passes ``thinking_budget`` (``None`` lets the
+      provider use its default; ``0`` when reasoning is ``"off"`` to
+      force disable).
+    - ``anthropic`` — passes ``thinking={"type":"enabled","budget_tokens":N}``
+      only when reasoning is ``"on"``. Anthropic API requires an explicit
+      budget (≥1024), so a ``None`` or sub-1024 budget with reasoning on
+      is rejected here rather than letting the provider raise mid-request.
+    - ``openai`` — passes ``reasoning_effort="medium"`` and
+      ``use_responses_api=True`` when reasoning is ``"on"`` (gpt-5 series).
+      Bare names without a ``provider:`` prefix default to this branch.
+
+    ``reasoning="unsupported"`` short-circuits before any provider branch
+    so NO reasoning kwarg reaches ``init_chat_model``. This matters for
+    bound models that physically cannot accept the kwarg (e.g.
+    gemini-1.5 rejects ``thinking_budget`` entirely; gemini-2.5-pro
+    rejects ``thinking_budget=0`` because thinking can't be disabled).
+    Treating ``"unsupported"`` and ``"off"`` identically would break
+    those cases.
+    """
+    name = config.name
+    provider = _provider_prefix(name)
+    kwargs: dict[str, Any] = {"temperature": config.temperature}
+
+    if config.reasoning == "unsupported":
+        return init_chat_model(name, **kwargs)
+
+    if provider == "google_genai":
+        kwargs["thinking_budget"] = (
+            config.thinking_budget if config.reasoning == "on" else 0
+        )
+    elif provider == "anthropic":
+        if config.reasoning == "on":
+            if config.thinking_budget is None:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires explicit "
+                    "thinking_budget (Anthropic API requires budget_tokens, "
+                    "minimum 1024). Set in agent yaml."
+                )
+            if config.thinking_budget < 1024:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires "
+                    f"thinking_budget >= 1024 (got {config.thinking_budget}). "
+                    "Anthropic API rejects lower values."
+                )
+            kwargs["thinking"] = {
+                "type": "enabled",
+                "budget_tokens": config.thinking_budget,
+            }
+    else:
+        # openai (explicit prefix) and bare names
+        if config.reasoning == "on":
+            kwargs["reasoning_effort"] = "medium"
+            kwargs["use_responses_api"] = True
+
+    return init_chat_model(name, **kwargs)
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -222,7 +295,7 @@ class Orchestrator:
             max_tool_calls_per_run=config.constraints.max_tool_calls_per_run,
         )
 
-        model = init_chat_model(config.model.name, temperature=config.model.temperature)
+        model = _init_model(config.model)
         tool_call_limit = RunBudgetMiddleware(
             run_limit=config.constraints.max_tool_calls_per_run,
         )

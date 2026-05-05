@@ -1,19 +1,39 @@
 """Version configuration loader for FinLab-X workflows."""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class ModelConfig(BaseModel):
-    """Model configuration for a workflow version."""
+    """Model configuration for a workflow version.
+
+    Fields:
+        name: Provider-prefixed model identifier accepted by
+            ``langchain.chat_models.init_chat_model`` (e.g.
+            ``"google_genai:gemini-2.5-flash"`` or ``"anthropic:claude-..."``).
+            Bare names (``"gpt-4o-mini"``) default to OpenAI.
+        temperature: Sampling temperature passed to the chat model.
+        reasoning: Admin-configured reasoning capability for this agent.
+            ``"on"`` enables provider-specific thinking/reasoning; ``"off"``
+            forces it disabled (e.g. Gemini ``thinking_budget=0``);
+            ``"unsupported"`` documents that the bound model has no reasoning
+            mode and the orchestrator should not attempt to enable one.
+            Defaults to ``"off"`` so reasoning never silently turns on.
+        thinking_budget: Optional explicit reasoning token budget. Used as
+            Anthropic ``budget_tokens`` (required, ≥1024) and Gemini
+            ``thinking_budget``. ``None`` lets the provider pick its default
+            for Gemini and is rejected for Anthropic with reasoning="on".
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     name: str = "gpt-4o-mini"
     temperature: float = 0.0
+    reasoning: Literal["on", "off", "unsupported"] = "off"
+    thinking_budget: int | None = None
 
 
 class ConstraintsConfig(BaseModel):

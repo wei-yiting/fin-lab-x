@@ -71,7 +71,11 @@ def test_load_registry_handles_non_dict_yaml(tmp_path, monkeypatch, caplog):
 
 
 def test_registry_yaml_matches_orchestrator_configs():
-    """Sanity: committed YAML covers every model referenced in versions/*."""
+    """Sanity: committed YAML covers every model referenced in versions/*.
+
+    Provider-prefixed names (e.g. ``google_genai:gemini-2.5-flash``) match
+    against the bare key (``gemini-2.5-flash``) — see ``_strip_provider_prefix``.
+    """
     from pathlib import Path
     import yaml
 
@@ -85,5 +89,40 @@ def test_registry_yaml_matches_orchestrator_configs():
     registry = yaml.safe_load(
         Path("backend/agent_engine/utils/model_context_registry.yaml").read_text()
     ) or {}
-    missing = needed - set(registry.keys())
+    registry_keys = set(registry.keys())
+    missing = []
+    for name in needed:
+        bare = name.split(":", 1)[1] if ":" in name else name
+        if name not in registry_keys and bare not in registry_keys:
+            missing.append(name)
     assert not missing, f"YAML missing entries for: {missing}"
+
+
+def test_get_model_context_window_strips_provider_prefix(monkeypatch):
+    """Lookup must succeed when the caller passes a provider-prefixed name
+    against a bare-key registry entry (Gemini / Anthropic LangChain naming).
+    """
+    monkeypatch.setattr(
+        model_context,
+        "_REGISTRY",
+        {"gemini-2.5-flash": {"max_input_tokens": 1_048_576, "source": "google_official"}},
+    )
+    assert (
+        get_model_context_window("google_genai:gemini-2.5-flash") == 1_048_576
+    )
+
+
+def test_compute_section_soft_cap_chars_with_prefixed_gemini(monkeypatch):
+    """End-to-end: compute_section_soft_cap_chars should reach the Gemini value
+    via prefix-stripping for the canonical agent config name.
+    """
+    monkeypatch.setattr(
+        model_context,
+        "_REGISTRY",
+        {"gemini-2.5-flash": {"max_input_tokens": 1_048_576, "source": "google_official"}},
+    )
+    # 1_048_576 * 0.4 * 4 = 1_677_721 (int truncation)
+    assert (
+        compute_section_soft_cap_chars("google_genai:gemini-2.5-flash")
+        == 1_677_721
+    )

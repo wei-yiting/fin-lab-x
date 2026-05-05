@@ -6,7 +6,10 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    VersionConfigLoader,
+)
 
 
 def _write_version_yaml(base_dir: Path, version_name: str, payload: dict) -> None:
@@ -70,3 +73,88 @@ def test_load_accepts_valid_payload(tmp_path, monkeypatch):
 
     assert config.name == "v_test_valid"
     assert config.constraints.max_tool_calls_per_run == 5
+
+
+# ---------------------------------------------------------------------------
+# Task 5: ModelConfig reasoning + thinking_budget fields
+# ---------------------------------------------------------------------------
+
+
+def test_model_config_defaults_reasoning_off():
+    cfg = ModelConfig()
+    assert cfg.reasoning == "off"
+    assert cfg.thinking_budget is None
+
+
+def test_model_config_accepts_reasoning_on_with_null_budget(tmp_path, monkeypatch):
+    payload = _valid_payload("v_test_reasoning_on")
+    payload["model"] = {
+        "name": "google_genai:gemini-2.5-flash",
+        "temperature": 0.0,
+        "reasoning": "on",
+        "thinking_budget": None,
+    }
+    _write_version_yaml(tmp_path, "v_test_reasoning_on", payload)
+    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+
+    config = VersionConfigLoader("v_test_reasoning_on").load()
+    assert config.model.reasoning == "on"
+    assert config.model.thinking_budget is None
+    assert config.model.name == "google_genai:gemini-2.5-flash"
+
+
+def test_model_config_accepts_explicit_thinking_budget(tmp_path, monkeypatch):
+    payload = _valid_payload("v_test_explicit_budget")
+    payload["model"] = {
+        "name": "anthropic:claude-sonnet-4-5",
+        "temperature": 0.0,
+        "reasoning": "on",
+        "thinking_budget": 2048,
+    }
+    _write_version_yaml(tmp_path, "v_test_explicit_budget", payload)
+    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+
+    config = VersionConfigLoader("v_test_explicit_budget").load()
+    assert config.model.thinking_budget == 2048
+
+
+def test_model_config_rejects_unknown_reasoning_literal(tmp_path, monkeypatch):
+    payload = _valid_payload("v_test_bad_reasoning")
+    payload["model"] = {
+        "name": "google_genai:gemini-2.5-flash",
+        "temperature": 0.0,
+        "reasoning": "invalid",
+    }
+    _write_version_yaml(tmp_path, "v_test_bad_reasoning", payload)
+    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+
+    with pytest.raises(ValidationError) as exc_info:
+        VersionConfigLoader("v_test_bad_reasoning").load()
+    assert "reasoning" in str(exc_info.value)
+
+
+def test_model_config_accepts_unsupported_literal():
+    cfg = ModelConfig(reasoning="unsupported")
+    assert cfg.reasoning == "unsupported"
+
+
+def test_model_config_rejects_unknown_field():
+    """``extra='forbid'`` still applies — typos in the model section fail fast."""
+    with pytest.raises(ValidationError):
+        ModelConfig(thinking_budgett=1024)  # type: ignore[call-arg]
+
+
+# ---------------------------------------------------------------------------
+# Task 5: v1-v5 yaml smoke load — every shipped agent must point at Gemini
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "version",
+    ["v1_baseline", "v2_reader", "v3_quant", "v4_graph", "v5_analyst"],
+)
+def test_all_shipped_versions_use_gemini_with_reasoning_on(version):
+    config = VersionConfigLoader(version).load()
+    assert config.model.name == "google_genai:gemini-2.5-flash"
+    assert config.model.reasoning == "on"
+    assert config.model.thinking_budget is None

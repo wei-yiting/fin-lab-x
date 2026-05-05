@@ -4,3 +4,6 @@ gpt-4o:
 gpt-4o-mini:
   max_input_tokens: 128000
   source: litellm
+gemini-2.5-flash:
+  max_input_tokens: 1048576
+  source: google_official

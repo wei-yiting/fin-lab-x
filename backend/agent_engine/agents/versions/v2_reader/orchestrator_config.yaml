@@ -16,8 +16,10 @@ tools:
   - sec_filing_get_section
 
 model:
-  name: "gpt-4o"
+  name: "google_genai:gemini-2.5-flash"
   temperature: 0.0
+  reasoning: "on"
+  thinking_budget: null
 
 constraints:
   max_tool_calls_per_run: 5

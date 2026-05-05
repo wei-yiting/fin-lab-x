@@ -42,6 +42,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
   const showReasoning = shouldShowReasoningIndicator({
     status,
     lastMessage: lastMessage as Parameters<typeof shouldShowReasoningIndicator>[0]["lastMessage"],
+    reasoningStatusText: null,
   });
 
   if (messages.length === 0 && !showReasoning) {

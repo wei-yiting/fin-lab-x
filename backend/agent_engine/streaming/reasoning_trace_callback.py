@@ -50,6 +50,13 @@ class ReasoningTraceCallback(BaseCallbackHandler):
     SIZE_CAP_BYTES = 500_000  # D29.2
     UNSUPPORTED_SENTINEL = "<unsupported>"  # D29.3
     METADATA_KEY = "reasoning"  # D29.1
+    # Force LangChain to dispatch this callback inline (block before invoking
+    # the next handler) on both sync and async paths. The async dispatcher
+    # otherwise runs each non-inline handler under its own copy_context()
+    # snapshot, which would silently make list ordering vs. the Langfuse
+    # handler decorative on async; with run_inline=True the docstring's
+    # "ordering matters" claim is literally accurate everywhere.
+    run_inline = True
 
     def __init__(
         self, *, agent_reasoning_capability: Literal["on", "off", "unsupported"]

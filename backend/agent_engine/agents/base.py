@@ -10,6 +10,8 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
+import asyncio
+import logging
 import os
 import re
 import time
@@ -28,7 +30,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.runtime import Runtime
 from langgraph.typing import ContextT
 from typing_extensions import override
-from langfuse import propagate_attributes
+from langfuse import get_client, propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import TypedDict
@@ -37,14 +39,21 @@ from backend.agent_engine.agents.config_loader import ModelConfig, VersionConfig
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
+    ReasoningStatus,
     StreamError,
 )
 from backend.agent_engine.streaming.event_mapper import StreamEventMapper
+from backend.agent_engine.streaming.reasoning_trace_callback import (
+    ReasoningTraceCallback,
+)
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
 from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
 from backend.common.sec_core import ConfigurationError
+
+
+logger = logging.getLogger(__name__)
 
 
 # Captured once per Python process. Lets engineers distinguish pre/post-restart
@@ -449,12 +458,56 @@ class Orchestrator:
 
                 for event in mapper.finalize():
                     yield event
+            except asyncio.CancelledError:
+                # D35 abort cleanup. CancelledError is BaseException (not
+                # Exception); list it before the generic except so it doesn't
+                # collapse into the StreamError path.
+                self._handle_abort_cleanup(mapper)
+                raise
             except Exception as e:
                 for event in mapper.finalize():
                     if not isinstance(event, Finish):
                         yield event
                 yield StreamError(error_text=sanitize_tool_error(str(e)))
                 yield Finish(finish_reason="error")
+
+    def _handle_abort_cleanup(self, mapper: StreamEventMapper) -> None:
+        """D35 abort cleanup.
+
+        Drains the segmenter, writes any tail reasoning text to the in-flight
+        chat_model generation under ``metadata.reasoning_tail_aborted`` (a
+        distinct key from the completed-path ``metadata.reasoning`` so the
+        schema stays consistent), and stamps the root span as
+        ``status="aborted"``. All Langfuse interactions are best-effort —
+        internal failures are logged but never re-raised so cancellation
+        propagation is not blocked by observability outages.
+
+        Sync by design — sync code is not interruptible by ``CancelledError``,
+        so cleanup runs to completion even when the parent task is being
+        cancelled.
+        """
+        tail_segments: list[str] = []
+        try:
+            for event in mapper.finalize():
+                if isinstance(event, ReasoningStatus):
+                    tail_segments.append(event.text)
+        except Exception:
+            logger.exception("mapper.finalize raised during abort cleanup")
+
+        client = get_client()
+        if tail_segments:
+            try:
+                client.update_current_generation(
+                    metadata={"reasoning_tail_aborted": "\n".join(tail_segments)},
+                )
+            except Exception:
+                logger.exception(
+                    "failed to write reasoning_tail_aborted to current generation"
+                )
+        try:
+            client.update_current_span(metadata={"status": "aborted"})
+        except Exception:
+            logger.exception("failed to mark trace aborted")
 
     @staticmethod
     def _find_regenerate_target(
@@ -541,8 +594,17 @@ class Orchestrator:
         ``v1_baseline_stream``. request_id + extras (trigger, message_id, ...)
         go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
         attaches them to the root trace via the ``langfuse_trace_name`` path.
+
+        Callback ordering is load-bearing: ``ReasoningTraceCallback`` MUST
+        precede ``langfuse.langchain.CallbackHandler`` because the Langfuse
+        handler pops the chat_model generation off contextvars in its own
+        ``on_llm_end``. If ours runs second, ``update_current_generation``
+        targets a stale frame.
         """
         handler = CallbackHandler()
+        reasoning_callback = ReasoningTraceCallback(
+            agent_reasoning_capability=self.config.model.reasoning,
+        )
         trace_name = f"{self.config.name}_{mode}"
 
         metadata: dict[str, object] = {
@@ -559,7 +621,11 @@ class Orchestrator:
             propagation["session_id"] = session_id
 
         config: RunnableConfig = {
-            "callbacks": [handler],
+            # Order matters — ReasoningTraceCallback must precede CallbackHandler.
+            # `run_inline=True` on our callback enforces this on both sync and
+            # async dispatch (LangChain's async path otherwise runs non-inline
+            # handlers under independent copy_context() snapshots).
+            "callbacks": [reasoning_callback, handler],
             "run_name": "chat-turn",
             "metadata": metadata,
         }

@@ -1,5 +1,6 @@
 """Tests for Langfuse CallbackHandler injection in Orchestrator."""
 
+import asyncio
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from contextlib import nullcontext
@@ -15,6 +16,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextDelta,
     TextEnd,
     TextStart,
+)
+from backend.agent_engine.streaming.reasoning_trace_callback import (
+    ReasoningTraceCallback,
 )
 
 
@@ -717,3 +721,347 @@ class TestLangfuseTraceMetadata:
             assert (
                 mock_propagate.call_args.kwargs["trace_name"] == "v2_test_invoke"
             )
+
+
+class TestReasoningTraceCallbackInjection:
+    """Task 6 / F4 / F7 / F8 — ReasoningTraceCallback must be wired into the
+    callbacks list ahead of langfuse.langchain.CallbackHandler so it writes
+    metadata.reasoning before Langfuse pops the generation off contextvars."""
+
+    @pytest.mark.asyncio
+    async def test_astream_callbacks_include_reasoning_callback_first(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            mock_handler = MagicMock()
+            mock_handler_cls.return_value = mock_handler
+
+            async for _ in orch.astream_run(
+                message="test", session_id="sess-r1"
+            ):
+                pass
+
+        callbacks = captured_kwargs["config"]["callbacks"]
+        assert len(callbacks) == 2
+        assert isinstance(callbacks[0], ReasoningTraceCallback)
+        assert callbacks[1] is mock_handler
+
+    @pytest.mark.asyncio
+    async def test_astream_reasoning_callback_uses_config_capability(self):
+        config = VersionConfig(
+            version="0.1.0",
+            name="v1_baseline",
+            description="Test version",
+            tools=[],
+            model=ModelConfig(name="gpt-4o-mini", reasoning="on"),
+        )
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test", session_id="sess-r2"
+            ):
+                pass
+
+        callbacks = captured_kwargs["config"]["callbacks"]
+        rc = callbacks[0]
+        assert isinstance(rc, ReasoningTraceCallback)
+        assert rc._capability == "on"
+
+    def test_run_callbacks_include_reasoning_callback_first(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        agent.invoke.return_value = _mock_agent_response()
+
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            mock_handler = MagicMock()
+            mock_handler_cls.return_value = mock_handler
+
+            orch.run("test prompt", request_id="req-abc")
+
+        callbacks = agent.invoke.call_args[1]["config"]["callbacks"]
+        assert len(callbacks) == 2
+        assert isinstance(callbacks[0], ReasoningTraceCallback)
+        assert callbacks[1] is mock_handler
+
+    @pytest.mark.asyncio
+    async def test_arun_callbacks_include_reasoning_callback_first(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        agent.ainvoke = AsyncMock(return_value=_mock_agent_response())
+
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            mock_handler = MagicMock()
+            mock_handler_cls.return_value = mock_handler
+
+            await orch.arun("test prompt", request_id="req-abc")
+
+        callbacks = agent.ainvoke.call_args[1]["config"]["callbacks"]
+        assert len(callbacks) == 2
+        assert isinstance(callbacks[0], ReasoningTraceCallback)
+        assert callbacks[1] is mock_handler
+
+
+class TestAstreamAbortCleanup:
+    """Task 6 / D35 — on asyncio.CancelledError mid-stream, drain segmenter,
+    write reasoning_tail_aborted to current generation, mark root span
+    aborted, and re-raise CancelledError to the caller."""
+
+    def _astream_with_reasoning_then_cancel(self, agent: Any) -> None:
+        async def mock_astream(*args, **kwargs):
+            # Emit a reasoning chunk (no terminator → segmenter buffers it)
+            # then raise CancelledError to simulate client disconnect.
+            yield {
+                "type": "messages",
+                "data": (
+                    AIMessageChunk(
+                        content=[
+                            {"type": "reasoning", "reasoning": "partial thought"},
+                        ],
+                        id="msg-abort",
+                    ),
+                    {"langgraph_node": "agent"},
+                ),
+            }
+            raise asyncio.CancelledError()
+
+        agent.astream = mock_astream
+
+    @pytest.mark.asyncio
+    async def test_cancel_writes_reasoning_tail_and_aborted_status(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        self._astream_with_reasoning_then_cancel(agent)
+
+        fake_client = MagicMock()
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.get_client",
+                return_value=fake_client,
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            with pytest.raises(asyncio.CancelledError):
+                async for _ in orch.astream_run(
+                    message="test", session_id="sess-cancel"
+                ):
+                    pass
+
+        # update_current_generation receives metadata.reasoning_tail_aborted
+        gen_calls = fake_client.update_current_generation.call_args_list
+        assert len(gen_calls) == 1
+        gen_metadata = gen_calls[0].kwargs["metadata"]
+        assert "reasoning_tail_aborted" in gen_metadata
+        assert "partial thought" in gen_metadata["reasoning_tail_aborted"]
+
+        # update_current_span receives metadata.status="aborted"
+        span_calls = fake_client.update_current_span.call_args_list
+        assert any(
+            c.kwargs.get("metadata", {}).get("status") == "aborted"
+            for c in span_calls
+        )
+
+    @pytest.mark.asyncio
+    async def test_cancel_with_empty_segmenter_skips_generation_update(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        async def mock_astream(*args, **kwargs):
+            raise asyncio.CancelledError()
+            yield  # noqa: RET503
+
+        agent.astream = mock_astream
+
+        fake_client = MagicMock()
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.get_client",
+                return_value=fake_client,
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            with pytest.raises(asyncio.CancelledError):
+                async for _ in orch.astream_run(
+                    message="test", session_id="sess-empty-cancel"
+                ):
+                    pass
+
+        # No reasoning to flush -> generation update never fires.
+        assert fake_client.update_current_generation.call_count == 0
+        # Root trace status still recorded.
+        span_calls = fake_client.update_current_span.call_args_list
+        assert any(
+            c.kwargs.get("metadata", {}).get("status") == "aborted"
+            for c in span_calls
+        )
+
+    @pytest.mark.asyncio
+    async def test_cancel_propagates_even_when_langfuse_update_raises(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        self._astream_with_reasoning_then_cancel(agent)
+
+        fake_client = MagicMock()
+        fake_client.update_current_span.side_effect = RuntimeError("langfuse down")
+        fake_client.update_current_generation.side_effect = RuntimeError(
+            "langfuse down"
+        )
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.get_client",
+                return_value=fake_client,
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            with pytest.raises(asyncio.CancelledError):
+                async for _ in orch.astream_run(
+                    message="test", session_id="sess-langfuse-down"
+                ):
+                    pass
+
+    @pytest.mark.asyncio
+    async def test_natural_finish_does_not_invoke_abort_cleanup(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        async def mock_astream(*args, **kwargs):
+            yield {
+                "type": "messages",
+                "data": (
+                    AIMessageChunk(content="Hello", id="msg-1"),
+                    {"langgraph_node": "agent"},
+                ),
+            }
+
+        agent.astream = mock_astream
+
+        fake_client = MagicMock()
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.get_client",
+                return_value=fake_client,
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            events = []
+            async for event in orch.astream_run(
+                message="test", session_id="sess-natural"
+            ):
+                events.append(event)
+
+        # No abort cleanup -> client.update_current_span / update_current_generation
+        # are not called from the orchestrator (only ReasoningTraceCallback's own
+        # client would fire update_current_generation, and that uses a separate
+        # mocked client above).
+        assert fake_client.update_current_span.call_count == 0
+        assert fake_client.update_current_generation.call_count == 0
+        # Stream should have produced a Finish(stop) event.
+        assert any(
+            isinstance(e, Finish) and e.finish_reason == "stop" for e in events
+        )

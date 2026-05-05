@@ -13,11 +13,7 @@ export function ReasoningIndicator({
 
   if (!text) {
     return (
-      <div
-        data-testid="reasoning-indicator"
-        className={wrapperClass}
-        aria-hidden="true"
-      >
+      <div data-testid="reasoning-indicator" className={wrapperClass} aria-hidden="true">
         <span className="idle-dots">
           <span />
           <span />
@@ -29,11 +25,7 @@ export function ReasoningIndicator({
 
   if (state === "frozen") {
     return (
-      <div
-        data-testid="reasoning-indicator"
-        className={wrapperClass}
-        aria-hidden="true"
-      >
+      <div data-testid="reasoning-indicator" className={wrapperClass} aria-hidden="true">
         <span className="reasoning-status-text" style={{ opacity: 0.65 }}>
           {text}
         </span>
@@ -43,11 +35,7 @@ export function ReasoningIndicator({
   }
 
   return (
-    <div
-      data-testid="reasoning-indicator"
-      className={wrapperClass}
-      aria-hidden="true"
-    >
+    <div data-testid="reasoning-indicator" className={wrapperClass} aria-hidden="true">
       <span className="reasoning-status-text">{text}</span>
       <span className="reasoning-status-dots-cycler" />
     </div>

@@ -98,10 +98,7 @@ describe("ErrorBlock", () => {
     );
 
     expect(screen.getByRole("alert")).toBeInTheDocument();
-    expect(screen.getByTestId("stream-error-block")).toHaveAttribute(
-      "role",
-      "alert",
-    );
+    expect(screen.getByTestId("stream-error-block")).toHaveAttribute("role", "alert");
   });
 
   test("toggle button is not rendered when friendly.detail is absent", () => {

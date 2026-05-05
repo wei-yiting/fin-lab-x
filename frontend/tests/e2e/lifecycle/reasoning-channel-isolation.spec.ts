@@ -39,9 +39,7 @@ test(
     await expect(assistantMessage).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });
-    await expect(
-      assistantMessage.locator(".reasoning-status-text"),
-    ).toHaveCount(0);
+    await expect(assistantMessage.locator(".reasoning-status-text")).toHaveCount(0);
   },
 );
 
@@ -53,20 +51,14 @@ test(
     // ``data-reasoning-status`` payload is flagged transient.
     const reasoningPayloads: Array<Record<string, unknown>> = [];
     page.on("response", async (response) => {
-      if (
-        response.request().method() !== "POST" ||
-        !response.url().includes("/api/v1/chat")
-      ) {
+      if (response.request().method() !== "POST" || !response.url().includes("/api/v1/chat")) {
         return;
       }
       const body = await response.text();
       for (const block of body.split("\n\n")) {
         if (!block.startsWith("data: ")) continue;
         try {
-          const json = JSON.parse(block.slice("data: ".length)) as Record<
-            string,
-            unknown
-          >;
+          const json = JSON.parse(block.slice("data: ".length)) as Record<string, unknown>;
           if (json.type === "data-reasoning-status") {
             reasoningPayloads.push(json);
           }
@@ -100,8 +92,6 @@ test(
     // the non-transient parts the (mis)configured backend emitted.
     const assistantMessage = page.getByTestId("assistant-message");
     await expect(assistantMessage).toBeVisible();
-    await expect(
-      assistantMessage.locator(".reasoning-status-text"),
-    ).toHaveCount(0);
+    await expect(assistantMessage.locator(".reasoning-status-text")).toHaveCount(0);
   },
 );

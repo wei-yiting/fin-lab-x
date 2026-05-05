@@ -85,11 +85,9 @@ test(
 
     // After the stream finishes the indicator must be gone, and the
     // message-list status attribute reflects ready.
-    await expect(page.getByTestId("message-list")).toHaveAttribute(
-      "data-status",
-      "ready",
-      { timeout: E2E_TIMEOUTS.status },
-    );
+    await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+      timeout: E2E_TIMEOUTS.status,
+    });
     await expect(page.getByTestId("reasoning-indicator")).not.toBeVisible();
   },
 );

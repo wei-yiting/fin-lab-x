@@ -1,10 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { LiveStatusAnnouncer } from "../LiveStatusAnnouncer";
-import {
-  formatStatusText,
-  type AnnouncedEvent,
-} from "../live-status-text";
+import { formatStatusText, type AnnouncedEvent } from "../live-status-text";
 
 describe("LiveStatusAnnouncer — DOM structure (D22)", () => {
   test('renders role="status" with aria-live="polite" and .sr-only class', () => {
@@ -48,9 +45,7 @@ describe("LiveStatusAnnouncer — event transitions (D22)", () => {
     };
     render(<LiveStatusAnnouncer status="streaming" lastEvent={event} />);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Tool yfinance_quote completed",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Tool yfinance_quote completed");
   });
 
   test('lastEvent.type "tool-output-error" announces "Tool <toolName> failed"', () => {
@@ -60,9 +55,7 @@ describe("LiveStatusAnnouncer — event transitions (D22)", () => {
     };
     render(<LiveStatusAnnouncer status="streaming" lastEvent={event} />);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Tool yfinance_quote failed",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Tool yfinance_quote failed");
   });
 
   test('lastEvent.type "finish" announces "Response complete"', () => {
@@ -82,17 +75,13 @@ describe("LiveStatusAnnouncer — error status precedence (D22)", () => {
     };
     render(<LiveStatusAnnouncer status="error" lastEvent={event} />);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Error: rate limit exceeded",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Error: rate limit exceeded");
   });
 
   test('status="error" without errorText falls back to "Error: stream interrupted"', () => {
     render(<LiveStatusAnnouncer status="error" lastEvent={null} />);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Error: stream interrupted",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Error: stream interrupted");
   });
 
   test("error status overrides any non-error event mapping", () => {
@@ -118,9 +107,7 @@ describe("LiveStatusAnnouncer — non-announced events (D22 / S-rsn-14)", () => 
 
 describe("formatStatusText — pure mapping function", () => {
   test('maps "start" event to "Generating response"', () => {
-    expect(formatStatusText("streaming", { type: "start" })).toBe(
-      "Generating response",
-    );
+    expect(formatStatusText("streaming", { type: "start" })).toBe("Generating response");
   });
 
   test('maps "tool-input-available" with toolName', () => {
@@ -151,9 +138,7 @@ describe("formatStatusText — pure mapping function", () => {
   });
 
   test('maps "finish" event', () => {
-    expect(formatStatusText("ready", { type: "finish" })).toBe(
-      "Response complete",
-    );
+    expect(formatStatusText("ready", { type: "finish" })).toBe("Response complete");
   });
 
   test("error status with explicit errorText takes precedence", () => {
@@ -178,20 +163,16 @@ describe("formatStatusText — pure mapping function", () => {
   });
 
   test("tool-input-available with missing toolName → 'Calling tool'", () => {
-    expect(formatStatusText("streaming", { type: "tool-input-available" })).toBe(
-      "Calling tool",
-    );
+    expect(formatStatusText("streaming", { type: "tool-input-available" })).toBe("Calling tool");
   });
 
   test("tool-output-available with missing toolName → 'Tool tool completed'", () => {
-    expect(
-      formatStatusText("streaming", { type: "tool-output-available" }),
-    ).toBe("Tool tool completed");
+    expect(formatStatusText("streaming", { type: "tool-output-available" })).toBe(
+      "Tool tool completed",
+    );
   });
 
   test("tool-output-error with missing toolName → 'Tool tool failed'", () => {
-    expect(formatStatusText("streaming", { type: "tool-output-error" })).toBe(
-      "Tool tool failed",
-    );
+    expect(formatStatusText("streaming", { type: "tool-output-error" })).toBe("Tool tool failed");
   });
 });

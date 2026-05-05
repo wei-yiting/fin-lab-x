@@ -34,11 +34,9 @@ test(
     await page.getByTestId("composer-stop-btn").click();
 
     // Status flips back to ready — composer-send-btn re-mounts.
-    await expect(page.getByTestId("message-list")).toHaveAttribute(
-      "data-status",
-      "ready",
-      { timeout: E2E_TIMEOUTS.status },
-    );
+    await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+      timeout: E2E_TIMEOUTS.status,
+    });
     await expect(page.getByTestId("composer-send-btn")).toBeVisible();
 
     // Resend — second turn's fresh data-reasoning-status events must

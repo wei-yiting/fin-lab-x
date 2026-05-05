@@ -702,9 +702,7 @@ describe("ChatPanel integration — retry surfaces fresh reasoning text", () => 
       if (turn === 1) {
         const stream = new ReadableStream({
           start(controller) {
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "start", messageId: "asst-err" })),
-            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "asst-err" })));
             controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
             controller.enqueue(
               encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial..." })),
@@ -729,9 +727,7 @@ describe("ChatPanel integration — retry surfaces fresh reasoning text", () => 
           };
           request.signal.addEventListener("abort", onAbort, { once: true });
 
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "start", messageId: "asst-retry" })),
-          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "asst-retry" })));
           controller.enqueue(
             encoder.encode(
               sseFrame({

@@ -6,10 +6,7 @@ interface LiveStatusAnnouncerProps {
   lastEvent: AnnouncedEvent | null;
 }
 
-export function LiveStatusAnnouncer({
-  status,
-  lastEvent,
-}: LiveStatusAnnouncerProps) {
+export function LiveStatusAnnouncer({ status, lastEvent }: LiveStatusAnnouncerProps) {
   const text = formatStatusText(status, lastEvent);
 
   return (

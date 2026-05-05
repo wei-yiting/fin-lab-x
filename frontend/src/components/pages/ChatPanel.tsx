@@ -8,10 +8,7 @@ import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { ErrorBlock } from "@/components/organisms/ErrorBlock";
-import {
-  LiveStatusAnnouncer,
-  type AnnouncedEvent,
-} from "@/components/atoms/LiveStatusAnnouncer";
+import { LiveStatusAnnouncer, type AnnouncedEvent } from "@/components/atoms/LiveStatusAnnouncer";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";

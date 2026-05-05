@@ -1,6 +1,5 @@
 """Tests for ReasoningSegmenter — sentence boundary splitting + 80-char CJK fallback."""
 
-import pytest
 
 from backend.agent_engine.streaming.reasoning_segmenter import ReasoningSegmenter
 

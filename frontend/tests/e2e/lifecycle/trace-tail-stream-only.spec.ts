@@ -28,11 +28,9 @@ test(
     });
 
     await chat.waitReady();
-    await expect(page.getByTestId("message-list")).toHaveAttribute(
-      "data-status",
-      "ready",
-      { timeout: E2E_TIMEOUTS.status },
-    );
+    await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+      timeout: E2E_TIMEOUTS.status,
+    });
 
     // After finish there must be no rendered assistant text body. The
     // assistant-message wrapper may exist with empty content depending on

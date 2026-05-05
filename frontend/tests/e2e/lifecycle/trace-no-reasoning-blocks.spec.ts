@@ -22,20 +22,14 @@ test(
   async ({ chat, page }) => {
     let reasoningEventCount = 0;
     page.on("response", async (response) => {
-      if (
-        response.request().method() !== "POST" ||
-        !response.url().includes("/api/v1/chat")
-      ) {
+      if (response.request().method() !== "POST" || !response.url().includes("/api/v1/chat")) {
         return;
       }
       const body = await response.text();
       for (const block of body.split("\n\n")) {
         if (!block.startsWith("data: ")) continue;
         try {
-          const json = JSON.parse(block.slice("data: ".length)) as Record<
-            string,
-            unknown
-          >;
+          const json = JSON.parse(block.slice("data: ".length)) as Record<string, unknown>;
           if (json.type === "data-reasoning-status") {
             reasoningEventCount += 1;
           }

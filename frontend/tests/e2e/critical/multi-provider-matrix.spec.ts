@@ -37,7 +37,12 @@ type MatrixRow = {
 const FIXTURE_DIR = path.join(__dirname, "fixtures", "agent-capability");
 
 const ROWS: MatrixRow[] = [
-  { id: "gemini-on", name: "Gemini reasoning ON", fixture: "gemini-on.yaml", expectation: "reasoning-on" },
+  {
+    id: "gemini-on",
+    name: "Gemini reasoning ON",
+    fixture: "gemini-on.yaml",
+    expectation: "reasoning-on",
+  },
   {
     id: "gemini-off",
     name: "Gemini reasoning OFF",
@@ -134,7 +139,6 @@ for (const row of ROWS) {
       //   uv run python -m backend.scripts.validation.verify_langfuse_trace \
       //     <trace_id> --expect-reasoning-{on,off,unsupported}
       // per matrix row.
-      // eslint-disable-next-line no-console -- intentional CI/operator log
       console.log(
         `[matrix] row=${row.id} fixture=${row.fixture} expectation=${row.expectation} trace_id=${traceId ?? "<unavailable>"}`,
       );

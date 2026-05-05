@@ -21,11 +21,9 @@ test(
     await chat.sendMessage("hello");
 
     await chat.waitReady();
-    await expect(page.getByTestId("message-list")).toHaveAttribute(
-      "data-status",
-      "ready",
-      { timeout: E2E_TIMEOUTS.status },
-    );
+    await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+      timeout: E2E_TIMEOUTS.status,
+    });
 
     // Hold for a beat so any late SSE frame the backend sent post-finish has
     // had a chance to land. The finishedRef guard should keep the indicator

@@ -2,7 +2,10 @@ import { useRef, useImperativeHandle, forwardRef, type ReactNode } from "react";
 import { UserMessage } from "@/components/atoms/UserMessage";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
 import { ReasoningIndicator } from "@/components/atoms/ReasoningIndicator";
-import { shouldShowReasoningIndicator } from "@/lib/reasoning-indicator-logic";
+import {
+  shouldShowReasoningIndicator,
+  resolveReasoningDisplayText,
+} from "@/lib/reasoning-indicator-logic";
 import { useFollowBottom } from "@/hooks/useFollowBottom";
 import type { ChatStatus } from "@/models";
 
@@ -18,6 +21,7 @@ interface MessageListProps {
   toolProgress: Record<string, string>;
   abortedTools: Set<string>;
   onRegenerate: (id: string) => void;
+  reasoningStatusText: string | null;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
 }
@@ -27,7 +31,16 @@ export interface MessageListHandle {
 }
 
 export const MessageList = forwardRef<MessageListHandle, MessageListProps>(function MessageList(
-  { messages, status, toolProgress, abortedTools, onRegenerate, emptyContent, errorContent },
+  {
+    messages,
+    status,
+    toolProgress,
+    abortedTools,
+    onRegenerate,
+    reasoningStatusText,
+    emptyContent,
+    errorContent,
+  },
   ref,
 ) {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -39,11 +52,13 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
   useImperativeHandle(ref, () => ({ forceFollowBottom }), [forceFollowBottom]);
 
   const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-  const showReasoning = shouldShowReasoningIndicator({
+  const reasoningArgs = {
     status,
     lastMessage: lastMessage as Parameters<typeof shouldShowReasoningIndicator>[0]["lastMessage"],
-    reasoningStatusText: null,
-  });
+    reasoningStatusText,
+  };
+  const showReasoning = shouldShowReasoningIndicator(reasoningArgs);
+  const reasoningDisplayText = resolveReasoningDisplayText(reasoningArgs);
 
   if (messages.length === 0 && !showReasoning) {
     return (
@@ -95,7 +110,12 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             return null;
           })}
           {errorContent}
-          {showReasoning && <ReasoningIndicator />}
+          {showReasoning && (
+            <ReasoningIndicator
+              text={reasoningDisplayText}
+              state={status === "error" ? "frozen" : "streaming"}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ describe("MessageList — ReasoningIndicator visibility", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
+        reasoningStatusText={null}
       />,
     );
 
@@ -23,6 +24,7 @@ describe("MessageList — ReasoningIndicator visibility", () => {
         toolProgress={{ "tc-1": "fetching..." }}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
+        reasoningStatusText={null}
       />,
     );
 
@@ -38,6 +40,7 @@ describe("MessageList — ReasoningIndicator visibility", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
+        reasoningStatusText={null}
         emptyContent={<div data-testid="empty-state">Empty</div>}
       />,
     );
@@ -55,6 +58,7 @@ describe("MessageList — errorContent slot", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
+        reasoningStatusText={null}
         errorContent={<div data-testid="error-slot-fixture">Oops</div>}
       />,
     );
@@ -71,6 +75,7 @@ describe("MessageList — errorContent slot", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
+        reasoningStatusText={null}
       />,
     );
 

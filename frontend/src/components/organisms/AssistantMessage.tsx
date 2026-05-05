@@ -32,7 +32,15 @@ export function AssistantMessage({
   toolProgress,
   onRegenerate,
 }: AssistantMessageProps) {
-  const parts = message.parts;
+  // D39.b defense-in-depth: even if backend `transient: true` is broken and a
+  // data-reasoning-* part lands in `parts`, never render it in the transcript.
+  const parts = useMemo(
+    () =>
+      message.parts.filter(
+        (part) => typeof part.type !== "string" || !part.type.startsWith("data-reasoning-"),
+      ),
+    [message.parts],
+  );
 
   const concatenatedText = parts
     .filter((p) => p.type === "text")

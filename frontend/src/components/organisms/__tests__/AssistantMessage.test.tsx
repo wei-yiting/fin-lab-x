@@ -227,6 +227,54 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
   );
 });
 
+describe("AssistantMessage — D39.b data-reasoning-* filter", () => {
+  test("filters data-reasoning-status parts from rendered transcript", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "text" as const, text: "hello" },
+        {
+          type: "data-reasoning-status" as const,
+          data: { text: "should hide" },
+        },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={false}
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+    expect(screen.getByText(/hello/)).toBeInTheDocument();
+    expect(screen.queryByText(/should hide/)).not.toBeInTheDocument();
+  });
+
+  test("filters data-reasoning-* prefixed parts (defense-in-depth)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "text" as const, text: "before" },
+        { type: "data-reasoning-summary", data: { text: "leaked summary" } },
+        { type: "text" as const, text: " after" },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={false}
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+    expect(screen.getByText(/before after/)).toBeInTheDocument();
+    expect(screen.queryByText(/leaked summary/)).not.toBeInTheDocument();
+  });
+});
+
 describe("AssistantMessage — citation rendering", () => {
   const commonMarkText =
     "Analysis shows growth [1] and stability [2].\n\n" +

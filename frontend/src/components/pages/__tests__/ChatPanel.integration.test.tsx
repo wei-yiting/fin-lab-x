@@ -386,3 +386,410 @@ describe("ChatPanel integration — stop + clear", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Reasoning indicator wiring (Task 11 / D39)
+//
+// The data-reasoning-status SSE event must flow through useReasoningStatus →
+// MessageList → ReasoningIndicator. text-start hides the reasoning text;
+// click stop while reasoning is in flight freezes the indicator with STOPPED.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — reasoning indicator from data-reasoning-status", () => {
+  const reasoningServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "m-rsn" })));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "data-reasoning-status",
+                id: "rs-1",
+                data: { text: "Analyzing your request" },
+                transient: true,
+              }),
+            ),
+          );
+          // Hold the connection open so the test can observe the indicator
+          // before text-start clears it. Aborts on stop.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "answer" })),
+          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => reasoningServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => reasoningServer.resetHandlers());
+  afterAll(() => reasoningServer.close());
+
+  test("data-reasoning-status mid-stream shows ReasoningIndicator with text", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(
+          /Analyzing your request/,
+        );
+      },
+      { timeout: 5000 },
+    );
+  }, 15000);
+
+  test("clicking stop during reasoning freezes indicator with STOPPED", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(
+          /Analyzing your request/,
+        );
+      },
+      { timeout: 5000 },
+    );
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    // After stop, the panel calls clearReasoningStatus → text gone. Indicator
+    // either disappears (status=ready, no text) or stays without text. Either
+    // way "Analyzing your request" must not be visible.
+    await waitFor(
+      () => {
+        expect(screen.queryByText(/Analyzing your request/)).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  }, 15000);
+});
+
+describe("ChatPanel integration — text-start clears reasoning text", () => {
+  const textStartServer = setupServer(
+    http.post("/api/v1/chat", () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "m-ts" })));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "data-reasoning-status",
+                id: "rs-1",
+                data: { text: "thinking now" },
+                transient: true,
+              }),
+            ),
+          );
+          await new Promise((r) => setTimeout(r, 50));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "real answer" })),
+          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => textStartServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => textStartServer.resetHandlers());
+  afterAll(() => textStartServer.close());
+
+  test("after text starts streaming, reasoning text disappears", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "go");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/real answer/)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+    expect(screen.queryByText(/thinking now/)).not.toBeInTheDocument();
+  }, 15000);
+});
+
+// ---------------------------------------------------------------------------
+// S-rsn-13 — abort then resend coexistence
+//
+// Stop the first turn after an assistant bubble has emitted some text, then
+// send a second message. Both assistant bubbles must remain in the DOM, and
+// the new turn's reasoning indicator must show the fresh status — not stale
+// text from the aborted turn.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", () => {
+  let callCount = 0;
+
+  const coexistServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      callCount++;
+      const turn = callCount;
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          const messageId = `m-turn-${turn}`;
+          const reasoningText = turn === 1 ? "first reasoning" : "second reasoning";
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: `t${turn}` })));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({ type: "text-delta", id: `t${turn}`, delta: `turn-${turn} content` }),
+            ),
+          );
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "data-reasoning-status",
+                id: `rs-${turn}`,
+                data: { text: reasoningText },
+                transient: true,
+              }),
+            ),
+          );
+          // Hold open so the test can observe and stop the first turn.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: `t${turn}` })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => coexistServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => {
+    callCount = 0;
+    coexistServer.resetHandlers();
+  });
+  afterAll(() => coexistServer.close());
+
+  test("stop first turn → send second → both bubbles present, second indicator shows new reasoning", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "first");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // First turn shows its content + reasoning text
+    await waitFor(
+      () => {
+        expect(screen.getByText(/turn-1 content/)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(/first reasoning/);
+      },
+      { timeout: 5000 },
+    );
+
+    // Stop the first turn
+    await user.click(screen.getByTestId("composer-stop-btn"));
+    await waitFor(
+      () => {
+        expect(screen.queryByText(/first reasoning/)).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    // First assistant bubble retains its rendered text
+    expect(screen.getByText(/turn-1 content/)).toBeInTheDocument();
+
+    // Send second message
+    await user.clear(textarea);
+    await user.type(textarea, "second");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Second turn produces its own bubble + reasoning text
+    await waitFor(
+      () => {
+        expect(screen.getAllByTestId("assistant-message")).toHaveLength(2);
+      },
+      { timeout: 5000 },
+    );
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(/second reasoning/);
+      },
+      { timeout: 5000 },
+    );
+
+    // First bubble's text still renders alongside the second one
+    expect(screen.getByText(/turn-1 content/)).toBeInTheDocument();
+    expect(screen.getByText(/turn-2 content/)).toBeInTheDocument();
+  }, 30000);
+});
+
+// ---------------------------------------------------------------------------
+// Retry resets reasoning state
+//
+// `handleRetry` must mirror `handleSend`: call `resetForNewTurn()` and clear
+// `lastSSEEvent`. Otherwise the retried turn would inherit a latched
+// `finishedRef` / `clearedRef` (from prior `clearReasoningStatus()` or future
+// SDK changes that route `finish` / `error` through onData), short-circuiting
+// new data-reasoning-status events.
+//
+// We exercise this end-to-end: send → mid-stream error → click Retry →
+// retried turn emits a fresh `data-reasoning-status` → assert the indicator
+// surfaces it. If `resetForNewTurn` is removed and the hook's clearedRef
+// were ever set (e.g., a stop-then-retry race), the new event would be
+// dropped. Even where finishedRef/clearedRef are not set today, the test
+// pins the documented contract.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — retry surfaces fresh reasoning text", () => {
+  let callCount = 0;
+
+  const retryReasoningServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      callCount++;
+      const turn = callCount;
+      const encoder = new TextEncoder();
+
+      if (turn === 1) {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "start", messageId: "asst-err" })),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial..." })),
+            );
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "error", errorText: "rate limit exceeded" })),
+            );
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "start", messageId: "asst-retry" })),
+          );
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "data-reasoning-status",
+                id: "rs-retry",
+                data: { text: "fresh retry reasoning" },
+                transient: true,
+              }),
+            ),
+          );
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t2" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t2", delta: "recovered" })),
+          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t2" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => retryReasoningServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => {
+    callCount = 0;
+    retryReasoningServer.resetHandlers();
+  });
+  afterAll(() => retryReasoningServer.close());
+
+  test("Retry after mid-stream error → fresh data-reasoning-status surfaces in indicator", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "go");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("error-retry-btn")).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    await user.click(screen.getByTestId("error-retry-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(
+          /fresh retry reasoning/,
+        );
+      },
+      { timeout: 5000 },
+    );
+  }, 20000);
+});

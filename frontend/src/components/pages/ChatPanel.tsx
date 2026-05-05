@@ -2,11 +2,16 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
+import { useReasoningStatus } from "@/hooks/useReasoningStatus";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { ErrorBlock } from "@/components/organisms/ErrorBlock";
+import {
+  LiveStatusAnnouncer,
+  type AnnouncedEvent,
+} from "@/components/atoms/LiveStatusAnnouncer";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
@@ -39,11 +44,54 @@ export function ChatPanel() {
       }),
     [],
   );
-  const { toolProgress, handleData, clearProgress } = useToolProgress();
+  const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
+  const {
+    reasoningStatusText,
+    handleData: handleReasoningData,
+    clearReasoningStatus,
+    resetForNewTurn,
+  } = useReasoningStatus();
+  const [lastSSEEvent, setLastSSEEvent] = useState<AnnouncedEvent | null>(null);
+
+  const onData = useCallback(
+    (dataPart: { type: string; id?: string; data: unknown }) => {
+      toolProgressHandleData(dataPart);
+      handleReasoningData(dataPart as Parameters<typeof handleReasoningData>[0]);
+
+      // Map only the events the announcer recognises; everything else (text-delta,
+      // data-reasoning-status, data-tool-progress, etc.) leaves lastSSEEvent intact.
+      const part = dataPart as { type: string; toolName?: string; errorText?: string };
+      switch (part.type) {
+        case "start":
+          setLastSSEEvent({ type: "start" });
+          break;
+        case "tool-input-available":
+          setLastSSEEvent({ type: "tool-input-available", toolName: part.toolName });
+          break;
+        case "tool-output-available":
+          setLastSSEEvent({ type: "tool-output-available", toolName: part.toolName });
+          break;
+        case "tool-output-error":
+          setLastSSEEvent({
+            type: "tool-output-error",
+            toolName: part.toolName,
+            errorText: part.errorText,
+          });
+          break;
+        case "finish":
+          setLastSSEEvent({ type: "finish" });
+          break;
+        default:
+          break;
+      }
+    },
+    [toolProgressHandleData, handleReasoningData],
+  );
+
   const { messages, setMessages, sendMessage, regenerate, stop, status, error } = useChat({
     id: chatId,
     transport,
-    onData: handleData,
+    onData,
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
   const lastTriggerRef = useRef<LastTrigger | null>(null);
@@ -54,9 +102,11 @@ export function ChatPanel() {
     (text: string) => {
       lastTriggerRef.current = { type: "send", userText: text };
       messageListRef.current?.forceFollowBottom();
+      resetForNewTurn();
+      setLastSSEEvent(null);
       sendMessage({ text });
     },
-    [sendMessage],
+    [sendMessage, resetForNewTurn],
   );
 
   const handleRegenerate = useCallback(
@@ -82,20 +132,28 @@ export function ChatPanel() {
     if (runningIds.length) {
       setAbortedTools((prev) => new Set([...prev, ...runningIds]));
     }
+    clearReasoningStatus();
     stop();
-  }, [messages, stop]);
+  }, [messages, stop, clearReasoningStatus]);
 
   const handleClearSession = useCallback(() => {
     stop();
     setChatId(crypto.randomUUID());
     clearProgress();
+    resetForNewTurn();
+    setLastSSEEvent(null);
     setAbortedTools(new Set());
     lastTriggerRef.current = null;
-  }, [stop, clearProgress]);
+  }, [stop, clearProgress, resetForNewTurn]);
 
   const handleRetry = useCallback(() => {
     const last = lastTriggerRef.current;
     if (!last) return;
+    // Reset reasoning state so finishedRef (latched by the prior `error` /
+    // `finish`) does not block data-reasoning-status events on the retried
+    // turn, and so LiveStatusAnnouncer drops the stale finish announcement.
+    resetForNewTurn();
+    setLastSSEEvent(null);
     // Two failure shapes end up here:
     //   1) Pre-stream failure — messages is [user₀]. Last message is the user turn.
     //      Drop the trailing user and re-send the text (regenerate({messageId}) would
@@ -117,7 +175,7 @@ export function ChatPanel() {
     lastTriggerRef.current = { type: "send", userText: last.userText };
     setMessages((msgs) => msgs.slice(0, -1));
     sendMessage({ text: last.userText });
-  }, [messages, regenerate, setMessages, sendMessage]);
+  }, [messages, regenerate, setMessages, sendMessage, resetForNewTurn]);
 
   // When useChat enters error state, mark any running tools on the last assistant message as aborted.
   // AI SDK v6 routes SSE `error` chunks to onError/status=error, not message.parts, so we cannot
@@ -182,6 +240,7 @@ export function ChatPanel() {
         toolProgress={toolProgress}
         abortedTools={abortedTools}
         onRegenerate={handleRegenerate}
+        reasoningStatusText={reasoningStatusText}
         emptyContent={
           !showError ? (
             <EmptyState
@@ -209,6 +268,7 @@ export function ChatPanel() {
         stop={handleStop}
         status={status as ChatStatus}
       />
+      <LiveStatusAnnouncer status={status as ChatStatus} lastEvent={lastSSEEvent} />
     </div>
   );
 }

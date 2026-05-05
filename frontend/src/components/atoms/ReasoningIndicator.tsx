@@ -1,13 +1,55 @@
-export function ReasoningIndicator() {
+interface ReasoningIndicatorProps {
+  text?: string | null;
+  state?: "streaming" | "frozen";
+  stalled?: boolean;
+}
+
+export function ReasoningIndicator({
+  text,
+  state = "streaming",
+  stalled = false,
+}: ReasoningIndicatorProps = {}) {
+  const wrapperClass = stalled ? "reasoning-status stalled" : "reasoning-status";
+
+  if (!text) {
+    return (
+      <div
+        data-testid="reasoning-indicator"
+        className={wrapperClass}
+        aria-hidden="true"
+      >
+        <span className="idle-dots">
+          <span />
+          <span />
+          <span />
+        </span>
+      </div>
+    );
+  }
+
+  if (state === "frozen") {
+    return (
+      <div
+        data-testid="reasoning-indicator"
+        className={wrapperClass}
+        aria-hidden="true"
+      >
+        <span className="reasoning-status-text" style={{ opacity: 0.65 }}>
+          {text}
+        </span>
+        <span className="reasoning-status-frozen-label">STOPPED</span>
+      </div>
+    );
+  }
+
   return (
-    <div data-testid="reasoning-indicator" className="flex items-center gap-1 py-4 px-2">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce"
-          style={{ animationDelay: `${i * 150}ms` }}
-        />
-      ))}
+    <div
+      data-testid="reasoning-indicator"
+      className={wrapperClass}
+      aria-hidden="true"
+    >
+      <span className="reasoning-status-text">{text}</span>
+      <span className="reasoning-status-dots-cycler" />
     </div>
   );
 }

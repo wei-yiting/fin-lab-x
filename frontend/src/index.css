@@ -84,6 +84,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --status-aborted: oklch(0.4 0.01 250);
+  --status-aborted-bg: oklch(0.95 0.005 250);
 }
 
 .dark {
@@ -126,6 +128,7 @@
   --status-success: oklch(0.7771 0.1882 154.28);
   --status-error: oklch(0.7282 0.161 27.12);
   --status-aborted: oklch(0.55 0.01 250);
+  --status-aborted-bg: oklch(0.25 0.01 250);
   --chat-fg-secondary: oklch(0.8462 0.01 252.82);
   --chat-fg-subtle: oklch(0.4368 0.0253 261.66);
   --chat-fg-subtler: oklch(0.369 0.0159 255.61);
@@ -196,5 +199,115 @@
     color: var(--foreground);
     -webkit-text-fill-color: initial;
     background: none;
+  }
+}
+
+/* ReasoningIndicator — Variant A (D5 / D14 / D17 / D21).
+   Shared vertical-slot wrapper so idle dots, streaming text, and frozen
+   label all align without layout jumps when the mode changes mid-stream. */
+.reasoning-status {
+  display: flex;
+  align-items: flex-end;
+  padding: 4px 12px 6px;
+  margin-top: -8px;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted-foreground);
+  height: calc(0.72rem * 1.5);
+}
+
+.reasoning-status-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.reasoning-status-dots-cycler {
+  flex-shrink: 0;
+  letter-spacing: 0.08em;
+  padding-left: 5px;
+}
+
+.reasoning-status-dots-cycler::after {
+  content: "";
+  animation: reasoning-dots-cycle 1.2s steps(4, end) infinite;
+}
+
+@keyframes reasoning-dots-cycle {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+  100% {
+    content: "";
+  }
+}
+
+.idle-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.idle-dots > span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background-color: var(--muted-foreground);
+  animation: reasoning-dot-bounce 1s ease-in-out infinite;
+}
+
+.idle-dots > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.idle-dots > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes reasoning-dot-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-25%);
+  }
+}
+
+.reasoning-status.stalled .reasoning-status-dots-cycler::after {
+  animation-duration: 2.5s;
+}
+
+.reasoning-status.stalled {
+  opacity: 0.55;
+  transition: opacity 800ms ease;
+}
+
+.reasoning-status-frozen-label {
+  flex-shrink: 0;
+  margin-left: 6px;
+  font-size: 0.62rem;
+  font-style: normal;
+  padding: 1px 5px;
+  color: var(--status-aborted);
+  background: var(--status-aborted-bg);
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reasoning-status-dots-cycler::after,
+  .idle-dots > span {
+    animation: none;
   }
 }

@@ -66,6 +66,30 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
   });
 });
 
+describe("ToolCard — accessibility (D22)", () => {
+  test('outer Collapsible wrapper carries aria-hidden="true" so screen readers skip the visual', () => {
+    render(
+      <ToolCard
+        toolPart={{
+          type: "tool",
+          toolCallId: "tc-aria",
+          toolName: "yfinance",
+          state: "input-available",
+          input: {},
+        }}
+        isAborted={false}
+      />,
+    );
+
+    const card = screen.getByTestId("tool-card");
+    // The outermost element rendered by ToolCard (the Collapsible root) must
+    // be aria-hidden so that LiveStatusAnnouncer is the sole transition
+    // surface for assistive tech.
+    const outer = card.parentElement;
+    expect(outer?.getAttribute("aria-hidden")).toBe("true");
+  });
+});
+
 test("expanded state stable across parent re-render with same toolCallId", async () => {
   const user = userEvent.setup();
   const { rerender } = render(

@@ -88,6 +88,22 @@ describe("ErrorBlock", () => {
     expect(screen.queryByTestId("stream-error-block")).not.toBeInTheDocument();
   });
 
+  test('outer container carries role="alert" so screen readers interrupt and announce errors (D22)', () => {
+    render(
+      <ErrorBlock
+        friendly={{ title: "Server error.", retriable: false }}
+        source="pre-stream"
+        errorClass="pre-stream-500"
+      />,
+    );
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByTestId("stream-error-block")).toHaveAttribute(
+      "role",
+      "alert",
+    );
+  });
+
   test("toggle button is not rendered when friendly.detail is absent", () => {
     render(
       <ErrorBlock

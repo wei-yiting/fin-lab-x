@@ -11,15 +11,21 @@ export const IDLE_THINKING_TEXT = "Thinking";
  * The indicator fills the pre-response gap — after the user sends a
  * turn but before the assistant has streamed anything visible. Once
  * any part (text / tool) lands in the last assistant message, the
- * inline `Cursor` takes over at the tail of the Markdown, so we
- * suppress the separate indicator to avoid double-signaling.
+ * inline `Cursor` (text part) or `ToolCard` running state takes over,
+ * so we suppress the separate indicator to avoid double-signaling.
  *
- * Two extra branches per D15 §7.4:
- *  - `reasoningStatusText` truthy → always show (real reasoning takes
- *    precedence; idle-text path is suppressed by the caller).
- *  - Post-tool gap: last part is a completed tool and the stream is
- *    still running → show indicator while waiting for the next text /
- *    reasoning event (S-rsn-07).
+ * Visibility table (status streaming, last part):
+ *   - text part                  → false (cursor + content carry the signal)
+ *   - tool part still running    → false (ToolCard pulse carries the signal)
+ *   - tool part completed        → true  (post-tool gap; D15 §7.4 / S-rsn-07)
+ *   - parts empty                → true  (3-dot pre-response idle)
+ *   - reasoningStatusText truthy → true  (real reasoning text)
+ *
+ * The text/running-tool branch sits ABOVE `reasoningStatusText` so a stale
+ * reasoning text from a prior LLM call cannot keep the indicator visible
+ * once the next call has produced visible content. The `useLayoutEffect`
+ * in ChatPanel that calls `hideReasoningStatus()` on the same transitions
+ * is belt-and-suspenders for keeping the displayed text aligned.
  */
 export function shouldShowReasoningIndicator(args: {
   status: ChatStatus;
@@ -32,14 +38,18 @@ export function shouldShowReasoningIndicator(args: {
 
   if (!lastMessage || lastMessage.role !== "assistant") return true;
 
+  const lastPart = lastMessage.parts.at(-1);
+  if (lastPart) {
+    const t = lastPart.type;
+    if (t === "text") return false;
+    if (typeof t === "string" && (t.startsWith("tool-") || t === "dynamic-tool")) {
+      return isCompletedToolPart(lastPart) && status === "streaming";
+    }
+  }
+
   if (reasoningStatusText) return true;
 
   if (lastMessage.parts.length === 0) return true;
-
-  const lastPart = lastMessage.parts.at(-1);
-  if (lastPart && isCompletedToolPart(lastPart) && status === "streaming") {
-    return true;
-  }
 
   return false;
 }

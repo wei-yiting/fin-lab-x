@@ -20,6 +20,13 @@ interface MessageListProps {
   status: ChatStatus;
   toolProgress: Record<string, string>;
   abortedTools: Set<string>;
+  /**
+   * Messages whose turn was halted by user Stop. The map carries the
+   * frozen reasoning text captured at stop time so the persistent
+   * STOPPED label can render with the last visible reasoning sentence
+   * (or just STOPPED when no reasoning had streamed yet).
+   */
+  abortedMessages?: Map<string, { frozenReasoningText: string | null }>;
   onRegenerate: (id: string) => void;
   reasoningStatusText: string | null;
   reasoningStalled?: boolean;
@@ -37,6 +44,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     status,
     toolProgress,
     abortedTools,
+    abortedMessages,
     onRegenerate,
     reasoningStatusText,
     reasoningStalled = false,
@@ -97,16 +105,33 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             }
             if (msg.role === "assistant") {
               const isLast = i === messages.length - 1;
+              const abortInfo = abortedMessages?.get(msg.id);
+              const isAborted = abortInfo !== undefined;
+              const hasTextPart = msg.parts.some((p) => p.type === "text");
               return (
-                <AssistantMessage
-                  key={msg.id}
-                  message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
-                  isLast={isLast}
-                  status={status}
-                  abortedTools={abortedTools}
-                  toolProgress={toolProgress}
-                  onRegenerate={onRegenerate}
-                />
+                <div key={msg.id}>
+                  <AssistantMessage
+                    message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
+                    isLast={isLast}
+                    status={status}
+                    abortedTools={abortedTools}
+                    isAborted={isAborted}
+                    toolProgress={toolProgress}
+                    onRegenerate={onRegenerate}
+                  />
+                  {/*
+                    Per-message frozen indicator (C1 / mockup State 9 + 9a).
+                    Only render when there is no text part — for 9c the STOPPED
+                    label is appended inline at the end of the partial text by
+                    AssistantMessage itself (closer to where it belongs visually).
+                    `frozenReasoningText` may be null (Stop-A pre-response or
+                    pure-tool abort), in which case the indicator renders the
+                    text-less STOPPED label.
+                  */}
+                  {isAborted && !hasTextPart && (
+                    <ReasoningIndicator text={abortInfo.frozenReasoningText} state="frozen" />
+                  )}
+                </div>
               );
             }
             return null;

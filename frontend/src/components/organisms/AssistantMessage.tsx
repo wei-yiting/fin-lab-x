@@ -20,6 +20,15 @@ interface AssistantMessageProps {
   isLast: boolean;
   status?: ChatStatus;
   abortedTools: Set<string>;
+  /**
+   * True when the user halted this turn via Stop. Drives two visual changes:
+   *   - 9c: append an inline STOPPED label at the tail of the streamed text
+   *     (when text was already in flight at stop time).
+   *   - C2.a: hide the Regenerate button when there is no text body to keep
+   *     (an empty-parts aborted bubble has nothing useful to regenerate from
+   *     and the backend regenerate path errors on the missing AIMessage).
+   */
+  isAborted?: boolean;
   toolProgress: Record<string, string>;
   onRegenerate?: (messageId: string) => void;
 }
@@ -29,6 +38,7 @@ export function AssistantMessage({
   isLast,
   status,
   abortedTools,
+  isAborted = false,
   toolProgress,
   onRegenerate,
 }: AssistantMessageProps) {
@@ -98,6 +108,17 @@ export function AssistantMessage({
       {displayText && (
         <div className="pl-3">
           <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
+          {/*
+            C1 / mockup State 9c — inline STOPPED appended at the tail of the
+            partial response text. Sits inside the .pl-3 wrapper so the label
+            wraps naturally with the last text line rather than starting a new
+            visual row.
+          */}
+          {isAborted && (
+            <span className="reasoning-status-frozen-label" data-testid="text-stopped-label">
+              STOPPED
+            </span>
+          )}
         </div>
       )}
 
@@ -107,9 +128,22 @@ export function AssistantMessage({
         </div>
       )}
 
-      {isLast && status === "ready" && onRegenerate && (
-        <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />
-      )}
+      {/*
+        C2.a — Regenerate gating: hide when this turn has no text part to
+        meaningfully regenerate from. Two cases:
+          - empty parts (Stop-A / Stop-B mid-reasoning) — nothing rendered
+          - aborted with only tool parts (Stop-C) — same: no text to keep
+        Backend regenerate validation requires the messageId to match a
+        finalized AIMessage in LangGraph state; mid-reasoning aborts often
+        leave the checkpoint without one, so the request would 422.
+      */}
+      {isLast &&
+        status === "ready" &&
+        onRegenerate &&
+        message.parts.length > 0 &&
+        (!isAborted || displayText) && (
+          <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />
+        )}
     </article>
   );
 }

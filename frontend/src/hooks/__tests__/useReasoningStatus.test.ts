@@ -94,8 +94,11 @@ describe("useReasoningStatus — data-reasoning-status ingestion", () => {
   });
 });
 
-describe("useReasoningStatus — 6 clear triggers", () => {
-  test("text-start clears reasoningStatusText", () => {
+describe("useReasoningStatus — clear triggers", () => {
+  test("text-start chunks are no-ops via handleData (AI SDK v6 does not route them)", () => {
+    // AI SDK v6 only forwards data-* chunks through onData. text-start is
+    // dispatched via the messages array; ChatPanel's layoutEffect calls
+    // hideReasoningStatus() in response. handleData itself ignores it.
     const { result } = renderHook(() => useReasoningStatus());
 
     act(() => {
@@ -110,10 +113,11 @@ describe("useReasoningStatus — 6 clear triggers", () => {
       result.current.handleData({ type: "text-start" });
     });
 
-    expect(result.current.reasoningStatusText).toBeNull();
+    // text remains — handleData is intentionally a no-op for non-data-* events.
+    expect(result.current.reasoningStatusText).toBe("thinking");
   });
 
-  test("tool-input-available clears reasoningStatusText", () => {
+  test("tool-input-available chunks are no-ops via handleData (same reason)", () => {
     const { result } = renderHook(() => useReasoningStatus());
 
     act(() => {
@@ -128,7 +132,33 @@ describe("useReasoningStatus — 6 clear triggers", () => {
       result.current.handleData({ type: "tool-input-available" });
     });
 
+    expect(result.current.reasoningStatusText).toBe("thinking");
+  });
+
+  test("hideReasoningStatus() blanks text without latching the cleared guard", () => {
+    const { result } = renderHook(() => useReasoningStatus());
+
+    act(() => {
+      result.current.handleData({
+        type: "data-reasoning-status",
+        data: { text: "first call thinking" },
+      });
+    });
+    expect(result.current.reasoningStatusText).toBe("first call thinking");
+
+    act(() => {
+      result.current.hideReasoningStatus();
+    });
     expect(result.current.reasoningStatusText).toBeNull();
+
+    // Next LLM call's reasoning chunk must come through — clearedRef stays false.
+    act(() => {
+      result.current.handleData({
+        type: "data-reasoning-status",
+        data: { text: "second call thinking" },
+      });
+    });
+    expect(result.current.reasoningStatusText).toBe("second call thinking");
   });
 
   test("finish clears reasoningStatusText and sets finishedRef", () => {

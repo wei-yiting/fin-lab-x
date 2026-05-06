@@ -22,6 +22,10 @@ export function useReasoningStatus() {
   const handleData = useCallback((part: ReasoningStatusDataPart) => {
     if (clearedRef.current || finishedRef.current) return;
 
+    // AI SDK v6 only routes `data-*` chunks through onData. Other SSE events
+    // (text-start, tool-input-available) historically had branches here but
+    // never fired — they are dispatched via the messages array now and
+    // observed by ChatPanel's layoutEffect that calls hideReasoningStatus().
     switch (part.type) {
       case "data-reasoning-status": {
         if (typeof part.data?.text === "string") {
@@ -29,12 +33,6 @@ export function useReasoningStatus() {
           lastUpdateAtRef.current = Date.now();
           setStalled(false);
         }
-        return;
-      }
-      case "text-start":
-      case "tool-input-available": {
-        setText(null);
-        setStalled(false);
         return;
       }
       case "finish":
@@ -47,6 +45,22 @@ export function useReasoningStatus() {
       default:
         return;
     }
+  }, []);
+
+  // Two cleanup verbs with different guard semantics:
+  //
+  //   hideReasoningStatus(): blank the indicator without latching the
+  //     clearedRef guard. Use mid-turn — when text/tool parts appear and the
+  //     previous LLM call's reasoning is now stale. The next reasoning chunk
+  //     for the next LLM call is allowed back through handleData.
+  //
+  //   clearReasoningStatus(): same blank PLUS latch clearedRef so any
+  //     in-flight buffered SSE events that arrive after the clear are
+  //     silently dropped. Use only when the user explicitly clears the
+  //     conversation (D31 race protection).
+  const hideReasoningStatus = useCallback(() => {
+    setText(null);
+    setStalled(false);
   }, []);
 
   const clearReasoningStatus = useCallback(() => {
@@ -79,6 +93,7 @@ export function useReasoningStatus() {
     reasoningStatusText,
     stalled,
     handleData,
+    hideReasoningStatus,
     clearReasoningStatus,
     resetForNewTurn,
   };

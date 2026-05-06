@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
 import { useReasoningStatus } from "@/hooks/useReasoningStatus";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
@@ -46,7 +46,7 @@ export function ChatPanel() {
     reasoningStatusText,
     stalled: reasoningStalled,
     handleData: handleReasoningData,
-    clearReasoningStatus,
+    hideReasoningStatus,
     resetForNewTurn,
   } = useReasoningStatus();
   const [lastSSEEvent, setLastSSEEvent] = useState<AnnouncedEvent | null>(null);
@@ -82,6 +82,17 @@ export function ChatPanel() {
     },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
+  // C1: per-message abort marker. The reasoning indicator hosts the STOPPED
+  // label and is ephemeral by design (not part of message.parts) — to keep
+  // the abort signal across the rest of the chat we capture the in-flight
+  // reasoning text at stop time and hold it in React state. Map by message
+  // id so prior aborted bubbles stay marked when later turns coexist.
+  // `frozenReasoningText` is null when the user stops before any reasoning
+  // text arrived (Stop-A or pure-tool aborts) — the renderer falls back to
+  // the text-less STOPPED label.
+  const [abortedMessages, setAbortedMessages] = useState<
+    Map<string, { frozenReasoningText: string | null }>
+  >(() => new Map());
   const lastTriggerRef = useRef<LastTrigger | null>(null);
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
@@ -120,9 +131,21 @@ export function ChatPanel() {
     if (runningIds.length) {
       setAbortedTools((prev) => new Set([...prev, ...runningIds]));
     }
-    clearReasoningStatus();
+    // Mark this message as aborted and capture the in-flight reasoning text
+    // so MessageList can render a frozen indicator with STOPPED for it.
+    if (lastMsg && lastMsg.role === "assistant") {
+      const captured = reasoningStatusText;
+      setAbortedMessages((prev) => {
+        const next = new Map(prev);
+        next.set(lastMsg.id, { frozenReasoningText: captured });
+        return next;
+      });
+    }
+    // hide (not clear) — clearReasoningStatus would latch clearedRef and
+    // prevent the next turn from showing reasoning at all.
+    hideReasoningStatus();
     stop();
-  }, [messages, stop, clearReasoningStatus]);
+  }, [messages, stop, hideReasoningStatus, reasoningStatusText]);
 
   const handleClearSession = useCallback(() => {
     stop();
@@ -131,6 +154,7 @@ export function ChatPanel() {
     resetForNewTurn();
     setLastSSEEvent(null);
     setAbortedTools(new Set());
+    setAbortedMessages(new Map());
     lastTriggerRef.current = null;
   }, [stop, clearProgress, resetForNewTurn]);
 
@@ -164,6 +188,26 @@ export function ChatPanel() {
     setMessages((msgs) => msgs.slice(0, -1));
     sendMessage({ text: last.userText });
   }, [messages, regenerate, setMessages, sendMessage, resetForNewTurn]);
+
+  // Bug B / E auto-hide: AI SDK v6 does not route generic SSE events
+  // (text-start, tool-input-available) through onData, so the reasoning
+  // hook cannot clear its text on those events directly. Watch the
+  // messages array instead — once a text part lands or any tool part
+  // appears (running or completed), the reasoningStatusText from the
+  // previous LLM call is stale and must be cleared. Use layoutEffect so
+  // the clear happens before the browser paints, eliminating the
+  // "indicator briefly visible alongside text" flicker.
+  useLayoutEffect(() => {
+    if (!reasoningStatusText) return;
+    const lastMsg = messages.at(-1);
+    if (!lastMsg || lastMsg.role !== "assistant") return;
+    const lastPart = (lastMsg.parts as PartLike[]).at(-1);
+    if (!lastPart) return;
+    const t = lastPart.type;
+    if (t === "text" || isToolPart(lastPart)) {
+      hideReasoningStatus();
+    }
+  }, [messages, reasoningStatusText, hideReasoningStatus]);
 
   // When useChat enters error state, mark any running tools on the last assistant message as aborted.
   // AI SDK v6 routes SSE `error` chunks to onError/status=error, not message.parts, so we cannot
@@ -227,6 +271,7 @@ export function ChatPanel() {
         status={status as ChatStatus}
         toolProgress={toolProgress}
         abortedTools={abortedTools}
+        abortedMessages={abortedMessages}
         onRegenerate={handleRegenerate}
         reasoningStatusText={reasoningStatusText}
         reasoningStalled={reasoningStalled}

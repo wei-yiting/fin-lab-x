@@ -84,7 +84,10 @@ describe("shouldShowReasoningIndicator — truth table", () => {
 });
 
 describe("shouldShowReasoningIndicator — reasoningStatusText + post-tool gap branches", () => {
-  test("reasoningStatusText overrides everything → true even with text part visible", () => {
+  test("text part visible → false even with reasoningStatusText (text streaming wins)", () => {
+    // Text part is the visible signal — Cursor on the streamed text makes
+    // a separate indicator redundant. A stale reasoningStatusText carried
+    // over from the previous LLM call must not keep the indicator showing.
     expect(
       shouldShowReasoningIndicator({
         status: "streaming",
@@ -92,7 +95,23 @@ describe("shouldShowReasoningIndicator — reasoningStatusText + post-tool gap b
         lastMessage: { role: "assistant", parts: [{ type: "text", text: "hi" }] } as any,
         reasoningStatusText: "Thinking about prices...",
       }),
-    ).toBe(true);
+    ).toBe(false);
+  });
+
+  test("running tool last → false (ToolCard pulse carries the signal)", () => {
+    expect(
+      shouldShowReasoningIndicator({
+        status: "streaming",
+        lastMessage: {
+          role: "assistant",
+          parts: [
+            { type: "tool-yfinance_stock_quote", state: "input-available" },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test data uses loose types
+          ] as any,
+        },
+        reasoningStatusText: "Stale reasoning from prior call",
+      }),
+    ).toBe(false);
   });
 
   test("parts.length===0 + reasoningStatusText null → true", () => {

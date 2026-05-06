@@ -481,12 +481,15 @@ describe("ChatPanel integration — reasoning indicator from data-reasoning-stat
 
     await user.click(screen.getByTestId("composer-stop-btn"));
 
-    // After stop, the panel calls clearReasoningStatus → text gone. Indicator
-    // either disappears (status=ready, no text) or stays without text. Either
-    // way "Analyzing your request" must not be visible.
+    // After C1 fix: handleStop captures the in-flight reasoning text into
+    // abortedMessages and MessageList renders a frozen ReasoningIndicator
+    // with the captured text + STOPPED label below the (empty) assistant
+    // bubble. The frozen text persists across the rest of the chat — user
+    // can see *what* the model was thinking when they hit stop.
     await waitFor(
       () => {
-        expect(screen.queryByText(/Analyzing your request/)).not.toBeInTheDocument();
+        expect(screen.getByText(/Analyzing your request/)).toBeInTheDocument();
+        expect(screen.getByText("STOPPED")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -577,12 +580,11 @@ describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", (
           const messageId = `m-turn-${turn}`;
           const reasoningText = turn === 1 ? "first reasoning" : "second reasoning";
           controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: `t${turn}` })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({ type: "text-delta", id: `t${turn}`, delta: `turn-${turn} content` }),
-            ),
-          );
+          // D28 hold-and-flush ordering: reasoning is emitted BEFORE text-start
+          // so the indicator can show, then unmount when the text part arrives.
+          // The original test had reasoning AFTER text-delta which the
+          // production hook's auto-hide would suppress (text part is the
+          // visible signal once it lands).
           controller.enqueue(
             encoder.encode(
               sseFrame({
@@ -593,11 +595,18 @@ describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", (
               }),
             ),
           );
-          // Hold open so the test can observe and stop the first turn.
+          // Hold so the test can click Stop while only the reasoning
+          // indicator is up (mockup State 9 — pre-text abort).
           for (let i = 0; i < 30; i++) {
             await new Promise((r) => setTimeout(r, 100));
             if (request.signal.aborted) return;
           }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: `t${turn}` })));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({ type: "text-delta", id: `t${turn}`, delta: `turn-${turn} content` }),
+            ),
+          );
           controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: `t${turn}` })));
           controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
           controller.close();
@@ -622,13 +631,8 @@ describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", (
     await user.type(textarea, "first");
     await user.click(screen.getByTestId("composer-send-btn"));
 
-    // First turn shows its content + reasoning text
-    await waitFor(
-      () => {
-        expect(screen.getByText(/turn-1 content/)).toBeInTheDocument();
-      },
-      { timeout: 5000 },
-    );
+    // First turn streams reasoning before text — the indicator is up while
+    // the held stream blocks text-start.
     await waitFor(
       () => {
         expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(/first reasoning/);
@@ -636,24 +640,28 @@ describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", (
       { timeout: 5000 },
     );
 
-    // Stop the first turn
+    // Stop while still in reasoning phase — pre-text abort (mockup State 9).
+    // C1 fix: the panel captures the in-flight reasoning text and renders a
+    // frozen ReasoningIndicator with that text + STOPPED label below the
+    // (still empty) assistant bubble. Persists for the rest of the chat.
     await user.click(screen.getByTestId("composer-stop-btn"));
     await waitFor(
       () => {
-        expect(screen.queryByText(/first reasoning/)).not.toBeInTheDocument();
+        expect(screen.getByText(/first reasoning/)).toBeInTheDocument();
+        expect(screen.getByText("STOPPED")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
 
-    // First assistant bubble retains its rendered text
-    expect(screen.getByText(/turn-1 content/)).toBeInTheDocument();
-
-    // Send second message
+    // Send second message — kicks off a new turn under the same chatId.
     await user.clear(textarea);
     await user.type(textarea, "second");
     await user.click(screen.getByTestId("composer-send-btn"));
 
-    // Second turn produces its own bubble + reasoning text
+    // After C1 the prior bubble keeps its frozen reasoning indicator AND
+    // the new turn renders its own streaming indicator. Two indicators
+    // coexist; match the streaming one by content (getByTestId would
+    // throw on >1).
     await waitFor(
       () => {
         expect(screen.getAllByTestId("assistant-message")).toHaveLength(2);
@@ -662,14 +670,16 @@ describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", (
     );
     await waitFor(
       () => {
-        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(/second reasoning/);
+        const indicators = screen.getAllByTestId("reasoning-indicator");
+        expect(indicators.some((el) => /second reasoning/.test(el.textContent ?? ""))).toBe(true);
       },
       { timeout: 5000 },
     );
 
-    // First bubble's text still renders alongside the second one
-    expect(screen.getByText(/turn-1 content/)).toBeInTheDocument();
-    expect(screen.getByText(/turn-2 content/)).toBeInTheDocument();
+    // Prior frozen reasoning + STOPPED still visible — the new turn does
+    // not erase the prior abort signal.
+    expect(screen.getByText(/first reasoning/)).toBeInTheDocument();
+    expect(screen.getByText("STOPPED")).toBeInTheDocument();
   }, 30000);
 });
 

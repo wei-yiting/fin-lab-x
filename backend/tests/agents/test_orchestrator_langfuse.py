@@ -2,10 +2,18 @@
 
 import asyncio
 import pytest
+from collections import OrderedDict
 from unittest.mock import patch, MagicMock, AsyncMock
 from contextlib import nullcontext
 from typing import Any, cast
-from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, RemoveMessage
+from uuid import uuid4
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    HumanMessage,
+    RemoveMessage,
+)
+from langfuse import LangfuseChain, LangfuseGeneration
 
 from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.agents.config_loader import VersionConfig, ModelConfig
@@ -20,6 +28,21 @@ from backend.agent_engine.streaming.domain_events_schema import (
 from backend.agent_engine.streaming.reasoning_trace_callback import (
     ReasoningTraceCallback,
 )
+
+
+def _make_handler_with_inflight_runs() -> tuple[MagicMock, MagicMock, MagicMock]:
+    """Build a CallbackHandler mock with a populated _runs dict matching the
+    state Langfuse would have at abort time: a root LangfuseChain plus an
+    in-flight LangfuseGeneration that hasn't been ended yet (so still in the
+    dict).
+
+    Returns ``(handler_mock, root_chain_mock, generation_mock)``.
+    """
+    chain_mock = MagicMock(spec=LangfuseChain)
+    gen_mock = MagicMock(spec=LangfuseGeneration)
+    handler = MagicMock()
+    handler._runs = OrderedDict([(uuid4(), chain_mock), (uuid4(), gen_mock)])
+    return handler, chain_mock, gen_mock
 
 
 def _make_config() -> VersionConfig:
@@ -129,7 +152,9 @@ class TestRunInjectsLangfuseCallback:
         agent.invoke.return_value = _mock_agent_response()
 
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler") as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
@@ -270,9 +295,7 @@ class TestAstreamRun:
         ):
             mock_handler_cls.return_value = MagicMock()
             events = []
-            async for event in orch.astream_run(
-                message="test", session_id="sess-1"
-            ):
+            async for event in orch.astream_run(message="test", session_id="sess-1"):
                 events.append(event)
 
         assert isinstance(events[0], MessageStart)
@@ -311,9 +334,7 @@ class TestAstreamRun:
             ),
         ):
             mock_handler_cls.return_value = MagicMock()
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-42"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-42"):
                 pass
 
         config_arg = captured_kwargs.get("config", {})
@@ -345,9 +366,7 @@ class TestAstreamRun:
         ):
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-99"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-99"):
                 pass
 
         mock_handler_cls.assert_called_once()
@@ -445,9 +464,7 @@ class TestAstreamRun:
                 events.append(event)
 
         assert any(isinstance(e, StreamError) for e in events)
-        assert any(
-            isinstance(e, Finish) and e.finish_reason == "error" for e in events
-        )
+        assert any(isinstance(e, Finish) and e.finish_reason == "error" for e in events)
 
     @pytest.mark.asyncio
     async def test_exception_yields_stream_error_and_finish(self):
@@ -472,9 +489,7 @@ class TestAstreamRun:
         ):
             mock_handler_cls.return_value = MagicMock()
             events = []
-            async for event in orch.astream_run(
-                message="test", session_id="sess-err"
-            ):
+            async for event in orch.astream_run(message="test", session_id="sess-err"):
                 events.append(event)
 
         assert len(events) == 2
@@ -533,9 +548,7 @@ class TestAstreamRun:
             ),
         ):
             mock_handler_cls.return_value = MagicMock()
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-1"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-1"):
                 pass
 
         assert captured_kwargs["stream_mode"] == ["messages", "updates", "custom"]
@@ -715,12 +728,8 @@ class TestLangfuseTraceMetadata:
             await orch.arun("test", session_id="sess-1", request_id="req-1")
 
             config_arg = agent.ainvoke.call_args[1]["config"]
-            assert (
-                config_arg["metadata"]["langfuse_trace_name"] == "v2_test_invoke"
-            )
-            assert (
-                mock_propagate.call_args.kwargs["trace_name"] == "v2_test_invoke"
-            )
+            assert config_arg["metadata"]["langfuse_trace_name"] == "v2_test_invoke"
+            assert mock_propagate.call_args.kwargs["trace_name"] == "v2_test_invoke"
 
 
 class TestReasoningTraceCallbackInjection:
@@ -759,9 +768,7 @@ class TestReasoningTraceCallbackInjection:
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
 
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-r1"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-r1"):
                 pass
 
         callbacks = captured_kwargs["config"]["callbacks"]
@@ -801,9 +808,7 @@ class TestReasoningTraceCallbackInjection:
                 return_value=nullcontext(),
             ),
         ):
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-r2"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-r2"):
                 pass
 
         callbacks = captured_kwargs["config"]["callbacks"]
@@ -903,16 +908,15 @@ class TestAstreamAbortCleanup:
         agent = cast(Any, orch.agent)
         self._astream_with_reasoning_then_cancel(agent)
 
-        fake_client = MagicMock()
+        handler_mock, chain_mock, gen_mock = _make_handler_with_inflight_runs()
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler",
+                return_value=handler_mock,
+            ),
             patch(
                 "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
                 return_value=MagicMock(),
-            ),
-            patch(
-                "backend.agent_engine.agents.base.get_client",
-                return_value=fake_client,
             ),
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
@@ -925,18 +929,17 @@ class TestAstreamAbortCleanup:
                 ):
                     pass
 
-        # update_current_generation receives metadata.reasoning_tail_aborted
-        gen_calls = fake_client.update_current_generation.call_args_list
+        # In-flight generation receives metadata.reasoning_tail_aborted
+        gen_calls = gen_mock.update.call_args_list
         assert len(gen_calls) == 1
         gen_metadata = gen_calls[0].kwargs["metadata"]
         assert "reasoning_tail_aborted" in gen_metadata
         assert "partial thought" in gen_metadata["reasoning_tail_aborted"]
 
-        # update_current_span receives metadata.status="aborted"
-        span_calls = fake_client.update_current_span.call_args_list
+        # Root chain receives metadata.status="aborted"
+        chain_calls = chain_mock.update.call_args_list
         assert any(
-            c.kwargs.get("metadata", {}).get("status") == "aborted"
-            for c in span_calls
+            c.kwargs.get("metadata", {}).get("status") == "aborted" for c in chain_calls
         )
 
     @pytest.mark.asyncio
@@ -951,16 +954,15 @@ class TestAstreamAbortCleanup:
 
         agent.astream = mock_astream
 
-        fake_client = MagicMock()
+        handler_mock, chain_mock, gen_mock = _make_handler_with_inflight_runs()
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler",
+                return_value=handler_mock,
+            ),
             patch(
                 "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
                 return_value=MagicMock(),
-            ),
-            patch(
-                "backend.agent_engine.agents.base.get_client",
-                return_value=fake_client,
             ),
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
@@ -974,12 +976,11 @@ class TestAstreamAbortCleanup:
                     pass
 
         # No reasoning to flush -> generation update never fires.
-        assert fake_client.update_current_generation.call_count == 0
-        # Root trace status still recorded.
-        span_calls = fake_client.update_current_span.call_args_list
+        assert gen_mock.update.call_count == 0
+        # Root chain status still recorded.
+        chain_calls = chain_mock.update.call_args_list
         assert any(
-            c.kwargs.get("metadata", {}).get("status") == "aborted"
-            for c in span_calls
+            c.kwargs.get("metadata", {}).get("status") == "aborted" for c in chain_calls
         )
 
     @pytest.mark.asyncio
@@ -989,21 +990,18 @@ class TestAstreamAbortCleanup:
         agent = cast(Any, orch.agent)
         self._astream_with_reasoning_then_cancel(agent)
 
-        fake_client = MagicMock()
-        fake_client.update_current_span.side_effect = RuntimeError("langfuse down")
-        fake_client.update_current_generation.side_effect = RuntimeError(
-            "langfuse down"
-        )
+        handler_mock, chain_mock, gen_mock = _make_handler_with_inflight_runs()
+        chain_mock.update.side_effect = RuntimeError("langfuse down")
+        gen_mock.update.side_effect = RuntimeError("langfuse down")
 
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler",
+                return_value=handler_mock,
+            ),
             patch(
                 "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
                 return_value=MagicMock(),
-            ),
-            patch(
-                "backend.agent_engine.agents.base.get_client",
-                return_value=fake_client,
             ),
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
@@ -1033,16 +1031,15 @@ class TestAstreamAbortCleanup:
 
         agent.astream = mock_astream
 
-        fake_client = MagicMock()
+        handler_mock, chain_mock, gen_mock = _make_handler_with_inflight_runs()
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler",
+                return_value=handler_mock,
+            ),
             patch(
                 "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
                 return_value=MagicMock(),
-            ),
-            patch(
-                "backend.agent_engine.agents.base.get_client",
-                return_value=fake_client,
             ),
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
@@ -1055,13 +1052,9 @@ class TestAstreamAbortCleanup:
             ):
                 events.append(event)
 
-        # No abort cleanup -> client.update_current_span / update_current_generation
-        # are not called from the orchestrator (only ReasoningTraceCallback's own
-        # client would fire update_current_generation, and that uses a separate
-        # mocked client above).
-        assert fake_client.update_current_span.call_count == 0
-        assert fake_client.update_current_generation.call_count == 0
+        # Natural finish must NOT touch the abort cleanup path (the path that
+        # writes status="aborted" and reasoning_tail_aborted via run_id lookup).
+        assert chain_mock.update.call_count == 0
+        assert gen_mock.update.call_count == 0
         # Stream should have produced a Finish(stop) event.
-        assert any(
-            isinstance(e, Finish) and e.finish_reason == "stop" for e in events
-        )
+        assert any(isinstance(e, Finish) and e.finish_reason == "stop" for e in events)

@@ -2,24 +2,29 @@
 
 Subclasses LangChain ``BaseCallbackHandler``. On every chat-model / LLM call
 completion, it extracts the joined reasoning text from the final
-``AIMessage.content_blocks`` and writes it to the current Langfuse generation
-as ``metadata.reasoning``.
+``AIMessage.content_blocks`` and writes it to the matching Langfuse
+generation as ``metadata.reasoning``.
 
 ``BaseCallbackHandler`` does not expose ``on_chat_model_end``; LangChain
 dispatches chat-model completions through ``on_llm_end``. We override that
 hook for both LLM and chat-model spans.
 
-The current observation at ``on_llm_end`` time is the chat_model generation
-that ``langfuse.langchain.CallbackHandler`` pushed onto the contextvars stack
-when the same LLM call started.
+Lookup-by-run_id (not contextvars):
+    Earlier versions called ``client.update_current_generation()``, which
+    targets whatever OTel span is current at call time. On LangChain's async
+    dispatch path the OTel context that ``langfuse.langchain.CallbackHandler``
+    attaches to the GENERATION span does not always reach our callback's
+    frame — the dispatcher snapshots context per-callback, so the "current"
+    span can be ``None`` or a parent CHAIN, and the update silently no-ops.
+    The smoking gun for that is "Context error: No active span in current
+    context" warning lines around ``on_llm_end``.
 
-WARNING — callback ordering:
-    To guarantee this callback writes BEFORE the Langfuse handler ends and
-    detaches the generation off contextvars, callers MUST register this
-    callback ahead of ``langfuse.langchain.CallbackHandler``.
-
-    callbacks=[ReasoningTraceCallback(...), CallbackHandler()]   # correct
-    callbacks=[CallbackHandler(), ReasoningTraceCallback(...)]   # WRONG — Langfuse pops the generation off contextvars first
+    Instead we reach into ``langfuse.langchain.CallbackHandler._runs`` —
+    the run_id → ``LangfuseGeneration`` mapping the handler maintains for
+    its own bookkeeping (see Langfuse 4.x source: ``_attach_observation``
+    sets ``self._runs[run_id] = observation``; ``on_llm_new_token`` already
+    relies on the same dict). Looking up the GENERATION by ``run_id`` is
+    deterministic regardless of dispatch ordering or OTel context state.
 
 D29 schema (completed path; abort path lives in Task 6):
 
@@ -36,12 +41,15 @@ fallback writes ``""``.
 from __future__ import annotations
 
 import logging
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from uuid import UUID
 
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.outputs import LLMResult
-from langfuse import get_client
+from langfuse import LangfuseGeneration, get_client
+
+if TYPE_CHECKING:
+    from langfuse.langchain import CallbackHandler as LangfuseLangchainHandler
 
 logger = logging.getLogger(__name__)
 
@@ -50,23 +58,29 @@ class ReasoningTraceCallback(BaseCallbackHandler):
     SIZE_CAP_BYTES = 500_000  # D29.2
     UNSUPPORTED_SENTINEL = "<unsupported>"  # D29.3
     METADATA_KEY = "reasoning"  # D29.1
-    # Force LangChain to dispatch this callback inline (block before invoking
-    # the next handler) on both sync and async paths. The async dispatcher
-    # otherwise runs each non-inline handler under its own copy_context()
-    # snapshot, which would silently make list ordering vs. the Langfuse
-    # handler decorative on async; with run_inline=True the docstring's
-    # "ordering matters" claim is literally accurate everywhere.
+    # Even with lookup-by-run_id, we still want to dispatch inline so the
+    # write happens before any teardown that could end the generation span
+    # (and before any other callback runs that might depend on metadata
+    # being present).
     run_inline = True
 
     def __init__(
-        self, *, agent_reasoning_capability: Literal["on", "off", "unsupported"]
+        self,
+        *,
+        agent_reasoning_capability: Literal["on", "off", "unsupported"],
+        langfuse_handler: "LangfuseLangchainHandler | None" = None,
     ) -> None:
         super().__init__()
         self._capability = agent_reasoning_capability
         # Cache the Langfuse client at construction (mirrors
         # langfuse.langchain.CallbackHandler's own pattern — single resolution
-        # per request-scoped callback instance).
+        # per request-scoped callback instance). Only used for the no-handler
+        # fallback path (legacy / unit tests).
         self._client = get_client()
+        # Optional reference to the Langfuse Langchain handler. When supplied
+        # we look up the GENERATION span by run_id rather than relying on
+        # OTel current-span propagation. This is the production path.
+        self._handler = langfuse_handler
 
     def on_llm_end(
         self,
@@ -81,8 +95,23 @@ class ReasoningTraceCallback(BaseCallbackHandler):
         except Exception:
             logger.exception("ReasoningTraceCallback failed; emitting empty string")
             value = ""
-        # chat_model spans are Langfuse "generations"; update_current_generation
-        # targets the contextvars-current generation pushed by langfuse.langchain.CallbackHandler.
+
+        if self._handler is not None:
+            generation = self._handler._runs.get(run_id)
+            if isinstance(generation, LangfuseGeneration):
+                generation.update(metadata={self.METADATA_KEY: value})
+                return
+            logger.warning(
+                "ReasoningTraceCallback: run_id %s not found in handler._runs "
+                "(or not a LangfuseGeneration: %s); falling back to "
+                "update_current_generation()",
+                run_id,
+                type(generation).__name__ if generation is not None else None,
+            )
+
+        # Fallback: legacy / unit-test path with no handler reference. Targets
+        # the OTel current-span — works for sync dispatch, may silently no-op
+        # on async paths.
         self._client.update_current_generation(metadata={self.METADATA_KEY: value})
 
     def _compute_reasoning_value(self, response: LLMResult) -> str:
@@ -113,8 +142,6 @@ class ReasoningTraceCallback(BaseCallbackHandler):
 
         encoded = joined.encode("utf-8")
         if len(encoded) > self.SIZE_CAP_BYTES:
-            truncated = encoded[: self.SIZE_CAP_BYTES].decode(
-                "utf-8", errors="ignore"
-            )
+            truncated = encoded[: self.SIZE_CAP_BYTES].decode("utf-8", errors="ignore")
             return f"{truncated}... [truncated, original {len(encoded)} bytes]"
         return joined

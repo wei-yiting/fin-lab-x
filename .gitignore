@@ -7,7 +7,8 @@ __pycache__/
 .vscode/
 .sisyphus/
 .artifacts/
-artifacts/
+# artifacts/ — temporarily tracked during planning/implementation per CLAUDE.md feedback
+# re-enable this exclusion once the design + plan + implementation are merged
 .superpowers/
 backend/evals/results/
 node_modules/

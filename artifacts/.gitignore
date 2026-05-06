@@ -1,0 +1,3 @@
+# Per-session temp output (uvicorn / verifier / test logs, transient json) —
+# kept on disk for debugging the most recent run, not durable docs.
+current/temp/

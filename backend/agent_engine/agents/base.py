@@ -30,7 +30,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.runtime import Runtime
 from langgraph.typing import ContextT
 from typing_extensions import override
-from langfuse import get_client, propagate_attributes
+from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import TypedDict
@@ -119,6 +119,13 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
         kwargs["thinking_budget"] = (
             config.thinking_budget if config.reasoning == "on" else 0
         )
+        # Gemini 2.5 only surfaces thinking content in the response when both
+        # thinking_budget>0 AND include_thoughts=True are passed. Without
+        # include_thoughts, the model still spends thinking tokens but
+        # AIMessage.content_blocks contains no reasoning blocks, so
+        # metadata.reasoning + data-reasoning-status both end up empty.
+        if config.reasoning == "on":
+            kwargs["include_thoughts"] = True
     elif provider == "anthropic":
         if config.reasoning == "on":
             if config.thinking_budget is None:
@@ -133,6 +140,16 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
                     f"thinking_budget >= 1024 (got {config.thinking_budget}). "
                     "Anthropic API rejects lower values."
                 )
+            # Anthropic extended thinking rejects any temperature other than
+            # 1.0 with HTTP 400. The default agent ModelConfig.temperature is
+            # 0.0, so this combo would fail at first request without an
+            # actionable error from the provider. Catch it at startup.
+            if config.temperature != 1.0:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires "
+                    f"temperature=1.0 (got {config.temperature}). Extended "
+                    "thinking rejects other temperatures with HTTP 400."
+                )
             kwargs["thinking"] = {
                 "type": "enabled",
                 "budget_tokens": config.thinking_budget,
@@ -140,7 +157,12 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
     else:
         # openai (explicit prefix) and bare names
         if config.reasoning == "on":
-            kwargs["reasoning_effort"] = "medium"
+            # Pass both effort and summary via the unified ``reasoning`` dict
+            # (langchain-openai 0.3.24+). ``summary="auto"`` lets the
+            # Responses API decide whether to emit a reasoning summary block;
+            # without it the response carries no reasoning content_blocks
+            # even on gpt-5 / o4 models, leaving metadata.reasoning empty.
+            kwargs["reasoning"] = {"effort": "medium", "summary": "auto"}
             kwargs["use_responses_api"] = True
 
     return init_chat_model(name, **kwargs)
@@ -292,7 +314,9 @@ class _LangfusePropagationAttributes(TypedDict, total=False):
 class Orchestrator:
     """Version-agnostic Orchestrator that loads capabilities from config."""
 
-    def __init__(self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None):
+    def __init__(
+        self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None
+    ):
         setup_tools()
         self._validate_edgar_identity(config)
         self.config = config
@@ -352,9 +376,7 @@ class Orchestrator:
             raise ValueError(
                 f"Prompt references undefined variables: {sorted(missing)}"
             )
-        return _PROMPT_PLACEHOLDER_RE.sub(
-            lambda m: str(provided[m.group(1)]), raw
-        )
+        return _PROMPT_PLACEHOLDER_RE.sub(lambda m: str(provided[m.group(1)]), raw)
 
     @staticmethod
     def _validate_edgar_identity(config: VersionConfig) -> None:
@@ -362,13 +384,9 @@ class Orchestrator:
         ``EDGAR_IDENTITY`` set. Versions without SEC tools skip the check so
         non-SEC deployments stay unaffected.
         """
-        needs_sec = any(
-            t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools
-        )
+        needs_sec = any(t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools)
         if needs_sec and not os.getenv("EDGAR_IDENTITY"):
-            raise ConfigurationError(
-                "EDGAR_IDENTITY environment variable is not set."
-            )
+            raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     def run(
         self,
@@ -377,12 +395,16 @@ class Orchestrator:
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> OrchestratorResult:
-        config, propagation = self._build_langfuse_config(
+        config, propagation, _handler = self._build_langfuse_config(
             mode="invoke",
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
         )
-        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        thread_id = (
+            session_id
+            if isinstance(session_id, str) and session_id
+            else str(uuid.uuid4())
+        )
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = self.agent.invoke(
@@ -402,12 +424,16 @@ class Orchestrator:
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
-        config, propagation = self._build_langfuse_config(
+        config, propagation, _handler = self._build_langfuse_config(
             mode="invoke",
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
         )
-        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        thread_id = (
+            session_id
+            if isinstance(session_id, str) and session_id
+            else str(uuid.uuid4())
+        )
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = await self.agent.ainvoke(
@@ -425,7 +451,7 @@ class Orchestrator:
         message_id: str | None = None,
         request_id: str | None = None,
     ) -> AsyncGenerator[DomainEvent, None]:
-        config, propagation = self._build_langfuse_config(
+        config, propagation, handler = self._build_langfuse_config(
             mode="stream",
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
@@ -444,9 +470,7 @@ class Orchestrator:
                 # (S-stream-04) without depending on a flaky upstream API.
                 # Production must NOT set FORCE_LLM_FAIL.
                 if os.environ.get("FORCE_LLM_FAIL"):
-                    raise RuntimeError(
-                        "FORCE_LLM_FAIL: simulated provider failure"
-                    )
+                    raise RuntimeError("FORCE_LLM_FAIL: simulated provider failure")
 
                 if trigger == "regenerate":
                     await self._prepare_regenerate(config, message_id)
@@ -473,7 +497,7 @@ class Orchestrator:
                 # D35 abort cleanup. CancelledError is BaseException (not
                 # Exception); list it before the generic except so it doesn't
                 # collapse into the StreamError path.
-                self._handle_abort_cleanup(mapper)
+                self._handle_abort_cleanup(mapper, handler)
                 raise
             except Exception as e:
                 for event in mapper.finalize():
@@ -482,13 +506,15 @@ class Orchestrator:
                 yield StreamError(error_text=sanitize_tool_error(str(e)))
                 yield Finish(finish_reason="error")
 
-    def _handle_abort_cleanup(self, mapper: StreamEventMapper) -> None:
+    def _handle_abort_cleanup(
+        self, mapper: StreamEventMapper, handler: "CallbackHandler"
+    ) -> None:
         """D35 abort cleanup.
 
         Drains the segmenter, writes any tail reasoning text to the in-flight
         chat_model generation under ``metadata.reasoning_tail_aborted`` (a
         distinct key from the completed-path ``metadata.reasoning`` so the
-        schema stays consistent), and stamps the root span as
+        schema stays consistent), and stamps the root chain as
         ``status="aborted"``. All Langfuse interactions are best-effort —
         internal failures are logged but never re-raised so cancellation
         propagation is not blocked by observability outages.
@@ -496,7 +522,19 @@ class Orchestrator:
         Sync by design — sync code is not interruptible by ``CancelledError``,
         so cleanup runs to completion even when the parent task is being
         cancelled.
+
+        Lookup-by-run_id (not contextvars): like ``ReasoningTraceCallback``,
+        this method previously used ``client.update_current_generation`` /
+        ``update_current_span``, both of which silently no-op when the OTel
+        current span isn't the expected GENERATION/CHAIN. At abort time the
+        call stack is already unwinding, so the OTel context is even less
+        reliable. Instead we read the in-flight observations out of
+        ``handler._runs`` (Langfuse 4.x's run_id → observation dict). Entries
+        for ended runs have already been popped via ``_detach_observation``,
+        so whatever is still there at abort is by definition still in flight.
         """
+        from langfuse import LangfuseChain, LangfuseGeneration  # local: optional dep
+
         tail_segments: list[str] = []
         try:
             for event in mapper.finalize():
@@ -505,20 +543,49 @@ class Orchestrator:
         except Exception:
             logger.exception("mapper.finalize raised during abort cleanup")
 
-        client = get_client()
-        if tail_segments:
+        # Find the most recent in-flight chat_model GENERATION (Python dicts
+        # preserve insertion order, so the last LangfuseGeneration is the
+        # most recently started but not-yet-ended one).
+        in_flight_generation: LangfuseGeneration | None = None
+        root_chain: LangfuseChain | None = None
+        try:
+            for observation in handler._runs.values():
+                if isinstance(observation, LangfuseGeneration):
+                    in_flight_generation = observation
+                elif isinstance(observation, LangfuseChain) and root_chain is None:
+                    # The chat-turn root LangfuseChain is the first chain
+                    # registered (parent_run_id is None at the start of the
+                    # request).
+                    root_chain = observation
+        except Exception:
+            logger.exception("failed to iterate handler._runs during abort cleanup")
+
+        if tail_segments and in_flight_generation is not None:
             try:
-                client.update_current_generation(
+                in_flight_generation.update(
                     metadata={"reasoning_tail_aborted": "\n".join(tail_segments)},
                 )
             except Exception:
                 logger.exception(
-                    "failed to write reasoning_tail_aborted to current generation"
+                    "failed to write reasoning_tail_aborted to in-flight generation"
                 )
-        try:
-            client.update_current_span(metadata={"status": "aborted"})
-        except Exception:
-            logger.exception("failed to mark trace aborted")
+        elif tail_segments:
+            logger.warning(
+                "abort cleanup: %d tail segments collected but no in-flight "
+                "LangfuseGeneration found in handler._runs; reasoning tail dropped",
+                len(tail_segments),
+            )
+
+        if root_chain is not None:
+            try:
+                root_chain.update(metadata={"status": "aborted"})
+            except Exception:
+                logger.exception("failed to mark root chain aborted")
+        else:
+            logger.warning(
+                "abort cleanup: no LangfuseChain root found in handler._runs; "
+                "trace status not marked aborted"
+            )
 
     @staticmethod
     def _find_regenerate_target(
@@ -558,9 +625,7 @@ class Orchestrator:
 
         if message_id:
             if message_id not in turn_ids:
-                raise ValueError(
-                    "messageId does not match the last assistant message"
-                )
+                raise ValueError("messageId does not match the last assistant message")
 
         return turn_start
 
@@ -580,16 +645,16 @@ class Orchestrator:
 
         self._find_regenerate_target(messages, message_id)
 
-    async def _prepare_regenerate(
-        self, config: dict, message_id: str | None
-    ) -> None:
+    async def _prepare_regenerate(self, config: dict, message_id: str | None) -> None:
         state = await self.agent.aget_state(config)
         messages = state.values.get("messages", [])
 
         target_idx = self._find_regenerate_target(messages, message_id)
 
         to_remove = [RemoveMessage(id=m.id) for m in messages[target_idx:]]
-        await self.agent.aupdate_state(config, {"messages": to_remove}, as_node="__start__")
+        await self.agent.aupdate_state(
+            config, {"messages": to_remove}, as_node="__start__"
+        )
 
     def _build_langfuse_config(
         self,
@@ -598,7 +663,7 @@ class Orchestrator:
         request_id: str,
         session_id: str | None = None,
         **extra_metadata: object,
-    ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
+    ) -> tuple[RunnableConfig, _LangfusePropagationAttributes, "CallbackHandler"]:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
 
         trace_name is derived from agent version + endpoint mode, e.g.
@@ -606,15 +671,19 @@ class Orchestrator:
         go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
         attaches them to the root trace via the ``langfuse_trace_name`` path.
 
-        Callback ordering is load-bearing: ``ReasoningTraceCallback`` MUST
-        precede ``langfuse.langchain.CallbackHandler`` because the Langfuse
-        handler pops the chat_model generation off contextvars in its own
-        ``on_llm_end``. If ours runs second, ``update_current_generation``
-        targets a stale frame.
+        Callback ordering: ``ReasoningTraceCallback`` is registered ahead of
+        ``langfuse.langchain.CallbackHandler``. With lookup-by-run_id the
+        ordering is no longer load-bearing for correctness (the GENERATION is
+        addressable as soon as the Langfuse handler registers it in its
+        internal ``_runs`` dict during ``on_chat_model_start``), but keeping
+        the order matches the docstring on ``ReasoningTraceCallback`` and
+        means the metadata write happens before any other downstream handler
+        observes the GENERATION.
         """
         handler = CallbackHandler()
         reasoning_callback = ReasoningTraceCallback(
             agent_reasoning_capability=self.config.model.reasoning,
+            langfuse_handler=handler,
         )
         trace_name = f"{self.config.name}_{mode}"
 
@@ -632,15 +701,14 @@ class Orchestrator:
             propagation["session_id"] = session_id
 
         config: RunnableConfig = {
-            # Order matters — ReasoningTraceCallback must precede CallbackHandler.
-            # `run_inline=True` on our callback enforces this on both sync and
-            # async dispatch (LangChain's async path otherwise runs non-inline
-            # handlers under independent copy_context() snapshots).
             "callbacks": [reasoning_callback, handler],
             "run_name": "chat-turn",
             "metadata": metadata,
         }
-        return config, propagation
+        # Caller (astream_run / arun / invoke) needs a handle on the Langfuse
+        # handler to look up in-flight observations by run_id during abort
+        # cleanup — see _handle_abort_cleanup.
+        return config, propagation, handler
 
     def _extract_result(self, agent_output: dict[str, Any]) -> OrchestratorResult:
         messages: list[BaseMessage] = agent_output.get("messages", [])

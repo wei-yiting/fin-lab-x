@@ -80,24 +80,54 @@ def _generations(observations: Iterable[dict[str, Any]]) -> list[dict[str, Any]]
 
 
 def _root_span(observations: Iterable[dict[str, Any]]) -> dict[str, Any] | None:
+    # The LangChain root run lands as type="CHAIN" (Langfuse classifies the
+    # outermost @observe-style chain that way), not "SPAN". Match by
+    # parentObservationId=null to find the root regardless of type.
     for obs in observations:
-        if obs.get("type") == "SPAN" and obs.get("parentObservationId") is None:
+        if obs.get("parentObservationId") is None:
             return obs
     return None
 
 
 def _check_reasoning_on(generations: list[dict[str, Any]]) -> list[str]:
+    """For reasoning-on agents, assert that the always-write-key contract
+    (D29 / C5.2) holds on every generation AND at least one generation
+    actually carries reasoning text.
+
+    Anthropic and OpenAI both decide per LLM call whether to emit reasoning —
+    short tool-decision turns ("call get_section then look at output") often
+    skip reasoning entirely while the synthesizing turn produces a long
+    chain-of-thought. Requiring every generation to carry reasoning text was
+    over-strict and incorrectly failed traces from those providers.
+    """
     failures: list[str] = []
+    has_text = False
     for gen in generations:
         meta = gen.get("metadata") or {}
         if "reasoning" not in meta:
             failures.append(f"generation {gen.get('id')} missing metadata.reasoning")
             continue
         value = meta["reasoning"]
-        if not isinstance(value, str) or value == "" or value == UNSUPPORTED_SENTINEL:
+        # Always-write-key contract: value must be a string and never the
+        # unsupported sentinel for a reasoning-on agent.
+        if not isinstance(value, str):
             failures.append(
-                f"generation {gen.get('id')} expected non-empty reasoning, got {value!r}"
+                f"generation {gen.get('id')} reasoning is not a string: {value!r}"
             )
+            continue
+        if value == UNSUPPORTED_SENTINEL:
+            failures.append(
+                f"generation {gen.get('id')} expected reasoning string, got "
+                f"{UNSUPPORTED_SENTINEL!r}"
+            )
+            continue
+        if value:
+            has_text = True
+    if generations and not has_text:
+        failures.append(
+            "no generation carried non-empty reasoning text "
+            "(reasoning-on agent should produce reasoning on at least one LLM call)"
+        )
     return failures
 
 
@@ -132,7 +162,9 @@ def _latest_generation(generations: list[dict[str, Any]]) -> dict[str, Any] | No
     return max(generations, key=lambda g: g.get("startTime") or "")
 
 
-def verify(trace: dict[str, Any], *, expectation: str, expect_aborted: bool) -> tuple[bool, list[str]]:
+def verify(
+    trace: dict[str, Any], *, expectation: str, expect_aborted: bool
+) -> tuple[bool, list[str]]:
     """Run all assertions over a fetched trace. Returns ``(ok, errors)``."""
     observations = trace.get("observations") or []
     errors: list[str] = []
@@ -205,7 +237,13 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
-    base_url = os.environ.get("LANGFUSE_API_BASE", DEFAULT_BASE_URL)
+    # LANGFUSE_BASE_URL is the env var the Langfuse SDK / .env conventionally
+    # uses; LANGFUSE_API_BASE is kept as a back-compat alias.
+    base_url = (
+        os.environ.get("LANGFUSE_BASE_URL")
+        or os.environ.get("LANGFUSE_API_BASE")
+        or DEFAULT_BASE_URL
+    )
     public_key = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
     secret_key = os.environ.get("LANGFUSE_SECRET_KEY", "")
 
@@ -220,7 +258,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    ok, errors = verify(trace, expectation=args.expectation, expect_aborted=args.expect_aborted)
+    ok, errors = verify(
+        trace, expectation=args.expectation, expect_aborted=args.expect_aborted
+    )
 
     summary = {
         "ok": ok,

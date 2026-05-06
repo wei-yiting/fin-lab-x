@@ -53,7 +53,9 @@ class TestInvokeBuildsCallbacksWithReasoningFirst:
         orch = _create_orchestrator(_make_config(reasoning="on"))
 
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler") as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
             patch(
                 "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
                 return_value=MagicMock(),
@@ -62,7 +64,7 @@ class TestInvokeBuildsCallbacksWithReasoningFirst:
             mock_handler = MagicMock(spec=CallbackHandler)
             mock_handler_cls.return_value = mock_handler
 
-            config, _propagation = orch._build_langfuse_config(
+            config, _propagation, _handler = orch._build_langfuse_config(
                 mode="invoke", request_id="req-1"
             )
 
@@ -81,7 +83,7 @@ class TestInvokeBuildsCallbacksWithReasoningFirst:
                 return_value=MagicMock(),
             ),
         ):
-            config, _ = orch._build_langfuse_config(
+            config, _, _h = orch._build_langfuse_config(
                 mode="invoke", request_id="req-1"
             )
 
@@ -109,7 +111,7 @@ class TestReasoningCallbackFiresOnInvokeChain:
                 return_value=nullcontext(),
             ),
         ):
-            config, _ = orch._build_langfuse_config(
+            config, _, _h = orch._build_langfuse_config(
                 mode="invoke", request_id="req-1"
             )
             rc = cast(ReasoningTraceCallback, config["callbacks"][0])

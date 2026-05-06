@@ -21,17 +21,19 @@ class TestInitModelGemini:
             reasoning="on",
             thinking_budget=None,
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             mock_init.assert_called_once()
             args, kwargs = mock_init.call_args
             assert args[0] == "google_genai:gemini-2.5-flash"
             assert kwargs["temperature"] == 0.0
             assert kwargs["thinking_budget"] is None
+            # Gemini reasoning-on requires include_thoughts=True for the
+            # response to actually carry reasoning content_blocks.
+            assert kwargs["include_thoughts"] is True
             # Gemini path must not leak Anthropic / OpenAI kwargs
             assert "thinking" not in kwargs
+            assert "reasoning" not in kwargs
             assert "reasoning_effort" not in kwargs
             assert "use_responses_api" not in kwargs
 
@@ -42,12 +44,11 @@ class TestInitModelGemini:
             reasoning="on",
             thinking_budget=4096,
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert kwargs["thinking_budget"] == 4096
+            assert kwargs["include_thoughts"] is True
 
     def test_gemini_reasoning_off_forces_thinking_budget_zero(self):
         cfg = ModelConfig(
@@ -56,12 +57,13 @@ class TestInitModelGemini:
             reasoning="off",
             thinking_budget=None,
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert kwargs["thinking_budget"] == 0
+            # reasoning-off must NOT set include_thoughts (would attempt to
+            # surface reasoning blocks the model isn't generating).
+            assert "include_thoughts" not in kwargs
 
 
 class TestInitModelAnthropic:
@@ -92,13 +94,11 @@ class TestInitModelAnthropic:
     def test_anthropic_reasoning_on_with_budget_passes_thinking_block(self):
         cfg = ModelConfig(
             name="anthropic:claude-sonnet-4-5",
-            temperature=0.0,
+            temperature=1.0,
             reasoning="on",
             thinking_budget=2048,
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert kwargs["thinking"] == {
@@ -106,15 +106,25 @@ class TestInitModelAnthropic:
                 "budget_tokens": 2048,
             }
 
+    def test_anthropic_reasoning_on_with_non_unity_temperature_raises(self):
+        """Anthropic extended thinking rejects any temperature != 1.0 with
+        HTTP 400. Catch at startup rather than mid-request."""
+        cfg = ModelConfig(
+            name="anthropic:claude-sonnet-4-5",
+            temperature=0.0,
+            reasoning="on",
+            thinking_budget=2048,
+        )
+        with pytest.raises(ValueError, match="temperature=1.0"):
+            _init_model(cfg)
+
     def test_anthropic_reasoning_off_omits_thinking_block(self):
         cfg = ModelConfig(
             name="anthropic:claude-sonnet-4-5",
             temperature=0.0,
             reasoning="off",
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert "thinking" not in kwargs
@@ -127,12 +137,13 @@ class TestInitModelOpenAI:
             temperature=0.0,
             reasoning="on",
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
-            assert kwargs["reasoning_effort"] == "medium"
+            # Unified reasoning dict (langchain-openai 0.3.24+) — both effort
+            # and summary need to be set together; summary="auto" is what
+            # actually surfaces reasoning content_blocks.
+            assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
             assert kwargs["use_responses_api"] is True
 
     def test_openai_reasoning_off_omits_reasoning_kwargs(self):
@@ -141,12 +152,10 @@ class TestInitModelOpenAI:
             temperature=0.0,
             reasoning="off",
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
-            assert "reasoning_effort" not in kwargs
+            assert "reasoning" not in kwargs
             assert "use_responses_api" not in kwargs
 
     def test_bare_name_defaults_to_openai_provider(self):
@@ -156,9 +165,7 @@ class TestInitModelOpenAI:
             temperature=0.0,
             reasoning="off",
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             args, kwargs = mock_init.call_args
             assert args[0] == "gpt-4o-mini"
@@ -184,14 +191,12 @@ class TestInitModelUnsupported:
             reasoning="unsupported",
             thinking_budget=None,
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert "thinking_budget" not in kwargs
             assert "thinking" not in kwargs
-            assert "reasoning_effort" not in kwargs
+            assert "reasoning" not in kwargs
             assert "use_responses_api" not in kwargs
             assert kwargs["temperature"] == 0.0
 
@@ -201,9 +206,7 @@ class TestInitModelUnsupported:
             temperature=0.0,
             reasoning="unsupported",
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert "thinking" not in kwargs
@@ -215,12 +218,10 @@ class TestInitModelUnsupported:
             temperature=0.0,
             reasoning="unsupported",
         )
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
-            assert "reasoning_effort" not in kwargs
+            assert "reasoning" not in kwargs
             assert "use_responses_api" not in kwargs
             assert kwargs["temperature"] == 0.0
 
@@ -237,9 +238,7 @@ class TestInitModelTemperature:
     )
     def test_temperature_passed_for_all_providers(self, name):
         cfg = ModelConfig(name=name, temperature=0.7, reasoning="off")
-        with patch(
-            "backend.agent_engine.agents.base.init_chat_model"
-        ) as mock_init:
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
             _init_model(cfg)
             kwargs = mock_init.call_args.kwargs
             assert kwargs["temperature"] == 0.7

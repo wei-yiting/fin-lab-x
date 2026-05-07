@@ -119,6 +119,39 @@ describe("ReasoningIndicator — accessibility (D22)", () => {
   });
 });
 
+describe("ReasoningIndicator — trailing delimiter trim", () => {
+  // Provider emissions often end in a sentence delimiter; rendering the
+  // dots cycler right after a delim produces "...... ..." visual mush.
+  // The atom strips trailing punctuation/whitespace before render so the
+  // cycler dots flow naturally after the last meaningful character.
+  test.each([
+    ["Analyzing your request.", "Analyzing your request"],
+    ["Analyzing your request. ", "Analyzing your request"],
+    ["Working on it...", "Working on it"],
+    ["理解問題。", "理解問題"],
+    ["處理中,", "處理中"],
+    ["處理中、", "處理中"],
+    ["processing!", "processing"],
+    ["thinking?", "thinking"],
+    ["plain", "plain"],
+  ])("'%s' renders as '%s'", (input, expected) => {
+    render(<ReasoningIndicator text={input} />);
+    expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+
+  test("frozen mode also trims trailing delimiter", () => {
+    render(<ReasoningIndicator text="Analyzing your request." state="frozen" />);
+    expect(screen.getByText("Analyzing your request")).toBeInTheDocument();
+    expect(screen.getByText("STOPPED")).toBeInTheDocument();
+  });
+
+  test("text composed entirely of delimiters renders idle 3-dot (no empty text element)", () => {
+    const { container } = render(<ReasoningIndicator text="..." />);
+    expect(container.querySelectorAll(".idle-dots > span").length).toBe(3);
+    expect(container.querySelector(".reasoning-status-text")).not.toBeInTheDocument();
+  });
+});
+
 describe("ReasoningIndicator — backward compatibility", () => {
   test("preserves data-testid='reasoning-indicator' on root for legacy consumers", () => {
     const { container } = render(<ReasoningIndicator />);

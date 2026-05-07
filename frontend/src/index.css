@@ -217,7 +217,13 @@
 }
 
 .reasoning-status-text {
-  flex: 1;
+  /* Bug A: was `flex: 1`, which made the text grow to fill the entire row
+     and pushed the dots cycler to the far right edge — the dots no longer
+     read as a loader attached to the text. `flex: 0 1 auto` lets the text
+     stay at its content width (so dots sit immediately after the last
+     character) while still allowing it to shrink + clip when long
+     reasoning sentences exceed the container (D21 hard-clip path). */
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;

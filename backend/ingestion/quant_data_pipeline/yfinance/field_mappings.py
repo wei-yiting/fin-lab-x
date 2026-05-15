@@ -17,17 +17,12 @@ from backend.ingestion.quant_data_pipeline.duck_db.row_models import (
 )
 
 # ---------------------------------------------------------------------------
-# info dict → CompanyRow / MarketValuationRow
+# info dict → MarketValuationRow
 # ---------------------------------------------------------------------------
-# lastFiscalYearEnd is intentionally absent — dto_builder.build_company_row
-# parses that single Unix timestamp into the two-output (fy_end_month, fy_end_day).
-
-INFO_TO_COMPANY_FIELD: dict[str, tuple[str, Callable[[Any], Any] | None]] = {
-    "longName": ("company_name", None),
-    "sector": ("sector", None),
-    "industry": ("industry", None),
-}
-
+# build_company_row uses bespoke handling rather than a mapping because longName
+# is a required-or-raise field while sector / industry are optional-or-record.
+# A uniform iteration would obscure that asymmetry.
+#
 # dividendYield has converter=None because yfinance 1.x already returns percent
 # (e.g. 0.52 means 0.52%, not 52%). heldPercentInstitutions, in contrast, is
 # still a 0..1 fraction in yfinance 1.x and must be scaled to percent.

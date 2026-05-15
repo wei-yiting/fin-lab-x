@@ -5,7 +5,6 @@ from backend.ingestion.quant_data_pipeline.yfinance.field_mappings import (
     CASHFLOW_LINE_TO_FIELD,
     DEFERRED_REVENUE_FALLBACK,
     INCOME_LINE_TO_FIELD,
-    INFO_TO_COMPANY_FIELD,
     INFO_TO_MARKET_VALUATION_FIELD,
     YFINANCE_OWNED_COLUMNS,
 )
@@ -48,16 +47,6 @@ def test_yfinance_owned_columns_excludes_market_valuation_only_fields():
 
 
 def test_mapping_types_correct():
-    assert isinstance(INFO_TO_COMPANY_FIELD, dict)
-    assert len(INFO_TO_COMPANY_FIELD) >= 1
-    for key, value in INFO_TO_COMPANY_FIELD.items():
-        assert isinstance(key, str)
-        assert isinstance(value, tuple)
-        assert len(value) == 2
-        dest, converter = value
-        assert isinstance(dest, str)
-        assert converter is None or callable(converter)
-
     assert isinstance(INFO_TO_MARKET_VALUATION_FIELD, dict)
     assert len(INFO_TO_MARKET_VALUATION_FIELD) >= 1
     for key, value in INFO_TO_MARKET_VALUATION_FIELD.items():

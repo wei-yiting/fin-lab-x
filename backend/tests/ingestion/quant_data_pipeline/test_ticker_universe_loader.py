@@ -4,7 +4,7 @@ import yaml
 from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import ConfigurationError
 from backend.ingestion.quant_data_pipeline.ticker_universe_loader import load_ticker_universe
 
-EXPECTED_TICKERS = ["MSFT", "NVDA", "CRM", "WMT", "JPM", "BRK.B", "JNJ", "KO", "XOM", "CAT"]
+EXPECTED_TICKERS = ["MSFT", "NVDA", "CRM", "WMT", "JPM", "BRK-B", "JNJ", "KO", "XOM", "CAT"]
 
 
 def test_load_default_universe():

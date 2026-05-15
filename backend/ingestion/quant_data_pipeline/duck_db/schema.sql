@@ -24,7 +24,7 @@ COMMENT ON COLUMN companies.sector IS
 COMMENT ON COLUMN companies.industry IS
   'Fine-grained industry. E.g. Consumer Electronics, Software Application.';
 COMMENT ON COLUMN companies.fy_end_month IS
-  'Fiscal year end month (1-12). E.g. NVDA=1, WMT=1, MSFT=6, BRK.B=12, CAT=12.';
+  'Fiscal year end month (1-12). E.g. NVDA=1, WMT=1, MSFT=6, BRK-B=12, CAT=12.';
 COMMENT ON COLUMN companies.fy_end_day IS
   'Fiscal year end day of month (1-31). Used only for display.';
 COMMENT ON COLUMN companies.updated_at IS
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS quarterly_financials (
     inventory_usd BIGINT,
     deferred_revenue_usd BIGINT,
 
-    -- Balance Sheet (yf+sec: finance lease from yfinance, operating lease from SEC)
+    -- Balance Sheet (SEC-only: finance + operating lease via ASC 842 XBRL concepts; yfinance does not write this column)
     total_lease_obligation_usd BIGINT,
 
     -- Cash Flow (yfinance-sourced)
@@ -214,7 +214,7 @@ COMMENT ON COLUMN quarterly_financials.inventory_usd IS
 COMMENT ON COLUMN quarterly_financials.deferred_revenue_usd IS
   'Current deferred revenue (payments received but service not yet delivered).';
 COMMENT ON COLUMN quarterly_financials.total_lease_obligation_usd IS
-  'Total lease obligation (finance + operating). yfinance provides finance only; SEC 10-K/10-Q supplements operating.';
+  'Total lease obligation (finance + operating). Owner: SEC XBRL subsystem. Both portions sourced from ASC 842 XBRL concepts; yfinance does not write this column (Yahoo only exposes finance lease, materially incomplete for operating-lease-dominant companies).';
 COMMENT ON COLUMN quarterly_financials.operating_cash_flow_usd IS
   'Cash flow from operating activities.';
 COMMENT ON COLUMN quarterly_financials.capital_expenditure_usd IS
@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS annual_financials (
     inventory_usd BIGINT,
     deferred_revenue_usd BIGINT,
 
-    -- Balance Sheet (yf+sec: finance lease from yfinance, operating lease from SEC)
+    -- Balance Sheet (SEC-only: finance + operating lease via ASC 842 XBRL concepts; yfinance does not write this column)
     total_lease_obligation_usd BIGINT,
 
     -- Cash Flow (yfinance-sourced)
@@ -368,7 +368,7 @@ COMMENT ON COLUMN annual_financials.inventory_usd IS
 COMMENT ON COLUMN annual_financials.deferred_revenue_usd IS
   'Current deferred revenue (payments received but service not yet delivered).';
 COMMENT ON COLUMN annual_financials.total_lease_obligation_usd IS
-  'Total lease obligation (finance + operating). yfinance provides finance only; SEC 10-K/10-Q supplements operating.';
+  'Total lease obligation (finance + operating). Owner: SEC XBRL subsystem. Both portions sourced from ASC 842 XBRL concepts; yfinance does not write this column (Yahoo only exposes finance lease, materially incomplete for operating-lease-dominant companies).';
 COMMENT ON COLUMN annual_financials.operating_cash_flow_usd IS
   'Cash flow from operating activities.';
 COMMENT ON COLUMN annual_financials.capital_expenditure_usd IS

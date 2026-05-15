@@ -4,7 +4,7 @@ tickers:
   - CRM    # SaaS
   - WMT    # Retail
   - JPM    # Banking
-  - BRK.B  # Insurance / Holdco
+  - BRK-B  # Insurance / Holdco (yfinance-canonical: dash form, not BRK.B)
   - JNJ    # Pharma / Healthcare
   - KO     # Consumer staples
   - XOM    # Integrated Energy

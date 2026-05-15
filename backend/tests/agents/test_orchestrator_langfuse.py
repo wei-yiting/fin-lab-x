@@ -943,7 +943,13 @@ class TestAstreamAbortCleanup:
         )
 
     @pytest.mark.asyncio
-    async def test_cancel_with_empty_segmenter_skips_generation_update(self):
+    async def test_cancel_with_empty_segmenter_writes_empty_reasoning_tail(self):
+        """D29 always-write-key contract on the abort path: even when the
+        segmenter buffered nothing at abort (no in-flight reasoning text),
+        the in-flight GENERATION must still receive
+        ``metadata.reasoning_tail_aborted = ""``. The verifier requires the
+        key to be present on every aborted-trace generation, so skipping
+        the write when the buffer is empty produces a contract violation."""
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
@@ -975,8 +981,12 @@ class TestAstreamAbortCleanup:
                 ):
                     pass
 
-        # No reasoning to flush -> generation update never fires.
-        assert gen_mock.update.call_count == 0
+        # Empty segmenter buffer -> still write the key, with value "".
+        gen_calls = gen_mock.update.call_args_list
+        assert len(gen_calls) == 1
+        gen_metadata = gen_calls[0].kwargs["metadata"]
+        assert "reasoning_tail_aborted" in gen_metadata
+        assert gen_metadata["reasoning_tail_aborted"] == ""
         # Root chain status still recorded.
         chain_calls = chain_mock.update.call_args_list
         assert any(

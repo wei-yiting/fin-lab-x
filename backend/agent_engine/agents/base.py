@@ -569,7 +569,15 @@ class Orchestrator:
         except Exception:
             logger.exception("failed to iterate handler._runs during abort cleanup")
 
-        if tail_segments and in_flight_generation is not None:
+        # D29 always-write-key contract on the abort path: when an in-flight
+        # GENERATION is present, write metadata.reasoning_tail_aborted on
+        # every abort regardless of whether the segmenter buffered any
+        # segments. An empty buffer becomes the empty string "", which is
+        # the documented "no buffered tail at abort" value — distinct from
+        # the key being absent (which would mean we never tried to write).
+        # Pair with metadata.status="aborted" on the root chain so the
+        # verifier sees a uniform abort-trace shape.
+        if in_flight_generation is not None:
             try:
                 in_flight_generation.update(
                     metadata={"reasoning_tail_aborted": "\n".join(tail_segments)},

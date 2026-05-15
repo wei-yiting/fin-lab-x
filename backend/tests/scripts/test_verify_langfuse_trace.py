@@ -221,11 +221,41 @@ def test_expect_aborted_fails_when_root_span_missing_status(
     assert code != 0
 
 
-def test_expect_aborted_accepts_empty_tail_when_segmenter_buffer_empty(
+def test_expect_aborted_accepts_empty_string_tail_when_segmenter_buffer_empty(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Per design: a missing/empty reasoning_tail_aborted is acceptable when
-    the segmenter buffer was empty at abort. Status check is the hard gate."""
+    """D29 always-write-key on the abort path: the segmenter buffer being
+    empty at abort is acceptable, but only when the writer recorded an
+    empty string ``""`` value. The key must be present so the verifier can
+    distinguish "no buffered tail" (key="") from "writer never ran"
+    (key absent)."""
+    _install_fake_fetch(
+        monkeypatch,
+        _trace(
+            [
+                _root_span(status="aborted"),
+                _gen(
+                    "g1",
+                    reasoning="thought 1",
+                    reasoning_tail_aborted="",
+                ),
+            ]
+        ),
+    )
+
+    code = vlt.main(["trace-abc", "--expect-reasoning-on", "--expect-aborted"])
+
+    assert code == 0
+
+
+def test_expect_aborted_fails_when_reasoning_tail_aborted_key_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """D29 always-write-key on the abort path: when the verifier sees an
+    aborted trace whose latest GENERATION has no ``reasoning_tail_aborted``
+    key at all, the abort-cleanup writer never ran — that's a contract
+    violation and must fail the trace even when ``status="aborted"`` is set.
+    """
     _install_fake_fetch(
         monkeypatch,
         _trace(
@@ -238,7 +268,7 @@ def test_expect_aborted_accepts_empty_tail_when_segmenter_buffer_empty(
 
     code = vlt.main(["trace-abc", "--expect-reasoning-on", "--expect-aborted"])
 
-    assert code == 0
+    assert code != 0
 
 
 def test_mutually_exclusive_expectations_rejected() -> None:

@@ -52,6 +52,7 @@ markers = [
     "eval: evaluation tests that hit real LLM APIs",
     "integration: integration tests requiring external services (Qdrant, etc.)",
     "sec_integration: SEC integration tests that hit real SEC EDGAR APIs",
+    "langfuse_internal_contract: pins assumptions about langfuse.langchain.CallbackHandler private state (e.g. _runs). Run after Langfuse SDK upgrades to surface contract drift.",
 ]
 addopts = "-m 'not eval and not sec_integration and not integration'"
 

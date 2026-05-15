@@ -26,6 +26,28 @@ Lookup-by-run_id (not contextvars):
     relies on the same dict). Looking up the GENERATION by ``run_id`` is
     deterministic regardless of dispatch ordering or OTel context state.
 
+Why we accept the ``_runs`` private-API dependency:
+    We probed Langfuse 4.5's public API surface: ``CallbackHandler`` exposes
+    only the ``on_*`` LangChain hooks, ``ignore_*`` flags, and ``run_inline``
+    — there is no ``get_observation_by_run_id`` or equivalent. The other
+    options (``start_observation`` / ``start_as_current_observation``) create
+    NEW observations, which would duplicate the generation in the trace;
+    ``update_current_generation`` / ``update_current_observation`` are the
+    OTel-context-based path with the documented async-context bug above.
+    Until Langfuse ships a public lookup API, we read from ``_runs``.
+
+    Defense-in-depth against SDK drift:
+      1. ``_lookup_generation_by_run_id`` (this file) tries the UUID key
+         first, then ``str(run_id)`` and ``run_id.hex`` as fallbacks. Any
+         fallback hit logs once-per-process so ops sees the drift signal.
+      2. ``_handle_abort_cleanup`` in ``agents/base.py`` iterates
+         ``handler._runs.values()`` — value-iteration is immune to key-shape
+         drift, only type-shape drift breaks it (caught by isinstance).
+      3. ``test_langfuse_runs_contract.py`` drives Langfuse's real
+         ``on_chain_start`` and ``on_chat_model_start`` and asserts the
+         EXACT UUID key + concrete ``LangfuseChain``/``LangfuseGeneration``
+         type, so any SDK drift on either dimension fails CI loudly.
+
 D29 schema (completed path; abort path lives in Task 6):
 
 - capability == "unsupported"   -> ``"<unsupported>"`` regardless of message.
@@ -63,6 +85,10 @@ class ReasoningTraceCallback(BaseCallbackHandler):
     # (and before any other callback runs that might depend on metadata
     # being present).
     run_inline = True
+    # Class-level latch so the SDK-drift warning fires at most once per
+    # process. Without this, every LLM call after the first drift would
+    # spam the log line. False = no drift seen yet.
+    _drift_warned: bool = False
 
     def __init__(
         self,
@@ -97,7 +123,7 @@ class ReasoningTraceCallback(BaseCallbackHandler):
             value = ""
 
         if self._handler is not None:
-            generation = self._handler._runs.get(run_id)
+            generation = self._lookup_generation_by_run_id(run_id)
             if isinstance(generation, LangfuseGeneration):
                 generation.update(metadata={self.METADATA_KEY: value})
                 return
@@ -113,6 +139,60 @@ class ReasoningTraceCallback(BaseCallbackHandler):
         # the OTel current-span — works for sync dispatch, may silently no-op
         # on async paths.
         self._client.update_current_generation(metadata={self.METADATA_KEY: value})
+
+    def _lookup_generation_by_run_id(self, run_id: UUID) -> Any:
+        """Look up the in-flight Langfuse observation for ``run_id`` with
+        SDK-drift fallbacks.
+
+        Tries three key shapes in order:
+          1. ``run_id`` (UUID) — the current Langfuse 4.5 contract, asserted
+             by ``test_langfuse_runs_contract.py``.
+          2. ``str(run_id)`` — most likely drift mode if Langfuse ever
+             normalizes keys to strings.
+          3. ``run_id.hex`` — second-most-likely drift mode (dashless hex).
+
+        Returns whatever is stored under the first key that hits, or
+        ``None``. The caller is responsible for ``isinstance(..., LangfuseGeneration)``
+        narrowing before writing metadata.
+
+        Hitting a fallback path logs ONCE per process (class-level
+        ``_drift_warned`` latch) telling ops to update the contract test
+        and consider pinning the Langfuse version. We don't raise — the
+        write still succeeds via the fallback — so production keeps
+        working while the drift signal reaches engineering.
+        """
+        runs = self._handler._runs  # type: ignore[union-attr]
+        observation = runs.get(run_id)
+        if observation is not None:
+            return observation
+
+        # Fallback 1: string-normalized UUID.
+        observation = runs.get(str(run_id))
+        if observation is not None:
+            self._warn_drift_once("str(uuid)")
+            return observation
+
+        # Fallback 2: hex without dashes.
+        observation = runs.get(run_id.hex)
+        if observation is not None:
+            self._warn_drift_once("uuid.hex")
+            return observation
+
+        return None
+
+    @classmethod
+    def _warn_drift_once(cls, drift_mode: str) -> None:
+        """Log the SDK-drift warning at most once per process."""
+        if cls._drift_warned:
+            return
+        cls._drift_warned = True
+        logger.warning(
+            "Langfuse _runs key drifted to %s — production lookup is using "
+            "fallback. Update the contract test in "
+            "test_langfuse_runs_contract.py and consider pinning a Langfuse "
+            "version.",
+            drift_mode,
+        )
 
     def _compute_reasoning_value(self, response: LLMResult) -> str:
         if self._capability == "unsupported":

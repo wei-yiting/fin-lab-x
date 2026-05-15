@@ -318,3 +318,205 @@ def test_always_writes_reasoning_key_when_internal_exception(
 
     assert client.update_current_generation.call_count == 1
     assert "reasoning" in client.update_current_generation.call_args.kwargs["metadata"]
+
+
+# ---------------------------------------------------------------------------
+# Defensive _lookup_generation_by_run_id: when Langfuse drifts the key shape
+# from UUID to str(UUID) or .hex, production must keep writing metadata via
+# the fallback path AND emit a one-shot warning so engineering notices.
+# ---------------------------------------------------------------------------
+
+
+class _FakeGeneration:
+    """Stand-in for ``LangfuseGeneration`` that mirrors only the ``update`` API
+    we use. Cannot be the real class without LangChain/Langfuse instantiating
+    a real observation, which requires a live trace context."""
+
+    def __init__(self) -> None:
+        self.updates: list[dict[str, Any]] = []
+
+    def update(self, *, metadata: dict[str, Any]) -> None:
+        self.updates.append(metadata)
+
+
+class _FakeHandler:
+    """Minimal stand-in for ``langfuse.langchain.CallbackHandler`` — only the
+    ``_runs`` dict shape is load-bearing for ReasoningTraceCallback."""
+
+    def __init__(self, runs: dict[Any, Any]) -> None:
+        self._runs: dict[Any, Any] = runs
+
+
+@pytest.fixture(autouse=True)
+def _reset_drift_latch() -> None:
+    """The ``_drift_warned`` flag is class-level; reset between tests so
+    each test that exercises a fallback path can observe the warning fresh."""
+    ReasoningTraceCallback._drift_warned = False
+    yield
+    ReasoningTraceCallback._drift_warned = False
+
+
+class TestLookupGenerationDriftFallback:
+    def test_uuid_key_hit_no_warning(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Happy path: Langfuse keys ``_runs`` by UUID — no drift warning."""
+        _install_mock_client(monkeypatch)
+        gen = _FakeGeneration()
+        rid = uuid4()
+        handler = _FakeHandler({rid: gen})
+        monkeypatch.setattr(
+            rtc_module, "LangfuseGeneration", _FakeGeneration, raising=True
+        )
+        cb = ReasoningTraceCallback(
+            agent_reasoning_capability="on",
+            langfuse_handler=handler,  # type: ignore[arg-type]
+        )
+        msg = AIMessage(
+            content=[{"type": "reasoning", "reasoning": "happy uuid path"}]
+        )
+
+        with caplog.at_level(logging.WARNING, logger=rtc_module.__name__):
+            cb.on_llm_end(_llm_result(msg), run_id=rid, parent_run_id=None)
+
+        assert gen.updates == [{"reasoning": "happy uuid path"}]
+        assert not any(
+            "Langfuse _runs key drifted" in rec.message for rec in caplog.records
+        ), "UUID-key hit must NOT log the drift warning"
+        assert ReasoningTraceCallback._drift_warned is False
+
+    def test_str_uuid_fallback_writes_and_warns_once(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Drift mode 1: Langfuse keys by ``str(uuid)``. The helper must
+        still find the generation and emit a one-shot drift warning."""
+        _install_mock_client(monkeypatch)
+        gen = _FakeGeneration()
+        rid = uuid4()
+        # _runs keyed by str(uuid) — simulates the SDK drift
+        handler = _FakeHandler({str(rid): gen})
+        monkeypatch.setattr(
+            rtc_module, "LangfuseGeneration", _FakeGeneration, raising=True
+        )
+        cb = ReasoningTraceCallback(
+            agent_reasoning_capability="on",
+            langfuse_handler=handler,  # type: ignore[arg-type]
+        )
+        msg = AIMessage(
+            content=[{"type": "reasoning", "reasoning": "str-fallback thought"}]
+        )
+
+        with caplog.at_level(logging.WARNING, logger=rtc_module.__name__):
+            cb.on_llm_end(_llm_result(msg), run_id=rid, parent_run_id=None)
+
+        # Production write succeeded via the fallback path
+        assert gen.updates == [{"reasoning": "str-fallback thought"}]
+        # Drift warning fired exactly once with the expected mode tag
+        drift_records = [
+            rec
+            for rec in caplog.records
+            if "Langfuse _runs key drifted" in rec.message
+        ]
+        assert len(drift_records) == 1, (
+            f"Expected 1 drift warning, got {len(drift_records)}: "
+            f"{[r.message for r in drift_records]}"
+        )
+        assert "str(uuid)" in drift_records[0].message
+        assert ReasoningTraceCallback._drift_warned is True
+
+    def test_hex_uuid_fallback_writes_and_warns_once(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Drift mode 2: Langfuse keys by ``uuid.hex`` (dashless). Helper
+        finds the generation via the third lookup and warns once."""
+        _install_mock_client(monkeypatch)
+        gen = _FakeGeneration()
+        rid = uuid4()
+        handler = _FakeHandler({rid.hex: gen})
+        monkeypatch.setattr(
+            rtc_module, "LangfuseGeneration", _FakeGeneration, raising=True
+        )
+        cb = ReasoningTraceCallback(
+            agent_reasoning_capability="on",
+            langfuse_handler=handler,  # type: ignore[arg-type]
+        )
+        msg = AIMessage(content=[{"type": "reasoning", "reasoning": "hex thought"}])
+
+        with caplog.at_level(logging.WARNING, logger=rtc_module.__name__):
+            cb.on_llm_end(_llm_result(msg), run_id=rid, parent_run_id=None)
+
+        assert gen.updates == [{"reasoning": "hex thought"}]
+        drift_records = [
+            rec
+            for rec in caplog.records
+            if "Langfuse _runs key drifted" in rec.message
+        ]
+        assert len(drift_records) == 1
+        assert "uuid.hex" in drift_records[0].message
+
+    def test_drift_warning_logs_at_most_once_per_process(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Repeated fallback hits in the same process MUST NOT spam the log."""
+        _install_mock_client(monkeypatch)
+        monkeypatch.setattr(
+            rtc_module, "LangfuseGeneration", _FakeGeneration, raising=True
+        )
+        cb = ReasoningTraceCallback(
+            agent_reasoning_capability="on",
+            langfuse_handler=_FakeHandler({}),  # type: ignore[arg-type]
+        )
+        msg = AIMessage(content=[{"type": "reasoning", "reasoning": "t"}])
+
+        with caplog.at_level(logging.WARNING, logger=rtc_module.__name__):
+            for _ in range(3):
+                gen = _FakeGeneration()
+                rid = uuid4()
+                cb._handler._runs = {str(rid): gen}  # type: ignore[union-attr]
+                cb.on_llm_end(_llm_result(msg), run_id=rid, parent_run_id=None)
+
+        drift_records = [
+            rec
+            for rec in caplog.records
+            if "Langfuse _runs key drifted" in rec.message
+        ]
+        assert len(drift_records) == 1, (
+            f"Drift warning must be one-shot per process; got {len(drift_records)} records"
+        )
+
+    def test_no_match_falls_through_to_update_current_generation(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When none of the three key shapes hit, the helper returns ``None``
+        and the caller falls through to ``update_current_generation`` (the
+        OTel-context path). This preserves the existing best-effort write
+        even when the drift is catastrophic."""
+        client = _install_mock_client(monkeypatch)
+        # Stub LangfuseGeneration so the isinstance() check in on_llm_end
+        # is consistent with the fallback paths (the empty handler returns
+        # None anyway, but we keep the contract symmetric).
+        monkeypatch.setattr(
+            rtc_module, "LangfuseGeneration", _FakeGeneration, raising=True
+        )
+        cb = ReasoningTraceCallback(
+            agent_reasoning_capability="on",
+            langfuse_handler=_FakeHandler({}),  # type: ignore[arg-type]
+        )
+        msg = AIMessage(content=[{"type": "reasoning", "reasoning": "fallthrough"}])
+
+        cb.on_llm_end(_llm_result(msg), run_id=uuid4(), parent_run_id=None)
+
+        # Fell through to update_current_generation with the right metadata
+        assert client.update_current_generation.call_count == 1
+        assert client.update_current_generation.call_args.kwargs["metadata"] == {
+            "reasoning": "fallthrough"
+        }

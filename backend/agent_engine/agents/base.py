@@ -555,6 +555,15 @@ class Orchestrator:
         # Find the most recent in-flight chat_model GENERATION (Python dicts
         # preserve insertion order, so the last LangfuseGeneration is the
         # most recently started but not-yet-ended one).
+        #
+        # Why this path doesn't need the _lookup_generation_by_run_id helper
+        # used in reasoning_trace_callback.on_llm_end: we enumerate
+        # ``.values()`` (not key-lookup), so the dict's key shape — UUID,
+        # str(UUID), or hex — doesn't matter. We're immune to key-shape
+        # drift; only observation-type drift (a new wrapper class around
+        # LangfuseChain / LangfuseGeneration) would break the isinstance()
+        # narrowing, and that's caught by the contract test in
+        # test_langfuse_runs_contract.py.
         in_flight_generation: LangfuseGeneration | None = None
         root_chain: LangfuseChain | None = None
         try:

@@ -145,27 +145,19 @@ def test_model_config_rejects_unknown_field():
 
 
 # ---------------------------------------------------------------------------
-# Task 5: v1-v5 yaml smoke load — v1_baseline ships on OpenAI gpt-5-mini
-# (reasoning summaries via the Responses API); v2-v5 keep the Gemini A/B
-# baseline pending a per-version audit.
+# Task 5: v1-v5 yaml smoke load — every shipped version runs on OpenAI
+# gpt-5-mini with reasoning summaries via the Responses API.
 # ---------------------------------------------------------------------------
-
-
-def test_v1_baseline_uses_openai_reasoning_on():
-    config = VersionConfigLoader("v1_baseline").load()
-    assert config.model.name == "openai:gpt-5-mini"
-    assert config.model.reasoning == "on"
-    # OpenAI's Responses API uses reasoning={effort, summary} (set in
-    # _init_model), not thinking_budget, so the field is null.
-    assert config.model.thinking_budget is None
 
 
 @pytest.mark.parametrize(
     "version",
-    ["v2_reader", "v3_quant", "v4_graph", "v5_analyst"],
+    ["v1_baseline", "v2_reader", "v3_quant", "v4_graph", "v5_analyst"],
 )
-def test_other_shipped_versions_use_gemini_with_reasoning_on(version):
+def test_all_shipped_versions_use_openai_reasoning_on(version):
     config = VersionConfigLoader(version).load()
-    assert config.model.name == "google_genai:gemini-2.5-flash"
+    assert config.model.name == "openai:gpt-5-mini"
     assert config.model.reasoning == "on"
+    # OpenAI's Responses API uses reasoning={effort, summary} (set in
+    # _init_model), not thinking_budget, so the field is null.
     assert config.model.thinking_budget is None

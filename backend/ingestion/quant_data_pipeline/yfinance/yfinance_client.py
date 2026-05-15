@@ -180,8 +180,8 @@ def fetch_quarterly_statements(
     Three paced calls (one per attribute access). Order: income → balance →
     cashflow. Any exception is ``_classify``'d.
     """
-    ticker_obj = _make_ticker(ticker)
     try:
+        ticker_obj = _make_ticker(ticker)
         _pace()
         income = ticker_obj.quarterly_income_stmt
         _pace()
@@ -201,8 +201,8 @@ def fetch_annual_statements(
     Three paced calls (one per attribute access). Order: income → balance →
     cashflow. Any exception is ``_classify``'d.
     """
-    ticker_obj = _make_ticker(ticker)
     try:
+        ticker_obj = _make_ticker(ticker)
         _pace()
         income = ticker_obj.income_stmt
         _pace()

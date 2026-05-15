@@ -9,7 +9,8 @@ so a new column added to the DTO is automatically included in the
 column-ownership boundary used by the cross-subsystem upsert isolation guard.
 """
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from backend.ingestion.quant_data_pipeline.duck_db.row_models import (
     YFinanceQuarterlyRow,

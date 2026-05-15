@@ -307,6 +307,115 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 });
 
 // ---------------------------------------------------------------------------
+// onFinish abort branch — user stop must not be announced as "Response complete"
+//
+// AI SDK v6 routes the SSE `finish` chunk through onFinish with a payload
+// shape of `{ message, messages, isAbort, isDisconnect, isError }`. When the
+// user clicks Stop, stop() fires onFinish({ isAbort: true }). The ChatPanel
+// must skip setLastSSEEvent({ type: "finish" }) in that branch — otherwise
+// LiveStatusAnnouncer announces "Response complete" on a user-initiated
+// abort, which is misleading. The aria-live polite region must stay empty
+// (or at least not say "Response complete") in the abort case.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — onFinish does not announce abort as completion", () => {
+  const announcerServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-abrt" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial..." })),
+          );
+          // Hold open so the test can click Stop while streaming.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => announcerServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => announcerServer.resetHandlers());
+  afterAll(() => announcerServer.close());
+
+  test("clicking stop while streaming → SR announcer does not say 'Response complete'", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "go");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/partial.../)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    // Wait for the stream to actually finish (onFinish fires asynchronously
+    // after stop()). The status returns to "ready" once the abort completes.
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId("composer-stop-btn")).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    // The aria-live polite region must not announce "Response complete" on
+    // a user-initiated abort — that text is reserved for natural completion.
+    const announcer = screen.getByRole("status");
+    expect(announcer).not.toHaveTextContent("Response complete");
+  }, 15000);
+
+  test("natural stream completion → SR announcer says 'Response complete'", async () => {
+    // Regression guard for the abort branch: make sure we did not regress
+    // the happy-path announcement by accident.
+    const happyServer = setupServer(
+      http.post("/api/v1/chat", () => sseResponse(happyStream("a-happy", "all done"))),
+    );
+    happyServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+    } finally {
+      happyServer.close();
+    }
+  }, 15000);
+});
+
+// ---------------------------------------------------------------------------
 // Stop + clear race
 //
 // During active streaming, clicking clear should stop the stream, reset the

@@ -68,10 +68,22 @@ export function ChatPanel() {
     id: chatId,
     transport,
     onData,
-    onFinish: () => {
+    onFinish: ({ isAbort }) => {
       // AI SDK v6 routes the SSE `finish` chunk through onFinish, not onData.
-      // Latch finishedRef and surface "Response complete" to screen readers.
+      // The payload tells us *why* the stream ended: a natural finish, a
+      // user-initiated stop() (isAbort), a network disconnect, or an error.
+      //
+      // Always latch finishedRef via handleReasoningData so any late
+      // reasoning chunks buffered behind the SSE close are dropped — that
+      // contract holds regardless of abort vs. natural completion.
       handleReasoningData({ type: "finish" });
+      // Only the natural-completion path should trigger the SR "Response
+      // complete" announcement. User-stop has its own UI affordance (the
+      // frozen STOPPED indicator on the aborted assistant bubble); reading
+      // "Response complete" after a user-initiated abort would be wrong.
+      // isDisconnect / isError surface via status === "error" in
+      // LiveStatusAnnouncer, so we also skip them here.
+      if (isAbort) return;
       setLastSSEEvent({ type: "finish" });
     },
     onError: () => {

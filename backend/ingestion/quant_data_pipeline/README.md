@@ -83,3 +83,9 @@ Subsystem code should subclass one of the four leaf error classes — `Transient
 ## Schema Evolution
 
 During the iteration phase, edit `duck_db/schema.sql`, delete the local `data/quant.db`, and re-run the ETL. There is no Alembic migration layer yet; the schema is applied in full on every `get_connection()` call via `CREATE TABLE IF NOT EXISTS` statements.
+
+---
+
+## Subsystems
+
+See `yfinance/README.md` for the yfinance ingestion subsystem.

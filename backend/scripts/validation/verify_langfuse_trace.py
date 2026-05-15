@@ -82,9 +82,12 @@ def _generations(observations: Iterable[dict[str, Any]]) -> list[dict[str, Any]]
 def _root_span(observations: Iterable[dict[str, Any]]) -> dict[str, Any] | None:
     # The LangChain root run lands as type="CHAIN" (Langfuse classifies the
     # outermost @observe-style chain that way), not "SPAN". Match by
-    # parentObservationId=null to find the root regardless of type.
+    # parentObservationId=null to find the root regardless of type — but
+    # exclude GENERATION since a parentless GENERATION means the LLM call
+    # has no enclosing chain/turn span, which is itself a topology bug we
+    # want the verifier to surface (e.g. a missing agent.run wrapper).
     for obs in observations:
-        if obs.get("parentObservationId") is None:
+        if obs.get("parentObservationId") is None and obs.get("type") != "GENERATION":
             return obs
     return None
 

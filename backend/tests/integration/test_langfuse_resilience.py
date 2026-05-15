@@ -200,9 +200,9 @@ class TestDualHandlerResilience:
         original_build = orch._build_langfuse_config
 
         def _build_with_sibling(*args, **kwargs):
-            cfg, prop = original_build(*args, **kwargs)
+            cfg, prop, handler = original_build(*args, **kwargs)
             cfg["callbacks"] = [broken, sibling]
-            return cfg, prop
+            return cfg, prop, handler
 
         with (
             patch.object(orch, "_build_langfuse_config", side_effect=_build_with_sibling),

@@ -6,23 +6,23 @@
 #   ./scripts/manual-bdd-backend.sh restore             # restore v1_baseline.yaml (no boot)
 #
 # Profiles:
-#   gemini-on           default v1_baseline (Gemini 2.5 Flash, reasoning on)
+#   openai-on           default v1_baseline (OpenAI gpt-5-mini + reasoning summary)
+#   openai-off          OpenAI gpt-5-mini reasoning off (yaml swap)
+#   gemini-on           Gemini 2.5 Flash + thinking_budget=1024  (yaml swap)
 #   gemini-off          Gemini reasoning off  (yaml swap)
 #   anthropic-on        Anthropic Sonnet 4.5 + extended thinking (yaml swap, temp=1.0)
 #   anthropic-off       Anthropic Sonnet 4.5 reasoning off (yaml swap)
-#   openai-on           OpenAI gpt-5-mini + reasoning summary (yaml swap)
-#   openai-off          OpenAI gpt-5-mini reasoning off (yaml swap)
-#   delayed-reasoning   default Gemini + EMIT_DELAYED_REASONING=1  (S-rsn-06 stalled)
-#   late-reasoning      default Gemini + EMIT_LATE_REASONING=1     (S-rsn-12)
-#   force-llm-fail      default Gemini + FORCE_LLM_FAIL=1          (S-stream-04)
-#   non-transient-prod  default Gemini + FORCE_REASONING_NON_TRANSIENT=1 APP_ENV=production
+#   delayed-reasoning   default + EMIT_DELAYED_REASONING=1  (S-rsn-06 stalled)
+#   late-reasoning      default + EMIT_LATE_REASONING=1     (S-rsn-12)
+#   force-llm-fail      default + FORCE_LLM_FAIL=1          (S-stream-04)
+#   non-transient-prod  default + FORCE_REASONING_NON_TRANSIENT=1 APP_ENV=production
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 YAML=backend/agent_engine/agents/versions/v1_baseline/orchestrator_config.yaml
 BAK=${YAML}.bak
 
-profile=${1:-gemini-on}
+profile=${1:-openai-on}
 mode=${2:-fg}
 
 case "$profile" in
@@ -48,7 +48,7 @@ if [[ ! -f "$BAK" ]]; then
   cp "$YAML" "$BAK"
 fi
 
-# Always reset yaml to gemini-on baseline before each run, then patch per profile
+# Always reset yaml to openai-on baseline before each run, then patch per profile
 cat > "$YAML" <<'YAML'
 version: "0.1.0"
 name: "v1_baseline"
@@ -62,10 +62,10 @@ tools:
   - sec_filing_get_section
 
 model:
-  name: "google_genai:gemini-2.5-flash"
+  name: "openai:gpt-5-mini"
   temperature: 0.0
   reasoning: "on"
-  thinking_budget: 1024
+  thinking_budget: null
 
 constraints:
   max_tool_calls_per_run: 10
@@ -74,29 +74,33 @@ YAML
 env_extra=()
 
 case "$profile" in
-  gemini-on) ;;
-  gemini-off)
+  openai-on) ;;
+  openai-off)
     sed -i '' 's/reasoning: "on"/reasoning: "off"/' "$YAML"
+    ;;
+  gemini-on)
+    sed -i '' \
+      -e 's|name: "openai:gpt-5-mini"|name: "google_genai:gemini-2.5-flash"|' \
+      -e 's/thinking_budget: null/thinking_budget: 1024/' \
+      "$YAML"
+    ;;
+  gemini-off)
+    sed -i '' \
+      -e 's|name: "openai:gpt-5-mini"|name: "google_genai:gemini-2.5-flash"|' \
+      -e 's/reasoning: "on"/reasoning: "off"/' \
+      -e 's/thinking_budget: null/thinking_budget: 0/' \
+      "$YAML"
     ;;
   anthropic-on)
     sed -i '' \
-      -e 's|name: "google_genai:gemini-2.5-flash"|name: "anthropic:claude-sonnet-4-5-20250929"|' \
+      -e 's|name: "openai:gpt-5-mini"|name: "anthropic:claude-sonnet-4-5-20250929"|' \
       -e 's/temperature: 0.0/temperature: 1.0/' \
       -e 's/thinking_budget: null/thinking_budget: 1024/' \
       "$YAML"
     ;;
   anthropic-off)
     sed -i '' \
-      -e 's|name: "google_genai:gemini-2.5-flash"|name: "anthropic:claude-sonnet-4-5-20250929"|' \
-      -e 's/reasoning: "on"/reasoning: "off"/' \
-      "$YAML"
-    ;;
-  openai-on)
-    sed -i '' 's|name: "google_genai:gemini-2.5-flash"|name: "openai:gpt-5-mini"|' "$YAML"
-    ;;
-  openai-off)
-    sed -i '' \
-      -e 's|name: "google_genai:gemini-2.5-flash"|name: "openai:gpt-5-mini"|' \
+      -e 's|name: "openai:gpt-5-mini"|name: "anthropic:claude-sonnet-4-5-20250929"|' \
       -e 's/reasoning: "on"/reasoning: "off"/' \
       "$YAML"
     ;;

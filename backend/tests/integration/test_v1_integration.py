@@ -278,7 +278,7 @@ def test_config_loading_from_yaml():
     assert config.name == "v1_baseline"
     assert "yfinance_stock_quote" in config.tools
     assert "tavily_financial_search" in config.tools
-    assert config.model.name == "google_genai:gemini-2.5-flash"
+    assert config.model.name == "openai:gpt-5-mini"
     assert config.model.reasoning == "on"
 
 

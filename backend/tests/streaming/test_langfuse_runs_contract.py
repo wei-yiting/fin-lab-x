@@ -188,6 +188,20 @@ def test_on_chain_start_populates_runs_with_uuid_key_and_chain_value(
         "generations by isinstance — a new wrapper class would break that."
     )
 
+    # And string-normalized keys must NOT be present today. Mirrors the
+    # negative-key assertion in
+    # test_on_chat_model_start_populates_runs_with_uuid_key_and_generation_value
+    # so a future Langfuse switch to str(uuid) keys fails BOTH contract tests
+    # loudly — not just the chat-model-start one. Without this assertion, the
+    # chain-path drift would silently break _handle_abort_cleanup's UUID-keyed
+    # lookup while only the sibling test flags the regression.
+    assert str(rid) not in handler._runs, (
+        "Langfuse's _runs is now keyed by str(uuid) in addition to UUID — "
+        "this means the SDK changed its bookkeeping. Update the production "
+        "lookup helper and remove the str-key fallback if str became the "
+        "primary key shape."
+    )
+
 
 def test_on_chat_model_start_populates_runs_with_uuid_key_and_generation_value(
     _langfuse_credentials: None,

@@ -32,9 +32,11 @@ Why we accept the ``_runs`` private-API dependency:
     — there is no ``get_observation_by_run_id`` or equivalent. The other
     options (``start_observation`` / ``start_as_current_observation``) create
     NEW observations, which would duplicate the generation in the trace;
-    ``update_current_generation`` / ``update_current_observation`` are the
-    OTel-context-based path with the documented async-context bug above.
-    Until Langfuse ships a public lookup API, we read from ``_runs``.
+    the ``update_current_*`` family — ``update_current_generation`` (for
+    generation-type observations) and ``update_current_span`` (for
+    span-type observations) — is the OTel-context-based path with the
+    documented async-context bug above. Until Langfuse ships a public lookup
+    API, we read from ``_runs``.
 
     Defense-in-depth against SDK drift:
       1. ``_lookup_generation_by_run_id`` (this file) tries the UUID key

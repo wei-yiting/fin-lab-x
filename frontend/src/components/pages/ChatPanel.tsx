@@ -192,22 +192,39 @@ export function ChatPanel() {
   // Bug B / E auto-hide: AI SDK v6 does not route generic SSE events
   // (text-start, tool-input-available) through onData, so the reasoning
   // hook cannot clear its text on those events directly. Watch the
-  // messages array instead — once a text part lands or any tool part
-  // appears (running or completed), the reasoningStatusText from the
-  // previous LLM call is stale and must be cleared. Use layoutEffect so
-  // the clear happens before the browser paints, eliminating the
-  // "indicator briefly visible alongside text" flicker.
+  // messages array instead and clear when a new visible part lands.
+  //
+  // Trigger condition is "parts.length increased", NOT "last part is
+  // text/tool". Tool state transitions (input-streaming → output-available)
+  // and the post-tool synthesis gap leave parts.length unchanged, so they
+  // must NOT wipe — otherwise the synthesizing reasoning chunks (which
+  // arrive while last part is a completed tool) get clobbered the moment
+  // they set text and trigger a re-render.
+  //
+  // Use a ref to compare against the previous render: when assistant
+  // messageId changes, reset count to 0 so the first real part on a new
+  // turn correctly counts as "new". layoutEffect (not effect) so the
+  // clear happens before paint and the user never sees stale reasoning
+  // text alongside a freshly streamed text part.
+  const prevAssistantRef = useRef<{ id: string | null; partsCount: number }>({
+    id: null,
+    partsCount: 0,
+  });
   useLayoutEffect(() => {
-    if (!reasoningStatusText) return;
     const lastMsg = messages.at(-1);
-    if (!lastMsg || lastMsg.role !== "assistant") return;
-    const lastPart = (lastMsg.parts as PartLike[]).at(-1);
-    if (!lastPart) return;
-    const t = lastPart.type;
-    if (t === "text" || isToolPart(lastPart)) {
+    if (!lastMsg || lastMsg.role !== "assistant") {
+      prevAssistantRef.current = { id: null, partsCount: 0 };
+      return;
+    }
+    const prev = prevAssistantRef.current;
+    const sameMessage = prev.id === lastMsg.id;
+    const prevCount = sameMessage ? prev.partsCount : 0;
+    const currCount = (lastMsg.parts as PartLike[]).length;
+    prevAssistantRef.current = { id: lastMsg.id, partsCount: currCount };
+    if (currCount > prevCount) {
       hideReasoningStatus();
     }
-  }, [messages, reasoningStatusText, hideReasoningStatus]);
+  }, [messages, hideReasoningStatus]);
 
   // When useChat enters error state, mark any running tools on the last assistant message as aborted.
   // AI SDK v6 routes SSE `error` chunks to onError/status=error, not message.parts, so we cannot

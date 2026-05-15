@@ -550,6 +550,104 @@ describe("ChatPanel integration — text-start clears reasoning text", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Synthesis-phase reasoning surfaces over the "Synthesizing" idle text
+//
+// After a tool completes, the post-tool gap normally renders the hardcoded
+// "Synthesizing" idle label. But if the synthesizing LLM call itself
+// emits real reasoning chunks, those should immediately replace the idle
+// label. Regression case: an over-aggressive auto-hide effect would
+// clobber any reasoning text that arrived while last part is still a
+// completed tool, leaving the user stuck on "Synthesizing" forever.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — synthesizing reasoning replaces idle label", () => {
+  const synthServer = setupServer(
+    http.post("/api/v1/chat", () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "m-syn" })));
+          // Tool starts and immediately completes.
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "tool-input-available",
+                toolCallId: "tc-1",
+                toolName: "yfinance_stock_quote",
+                input: { ticker: "MSFT" },
+              }),
+            ),
+          );
+          await new Promise((r) => setTimeout(r, 30));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "tool-output-available",
+                toolCallId: "tc-1",
+                output: { price: 411.38 },
+              }),
+            ),
+          );
+          // Post-tool gap — synthesis call's reasoning starts. Must
+          // override "Synthesizing" idle text on screen.
+          await new Promise((r) => setTimeout(r, 30));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "data-reasoning-status",
+                id: "rs-syn",
+                data: { text: "Composing the final summary" },
+                transient: true,
+              }),
+            ),
+          );
+          // Hold so the test can observe reasoning text on screen.
+          await new Promise((r) => setTimeout(r, 1500));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "MSFT $411" })),
+          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => synthServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => synthServer.resetHandlers());
+  afterAll(() => synthServer.close());
+
+  test("real reasoning chunks during post-tool synthesis replace 'Synthesizing'", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "msft price");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Real reasoning text must surface even though last part is a
+    // completed tool. The over-aggressive auto-hide regression would
+    // wipe this and leave "Synthesizing" stuck on screen.
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Composing the final summary/)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    // And then the final answer streams in normally.
+    await waitFor(
+      () => {
+        expect(screen.getByText(/MSFT \$411/)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  }, 15000);
+});
+
+// ---------------------------------------------------------------------------
 // S-rsn-13 — abort then resend coexistence
 //
 // Stop the first turn after an assistant bubble has emitted some text, then

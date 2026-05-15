@@ -1,4 +1,4 @@
-import { useRef, useImperativeHandle, forwardRef, type ReactNode } from "react";
+import { Fragment, useRef, useImperativeHandle, forwardRef, type ReactNode } from "react";
 import { UserMessage } from "@/components/atoms/UserMessage";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
 import { ReasoningIndicator } from "@/components/atoms/ReasoningIndicator";
@@ -109,7 +109,11 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
               const isAborted = abortInfo !== undefined;
               const hasTextPart = msg.parts.some((p) => p.type === "text");
               return (
-                <div key={msg.id}>
+                // Fragment keeps the frozen indicator a sibling of AssistantMessage
+                // at the parent flex container's gap-4 level. Wrapping in a <div>
+                // would absorb the spacing and visually glue STOPPED to the
+                // preceding tool card (Stop-B regression).
+                <Fragment key={msg.id}>
                   <AssistantMessage
                     message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
                     isLast={isLast}
@@ -131,7 +135,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
                   {isAborted && !hasTextPart && (
                     <ReasoningIndicator text={abortInfo.frozenReasoningText} state="frozen" />
                   )}
-                </div>
+                </Fragment>
               );
             }
             return null;

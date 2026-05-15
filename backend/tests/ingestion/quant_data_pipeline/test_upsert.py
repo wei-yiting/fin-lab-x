@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from backend.ingestion.quant_data_pipeline.duck_db.row_models import (
     CompanyRow,
+    MarketValuationRow,
     YFinanceQuarterlyRow,
 )
 from backend.ingestion.quant_data_pipeline.duck_db.upsert import upsert_rows
@@ -137,3 +138,219 @@ def test_pydantic_validation_error_on_missing_required_field():
             fy_end_month=12,
             fy_end_day=31,
         )  # type: ignore[call-arg]
+
+
+def test_existing_default_behavior_unchanged(tmp_duckdb):
+    """Default-path (no coalesce_columns kwarg) still upserts and overwrites as before."""
+    row_v1 = CompanyRow(
+        ticker="MSFT",
+        company_name="Microsoft Corp",
+        sector="Technology",
+        industry="Software",
+        fy_end_month=6,
+        fy_end_day=30,
+    )
+    upsert_rows(tmp_duckdb, "companies", ["ticker"], [row_v1])
+    row_v2 = CompanyRow(
+        ticker="MSFT",
+        company_name="Microsoft Corp",
+        sector="NewSector",
+        industry="Software",
+        fy_end_month=6,
+        fy_end_day=30,
+    )
+    result = upsert_rows(tmp_duckdb, "companies", ["ticker"], [row_v2])
+    assert result == 1
+
+    fetched = tmp_duckdb.execute(
+        "SELECT sector FROM companies WHERE ticker='MSFT'"
+    ).fetchone()
+    assert fetched is not None
+    assert fetched[0] == "NewSector"
+
+
+def test_coalesce_columns_preserves_existing_value_on_null(tmp_duckdb):
+    """COALESCE(EXCLUDED.col, table.col): None incoming preserves stored value."""
+    initial = MarketValuationRow(
+        ticker="MSFT",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=3_400_000_000_000,
+        dividend_yield_pct=0.46,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [initial],
+        coalesce_columns=["market_cap_usd", "dividend_yield_pct"],
+    )
+
+    refresh = MarketValuationRow(
+        ticker="MSFT",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=None,
+        dividend_yield_pct=0.47,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [refresh],
+        coalesce_columns=["market_cap_usd", "dividend_yield_pct"],
+    )
+
+    fetched = tmp_duckdb.execute(
+        "SELECT market_cap_usd, dividend_yield_pct "
+        "FROM market_valuations WHERE ticker='MSFT' AND as_of_date='2026-05-04'"
+    ).fetchone()
+    assert fetched is not None
+    assert fetched[0] == 3_400_000_000_000, "market_cap_usd must be preserved on NULL"
+    assert fetched[1] == 0.47, "non-None incoming dividend_yield_pct must overwrite"
+
+
+def test_coalesce_columns_overwrites_with_non_null(tmp_duckdb):
+    """When both rows have non-None values, the new value wins under COALESCE."""
+    initial = MarketValuationRow(
+        ticker="AAPL",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=3_000_000_000_000,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [initial],
+        coalesce_columns=["market_cap_usd"],
+    )
+
+    updated = MarketValuationRow(
+        ticker="AAPL",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=3_100_000_000_000,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [updated],
+        coalesce_columns=["market_cap_usd"],
+    )
+
+    fetched = tmp_duckdb.execute(
+        "SELECT market_cap_usd FROM market_valuations "
+        "WHERE ticker='AAPL' AND as_of_date='2026-05-04'"
+    ).fetchone()
+    assert fetched is not None
+    assert fetched[0] == 3_100_000_000_000
+
+
+def test_coalesce_columns_rejects_pk(tmp_duckdb):
+    """coalesce_columns containing a PK column raises ValueError before any DB work."""
+    row = MarketValuationRow(
+        ticker="MSFT",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=3_400_000_000_000,
+    )
+    with pytest.raises(ValueError) as excinfo:
+        upsert_rows(
+            tmp_duckdb,
+            "market_valuations",
+            ["ticker", "as_of_date"],
+            [row],
+            coalesce_columns=["ticker"],
+        )
+    msg = str(excinfo.value)
+    assert "coalesce_columns" in msg
+    assert "PK" in msg
+
+
+def test_coalesce_columns_empty_iterable_treated_as_none(tmp_duckdb):
+    """Empty iterable disables COALESCE — None values overwrite stored ones."""
+    initial = MarketValuationRow(
+        ticker="GOOG",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=2_000_000_000_000,
+        dividend_yield_pct=0.10,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [initial],
+        coalesce_columns=[],
+    )
+
+    refresh = MarketValuationRow(
+        ticker="GOOG",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=None,
+        dividend_yield_pct=None,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [refresh],
+        coalesce_columns=[],
+    )
+
+    fetched = tmp_duckdb.execute(
+        "SELECT market_cap_usd, dividend_yield_pct "
+        "FROM market_valuations WHERE ticker='GOOG' AND as_of_date='2026-05-04'"
+    ).fetchone()
+    assert fetched is not None
+    assert fetched[0] is None, "empty coalesce_columns must not protect None overwrite"
+    assert fetched[1] is None
+
+
+def test_coalesce_columns_unknown_column_raises(tmp_duckdb):
+    """Typo in coalesce_columns is caught at runtime against the DTO field set."""
+    row = MarketValuationRow(
+        ticker="MSFT",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=3_400_000_000_000,
+    )
+    with pytest.raises(ValueError, match="not_a_real_column"):
+        upsert_rows(
+            tmp_duckdb,
+            "market_valuations",
+            ["ticker", "as_of_date"],
+            [row],
+            coalesce_columns=["not_a_real_column"],
+        )
+
+
+def test_coalesce_columns_set_or_tuple_works(tmp_duckdb):
+    """Iterable[str] accepts non-list containers (set, tuple)."""
+    initial = MarketValuationRow(
+        ticker="NVDA",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=2_800_000_000_000,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [initial],
+        coalesce_columns=("market_cap_usd",),
+    )
+
+    refresh = MarketValuationRow(
+        ticker="NVDA",
+        as_of_date=date(2026, 5, 4),
+        market_cap_usd=None,
+    )
+    upsert_rows(
+        tmp_duckdb,
+        "market_valuations",
+        ["ticker", "as_of_date"],
+        [refresh],
+        coalesce_columns={"market_cap_usd"},
+    )
+
+    fetched = tmp_duckdb.execute(
+        "SELECT market_cap_usd FROM market_valuations "
+        "WHERE ticker='NVDA' AND as_of_date='2026-05-04'"
+    ).fetchone()
+    assert fetched is not None
+    assert fetched[0] == 2_800_000_000_000

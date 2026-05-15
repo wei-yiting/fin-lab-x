@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import TypeVar
 from uuid import uuid4
 
@@ -13,6 +14,8 @@ def upsert_rows(
     table: str,
     pk_columns: list[str],
     rows: list[_T],
+    *,
+    coalesce_columns: Iterable[str] | None = None,
 ) -> int:
     """Bulk-upsert Pydantic row DTOs into a table with column-level merge.
 
@@ -26,13 +29,28 @@ def upsert_rows(
         table: Target table name.
         pk_columns: Columns forming the conflict target.
         rows: Same-typed Pydantic DTOs; ``[]`` short-circuits to 0.
+        coalesce_columns: Optional columns whose UPDATE clause uses
+            ``COALESCE(EXCLUDED.col, <table>.col)`` instead of plain
+            ``EXCLUDED.col``. A ``None`` incoming value preserves the
+            already-stored value, which protects against transient upstream
+            hiccups (e.g. yfinance returning NaN mid-day). Default ``None``
+            keeps the current overwrite semantics for all non-PK columns.
+            Empty iterables are treated the same as ``None``. Must not
+            include any PK column.
 
     Returns:
         Number of input rows processed (not DB-reported affected rows).
 
     Raises:
-        ValueError: DTO declares ``updated_at`` (helper-managed column).
+        ValueError: DTO declares ``updated_at`` (helper-managed column),
+            ``coalesce_columns`` includes a PK column, or ``coalesce_columns``
+            references a name not present on the row DTO.
     """
+    cols_to_coalesce = set(coalesce_columns) if coalesce_columns else set()
+    pk_in_coalesce = cols_to_coalesce & set(pk_columns)
+    if pk_in_coalesce:
+        raise ValueError("coalesce_columns must not include PK columns")
+
     if not rows:
         return 0
     # DTO drives the column set: same-typed DTOs are assumed, so the first
@@ -43,11 +61,22 @@ def upsert_rows(
         raise ValueError(
             "Row DTO must not declare updated_at; it is managed by upsert_rows()"
         )
+
+    known_columns = set(columns)
+    for name in cols_to_coalesce:
+        if name not in known_columns:
+            raise ValueError(f"coalesce_columns contains unknown column: {name}")
+
     non_pk = [c for c in columns if c not in pk_columns]
     # DuckDB's binder parses bare CURRENT_TIMESTAMP as a column reference inside
     # ON CONFLICT DO UPDATE SET, so use now() (CURRENT_TIMESTAMP() doesn't exist).
     set_clause = ", ".join(
-        [f"{c} = EXCLUDED.{c}" for c in non_pk]
+        [
+            f"{c} = COALESCE(EXCLUDED.{c}, {table}.{c})"
+            if c in cols_to_coalesce
+            else f"{c} = EXCLUDED.{c}"
+            for c in non_pk
+        ]
         + ["updated_at = now()"]
     )
     staging_name = f"__quant_upsert_staging_{uuid4().hex[:8]}"

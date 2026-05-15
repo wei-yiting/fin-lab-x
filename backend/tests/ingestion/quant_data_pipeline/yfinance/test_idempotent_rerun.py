@@ -170,8 +170,6 @@ def _aapl_stub(
 
 
 def test_module_level_owned_columns_is_frozenset():
-    from backend.ingestion.quant_data_pipeline.yfinance import YFINANCE_OWNED_COLUMNS
-
     assert isinstance(YFINANCE_OWNED_COLUMNS, frozenset)
     assert "total_revenue_usd" in YFINANCE_OWNED_COLUMNS
     # SEC-only columns must NOT appear in the yfinance-owned set.

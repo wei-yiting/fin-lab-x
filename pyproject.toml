@@ -51,8 +51,9 @@ markers = [
     "eval: evaluation tests that hit real LLM APIs",
     "integration: integration tests requiring external services (Qdrant, etc.)",
     "sec_integration: SEC integration tests that hit real SEC EDGAR APIs",
+    "live_yfinance: live yfinance HTTP smoke tests (skipped by default; rate-limited)",
 ]
-addopts = "-m 'not eval and not sec_integration and not integration'"
+addopts = "-m 'not eval and not sec_integration and not integration and not live_yfinance'"
 
 [tool.ruff]
 line-length = 88

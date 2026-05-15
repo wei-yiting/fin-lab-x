@@ -307,18 +307,22 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 });
 
 // ---------------------------------------------------------------------------
-// onFinish abort branch — user stop must not be announced as "Response complete"
+// onFinish non-normal-completion branches — only natural finish should announce
 //
 // AI SDK v6 routes the SSE `finish` chunk through onFinish with a payload
-// shape of `{ message, messages, isAbort, isDisconnect, isError }`. When the
-// user clicks Stop, stop() fires onFinish({ isAbort: true }). The ChatPanel
-// must skip setLastSSEEvent({ type: "finish" }) in that branch — otherwise
-// LiveStatusAnnouncer announces "Response complete" on a user-initiated
-// abort, which is misleading. The aria-live polite region must stay empty
-// (or at least not say "Response complete") in the abort case.
+// shape of `{ message, messages, isAbort, isDisconnect, isError }`. Three
+// non-normal exits set one of those flags:
+//   - isAbort      — user-initiated stop() (catch block + AbortError)
+//   - isError      — SSE error chunk OR any thrown error in the stream
+//   - isDisconnect — TypeError mentioning "fetch"/"network" (subset of isError)
+// In all three cases the user has another visible affordance (frozen
+// STOPPED indicator, or status === "error" routing in LiveStatusAnnouncer),
+// so the ChatPanel must NOT also push a "finish" event into lastSSEEvent —
+// that would race the error path and could leak a misleading "Response
+// complete" announcement.
 // ---------------------------------------------------------------------------
 
-describe("ChatPanel integration — onFinish does not announce abort as completion", () => {
+describe("ChatPanel integration — onFinish does not announce non-normal completions", () => {
   const announcerServer = setupServer(
     http.post("/api/v1/chat", ({ request }) => {
       const encoder = new TextEncoder();
@@ -411,6 +415,98 @@ describe("ChatPanel integration — onFinish does not announce abort as completi
       );
     } finally {
       happyServer.close();
+    }
+  }, 15000);
+
+  test("mid-stream SSE error (isError=true) → SR announcer does not say 'Response complete'", async () => {
+    // SSE `error` chunk → useChat catches the rethrown error → onFinish
+    // fires with isError=true (isAbort=false). The ChatPanel must NOT
+    // push a "finish" event into lastSSEEvent on this branch, even though
+    // status === "error" routes the announcement to "Response failed".
+    // Verifying the negative: announcer never reads "Response complete".
+    const errorServer = setupServer(
+      http.post("/api/v1/chat", () => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "start", messageId: "a-mid-err" })),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({ type: "text-delta", id: "t1", delta: "partial answer" }),
+              ),
+            );
+            // SSE error chunk — processUIMessageStream rethrows, which
+            // useChat catches → onFinish fires with isError=true.
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "error", errorText: "rate limit exceeded" })),
+            );
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+    errorServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      // Wait for the inline retry button (proxy for "mid-stream error
+      // reached ChatPanel + onFinish has fired").
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("error-retry-btn")).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+
+      // Negative assertion: under any onFinish path with isError=true the
+      // SR announcer must not read "Response complete".
+      expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+    } finally {
+      errorServer.close();
+    }
+  }, 15000);
+
+  test("transport network failure (isDisconnect=true) → SR announcer does not say 'Response complete'", async () => {
+    // HttpResponse.error() in MSW translates to a TypeError("fetch failed")
+    // at the fetch layer. In useChat's catch block:
+    //     err instanceof TypeError && err.message.includes("fetch")
+    // → isError=true AND isDisconnect=true. The ChatPanel must short-circuit
+    // on isDisconnect too — otherwise the "finish" event leaks and
+    // LiveStatusAnnouncer could announce "Response complete" before the
+    // status flips to "error".
+    const disconnectServer = setupServer(
+      http.post("/api/v1/chat", () => HttpResponse.error()),
+    );
+    disconnectServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      // Wait until the disconnect propagates and the stream-error block
+      // surfaces (proxy for "onFinish has fired with isDisconnect=true").
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("stream-error-block")).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+
+      expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+    } finally {
+      disconnectServer.close();
     }
   }, 15000);
 });

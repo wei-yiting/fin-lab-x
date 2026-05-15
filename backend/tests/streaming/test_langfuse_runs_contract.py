@@ -192,9 +192,13 @@ def test_on_chain_start_populates_runs_with_uuid_key_and_chain_value(
     # negative-key assertion in
     # test_on_chat_model_start_populates_runs_with_uuid_key_and_generation_value
     # so a future Langfuse switch to str(uuid) keys fails BOTH contract tests
-    # loudly — not just the chat-model-start one. Without this assertion, the
-    # chain-path drift would silently break _handle_abort_cleanup's UUID-keyed
-    # lookup while only the sibling test flags the regression.
+    # loudly — not just the chat-model-start one. _handle_abort_cleanup itself
+    # iterates handler._runs.values() and is key-shape-agnostic by design
+    # (see base.py near the iteration); the load-bearing UUID-keyed lookup is
+    # ReasoningTraceCallback._lookup_generation_by_run_id. Asserting the same
+    # invariant on both start hooks keeps the contract-test surface uniform
+    # and prevents a chain-vs-generation drift from being caught only via
+    # half of the test suite.
     assert str(rid) not in handler._runs, (
         "Langfuse's _runs is now keyed by str(uuid) in addition to UUID — "
         "this means the SDK changed its bookkeeping. Update the production "

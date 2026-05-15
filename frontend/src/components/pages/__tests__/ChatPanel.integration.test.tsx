@@ -429,14 +429,10 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
           start(controller) {
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "start", messageId: "a-mid-err" })),
-            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-mid-err" })));
             controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
             controller.enqueue(
-              encoder.encode(
-                sseFrame({ type: "text-delta", id: "t1", delta: "partial answer" }),
-              ),
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial answer" })),
             );
             // SSE error chunk — processUIMessageStream rethrows, which
             // useChat catches → onFinish fires with isError=true.
@@ -483,9 +479,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
     // on isDisconnect too — otherwise the "finish" event leaks and
     // LiveStatusAnnouncer could announce "Response complete" before the
     // status flips to "error".
-    const disconnectServer = setupServer(
-      http.post("/api/v1/chat", () => HttpResponse.error()),
-    );
+    const disconnectServer = setupServer(http.post("/api/v1/chat", () => HttpResponse.error()));
     disconnectServer.listen({ onUnhandledRequest: "bypass" });
 
     try {

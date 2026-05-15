@@ -48,17 +48,16 @@ def otel_in_memory_exporter(monkeypatch):
     ``get_client()`` produces a disabled client and ``traced_span`` falls
     back to opening plain OTel spans against our provider.
     """
-    monkeypatch.delenv("LANGFUSE_PUBLIC_KEY", raising=False)
-    monkeypatch.delenv("LANGFUSE_SECRET_KEY", raising=False)
     saved_instances = dict(LangfuseResourceManager._instances)
-    LangfuseResourceManager._instances.clear()
-
-    exporter = InMemorySpanExporter()
-    provider = TracerProvider()
-    provider.add_span_processor(SimpleSpanProcessor(exporter))
     original_provider = otel_trace._TRACER_PROVIDER
-    otel_trace._TRACER_PROVIDER = provider
     try:
+        monkeypatch.delenv("LANGFUSE_PUBLIC_KEY", raising=False)
+        monkeypatch.delenv("LANGFUSE_SECRET_KEY", raising=False)
+        LangfuseResourceManager._instances.clear()
+        exporter = InMemorySpanExporter()
+        provider = TracerProvider()
+        provider.add_span_processor(SimpleSpanProcessor(exporter))
+        otel_trace._TRACER_PROVIDER = provider
         yield exporter
     finally:
         otel_trace._TRACER_PROVIDER = original_provider

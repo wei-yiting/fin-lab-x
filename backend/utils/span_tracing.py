@@ -17,6 +17,12 @@ opening a plain OpenTelemetry child span via the global tracer so that any
 ``add_event`` calls made by the wrapped code still nest under the outer
 span. The yielded object is the no-op ``_NoOpSpan`` in this branch, since
 Langfuse-specific ``update``/``update_trace`` semantics do not apply.
+
+Coupling: the disabled-Langfuse detection reads the private ``_otel_tracer``
+attribute on the Langfuse client (verified for langfuse 4.5.x). If a future
+release renames it, this branch silently stops firing — production paths
+with real keys keep working, but unit-test span assertions regress visibly,
+which acts as the canary.
 """
 
 from contextlib import contextmanager

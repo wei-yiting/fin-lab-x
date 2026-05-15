@@ -183,9 +183,7 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
-        patch(
-            "backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()
-        ),
+        patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
     ):
         mock_init.return_value = MagicMock()
         mock_create.return_value = MagicMock()
@@ -196,6 +194,23 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
     # No leaked template tokens.
     assert "{section_soft_cap_chars}" not in orch.system_prompt
     assert "{max_tool_calls_per_run}" not in orch.system_prompt
+    assert "{today_date}" not in orch.system_prompt
+    # Date anchor — must be an ISO-8601 string that resolves to a real date,
+    # not a literal placeholder. Match a YYYY-MM-DD pattern to allow the
+    # test to pass on any future date without flakiness.
+    import re
+
+    assert re.search(r"Today's date is \d{4}-\d{2}-\d{2}\.", orch.system_prompt)
+
+
+def test_render_prompt_today_date_substitution():
+    """``{today_date}`` resolves to the current ISO-8601 date so the agent
+    has a single source of truth instead of guessing from training data."""
+    import datetime
+
+    raw = "Today is {today_date}."
+    rendered = Orchestrator._render_prompt(raw, "gpt-4o-mini")
+    assert rendered == f"Today is {datetime.date.today().isoformat()}."
 
 
 def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):

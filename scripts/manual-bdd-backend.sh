@@ -65,7 +65,7 @@ model:
   name: "google_genai:gemini-2.5-flash"
   temperature: 0.0
   reasoning: "on"
-  thinking_budget: null
+  thinking_budget: 1024
 
 constraints:
   max_tool_calls_per_run: 10

@@ -11,6 +11,7 @@ propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
 import asyncio
+import datetime
 import logging
 import os
 import re
@@ -355,6 +356,13 @@ class Orchestrator:
         - ``{max_tool_calls_per_run}`` — passed through from the version's
           ``constraints.max_tool_calls_per_run``; ``None`` means the prompt
           doesn't reference this variable (tests may omit it)
+        - ``{today_date}`` — ISO-8601 date the orchestrator was instantiated.
+          Anchors the model to the actual current date so reasoning models
+          stop guessing it from training-cutoff context (a common source of
+          stale fiscal-year tool args). Resolved at Orchestrator __init__
+          time; rebuilt on every process start, so a process that runs
+          longer than a day will drift by the elapsed days — acceptable for
+          our deploy cadence.
 
         Prompts with no placeholders are returned verbatim. Prompts referencing
         unknown variables raise ``ValueError`` so misconfiguration fails fast
@@ -368,6 +376,7 @@ class Orchestrator:
             return raw
         provided: dict[str, object] = {
             "section_soft_cap_chars": compute_section_soft_cap_chars(model_name),
+            "today_date": datetime.date.today().isoformat(),
         }
         if max_tool_calls_per_run is not None:
             provided["max_tool_calls_per_run"] = max_tool_calls_per_run

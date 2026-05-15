@@ -157,4 +157,10 @@ def test_all_shipped_versions_use_gemini_with_reasoning_on(version):
     config = VersionConfigLoader(version).load()
     assert config.model.name == "google_genai:gemini-2.5-flash"
     assert config.model.reasoning == "on"
-    assert config.model.thinking_budget is None
+    # v1_baseline now caps thinking_budget at 1024 (was None = model default
+    # = unlimited) to stop Gemini overthinking simple tool-decision turns.
+    # Other versions still use the model default pending a similar audit.
+    if version == "v1_baseline":
+        assert config.model.thinking_budget == 1024
+    else:
+        assert config.model.thinking_budget is None

@@ -1,3 +1,6 @@
-# Per-session temp output (uvicorn / verifier / test logs, transient json) —
-# kept on disk for debugging the most recent run, not durable docs.
-current/temp/
+# Artifacts are planning / design / BDD scaffolding kept on disk during
+# implementation but NOT shipped in the PR (per feedback_no_commit_artifacts).
+# Re-track selectively for the next planning cycle by removing the wildcard
+# or adding explicit allowlist entries.
+*
+!.gitignore

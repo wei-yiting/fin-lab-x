@@ -7,6 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables BEFORE importing application modules.
 # Tools and tracing may read env vars (OPENAI_API_KEY, LANGCHAIN_TRACING_V2, etc.)
@@ -49,6 +50,20 @@ app = FastAPI(
     description="Financial Analysis AI System",
     version=APP_VERSION,
     lifespan=lifespan,
+)
+
+allowed_origins_str = os.getenv("API_ALLOWED_ORIGINS", "")
+allowed_origins = [
+    origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "HEAD", "POST"],
+    allow_headers=["*"],
+    max_age=86400,
 )
 
 app.include_router(chat.router)

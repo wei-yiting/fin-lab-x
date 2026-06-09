@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.agent_engine.tools.finnhub_client import (
+    BASIC_FINANCIALS_CATALOG,
     fetch_basic_financials,
     fetch_quote,
 )
@@ -161,6 +162,27 @@ def test_live_quote_known_ticker():
 def test_live_basic_financials_known_ticker():
     m = fetch_basic_financials("MSFT")
     assert "peTTM" in m or "52WeekHigh" in m
+
+
+@pytest.mark.finnhub_integration
+@pytest.mark.skipif(not os.getenv("FINNHUB_API_KEY"), reason="needs FINNHUB_API_KEY")
+def test_live_catalog_metric_keys_resolve():
+    """Guard the curated catalog spelling against the real free-tier response.
+
+    The catalog's Finnhub metric keys are data-driven strings (literal slash in
+    `totalDebt/totalEquityQuarterly`, leading digit in `10DayAverageTradingVolume`,
+    mixed Quarterly/TTM suffixes) that no SDK or schema enumerates. A silent typo
+    would be dropped by the present-only filter with no error — this test catches
+    that drift for a large-cap where every field is expected to populate.
+    """
+    metric = fetch_basic_financials("AAPL")
+    resolved = [
+        out_key
+        for out_key, spec in BASIC_FINANCIALS_CATALOG.items()
+        if metric.get(spec.metric_key) is not None
+    ]
+    # All 19 resolved for AAPL when authored; allow minor day-to-day variance.
+    assert len(resolved) >= 17, f"only {len(resolved)}/19 catalog keys resolved: {resolved}"
 
 
 @pytest.mark.finnhub_integration

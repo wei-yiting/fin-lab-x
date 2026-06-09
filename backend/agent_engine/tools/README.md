@@ -3,7 +3,9 @@ Atomic, stateless tool functions and central registry. This module provides the 
 
 ## Map
 - `registry.py`: Manages the global `TOOL_REGISTRY` dictionary. Provides utility functions for registering, retrieving, and listing available tools.
-- `financial.py`: Implements tools for quantitative data retrieval via `Finnhub` and event-driven news search via `Tavily`.
+- `financial.py`: Implements `tavily_financial_search` — event-driven financial news search via `Tavily` over a trusted-domain allowlist.
+- `finnhub_tools.py`: Three LangChain `@tool` wrappers for real-time market data via the official `finnhub-python` SDK (free tier): `finnhub_stock_quote` (real-time quote), `finnhub_company_basic_financials` (curated fundamentals), and `finnhub_get_available_fields` (per-ticker catalog discovery).
+- `finnhub_client.py`: LangChain-free Finnhub domain core — `get_finnhub_client` (API-key seam), `fetch_quote` / `fetch_basic_financials` (invalid-ticker validation against Finnhub's all-zero/empty-metric responses), and `BASIC_FINANCIALS_CATALOG` (the curated `metric`-key → output-field map).
 - `sec_filing_tools.py`: Implements the two-step SEC 10-K access pair — `sec_filing_list_sections` (returns the canonical item table of contents with `char_count` / `is_stub` metadata) and `sec_filing_get_section` (returns one item's full content by `section_key`). Both call `edgartools`' structured `TenK` API directly via `backend.common.sec_core`.
 - `sec_filing.py`: `sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Downloads 10-K filings on demand (JIT), returns metadata + local file path for downstream RAG. Separate from the edgartools-direct path in `sec_filing_tools.py`.
 - `__init__.py`: Contains the `setup_tools()` function, which serves as the central entry point for tool registration.

@@ -25,7 +25,7 @@ BASIC_FINANCIALS_CATALOG: dict[str, FieldSpec] = {
     "psTTM": FieldSpec("psTTM", "Trailing twelve-month price-to-sales"),
     "pb": FieldSpec("pbQuarterly", "Price-to-book ratio"),
     "marketCap": FieldSpec(
-        "marketCapitalization", "Market capitalization (USD millions)"
+        "marketCapitalization", "Market capitalization (millions of reporting currency)"
     ),
     "beta": FieldSpec("beta", "Beta coefficient"),
     "epsTTM": FieldSpec("epsTTM", "Earnings per share (TTM)"),
@@ -64,6 +64,9 @@ def get_finnhub_client() -> finnhub.Client:
 
 def fetch_quote(symbol: str) -> dict[str, Any]:
     data = get_finnhub_client().quote(symbol)
+    # Finnhub's free tier returns an all-zero payload (not an error) for unknown
+    # tickers. Require BOTH current and previous-close to be 0/None: checking `c`
+    # alone would false-positive a legitimately-zero pre-market price.
     if not data or (
         data.get("c") in (0, None) and data.get("pc") in (0, None)
     ):

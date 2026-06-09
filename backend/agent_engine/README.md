@@ -42,7 +42,7 @@ To add a new component (tool, skill, or agent profile):
 ### Components
 
 - **Agents**: Central reasoning engine (profile-agnostic Orchestrator, loads capabilities from config)
-- **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
+- **Tools**: Atomic, stateless functions (Finnhub, Tavily, SEC)
 - **Observability**: Langfuse tracing via `CallbackHandler` + LangChain `config.metadata` (trace_name, request_id) + `propagate_attributes()` for session correlation
 
 ## Observability
@@ -147,7 +147,7 @@ from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 loader = ProfileConfigLoader('baseline')
 config = loader.load()
 
-print(config.tools)  # ['yfinance_stock_quote', 'yfinance_get_available_fields', ...]
+print(config.tools)  # ['finnhub_stock_quote', 'finnhub_company_basic_financials', 'finnhub_get_available_fields', ...]
 print(config.model.name)  # 'gpt-4o-mini'
 print(config.version)  # '0.1.0'
 ```

@@ -106,7 +106,7 @@ def test_validate_edgar_identity_fast_fail(monkeypatch):
 
 def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
     monkeypatch.delenv("EDGAR_IDENTITY", raising=False)
-    config = SimpleNamespace(tools=["yfinance_stock_quote"])
+    config = SimpleNamespace(tools=["finnhub_stock_quote"])
     # Should NOT raise
     Orchestrator._validate_edgar_identity(config)
 
@@ -131,8 +131,9 @@ PROFILES_DIR = (
 
 
 _V1_BASELINE_TOOLS = [
-    "yfinance_stock_quote",
-    "yfinance_get_available_fields",
+    "finnhub_stock_quote",
+    "finnhub_company_basic_financials",
+    "finnhub_get_available_fields",
     "tavily_financial_search",
     "sec_filing_list_sections",
     "sec_filing_get_section",
@@ -162,6 +163,17 @@ def test_baseline_system_prompt_advertises_sec_tools():
     # Detailed strategy is no longer in the prompt — it lives in the tool output.
     assert "10-K STANDARD SECTION TITLES" not in text
     assert "{section_soft_cap_chars}" not in text
+
+
+def test_v1_baseline_system_prompt_has_no_yahoo_residue():
+    """DECISION-001 regression guard: the v1_baseline prompt must not reference
+    Yahoo, forward P/E, or the dropped yfinance tool. Quote/fundamentals claims
+    are cited by data provider name (Finnhub) with no fabricated per-ticker URL.
+    """
+    text = V1_BASELINE_PROMPT_PATH.read_text().lower()
+    assert "yahoo" not in text
+    assert "forwardpe" not in text
+    assert "yfinance" not in text
 
 
 def test_orchestrator_baseline_renders_prompt_end_to_end(monkeypatch):

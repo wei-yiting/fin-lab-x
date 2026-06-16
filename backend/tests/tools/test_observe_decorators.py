@@ -6,7 +6,7 @@ that go through edgartools + blocking I/O benefit from explicit
 @observe spans, so they are on the allow-list.
 """
 
-from backend.agent_engine.tools.financial import tavily_financial_search
+from backend.agent_engine.tools.news_search import tavily_financial_search
 from backend.agent_engine.tools.finnhub_tools import (
     finnhub_company_basic_financials,
     finnhub_get_available_fields,

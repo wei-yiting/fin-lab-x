@@ -1,4 +1,4 @@
-"""Tests for financial tools."""
+"""Tests for the financial news search tool."""
 
 import json
 import os
@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.agent_engine.tools.financial import (
+from backend.agent_engine.tools.news_search import (
     TRUSTED_NEWS_DOMAINS,
     tavily_financial_search,
 )
@@ -46,7 +46,7 @@ def test_tavily_financial_search_missing_api_key():
 
 @patch.dict(os.environ, {"TAVILY_API_KEY": "test-key"}, clear=True)
 @patch.dict("sys.modules", {"tavily": MagicMock()})
-@patch("backend.agent_engine.tools.financial.TavilyClient", create=True)
+@patch("backend.agent_engine.tools.news_search.TavilyClient", create=True)
 def test_tavily_financial_search_results(tavily_client_mock):
     cast(Any, sys.modules["tavily"]).TavilyClient = tavily_client_mock
     tavily_client_mock.return_value.search.return_value = {

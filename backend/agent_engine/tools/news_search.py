@@ -1,4 +1,4 @@
-"""Financial data tools for FinLab-X."""
+"""Financial news search tool (Tavily over a trusted-domain allowlist)."""
 
 from typing import Annotated, Any
 

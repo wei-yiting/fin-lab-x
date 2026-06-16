@@ -15,7 +15,7 @@ def setup_tools() -> None:
     if _tools_registered:
         return
 
-    from backend.agent_engine.tools.financial import tavily_financial_search
+    from backend.agent_engine.tools.news_search import tavily_financial_search
     from backend.agent_engine.tools.finnhub_tools import (
         finnhub_company_basic_financials,
         finnhub_get_available_fields,

@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "doc": "design.md — SEC Filing Pipeline 簡化 (Path 2)",
+  "saved_at": "2026-05-28T09:36:34.530Z",
+  "comment_count": 4,
+  "comments": [
+    {
+      "id": "cmp6s83quv0e2",
+      "sectionId": "s2",
+      "sectionLabel": "§2 Scope 與 Terminology",
+      "selectedText": "階層圖",
+      "comment": "prelude 應該加在 chunk 裡還是 chunk 的 metadata 比較適合呢？",
+      "createdAt": "2026-05-15T10:36:12.918Z",
+      "resolved": true,
+      "resolvedAt": "2026-05-19T11:12:02.471Z",
+      "outdated": false
+    },
+    {
+      "id": "cmp6sk33y9q2i",
+      "sectionId": "s3",
+      "sectionLabel": "§3 ParsedFiling Schema",
+      "selectedText": "class Block(BaseModel):\n    heading: str               # 必有 block heading\n    text: str                  # block body (plain text)",
+      "comment": "為什麼需要定義這個？",
+      "createdAt": "2026-05-15T10:45:31.966Z",
+      "resolved": true,
+      "resolvedAt": "2026-05-19T11:12:02.471Z",
+      "outdated": false
+    },
+    {
+      "id": "cmp6sv0penfvs",
+      "sectionId": "s4",
+      "sectionLabel": "§4 Detection Logic",
+      "selectedText": "4.1 整體 flow",
+      "comment": "這個用 mermaid 畫",
+      "createdAt": "2026-05-15T10:54:02.066Z",
+      "resolved": true,
+      "resolvedAt": "2026-05-19T11:12:02.471Z",
+      "outdated": false
+    },
+    {
+      "id": "cmp6sxtrsrwj0",
+      "sectionId": "s4",
+      "sectionLabel": "§4 Detection Logic",
+      "selectedText": "NOISE TYPE\t範例\tFILTER RULE\nCover-page boilerplate\tUNITED STATES, SECURITIES AND EXCHANGE COMMISSION\tliteral blacklist\nFinancial-statement chapter divider\tCONSOLIDATED STATEMENTS OF OPERATIONS, NOTES TO CONSOLIDATED FINANCIAL STATEMENTS\tregex ^CONSOLIDATED STATEMENTS OF .+ + 重複次數\n重複 ≥ 4 次\tJPM NOTES TO CONSOLIDATED FINANCIAL STATEMENTS ×11\tcount-based reject\nRegistrant company name\t公司全名重複\tmatch metadata.company_name\nPage-break artifact\tDIS TABLE OF CONTENTS ×16\tliteral blacklist",
+      "comment": "這些是怎麼來的？",
+      "createdAt": "2026-05-15T10:56:13.048Z",
+      "resolved": true,
+      "resolvedAt": "2026-05-19T11:12:02.471Z",
+      "outdated": false
+    }
+  ]
+}

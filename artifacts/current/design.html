@@ -1,0 +1,4341 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design — SEC Filing Pipeline 簡化 (Path 2)</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.10.0/styles/github.min.css">
+<style>
+:root {
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --code-bg: #f1f5f9;
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --architecture: #2563eb;
+  --architecture-bg: #eff6ff;
+  --sunset: #f97316;
+  --sunset-bg: #fff7ed;
+  --inspect: #10b981;
+  --inspect-bg: #ecfdf5;
+  --decision: #8b5cf6;
+  --decision-bg: #f5f3ff;
+  --ab: #ef4444;
+  --ab-bg: #fef2f2;
+  --api: #14b8a6;
+  --api-bg: #f0fdfa;
+  --open: #eab308;
+  --open-bg: #fefce8;
+  --comment-w: 320px;
+  --learning-w: 320px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  line-height: 1.7;
+  font-size: 15px;
+}
+html, body { width: 100%; }
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--learning-w) minmax(0, 1fr) var(--comment-w);
+  transition: padding-left 0.22s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+body.learning-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+body.learning-hidden .layout {
+  grid-template-columns: minmax(0, 1fr) var(--comment-w);
+}
+body.comments-hidden .layout {
+  grid-template-columns: var(--learning-w) minmax(0, 1fr);
+}
+body.learning-hidden.comments-hidden .layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+body.learning-hidden .learning-panel,
+body.learning-hidden .learning-resize-handle {
+  display: none;
+}
+body.comments-hidden .comment-panel,
+body.comments-hidden .comment-resize-handle {
+  display: none;
+}
+body.comment-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+body.sidebar-pinned .layout {
+  padding-left: 260px;
+}
+
+/* SIDEBAR TOGGLE BUTTON (floating) */
+.sidebar-toggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 75;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  font-family: inherit;
+  line-height: 1;
+}
+.sidebar-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+body.sidebar-pinned .sidebar-toggle {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* SIDEBAR (fixed off-screen, slides in on hover/pin) */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 62px 18px 22px;
+  z-index: 60;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  font-size: 13.5px;
+}
+.sidebar.show { transform: translateX(0); }
+.sidebar.hover-mode { box-shadow: 6px 0 24px rgba(0, 0, 0, 0.12); }
+.sidebar.pinned-mode { box-shadow: none; }
+.sidebar-brand {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.sidebar-sub {
+  color: var(--text-subtle);
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+.toc {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.toc li { margin: 2px 0; }
+.toc a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.1s, color 0.1s;
+}
+.toc a:hover { background: var(--code-bg); color: var(--text); }
+.toc-num {
+  display: inline-block;
+  width: 22px;
+  font-weight: 600;
+  color: var(--text-subtle);
+  font-feature-settings: "tnum";
+  flex-shrink: 0;
+}
+.toc-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* === LEARNING PANEL (left, always-visible on desktop) === */
+.learning-panel {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 14px 32px;
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, #f0fdfa 0%, #ecfeff 100%);
+  font-size: 13px;
+  z-index: 30;
+}
+.learning-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #a5f3fc;
+}
+.learning-panel-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #0e7490;
+  letter-spacing: -0.01em;
+}
+.learning-panel-sub {
+  font-size: 11px;
+  color: #0891b2;
+  padding: 2px 8px;
+  background: rgba(8, 145, 178, 0.1);
+  border-radius: 999px;
+  font-weight: 600;
+}
+.learning-panel-help {
+  font-size: 11.5px;
+  color: #155e75;
+  line-height: 1.55;
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  border-left: 3px solid #06b6d4;
+}
+
+.learning-card {
+  background: white;
+  border: 1px solid #cffafe;
+  border-radius: 12px;
+  padding: 16px 18px 18px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+  scroll-margin: 12px;
+}
+.learning-card:hover {
+  border-color: #67e8f9;
+}
+.learning-card.active {
+  border-color: #06b6d4;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.18);
+  transform: translateX(-2px);
+  background: linear-gradient(180deg, #ffffff 0%, #f0fdff 100%);
+}
+.lc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #cffafe;
+}
+.lc-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0891b2;
+  background: #ecfeff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-feature-settings: "tnum";
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+.learning-card.active .lc-num {
+  background: #06b6d4;
+  color: white;
+}
+.lc-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.lc-body {
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.lc-body p { margin: 0; color: var(--text); }
+.lc-body strong { color: var(--text); font-weight: 600; }
+.lc-body code {
+  background: #ecfeff;
+  color: #155e75;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* "bit" = one labelled prose chunk within the card body */
+.lc-bit { margin-bottom: 14px; }
+.lc-bit:last-of-type { margin-bottom: 0; }
+.lc-bit-label {
+  display: inline-block;
+  margin: 0 0 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0e7490;
+  background: #ecfeff;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid #cffafe;
+}
+.learning-card.active .lc-bit-label {
+  background: #cffafe;
+  border-color: #67e8f9;
+  color: #155e75;
+}
+
+.lc-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+.lc-option {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 3px solid;
+  background: #fafafa;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.lc-option strong { display: block; margin-bottom: 2px; font-size: 12px; }
+.lc-option .lc-cost { color: var(--text-subtle); font-size: 11px; }
+.lc-option.rejected {
+  border-color: #fda4af;
+  background: #fff1f2;
+}
+.lc-option.rejected strong { color: #be123c; }
+.lc-option.chosen {
+  border-color: #6ee7b7;
+  background: #ecfdf5;
+}
+.lc-option.chosen strong { color: #047857; }
+
+.lc-tip {
+  margin-top: 16px;
+  padding: 12px 14px 13px;
+  background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%);
+  border-left: 4px solid #eab308;
+  border-radius: 0 8px 8px 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.lc-tip-label {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #713f12;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+  background: rgba(234, 179, 8, 0.18);
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+.lc-tip-body { color: #422006; display: block; }
+.lc-tip-body strong { color: #1c1917; font-weight: 700; }
+.lc-tip-body code {
+  background: rgba(234, 179, 8, 0.18);
+  color: #713f12;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.lc-bullets {
+  margin: 4px 0 8px 16px;
+  padding: 0;
+}
+.lc-bullets li { margin: 3px 0; font-size: 12px; line-height: 1.5; }
+
+/* Learning FAB (mobile / narrow viewports) */
+.learning-fab {
+  position: fixed;
+  bottom: 20px;
+  left: 78px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: #06b6d4;
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
+/* MAIN */
+main {
+  padding: 32px 48px 80px;
+  width: 100%;
+  max-width: 1100px;
+  min-width: 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+/* HERO */
+.hero {
+  margin-bottom: 56px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+.status-badge {
+  display: inline-block;
+  background: var(--open-bg);
+  color: #854d0e;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 4px 0 8px;
+  line-height: 1.2;
+}
+.hero .subtitle {
+  font-size: 17px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum";
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 6px;
+}
+
+.prereq {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+.research-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.research-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+}
+
+/* SECTIONS */
+section.doc-section { margin-bottom: 56px; scroll-margin-top: 24px; }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border);
+}
+.section-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-subtle);
+  font-feature-settings: "tnum";
+  min-width: 28px;
+}
+.section-head h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+  flex: 1;
+}
+.section-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tag-architecture { background: var(--architecture-bg); color: var(--architecture); }
+.tag-sunset { background: var(--sunset-bg); color: var(--sunset); }
+.tag-inspect { background: var(--inspect-bg); color: var(--inspect); }
+.tag-decision { background: var(--decision-bg); color: var(--decision); }
+.tag-ab { background: var(--ab-bg); color: var(--ab); }
+.tag-api { background: var(--api-bg); color: var(--api); }
+.tag-open { background: var(--open-bg); color: #854d0e; }
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 32px 0 14px;
+  color: var(--text);
+}
+h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 22px 0 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+p { margin: 0 0 14px; }
+
+/* INLINE */
+code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  color: #be185d;
+}
+strong { color: var(--text); font-weight: 600; }
+em { font-style: italic; color: var(--text-muted); }
+
+/* CODE BLOCK */
+pre {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 14px 0 20px;
+  border: 1px solid var(--border);
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+
+/* TABLES */
+.table-wrap {
+  overflow-x: auto;
+  margin: 14px 0 22px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+thead {
+  background: var(--code-bg);
+}
+th {
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 10px 14px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.6;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #fcfcfd; }
+
+/* DECISION TABLE — colored num + larger row gap */
+.decisions-table td:first-child {
+  font-weight: 700;
+  text-align: center;
+  color: white;
+  width: 44px;
+  font-feature-settings: "tnum";
+  font-size: 13px;
+}
+.decisions-table.cat-pipeline td:first-child { background: var(--architecture); }
+.decisions-table.cat-coexist td:first-child { background: var(--sunset); }
+.decisions-table.cat-ab td:first-child { background: var(--ab); }
+.decisions-table.cat-api td:first-child { background: var(--api); }
+.decisions-table td:nth-child(2) {
+  font-weight: 600;
+  width: 28%;
+}
+.decisions-table td:nth-child(3) {
+  width: 38%;
+}
+.decisions-table td:nth-child(4) {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* MERMAID */
+.mermaid {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  margin: 18px 0 24px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* CALLOUT */
+.callout {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0 20px;
+  border-left: 4px solid;
+  font-size: 14px;
+}
+.callout-info { background: var(--architecture-bg); border-color: var(--architecture); color: #1e3a8a; }
+.callout-warn { background: var(--sunset-bg); border-color: var(--sunset); color: #9a3412; }
+.callout-key { background: var(--decision-bg); border-color: var(--decision); color: #5b21b6; }
+.callout-success { background: var(--inspect-bg); border-color: var(--inspect); color: #064e3b; }
+.callout strong { color: inherit; }
+
+/* LISTS */
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+ul li, ol li { margin-bottom: 6px; }
+
+/* SUMMARY/DETAILS */
+details {
+  margin: 14px 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+details[open] summary { margin-bottom: 8px; }
+
+/* FOOTER */
+footer {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-subtle);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* === ANNOTATION SYSTEM === */
+
+.comment-panel {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 16px;
+  border-left: 1px solid var(--border);
+  background: var(--card-bg);
+  font-size: 13px;
+}
+/* Drag handle tracking the panel's left edge — drag left to widen (panel grows leftward).
+   position:fixed (left set by JS) so it never scrolls away when the panel overflows. */
+.comment-resize-handle {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 9px;
+  cursor: ew-resize;
+  z-index: 50;
+  touch-action: none;
+}
+.comment-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(15, 23, 42, 0.08);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+.comment-resize-handle:hover::after,
+body.comment-resizing .comment-resize-handle::after {
+  background: var(--primary);
+  width: 3px;
+}
+
+/* Mirror for learning panel — drag right edge of left panel to resize */
+.learning-resize-handle {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 9px;
+  cursor: ew-resize;
+  z-index: 50;
+  touch-action: none;
+}
+.learning-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(15, 23, 42, 0.08);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+.learning-resize-handle:hover::after,
+body.learning-resizing .learning-resize-handle::after {
+  background: #06b6d4;
+  width: 3px;
+}
+
+/* Panel close button (inside panel header) */
+.panel-close-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-subtle);
+  border-radius: 6px;
+  width: 24px; height: 24px;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  margin-left: 6px;
+}
+.panel-close-btn:hover {
+  background: var(--ab-bg);
+  color: var(--ab);
+  border-color: var(--ab);
+}
+
+/* Floating reopen buttons (visible when panel hidden) */
+.panel-reopen-btn {
+  position: fixed;
+  top: 14px;
+  z-index: 75;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--text);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  font-family: inherit;
+  line-height: 1;
+}
+.panel-reopen-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.learning-reopen-btn {
+  left: 60px;
+}
+.comments-reopen-btn {
+  right: 14px;
+}
+body.learning-hidden .learning-reopen-btn,
+body.comments-hidden .comments-reopen-btn {
+  display: inline-flex;
+}
+.comment-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.comment-panel-title {
+  font-weight: 700; font-size: 14px;
+}
+/* unified badge sizing — all three same height/padding/font */
+.comment-count-badge,
+.resolved-count-badge,
+.outdated-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  font-feature-settings: "tnum";
+}
+.comment-count-badge::before,
+.outdated-count-badge::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+.comment-count-badge { background: #fef08a; color: #854d0e; padding-left: 6px; }
+.comment-count-badge::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23854d0e' d='M4 3C2.9 3 2 3.9 2 5v10c0 1.1.9 2 2 2h4v4l5-4h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H4z'/></svg>");
+}
+.comment-help {
+  font-size: 11.5px; color: var(--text-subtle);
+  line-height: 1.5; margin-bottom: 14px;
+  padding: 8px 10px; background: var(--code-bg); border-radius: 6px;
+}
+.comment-actions {
+  display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.btn-action {
+  padding: 6px 10px;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.btn-action:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.btn-action.btn-danger:hover { background: var(--ab-bg); color: var(--ab); border-color: var(--ab); }
+.btn-action.btn-primary-action {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.btn-action.btn-primary-action:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+}
+.btn-icon {
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 1px;
+}
+.caret { font-size: 9px; opacity: 0.7; margin-left: 1px; }
+
+/* Export dropdown */
+.export-menu-wrap { position: relative; display: inline-block; }
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  display: none;
+  min-width: 180px;
+  padding: 4px;
+}
+.export-dropdown.show { display: block; }
+.export-option {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text);
+  border-radius: 4px;
+}
+.export-option:hover { background: var(--primary-light); color: var(--primary); }
+
+.comment-list { display: flex; flex-direction: column; gap: 8px; }
+.comment-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card:hover {
+  border-color: var(--primary);
+  transform: translateX(-2px);
+  box-shadow: -2px 2px 8px rgba(37, 99, 235, 0.08);
+}
+.comment-section {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.comment-quote {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--code-bg);
+  border-left: 2px solid #facc15;
+  padding: 5px 8px;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 6px;
+  line-height: 1.45;
+  font-style: italic;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.comment-body {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.comment-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10.5px; color: var(--text-subtle);
+}
+.btn-delete {
+  background: transparent; border: none;
+  color: var(--text-subtle);
+  cursor: pointer; font-size: 13px;
+  padding: 2px 5px; border-radius: 4px;
+  font-family: inherit;
+  line-height: 1;
+  opacity: 0.55;
+  transition: opacity 0.12s, background 0.12s, color 0.12s;
+}
+.btn-delete:hover {
+  background: var(--ab-bg);
+  color: var(--ab);
+  opacity: 1;
+}
+.empty-state {
+  color: var(--text-subtle); font-size: 12.5px;
+  text-align: center; padding: 32px 12px; line-height: 1.7;
+}
+
+/* annotation marks */
+mark.annot {
+  background: #fef08a;
+  color: inherit;
+  padding: 1px 2px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  border-bottom: 1px dashed #ca8a04;
+}
+mark.annot:hover { background: #fde047; }
+mark.annot.pulse {
+  animation: pulse-mark 1.6s ease-in-out;
+}
+@keyframes pulse-mark {
+  0%, 100% { background: #fef08a; }
+  50% { background: #facc15; box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.35); }
+}
+
+/* selection toolbar */
+.selection-toolbar {
+  position: absolute;
+  display: none;
+  background: var(--text);
+  color: white;
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 1000;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  white-space: nowrap;
+}
+.selection-toolbar button {
+  background: transparent; color: white; border: none;
+  padding: 6px 12px;
+  font-size: 12.5px; cursor: pointer; border-radius: 5px;
+  font-family: inherit;
+}
+.selection-toolbar button:hover { background: rgba(255,255,255,0.18); }
+
+/* comment dialog */
+.dialog-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 2000;
+}
+.dialog-backdrop.show { display: flex; }
+.comment-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  width: 480px; max-width: 90vw;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+.comment-dialog h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.comment-dialog .selection-preview {
+  background: var(--code-bg);
+  border-left: 3px solid #facc15;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  max-height: 100px; overflow-y: auto;
+  font-style: italic;
+  line-height: 1.5;
+}
+.comment-dialog textarea {
+  width: 100%; min-height: 100px;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit; font-size: 14px;
+  line-height: 1.5; resize: vertical;
+  box-sizing: border-box;
+}
+.comment-dialog textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.dialog-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px;
+}
+.dialog-hint { font-size: 11.5px; color: var(--text-subtle); }
+.dialog-buttons { display: flex; gap: 6px; }
+.btn-primary {
+  background: var(--primary); color: white; border: none;
+  padding: 8px 18px; border-radius: 6px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary {
+  background: var(--code-bg); color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+}
+.btn-secondary:hover { background: var(--border); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: white;
+  padding: 12px 18px;
+  border-radius: 8px; font-size: 13px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 3000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  max-width: 400px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* floating fab for mobile */
+.comment-fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--primary); color: white; border: none;
+  font-size: 22px; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 40;
+}
+.comment-fab-badge {
+  position: absolute; top: -2px; right: -2px;
+  background: var(--ab); color: white;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; min-width: 18px;
+  text-align: center;
+}
+
+/* === MERMAID LIGHTBOX === */
+.mermaid {
+  cursor: zoom-in;
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.mermaid:hover {
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  border-color: var(--primary);
+}
+.mermaid::after {
+  content: '🔍 click to zoom';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.mermaid:hover::after { opacity: 1; }
+
+.mm-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.88);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 5000;
+}
+.mm-modal-backdrop.show { display: flex; }
+.mm-modal-frame {
+  width: 95vw; height: 92vh;
+  background: white;
+  border-radius: 12px;
+  position: relative;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+.mm-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.mm-modal-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.mm-modal-actions { display: flex; gap: 6px; }
+.mm-modal-actions button {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mm-modal-actions button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.mm-modal-svg-wrap {
+  flex: 1;
+  overflow: hidden;
+  background: white;
+}
+.mm-modal-svg-wrap svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+}
+
+/* === RESOLVED STATE (dimmed + muted gray-green) === */
+mark.annot.resolved {
+  background: #e6ede9 !important;
+  color: var(--text-muted) !important;
+  border-bottom-color: #c0ccc4 !important;
+  opacity: 1 !important;
+}
+mark.annot.resolved:hover {
+  background: #d4ddd7 !important;
+  color: var(--text) !important;
+}
+
+.comment-card.resolved {
+  background: #f3f6f4;
+  border-color: #e0e8e3;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card.resolved:hover {
+  opacity: 0.95;
+  border-color: #c8d3cc;
+  box-shadow: -2px 2px 8px rgba(120, 130, 125, 0.08);
+}
+.comment-card.resolved .comment-quote {
+  border-left-color: transparent;
+  background: #eef2f0;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.status-pill.resolved {
+  background: #e6ede9;
+  color: #6b7975;
+}
+.status-pill.outdated {
+  background: #dbe6f3;
+  color: #3d5b7e;
+}
+
+/* outdated state — same dim as resolved but with subtle blue tint */
+.comment-card.outdated {
+  background: #f4f8fc;
+  border-color: #dbe4ee;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card.outdated:hover {
+  opacity: 0.95;
+  border-color: #bccbdc;
+  box-shadow: -2px 2px 8px rgba(80, 110, 150, 0.1);
+}
+.comment-card.outdated .comment-quote {
+  border-left-color: transparent;
+  background: #e8eff7;
+}
+
+.comment-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.btn-toggle:hover {
+  background: #bbf7d0;
+  color: #047857;
+  border-color: #86efac;
+}
+.comment-card.resolved .btn-toggle:hover {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.comment-counts {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.resolved-count-badge { background: #e6ede9; color: #6b7975; }
+.outdated-count-badge { background: #dbe6f3; color: #3d5b7e; padding-left: 6px; }
+.outdated-count-badge::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%233d5b7e' d='M5 2h14v2l-5 8 5 8v2H5v-2l5-8-5-8V2z'/></svg>");
+}
+.status-pill.outdated::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%233d5b7e' d='M5 2h14v2l-5 8 5 8v2H5v-2l5-8-5-8V2z'/></svg>");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* === FILE SYNC STATUS === */
+.sync-status {
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sync-status.local {
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.sync-status.synced {
+  background: var(--inspect-bg);
+  color: var(--inspect);
+  border: 1px solid #6ee7b7;
+}
+.sync-status.pending {
+  background: var(--open-bg);
+  color: #854d0e;
+  border: 1px solid #fde68a;
+}
+.sync-status.readonly {
+  background: var(--architecture-bg, #eff6ff);
+  color: var(--architecture, #1d4ed8);
+  border: 1px solid #bfdbfe;
+}
+.sync-status code {
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+  font-weight: 600;
+}
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.btn-link:hover { color: #1d4ed8; }
+
+/* MOBILE */
+
+/* Learning panel becomes drawer below 1320px (when main + 320 + 320 panel + 320 comment ≈ overflow) */
+@media (max-width: 1320px) {
+  .layout { grid-template-columns: minmax(0, 1fr) var(--comment-w); }
+  .learning-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 340px;
+    z-index: 45;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.12);
+    border-right: 1px solid var(--border);
+  }
+  .learning-panel.open { transform: translateX(0); }
+  .learning-fab { display: flex; }
+}
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  body.sidebar-pinned .layout { padding-left: 260px; }
+  .comment-panel {
+    position: fixed; top: 0; right: 0;
+    width: 320px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.2s;
+    box-shadow: -8px 0 24px rgba(0,0,0,0.12);
+  }
+  .comment-panel.open { transform: translateX(0); }
+  .comment-fab { display: flex; }
+  .comment-resize-handle { display: none; }
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  body.sidebar-pinned .layout { padding-left: 0; }
+  main { padding: 24px 20px 64px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- FLOATING SIDEBAR TOGGLE -->
+<button class="sidebar-toggle" id="sidebar-toggle" title="Table of contents (hover preview · click to pin)">≡</button>
+
+<!-- Floating reopen buttons (visible when respective panel is hidden) -->
+<button class="panel-reopen-btn learning-reopen-btn" id="learning-reopen-btn" title="重開 Reasoning &amp; Takeaway">💡</button>
+<button class="panel-reopen-btn comments-reopen-btn" id="comments-reopen-btn" title="重開 Comments">💬</button>
+
+<!-- SIDEBAR (fixed positioned, hidden by default, hover or click toggle button to show) -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">SEC Filing Pipeline 簡化</div>
+  <div class="sidebar-sub">Path 2 — RAG Pipeline Design</div>
+  <nav>
+    <ul class="toc">
+      <li><a href="#s1"><span class="toc-num">1.</span><span class="toc-label">背景與動機</span></a></li>
+      <li><a href="#s2"><span class="toc-num">2.</span><span class="toc-label">Scope 與 Terminology</span></a></li>
+      <li><a href="#s3"><span class="toc-num">3.</span><span class="toc-label">ParsedFiling Schema</span></a></li>
+      <li><a href="#s4"><span class="toc-num">4.</span><span class="toc-label">Detection Logic</span></a></li>
+      <li><a href="#s5"><span class="toc-num">5.</span><span class="toc-label">Chunking &amp; Prelude metadata</span></a></li>
+      <li><a href="#s6"><span class="toc-num">6.</span><span class="toc-label">Qdrant Payload Schema</span></a></li>
+      <li><a href="#s7"><span class="toc-num">7.</span><span class="toc-label">Filing Store</span></a></li>
+      <li><a href="#s8"><span class="toc-num">8.</span><span class="toc-label">Sunset 計畫</span></a></li>
+      <li><a href="#s9"><span class="toc-num">9.</span><span class="toc-label">Outdated Scripts</span></a></li>
+      <li><a href="#s10"><span class="toc-num">10.</span><span class="toc-label">Inspect Ergonomics</span></a></li>
+      <li><a href="#s11"><span class="toc-num">11.</span><span class="toc-label">未來工作</span></a></li>
+      <li><a href="#s12"><span class="toc-num">12.</span><span class="toc-label">Decision Summary</span></a></li>
+      <li><a href="#s13"><span class="toc-num">13.</span><span class="toc-label">Open Questions</span></a></li>
+      <li><a href="#s14"><span class="toc-num">14.</span><span class="toc-label">Research 摘要</span></a></li>
+      <li><a href="#s15"><span class="toc-num">15.</span><span class="toc-label">A/B Testing Methodology</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+<div class="layout">
+
+<!-- LEARNING PANEL (left) — AI Engineering concepts + design rationale, syncs with main scroll -->
+<aside class="learning-panel" id="learning-panel">
+  <div class="learning-resize-handle" id="learning-resize-handle" title="拖曳調整寬度（雙擊重設）"></div>
+  <div class="learning-panel-header">
+    <span class="learning-panel-title">Reasoning &amp; Takeaway</span>
+    <span style="display:flex; align-items:center; gap:6px;">
+      <span class="learning-panel-sub" id="learning-active-indicator">§ —</span>
+      <button class="panel-close-btn" id="learning-close-btn" title="隱藏（之後可從左上 💡 按鈕重開）">×</button>
+    </span>
+  </div>
+  <div class="learning-panel-help">
+    主文記「該怎麼做」，這欄收錄這次過程裡真正討論過、又能帶到別的 project 的<strong>權衡心得跟 takeaway</strong>。Scroll 主文時自動高亮對應 card（一個 section 可能多個 card）。Card 內可選文字加 comment。
+  </div>
+
+  <!-- §4 — Fallback chain 從 corpus probe 反推 -->
+  <article class="learning-card" data-section="s4" id="lc-s4">
+    <div class="lc-head">
+      <span class="lc-num">§4</span>
+      <h4 class="lc-title">Fallback chain 從 corpus probe 反推，不從假設正推</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">原本的假設</h5>
+        <p>block heading 寫在 ALL-CAPS line（看起來符合 SEC 公司行文慣例）。設計 detection 規則用 <code>isupper()</code> + length filter。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">實際 probe 結果</h5>
+        <p>24 個跨公司 probe 跑下來只有 8% 真的成立。多數公司用 Title-Case sub-heading、有些落在 markdown H3、有些落在 H4。原 rule 套不上。重新做 30 個 case 的跨 sector probe，發現必須 H3 prefer → H4 fallback → text-based fallback 三層才能涵蓋全部。Fallback chain 的形狀不是先驗推出來的，是看到 probe 失敗模式反推的。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">parser / detector 不要先寫規則再去找對應案例 — 這方向會 over-fit 你最初的 assumption。先跑跨 corpus probe 看實際分布，再讓 fallback chain 從失敗模式反推。Probe 要跨 sector，分布偏的 corpus 會騙過你。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §5 — Prelude 用 payload metadata -->
+  <article class="learning-card" data-section="s5" id="lc-s5">
+    <div class="lc-head">
+      <span class="lc-num">§5</span>
+      <h4 class="lc-title">Prelude 用 payload metadata，不切成獨立 chunk</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">兩個方案</h5>
+        <p><strong>(A)</strong> prelude 像普通段落 chunk + embed，retrieve 時若 hit 到 block chunk，再額外 Qdrant query 拉回該 Item 的 prelude chunks 拼進 context。<br><strong>(B)</strong> prelude 整段塞進每個 block chunk 的 payload metadata，retrieve 時直接讀。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼選 (B)</h5>
+        <p>(A) 三層複雜性堆疊 — retrieve-time 多一次 Qdrant query (N+1)、prelude embedding 跟 block embedding 在 vector space 競爭 ranking slot、retrieve 端要靠 <code>block_heading=None</code> flag 區別 prelude 跟 block 內容。<br>(B) 只多付 ingest-time storage（prelude 重複 per block chunk，跨 corpus 估計 100-300 MB 可接受），retrieve 端零額外邏輯。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">cross-cutting context（item-level scoping、章節 disclaimer、metadata）— ingest-time 預付 storage 通常贏 retrieve-time 動態組裝。Storage 是 commodity，retrieve-time 每多一次 query / 每多一條 if 都是 correctness 風險面。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §6 — Vector DB payload self-contained -->
+  <article class="learning-card" data-section="s6" id="lc-s6">
+    <div class="lc-head">
+      <span class="lc-num">§6</span>
+      <h4 class="lc-title">Vector DB payload 該 self-contained，別用 SQL row 的思維</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">schema 長相</h5>
+        <p>每個 chunk 在 Qdrant 的 payload 不只有 chunk text，還塞 ticker / year / filing_date / item / block_heading / prelude 等所有 LLM 需要的 context — 整段重複 per chunk。看起來「不夠正規化」：每個 filing 的 metadata 在所屬的所有 chunks 裡都重複一次，prelude 100-300 MB storage overhead。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼 vs 看似乾淨的 normalized schema</h5>
+        <p>Vector DB 不是 SQL，payload 是 document 不是 row。要在 retrieve-time 補拼 context（先 vector match、再從別處 lookup 補 metadata 跟 prelude）就需要 N+1 query，每次 retrieve latency 直接翻倍 — 而 retrieve-time latency 是 user-facing。Storage 是 commodity，retrieve-time 每多一次 query 都是 correctness 風險面跟延遲面。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">設計 vector DB schema 時放棄 SQL「DRY normalize」思維。每個 payload 是 self-contained document，retrieve 端 zero lookup 直接給 LLM 用。Denormalization 在 vector DB 是常態不是 anti-pattern — 為了 chunk text 不重複而設計的 normalized schema，反而拖累 RAG latency 跟 correctness。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §7 — Two-tier cache invalidation lifecycle -->
+  <article class="learning-card" data-section="s7" id="lc-s7">
+    <div class="lc-head">
+      <span class="lc-num">§7</span>
+      <h4 class="lc-title">不同階段的 cache 該分層，invalidation lifecycle 不同</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">實際 setup</h5>
+        <p>filing store 存 ParsedFiling JSON、Qdrant 存 chunk embeddings — 一條 RAG pipeline 兩個 cache 同時存在。看起來重複 / 浪費 storage。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼分層 vs 只留 Qdrant</h5>
+        <p>兩 cache 的 invalidation trigger 完全不同 — filing store 在 SEC filing 改版或 edgartools 升級時失效（罕見、年級事件）；Qdrant 在 chunking 策略改 / embedding model 換時失效（中等頻率、調 RAG 時就會發生）。如果只有 Qdrant，想跑「chunk_size 512 vs 1024 對照 eval」就要重做 fetch + parse + chunk + embed 整段（SEC HTTP rate limit、慢、quota 風險），但 fetch+parse 階段其實沒改。分層後，改下游只重做下游、上游 cache 仍有效。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">ML pipeline 設計 cache 時不要全部塞同一層。識別每階段的 axis of change — 什麼會改變、什麼不會。把 cache 分層，invalidation 影響範圍 scope 到該層。改 chunk 策略時只重做 chunk 後段、改 model 時只重做 embed 後段、上游 fetch / parse cache 仍能 reuse。否則每次小改動都觸發整 pipeline 重跑，experiment iteration 速度被卡住。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §8 — Sibling rename 保留 A/B baseline -->
+  <article class="learning-card" data-section="s8" id="lc-s8">
+    <div class="lc-head">
+      <span class="lc-num">§8</span>
+      <h4 class="lc-title">Sibling rename via git mv 保留 A/B baseline</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">三條 migration 路線</h5>
+        <p><strong>A</strong> in-place rewrite — 直接覆寫舊 module。<br><strong>B</strong> dual contract — 同 module 內保留兩 API 共存。<br><strong>C</strong> sibling rename — <code>git mv</code> 舊版到 <code>_html</code> suffix，新版用主名。我一開始傾向 A，看起來最乾淨。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼換到 C</h5>
+        <p>你點出關鍵 — 要證明新版真的更好，需要跑 A/B eval 對照 baseline。換完之後沒辦法跑舊版 = 失去 baseline。B 維護兩 API contract 成本太高。C 兩 module 各自獨立演化，A/B eval 一邊打舊 collection、一邊打新 collection 直接 metric 對照；sunset PR 是一次 <code>rm -rf</code> 結束。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">Migration 不只是「替換」，是「替換 + 證明替換值得」 — 證明需要 baseline 還能跑。Sibling rename via <code>git mv</code> 是保留 baseline 不污染主路徑的乾淨手法 — 多一道工序，換到 unbiased evaluation 能力。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §10 — Inspect artifact for debug-by-elimination -->
+  <article class="learning-card" data-section="s10" id="lc-s10">
+    <div class="lc-head">
+      <span class="lc-num">§10</span>
+      <h4 class="lc-title">Pipeline 每個階段邊界都該有 inspect artifact</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">實際設計</h5>
+        <p>RAG pipeline 多階段 — fetch → detect → chunk → embed → retrieve。出 bug 時症狀通常只在最後一階段顯露（「LLM 答錯」），但 bug 可能在任何一階段。設計 <code>inspect</code> subcommand：把 ParsedFiling 渲成 human-readable markdown 寫到 <code>inspect/{ticker}_{year}.md</code>，整份 10-K 的 item / prelude / block heading / block content 全部顯式展開。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼一定要這層 artifact</h5>
+        <p>沒這個 artifact 時，debug「LLM 答錯」要同時調查所有階段。有了它，先把 inspect markdown 跟 SEC 原文 side-by-side diff — Item list 對嗎？prelude 範圍對嗎？block heading 是真 heading 還是 ToC artifact？對了 → bug 不在 detection，去 chunking / embed / retrieve 找；錯了 → 修 detection 不用碰下游。「retrieval 出問題不出在這裡」變成人工可確認的命題。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">多階段 ML pipeline 在每個階段邊界都該產 inspect artifact — 不需 production 必要，debug 用。格式要讓人類肉眼能對照 ground truth（markdown / table / 圖表都比 JSON 好）。沒 inspect artifact 時 debug 變成同時拆所有 stage；有了之後 debug 變成 binary search 找出錯 stage。一次性投資、長期 debug 加速。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §15 (a) — 多層 anchoring + 四象限 -->
+  <article class="learning-card" data-section="s15" id="lc-s15a">
+    <div class="lc-head">
+      <span class="lc-num">§15</span>
+      <h4 class="lc-title">多層 anchoring + 四象限 failure mining</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">提案的演化</h5>
+        <p>retrieval quality 怎麼評？我一開始提 item-level anchoring — retrieved chunk 來自哪個 Item 算 hit。你點出太粗：Item 1A 是 risk factors 整個 50 頁，retrieve 到對 Item 不代表 retrieve 到對段落。加上 snippet-level（sentence 50-200 char）substring 比對。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼兩層比一層強</h5>
+        <p>兩個獨立 hit/miss 訊號交叉 → 四象限：</p>
+        <ul style="margin: 6px 0 0; padding-left: 18px; line-height: 1.65;">
+          <li><strong>snippet hit + item hit</strong> — 完美</li>
+          <li><strong>snippet miss + item hit</strong> — 對章節錯段落，chunking quality 問題</li>
+          <li><strong>snippet miss + item miss</strong> — detection / corpus 問題</li>
+          <li><strong>snippet hit + item miss</strong> — 邏輯不可能</li>
+        </ul>
+        <p style="margin-top: 6px;">象限分布直接告訴你 bug 在 pipeline 哪一層。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">AI 系統 eval 別只有單一 metric — 多層 anchoring 是把「答錯了」分解成「哪一層 component 答錯」的關鍵。Recall@k 告訴你「失敗」、象限分布告訴你「哪個 stage 失敗」 — 這兩個訊號驅動的 fix loop 完全不一樣。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §15 (b) — Process-based sunset -->
+  <article class="learning-card" data-section="s15" id="lc-s15b">
+    <div class="lc-head">
+      <span class="lc-num">§15</span>
+      <h4 class="lc-title">Sunset trigger 用 deliverable，不用 metric threshold</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">選擇點</h5>
+        <p>A/B 跑完什麼算結束？兩條路 — pre-commit「新版 recall@5 必須比 baseline 高 X%」（metric threshold），或「跑完 + 寫完 retrospective doc 歸納 failure mode」（deliverable）。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">為什麼選 deliverable</h5>
+        <p>memory feedback 直接禁止 pre-set outcome threshold。實質理由 — metric threshold 會反向施壓：如果新版跑出來是「乾淨但 metric 持平」，threshold 會逼你 fudge 直到達標。deliverable 把「歸納了 N 個 failure mode」當完成訊號，比較誠實面對 experiment 真實結論（包括「improvement 不在 metric，在 maintainability」這種結論）。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">Exploratory experiment 的 acceptance criteria 用 deliverable（「寫完 retrospective」「列出 N 個 root cause」），不用 metric threshold（「必須 beat baseline X%」）。後者把 experiment 變成自證題；前者讓 experiment 真的回答 design 問題。</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- §15 (c) — Experiment dataset 隔離 -->
+  <article class="learning-card" data-section="s15" id="lc-s15c">
+    <div class="lc-head">
+      <span class="lc-num">§15</span>
+      <h4 class="lc-title">One-shot experiment data 跟 production eval 隔離</h4>
+    </div>
+    <div class="lc-body">
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">當下決定</h5>
+        <p>A/B 的 50 rows dataset 要塞進既有 <code>sec_retrieval</code> production scenario（加 <code>--collection</code> flag），還是另開 sibling scenario directory？我選了塞進去 — 看起來「省一個 file」。memory feedback 跳出禁止這樣做。</p>
+      </div>
+      <div class="lc-bit">
+        <h5 class="lc-bit-label">實際代價</h5>
+        <p>production scenario 長期演化、experiment scenario 一次性。混在一起後 — dataset row semantic 來源不一致（experiment 行強調 detection path coverage、production 行強調 user-facing query 廣度）；experiment 結束時 git diff 上分不出哪幾 row 是 experiment 的；scorer 為了 <code>--collection</code> 加的 logic 變成永久 dead code。改成 sibling directory 後，sunset 就是 <code>rm -rf</code> 整 directory，乾淨俐落。</p>
+      </div>
+      <div class="lc-tip">
+        <span class="lc-tip-label">帶走的</span>
+        <span class="lc-tip-body">Time-bounded experiment 永遠開自己的 scenario directory。混進 production eval 看起來「省一個 file」，實際是把 sunset cleanup 從「rm dir」變成「猜哪些 row 該砍」。Schema 看似一樣不代表 lifecycle 一樣 — container 要分。</span>
+      </div>
+    </div>
+  </article>
+</aside>
+
+<main>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="status-badge">brainstorming · draft</span>
+  <h1>SEC Filing Pipeline 簡化</h1>
+  <p class="subtitle">Path 2 — RAG Pipeline · edgartools native API 取代 ~1000 行 HTML parsing</p>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="stat-num">15</div>
+      <div class="stat-label">Sections</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">43</div>
+      <div class="stat-label">Decisions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1</div>
+      <div class="stat-label">Open Question</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Research Files</div>
+    </div>
+  </div>
+
+  <div class="prereq">
+    <strong>前置</strong> · Path 1 (Agent Tool) 已合併（commit <code>e1d9d98</code>），shared core <code>backend/common/sec_core.py</code> 已就位
+  </div>
+
+  <div class="research-links">
+    <span class="research-chip">research_sec_filing_api.md</span>
+    <span class="research-chip">research_filing_markdown_quality.md</span>
+    <span class="research-chip">research_prelude_block_relationship.md</span>
+    <span class="research-chip">research_legacy_heading_heuristics.md</span>
+    <span class="research-chip">research_edgartools_subsection_structure.md</span>
+    <span class="research-chip">research_markdown_h3_cross_sector.md</span>
+  </div>
+</header>
+
+<!-- §1 -->
+<section id="s1" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§1</span>
+    <h2>背景與動機</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <p>FinLab-X v2 RAG pipeline 仰賴 ~1000 行自製 HTML parsing（preprocessor / heading promoter / converter / cleaner / downloader 共五個 module），每家新公司可能引入 HTML quirk（JNJ / MSFT / BAC / BRK 都有公司專屬 workaround），維護成本指數成長。</p>
+
+  <div class="callout callout-info">
+    <strong>edgartools 5.17.1 提供結構化 API</strong> ·
+    <code>tenk[item_key]</code> 拿到 Item 純文字（Item 邊界 reliable）；
+    <code>filing.markdown()</code> 內建好 markdown，含 H2/H3/H4 結構標記。
+    Path 2 用 edgartools native API + 簡化 detection logic 取代舊 1000 行 pipeline。
+  </div>
+</section>
+
+<!-- §2 -->
+<section id="s2" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§2</span>
+    <h2>Scope 與 Terminology</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <h3>2.1 Scope boundary（A 路線）</h3>
+  <p>跨兩個 module：</p>
+<pre><code>sec_text_pipeline (新版 primary):
+  - parse: edgartools → ParsedFiling 結構化（不再輸出 markdown 字串）
+
+sec_dense_pipeline (沿用名):
+  - ingest_filing(filing: ParsedFiling) → 直接吃結構，內部 chunk + embed + Qdrant upsert</code></pre>
+  <p>兩 module 都改 contract，PR scope 較大但徹底 — 沒有 markdown 中介層、沒 round-trip。</p>
+
+  <div class="callout callout-warn">
+    <strong>舊 HTML pipeline 處理</strong> · <code>sec_filing_pipeline</code> + <code>sec_dense_pipeline</code> 透過 <code>git mv</code> 改名搬到 <code>_html</code> suffix 凍結保留，作為 A/B testing baseline，等 sunset trigger 達成後（見 §15）才一次砍除。新版 primary 命名 <code>sec_text_pipeline</code> 區分未來 <code>sec_quant</code>（V3 numeric extraction → DuckDB）的 axis。
+  </div>
+
+  <h3>2.2 Terminology</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>概念</th><th>統一用詞</th><th>不再用</th></tr></thead>
+    <tbody>
+      <tr><td>10-K 的 Item N（1, 1A, 7, 7A 等）</td><td><strong>Item</strong></td><td>section, item-section</td></tr>
+      <tr><td>Item 第一行 <code>ITEM 7. MANAGEMENT'S DISCUSSION...</code></td><td><strong>Item heading line</strong></td><td>ITEM heading, item title</td></tr>
+      <tr><td>Item 內偵測到的子標題（H3/H4 或 ALL CAPS / Title Case standalone）</td><td><strong>Block heading</strong></td><td>sub-heading, ALL CAPS heading</td></tr>
+      <tr><td>Item 內，block heading 之間（或之前）的文字段</td><td><strong>Block</strong></td><td>sub-section, segment</td></tr>
+      <tr><td>進到 splitter 的 input 單位</td><td><strong>Block</strong></td><td>(同上)</td></tr>
+      <tr><td>Splitter 切出的 token-bounded 單位</td><td><strong>Chunk</strong></td><td>(already chunk)</td></tr>
+      <tr><td>edgartools <code>tenk.sections</code> API 物件</td><td>edgartools 自己用 "section"，code 中 reference 時加註「edgartools section（即一個 Item）」</td><td>避免在 design 用 "section"</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>2.3 階層圖</h3>
+  <div class="mermaid">
+graph TD
+    F["ParsedFiling<br/>(metadata + items)"]
+
+    F --> I1["StructuredItem<br/>item='7', title='Management's Discussion...'<br/>(prelude + blocks)"]
+    F --> I2["StructuredItem<br/>item='1a', title='Risk Factors'<br/>(prelude + blocks)"]
+    F --> I3["FlatItem<br/>item='1b', title='Unresolved Staff Comments'<br/>(text only)"]
+
+    I1 --> P1["prelude: str<br/>'The following discussion...'<br/>(整段不切，metadata 用)"]
+    I1 --> B12["Block<br/>heading='OVERVIEW'<br/>text='We are a global leader...'"]
+    I1 --> B13["Block<br/>heading='RESULTS OF OPERATIONS'<br/>text='Revenue increased...'"]
+
+    I3 --> T3["text: str (整 Item content)"]
+
+    B13 --> C1["Chunk #41<br/>text + payload(prelude=I1.prelude)"]
+    B13 --> C2["Chunk #42<br/>text + payload(prelude=I1.prelude)"]
+    T3 --> C3["Chunk #N<br/>text + payload(prelude=None)"]
+
+    classDef filing fill:#e3f2fd
+    classDef item fill:#fff3e0
+    classDef block fill:#f3e5f5
+    classDef chunk fill:#e8f5e9
+    classDef prelude fill:#ffe082
+
+    class F filing
+    class I1,I2,I3 item
+    class B12,B13,T3 block
+    class P1 prelude
+    class C1,C2,C3 chunk
+  </div>
+
+  <div class="callout callout-key">
+    <strong>Prelude 在哪一層？</strong> Prelude 不在 chunk text 本身、不獨立 embed，而是落在每個 block-derived chunk 的 <strong>Qdrant payload metadata</strong> 中（圖上 <code>payload(prelude=I1.prelude)</code>）。Retrieve 時於 LLM context preparation 階段才 concat 進 prompt。完整理由 + 替代方案對照見 §5.2。
+  </div>
+
+  <h3>2.4 跨層 data flow（架構整體）</h3>
+  <div class="mermaid">
+graph TB
+    subgraph CORE["sec_core (shared, 已合併)"]
+        SC1["fetch_filing_obj → TenK"]
+        SC2["TENK_STANDARD_TITLES"]
+        SC3["parse_item_number"]
+        SC4["is_stub_section v2<br/>(擴展 pseudo-stub patterns)"]
+    end
+
+    subgraph PATH2["sec_text_pipeline (Path 2 重寫)"]
+        SP["SECTextPipeline<br/>parse_filing → ParsedFiling"]
+        DET["Detection logic<br/>(markdown H3/H4 prefer + text fallback)"]
+        FS["LocalFilingStore<br/>(JSON: data/sec_text/{T}/10-K/{Y}.json)"]
+    end
+
+    subgraph DENSE["sec_dense_pipeline (改 contract)"]
+        IF["ingest_filing(filing: ParsedFiling)"]
+        CHUNK["chunkable_segments + RecursiveCharacterTextSplitter"]
+        QD["Qdrant<br/>(payload: text + block_heading + prelude + ...)"]
+    end
+
+    subgraph CALLERS["Callers"]
+        IN1["__main__ CLI"]
+        IN2["retriever JIT"]
+        IN3["embed_sec_filings batch"]
+    end
+
+    SC1 --> SP
+    SC4 --> DET
+    SP --> DET
+    DET --> SP
+    SP --> FS
+    SP --> IF
+    IF --> CHUNK
+    CHUNK --> QD
+
+    IN1 --> SP
+    IN2 --> SP
+    IN3 --> SP
+    IN3 --> IF
+  </div>
+</section>
+
+<!-- §3 -->
+<section id="s3" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§3</span>
+    <h2>ParsedFiling Schema</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <h3>3.1 Discriminated union</h3>
+  <p>兩種 Item kind 行為完全不同（structured 有 prelude/blocks、flat 整段 chunk），用 union 表達，以 <code>kind</code> literal field 作 discriminator：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>型別</th><th><code>kind</code></th><th>必要 fields</th></tr></thead>
+    <tbody>
+      <tr><td><strong>StructuredItem</strong></td><td><code>"structured"</code></td><td><code>item</code>（normalized key e.g. <code>"1a"</code>）、<code>title</code>、<code>prelude</code>（可為空）、<code>blocks</code>（≥ 1 個 Block）</td></tr>
+      <tr><td><strong>FlatItem</strong></td><td><code>"flat"</code></td><td><code>item</code>、<code>title</code>、<code>text</code>（整 Item content）</td></tr>
+      <tr><td><strong>Block</strong></td><td>—</td><td><code>heading</code>、<code>text</code></td></tr>
+      <tr><td><strong>ParsedFiling</strong></td><td>—</td><td><code>metadata</code>、<code>items: list[ParsedItem]</code>（stub 已 filter）</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>schema 用 Pydantic 模型實作，細節（base class 選擇、constructor 簽章）屬 implementation。</p>
+
+  <h3>3.2 Schema 不變決策</h3>
+  <ul>
+    <li><strong>Stub items 在 parse 階段直接 drop</strong>（不留 flag 給下游）</li>
+    <li><strong>無 <code>markdown_content</code> 字段</strong>（A 路線完全消除 markdown 中介）</li>
+    <li><strong><code>FilingMetadata.converter</code> 欄位移除</strong>（沒語義）</li>
+    <li><strong><code>RawFiling</code> dataclass 移除</strong>（<code>fetch_filing_obj</code> 直接給 TenK）</li>
+  </ul>
+</section>
+
+<!-- §4 -->
+<section id="s4" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§4</span>
+    <h2>Detection Logic</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <h3>4.1 整體 flow</h3>
+
+  <div class="mermaid">
+flowchart TD
+    Start([for each Item in tenk.sections]) --> Stub{is_stub_section_v2<br/>match?}
+    Stub -->|yes| Skip[skip — drop Item]
+    Stub -->|no| GetText[item_text = section.text]
+
+    GetText --> CollectMD[collect H3 + H4<br/>from filing.markdown]
+    CollectMD --> NoiseFilter[apply noise filter<br/>blacklist + chapter divider<br/>+ count ≥4 + registrant name]
+
+    NoiseFilter --> AnchorH3{item_h3_anchored<br/>in item_text<br/>非空?}
+    AnchorH3 -->|yes| UseH3["block_headings = H3<br/>(H4 留 body 給 splitter,<br/>保留真巢狀 H3→H4 父子結構)"]
+    AnchorH3 -->|no| AnchorH4{item_h4_anchored<br/>非空?}
+    AnchorH4 -->|yes| UseH4[block_headings = H4]
+    AnchorH4 -->|no| Fallback["text fallback path<br/>Title-Case standalone-line<br/>+ 位置 signals (空行/句尾/long prose)<br/>+ digit-cluster reject<br/>+ self-reference skip<br/>+ length 5-120"]
+
+    UseH3 --> SplitMD["切 plain text body<br/>by block_headings 位置 + 結尾 sentinel<br/>第一個 heading 之前 → prelude"]
+    UseH4 --> SplitMD
+    SplitMD --> EmitS[emit StructuredItem<br/>markdown-detected]
+
+    Fallback --> HasFB{偵測到<br/>block headings?}
+    HasFB -->|yes| EmitSFB[emit StructuredItem<br/>text-detected]
+    HasFB -->|no| EmitFlat[emit FlatItem<br/>整 Item content as text]
+
+    classDef stub fill:#fee2e2,stroke:#dc2626
+    classDef decision fill:#fef3c7,stroke:#ca8a04
+    classDef action fill:#dbeafe,stroke:#2563eb
+    classDef result fill:#d1fae5,stroke:#059669
+
+    class Stub,Skip stub
+    class AnchorH3,AnchorH4,HasFB decision
+    class GetText,CollectMD,NoiseFilter,UseH3,UseH4,SplitMD,Fallback action
+    class EmitS,EmitSFB,EmitFlat result
+  </div>
+
+  <h3>4.2 Markdown level 對應</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Markdown Level</th><th>SEC 對應</th><th>我們處理</th></tr></thead>
+    <tbody>
+      <tr><td>H1 (<code>#</code>)</td><td>Part I/II/III/IV</td><td>drop（不用）</td></tr>
+      <tr><td>H2 (<code>##</code>)</td><td>Item heading</td><td>不用 markdown 切 Item range（走 <code>tenk[item_key]</code> 拿 Item 邊界）</td></tr>
+      <tr><td><strong>H3 (<code>###</code>)</strong></td><td><strong>Block heading 主場景一</strong>（如 JPM 用 H3）</td><td><strong>prefer</strong>：有 useful H3 anchored 就用 H3</td></tr>
+      <tr><td><strong>H4 (<code>####</code>)</strong></td><td><strong>Block heading 主場景二</strong>（如 ADSK 用 H4）</td><td><strong>fallback to H4</strong>：H3 沒 anchored 才用 H4</td></tr>
+      <tr><td>H5+</td><td>（罕見）</td><td>drop</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-key">
+    <strong>H3 vs H4 不分階層</strong> · 每家公司 sub-heading 落 H3 或 H4 是 edgartools 從 HTML font-size 排序映射造成的，不代表 hierarchy。多數公司只用其中一個 level；30 probes 沒看到 H3+H4 真巢狀。
+    <br><br>
+    <strong>真巢狀 H3→H4 out of scope</strong> · 若某 Item 有 useful H3，H4 留在 body 給 recursive splitter 處理（不切散 H4 為獨立 Block）。
+  </div>
+
+  <h3>4.3 Noise filter rules</h3>
+
+  <div class="callout callout-info">
+    <strong>Rules 出處</strong> · 以下五類 noise 來自 <code>research_markdown_h3_cross_sector.md</code> + <code>research_prelude_block_relationship.md</code> 跨 10 家公司、共 30 probes 的實證統計 — 不是先驗推測，是看到實際 H3/H4 list 後歸納的 pattern。
+  </div>
+
+  <p><code>filing.markdown()</code> 中常見 H3/H4 noise：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Noise type</th><th>範例</th><th>Filter rule</th></tr></thead>
+    <tbody>
+      <tr><td>Cover-page boilerplate</td><td><code>UNITED STATES</code>, <code>SECURITIES AND EXCHANGE COMMISSION</code></td><td>literal blacklist</td></tr>
+      <tr><td>Financial-statement chapter divider</td><td><code>CONSOLIDATED STATEMENTS OF OPERATIONS</code>, <code>NOTES TO CONSOLIDATED FINANCIAL STATEMENTS</code></td><td>regex <code>^CONSOLIDATED STATEMENTS OF .+</code> + 重複次數</td></tr>
+      <tr><td>重複 ≥ 4 次</td><td>JPM <code>NOTES TO CONSOLIDATED FINANCIAL STATEMENTS</code> ×11</td><td>count-based reject</td></tr>
+      <tr><td>Registrant company name</td><td>公司全名重複</td><td>match <code>metadata.company_name</code></td></tr>
+      <tr><td>Page-break artifact</td><td>DIS <code>TABLE OF CONTENTS</code> ×16</td><td>literal blacklist</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <strong>ToC pollution 不是問題</strong> · 30 probes 證實 <code>filing.markdown()</code> 不會把 ToC 條目標 H3/H4。
+  </div>
+
+  <h3>4.4 Anchored search 規則</h3>
+  <p>每個 noise-filtered H3 / H4 候選 heading，必須在 <code>item_text</code> 中以 <strong>standalone line</strong>（整行只有 heading 文字、不含 inline 提及）出現才算 anchored。Cross-Item collision 自動隔離 — Item 1 的 <code>Overview</code> 不會出現在 Item 7 的 plain text 中，因 plain text 是 Item-bounded。</p>
+
+  <h3>4.5 Text fallback path 細則</h3>
+  <p>當 markdown H3/H4 兩個 level 都無 anchored heading 時，走 Title-Case standalone-line detection：候選 line 必須符合 length window、Title-Case、不含 digit cluster / table separators、上下行 position signals（上行非句尾、下行為 long prose）、不是 Item 自身的 self-reference。具體 threshold 屬 implementation 細節。Research 30 probes 估計 3/30 會走 fallback（ADSK 1A、VZ 1A、XOM 1）。</p>
+
+  <h3>4.6 <code>is_stub_section</code> v2 擴展</h3>
+  <p>現有 stub detection 只 cover「incorporated by reference」一種句型，須擴展涵蓋以下三類 pseudo-stub phrase（共漏 catch 4/24 case）：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Phrase 類型</th><th>範例 case</th></tr></thead>
+    <tbody>
+      <tr><td>"Reference is made to ..."</td><td>XOM Item 7</td></tr>
+      <tr><td>"... appears on pages N–M"</td><td>JPM Item 7</td></tr>
+      <tr><td>"Refer to the ... section"</td><td>JPM Item 7A</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- §5 -->
+<section id="s5" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§5</span>
+    <h2>Chunking &amp; Prelude payload metadata</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <h3>5.1 Chunkable segments interface</h3>
+  <p>Parser 端對外提供一個 helper：給 <code>ParsedItem</code> 回傳一連串 <strong>chunkable unit</strong>，每個 unit 帶 (<code>block_heading</code>, <code>text</code>, <code>item_prelude</code>) 三個欄位。</p>
+  <ul>
+    <li><strong>FlatItem</strong> → 一個 unit，<code>block_heading=None</code>、<code>item_prelude=None</code></li>
+    <li><strong>StructuredItem</strong> → N 個 unit（一個 block 一個），每個 unit 都帶相同的 <code>item_prelude</code></li>
+  </ul>
+  <p>下游 chunking pipeline 對每個 unit 跑 splitter（見 §5.3），把得到的 chunk 直接 emit 進 Qdrant payload（schema 見 §6），<code>chunk_index</code> 是全 filing 範圍 counter。</p>
+
+  <h3>5.2 Prelude as payload metadata（不獨立 chunk / embed）</h3>
+
+  <div class="callout callout-warn">
+    <strong>為什麼選 payload metadata 而不是獨立 chunk？</strong> 替代方案 — <strong>Prelude as separate chunks</strong>：prelude 像普通段落一樣 chunked + embedded，retrieve 時若 hit 到 block chunk，再額外 Qdrant query（filter same item, <code>block_heading=None</code>）拉回 prelude chunks 拼進 context。<strong>Reject</strong> 因為：(1) retrieve-time 多一次 Qdrant query（latency + N+1 query 模式）；(2) prelude chunk 自身有 embedding 會跟 block chunk 在 semantic 上搶 retrieval slot（稀釋 ranking）；(3) retrieve 端要靠 <code>block_heading=None</code> flag 區別 prelude 與一般 chunk，邏輯複雜易錯。<strong>本設計把 prelude 完全移到 payload metadata 端</strong>：不切、不 embed、payload self-contains，retrieve-time 零 augment query。
+  </div>
+
+  <div class="callout callout-key">
+    <strong>核心 insight</strong> · prelude（如 MD&amp;A 的 scoping + FLS disclaimer + cross-reference）對 Item 內所有 block 都是 cross-cutting context。
+  </div>
+  <p><strong>Schema</strong>：<code>StructuredItem.prelude</code> 只在 ParsedFiling 結構中存一份，每個 block-derived chunk 在 Qdrant payload 中<strong>整段帶 prelude</strong>：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>行為</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>Prelude 是否獨立 chunk + embed</td><td>❌ No</td></tr>
+      <tr><td>Prelude 是否進 vector store 自身</td><td>❌ No (沒 embedding)</td></tr>
+      <tr><td>Prelude 是否在 block chunk payload 帶</td><td>✅ Yes (整段不切)</td></tr>
+      <tr><td>Retrieve 時 augment query</td><td>❌ 不需要（payload self-contains）</td></tr>
+      <tr><td>Prelude 整體性</td><td>✅ 保留</td></tr>
+      <tr><td>Storage overhead</td><td>Prelude 重複存（per Item N block chunks 次），實際 100-300 MB 跨 corpus，可接受</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p><strong>LLM context preparation</strong>（retrieve-time 階段，不是 ingest-time）：</p>
+
+  <div class="callout callout-info">
+    <strong>時序</strong> · 使用者 query → vector match top-K chunks → load matched chunks payloads（payload 自帶 prelude）→ retrieve 端把 payload 組成給 LLM 看的 context（Item header + block heading + prelude + chunk text）→ 送進 LLM prompt。
+  </div>
+  <p>零 augment query、零 retrieve-time 補拼邏輯 — payload 本身已 self-contain，retrieve 端只是格式化。</p>
+
+  <h3>5.3 Splitter 配置</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Decision</th><th>Choice</th></tr></thead>
+    <tbody>
+      <tr><td>Splitter</td><td><code>RecursiveCharacterTextSplitter.from_tiktoken_encoder(cl100k_base)</code></td></tr>
+      <tr><td>chunk_size</td><td>512（env var <code>SEC_CHUNK_SIZE</code> override 保留）</td></tr>
+      <tr><td>chunk_overlap</td><td>50（env var <code>SEC_CHUNK_OVERLAP</code> override 保留）</td></tr>
+      <tr><td>Overlap 跨 Block 邊界</td><td>❌ 不跨（每個 Block 獨立 split，splitter 各跑各的）</td></tr>
+      <tr><td>Overlap 在 Block 內</td><td>✅ 同 Block 內相鄰 chunk 50 token overlap</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>不跨 Block 邊界的理由</strong>：block heading 是 SEC 結構訊號（OVERVIEW vs RESULTS OF OPERATIONS），semantic 上不該硬 overlap。要跨 Block 前後文走 query-time window expansion 補（後續 PR）。</p>
+  <p><strong>不用 LlamaIndex node 抽象</strong>：<code>splitter.split_text(string) → list[str]</code> 直接吃 string 輸出 list，不包成 LlamaIndex <code>TextNode</code>。Qdrant <code>PointStruct</code> 只認 string + vector + dict，過 node 抽象是無謂 round-trip。</p>
+
+  <h3>5.4 不引入 LlamaIndex Hierarchical / SentenceWindow</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Approach</th><th>Prerequisite</th><th>衝突</th></tr></thead>
+    <tbody>
+      <tr><td><code>AutoMergingRetriever</code></td><td><code>HierarchicalNodeParser</code> 切 3 層 + <code>SimpleDocumentStore</code> 持久化 + <code>StorageContext</code> + <code>VectorStoreIndex</code>（必須走 <code>QdrantVectorStore</code> wrapper）</td><td>跟「直接 <code>qdrant-client</code> + flat <code>PointStruct</code>」180 度衝突</td></tr>
+      <tr><td><code>SentenceWindowNodeParser</code></td><td>sentence-level embedding</td><td>跟現況 token-based 512-chunk 不對齊，要重 design chunk size 策略</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>SEC 10-K hierarchy 透過 metadata 顯式表達 (<code>ticker → year → item → block_heading → chunk_index</code>)，比 LlamaIndex 抽象更靈活、更可控。</p>
+</section>
+
+<!-- §6 -->
+<section id="s6" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§6</span>
+    <h2>Qdrant Payload Schema</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <p>每個 chunk 對應一個 Qdrant point，其 payload schema：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>備註</th></tr></thead>
+    <tbody>
+      <tr><td><code>ticker</code></td><td>str</td><td>canonicalized upper</td></tr>
+      <tr><td><code>year</code></td><td>int</td><td>fiscal year</td></tr>
+      <tr><td><code>filing_date</code></td><td>str</td><td>ISO date</td></tr>
+      <tr><td><code>filing_type</code></td><td>str</td><td>e.g. "10-K"</td></tr>
+      <tr><td><code>accession_number</code></td><td>str | None</td><td>—</td></tr>
+      <tr><td><code>item</code></td><td>str</td><td>normalized key e.g. <code>"7"</code> / <code>"1a"</code></td></tr>
+      <tr><td><code>block_heading</code></td><td>str | None</td><td><code>None</code> ⇔ chunk 來自 FlatItem</td></tr>
+      <tr><td><code>prelude</code></td><td>str | None</td><td><code>None</code> ⇔ FlatItem；<code>""</code> ⇔ StructuredItem 無 prelude</td></tr>
+      <tr><td><code>header_path</code></td><td>str</td><td>見 §6.1 格式</td></tr>
+      <tr><td><code>chunk_index</code></td><td>int</td><td>全 filing 範圍 0..N</td></tr>
+      <tr><td><code>text</code></td><td>str</td><td>chunk content</td></tr>
+      <tr><td><code>ingested_at</code></td><td>str</td><td>ISO datetime</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>6.1 <code>header_path</code> 組成</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Item kind</th><th><code>block_heading</code></th><th><code>header_path</code> 格式</th></tr></thead>
+    <tbody>
+      <tr><td>StructuredItem + has block heading</td><td>str</td><td><code>{ticker} / {year} / Item {item.upper()}. {title} / {block_heading}</code></td></tr>
+      <tr><td>FlatItem</td><td>None</td><td><code>{ticker} / {year} / Item {item.upper()}. {title}</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>6.2 vs 現況差異</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Field</th><th>現況</th><th>新版</th></tr></thead>
+    <tbody>
+      <tr><td><code>item</code></td><td><code>"Item 7"</code> 字串</td><td><code>"7"</code> / <code>"1a"</code>（normalized）</td></tr>
+      <tr><td><code>block_heading</code></td><td>沒這 field（埋在 header_path 字串）</td><td>顯式 <code>str | None</code></td></tr>
+      <tr><td><code>prelude</code></td><td>沒這 field</td><td>整段 <code>str | None</code></td></tr>
+      <tr><td><code>chunk_index</code></td><td>全 filing idx</td><td>同（保留全 filing 範圍）</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><code>item</code> 改 normalized key 是 breaking change — 但已決定 wipe Qdrant 重 ingest，無妨。</p>
+
+  <h3>6.3 Payload index（Qdrant collection schema）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Field</th><th>Index type</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td><code>ticker</code></td><td>Keyword (tenant)</td><td>多 ticker 隔離</td></tr>
+      <tr><td><code>year</code></td><td>Integer</td><td>年度 filter</td></tr>
+      <tr><td><code>item</code></td><td>Keyword</td><td>Item filter</td></tr>
+      <tr><td><code>block_heading</code> <em>(新)</em></td><td>Keyword</td><td>後續 augment / window expansion 用</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- §7 -->
+<section id="s7" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§7</span>
+    <h2>Filing Store</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <div class="callout callout-info">
+    <strong>Filing store 是什麼？</strong> 一個 <strong>machine 端的本地 cache</strong>，存的是 fetch + detect 完之後的 <code>ParsedFiling</code> 物件序列化成 JSON。<strong>不是</strong>給人類讀的（人類讀走 §10 inspect helper），是給下次同 ticker/year 跑 pipeline 的程式自己讀，省一次 EDGAR fetch + detect。
+  </div>
+
+  <div class="callout callout-key">
+    <strong>不是 pipeline 一路做完就好嗎？為什麼還要存中間產物？</strong><br><br>
+    Pipeline 確實是一路做完（fetch → parse → chunk → embed → Qdrant upsert），filing store 是 fetch+parse 完之後 <strong>順手 save 的副產物</strong>。真正的好處在「下次同 ticker/year 還要做什麼」這些場景：
+
+    <div class="table-wrap" style="margin: 12px 0 8px;">
+    <table>
+      <thead><tr><th>場景</th><th>沒 filing store</th><th>有 filing store</th></tr></thead>
+      <tbody>
+        <tr><td>改 chunk 策略重 ingest（e.g. chunk_size 512→1024 跑 eval 對照）</td><td>重做 fetch (HTTP, SEC rate limit) + parse + chunk + embed</td><td>跳過 fetch+parse → load JSON → re-chunk → re-embed</td></tr>
+        <tr><td>Inspect helper review detection 對不對（§10）</td><td>重做 fetch + parse 才能 render</td><td>load JSON → render markdown，秒回</td></tr>
+        <tr><td>Retriever JIT process restart 後第一次 query 同 filing</td><td>重做 fetch + parse + chunk + embed</td><td>load JSON → re-chunk + re-embed（省 HTTP fetch）</td></tr>
+        <tr><td>edgartools 升級想看 detection 變化</td><td>重做 fetch + parse 才能 diff</td><td>load 舊 JSON vs 新 parse 結果直接 diff</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    換句話說 — <strong>filing store 是 fetch+parse 階段的 cache，Qdrant 是 embedding 階段的 cache</strong>，平行兩段。兩個 cache 因為 invalidation 觸發條件不同：filing store 只在 SEC filing 改版/edgartools 升級時失效（罕見）；Qdrant 在 chunking/embedding model 改時失效（更常見）。如果只存 Qdrant，每次改 chunk 策略都要重 fetch SEC，浪費 HTTP quota 跟 latency。
+  </div>
+
+  <h3>7.1 格式：JSON</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>維度</th><th>決定</th></tr></thead>
+    <tbody>
+      <tr><td>路徑</td><td><code>data/sec_text/{TICKER}/10-K/{YEAR}.json</code></td></tr>
+      <tr><td>內容</td><td><code>ParsedFiling.model_dump_json(indent=2)</code> — 完整 ParsedFiling 物件（見下方範例）</td></tr>
+      <tr><td>YAML frontmatter</td><td>移除（換成 JSON 整檔）</td></tr>
+      <tr><td>Markdown body</td><td>移除（schema 不再有 markdown_content）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>JSON 結構直接 mirror §3.1 ParsedFiling schema（<code>metadata</code> + <code>items: [StructuredItem | FlatItem]</code>），方便 schema validated round-trip。</p>
+
+  <h3>7.2 LocalFilingStore interface</h3>
+  <p>Store 提供 standard CRUD-ish 介面：<code>save(filing)</code> / <code>get(ticker, year) -&gt; ParsedFiling</code> / <code>exists(...)</code> / <code>list_filings(...)</code>。內部用 JSON 格式作為 storage backend；YAML frontmatter / markdown body 等舊版專用 helper 不引入。</p>
+
+  <h3>7.3 Filing store vs §10 inspect helper（兩個用途不重疊）</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>維度</th><th>Filing store（本 section）</th><th>§10 <code>inspect</code> subcommand</th></tr></thead>
+    <tbody>
+      <tr><td><strong>目標 audience</strong></td><td>Machine — pipeline 自己 load</td><td>Human — 對照 SEC 原文 review</td></tr>
+      <tr><td><strong>檔案位置</strong></td><td><code>data/sec_text/{T}/10-K/{Y}.json</code>（git-tracked, structured store）</td><td><code>inspect/{T}_{Y}.md</code>（gitignored, ephemeral）</td></tr>
+      <tr><td><strong>格式</strong></td><td>JSON（machine-friendly, schema validated）</td><td>Markdown（human-friendly, prelude/block 顯式展開）</td></tr>
+      <tr><td><strong>生命週期</strong></td><td>永久 cache，跨 process 共享</td><td>On-demand 產出，看完手動 <code>rm</code></td></tr>
+      <tr><td><strong>觸發時機</strong></td><td>Pipeline 跑 fetch+parse 後自動 save</td><td>User 主動 <code>python -m sec_text_pipeline inspect --ticker ... --year ...</code></td></tr>
+      <tr><td><strong>derive 關係</strong></td><td>✅ Source of truth</td><td>讀 filing store 的 JSON 後 render markdown</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>換句話說 — <strong>filing store 是 cache，inspect helper 是 derived view</strong>。沒有 filing store 的話，每次 inspect 都要重 fetch + parse；有 filing store 的話，inspect helper 直接 load JSON → ParsedFiling → render markdown，秒回。</p>
+
+  <h3>7.4 不存 markdown 中介層的理由</h3>
+  <ul>
+    <li>A 路線完全消除 markdown 中介（JSON schema round-trip 取代）</li>
+    <li>edgartools <code>@lru_cache</code> 是 process-level，跨 process（CLI / batch / retriever JIT 各自 cold start）EDGAR re-fetch 風險高（見 §7 開頭 callout）</li>
+    <li>JIT 路徑現有的 <code>filing_hit</code> cache 訊號（observability 用）必須保留</li>
+    <li>Human inspect 走 §10 helper（從 JSON derive markdown，不需要存中介層）</li>
+  </ul>
+</section>
+
+<!-- §8 -->
+<section id="s8" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§8</span>
+    <h2>Sunset 計畫（A/B testing 完成後）</h2>
+    <span class="section-tag tag-sunset">Sunset</span>
+  </div>
+
+  <p>走 <strong>A 路線（短期 A/B 後砍舊）+ Option 2 改名共存</strong>：舊 HTML pipeline <code>git mv</code> 搬到 <code>_html</code> suffix 凍結保留，新版 pipeline 走主名 primary 路徑。Sunset trigger（§15.4 deliverable-based）達成後，sunset PR 一次砍除以下項目。</p>
+
+  <h3>8.1 共存 layout（A/B 期間）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Layer</th><th>舊（<code>git mv</code> 後）</th><th>新（primary）</th></tr></thead>
+    <tbody>
+      <tr><td>Pipeline module</td><td><code>sec_filing_pipeline_html/</code></td><td><code>sec_text_pipeline/</code></td></tr>
+      <tr><td>Dense pipeline</td><td><code>sec_dense_pipeline_html/</code></td><td><code>sec_dense_pipeline/</code>（沿用名）</td></tr>
+      <tr><td>Tests</td><td><code>tests/.../sec_filing_pipeline_html/</code> + <code>tests/.../sec_dense_pipeline_html/</code></td><td>新 module 對應 test 從零寫</td></tr>
+      <tr><td>Filing store</td><td><code>data/sec_filings_html/{T}/10-K/{Y}.md</code>（凍結）</td><td><code>data/sec_text/{T}/10-K/{Y}.json</code></td></tr>
+      <tr><td>Qdrant collection</td><td><code>sec_filings_openai_large_dense_baseline</code>（凍結）</td><td><code>sec_text_openai_large_dense</code>（新建）</td></tr>
+      <tr><td>Routing</td><td>Eval script 顯式 <code>--collection</code> 指定</td><td>SEC agent tool / production retriever 寫死打新 collection</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>8.2 Sunset PR scope</h3>
+  <p>單一 PR 砍除以下層級的所有 <code>_html</code> 標記項目（具體檔案清單屬 implementation plan）：</p>
+  <ul>
+    <li><strong>Module 樹</strong>：上游 <code>sec_filing_pipeline_html/</code>（parse）+ 下游 <code>sec_dense_pipeline_html/</code>（chunk + embed）+ 對應 test 樹</li>
+    <li><strong>Validation script</strong>：相依舊 markdown cleanup 的 script</li>
+    <li><strong>Dependency</strong>：HTML parsing 專屬 deps（beautifulsoup4 / html-to-markdown / markdownify）</li>
+    <li><strong>資料層</strong>：<code>data/sec_filings_html/</code> directory + Qdrant baseline collection</li>
+    <li><strong>sec_core audit</strong>：A/B 期間 <code>sec_core</code> 只增不減（§8.3）；sunset 一併砍除沒人 import 的 helper</li>
+  </ul>
+
+  <h3>8.3 sec_core 演進規則（A/B 期間）</h3>
+  <p><code>sec_core</code>（已 merged 的 shared layer）兩 pipeline 共用，A/B 期間規則：</p>
+  <ul>
+    <li><strong>新增 helper 自由</strong> — 新版需要的新 API 直接加</li>
+    <li><strong>既有 API（被 <code>_html</code> module 引用的）signature 不改、不砍</strong> — 否則 <code>_html</code> module break，A/B baseline 不可信</li>
+    <li><strong>Sunset 時 audit 一次</strong> — 砍掉沒人 import 的 helper</li>
+  </ul>
+
+  <h3>8.4 新版 schema 與舊版完全分離</h3>
+  <p>新版 ParsedFiling 不引入舊版 markdown-flavor 的 fields（converter flag、raw HTML wrapper、YAML frontmatter parser、<code>.md</code> 副檔名）與 LlamaIndex node 抽象。舊版這些 schema/method 凍結在 <code>_html</code> module 不動，sunset 一併砍。</p>
+</section>
+
+<!-- §9 -->
+<section id="s9" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§9</span>
+    <h2>Outdated Scripts 處理</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <h3>9.1 <code>backend/ingestion/sec_text_pipeline/__main__.py</code>（新版 CLI）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Flag</th><th>行為</th></tr></thead>
+    <tbody>
+      <tr><td><code>--verbose</code></td><td>印 metadata + items 列表（每個 item 的 kind, item, title, block 數量, char count）</td></tr>
+      <tr><td><code>--section &lt;key&gt;</code></td><td>印單一 Item 的 plain text（debug inspect）</td></tr>
+      <tr><td><code>--json</code></td><td>dump ParsedFiling JSON</td></tr>
+      <tr><td><code>--force</code></td><td>bypass cache 重 fetch（保留）</td></tr>
+      <tr><td><code>--fiscal-year &lt;year&gt;</code></td><td>指定年度（保留）</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>舊版 <code>sec_filing_pipeline_html/__main__.py</code> 跟著 <code>git mv</code> 凍結，A/B 期間若需要產 baseline data 再用，sunset 後砍。</p>
+
+  <h3>9.2 <code>backend/scripts/embed_sec_filings.py</code>（batch）</h3>
+  <p><code>ingest_filing(markdown_str, metadata)</code> → <code>ingest_filing(parsed_filing: ParsedFiling)</code>，import 路徑從 <code>sec_filing_pipeline</code> 改 <code>sec_text_pipeline</code>，<code>sec_dense_pipeline</code> 沿用名（內部 contract 換）。</p>
+
+  <h3>9.3 Eval dataset CSV</h3>
+  <p>完整 schema 改動見 <strong>§15.2 Eval Dataset</strong>（規模 50 rows、sentence-level snippets、<code>expected_item</code> normalized key、新版 header path drop Part）。Scorer 端對舊 (HTML) collection 結果做 reverse normalize 後比對。</p>
+</section>
+
+<!-- §10 -->
+<section id="s10" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§10</span>
+    <h2>Inspect Ergonomics</h2>
+    <span class="section-tag tag-inspect">Inspect</span>
+  </div>
+
+  <p><strong>A 路線完成後 markdown 不再是 production artifact</strong>，inspect 走獨立 helper。</p>
+
+  <div class="callout callout-key">
+    <strong>JSON 跟 markdown 不是雙存</strong> — JSON (<code>data/sec_text/{T}/10-K/{Y}.json</code>) 是 <strong>machine source of truth</strong>（pipeline 自己 load）；markdown 是 <strong>derived human view</strong>（從 JSON 衍生，給人類對照 SEC 原文用）。兩者都從同一個 <code>ParsedFiling</code> 物件來，不是 redundant storage（詳見 §7.3 對照表）。
+  </div>
+
+  <h3>10.1 兩層抽象</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>層級</th><th>名稱</th><th>角色</th></tr></thead>
+    <tbody>
+      <tr><td>Schema method（building block）</td><td><code>ParsedFiling.to_inspect_markdown() -&gt; str</code></td><td>把單一 ParsedFiling 物件 render 成完整 markdown 字串（所有 items + 所有 prelude + 所有 blocks）</td></tr>
+      <tr><td>CLI commands（user-facing entry points）</td><td><code>--verbose</code> / <code>--section</code> / <code>inspect</code></td><td>不同 use case 的入口；最完整的 <code>inspect</code> 內部就是呼叫 <code>to_inspect_markdown()</code> 然後寫檔</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>10.2 三個 CLI use cases（不是重複功能）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>需求</th><th>工具</th><th>輸出特性</th></tr></thead>
+    <tbody>
+      <tr><td>一頁 summary 快速 scan</td><td><code>python -m sec_text_pipeline --verbose</code></td><td>表格列每個 item 的 kind/title/block 數/char count；<strong>不含內文</strong>，1 screen 看完</td></tr>
+      <tr><td>Debug 抓單一 Item raw text 貼 chat / grep</td><td><code>python -m sec_text_pipeline --section &lt;key&gt;</code></td><td>純 plain text（無 markdown 結構），給其他工具消費用</td></tr>
+      <tr><td><strong>整份 10-K markdown 對照 SEC 原文</strong></td><td><code>python -m sec_text_pipeline inspect --ticker &lt;T&gt; --year &lt;Y&gt;</code></td><td><strong>整份 ParsedFiling 所有 items 跟所有 blocks 一次 render</strong>，結構化 markdown（h2 = Item、blockquote = prelude、h3 = Block heading）</td></tr>
+      <tr><td>程式化 inspect</td><td><code>LocalFilingStore.get(...)</code> 拿 ParsedFiling，dict access</td><td>Python object</td></tr>
+      <tr><td>對照 SEC 原文</td><td>去 SEC EDGAR website 看</td><td>HTML</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>10.3 <code>inspect</code> subcommand（on-demand）</h3>
+  <div class="callout callout-success">
+    產出 <strong>chunking 之前</strong> 的 ParsedFiling 人類可讀 view，用於驗證 detection 對不對（整份 10-K 的所有 items + prelude + blocks 顯式展開），讓「retrieval 出問題不出在 chunking 之前」這個判斷可被人工確認。
+  </div>
+
+  <p><strong>Behavior</strong>：load ParsedFiling（cache miss 即時 fetch + parse）→ render 成 inspect markdown → 寫到 <code>inspect/{ticker}_{year}.md</code>（default 位置，可用 <code>--out PATH</code> override）→ 印 file path 給 user 開檔。</p>
+  <p><strong>Repo policy</strong>：<code>.gitignore</code> 加 <code>inspect/</code>，user 自己 housekeeping。</p>
+
+  <h3>10.4 <code>ParsedFiling.to_inspect_markdown()</code> 輸出 schema</h3>
+  <p>整份 10-K 所有 items 都 render（StructuredItem 跟 FlatItem），單一 Item 區段結構如下：</p>
+  <ul>
+    <li>Filing metadata（ticker、year、filing date、items list）</li>
+    <li>Item heading + kind + char count + block count</li>
+    <li>StructuredItem 額外列 prelude（blockquote 標示）+ 各 block heading + block content</li>
+    <li>FlatItem 列整段 text；stub filtered 的 Item 標 (stub filtered)</li>
+  </ul>
+  <p>一眼能 diff 的東西：Item list（vs SEC ToC）、prelude 範圍（vs first block 之前內容）、block heading 是否真 heading（排除 ToC / table cell 誤判）、block content 範圍（沒切錯 item）。</p>
+</section>
+
+<!-- §11 -->
+<section id="s11" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§11</span>
+    <h2>未來工作（out of scope，後續 PR）</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>項目</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Window expansion / re-ranking</strong></td><td>retrieve-time post-processor，從 metadata filter 鄰近 chunk 拉回（用 <code>chunk_index</code> range）。Qdrant payload 已支援，零 ingest 改動</td></tr>
+      <tr><td><strong>真巢狀 H3→H4 處理</strong></td><td>30 probes 沒看到 case；若未來實際遇到，加 logic 把 H4 升格為 sub-block</td></tr>
+      <tr><td><strong>Title Case 巢狀子子標題</strong></td><td>偵測「H3 sub-heading 之下還有 Title Case 細項」（罕見）</td></tr>
+      <tr><td><strong><code>llama-index-vector-stores-qdrant</code> 移除</strong></td><td>LlamaIndex 官方的 Qdrant adapter（提供 <code>QdrantVectorStore</code> 包裝 <code>qdrant-client</code>，讓 <code>VectorStoreIndex</code> / <code>AutoMergingRetriever</code> 能用 Qdrant 當 backend）。<strong>為什麼當初選 low-level 是 first-principle decision</strong>，wrapper 變 dead dep 是結果：(1) §5.4 decision — 不引入 LlamaIndex Hierarchical/SentenceWindow，wrapper 是這套抽象的 prerequisite（綁 <code>VectorStoreIndex</code> + <code>NodeParser</code> + <code>TextNode</code>）；(2) §5.3 chunking 直接吃 string 輸出 list[str]，不包 <code>TextNode</code>，中間無 node 抽象 vector store 端自然不需要 node-aware wrapper；(3) §6 payload 自訂 field（<code>block_heading</code> / <code>prelude</code> / <code>chunk_index</code> / <code>header_path</code>），直接寫 <code>PointStruct(payload={...})</code> 比 <code>TextNode.metadata</code> 一層 indirection 更可控、schema migration 直觀。<strong>結果</strong>：wrapper 變 zero-import dead dep，獨立 cleanup PR 移除即可，跟 Path 2 主軸無關</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>曾考慮但撤回的項目</strong> — 「進一步用 <code>openai</code> SDK 直接算 embedding」：bypass LlamaIndex <code>OpenAIEmbedding</code> 自管 batching / retry / token counting。<strong>撤回理由</strong>：LlamaIndex embedding 還在 work、沒實際 trigger（不像 vector store wrapper 是 zero-import dead dep）；「少 transitive dep」是 cosmetic improvement 不 ship value；自管 retry 反而增加 maintenance surface。<strong>Bypass 等於為了 simplification 而 simplification</strong>。若未來有真正 motivation（streaming embedding / fine-grained retry / 換 embedding provider 想避開 LlamaIndex 抽象）再 reopen design discussion。
+  </div>
+</section>
+
+<!-- §12 -->
+<section id="s12" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§12</span>
+    <h2>關鍵 Design Decision Summary</h2>
+    <span class="section-tag tag-decision">Decisions</span>
+  </div>
+
+  <h3>12.1 Pipeline 設計 decisions</h3>
+  <div class="table-wrap">
+  <table class="decisions-table cat-pipeline">
+    <thead><tr><th>#</th><th>Decision</th><th>選擇</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Path 2 boundary</td><td>A 路線（跨 sec_text_pipeline + sec_dense_pipeline）</td><td>徹底消除 markdown round-trip</td></tr>
+      <tr><td>2</td><td>Item heading 對應 markdown level</td><td>H2（但不靠 markdown 切 Item range，走 <code>tenk[item_key]</code>）</td><td>edgartools 已切好 Item 邊界</td></tr>
+      <tr><td>3</td><td>Block heading 偵測</td><td>markdown H3/H4（prefer H3）+ text fallback</td><td>跨 sector 30 probes 證實覆蓋率最高</td></tr>
+      <tr><td>4</td><td>Part 處理</td><td>drop（不在 header_path 不在 metadata）</td><td>Item normalized key 已唯一識別</td></tr>
+      <tr><td>5</td><td>Stub filtering 時機</td><td>parse 階段 drop</td><td>RAG 不需要 stub；下游邏輯純</td></tr>
+      <tr><td>6</td><td>Sub-heading recursive 偵測</td><td>out of scope（YAGNI）</td><td>30 probes 無真巢狀；Title Case 巢狀子子標題後續 PR</td></tr>
+      <tr><td>7</td><td>ParsedItem schema</td><td>discriminated union（StructuredItem | FlatItem）</td><td>structured/flat 行為完全不同；schema 表達意圖明確</td></tr>
+      <tr><td>8</td><td>Prelude 處理</td><td>不 chunk、不 embed、整段塞 block chunk payload metadata</td><td>SEC MD&amp;A prelude 是 cross-cutting context；retrieve-time payload self-contains（vs 替代方案「prelude as separate chunks」需 N+1 query + ranking 稀釋）</td></tr>
+      <tr><td>9</td><td>Block heading source priority</td><td>markdown H3 &gt; markdown H4 &gt; text fallback</td><td>H3/H4 不分階層；H3 prefer 保留真巢狀父子結構</td></tr>
+      <tr><td>10</td><td>Noise filter</td><td>literal blacklist + chapter divider regex + 重複次數 + registrant name</td><td>30 probes 證實 ToC 不污染，真 noise 是 boilerplate</td></tr>
+      <tr><td>11</td><td>Text fallback rule</td><td>Title-Case standalone-line + 位置 signals</td><td>ALL-CAPS rule 太弱（24 probes 8% 對）；Title-Case 是多數公司 case</td></tr>
+      <tr><td>12</td><td><code>is_stub_section</code> v2 擴展</td><td>加 "Reference is made to..." / "appears on pages N-M" / "Refer to ... section"</td><td>17% pseudo-stub 漏 catch</td></tr>
+      <tr><td>13</td><td>filing_store 格式</td><td>JSON</td><td>schema round-trip；JIT cache 命中直接 hydrate</td></tr>
+      <tr><td>14</td><td>Chunk overlap 跨 Block 邊界</td><td>❌ 不跨</td><td>block 是 SEC 結構訊號；query-time window expansion 補</td></tr>
+      <tr><td>15</td><td>Splitter</td><td>RecursiveCharacterTextSplitter（token-based, 512/50）</td><td>沿用現況；不引入 LlamaIndex node 抽象</td></tr>
+      <tr><td>16</td><td>LlamaIndex Hierarchical/SentenceWindow</td><td>不引入</td><td>prerequisite 跟「直接 qdrant-client」180 度衝突</td></tr>
+      <tr><td>17</td><td>Window expansion</td><td>retrieve-time post-processor，後續 PR</td><td>零 ingest 改動，metadata 已支援</td></tr>
+      <tr><td>18</td><td>Qdrant payload 改動</td><td>顯式 <code>block_heading</code> + <code>prelude</code> field；<code>item</code> 改 normalized key；<code>chunk_index</code> 全 filing 範圍</td><td>retrieve filter ergonomics + augment-ready</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>12.2 共存與 cleanup decisions</h3>
+  <div class="table-wrap">
+  <table class="decisions-table cat-coexist">
+    <thead><tr><th>#</th><th>Decision</th><th>選擇</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>19</td><td>Deprecated 處理</td><td>A/B 期間 <code>git mv</code> 到 <code>_html</code> suffix 凍結保留，sunset 後一次砍</td><td>保留作 eval baseline；git log + git mv 雙重保留</td></tr>
+      <tr><td>20</td><td>Existing markdown data</td><td>A/B 期間 <code>git mv</code> 到 <code>data/sec_filings_html/</code> 凍結，sunset 後 wipe</td><td>跑舊 pipeline eval baseline 用得上</td></tr>
+      <tr><td>21</td><td>Qdrant collection</td><td>舊 <code>sec_filings_openai_large_dense_baseline</code> 凍結保留 + 新建 <code>sec_text_openai_large_dense</code> 並存</td><td>schema 不相容無法 in-place rebuild；舊 collection 名稱不 rename（Qdrant 端零 ops 成本）</td></tr>
+      <tr><td>22</td><td>HTML/Markdown deps</td><td>A/B 期間 <strong>保留</strong>（beautifulsoup4 / html-to-markdown / markdownify），sunset 後移除</td><td><code>_html</code> module 還要 importable，sunset 一次砍</td></tr>
+      <tr><td>23</td><td>pyyaml</td><td>保留</td><td>eval / agents / quant 還用</td></tr>
+      <tr><td>24</td><td>Docker</td><td>無版本問題（pure Python wheel）</td><td>改 pyproject.toml + uv lock + docker rebuild 即可</td></tr>
+      <tr><td>25</td><td>Inspect ergonomics</td><td><code>--verbose</code> + <code>--section &lt;key&gt;</code> flag</td><td>不需要 derive markdown helper</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>12.3 A/B testing methodology decisions</h3>
+  <div class="table-wrap">
+  <table class="decisions-table cat-ab">
+    <thead><tr><th>#</th><th>Decision</th><th>選擇</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>26</td><td>路線決策</td><td>A 路線（短期 A/B 後砍舊）</td><td>用 eval 數字 + 失敗案例證明 improvement 有效，避免長期 dual maintain</td></tr>
+      <tr><td>27</td><td>共存策略</td><td>Option 2（<code>git mv</code> 到 <code>_html</code> suffix + 新建 primary）</td><td>Sunset 最乾淨（單一 PR <code>rm -rf</code> 兩 dir 結束），不需要雙 contract</td></tr>
+      <tr><td>28</td><td>新版 module naming</td><td><code>sec_text_pipeline</code> + <code>sec_dense_pipeline</code>（後者沿用名）</td><td><code>text</code> vs 未來 <code>sec_quant</code>（V3 numeric → DuckDB）axis 清楚；<code>dense</code> 是 embedding 形式不衝 quant 軸</td></tr>
+      <tr><td>29</td><td>Filing store layout</td><td><code>data/sec_text/</code>（新）+ <code>data/sec_filings_html/</code>（舊）sibling dir</td><td>Sunset 直接 <code>rm -rf</code> 一邊；不需 migration</td></tr>
+      <tr><td>30</td><td>Qdrant collection naming</td><td>舊 <code>sec_filings_openai_large_dense_baseline</code> 不 rename + 新主名 <code>sec_text_openai_large_dense</code></td><td>Rename collection 在 Qdrant 端要 alias/copy；保留現名零成本</td></tr>
+      <tr><td>31</td><td><code>sec_core</code> 演進規則</td><td>只增不減（A/B 期間）</td><td>既有 API 被 <code>_html</code> module 引用，改 signature 會 break baseline；sunset 一併 audit</td></tr>
+      <tr><td>32</td><td>Eval methodology</td><td>Composite hit（path startswith + snippet substring）</td><td>Reuse 既有 <code>sec_retrieval_scorer.py</code> 零新 metric infra</td></tr>
+      <tr><td>33</td><td>Dataset 規模</td><td>50 rows</td><td>4 axis cover（detection path × item × query type × sector）+ failure pattern mining 樣本量</td></tr>
+      <tr><td>34</td><td>Snippet granularity</td><td>sentence-level 50-200 chars（淘汰 keyword）</td><td>Keyword level（<code>["export controls"]</code>）整 Item 1A 都 hit，無法定位 chunk</td></tr>
+      <tr><td>35</td><td>Dataset schema 對齊</td><td>對齊新 design（drop Part, <code>expected_item</code> normalized key）；scorer 跑舊 pipeline 時 reverse normalize</td><td>Dataset 維持一份不雙標；舊版 retrieve 結果做 strip Part + item key normalize 後 startswith 比對</td></tr>
+      <tr><td>36</td><td>Eval script 寫在哪</td><td>另開 sibling scenario <code>backend/evals/scenarios/sec_retrieval_html_vs_text/</code>（own dataset.csv + eval_spec.yaml）；sunset 後整 dir 砍</td><td>One-shot experiment 不混 production eval data — production <code>sec_retrieval</code> scenario 不被污染；sunset cleanup 一行 <code>rm -rf</code></td></tr>
+      <tr><td>37</td><td>Annotation workflow</td><td>LLM augment（gen question + snippet 候選 → 人工 review snippet 對位）</td><td>降 manual annotation cost，50 rows 仍可控</td></tr>
+      <tr><td>38</td><td>Sunset trigger</td><td>Deliverable-based（quantitative A/B + qualitative 4 象限 failure case manual review + retrospective doc）</td><td>不設 timeline；trigger 對齊「歸納 error mode + 確定 improvement 方向」mental model</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>12.4 API contract decisions</h3>
+  <div class="table-wrap">
+  <table class="decisions-table cat-api">
+    <thead><tr><th>#</th><th>Decision</th><th>選擇</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>39</td><td><code>sec_text_pipeline</code> method count</td><td>Option A — 單一 <code>parse_filing(ticker, year, force) -> ParsedFiling</code></td><td>TenK 是 edgartools internal type 不該 leak 到 caller；JIT / batch 兩 caller 都是「給 ticker/year 要 ParsedFiling」一個 method 對齊；span 粒度不損失（nested @observe）</td></tr>
+      <tr><td>40</td><td>Class rename</td><td><code>SECFilingPipeline</code> → <code>SECTextPipeline</code></td><td>對齊 module 命名 <code>sec_text_pipeline</code></td></tr>
+      <tr><td>41</td><td>Retriever JIT Langfuse span 接口</td><td>nested <code>@observe</code> — outer <code>sec_text_pipeline</code> wrapper（含 cache_hit / 整段 latency attribute）+ inner <code>sec_edgar_fetch</code>（含 cache check）+ <code>sec_text_parse</code>（detection + assemble）；後續 <code>sec_dense_ingestion</code> 沿用</td><td>跟舊版三段 span 對應演進；cache_hit miss/hit latency 差距 ~100x，必須 visible</td></tr>
+      <tr><td>42</td><td>ParsedFiling inspect API</td><td><code>ParsedFiling.to_inspect_markdown() -> str</code> method + <code>python -m sec_text_pipeline inspect</code> subcommand</td><td>Chunking 之前的 detection sanity check 是 debug-by-elimination 核心；class 對外的 inspectability 屬於 schema 自身</td></tr>
+      <tr><td>43</td><td>Inspect artifact 位置</td><td><code>inspect/{ticker}_{year}.md</code>（repo root，<code>.gitignore</code> 加 <code>inspect/</code>）；optional <code>--out PATH</code> override</td><td>On-demand 產出；user 主動 cleanup 有清理儀式感；不寄生 <code>data/sec_text/</code>（不污染 production data dir）</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- §13 -->
+<section id="s13" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§13</span>
+    <h2>待解 Open Questions（implementation phase 決定）</h2>
+    <span class="section-tag tag-open">Open</span>
+  </div>
+
+  <div class="callout callout-success">
+    Design 階段所有 fundamental decisions（boundary、schema、interface、coexistence、A/B methodology）已 settle 在 §1–§12 + §15。implementation phase 的 tuning（e.g. noise filter blacklist 維護位置、anchored search whitespace tolerance）留給 writing-plans skill 接手。
+  </div>
+
+  <h3>已 close 的 questions</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>原議題</th><th>解決</th></tr></thead>
+    <tbody>
+      <tr><td>Q1 · <code>sec_text_pipeline</code> API contract</td><td>已 close — #39 Option A 單一 <code>parse_filing</code></td></tr>
+      <tr><td>Q2 · Retriever JIT Langfuse span</td><td>已 close — #41 nested @observe 三層</td></tr>
+      <tr><td>Q3 · batch script contract</td><td>已 settled 在 §9.2</td></tr>
+      <tr><td>Q5 · Tests 安排</td><td>隨 Option 2 共存策略消解：舊 tests 隨 <code>git mv</code> 凍結，新 tests 從零寫</td></tr>
+      <tr><td>D3-D5 · eval methodology / script / sunset trigger</td><td>已 close — 見 §12.3 + §15</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- §14 -->
+<section id="s14" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§14</span>
+    <h2>配套 Research 結果摘要</h2>
+    <span class="section-tag tag-architecture">Research</span>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Research</th><th>關鍵 finding</th></tr></thead>
+    <tbody>
+      <tr><td><code>research_sec_filing_api.md</code></td><td>edgartools <code>tenk[item_key]</code> 給結構化 plain text，零 ToC 污染</td></tr>
+      <tr><td><code>research_filing_markdown_quality.md</code></td><td><code>filing.markdown()</code> 早期評估只看 3 家 tech，結論 MSFT 損壞 — 但跨 sector 重測後修正</td></tr>
+      <tr><td><code>research_prelude_block_relationship.md</code></td><td>ALL-CAPS rule 24 probes 只 8% 對；多數公司 Title Case sub-heading；prelude cross-cutting hypothesis 在 algorithm 對的 case 成立</td></tr>
+      <tr><td><code>research_legacy_heading_heuristics.md</code></td><td>8 條純 text heuristic 可借鑑（length window / digit-cluster / self-reference / Title-Case / 位置 signals）；HTML signals 不可借鑑</td></tr>
+      <tr><td><code>research_edgartools_subsection_structure.md</code></td><td><code>Section.node</code> 是 marker 不是 subtree 不能下鑽；<code>filing.markdown()</code> 跨 sector 8/12 良好；edgartools 5.30.2 同樣 broken 不必升</td></tr>
+      <tr><td><code>research_markdown_h3_cross_sector.md</code></td><td>H3 only 19/30 失敗；H3+H4 union + filter 可達 23/30 good + 2 partial + 3 fallback + 2 stub skip = 30/30 全 cover；ToC pollution 不存在</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- §15 -->
+<section id="s15" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§15</span>
+    <h2>A/B Testing Methodology</h2>
+    <span class="section-tag tag-ab">A/B Testing</span>
+  </div>
+
+  <p>A/B testing 是 §1 「為什麼要重構」的 quantitative + qualitative 證據基礎。設計信念（edgartools structured API &gt; 自製 HTML parsing）必須用 eval 驗證；Sunset trigger（§15.4）是這條路線的 deliverable-based 出口。</p>
+
+  <h3>15.1 路線總覽</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>維度</th><th>決定</th></tr></thead>
+    <tbody>
+      <tr><td>路線</td><td>A — 短期 A/B 後砍舊</td></tr>
+      <tr><td>共存策略</td><td>Option 2 — <code>git mv</code> 到 <code>_html</code> suffix + 新建 primary</td></tr>
+      <tr><td>主 pipeline</td><td><code>sec_text_pipeline</code> + <code>sec_dense_pipeline</code></td></tr>
+      <tr><td>Baseline pipeline</td><td><code>sec_filing_pipeline_html</code> + <code>sec_dense_pipeline_html</code>（凍結，不再寫入）</td></tr>
+      <tr><td>Production routing</td><td>SEC agent tool / production retriever 寫死打新 collection；舊 collection 不接 production traffic</td></tr>
+      <tr><td>Eval routing</td><td>Sibling scenario <code>sec_retrieval_html_vs_text/</code>（不污染 production <code>sec_retrieval/</code>）顯式跑兩 collection；sunset 後整 dir 砍</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>15.2 Eval Dataset</h3>
+
+  <h4>15.2.1 Schema</h4>
+  <p>對齊新 design 的 normalized schema（dataset 維持一份）：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td><code>question</code></td><td>natural language 提問</td></tr>
+      <tr><td><code>expected_tickers</code></td><td>list of ticker</td></tr>
+      <tr><td><code>expected_item</code></td><td>normalized item key（e.g. <code>"1a"</code> for Item 1A）</td></tr>
+      <tr><td><code>expected_header_paths</code></td><td>(optional) 新版格式：<code>"NVDA / 2026 / Item 1A"</code>（drop Part）</td></tr>
+      <tr><td><code>answer_snippets</code></td><td>list of sentence-level snippet 50-200 chars，必須在 ground-truth filing 出現</td></tr>
+      <tr><td><code>match_mode</code></td><td><code>startswith</code></td></tr>
+      <tr><td><code>query_type</code></td><td><code>single_ticker_fact</code> / <code>single_ticker_deep</code> / <code>cross_company_comparison</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>跑舊 (HTML) collection 時 scorer 端對 retrieve 結果做 reverse normalize（對齊 Part / item key 格式）後再比對；snippet substring 比對對兩 pipeline 一致。</p>
+
+  <h4>15.2.2 規模 + 多樣性</h4>
+  <p>50 rows，cover 4 axis：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Axis</th><th>為什麼重要</th></tr></thead>
+    <tbody>
+      <tr><td>Detection path（markdown H3 / H4 / text fallback）</td><td>新版核心能力差異，三條 path 都要驗</td></tr>
+      <tr><td>Item type（1, 1A, 7, 7A）</td><td>不同 item 結構不同，prelude / block heading 行為差很多</td></tr>
+      <tr><td>Query type（既有 3 個 type）</td><td>影響 retrieval 行為</td></tr>
+      <tr><td>GICS sector</td><td>Detection rule cross-sector robustness</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>15.2.3 Annotation workflow</h4>
+  <p>沿 §15.2.2 的 4 axis 跨 sector 採樣 ticker，由 LLM 生成 question + sentence-level snippet 候選，人工 review 確認 snippet 真在 ground-truth filing 出現、item 標對。</p>
+
+  <h3>15.3 A/B Eval Flow</h3>
+  <p>A/B experiment 落在獨立 sibling scenario <code>backend/evals/scenarios/sec_retrieval_html_vs_text/</code>（own dataset.csv + eval_spec.yaml），不污染 production <code>sec_retrieval/</code> scenario。Scorer code 共用 <code>backend/evals/scorers/sec_retrieval_scorer.py</code>（util 不分 scenario）。Sunset 時整 <code>sec_retrieval_html_vs_text/</code> directory <code>rm -rf</code>，production scenario 完全沒被觸碰。</p>
+
+  <div class="mermaid">
+graph TD
+    Q["sec_retrieval_html_vs_text/dataset.csv<br/>(50 rows, A/B 專屬<br/>question, expected_item,<br/>answer_snippets, ...)"]
+    Q --> E1["Run 1: --collection sec_text_openai_large_dense"]
+    Q --> E2["Run 2: --collection sec_filings_openai_large_dense_baseline<br/>(scorer 端 reverse normalize)"]
+    E1 --> M1["Metrics:<br/>snippet recall@5/@10<br/>item recall@5<br/>MRR / MAP"]
+    E2 --> M2["Metrics: 同上"]
+    M1 --> CMP["Quantitative 對照表"]
+    M2 --> CMP
+    CMP --> FCM["4 象限 failure case mining"]
+    FCM --> RD["Retrospective doc"]
+    RD --> SUNSET["Sunset trigger<br/>(rm -rf sec_retrieval_html_vs_text/)"]
+  </div>
+
+  <p>四象限 failure case mining：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>象限</th><th>對策</th></tr></thead>
+    <tbody>
+      <tr><td>snippet hit + item hit</td><td>完美，無需 review</td></tr>
+      <tr><td><strong>snippet miss + item hit</strong></td><td>章節對段落錯（chunking quality 主訊號 — prelude lost / wrong block boundary / chunk 太碎），必 review</td></tr>
+      <tr><td>snippet miss + item miss</td><td>完全錯，review root cause（detection 完全 fail / 抓錯 ticker / ground-truth 標錯）</td></tr>
+      <tr><td>snippet hit + item miss</td><td>不可能（snippet 在 expected item 內）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>15.4 Sunset Trigger（deliverable-based）</h3>
+  <p>不設 timeline。三個 deliverable 都完成才啟動 sunset PR：</p>
+  <ol>
+    <li><strong>Quantitative A/B 對照表</strong> — 兩 collection metric 對照（snippet recall@5/@10, MRR, MAP）</li>
+    <li><strong>Qualitative 4 象限 failure case manual review</strong> — 對「新贏 / 舊贏 / 兩邊皆失敗」case 歸納 root cause</li>
+    <li><strong>Retrospective doc</strong> — 寫 HTML pipeline 的 systematic 弱點 + 確認新版有 fix；如有 regression case，先 fix 新版再重跑 eval；最終確定「採取 improvement 方向」</li>
+  </ol>
+  <p>Sunset PR 內容見 §8.2。</p>
+</section>
+
+<footer>
+  End of design draft · brainstorming 待續 §13 open question · 此 HTML 為 design.md 同步 render
+</footer>
+
+</main>
+
+<!-- COMMENT PANEL -->
+<aside class="comment-panel" id="comment-panel">
+  <div class="comment-resize-handle" id="comment-resize-handle" title="拖曳調整寬度"></div>
+  <div class="comment-panel-header">
+    <span class="comment-panel-title">Comments</span>
+    <span class="comment-counts">
+      <span class="comment-count-badge" id="comment-count" title="待處理 (active)">0</span>
+      <span class="resolved-count-badge" id="resolved-count" title="已 resolved" style="display:none">✓ 0</span>
+      <span class="outdated-count-badge" id="outdated-count" title="Outdated — doc 已修改，原文字找不到" style="display:none">0</span>
+      <button class="panel-close-btn" id="comments-close-btn" title="隱藏（之後可從右上 💬 按鈕重開）">×</button>
+    </span>
+  </div>
+
+  <div class="sync-status local" id="sync-status">
+    <span>💾</span> Local only · checking…
+  </div>
+
+  <div class="comment-help" id="comment-help">
+    選文字 → 「💬 新增 comment」→ 寫想法。<br>
+    Comment card 上 「Resolve」 切灰綠；Export 只匯出未 resolved。
+  </div>
+
+  <div class="comment-actions">
+    <button class="btn-action btn-primary-action" id="btn-copy-json" title="複製 active JSON 到剪貼簿">
+      <span class="btn-icon">⧉</span> Copy JSON
+    </button>
+    <div class="export-menu-wrap">
+      <button class="btn-action" id="btn-export-menu" title="下載檔案 (JSON / Prompt)">
+        <span class="btn-icon">↓</span> Export <span class="caret">▾</span>
+      </button>
+      <div class="export-dropdown" id="export-dropdown" role="menu">
+        <button class="export-option" data-format="json">JSON file (.json)</button>
+        <button class="export-option" data-format="prompt">Prompt markdown (.md)</button>
+      </div>
+    </div>
+    <button class="btn-action" id="btn-resolve-all" title="把所有 active comment 標為 resolved">
+      <span class="btn-icon">✓</span> Resolve all
+    </button>
+    <button class="btn-action btn-danger" id="btn-clear-all" title="刪除全部 comment">
+      <span class="btn-icon">×</span> Clear
+    </button>
+  </div>
+
+  <div class="comment-list" id="comment-list"></div>
+</aside>
+
+</div>
+
+<!-- FAB (mobile) -->
+<button class="comment-fab" id="comment-fab" aria-label="Toggle comments">💬<span class="comment-fab-badge" id="fab-badge" style="display:none">0</span></button>
+<button class="learning-fab" id="learning-fab" aria-label="Toggle reasoning panel" title="Reasoning &amp; Takeaway">💡</button>
+
+<!-- SELECTION TOOLBAR -->
+<div class="selection-toolbar" id="selection-toolbar">
+  <button id="btn-add-comment">💬 新增 comment</button>
+</div>
+
+<!-- COMMENT DIALOG -->
+<div class="dialog-backdrop" id="comment-dialog-backdrop">
+  <div class="comment-dialog">
+    <h3>新增 comment</h3>
+    <div class="selection-preview" id="dialog-selection-preview"></div>
+    <textarea id="comment-input" placeholder="寫下你對這段內容的想法、疑問、要 Claude 修改的方向…"></textarea>
+    <div class="dialog-actions">
+      <span class="dialog-hint">⌘+Enter 送出 · Esc 取消</span>
+      <div class="dialog-buttons">
+        <button class="btn-secondary" id="comment-cancel">取消</button>
+        <button class="btn-primary" id="comment-submit">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MERMAID LIGHTBOX MODAL -->
+<div class="mm-modal-backdrop" id="mm-modal-backdrop">
+  <div class="mm-modal-frame">
+    <div class="mm-modal-toolbar">
+      <span class="mm-modal-title" id="mm-modal-title">Mermaid diagram</span>
+      <div class="mm-modal-actions">
+        <button id="mm-zoom-in" title="Zoom in">＋</button>
+        <button id="mm-zoom-out" title="Zoom out">－</button>
+        <button id="mm-reset" title="Reset">⤺ reset</button>
+        <button id="mm-close" title="Close (Esc)">✕ close</button>
+      </div>
+    </div>
+    <div class="mm-modal-svg-wrap" id="mm-modal-svg-wrap"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.10.0/lib/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.10.0/lib/languages/python.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'default',
+  themeVariables: {
+    primaryColor: '#eff6ff',
+    primaryTextColor: '#1f2937',
+    primaryBorderColor: '#2563eb',
+    lineColor: '#64748b',
+    secondaryColor: '#fef3c7',
+    tertiaryColor: '#f0fdf4',
+    fontSize: '14px'
+  },
+  flowchart: { curve: 'basis', htmlLabels: true }
+});
+hljs.highlightAll();
+</script>
+
+<script>
+// ============================================================
+// Annotation / Comment System
+// ============================================================
+
+const STORAGE_KEY = 'design-html-comments-v1';
+const STORAGE_DIRTY = STORAGE_KEY + '-dirty';
+const DOC_NAME = 'design.md — SEC Filing Pipeline 簡化 (Path 2)';
+let comments = [];
+
+// Sidecar JSON lives next to this HTML: <basename>.comments.json
+function sidecarName() {
+  const file = location.pathname.split('/').pop() || 'index.html';
+  const base = file.replace(/\.html?$/i, '') || 'index';
+  return base + '.comments.json';
+}
+function sidecarUrl() { return './' + sidecarName(); }
+
+// Dirty = in-memory edits not yet written to the sidecar file
+function markDirty() { localStorage.setItem(STORAGE_DIRTY, '1'); }
+function clearDirty() { localStorage.removeItem(STORAGE_DIRTY); }
+function isDirty() { return localStorage.getItem(STORAGE_DIRTY) === '1'; }
+
+// Zero-gesture read of the committed/deployed sidecar (source of truth in the static+git model).
+// fetch() of a relative path is blocked on file://, so this only runs when served over http(s).
+async function fetchSidecar() {
+  if (location.protocol === 'file:') return null;
+  try {
+    const res = await fetch(sidecarUrl(), { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && Array.isArray(data.comments)) ? data : null;
+  } catch (e) { return null; }
+}
+
+function uid() {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function getContainingSection(node) {
+  while (node && node !== document.body) {
+    if (node.nodeType === 1) {
+      // Main doc sections
+      if (node.tagName === 'SECTION' && node.id) return node;
+      // Learning panel cards (commentable, same anchor mechanism)
+      if (node.classList && node.classList.contains('learning-card') && node.id) return node;
+    }
+    node = node.parentNode;
+  }
+  return null;
+}
+
+// ============================================================
+// Mark wrapping
+// ============================================================
+
+function wrapRange(range, commentId) {
+  // Collect text nodes that intersect with range
+  const root = range.commonAncestorContainer.nodeType === 3
+    ? range.commonAncestorContainer.parentNode
+    : range.commonAncestorContainer;
+
+  const textNodes = [];
+  if (range.commonAncestorContainer.nodeType === 3) {
+    textNodes.push(range.commonAncestorContainer);
+  } else {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        return range.intersectsNode(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    let n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+  }
+
+  for (const node of textNodes) {
+    // skip if already inside a mark or inside non-content area
+    if (node.parentNode.closest('mark.annot')) continue;
+    if (node.parentNode.closest('.comment-panel, .selection-toolbar, .dialog-backdrop, .toast, .sidebar')) continue;
+
+    const start = (node === range.startContainer) ? range.startOffset : 0;
+    const end = (node === range.endContainer) ? range.endOffset : node.textContent.length;
+    if (start >= end) continue;
+
+    const text = node.textContent;
+    const before = text.slice(0, start);
+    const wrapped = text.slice(start, end);
+    const after = text.slice(end);
+
+    if (!wrapped.trim()) continue;
+
+    const mark = document.createElement('mark');
+    mark.className = 'annot';
+    mark.dataset.commentId = commentId;
+    mark.textContent = wrapped;
+    mark.addEventListener('click', e => {
+      e.stopPropagation();
+      flashComment(commentId);
+      scrollToCommentCard(commentId);
+    });
+
+    const frag = document.createDocumentFragment();
+    if (before) frag.appendChild(document.createTextNode(before));
+    frag.appendChild(mark);
+    if (after) frag.appendChild(document.createTextNode(after));
+
+    node.parentNode.replaceChild(frag, node);
+  }
+}
+
+function unwrapMark(commentId) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    const text = document.createTextNode(m.textContent);
+    m.parentNode.replaceChild(text, m);
+  });
+  // Normalize adjacent text nodes
+  document.querySelectorAll('main').forEach(n => n.normalize());
+}
+
+// Restore: find selected text in section, wrap it
+function restoreComment(c) {
+  const section = document.getElementById(c.sectionId);
+  if (!section) return false;
+
+  // Concatenate all text nodes, tracking node + offset
+  const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      if (n.parentNode.closest('.comment-panel, .selection-toolbar, .dialog-backdrop, .toast')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const map = [];
+  let combined = '';
+  let n;
+  while ((n = walker.nextNode())) {
+    map.push({ node: n, start: combined.length });
+    combined += n.textContent;
+  }
+
+  // Normalize whitespace for comparison (selected text may have whitespace differences)
+  const target = c.selectedText;
+  const idx = combined.indexOf(target);
+  if (idx < 0) return false;
+
+  const endIdx = idx + target.length;
+
+  let startNode, startOffset, endNode, endOffset;
+  for (const item of map) {
+    const nodeStart = item.start;
+    const nodeEnd = nodeStart + item.node.textContent.length;
+    if (startNode === undefined && idx >= nodeStart && idx < nodeEnd) {
+      startNode = item.node;
+      startOffset = idx - nodeStart;
+    }
+    if (endNode === undefined && endIdx > nodeStart && endIdx <= nodeEnd) {
+      endNode = item.node;
+      endOffset = endIdx - nodeStart;
+    }
+    if (startNode && endNode) break;
+  }
+
+  if (!startNode || !endNode) return false;
+
+  try {
+    const range = document.createRange();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    wrapRange(range, c.id);
+    return true;
+  } catch (e) {
+    console.warn('restore failed', c.id, e);
+    return false;
+  }
+}
+
+// ============================================================
+// Storage
+// ============================================================
+
+async function loadComments() {
+  let source = null;  // 'handle' | 'fetch' | 'local-dirty' | 'local'
+
+  // 1. Linked handle (read + write authority) takes precedence over everything
+  try {
+    await fileSync.restore();
+    if (fileSync.enabled) {
+      const remote = await fileSync.loadIfLinked();
+      if (remote && Array.isArray(remote.comments)) {
+        comments = remote.comments;
+        clearDirty();
+        source = 'handle';
+      }
+    }
+  } catch (e) {
+    console.warn('[file-sync] restore/load failed', e);
+  }
+
+  // 2. Auto-fetch the sidecar (read-only, zero gesture). Skip if we have unsaved local
+  //    edits — those would otherwise be clobbered by the older committed file.
+  if (!source) {
+    const fetched = await fetchSidecar();
+    if (fetched) {
+      if (isDirty()) {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        try { comments = raw ? JSON.parse(raw) : fetched.comments; }
+        catch (e) { comments = fetched.comments; }
+        source = 'local-dirty';
+      } else {
+        comments = fetched.comments;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));  // refresh cache
+        source = 'fetch';
+      }
+    }
+  }
+
+  // 3. localStorage fallback (offline / file:// / sidecar not deployed yet)
+  if (!source) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try { comments = JSON.parse(raw); }
+      catch (e) { comments = []; }
+    }
+    source = 'local';
+  }
+  loadComments._source = source;
+
+  // Migrate legacy `addressed` field → `resolved`
+  comments.forEach(c => {
+    if (c.addressed !== undefined && c.resolved === undefined) {
+      c.resolved = c.addressed;
+      if (c.addressedAt) c.resolvedAt = c.addressedAt;
+      delete c.addressed;
+      delete c.addressedAt;
+    }
+  });
+  saveCommentsLocal();  // refresh cache only — must not mark dirty during load
+  // re-wrap marks + recompute outdated state (must wait for mermaid to settle so DOM is stable)
+  let outdated = 0;
+  comments.forEach(c => {
+    const ok = restoreComment(c);
+    if (ok) {
+      c.outdated = false;
+      if (c.resolved) updateMarkResolvedState(c.id, true);
+    } else {
+      // text not found → outdated (unless already resolved, then it stays resolved)
+      c.outdated = !c.resolved;
+      if (c.outdated) outdated++;
+    }
+  });
+  saveCommentsLocal();
+  renderCommentList();
+  if (outdated > 0) showToast(`⧖ ${outdated} comment outdated — 原文字已不在 doc 中`);
+}
+
+function saveComments() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+  if (typeof fileSync !== 'undefined' && fileSync.enabled) {
+    fileSync.scheduleSave();  // clears dirty on a successful file write
+  } else {
+    markDirty();              // edits exist that aren't in the sidecar file yet
+  }
+  if (typeof updateSyncStatus === 'function') updateSyncStatus();
+}
+
+// Local-only save (no file sync trigger) — used during import/restore to avoid feedback loops
+function saveCommentsLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+}
+
+// ============================================================
+// Selection toolbar
+// ============================================================
+
+const toolbar = document.getElementById('selection-toolbar');
+let pendingRange = null;
+let pendingText = null;
+let pendingSection = null;
+
+function handleSelection() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      hideToolbar();
+      return;
+    }
+    const text = sel.toString().trim();
+    if (!text || text.length < 2) {
+      hideToolbar();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const section = getContainingSection(range.commonAncestorContainer);
+    if (!section) {
+      hideToolbar();
+      return;
+    }
+    // Don't trigger inside comment panel/dialog; learning panel cards are commentable so not excluded
+    if (range.commonAncestorContainer.parentNode && range.commonAncestorContainer.parentNode.closest && range.commonAncestorContainer.parentNode.closest('.comment-panel, .dialog-backdrop')) {
+      hideToolbar();
+      return;
+    }
+
+    pendingRange = range.cloneRange();
+    pendingText = text;
+    pendingSection = section;
+    showToolbarAt(range);
+  }, 0);
+}
+
+function showToolbarAt(range) {
+  const rect = range.getBoundingClientRect();
+  toolbar.style.display = 'flex';
+  // Position above selection
+  const top = window.scrollY + rect.top - toolbar.offsetHeight - 10;
+  const left = window.scrollX + rect.left + rect.width / 2 - 75;
+  toolbar.style.top = `${Math.max(top, window.scrollY + 8)}px`;
+  toolbar.style.left = `${Math.max(left, 8)}px`;
+}
+
+function hideToolbar() {
+  toolbar.style.display = 'none';
+}
+
+document.addEventListener('mouseup', e => {
+  if (e.target.closest('.selection-toolbar, .comment-panel, .dialog-backdrop')) return;
+  // Learning panel: only allow selection inside actual cards, not chrome (header, help, buttons, resize handle)
+  if (e.target.closest('.learning-panel') && !e.target.closest('.learning-card')) return;
+  if (e.target.closest('.panel-close-btn, .learning-resize-handle')) return;
+  handleSelection();
+});
+document.addEventListener('keyup', e => {
+  if (e.shiftKey) handleSelection();
+});
+document.addEventListener('mousedown', e => {
+  if (!e.target.closest('.selection-toolbar')) hideToolbar();
+});
+
+// ============================================================
+// Add comment flow
+// ============================================================
+
+document.getElementById('btn-add-comment').addEventListener('click', () => {
+  if (!pendingRange || !pendingText || !pendingSection) return;
+  showCommentDialog(pendingText, (commentText) => {
+    if (!commentText) return;
+
+    const isLearningCard = pendingSection.classList?.contains('learning-card');
+    let sectionLabel;
+    if (isLearningCard) {
+      const cardTitle = pendingSection.querySelector('.lc-title')?.textContent.trim() || '';
+      const ds = pendingSection.dataset.section || '';
+      const m = ds.match(/^s(\d+)$/);
+      sectionLabel = m ? `📓 §${m[1]} · ${cardTitle}` : `📓 ${cardTitle}`;
+    } else {
+      const sectionTitle = pendingSection.querySelector('h2')?.textContent.replace(/^§\d+\s*/, '').trim() || '';
+      const sectionNumMatch = pendingSection.id.match(/^s(\d+)$/);
+      sectionLabel = sectionNumMatch ? `§${sectionNumMatch[1]} ${sectionTitle}` : sectionTitle;
+    }
+
+    const c = {
+      id: uid(),
+      sectionId: pendingSection.id,
+      sectionLabel,
+      selectedText: pendingText,
+      comment: commentText,
+      resolved: false,
+      createdAt: new Date().toISOString()
+    };
+
+    comments.push(c);
+    saveComments();
+
+    try {
+      wrapRange(pendingRange, c.id);
+    } catch (e) {
+      console.warn('wrap failed, attempting restore', e);
+      restoreComment(c);
+    }
+
+    window.getSelection().removeAllRanges();
+    hideToolbar();
+    pendingRange = null;
+    pendingText = null;
+    pendingSection = null;
+    renderCommentList();
+    showToast('Comment 已新增');
+  });
+});
+
+// ============================================================
+// Dialog
+// ============================================================
+
+const dialogBackdrop = document.getElementById('comment-dialog-backdrop');
+const dialogPreview = document.getElementById('dialog-selection-preview');
+const dialogInput = document.getElementById('comment-input');
+const dialogSubmit = document.getElementById('comment-submit');
+const dialogCancel = document.getElementById('comment-cancel');
+
+function showCommentDialog(selectedText, callback) {
+  dialogPreview.textContent = selectedText.slice(0, 500) + (selectedText.length > 500 ? '…' : '');
+  dialogInput.value = '';
+  dialogBackdrop.classList.add('show');
+  setTimeout(() => dialogInput.focus(), 50);
+
+  const cleanup = () => {
+    dialogBackdrop.classList.remove('show');
+    dialogSubmit.removeEventListener('click', onSubmit);
+    dialogCancel.removeEventListener('click', onCancel);
+    dialogBackdrop.removeEventListener('click', onBackdrop);
+    document.removeEventListener('keydown', onKey);
+  };
+  const onSubmit = () => { const v = dialogInput.value.trim(); cleanup(); callback(v); };
+  const onCancel = () => { cleanup(); callback(null); };
+  const onBackdrop = (e) => { if (e.target === dialogBackdrop) onCancel(); };
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSubmit(); }
+  };
+  dialogSubmit.addEventListener('click', onSubmit);
+  dialogCancel.addEventListener('click', onCancel);
+  dialogBackdrop.addEventListener('click', onBackdrop);
+  document.addEventListener('keydown', onKey);
+}
+
+// ============================================================
+// Render comment list
+// ============================================================
+
+function renderCommentList() {
+  const list = document.getElementById('comment-list');
+  const count = document.getElementById('comment-count');
+  const resolvedCount = document.getElementById('resolved-count');
+  const outdatedCount = document.getElementById('outdated-count');
+  const fabBadge = document.getElementById('fab-badge');
+  const help = document.getElementById('comment-help');
+
+  const activeCount = comments.filter(c => !c.resolved && !c.outdated).length;
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+
+  if (help) help.style.display = comments.length === 0 ? 'block' : 'none';
+
+  count.textContent = activeCount;
+  if (resolvedNum > 0) {
+    resolvedCount.style.display = 'inline-block';
+    resolvedCount.textContent = `✓ ${resolvedNum}`;
+  } else {
+    resolvedCount.style.display = 'none';
+  }
+  if (outdatedNum > 0) {
+    outdatedCount.style.display = 'inline-block';
+    outdatedCount.textContent = outdatedNum;
+  } else {
+    outdatedCount.style.display = 'none';
+  }
+  if (activeCount > 0) {
+    fabBadge.textContent = activeCount;
+    fabBadge.style.display = 'block';
+  } else {
+    fabBadge.style.display = 'none';
+  }
+
+  if (comments.length === 0) {
+    list.innerHTML = '<div class="empty-state">尚無 comment<br><br>在本文選擇文字 →<br>點 toolbar 的「💬 新增 comment」</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  // Sort: active first, dim (resolved/outdated) last; within each group by section order
+  const sorted = [...comments].sort((a, b) => {
+    const aDim = !!(a.resolved || a.outdated);
+    const bDim = !!(b.resolved || b.outdated);
+    if (aDim !== bDim) return aDim ? 1 : -1;
+    const na = parseInt((a.sectionId || '').replace(/\D/g, '')) || 999;
+    const nb = parseInt((b.sectionId || '').replace(/\D/g, '')) || 999;
+    if (na !== nb) return na - nb;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+
+  sorted.forEach(c => {
+    const isResolved = c.resolved === true;
+    const isOutdated = c.outdated === true && !isResolved;
+    const card = document.createElement('div');
+    let cls = 'comment-card';
+    if (isResolved) cls += ' resolved';
+    if (isOutdated) cls += ' outdated';
+    card.className = cls;
+    card.dataset.commentId = c.id;
+
+    const toggleLabel = isResolved ? '↩ Undo' : '✓ Resolve';
+    let statusPill = '';
+    if (isResolved) statusPill = '<span class="status-pill resolved">✓ resolved</span>';
+    else if (isOutdated) statusPill = '<span class="status-pill outdated">outdated</span>';
+
+    card.innerHTML = `
+      <div class="comment-card-head">
+        <div class="comment-section">${escapeHtml(c.sectionLabel || c.sectionId)}</div>
+        ${statusPill}
+      </div>
+      <div class="comment-quote">${escapeHtml(c.selectedText.length > 140 ? c.selectedText.slice(0, 140) + '…' : c.selectedText)}</div>
+      <div class="comment-body">${escapeHtml(c.comment)}</div>
+      <div class="comment-meta">
+        <span>${new Date(c.createdAt).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+        <span style="display:flex; gap:6px;">
+          <button class="btn-toggle" data-id="${c.id}">${toggleLabel}</button>
+          <button class="btn-delete" data-id="${c.id}" title="刪除 comment" aria-label="刪除">×</button>
+        </span>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.classList.contains('btn-delete')) return;
+      if (e.target.classList.contains('btn-toggle')) return;
+      if (isOutdated) {
+        showToast('⧖ 文字已不在 doc 中（doc 可能已修改）');
+        return;
+      }
+      scrollToMark(c.id);
+    });
+    card.querySelector('.btn-toggle').addEventListener('click', e => {
+      e.stopPropagation();
+      toggleResolved(c.id);
+    });
+    card.querySelector('.btn-delete').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('刪除這個 comment？')) return;
+      deleteComment(c.id);
+    });
+    list.appendChild(card);
+  });
+}
+
+function toggleResolved(id) {
+  const c = comments.find(x => x.id === id);
+  if (!c) return;
+  c.resolved = !c.resolved;
+  if (c.resolved) {
+    c.resolvedAt = new Date().toISOString();
+    // Resolved overrides outdated (already "done"); outdated visual hidden by precedence
+  } else {
+    delete c.resolvedAt;
+    // Re-check outdated: if no mark exists in DOM, text is gone → outdated
+    const hasMark = !!document.querySelector(`mark.annot[data-comment-id="${c.id}"]`);
+    c.outdated = !hasMark;
+  }
+  saveComments();
+  updateMarkResolvedState(id, c.resolved);
+  renderCommentList();
+  const msg = c.resolved
+    ? '✓ 標為 resolved'
+    : (c.outdated ? '↩ 恢復為待處理（⧖ outdated）' : '↩ 恢復為待處理');
+  showToast(msg);
+}
+
+function updateMarkResolvedState(commentId, isResolved) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    m.classList.toggle('resolved', isResolved);
+  });
+}
+
+function scrollToMark(commentId) {
+  const mark = document.querySelector(`mark.annot[data-comment-id="${commentId}"]`);
+  if (!mark) {
+    showToast('找不到對應的 highlight（可能 orphan）');
+    return;
+  }
+  mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  flashMark(commentId);
+}
+
+function scrollToCommentCard(commentId) {
+  const card = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
+  if (!card) return;
+  // Open mobile panel if needed
+  document.getElementById('comment-panel').classList.add('open');
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.style.transition = 'background 0.3s';
+  card.style.background = 'var(--primary-light)';
+  setTimeout(() => { card.style.background = ''; }, 800);
+}
+
+function flashMark(commentId) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    m.classList.remove('pulse');
+    // force reflow
+    void m.offsetWidth;
+    m.classList.add('pulse');
+    setTimeout(() => m.classList.remove('pulse'), 1700);
+  });
+}
+
+function flashComment(commentId) { flashMark(commentId); }
+
+function deleteComment(id) {
+  comments = comments.filter(c => c.id !== id);
+  saveComments();
+  unwrapMark(id);
+  renderCommentList();
+  showToast('已刪除');
+}
+
+// ============================================================
+// Export
+// ============================================================
+
+function getActiveSorted() {
+  return comments.filter(c => !c.resolved && !c.outdated).sort((a, b) => {
+    const na = parseInt((a.sectionId || '').replace(/\D/g, '')) || 999;
+    const nb = parseInt((b.sectionId || '').replace(/\D/g, '')) || 999;
+    if (na !== nb) return na - nb;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+}
+
+function buildJsonPayload(active) {
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+  return {
+    version: 1,
+    doc: DOC_NAME,
+    exported_at: new Date().toISOString(),
+    comment_count: active.length,
+    resolved_excluded: resolvedNum,
+    outdated_excluded: outdatedNum,
+    comments: active
+  };
+}
+
+function buildPromptMarkdown(active) {
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+  let md = `# Comments on ${DOC_NAME}\n\n`;
+  md += `Exported: ${new Date().toISOString()}\n`;
+  md += `Total: ${active.length} comment${active.length > 1 ? 's' : ''} (active only)\n`;
+  if (resolvedNum > 0) md += `Resolved (excluded): ${resolvedNum}\n`;
+  if (outdatedNum > 0) md += `Outdated / orphaned (excluded): ${outdatedNum}\n`;
+  md += `\n---\n\n`;
+  active.forEach((c, i) => {
+    md += `## ${i + 1}. ${c.sectionLabel || c.sectionId}\n\n`;
+    md += `**Selected text** (from ${c.sectionId}):\n\n> ${c.selectedText.split('\n').join('\n> ')}\n\n`;
+    md += `**My comment**:\n${c.comment}\n\n`;
+    md += `---\n\n`;
+  });
+  return md;
+}
+
+function downloadBlob(content, mime, filename) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Copy JSON to clipboard (primary daily action — no file download)
+document.getElementById('btn-copy-json').addEventListener('click', () => {
+  const active = getActiveSorted();
+  if (active.length === 0) {
+    showToast(comments.length > 0 ? '全部 resolved，沒有 active comment' : '沒有 comment');
+    return;
+  }
+  const json = JSON.stringify(buildJsonPayload(active), null, 2);
+  navigator.clipboard?.writeText(json).then(() => {
+    const note = comments.length - active.length > 0 ? `（排除 ${comments.length - active.length} 個 resolved）` : '';
+    showToast(`✓ Copied ${active.length} comment 到剪貼簿 ${note}`);
+  }).catch(() => showToast('複製失敗，瀏覽器拒絕剪貼簿存取'));
+});
+
+// Export dropdown menu
+const exportMenuBtn = document.getElementById('btn-export-menu');
+const exportDropdown = document.getElementById('export-dropdown');
+exportMenuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  exportDropdown.classList.toggle('show');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.export-menu-wrap')) exportDropdown.classList.remove('show');
+});
+exportDropdown.querySelectorAll('.export-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const fmt = opt.dataset.format;
+    exportDropdown.classList.remove('show');
+    const active = getActiveSorted();
+    if (active.length === 0) {
+      showToast(comments.length > 0 ? '全部 resolved，沒有 active comment' : '沒有 comment');
+      return;
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    if (fmt === 'json') {
+      const json = JSON.stringify(buildJsonPayload(active), null, 2);
+      downloadBlob(json, 'application/json', `design-comments-${date}.json`);
+      showToast(`↓ Downloaded design-comments-${date}.json`);
+    } else if (fmt === 'prompt') {
+      const md = buildPromptMarkdown(active);
+      downloadBlob(md, 'text/markdown', `design-comments-prompt-${date}.md`);
+      showToast(`↓ Downloaded design-comments-prompt-${date}.md`);
+    }
+  });
+});
+
+document.getElementById('btn-clear-all').addEventListener('click', () => {
+  if (comments.length === 0) return;
+  if (!confirm(`刪除全部 ${comments.length} 個 comment？`)) return;
+  comments.forEach(c => unwrapMark(c.id));
+  comments = [];
+  saveComments();
+  renderCommentList();
+  showToast('已清空');
+});
+
+document.getElementById('btn-resolve-all').addEventListener('click', () => {
+  const active = comments.filter(c => !c.resolved && !c.outdated);
+  if (active.length === 0) {
+    showToast(comments.length > 0 ? '沒有 active comment（outdated 不算）' : '沒有 comment');
+    return;
+  }
+  if (!confirm(`把全部 ${active.length} 個 active comment 標為 resolved？（outdated 不會被標）`)) return;
+  const now = new Date().toISOString();
+  active.forEach(c => {
+    c.resolved = true;
+    c.resolvedAt = now;
+    updateMarkResolvedState(c.id, true);
+  });
+  saveComments();
+  renderCommentList();
+  showToast(`✓ 已標 ${active.length} 個 comment 為 resolved`);
+});
+
+// ============================================================
+// Mobile FAB
+// ============================================================
+
+document.getElementById('comment-fab').addEventListener('click', () => {
+  document.getElementById('comment-panel').classList.toggle('open');
+});
+
+// ============================================================
+// Mermaid lightbox (click to zoom + pan)
+// ============================================================
+
+let currentMmPanZoom = null;
+const mmBackdrop = document.getElementById('mm-modal-backdrop');
+const mmSvgWrap = document.getElementById('mm-modal-svg-wrap');
+const mmTitle = document.getElementById('mm-modal-title');
+
+function findDiagramLabel(mermaidEl) {
+  let n = mermaidEl.previousElementSibling;
+  while (n) {
+    if (n.tagName === 'H3' || n.tagName === 'H4' || n.tagName === 'H2') return n.textContent.trim();
+    n = n.previousElementSibling;
+  }
+  const sec = mermaidEl.closest('section');
+  if (sec) {
+    const h = sec.querySelector('h2');
+    if (h) return h.textContent.trim();
+  }
+  return 'Mermaid diagram';
+}
+
+function openMermaidLightbox(mermaidEl) {
+  const origSvg = mermaidEl.querySelector('svg');
+  if (!origSvg) return;
+  const cloned = origSvg.cloneNode(true);
+  cloned.removeAttribute('style');
+  cloned.removeAttribute('width');
+  cloned.removeAttribute('height');
+  cloned.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  mmSvgWrap.innerHTML = '';
+  mmSvgWrap.appendChild(cloned);
+  mmTitle.textContent = findDiagramLabel(mermaidEl);
+  mmBackdrop.classList.add('show');
+
+  setTimeout(() => {
+    try {
+      currentMmPanZoom = svgPanZoom(cloned, {
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        fit: true,
+        center: true,
+        minZoom: 0.3,
+        maxZoom: 12,
+        zoomScaleSensitivity: 0.4,
+        dblClickZoomEnabled: true
+      });
+    } catch (e) {
+      console.warn('pan-zoom init failed', e);
+    }
+  }, 40);
+}
+
+function closeMermaidLightbox() {
+  mmBackdrop.classList.remove('show');
+  if (currentMmPanZoom) {
+    try { currentMmPanZoom.destroy(); } catch (e) {}
+    currentMmPanZoom = null;
+  }
+  mmSvgWrap.innerHTML = '';
+}
+
+function bindMermaidLightbox() {
+  document.querySelectorAll('.mermaid').forEach(el => {
+    if (el.dataset.lbBound) return;
+    el.dataset.lbBound = '1';
+    el.addEventListener('click', (e) => {
+      const sel = window.getSelection();
+      if (sel && sel.toString().trim().length > 0 && el.contains(sel.anchorNode)) return;
+      openMermaidLightbox(el);
+    });
+  });
+}
+
+document.getElementById('mm-close').addEventListener('click', closeMermaidLightbox);
+document.getElementById('mm-zoom-in').addEventListener('click', () => currentMmPanZoom?.zoomIn());
+document.getElementById('mm-zoom-out').addEventListener('click', () => currentMmPanZoom?.zoomOut());
+document.getElementById('mm-reset').addEventListener('click', () => {
+  if (!currentMmPanZoom) return;
+  currentMmPanZoom.resetZoom();
+  currentMmPanZoom.center();
+  currentMmPanZoom.fit();
+});
+mmBackdrop.addEventListener('click', (e) => { if (e.target === mmBackdrop) closeMermaidLightbox(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && mmBackdrop.classList.contains('show')) closeMermaidLightbox();
+});
+
+// ============================================================
+// Sidebar toggle (floating menu button → hover overlay / click pin)
+// ============================================================
+
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const sidebarEl = document.getElementById('sidebar');
+let sidebarPinned = false;
+let sidebarHoverTimer = null;
+
+function setSidebarPinned(pinned) {
+  sidebarPinned = pinned;
+  document.body.classList.toggle('sidebar-pinned', pinned);
+  if (pinned) {
+    sidebarEl.classList.add('show', 'pinned-mode');
+    sidebarEl.classList.remove('hover-mode');
+  } else {
+    sidebarEl.classList.remove('show', 'pinned-mode', 'hover-mode');
+  }
+}
+
+function showSidebarHover() {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+  sidebarEl.classList.add('show', 'hover-mode');
+}
+
+function hideSidebarHover() {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+  sidebarHoverTimer = setTimeout(() => {
+    if (!sidebarPinned) {
+      sidebarEl.classList.remove('show', 'hover-mode');
+    }
+  }, 180);
+}
+
+sidebarToggle.addEventListener('click', () => setSidebarPinned(!sidebarPinned));
+sidebarToggle.addEventListener('mouseenter', showSidebarHover);
+sidebarToggle.addEventListener('mouseleave', hideSidebarHover);
+sidebarEl.addEventListener('mouseenter', () => {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+});
+sidebarEl.addEventListener('mouseleave', hideSidebarHover);
+// Click on a TOC link while in hover mode → also close
+sidebarEl.querySelectorAll('.toc a').forEach(a => {
+  a.addEventListener('click', () => {
+    if (!sidebarPinned) {
+      sidebarEl.classList.remove('show', 'hover-mode');
+    }
+  });
+});
+
+// ============================================================
+// File Sync (File System Access API + Import JSON)
+// ============================================================
+// Persistence options, in order of preference when available:
+//   1. File System Access API — auto-sync to design.comments.json (Chrome/Edge via localhost)
+//   2. Import JSON — manual file picker (all browsers, cross-browser migration)
+//   3. localStorage — always on as cache (existing behavior)
+
+const FILE_SYNC_DB = 'design-html-meta-v1';
+const FILE_SYNC_STORE = 'handles';
+const FILE_SYNC_KEY = 'sidecar-json';
+
+function openSyncDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(FILE_SYNC_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(FILE_SYNC_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function storeFileHandle(handle) {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readwrite');
+    tx.objectStore(FILE_SYNC_STORE).put(handle, FILE_SYNC_KEY);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function retrieveFileHandle() {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readonly');
+    const req = tx.objectStore(FILE_SYNC_STORE).get(FILE_SYNC_KEY);
+    req.onsuccess = () => res(req.result || null);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function clearFileHandle() {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readwrite');
+    tx.objectStore(FILE_SYNC_STORE).delete(FILE_SYNC_KEY);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+const fileSync = {
+  handle: null,
+  enabled: false,
+  filename: null,
+  saveTimer: null,
+
+  isAvailable() { return typeof window.showSaveFilePicker === 'function'; },
+
+  async restore() {
+    if (!this.isAvailable()) return false;
+    try {
+      const h = await retrieveFileHandle();
+      if (!h) return false;
+      this.handle = h;
+      this.filename = h.name;
+      const perm = await h.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') { this.enabled = true; return true; }
+      this.enabled = false;
+      return false;
+    } catch (e) { console.warn('[file-sync] restore', e); return false; }
+  },
+
+  async ensurePermission() {
+    if (!this.handle) return false;
+    let p = await this.handle.queryPermission({ mode: 'readwrite' });
+    if (p !== 'granted') p = await this.handle.requestPermission({ mode: 'readwrite' });
+    this.enabled = (p === 'granted');
+    return this.enabled;
+  },
+
+  async link() {
+    if (!this.isAvailable()) {
+      showToast('此 browser 不支援 File System Access API（Chrome / Edge only）— 改用 Import JSON');
+      return false;
+    }
+    try {
+      const h = await window.showSaveFilePicker({
+        suggestedName: sidecarName(),
+        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      this.handle = h;
+      this.filename = h.name;
+      this.enabled = true;
+      await storeFileHandle(h);
+
+      // If the file already had content AND we have diverging unsaved local edits, ask which wins.
+      // When not dirty, in-memory already matches the file (we fetched it) — just save, no prompt.
+      try {
+        const file = await h.getFile();
+        const text = await file.text();
+        if (text.trim() && isDirty()) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed.comments) && parsed.comments.length > 0) {
+            const useFile = confirm(
+              `檔案內已有 ${parsed.comments.length} 個 comment。\n\n` +
+              `[OK] 用檔案內容覆蓋目前 ${comments.length} 個\n` +
+              `[Cancel] 用目前 ${comments.length} 個覆蓋檔案`
+            );
+            if (useFile) {
+              comments = parsed.comments;
+              saveCommentsLocal();
+              document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+              comments.forEach(c => {
+                const ok = restoreComment(c);
+                c.outdated = !ok && !c.resolved;
+                if (ok && c.resolved) updateMarkResolvedState(c.id, true);
+              });
+              renderCommentList();
+            }
+          }
+        }
+      } catch (e) { /* new empty file, OK */ }
+
+      await this.save();
+      updateSyncStatus();
+      showToast(`📁 已連結到 ${this.filename}，後續自動同步`);
+      return true;
+    } catch (e) {
+      if (e.name !== 'AbortError') { console.warn('[file-sync] link', e); showToast('連結檔案失敗'); }
+      return false;
+    }
+  },
+
+  async unlink() {
+    this.handle = null;
+    this.filename = null;
+    this.enabled = false;
+    await clearFileHandle();
+    updateSyncStatus();
+    showToast('已解除檔案連結（改回 localStorage only）');
+  },
+
+  async save() {
+    if (!this.handle || !this.enabled) return false;
+    try {
+      const data = {
+        version: 1,
+        doc: DOC_NAME,
+        saved_at: new Date().toISOString(),
+        comment_count: comments.length,
+        comments
+      };
+      const writable = await this.handle.createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+      clearDirty();
+      return true;
+    } catch (e) { console.warn('[file-sync] save', e); return false; }
+  },
+
+  scheduleSave() {
+    if (!this.enabled) return;
+    clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => this.save(), 250);
+  },
+
+  async loadIfLinked() {
+    if (!this.handle || !this.enabled) return null;
+    try {
+      const file = await this.handle.getFile();
+      const text = await file.text();
+      if (!text.trim()) return { comments: [] };
+      return JSON.parse(text);
+    } catch (e) { console.warn('[file-sync] load', e); return null; }
+  }
+};
+
+function updateSyncStatus() {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const file = sidecarName();
+  const src = loadComments._source;
+  const dirty = isDirty();
+
+  if (fileSync.enabled) {
+    el.className = 'sync-status synced';
+    el.innerHTML = `<span>📁</span> Synced · <code>${escapeHtml(fileSync.filename)}</code> · 編輯自動寫入 · <button class="btn-link" data-action="unlink">unlink</button>`;
+  } else if (fileSync.handle && !fileSync.enabled) {
+    el.className = 'sync-status pending';
+    el.innerHTML = `<span>⚠</span> 已記得檔案 (<code>${escapeHtml(fileSync.filename)}</code>) · <button class="btn-link" data-action="resume">grant permission</button> · <button class="btn-link" data-action="unlink">unlink</button>`;
+  } else if (dirty) {
+    el.className = 'sync-status pending';
+    const writeBtn = fileSync.isAvailable()
+      ? `<button class="btn-link" data-action="link">save to ${escapeHtml(file)}…</button>`
+      : `<button class="btn-link" data-action="export">download ${escapeHtml(file)}…</button>`;
+    el.innerHTML = `<span>💾</span> 有未存入 <code>${escapeHtml(file)}</code> 的本機編輯 · ${writeBtn} · <button class="btn-link" data-action="import">import…</button>`;
+  } else if (src === 'fetch') {
+    el.className = 'sync-status readonly';
+    const editBtn = fileSync.isAvailable()
+      ? ` · <button class="btn-link" data-action="link">enable editing…</button>`
+      : '';
+    el.innerHTML = `<span>📄</span> 自動載入自 <code>${escapeHtml(file)}</code>（read-only）${editBtn} · <button class="btn-link" data-action="import">import…</button>`;
+  } else if (fileSync.isAvailable()) {
+    el.className = 'sync-status local';
+    el.innerHTML = `<span>💾</span> Local only · <button class="btn-link" data-action="link">link to ${escapeHtml(file)}…</button> · <button class="btn-link" data-action="import">import…</button>`;
+  } else {
+    el.className = 'sync-status local';
+    el.innerHTML = `<span>💾</span> Local only · 此 browser 不支援 File API · <button class="btn-link" data-action="import">import JSON…</button>`;
+  }
+  // Wire dynamic buttons
+  el.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const a = btn.dataset.action;
+      if (a === 'link') await fileSync.link();
+      else if (a === 'unlink') await fileSync.unlink();
+      else if (a === 'export') {
+        const data = { version: 1, doc: DOC_NAME, saved_at: new Date().toISOString(), comment_count: comments.length, comments };
+        downloadBlob(JSON.stringify(data, null, 2), 'application/json', file);
+        showToast(`↓ 已下載 ${file} — 放到 HTML 同層再 commit`);
+      }
+      else if (a === 'resume') {
+        const ok = await fileSync.ensurePermission();
+        if (ok) {
+          const remote = await fileSync.loadIfLinked();
+          if (remote && Array.isArray(remote.comments)) {
+            comments = remote.comments;
+            clearDirty();
+            saveCommentsLocal();
+            document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+            comments.forEach(c => {
+              const ok2 = restoreComment(c);
+              c.outdated = !ok2 && !c.resolved;
+              if (ok2 && c.resolved) updateMarkResolvedState(c.id, true);
+            });
+            renderCommentList();
+          }
+          updateSyncStatus();
+          showToast('✓ 檔案同步已重新啟用');
+        }
+      }
+      else if (a === 'import') importJsonFromFile();
+    });
+  });
+}
+
+function importJsonFromFile() {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) { resolve(null); return; }
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data.comments)) { showToast('JSON 格式不對（缺少 comments array）'); resolve(null); return; }
+        let take;
+        if (comments.length === 0) {
+          take = 'replace';
+        } else {
+          const ans = confirm(
+            `目前已有 ${comments.length} 個 comment，檔案內有 ${data.comments.length} 個。\n\n` +
+            `[OK] 取代（用檔案覆蓋目前）\n` +
+            `[Cancel] 合併（依 id 去重，重複的保留現有）`
+          );
+          take = ans ? 'replace' : 'merge';
+        }
+        if (take === 'replace') {
+          comments = data.comments;
+        } else {
+          const existing = new Set(comments.map(c => c.id));
+          data.comments.forEach(c => { if (!existing.has(c.id)) comments.push(c); });
+        }
+        saveComments();
+        document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+        comments.forEach(c => {
+          const ok = restoreComment(c);
+          c.outdated = !ok && !c.resolved;
+          if (ok && c.resolved) updateMarkResolvedState(c.id, true);
+        });
+        renderCommentList();
+        showToast(`✓ ${take === 'replace' ? '已取代' : '已合併'}：現在 ${comments.length} 個 comment`);
+        resolve(data);
+      } catch (err) { console.warn('import failed', err); showToast('JSON 解析失敗'); resolve(null); }
+    };
+    input.click();
+  });
+}
+
+// ============================================================
+// Panel width clamping — keep main content ≥ MAIN_W_MIN regardless of side panels
+// ============================================================
+// Both side panels must shrink so that main column is never below this width.
+// Without this, dragging either panel large can push total layout > viewport
+// and cause horizontal page scroll. Tuned for comfortable reading of design doc
+// tables / headers (main has 48px inner padding each side → content area ≥ 444).
+const MAIN_W_MIN = 540;
+
+// ============================================================
+// Comment panel resize (drag the left edge; width persists)
+// ============================================================
+const COMMENT_WIDTH_KEY = STORAGE_KEY + '-width';
+const COMMENT_W_MIN = 240;
+const COMMENT_W_MAX = 760;
+
+// Keep the fixed handle aligned with the panel's actual left edge (the layout is
+// centered with a max-width, so the edge isn't simply viewport-width − panel-width).
+function positionResizeHandle() {
+  const handle = document.getElementById('comment-resize-handle');
+  const panel = document.getElementById('comment-panel');
+  if (!handle || !panel) return;
+  if (getComputedStyle(handle).display === 'none') return;  // mobile
+  const r = panel.getBoundingClientRect();
+  if (r.width === 0) return;  // panel hidden (annotations-off)
+  handle.style.left = (r.left - 4) + 'px';
+}
+
+function applyCommentWidth(px) {
+  // Account for the *other* panel's current effective width when clamping —
+  // we must leave at least MAIN_W_MIN for the main column.
+  // Use clientWidth (excludes scrollbar) not innerWidth (includes it), plus a small
+  // safety buffer to keep the rightmost section-tag fully visible.
+  const learningHidden = document.body.classList.contains('learning-hidden');
+  const lwRaw = getComputedStyle(document.documentElement).getPropertyValue('--learning-w');
+  const lw = learningHidden ? 0 : (parseInt(lwRaw, 10) || 0);
+  const vpW = document.documentElement.clientWidth;
+  const SAFETY_BUFFER = 16;
+  const maxFitViewport = Math.max(COMMENT_W_MIN, vpW - lw - MAIN_W_MIN - SAFETY_BUFFER);
+  const effectiveMax = Math.min(COMMENT_W_MAX, maxFitViewport);
+  const w = Math.round(Math.min(effectiveMax, Math.max(COMMENT_W_MIN, px)));
+  document.documentElement.style.setProperty('--comment-w', w + 'px');
+  positionResizeHandle();
+  return w;
+}
+
+function applyStoredCommentWidth() {
+  const raw = localStorage.getItem(COMMENT_WIDTH_KEY);
+  if (raw) {
+    const n = parseInt(raw, 10);
+    if (!isNaN(n)) applyCommentWidth(n);
+  }
+}
+
+function bindCommentResize() {
+  const handle = document.getElementById('comment-resize-handle');
+  if (!handle || handle.dataset.bound) return;
+  handle.dataset.bound = '1';
+
+  let startX = 0, startW = 0, dragging = false;
+
+  function currentWidth() {
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--comment-w');
+    const n = parseInt(v, 10);
+    return isNaN(n) ? 320 : n;
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    applyCommentWidth(startW + (startX - x));  // drag left → panel grows (right-anchored)
+    e.preventDefault();
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('comment-resizing');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    localStorage.setItem(COMMENT_WIDTH_KEY, String(currentWidth()));
+  }
+  function onDown(e) {
+    dragging = true;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startW = currentWidth();
+    document.body.classList.add('comment-resizing');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    e.preventDefault();
+  }
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
+  handle.addEventListener('dblclick', () => {  // double-click resets to default
+    applyCommentWidth(320);
+    localStorage.setItem(COMMENT_WIDTH_KEY, '320');
+  });
+  window.addEventListener('resize', positionResizeHandle);
+  positionResizeHandle();
+}
+
+// Apply persisted width + bind drag immediately (independent of comment loading)
+applyStoredCommentWidth();
+bindCommentResize();
+
+// ============================================================
+// Learning panel — resize handle (mirrors comment-panel logic, anchored left)
+// ============================================================
+
+const LEARNING_WIDTH_KEY = STORAGE_KEY + '-learning-width';
+const LEARNING_W_MIN = 240;
+const LEARNING_W_MAX = 560;
+
+function positionLearningHandle() {
+  const handle = document.getElementById('learning-resize-handle');
+  const panel = document.getElementById('learning-panel');
+  if (!handle || !panel) return;
+  if (getComputedStyle(handle).display === 'none') return;
+  if (document.body.classList.contains('learning-hidden')) return;
+  const r = panel.getBoundingClientRect();
+  if (r.width === 0) return;
+  handle.style.left = (r.right - 5) + 'px';
+}
+
+function applyLearningWidth(px) {
+  // Mirror of applyCommentWidth: clamp by viewport accounting for comment panel.
+  const commentHidden = document.body.classList.contains('comments-hidden');
+  const cwRaw = getComputedStyle(document.documentElement).getPropertyValue('--comment-w');
+  const cw = commentHidden ? 0 : (parseInt(cwRaw, 10) || 0);
+  const vpW = document.documentElement.clientWidth;
+  const SAFETY_BUFFER = 16;
+  const maxFitViewport = Math.max(LEARNING_W_MIN, vpW - cw - MAIN_W_MIN - SAFETY_BUFFER);
+  const effectiveMax = Math.min(LEARNING_W_MAX, maxFitViewport);
+  const w = Math.round(Math.min(effectiveMax, Math.max(LEARNING_W_MIN, px)));
+  document.documentElement.style.setProperty('--learning-w', w + 'px');
+  positionLearningHandle();
+  return w;
+}
+
+function applyStoredLearningWidth() {
+  const raw = localStorage.getItem(LEARNING_WIDTH_KEY);
+  if (raw) {
+    const n = parseInt(raw, 10);
+    if (!isNaN(n)) applyLearningWidth(n);
+  }
+}
+
+function bindLearningResize() {
+  const handle = document.getElementById('learning-resize-handle');
+  if (!handle || handle.dataset.bound) return;
+  handle.dataset.bound = '1';
+
+  let startX = 0, startW = 0, dragging = false;
+
+  function currentWidth() {
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--learning-w');
+    const n = parseInt(v, 10);
+    return isNaN(n) ? 320 : n;
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    applyLearningWidth(startW + (x - startX)); // drag right → panel grows (left-anchored)
+    e.preventDefault();
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('learning-resizing');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    localStorage.setItem(LEARNING_WIDTH_KEY, String(currentWidth()));
+  }
+  function onDown(e) {
+    dragging = true;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startW = currentWidth();
+    document.body.classList.add('learning-resizing');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    e.preventDefault();
+  }
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
+  handle.addEventListener('dblclick', () => {
+    applyLearningWidth(320);
+    localStorage.setItem(LEARNING_WIDTH_KEY, '320');
+  });
+  window.addEventListener('resize', positionLearningHandle);
+  positionLearningHandle();
+}
+
+applyStoredLearningWidth();
+bindLearningResize();
+
+// ============================================================
+// Panel hide/show toggles (learning + comments)
+// ============================================================
+
+const PANEL_VIS_KEY = STORAGE_KEY + '-panels-visibility';
+
+function loadPanelVisibility() {
+  try {
+    const raw = localStorage.getItem(PANEL_VIS_KEY);
+    if (!raw) return;
+    const v = JSON.parse(raw);
+    if (v.learningHidden) document.body.classList.add('learning-hidden');
+    if (v.commentsHidden) document.body.classList.add('comments-hidden');
+  } catch (e) {}
+}
+function savePanelVisibility() {
+  localStorage.setItem(
+    PANEL_VIS_KEY,
+    JSON.stringify({
+      learningHidden: document.body.classList.contains('learning-hidden'),
+      commentsHidden: document.body.classList.contains('comments-hidden')
+    })
+  );
+}
+function reclampPanelWidths() {
+  // Re-apply both widths so each gets re-clamped against the new viewport / other-panel state.
+  const cwRaw = getComputedStyle(document.documentElement).getPropertyValue('--comment-w');
+  const lwRaw = getComputedStyle(document.documentElement).getPropertyValue('--learning-w');
+  const cw = parseInt(cwRaw, 10);
+  const lw = parseInt(lwRaw, 10);
+  if (!isNaN(cw)) applyCommentWidth(cw);
+  if (!isNaN(lw)) applyLearningWidth(lw);
+}
+
+function setLearningHidden(hidden) {
+  document.body.classList.toggle('learning-hidden', hidden);
+  savePanelVisibility();
+  setTimeout(() => {
+    reclampPanelWidths();
+    if (typeof positionResizeHandle === 'function') positionResizeHandle();
+    if (typeof positionLearningHandle === 'function') positionLearningHandle();
+  }, 60);
+}
+function setCommentsHidden(hidden) {
+  document.body.classList.toggle('comments-hidden', hidden);
+  savePanelVisibility();
+  setTimeout(() => {
+    reclampPanelWidths();
+    if (typeof positionResizeHandle === 'function') positionResizeHandle();
+    if (typeof positionLearningHandle === 'function') positionLearningHandle();
+  }, 60);
+}
+
+// Re-clamp on window resize (debounced via rAF) so panels always fit when user shrinks the window
+let _reclampRaf = null;
+window.addEventListener('resize', () => {
+  if (_reclampRaf) cancelAnimationFrame(_reclampRaf);
+  _reclampRaf = requestAnimationFrame(reclampPanelWidths);
+});
+
+loadPanelVisibility();
+// Apply initial clamp after visibility class is set (panel hide state affects clamp budget)
+reclampPanelWidths();
+
+document.getElementById('learning-close-btn')?.addEventListener('click', () => setLearningHidden(true));
+document.getElementById('comments-close-btn')?.addEventListener('click', () => setCommentsHidden(true));
+document.getElementById('learning-reopen-btn')?.addEventListener('click', () => setLearningHidden(false));
+document.getElementById('comments-reopen-btn')?.addEventListener('click', () => setCommentsHidden(false));
+
+// ============================================================
+// Learning panel — sync active card with main scroll position
+// ============================================================
+
+let learningObserver = null;
+const learningPanel = document.getElementById('learning-panel');
+const learningIndicator = document.getElementById('learning-active-indicator');
+const learningFab = document.getElementById('learning-fab');
+
+// Cards are sparse — not every section has one. Find the nearest card by section number.
+function findNearestLearningCard(sectionId) {
+  const exact = document.querySelector(`.learning-card[data-section="${sectionId}"]`);
+  if (exact) return exact;
+
+  const m = sectionId.match(/^s(\d+)$/);
+  if (!m) return null;
+  const target = parseInt(m[1], 10);
+
+  let bestCard = null;
+  let bestDist = Infinity;
+  document.querySelectorAll('.learning-card').forEach(c => {
+    const cm = (c.dataset.section || '').match(/^s(\d+)$/);
+    if (!cm) return;
+    const idx = parseInt(cm[1], 10);
+    const dist = Math.abs(idx - target);
+    if (dist < bestDist) { bestDist = dist; bestCard = c; }
+  });
+  return bestCard;
+}
+
+function setActiveLearningCard(sectionId) {
+  // Update indicator badge with the actual current section (whether or not it has a card)
+  const m = sectionId.match(/^s(\d+)$/);
+  if (m) learningIndicator.textContent = `§${m[1]}`;
+
+  const activated = findNearestLearningCard(sectionId);
+  if (!activated) return;
+
+  // Avoid redundant work if already active
+  if (activated.classList.contains('active')) return;
+
+  document.querySelectorAll('.learning-card').forEach(c => c.classList.remove('active'));
+  activated.classList.add('active');
+
+  // Smoothly center the active card in the panel (no page scroll)
+  if (!learningPanel) return;
+  const panelRect = learningPanel.getBoundingClientRect();
+  const cardRect = activated.getBoundingClientRect();
+  const currentScroll = learningPanel.scrollTop;
+  const offset =
+    cardRect.top - panelRect.top - panelRect.height / 2 + cardRect.height / 2;
+  const targetScroll = currentScroll + offset;
+  learningPanel.scrollTo({
+    top: Math.max(0, targetScroll),
+    behavior: 'smooth'
+  });
+}
+
+function bindLearningPanelSync() {
+  const sections = document.querySelectorAll('section.doc-section[id^="s"]');
+  if (sections.length === 0) return;
+
+  // Use IntersectionObserver to find the section that's most "in view"
+  // rootMargin offsets so trigger zone is roughly upper-middle of viewport
+  const visibility = new Map();
+
+  learningObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(e => visibility.set(e.target.id, e.intersectionRatio));
+
+      // Find section with highest ratio
+      let bestId = null;
+      let bestRatio = 0;
+      visibility.forEach((ratio, id) => {
+        if (ratio > bestRatio) {
+          bestRatio = ratio;
+          bestId = id;
+        }
+      });
+      if (bestId && bestRatio > 0) {
+        setActiveLearningCard(bestId);
+      }
+    },
+    {
+      rootMargin: '-15% 0px -55% 0px',
+      threshold: [0, 0.1, 0.25, 0.5, 0.75, 1]
+    }
+  );
+
+  sections.forEach(s => learningObserver.observe(s));
+
+  // Set initial active card based on current scroll
+  const firstVisible = Array.from(sections).find(s => {
+    const r = s.getBoundingClientRect();
+    return r.top < window.innerHeight && r.bottom > 0;
+  });
+  if (firstVisible) setActiveLearningCard(firstVisible.id);
+}
+
+// FAB toggle for narrow viewports (< 1320px)
+if (learningFab) {
+  learningFab.addEventListener('click', () => {
+    if (!learningPanel) return;
+    learningPanel.classList.toggle('open');
+  });
+  // Close on backdrop click (outside panel)
+  document.addEventListener('click', (e) => {
+    if (!learningPanel || !learningPanel.classList.contains('open')) return;
+    if (e.target === learningFab || learningFab.contains(e.target)) return;
+    if (learningPanel.contains(e.target)) return;
+    // Only auto-close when in mobile/drawer mode
+    if (window.matchMedia('(max-width: 1320px)').matches) {
+      learningPanel.classList.remove('open');
+    }
+  });
+}
+
+// Click on a learning card → smooth scroll main to that section
+// (skip if user is selecting text — they're trying to comment, not navigate)
+document.querySelectorAll('.learning-card').forEach(c => {
+  c.addEventListener('click', (e) => {
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return;
+    // Also skip if click target is interactive (e.g., resize handle)
+    if (e.target.closest('button, .learning-resize-handle, mark.annot')) return;
+    const id = c.dataset.section;
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.matchMedia('(max-width: 1320px)').matches && learningPanel) {
+      learningPanel.classList.remove('open');
+    }
+  });
+});
+
+// ============================================================
+// Init (wait for mermaid + hljs to finish rendering)
+// ============================================================
+
+async function init() {
+  bindMermaidLightbox();
+  bindLearningPanelSync();
+  await loadComments();
+  updateSyncStatus();
+  positionResizeHandle();
+}
+// Wait a bit for mermaid SVG rendering to settle
+setTimeout(init, 1800);
+</script>
+
+</body>
+</html>

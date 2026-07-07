@@ -1,0 +1,16 @@
+name: rag_filter_three_layer
+status: draft
+csv: dataset.csv
+task:
+  function: backend.evals.eval_tasks.run_rag_filter_three_layer
+pre_run:
+  function: backend.evals.eval_tasks.pre_run_rag_filter
+column_mapping:
+  question: input.question
+  target_ticker: input.target_ticker
+  target_entity_zh: input.target_entity_zh
+scorers:
+  - name: ticker_precision_at_5
+    function: backend.evals.scorers.ticker_precision_scorer.ticker_precision_at_5
+  - name: ticker_precision_at_10
+    function: backend.evals.scorers.ticker_precision_scorer.ticker_precision_at_10

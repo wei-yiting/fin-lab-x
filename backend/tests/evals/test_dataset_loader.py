@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from backend.evals.dataset_loader import _convert_cell, load_dataset
+from backend.evals.dataset_loader import (
+    _convert_cell,
+    apply_column_mapping,
+    load_dataset,
+)
 
 
 def write_csv(tmp_path: Path, content: str) -> Path:
@@ -269,3 +273,122 @@ def test_convert_cell_numeric_coercion(raw: str | None, expected: object) -> Non
     result = _convert_cell(raw)
     assert result == expected
     assert type(result) is type(expected)
+
+
+def test_load_dataset_parses_json_list_columns_from_raw_csv(tmp_path: Path) -> None:
+    """P0-1 regression: JSON-array cells must load as real lists, not raw strings.
+
+    Without column_types=json the loader stored the raw string
+    ``["NVDA / 2026 / Part I / Item 1A"]``; the sec_retrieval scorers then
+    iterated it character-by-character, turning recall@k / MRR / MAP into noise.
+    This feeds the CSV exactly as written on disk (double-quoted JSON).
+    """
+    csv_path = write_csv(
+        tmp_path,
+        "question,expected_header_paths,answer_snippets\n"
+        'What are NVIDIA'"'"'s risks?,'
+        '"[""NVDA / 2026 / Part I / Item 1A""]","[""export controls""]"\n',
+    )
+
+    rows = load_dataset(
+        csv_path,
+        {
+            "question": "input.question",
+            "expected_header_paths": "expected.header_paths",
+            "answer_snippets": "expected.answer_snippets",
+        },
+        {
+            "expected_header_paths": "json",
+            "answer_snippets": "json",
+        },
+    )
+
+    expected = rows[0]["expected"]
+    assert expected["header_paths"] == ["NVDA / 2026 / Part I / Item 1A"]
+    assert expected["answer_snippets"] == ["export controls"]
+    # The exact failure mode being guarded: a real list, never a str iterated per char.
+    assert isinstance(expected["header_paths"], list)
+    assert isinstance(expected["answer_snippets"], list)
+
+
+def test_load_dataset_json_empty_list_column(tmp_path: Path) -> None:
+    """Empty JSON array must become [] (falsy list), not the string "[]"."""
+    csv_path = write_csv(
+        tmp_path,
+        'question,answer_snippets\n"q","[]"\n',
+    )
+
+    rows = load_dataset(
+        csv_path,
+        {"question": "input", "answer_snippets": "expected.answer_snippets"},
+        {"answer_snippets": "json"},
+    )
+
+    assert rows[0]["expected"]["answer_snippets"] == []
+
+
+def test_load_dataset_str_type_pins_identifier_columns(tmp_path: Path) -> None:
+    """#48 regression: a str-pinned column keeps values that look like bool/number."""
+    csv_path = write_csv(
+        tmp_path,
+        "prompt,ticker\nhello,TRUE\n",
+    )
+
+    rows = load_dataset(
+        csv_path,
+        {"prompt": "input", "ticker": "expected.ticker"},
+        {"ticker": "str"},
+    )
+
+    ticker = rows[0]["expected"]["ticker"]
+    assert ticker == "TRUE"
+    assert isinstance(ticker, str)
+
+
+def test_load_dataset_rejects_column_types_for_unmapped_column(tmp_path: Path) -> None:
+    csv_path = write_csv(tmp_path, "prompt\nhello\n")
+
+    with pytest.raises(ValueError, match="unmapped column: ghost"):
+        load_dataset(csv_path, {"prompt": "input"}, {"ghost": "json"})
+
+
+def test_load_dataset_rejects_unknown_column_type(tmp_path: Path) -> None:
+    csv_path = write_csv(tmp_path, "prompt\nhello\n")
+
+    with pytest.raises(ValueError, match="Unsupported column_type 'list'"):
+        load_dataset(csv_path, {"prompt": "input"}, {"prompt": "list"})
+
+
+def test_load_dataset_rejects_malformed_json_cell(tmp_path: Path) -> None:
+    csv_path = write_csv(tmp_path, "prompt,tags\nhello,not-json\n")
+
+    with pytest.raises(ValueError, match="not valid JSON"):
+        load_dataset(
+            csv_path,
+            {"prompt": "input", "tags": "expected.tags"},
+            {"tags": "json"},
+        )
+
+
+def test_apply_column_mapping_matches_load_dataset_row(tmp_path: Path) -> None:
+    """The public helper produces the same row shape used by load_dataset."""
+    column_mapping = {
+        "question": "input.question",
+        "expected_header_paths": "expected.header_paths",
+    }
+    column_types = {"expected_header_paths": "json"}
+
+    row = apply_column_mapping(
+        {
+            "question": "q",
+            "expected_header_paths": '["NVDA / 2026 / Part I / Item 1A"]',
+        },
+        column_mapping,
+        column_types,
+    )
+
+    assert row == {
+        "input": {"question": "q"},
+        "expected": {"header_paths": ["NVDA / 2026 / Part I / Item 1A"]},
+        "metadata": {},
+    }

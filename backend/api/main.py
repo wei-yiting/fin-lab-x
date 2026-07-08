@@ -70,7 +70,7 @@ app.include_router(chat.router)
 app.include_router(chat_invoke.router)
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "version": APP_VERSION}

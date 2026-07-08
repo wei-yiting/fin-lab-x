@@ -1,0 +1,29 @@
+# Root .dockerignore — read by Docker because build context is repo root
+# (docker-compose.yml + CI both use `context: .`). A backend/.dockerignore is
+# NOT read under this configuration, so all exclusions must live here.
+
+# Credentials — the P0: never bake .env into any image layer
+backend/.env
+**/.env
+**/.env.*
+
+# Python bytecode / tool caches
+**/__pycache__
+*.pyc
+.venv
+.pytest_cache
+.ruff_cache
+
+# VCS / editor / agent tooling
+.git
+.github
+.vscode
+.claude
+.artifacts
+
+# Non-runtime source (tests, eval harness, docs, frontend, data)
+backend/tests/
+backend/evals/
+frontend/
+docs/
+data/

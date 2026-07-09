@@ -6,6 +6,7 @@ Central repository for architectural specifications, design plans, and project g
 
 ## Map
 
+- `design-envelope.md`: **Read first.** Calibration SSOT for scale assumptions, robustness targets, and depth allocation — every design, implementation, and review decision cites it by section number.
 - `agent_architecture.md`: High-level architecture, Single Orchestrator pattern, and design principles.
 - `file_structure.md`: Comprehensive mapping of directory responsibilities and file roles.
 - `observability.md`: Langfuse tracing patterns across the agent layer and ingestion pipelines; span inventory and trace hierarchy for the SEC pipeline.

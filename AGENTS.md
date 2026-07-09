@@ -11,6 +11,18 @@ The codebase is split into two primary environments:
 - **Frontend (`/frontend`)**: TypeScript-based Next.js Generative UI.
 - **Evaluation (`backend/evaluation`)**: Independent LLMOps and evaluation framework.
 
+### Design Envelope (read before designing, implementing, or reviewing)
+
+All design, implementation, and code-review decisions are calibrated against
+[`docs/design-envelope.md`](docs/design-envelope.md) — the single source of truth for scale
+assumptions, robustness targets, and depth allocation. Two symmetric rules:
+
+- Robustness beyond the envelope is **over-engineering** — flag it for removal, not improvement.
+- Shortcuts inside an envelope §4 Production-Grade Zone are **under-engineering**.
+
+Both are Major findings in review (envelope §7). Cite envelope sections by number instead of
+assuming production-scale requirements.
+
 ## 2. Build, Lint, and Test Commands
 
 ### Backend (Python / FastAPI / LangGraph)

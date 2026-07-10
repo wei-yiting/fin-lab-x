@@ -6,7 +6,7 @@ __pycache__/
 .env
 .vscode/
 .sisyphus/
-.artifacts/
+# .artifacts/ tracked during DEV-85 planning/implementation; re-exclude after completion
 artifacts/
 .superpowers/
 backend/evals/results/

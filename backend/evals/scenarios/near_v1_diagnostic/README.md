@@ -88,58 +88,16 @@ join key 不是直接拼字串比對而已；joiner 會先 parse `session_id`，
 - `review_confidence`
 - `review_comment`
 - `observed_primary_failure_mechanism`
-- `observed_secondary_failure_mechanism`
+- `obs_secondary_failure_mechanism`
 - `observed_tuning_lever`
 - `needs_followup`
 - `followup_note`
 - `langfuse_trace_id`
 - `langfuse_session_id`
-- `join_status`
 
-`join_status` 語意：
+沒有 trace-level annotation 的列，reviewer 欄位留空。
 
-- `annotated`: 核心 reviewer 欄位都已存在
-- `partial_annotation`: 有部分 reviewer annotation，但還不完整
-- `missing_annotation`: 這列還沒有 trace-level annotation
+Langfuse Score Config name 最長 35 字元，因此 `obs_secondary_failure_mechanism`
+在 UI 與 export 輸出裡都維持這個縮短名稱。
 
-Langfuse Score Config name 最長 35 字元，因此 UI 裡的
-`obs_secondary_failure_mechanism` 會在 export join 時映射回
-`observed_secondary_failure_mechanism`。
-
-## Compare Guard
-
-在 Analyst 解讀 Braintrust compare 前，先用本地 compare guard 檢查兩個 diagnostic run 是否真的可比：
-
-```bash
-uv run python -m backend.evals.diagnostic.compare_guard \
-  --run-a-manifest /path/to/run-a-manifest.csv \
-  --run-b-manifest /path/to/run-b-manifest.csv \
-  --output /tmp/diagnostic-compare-guard.json
-```
-
-compare guard 不會取代 Braintrust 的 row-by-row compare；它只負責先標示 comparability semantics，例如：
-
-- `same_row_set`
-- `intersection`
-- `overlap_only`
-- `dataset_version_mismatch`
-- `empty_intersection`
-
-compare guard 讀的檔案至少要有這些欄位：
-
-- `row_id`
-- `dataset_version`
-- `selected_row_ids`
-- `slice_label`
-- `slice_type`
-
-判讀原則：
-
-- 同版、同 row set 才能直接讀 aggregate compare
-- 同版 subset-vs-subset 若有交集，會標成 `intersection`
-- 同版 full-vs-subset 會標成 `overlap_only`
-- 跨 version 的 full-vs-full 仍可看交集 row，但會在 warning 內標示 `dataset_version_drift`
-- 跨 dataset version 的 subset compare 預設視為 `dataset_version_mismatch`
-- 若沒有交集 row，直接視為 `empty_intersection`
-
-另外，Braintrust Project Settings 應設定穩定的 comparison key，例如 `row_id`。compare guard 只負責先做可比性判斷，不會取代 Braintrust UI 的 row matching。
+Braintrust Project Settings 應設定穩定的 comparison key（例如 `row_id`），compare UI 才會對齊同一筆 dataset row。

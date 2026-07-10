@@ -22,7 +22,7 @@ Use this rule:
 
 - Braintrust: 看 execution、experiment compare、trace drill-down
 - Langfuse: 看 trace metadata、人工 annotation、scores export
-- 本地工具: `annotation_export_joiner` 把 Langfuse export 回接 dataset；`compare_guard` 先檢查兩個 run 能不能比
+- 本地工具: `annotation_export_joiner` 把 Langfuse export 回接 dataset
 
 常用指令：
 
@@ -30,14 +30,8 @@ Use this rule:
 # Full local diagnostic run
 uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only
 
-# Single-row subset
+# Row-id subset (quick rerun after a fix)
 uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --row-ids 1 --run-label smoke-local
-
-# Field-filter subset
-uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --field-filter capability_band=boundary --run-label boundary-local
-
-# Manifest-defined subset
-uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --manifest /tmp/diagnostic-row-ids.txt --run-label manifest-local
 
 # Braintrust platform mode
 uv run python -m backend.evals.eval_runner near_v1_diagnostic --run-label smoke-platform --output-dir /tmp/near-v1-diagnostic-platform
@@ -52,17 +46,11 @@ uv run python -m backend.evals.diagnostic.annotation_export_joiner \
   --dataset-name near_v1_diagnostic \
   --run-label smoke-local \
   --output /tmp/near-v1-diagnostic-discussion.csv
-
-# Check whether two diagnostic runs are comparable before reading Braintrust compare
-uv run python -m backend.evals.diagnostic.compare_guard \
-  --run-a-manifest /tmp/run-a-manifest.csv \
-  --run-b-manifest /tmp/run-b-manifest.csv \
-  --output /tmp/diagnostic-compare-guard.json
 ```
 
 Braintrust Project Settings 應設定穩定的 diagnostic comparison key，例如 `row_id`。這樣 compare UI 才會對齊同一筆 dataset row，而不是只靠 trace 順序或 experiment 內部索引。
 
-Langfuse Human Annotation 需要先建立 Score Config。Free plan 若只能使用一個 Annotation Queue，直接使用預設的 `diagnostic_triage_v1` profile：
+Langfuse Human Annotation 需要先建立 Score Config。setup script 建立單一 combined queue（triage + diagnostic 欄位）：
 
 ```bash
 uv run python -m backend.evals.diagnostic.langfuse_annotation_setup

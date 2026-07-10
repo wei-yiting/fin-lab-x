@@ -85,7 +85,7 @@ Key rules:
 
 - **Braintrust**: execution run、slice compare、trace drill-down、operator-facing experiment summaries
 - **Langfuse**: trace metadata、human annotation、scores export
-- **Local post-processing**: `annotation_export_joiner` 把 Langfuse export 回接 dataset；`compare_guard` 在 Analyst 解讀 compare 前先檢查 row-set comparability
+- **Local post-processing**: `annotation_export_joiner` 把 Langfuse export 回接 dataset
 
 這條 diagnostic track 不會把人工 annotation 混進 execution scorer，也不會把 Langfuse reviewer fields 回寫到 Braintrust score contract。
 

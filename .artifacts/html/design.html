@@ -1,0 +1,3027 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design — i18n：fin-lab-X 中英雙語支援（zh-TW / en）</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github.min.css">
+<style>
+/* ── Instrument-panel palette: cool ledger neutrals + teal accent + violet hub.
+   Light is the base; dark is redefined at token level below so every component
+   that styles through var() follows both themes. Reading-column widths are
+   intentionally left in the layout rules, not here. */
+:root {
+  --bg: #eceef1;
+  --card-bg: #ffffff;
+  --text: #14181f;
+  --text-muted: #3f4855;
+  --text-subtle: #6b7480;
+  --border: #dde1e7;
+  --border-strong: #c6ccd4;
+  --code-bg: #f0f2f5;
+  --code-ink: #2b3542;
+  --primary: #0c7d84;
+  --primary-light: #d6ecee;
+  --architecture: #2563eb;
+  --architecture-bg: #e8f0fe;
+  --sunset: #b4640f;
+  --sunset-bg: #fbeeda;
+  --inspect: #147045;
+  --inspect-bg: #e2f4ea;
+  --decision: #7c4dbd;
+  --decision-bg: #f0e9fb;
+  --ab: #c23b46;
+  --ab-bg: #fbe9e9;
+  --api: #0c7d84;
+  --api-bg: #dff1f2;
+  --open: #9a6410;
+  --open-bg: #fbeeda;
+  --info-fg: #1f5fae;
+  --warn-fg: #9a5410;
+  --key-fg: #6a3fb0;
+  --success-fg: #147045;
+  --row-hover: #f4f6f8;
+  --shadow: 0 1px 2px rgba(20,24,31,.04), 0 4px 16px rgba(20,24,31,.05);
+  --mono: "SFMono-Regular", "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --comment-w: 320px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1319;
+    --card-bg: #171c24;
+    --text: #eef1f5;
+    --text-muted: #b7bfca;
+    --text-subtle: #8b94a0;
+    --border: #262d38;
+    --border-strong: #333c48;
+    --code-bg: #10151c;
+    --code-ink: #bcc6d2;
+    --primary: #3fb8bf;
+    --primary-light: #16323a;
+    --architecture: #77aef0;
+    --architecture-bg: #142944;
+    --sunset: #e0a15a;
+    --sunset-bg: #33260f;
+    --inspect: #6fd79b;
+    --inspect-bg: #10321f;
+    --decision: #b18ce6;
+    --decision-bg: #241834;
+    --ab: #ec8d8d;
+    --ab-bg: #3a1c1c;
+    --api: #3fb8bf;
+    --api-bg: #10302f;
+    --open: #e0a15a;
+    --open-bg: #33260f;
+    --info-fg: #77aef0;
+    --warn-fg: #e0a15a;
+    --key-fg: #c3a3ef;
+    --success-fg: #6fd79b;
+    --row-hover: #1d232c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.28);
+  }
+}
+/* Explicit theme override (wins over the media query in both directions) */
+:root[data-theme="light"] {
+  --bg: #eceef1; --card-bg: #ffffff; --text: #14181f; --text-muted: #3f4855;
+  --text-subtle: #6b7480; --border: #dde1e7; --border-strong: #c6ccd4;
+  --code-bg: #f0f2f5; --code-ink: #2b3542; --primary: #0c7d84; --primary-light: #d6ecee;
+  --architecture: #2563eb; --architecture-bg: #e8f0fe; --sunset: #b4640f; --sunset-bg: #fbeeda;
+  --inspect: #147045; --inspect-bg: #e2f4ea; --decision: #7c4dbd; --decision-bg: #f0e9fb;
+  --ab: #c23b46; --ab-bg: #fbe9e9; --api: #0c7d84; --api-bg: #dff1f2; --open: #9a6410; --open-bg: #fbeeda;
+  --info-fg: #1f5fae; --warn-fg: #9a5410; --key-fg: #6a3fb0; --success-fg: #147045;
+  --row-hover: #f4f6f8; --shadow: 0 1px 2px rgba(20,24,31,.04), 0 4px 16px rgba(20,24,31,.05);
+}
+:root[data-theme="dark"] {
+  --bg: #0f1319; --card-bg: #171c24; --text: #eef1f5; --text-muted: #b7bfca;
+  --text-subtle: #8b94a0; --border: #262d38; --border-strong: #333c48;
+  --code-bg: #10151c; --code-ink: #bcc6d2; --primary: #3fb8bf; --primary-light: #16323a;
+  --architecture: #77aef0; --architecture-bg: #142944; --sunset: #e0a15a; --sunset-bg: #33260f;
+  --inspect: #6fd79b; --inspect-bg: #10321f; --decision: #b18ce6; --decision-bg: #241834;
+  --ab: #ec8d8d; --ab-bg: #3a1c1c; --api: #3fb8bf; --api-bg: #10302f; --open: #e0a15a; --open-bg: #33260f;
+  --info-fg: #77aef0; --warn-fg: #e0a15a; --key-fg: #c3a3ef; --success-fg: #6fd79b;
+  --row-hover: #1d232c; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.28);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--comment-w);
+  transition: padding-left 0.22s ease;
+}
+body.sidebar-pinned .layout {
+  padding-left: 260px;
+}
+body.comment-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+/* annotations-off mode: hide comment UI, single-column layout */
+body.annotations-off .layout { grid-template-columns: minmax(0, 1fr); max-width: 1100px; margin: 0 auto; }
+body.annotations-off .comment-panel,
+body.annotations-off .comment-fab,
+body.annotations-off .selection-toolbar,
+body.annotations-off #comment-dialog-backdrop { display: none !important; }
+
+/* SIDEBAR TOGGLE BUTTON (floating) */
+.sidebar-toggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 75;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  font-family: inherit;
+  line-height: 1;
+}
+.sidebar-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+body.sidebar-pinned .sidebar-toggle {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* SIDEBAR (fixed off-screen, slides in on hover/pin) */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 62px 18px 22px;
+  z-index: 60;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  font-size: 13.5px;
+}
+.sidebar.show { transform: translateX(0); }
+.sidebar.hover-mode { box-shadow: 6px 0 24px rgba(0, 0, 0, 0.12); }
+.sidebar.pinned-mode { box-shadow: none; }
+.sidebar-brand {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
+.sidebar-brand::before { content: "▚ "; color: var(--primary); }
+.sidebar-sub {
+  font-family: var(--mono);
+  color: var(--text-subtle);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  margin-bottom: 20px;
+}
+.toc {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.toc li { margin: 2px 0; }
+.toc a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.1s, color 0.1s;
+}
+.toc a:hover { background: var(--code-bg); color: var(--text); }
+.toc-num {
+  display: inline-block;
+  width: 22px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--primary);
+  font-feature-settings: "tnum";
+  flex-shrink: 0;
+}
+.toc-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* LEARNING PANEL (🎓 Learning Notes — optional floating panel, sibling of the TOC.
+   Violet accent to read as "calm / educational", distinct from the blue TOC/links and
+   the yellow annotation marks. All rules are inert unless the panel markup is present. */
+.learning-toggle {
+  position: fixed;
+  bottom: 14px;
+  left: 14px;
+  z-index: 75;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+  font-family: inherit;
+}
+.learning-toggle:hover {
+  background: var(--decision-bg);
+  border-color: var(--decision);
+}
+body.learning-open .learning-toggle {
+  background: var(--decision);
+  border-color: var(--decision);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+.learning-panel {
+  position: fixed;
+  bottom: 62px;
+  left: 14px;
+  width: 340px;
+  max-width: calc(100vw - 28px);
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--decision);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.18);
+  z-index: 74;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+body.learning-open .learning-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.learning-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.learning-panel-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--decision);
+  letter-spacing: -0.01em;
+}
+.learning-close {
+  border: none;
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+.learning-close:hover { background: var(--code-bg); color: var(--text); }
+.learning-panel-body {
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.learning-panel-body > *:first-child { margin-top: 4px; }
+.learning-panel-body h3 { font-size: 14.5px; margin: 16px 0 6px; }
+.learning-panel-body h4 {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+  margin: 14px 0 4px;
+}
+.learning-panel-body p { margin: 6px 0; }
+.learning-panel-body ul,
+.learning-panel-body ol { padding-left: 20px; margin: 6px 0; }
+.learning-panel-body li { margin: 3px 0; }
+.learning-panel-body pre { font-size: 12px; border-radius: 8px; }
+.learning-panel-body :not(pre) > code { font-size: 12.5px; }
+@media (max-width: 480px) {
+  .learning-panel { width: calc(100vw - 28px); max-height: 74vh; }
+}
+
+/* MAIN */
+main {
+  padding: 32px 56px 80px;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+/* Reading column: flowing text + headings are capped to a comfortable measure
+   and CENTERED, so wide tables / diagrams / code break past it symmetrically
+   (shared center axis) and the text block never looks skewed. The hero stays
+   inside the same centered column. */
+.hero {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+.doc-section > p,
+.doc-section > ul,
+.doc-section > ol,
+.doc-section > h3,
+.doc-section > h4,
+.doc-section > .callout,
+.doc-section > .section-head {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+/* HERO */
+.hero {
+  margin-bottom: 56px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+.status-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  background: var(--open-bg);
+  color: var(--open);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 4px 0 8px;
+  line-height: 1.2;
+}
+.hero .subtitle {
+  font-size: 17px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.stat-num {
+  font-family: var(--mono);
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 8px;
+}
+
+.prereq {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+.research-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.research-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+}
+
+/* SECTIONS */
+section.doc-section { margin-bottom: 56px; scroll-margin-top: 24px; }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-strong);
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  font-feature-settings: "tnum";
+  min-width: 28px;
+}
+.section-head h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+  flex: 1;
+}
+.section-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tag-architecture { background: var(--architecture-bg); color: var(--architecture); }
+.tag-sunset { background: var(--sunset-bg); color: var(--sunset); }
+.tag-inspect { background: var(--inspect-bg); color: var(--inspect); }
+.tag-decision { background: var(--decision-bg); color: var(--decision); }
+.tag-ab { background: var(--ab-bg); color: var(--ab); }
+.tag-api { background: var(--api-bg); color: var(--api); }
+.tag-open { background: var(--open-bg); color: var(--open); }
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 32px 0 14px;
+  color: var(--text);
+}
+h4 {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 22px 0 10px;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+p { margin: 0 0 14px; }
+
+/* INLINE */
+code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--code-ink);
+}
+strong { color: var(--text); font-weight: 600; }
+em { font-style: italic; color: var(--text-muted); }
+
+/* CODE BLOCK */
+pre {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 14px 0 20px;
+  border: 1px solid var(--border);
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+
+/* TABLES */
+.table-wrap {
+  overflow-x: auto;
+  margin: 14px 0 22px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+thead {
+  background: var(--code-bg);
+}
+th {
+  text-align: left;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-strong);
+}
+td {
+  padding: 10px 14px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.6;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--row-hover); }
+
+/* DECISION TABLE — colored num + larger row gap */
+.decisions-table td:first-child {
+  font-weight: 700;
+  text-align: center;
+  color: white;
+  width: 44px;
+  font-feature-settings: "tnum";
+  font-size: 13px;
+}
+.decisions-table.cat-pipeline td:first-child { background: var(--architecture); }
+.decisions-table.cat-coexist td:first-child { background: var(--sunset); }
+.decisions-table.cat-ab td:first-child { background: var(--ab); }
+.decisions-table.cat-api td:first-child { background: var(--api); }
+.decisions-table td:nth-child(2) {
+  font-weight: 600;
+  width: 28%;
+}
+.decisions-table td:nth-child(3) {
+  width: 38%;
+}
+.decisions-table td:nth-child(4) {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* MERMAID */
+.mermaid {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  margin: 18px 0 24px;
+  overflow-x: auto;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+/* CALLOUT */
+.callout {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0 20px;
+  border-left: 4px solid;
+  font-size: 14px;
+}
+.callout-info { background: var(--architecture-bg); border-color: var(--architecture); color: var(--info-fg); }
+.callout-warn { background: var(--sunset-bg); border-color: var(--sunset); color: var(--warn-fg); }
+.callout-key { background: var(--decision-bg); border-color: var(--decision); color: var(--key-fg); }
+.callout-success { background: var(--inspect-bg); border-color: var(--inspect); color: var(--success-fg); }
+.callout strong { color: inherit; }
+
+/* LISTS */
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+ul li, ol li { margin-bottom: 6px; }
+
+/* SUMMARY/DETAILS */
+details {
+  margin: 14px 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+details[open] summary { margin-bottom: 8px; }
+
+/* FOOTER */
+footer {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-subtle);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* === ANNOTATION SYSTEM === */
+
+.comment-panel {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 16px;
+  border-left: 1px solid var(--border);
+  background: var(--card-bg);
+  font-size: 13px;
+}
+/* Drag handle tracking the panel's left edge — drag left to widen (panel grows leftward).
+   position:fixed (left set by JS) so it never scrolls away when the panel overflows. */
+.comment-resize-handle {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 9px;
+  cursor: ew-resize;
+  z-index: 50;
+  touch-action: none;
+}
+.comment-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+.comment-resize-handle:hover::after,
+body.comment-resizing .comment-resize-handle::after {
+  background: var(--primary);
+}
+.comment-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.comment-panel-title {
+  font-weight: 700; font-size: 14px;
+}
+/* unified badge sizing — all three same height/padding/font */
+.comment-count-badge,
+.resolved-count-badge,
+.outdated-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  font-feature-settings: "tnum";
+}
+.comment-count-badge::before,
+.outdated-count-badge::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+.comment-count-badge { background: #fef08a; color: #854d0e; padding-left: 6px; }
+.comment-count-badge::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23854d0e' d='M4 3C2.9 3 2 3.9 2 5v10c0 1.1.9 2 2 2h4v4l5-4h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H4z'/></svg>");
+}
+.comment-help {
+  font-size: 11.5px; color: var(--text-subtle);
+  line-height: 1.5; margin-bottom: 14px;
+  padding: 8px 10px; background: var(--code-bg); border-radius: 6px;
+}
+.comment-actions {
+  display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.btn-action {
+  padding: 6px 10px;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.btn-action:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.btn-action.btn-danger:hover { background: var(--ab-bg); color: var(--ab); border-color: var(--ab); }
+.btn-action.btn-primary-action {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.btn-action.btn-primary-action:hover {
+  filter: brightness(1.08);
+  color: white;
+}
+.btn-icon {
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 1px;
+}
+.caret { font-size: 9px; opacity: 0.7; margin-left: 1px; }
+
+/* Export dropdown */
+.export-menu-wrap { position: relative; display: inline-block; }
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  display: none;
+  min-width: 180px;
+  padding: 4px;
+}
+.export-dropdown.show { display: block; }
+.export-option {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text);
+  border-radius: 4px;
+}
+.export-option:hover { background: var(--primary-light); color: var(--primary); }
+
+.comment-list { display: flex; flex-direction: column; gap: 8px; }
+.comment-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card:hover {
+  border-color: var(--primary);
+  transform: translateX(-2px);
+  box-shadow: -2px 2px 8px rgba(37, 99, 235, 0.08);
+}
+.comment-section {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.comment-quote {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--code-bg);
+  border-left: 2px solid #facc15;
+  padding: 5px 8px;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 6px;
+  line-height: 1.45;
+  font-style: italic;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.comment-body {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.comment-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10.5px; color: var(--text-subtle);
+}
+.btn-delete {
+  background: transparent; border: none;
+  color: var(--text-subtle);
+  cursor: pointer; font-size: 13px;
+  padding: 2px 5px; border-radius: 4px;
+  font-family: inherit;
+  line-height: 1;
+  opacity: 0.55;
+  transition: opacity 0.12s, background 0.12s, color 0.12s;
+}
+.btn-delete:hover {
+  background: var(--ab-bg);
+  color: var(--ab);
+  opacity: 1;
+}
+.empty-state {
+  color: var(--text-subtle); font-size: 12.5px;
+  text-align: center; padding: 32px 12px; line-height: 1.7;
+}
+
+/* annotation marks — pale highlight always carries dark ink so it stays legible
+   in dark mode (body text is light there; inherit would be unreadable on yellow). */
+mark.annot {
+  background: #fef08a;
+  color: #1a1a1a;
+  padding: 1px 2px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  border-bottom: 1px dashed #ca8a04;
+}
+mark.annot:hover { background: #fde047; }
+mark.annot.pulse {
+  animation: pulse-mark 1.6s ease-in-out;
+}
+@keyframes pulse-mark {
+  0%, 100% { background: #fef08a; }
+  50% { background: #facc15; box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.35); }
+}
+
+/* selection toolbar — fixed dark chip (tooltip-style) so it reads on both
+   light and dark pages; var(--text) would invert to near-white in dark mode
+   and hide the white label. */
+.selection-toolbar {
+  position: absolute;
+  display: none;
+  background: #1f2530;
+  color: white;
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 1000;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  white-space: nowrap;
+}
+.selection-toolbar button {
+  background: transparent; color: white; border: none;
+  padding: 6px 12px;
+  font-size: 12.5px; cursor: pointer; border-radius: 5px;
+  font-family: inherit;
+}
+.selection-toolbar button:hover { background: rgba(255,255,255,0.18); }
+
+/* comment dialog */
+.dialog-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 2000;
+}
+.dialog-backdrop.show { display: flex; }
+.comment-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  width: 480px; max-width: 90vw;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+.comment-dialog h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.comment-dialog .selection-preview {
+  background: var(--code-bg);
+  border-left: 3px solid #facc15;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  max-height: 100px; overflow-y: auto;
+  font-style: italic;
+  line-height: 1.5;
+}
+.comment-dialog textarea {
+  width: 100%; min-height: 100px;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit; font-size: 14px;
+  line-height: 1.5; resize: vertical;
+  box-sizing: border-box;
+}
+.comment-dialog textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(12, 125, 132, 0.18);
+}
+.dialog-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px;
+}
+.dialog-hint { font-size: 11.5px; color: var(--text-subtle); }
+.dialog-buttons { display: flex; gap: 6px; }
+.btn-primary {
+  background: var(--primary); color: white; border: none;
+  padding: 8px 18px; border-radius: 6px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-secondary {
+  background: var(--code-bg); color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+}
+.btn-secondary:hover { background: var(--border); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: white;
+  padding: 12px 18px;
+  border-radius: 8px; font-size: 13px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 3000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  max-width: 400px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* floating fab for mobile */
+.comment-fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--primary); color: white; border: none;
+  font-size: 22px; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(12, 125, 132, 0.4);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 40;
+}
+.comment-fab-badge {
+  position: absolute; top: -2px; right: -2px;
+  background: var(--ab); color: white;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; min-width: 18px;
+  text-align: center;
+}
+
+/* === MERMAID LIGHTBOX === */
+.mermaid {
+  cursor: zoom-in;
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.mermaid:hover {
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  border-color: var(--primary);
+}
+.mermaid::after {
+  content: '🔍 click to zoom';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.mermaid:hover::after { opacity: 1; }
+
+.mm-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.88);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 5000;
+}
+.mm-modal-backdrop.show { display: flex; }
+.mm-modal-frame {
+  width: 95vw; height: 92vh;
+  background: white;
+  border-radius: 12px;
+  position: relative;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+.mm-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.mm-modal-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.mm-modal-actions { display: flex; gap: 6px; }
+.mm-modal-actions button {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mm-modal-actions button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.mm-modal-svg-wrap {
+  flex: 1;
+  overflow: hidden;
+  background: white;
+}
+.mm-modal-svg-wrap svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+}
+
+/* === RESOLVED STATE (dimmed + muted gray-green) === */
+mark.annot.resolved {
+  background: #e6ede9 !important;
+  color: #5f6b66 !important;
+  border-bottom-color: #c0ccc4 !important;
+  opacity: 1 !important;
+}
+mark.annot.resolved:hover {
+  background: #d4ddd7 !important;
+  color: #1a1a1a !important;
+}
+
+.comment-card.resolved {
+  background: #f3f6f4;
+  border-color: #e0e8e3;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card.resolved:hover {
+  opacity: 0.95;
+  border-color: #c8d3cc;
+  box-shadow: -2px 2px 8px rgba(120, 130, 125, 0.08);
+}
+.comment-card.resolved .comment-quote {
+  border-left-color: transparent;
+  background: #eef2f0;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.status-pill.resolved {
+  background: #e6ede9;
+  color: #6b7975;
+}
+.status-pill.outdated {
+  background: #dbe6f3;
+  color: #3d5b7e;
+}
+
+/* outdated state — same dim as resolved but with subtle blue tint */
+.comment-card.outdated {
+  background: #f4f8fc;
+  border-color: #dbe4ee;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card.outdated:hover {
+  opacity: 0.95;
+  border-color: #bccbdc;
+  box-shadow: -2px 2px 8px rgba(80, 110, 150, 0.1);
+}
+.comment-card.outdated .comment-quote {
+  border-left-color: transparent;
+  background: #e8eff7;
+}
+
+.comment-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.btn-toggle:hover {
+  background: #bbf7d0;
+  color: #047857;
+  border-color: #86efac;
+}
+.comment-card.resolved .btn-toggle:hover {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.comment-counts {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.resolved-count-badge { background: #e6ede9; color: #6b7975; }
+.outdated-count-badge { background: #dbe6f3; color: #3d5b7e; padding-left: 6px; }
+.outdated-count-badge::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%233d5b7e' d='M5 2h14v2l-5 8 5 8v2H5v-2l5-8-5-8V2z'/></svg>");
+}
+.status-pill.outdated::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%233d5b7e' d='M5 2h14v2l-5 8 5 8v2H5v-2l5-8-5-8V2z'/></svg>");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* === FILE SYNC STATUS === */
+.sync-status {
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sync-status.local {
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.sync-status.synced {
+  background: var(--inspect-bg);
+  color: var(--inspect);
+  border: 1px solid #6ee7b7;
+}
+.sync-status.pending {
+  background: var(--open-bg);
+  color: #854d0e;
+  border: 1px solid #fde68a;
+}
+.sync-status.readonly {
+  background: var(--architecture-bg, #eff6ff);
+  color: var(--architecture, #1d4ed8);
+  border: 1px solid #bfdbfe;
+}
+.sync-status code {
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+  font-weight: 600;
+}
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.btn-link:hover { color: var(--primary); }
+
+/* MOBILE */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  body.sidebar-pinned .layout { padding-left: 260px; }
+  .comment-panel {
+    position: fixed; top: 0; right: 0;
+    width: 320px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.2s;
+    box-shadow: -8px 0 24px rgba(0,0,0,0.12);
+  }
+  .comment-panel.open { transform: translateX(0); }
+  .comment-fab { display: flex; }
+  .comment-resize-handle { display: none; }
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  body.sidebar-pinned .layout { padding-left: 0; }
+  main { padding: 24px 20px 64px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- FLOATING SIDEBAR TOGGLE -->
+<button class="sidebar-toggle" id="sidebar-toggle" title="Table of contents (hover preview · click to pin)">≡</button>
+
+<!-- SIDEBAR (fixed positioned, hidden by default, hover or click toggle button to show) -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">i18n Design</div>
+  <div class="sidebar-sub">DEV-85 · zh-TW / en 雙語支援</div>
+  <nav>
+    <ul class="toc">
+      <li><a href="#s1"><span class="toc-num">1.</span><span class="toc-label">目標與範圍</span></a></li>
+      <li><a href="#s2"><span class="toc-num">2.</span><span class="toc-label">架構總覽</span></a></li>
+      <li><a href="#s3"><span class="toc-num">3.</span><span class="toc-label">元件職責</span></a></li>
+      <li><a href="#s4"><span class="toc-num">4.</span><span class="toc-label">Data flow</span></a></li>
+      <li><a href="#s5"><span class="toc-num">5.</span><span class="toc-label">Contract-defining interfaces</span></a></li>
+      <li><a href="#s6"><span class="toc-num">6.</span><span class="toc-label">Key design decisions</span></a></li>
+      <li><a href="#s7"><span class="toc-num">7.</span><span class="toc-label">Constraints 與 trade-offs</span></a></li>
+      <li><a href="#s8"><span class="toc-num">8.</span><span class="toc-label">Testing strategy</span></a></li>
+      <li><a href="#s9"><span class="toc-num">9.</span><span class="toc-label">規模估算</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+<button class="learning-toggle" id="learning-toggle" title="🎓 Learning Notes" aria-label="Toggle Learning Notes" aria-expanded="false">🎓</button>
+<aside class="learning-panel" id="learning-panel" aria-label="Learning Notes">
+  <div class="learning-panel-header">
+    <span class="learning-panel-title">🎓 Learning Notes</span>
+    <button class="learning-close" id="learning-close" title="收合 (Esc)" aria-label="Close">×</button>
+  </div>
+  <div class="learning-panel-body">
+    <h3>探索的領域概念</h3>
+    <ul>
+      <li><strong>UI copy vs content-as-data 的分層</strong> — i18n catalog 適合短字串（按鈕、label、error title）；長文內容（如 DEV-81 展品的情境/root cause 敘述）塞進 catalog 是反模式——key 失去語意（<code>exhibit.12.rootCause.para2</code>）、diff 難讀、翻譯流程不順。正解是每 locale 一個共用 schema 的 typed content module，依當前語言 lazy import。這個判斷與「用不用 i18n framework」無關，兩邊都適用。</li>
+      <li><strong>react-i18next 的編譯期 type safety</strong> — 透過 TypeScript declaration merging 擴充 <code>CustomTypeOptions</code>（<code>resources: typeof en</code>），<code>t()</code> 的 key 成為 union type，typo 直接編譯失敗；搭配 <code>satisfies typeof en</code> 強制兩份 catalog 同形，「漏翻」從 runtime fallback 問題變成編譯錯誤。</li>
+      <li><strong>i18next-browser-languagedetector 的 detection order</strong> — 偵測來源是有序清單（localStorage → navigator），使用者手動切換後 detector 自動 cache 選擇，天然實現「手動選擇優先於瀏覽器偏好」的語意，不需自寫持久化邏輯。</li>
+    </ul>
+    <h3>評估過的方案與取捨</h3>
+    <ul>
+      <li><strong>自建 typed mini-i18n（最初推薦，最終否決）</strong> — ~100 行 context + typed dictionary + t() hook，零依賴、typed keys 免設定。技術上完全可行且對「今天的 44 keys」是更小的解。否決的三個因素：(1) FinLab-X 正從單頁長成多分頁 app，規模非穩態；(2) agent-driven development 下，標準 API 在模型 training data 裡，自建 API 要求每個未來 session 先讀懂 infra；(3) 設計決策要能在面試中被自在辯護。核心教訓：<strong>build-vs-buy 的「YAGNI + 自建更小」論點，需同時通過「規模凍結、協作者免學習、可辯護」三個檢驗才成立</strong>。</li>
+      <li><strong>react-intl（FormatJS）</strong> — 強在 ICU MessageFormat（複雜 plural / 性別 / 日期格式）；本專案無 plural、無日期格式需求，明顯 overkill。</li>
+    </ul>
+    <h3>關鍵收穫與資源</h3>
+    <ul>
+      <li>長文多語化的 lazy loading 不需要 i18n framework 的 namespace 機制——bundler 的 dynamic import / code splitting 就是正解，工具邊界要看「誰本來就該做這件事」。</li>
+      <li>「使用者對同一建議重複質疑」本身是設計訊號：不重複推銷，改為重新權衡（本次因此翻盤）。</li>
+      <li>參考：react-i18next TypeScript 設定（CustomTypeOptions module augmentation，官方 example <code>react-typescript/simple</code>）；i18next <code>fallbackLng</code> 可用 map 形式處理 <code>zh*</code> → zh-TW 的區域變體映射。</li>
+    </ul>
+  </div>
+</aside>
+
+<div class="layout">
+
+<main>
+
+<!-- HERO — status-badge / stats-grid / prereq / research-links are all OPTIONAL.
+     Omit any block that the source doc doesn't justify (see references/styling-guide.md). -->
+<header class="hero">
+  <span class="status-badge">已定案 · spec review passed</span>
+  <h1>i18n：fin-lab-X 中英雙語支援（zh-TW / en）</h1>
+  <p class="subtitle">react-i18next + 編譯期 typed keys 的雙層架構——UI copy 走 catalog，長文內容走 content-as-data</p>
+
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-num">9</div><div class="stat-label">Sections</div></div>
+    <div class="stat"><div class="stat-num">7</div><div class="stat-label">Decisions</div></div>
+    <div class="stat"><div class="stat-num">~44</div><div class="stat-label">UI strings</div></div>
+    <div class="stat"><div class="stat-num">1</div><div class="stat-label">Slice / PR</div></div>
+  </div>
+
+  <div class="prereq"><strong>Gate</strong> · 這份 review 只回答一個問題：<strong>方向、邊界、slice 拆分對嗎？</strong>（不看檔案結構、不看 test cases）</div>
+  <div class="research-links">
+    <span class="research-chip">DEV-85</span>
+    <span class="research-chip">feat/i18n-bilingual</span>
+    <span class="research-chip">.artifacts/current/design.md</span>
+  </div>
+</header>
+
+<section id="s1" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§1</span>
+    <h2>目標與範圍</h2>
+    <span class="section-tag tag-architecture">Scope</span>
+  </div>
+  <p>讓 FinLab-X frontend 支援繁體中文（zh-TW）與 English（en）雙語：使用者可在 UI 即時切換，語言選擇跨 reload / session 保存，所有 user-facing 文案改由 i18n 機制管理，不再 hardcode。</p>
+  <p><strong>現況</strong>：~44 個 distinct user-facing strings 全部是 hardcoded English，集中在 error title 映射模組（~15）、EmptyState（6）、Composer（5），其餘散在約 10 個 components。無 pluralization、無 date/number formatting、僅 3 處 <code>${toolName}</code> interpolation。中文字型（Noto Sans TC variable font）已在 dependencies 中，無需新增。</p>
+  <h3>Out of scope</h3>
+  <ul>
+    <li>Backend API 回應內容的多語化（raw error detail 維持後端原樣顯示）</li>
+    <li>LLM 生成內容（agent 回答）的語言控制</li>
+    <li>zh-TW / en 以外的語言</li>
+    <li>DEV-81 失敗博物館展品的實際翻譯與頁面實作（本設計只定義 content layer pattern 供其沿用）</li>
+  </ul>
+</section>
+
+<section id="s2" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§2</span>
+    <h2>架構總覽</h2>
+    <span class="section-tag tag-architecture">Architecture</span>
+  </div>
+  <div class="callout callout-key"><strong>核心 insight</strong> · 採<strong>雙層架構</strong>，區分「UI 文案」與「長文內容」兩種本質不同的多語資產——短字串進 i18n catalog，長文走 content-as-data。</div>
+  <div class="mermaid">
+flowchart TB
+    subgraph detect["語言解析（i18next-browser-languagedetector）"]
+        LS["localStorage"] -->|"1. 有存過就用它"| I18N
+        NAV["navigator.language"] -->|"2. zh* → zh-TW，其餘 → en"| I18N
+    end
+
+    subgraph ui["UI Copy Layer（本 issue 建）"]
+        I18N["i18next instance<br/>resources 內嵌（不走 async backend）"]
+        CAT["catalogs en / zh-TW<br/>type 強制同形"]
+        DTS["CustomTypeOptions<br/>→ 編譯期 typed keys"]
+        CAT --> I18N
+        DTS -.-> HOOK
+        I18N --> HOOK["useTranslation() → t()"]
+    end
+
+    subgraph consumers["Components（~10 檔改用 t()）"]
+        CH["ChatHeader + LanguageToggle 中|EN"]
+        CO["Composer / EmptyState / ErrorBlock / ToolRow …"]
+        EM["error-messages：回傳 message key，渲染端 t() 解析"]
+    end
+
+    subgraph content["Content Layer（定 pattern，DEV-81 沿用）"]
+        SCHEMA["共用 typed schema<br/>每 locale 一個 content module<br/>依 locale lazy import，不進 catalog"]
+    end
+
+    HOOK --> CH
+    HOOK --> CO
+    HOOK --> EM
+    I18N -->|"i18n.language"| SCHEMA
+    CH -->|"changeLanguage() → 自動 cache 回 localStorage<br/>→ 同步 document.lang"| I18N
+  </div>
+</section>
+
+<section id="s3" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§3</span>
+    <h2>元件職責</h2>
+    <span class="section-tag tag-architecture">Components</span>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>元件</th><th>職責</th></tr></thead>
+    <tbody>
+      <tr><td>i18next instance（init module）</td><td>註冊 detector 與 react binding；resources 內嵌 bundle（兩份 catalog 極小，不走 async backend、不需 Suspense）；<code>fallbackLng</code> map 實現 <code>zh*</code> → zh-TW、其餘 → en</td></tr>
+      <tr><td>Message catalogs（en / zh-TW）</td><td>巢狀 object 各 ~44 keys；zh-TW 的型別強制與 en 同形——<strong>漏翻即編譯失敗</strong>，runtime 不存在裸 key</td></tr>
+      <tr><td>Typed keys 宣告</td><td><code>CustomTypeOptions</code> declaration merging，key typo 編譯失敗；由 CI 既有的 <code>tsc -b</code> 把守</td></tr>
+      <tr><td><code>LanguageToggle</code></td><td>ChatHeader 右側 segmented「中｜EN」，單擊切換、現行語言高亮；切換觸發 <code>changeLanguage()</code>（detector 自動 cache 回 localStorage）並同步 <code>document.documentElement.lang</code></td></tr>
+      <tr><td>error-messages 模組</td><td>lookup tables（HTTP status map、regex pattern tables）保持純邏輯，<strong>回傳 message key 而非英文字串</strong>；<code>ErrorBlock</code> 渲染時以 <code>t()</code> 解析</td></tr>
+      <tr><td>Content layer pattern</td><td><code>content/&lt;feature&gt;/&lt;name&gt;.&lt;locale&gt;.ts</code> 共用 typed schema，依 <code>i18n.language</code> 動態 import（lazy，不進主 bundle）；本 issue 交付 <strong>generic pattern（<code>Locale</code> type + 檔名慣例 + 最小示例型別）</strong>——具體的 exhibits schema 屬 DEV-81 設計範圍，本 issue 不臆造</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s4" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§4</span>
+    <h2>Data flow</h2>
+    <span class="section-tag tag-architecture">Data flow</span>
+  </div>
+  <ul>
+    <li><strong>啟動</strong>：detector 依序查 localStorage → <code>navigator.language</code>；<code>zh*</code> 映射到 zh-TW，其餘 fallback en → components 經 <code>useTranslation()</code> 取得對應語言文案</li>
+    <li><strong>切換</strong>：Toggle 點擊 → <code>changeLanguage()</code> → React re-render 即時生效 + detector cache 回 localStorage + 同步 <code>document.lang</code>（a11y 與字型選字正確性）</li>
+    <li><strong>邊界</strong>：backend raw error detail、LLM 生成內容、tool 名稱（來自 backend data）維持原樣不翻</li>
+  </ul>
+  <div class="callout callout-info"><strong>Note</strong> · EmptyState 的 4 個 prompt chips 照翻——中文介面下點擊 chip 送出的是中文 prompt，LLM 以中文回答是<strong>預期行為</strong>（見 §6 決策 7）。</div>
+</section>
+
+<section id="s5" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§5</span>
+    <h2>Contract-defining interfaces</h2>
+    <span class="section-tag tag-api">Contracts</span>
+  </div>
+  <pre><code class="language-typescript">// catalog 同形 contract：zh-TW 漏 key / 多 key 都編譯失敗
+export const zhTW = { ... } satisfies typeof en;
+
+// error-messages 邊界：回傳 key，不回傳文案
+resolveErrorTitle(...): ErrorTitleKey  // ErrorTitleKey ⊂ typed catalog keys
+
+// content layer pattern（DEV-81 沿用）
+// content/&lt;feature&gt;/&lt;name&gt;.&lt;locale&gt;.ts，共用 schema，依 locale lazy import
+// 注意：Vite 對帶變數的 dynamic import 有限制，實作採 import.meta.glob 或相對路徑
+const load = (locale: Locale) =&gt; import(`./content/museum/exhibits.${locale}.ts`);</code></pre>
+</section>
+
+<section id="s6" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§6</span>
+    <h2>Key design decisions</h2>
+    <span class="section-tag tag-decision">Decisions</span>
+  </div>
+  <div class="table-wrap">
+  <table class="decisions-table cat-pipeline">
+    <thead><tr><th>#</th><th>決策</th><th>選擇</th><th>捨棄方案</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>i18n 機制</td><td>react-i18next 全套（i18next + react binding + browser-languagedetector）</td><td>自建 typed mini-i18n；react-intl</td><td>多分頁成長軌跡（44 keys 非穩態）、agent-driven development 的標準 API 熟悉度、業界標準可辯護性；react-intl 的 ICU 能力用不到</td></tr>
+      <tr><td>2</td><td>Typed keys</td><td>CustomTypeOptions + <code>satisfies</code> 同形檢查</td><td>i18next-cli codegen</td><td>resources 內嵌、規模小，不需 extraction 工具鏈</td></tr>
+      <tr><td>3</td><td>Default language</td><td>localStorage → browser 偵測（<code>zh*</code> → zh-TW）→ en</td><td>固定 en / 固定 zh-TW</td><td>台灣使用者首見中文、國際訪客英文；手動選擇後以選擇為準</td></tr>
+      <tr><td>4</td><td>切換器</td><td>Header segmented「中｜EN」toggle</td><td>地球 icon dropdown</td><td>僅兩語言，toggle 少一次點擊、免新增 menu primitive</td></tr>
+      <tr><td>5</td><td>長文內容</td><td>content-as-data、每 locale 一 module、lazy import</td><td>塞進 i18n catalog</td><td>長文進 catalog 是反模式（key 無語意、diff 難讀、翻譯流程不順）；lazy load 由 bundler code splitting 提供，不需 i18next namespace</td></tr>
+      <tr><td>6</td><td>Error titles</td><td>tables 回傳 key，渲染端解析</td><td>tables 內直接存雙語字串</td><td>tables 保持純邏輯，文案集中 catalog 統一管理</td></tr>
+      <tr><td>7</td><td>Prompt chips</td><td>照翻（中文 chip 送出中文 prompt）</td><td>chips 固定英文</td><td>使用者選了中文介面，LLM 以中文回答是預期行為</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s7" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§7</span>
+    <h2>Constraints 與 trade-offs</h2>
+    <span class="section-tag tag-decision">Trade-offs</span>
+  </div>
+  <ul>
+    <li>i18next + react-i18next + detector 約 +20KB gzipped——對本 app 無感，換得生態系與擴充性</li>
+    <li>現有測試斷言英文字串：test 環境（jsdom、無 localStorage 預設值）解析為 en，既有斷言原則上不需改寫，但 render helpers 需包 i18n provider</li>
+    <li>zh-TW 初稿翻譯由 agent 產出，<strong>語感與台灣用語由 human review</strong>（DEV-85 Human todo）</li>
+  </ul>
+</section>
+
+<section id="s8" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§8</span>
+    <h2>Testing strategy</h2>
+    <span class="section-tag tag-ab">Testing</span>
+  </div>
+  <ul>
+    <li><strong>編譯期</strong>：catalog 同形 + typed keys 由 <code>tsc -b</code>（CI 既有步驟）直接把守，這層本身就是防護網</li>
+    <li><strong>Unit</strong>：error-messages 回傳 key 的映射邏輯；語言偵測映射（<code>zh*</code> → zh-TW、其餘 → en）</li>
+    <li><strong>Component（RTL）</strong>：toggle 切換後文案即時更新；render helper 包 provider 後既有測試全數通過</li>
+    <li><strong>E2E（Playwright）</strong>：切換 → reload → 語言保持；兩語言下主要 flow 無裸 key、無破版</li>
+  </ul>
+</section>
+
+<section id="s9" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§9</span>
+    <h2>規模估算</h2>
+  </div>
+  <p>init module + typed-keys 宣告 + 兩份 catalog（~70 行 × 2）+ ~10 個 component 改 <code>t()</code> + <code>LanguageToggle</code> + 測試調整 ≈ <strong>600–800 行 net diff</strong> → 單一 slice、一個 PR，不需 Slice Roadmap。</p>
+</section>
+
+<footer>
+  Rendered from .artifacts/current/design.md · 2026-07-10 · DEV-85 feat/i18n-bilingual @ 1ccf705
+</footer>
+
+</main>
+
+<!-- COMMENT PANEL -->
+<aside class="comment-panel" id="comment-panel">
+  <div class="comment-resize-handle" id="comment-resize-handle" title="拖曳調整寬度"></div>
+  <div class="comment-panel-header">
+    <span class="comment-panel-title">Comments</span>
+    <span class="comment-counts">
+      <span class="comment-count-badge" id="comment-count" title="待處理 (active)">0</span>
+      <span class="resolved-count-badge" id="resolved-count" title="已 resolved" style="display:none">✓ 0</span>
+      <span class="outdated-count-badge" id="outdated-count" title="Outdated — doc 已修改，原文字找不到" style="display:none">0</span>
+    </span>
+  </div>
+
+  <div class="sync-status local" id="sync-status">
+    <span>💾</span> Local only · checking…
+  </div>
+
+  <div class="comment-help" id="comment-help">
+    選文字 → 「💬 新增 comment」→ 寫想法。<br>
+    Comment card 上 「Resolve」 切灰綠；Export 只匯出未 resolved。
+  </div>
+
+  <div class="comment-actions">
+    <button class="btn-action btn-primary-action" id="btn-copy-json" title="複製 active JSON 到剪貼簿">
+      <span class="btn-icon">⧉</span> Copy JSON
+    </button>
+    <div class="export-menu-wrap">
+      <button class="btn-action" id="btn-export-menu" title="下載檔案 (JSON / Prompt)">
+        <span class="btn-icon">↓</span> Export <span class="caret">▾</span>
+      </button>
+      <div class="export-dropdown" id="export-dropdown" role="menu">
+        <button class="export-option" data-format="json">JSON file (.json)</button>
+        <button class="export-option" data-format="prompt">Prompt markdown (.md)</button>
+      </div>
+    </div>
+    <button class="btn-action" id="btn-resolve-all" title="把所有 active comment 標為 resolved">
+      <span class="btn-icon">✓</span> Resolve all
+    </button>
+    <button class="btn-action btn-danger" id="btn-clear-all" title="刪除全部 comment">
+      <span class="btn-icon">×</span> Clear
+    </button>
+  </div>
+
+  <div class="comment-list" id="comment-list"></div>
+</aside>
+
+</div>
+
+<!-- FAB (mobile) -->
+<button class="comment-fab" id="comment-fab" aria-label="Toggle comments">💬<span class="comment-fab-badge" id="fab-badge" style="display:none">0</span></button>
+
+<!-- SELECTION TOOLBAR -->
+<div class="selection-toolbar" id="selection-toolbar">
+  <button id="btn-add-comment">💬 新增 comment</button>
+</div>
+
+<!-- COMMENT DIALOG -->
+<div class="dialog-backdrop" id="comment-dialog-backdrop">
+  <div class="comment-dialog">
+    <h3>新增 comment</h3>
+    <div class="selection-preview" id="dialog-selection-preview"></div>
+    <textarea id="comment-input" placeholder="寫下你對這段內容的想法、疑問、要 Claude 修改的方向…"></textarea>
+    <div class="dialog-actions">
+      <span class="dialog-hint">⌘+Enter 送出 · Esc 取消</span>
+      <div class="dialog-buttons">
+        <button class="btn-secondary" id="comment-cancel">取消</button>
+        <button class="btn-primary" id="comment-submit">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MERMAID LIGHTBOX MODAL -->
+<div class="mm-modal-backdrop" id="mm-modal-backdrop">
+  <div class="mm-modal-frame">
+    <div class="mm-modal-toolbar">
+      <span class="mm-modal-title" id="mm-modal-title">Mermaid diagram</span>
+      <div class="mm-modal-actions">
+        <button id="mm-zoom-in" title="Zoom in">＋</button>
+        <button id="mm-zoom-out" title="Zoom out">－</button>
+        <button id="mm-reset" title="Reset">⤺ reset</button>
+        <button id="mm-close" title="Close (Esc)">✕ close</button>
+      </div>
+    </div>
+    <div class="mm-modal-svg-wrap" id="mm-modal-svg-wrap"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+<script>
+// Theme-aware mermaid: use mermaid's fully-tuned built-in themes ('default'
+// light / 'dark' dark) so every diagram type (sequence, class, state, ER)
+// keeps proper contrast. Only a light accent tint is overridden — do NOT
+// switch to theme:'base' with a hand-rolled palette; base derives dozens of
+// secondary colors from the few you set and readability collapses on
+// class/sequence diagrams. (Theme read once at load — htmlify follows the OS
+// preference; there is no runtime toggle.)
+var _mmDark = (document.documentElement.getAttribute('data-theme') === 'dark') ||
+  (!document.documentElement.getAttribute('data-theme') &&
+   window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+mermaid.initialize({
+  startOnLoad: true,
+  theme: _mmDark ? 'dark' : 'default',
+  themeVariables: _mmDark
+    ? { fontSize: '14px' }
+    : { primaryColor: '#dff1f2', primaryBorderColor: '#0c7d84', lineColor: '#6b7480', fontSize: '14px' },
+  flowchart: { curve: 'basis', htmlLabels: true },
+  sequence: { useMaxWidth: true },
+  er: { useMaxWidth: true }
+});
+hljs.highlightAll();
+</script>
+
+<script>
+// ============================================================
+// Annotation / Comment System
+// ============================================================
+
+const STORAGE_KEY = 'htmlify-comments-design-i18n-v1';
+const STORAGE_DIRTY = STORAGE_KEY + '-dirty';
+const DOC_NAME = 'design.md — i18n：fin-lab-X 中英雙語支援（DEV-85）';
+let comments = [];
+
+// Sidecar JSON lives next to this HTML: <basename>.comments.json
+function sidecarName() {
+  const file = location.pathname.split('/').pop() || 'index.html';
+  const base = file.replace(/\.html?$/i, '') || 'index';
+  return base + '.comments.json';
+}
+function sidecarUrl() { return './' + sidecarName(); }
+
+// Dirty = in-memory edits not yet written to the sidecar file
+function markDirty() { localStorage.setItem(STORAGE_DIRTY, '1'); }
+function clearDirty() { localStorage.removeItem(STORAGE_DIRTY); }
+function isDirty() { return localStorage.getItem(STORAGE_DIRTY) === '1'; }
+
+// Zero-gesture read of the committed/deployed sidecar (source of truth in the static+git model).
+// fetch() of a relative path is blocked on file://, so this only runs when served over http(s).
+async function fetchSidecar() {
+  if (location.protocol === 'file:') return null;
+  try {
+    const res = await fetch(sidecarUrl(), { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && Array.isArray(data.comments)) ? data : null;
+  } catch (e) { return null; }
+}
+
+function uid() {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function getContainingSection(node) {
+  while (node && node !== document.body) {
+    if (node.nodeType === 1 && node.tagName === 'SECTION' && node.id) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+
+// ============================================================
+// Mark wrapping
+// ============================================================
+
+function wrapRange(range, commentId) {
+  // Collect text nodes that intersect with range
+  const root = range.commonAncestorContainer.nodeType === 3
+    ? range.commonAncestorContainer.parentNode
+    : range.commonAncestorContainer;
+
+  const textNodes = [];
+  if (range.commonAncestorContainer.nodeType === 3) {
+    textNodes.push(range.commonAncestorContainer);
+  } else {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        return range.intersectsNode(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    let n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+  }
+
+  for (const node of textNodes) {
+    // skip if already inside a mark or inside non-content area
+    if (node.parentNode.closest('mark.annot')) continue;
+    if (node.parentNode.closest('.comment-panel, .selection-toolbar, .dialog-backdrop, .toast, .sidebar')) continue;
+
+    const start = (node === range.startContainer) ? range.startOffset : 0;
+    const end = (node === range.endContainer) ? range.endOffset : node.textContent.length;
+    if (start >= end) continue;
+
+    const text = node.textContent;
+    const before = text.slice(0, start);
+    const wrapped = text.slice(start, end);
+    const after = text.slice(end);
+
+    if (!wrapped.trim()) continue;
+
+    const mark = document.createElement('mark');
+    mark.className = 'annot';
+    mark.dataset.commentId = commentId;
+    mark.textContent = wrapped;
+    mark.addEventListener('click', e => {
+      e.stopPropagation();
+      flashComment(commentId);
+      scrollToCommentCard(commentId);
+    });
+
+    const frag = document.createDocumentFragment();
+    if (before) frag.appendChild(document.createTextNode(before));
+    frag.appendChild(mark);
+    if (after) frag.appendChild(document.createTextNode(after));
+
+    node.parentNode.replaceChild(frag, node);
+  }
+}
+
+function unwrapMark(commentId) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    const text = document.createTextNode(m.textContent);
+    m.parentNode.replaceChild(text, m);
+  });
+  // Normalize adjacent text nodes
+  document.querySelectorAll('main').forEach(n => n.normalize());
+}
+
+// Restore: find selected text in section, wrap it
+function restoreComment(c) {
+  const section = document.getElementById(c.sectionId);
+  if (!section) return false;
+
+  // Concatenate all text nodes, tracking node + offset
+  const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      if (n.parentNode.closest('.comment-panel, .selection-toolbar, .dialog-backdrop, .toast')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const map = [];
+  let combined = '';
+  let n;
+  while ((n = walker.nextNode())) {
+    map.push({ node: n, start: combined.length });
+    combined += n.textContent;
+  }
+
+  // Normalize whitespace for comparison (selected text may have whitespace differences)
+  const target = c.selectedText;
+  const idx = combined.indexOf(target);
+  if (idx < 0) return false;
+
+  const endIdx = idx + target.length;
+
+  let startNode, startOffset, endNode, endOffset;
+  for (const item of map) {
+    const nodeStart = item.start;
+    const nodeEnd = nodeStart + item.node.textContent.length;
+    if (startNode === undefined && idx >= nodeStart && idx < nodeEnd) {
+      startNode = item.node;
+      startOffset = idx - nodeStart;
+    }
+    if (endNode === undefined && endIdx > nodeStart && endIdx <= nodeEnd) {
+      endNode = item.node;
+      endOffset = endIdx - nodeStart;
+    }
+    if (startNode && endNode) break;
+  }
+
+  if (!startNode || !endNode) return false;
+
+  try {
+    const range = document.createRange();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    wrapRange(range, c.id);
+    return true;
+  } catch (e) {
+    console.warn('restore failed', c.id, e);
+    return false;
+  }
+}
+
+// ============================================================
+// Storage
+// ============================================================
+
+async function loadComments() {
+  let source = null;  // 'handle' | 'fetch' | 'local-dirty' | 'local'
+
+  // 1. Linked handle (read + write authority) takes precedence over everything
+  try {
+    await fileSync.restore();
+    if (fileSync.enabled) {
+      const remote = await fileSync.loadIfLinked();
+      if (remote && Array.isArray(remote.comments)) {
+        comments = remote.comments;
+        clearDirty();
+        source = 'handle';
+      }
+    }
+  } catch (e) {
+    console.warn('[file-sync] restore/load failed', e);
+  }
+
+  // 2. Auto-fetch the sidecar (read-only, zero gesture). Skip if we have unsaved local
+  //    edits — those would otherwise be clobbered by the older committed file.
+  if (!source) {
+    const fetched = await fetchSidecar();
+    if (fetched) {
+      if (isDirty()) {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        try { comments = raw ? JSON.parse(raw) : fetched.comments; }
+        catch (e) { comments = fetched.comments; }
+        source = 'local-dirty';
+      } else {
+        comments = fetched.comments;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));  // refresh cache
+        source = 'fetch';
+      }
+    }
+  }
+
+  // 3. localStorage fallback (offline / file:// / sidecar not deployed yet)
+  if (!source) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try { comments = JSON.parse(raw); }
+      catch (e) { comments = []; }
+    }
+    source = 'local';
+  }
+  loadComments._source = source;
+
+  // Migrate legacy `addressed` field → `resolved`
+  comments.forEach(c => {
+    if (c.addressed !== undefined && c.resolved === undefined) {
+      c.resolved = c.addressed;
+      if (c.addressedAt) c.resolvedAt = c.addressedAt;
+      delete c.addressed;
+      delete c.addressedAt;
+    }
+  });
+  saveCommentsLocal();  // refresh cache only — must not mark dirty during load
+  // re-wrap marks + recompute outdated state (must wait for mermaid to settle so DOM is stable)
+  let outdated = 0;
+  comments.forEach(c => {
+    const ok = restoreComment(c);
+    if (ok) {
+      c.outdated = false;
+      if (c.resolved) updateMarkResolvedState(c.id, true);
+    } else {
+      // text not found → outdated (unless already resolved, then it stays resolved)
+      c.outdated = !c.resolved;
+      if (c.outdated) outdated++;
+    }
+  });
+  saveCommentsLocal();
+  renderCommentList();
+  if (outdated > 0) showToast(`⧖ ${outdated} comment outdated — 原文字已不在 doc 中`);
+}
+
+function saveComments() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+  if (typeof fileSync !== 'undefined' && fileSync.enabled) {
+    fileSync.scheduleSave();  // clears dirty on a successful file write
+  } else {
+    markDirty();              // edits exist that aren't in the sidecar file yet
+  }
+  if (typeof updateSyncStatus === 'function') updateSyncStatus();
+}
+
+// Local-only save (no file sync trigger) — used during import/restore to avoid feedback loops
+function saveCommentsLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+}
+
+// ============================================================
+// Selection toolbar
+// ============================================================
+
+const toolbar = document.getElementById('selection-toolbar');
+let pendingRange = null;
+let pendingText = null;
+let pendingSection = null;
+
+function handleSelection() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      hideToolbar();
+      return;
+    }
+    const text = sel.toString().trim();
+    if (!text || text.length < 2) {
+      hideToolbar();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const section = getContainingSection(range.commonAncestorContainer);
+    if (!section) {
+      hideToolbar();
+      return;
+    }
+    // Don't trigger inside comment panel/dialog
+    if (range.commonAncestorContainer.parentNode && range.commonAncestorContainer.parentNode.closest && range.commonAncestorContainer.parentNode.closest('.comment-panel, .dialog-backdrop')) {
+      hideToolbar();
+      return;
+    }
+
+    pendingRange = range.cloneRange();
+    pendingText = text;
+    pendingSection = section;
+    showToolbarAt(range);
+  }, 0);
+}
+
+function showToolbarAt(range) {
+  const rect = range.getBoundingClientRect();
+  toolbar.style.display = 'flex';
+  // Position above selection
+  const top = window.scrollY + rect.top - toolbar.offsetHeight - 10;
+  const left = window.scrollX + rect.left + rect.width / 2 - 75;
+  toolbar.style.top = `${Math.max(top, window.scrollY + 8)}px`;
+  toolbar.style.left = `${Math.max(left, 8)}px`;
+}
+
+function hideToolbar() {
+  toolbar.style.display = 'none';
+}
+
+document.addEventListener('mouseup', e => {
+  if (e.target.closest('.selection-toolbar, .comment-panel, .dialog-backdrop')) return;
+  handleSelection();
+});
+document.addEventListener('keyup', e => {
+  if (e.shiftKey) handleSelection();
+});
+document.addEventListener('mousedown', e => {
+  if (!e.target.closest('.selection-toolbar')) hideToolbar();
+});
+
+// ============================================================
+// Add comment flow
+// ============================================================
+
+document.getElementById('btn-add-comment').addEventListener('click', () => {
+  if (!pendingRange || !pendingText || !pendingSection) return;
+  showCommentDialog(pendingText, (commentText) => {
+    if (!commentText) return;
+
+    const sectionTitle = pendingSection.querySelector('h2')?.textContent.replace(/^§\d+\s*/, '').trim() || '';
+    const sectionNumMatch = pendingSection.id.match(/^s(\d+)$/);
+    const sectionLabel = sectionNumMatch ? `§${sectionNumMatch[1]} ${sectionTitle}` : sectionTitle;
+
+    const c = {
+      id: uid(),
+      sectionId: pendingSection.id,
+      sectionLabel,
+      selectedText: pendingText,
+      comment: commentText,
+      resolved: false,
+      createdAt: new Date().toISOString()
+    };
+
+    comments.push(c);
+    saveComments();
+
+    try {
+      wrapRange(pendingRange, c.id);
+    } catch (e) {
+      console.warn('wrap failed, attempting restore', e);
+      restoreComment(c);
+    }
+
+    window.getSelection().removeAllRanges();
+    hideToolbar();
+    pendingRange = null;
+    pendingText = null;
+    pendingSection = null;
+    renderCommentList();
+    showToast('Comment 已新增');
+  });
+});
+
+// ============================================================
+// Dialog
+// ============================================================
+
+const dialogBackdrop = document.getElementById('comment-dialog-backdrop');
+const dialogPreview = document.getElementById('dialog-selection-preview');
+const dialogInput = document.getElementById('comment-input');
+const dialogSubmit = document.getElementById('comment-submit');
+const dialogCancel = document.getElementById('comment-cancel');
+
+function showCommentDialog(selectedText, callback) {
+  dialogPreview.textContent = selectedText.slice(0, 500) + (selectedText.length > 500 ? '…' : '');
+  dialogInput.value = '';
+  dialogBackdrop.classList.add('show');
+  setTimeout(() => dialogInput.focus(), 50);
+
+  // Track where mousedown started so a drag that starts inside the dialog
+  // and ends on the backdrop does NOT count as "click outside to dismiss".
+  let mousedownOnBackdrop = false;
+
+  const cleanup = () => {
+    dialogBackdrop.classList.remove('show');
+    dialogSubmit.removeEventListener('click', onSubmit);
+    dialogCancel.removeEventListener('click', onCancel);
+    dialogBackdrop.removeEventListener('mousedown', onBackdropDown);
+    dialogBackdrop.removeEventListener('click', onBackdrop);
+    document.removeEventListener('keydown', onKey, true);
+    dialogInput.removeEventListener('compositionstart', onCompositionStart);
+    dialogInput.removeEventListener('compositionend', onCompositionEnd);
+  };
+  const onSubmit = () => { const v = dialogInput.value.trim(); cleanup(); callback(v); };
+  const onCancel = () => { cleanup(); callback(null); };
+
+  // Two-step backdrop dismiss: only close if BOTH mousedown and click hit the backdrop.
+  const onBackdropDown = (e) => { mousedownOnBackdrop = (e.target === dialogBackdrop); };
+  const onBackdrop = (e) => {
+    if (e.target === dialogBackdrop && mousedownOnBackdrop) onCancel();
+    mousedownOnBackdrop = false;
+  };
+
+  // IME composition guard — CJK input methods fire Escape / keyCode 229 mid-composition;
+  // that must not close the dialog (it was silently eating half-typed comments).
+  let isComposing = false;
+  const onCompositionStart = () => { isComposing = true; };
+  // Defer clearing: a trailing keydown fires right after compositionend and is still IME noise.
+  const onCompositionEnd = () => { setTimeout(() => { isComposing = false; }, 30); };
+
+  const onKey = (e) => {
+    if (isComposing || e.isComposing || e.keyCode === 229) return;
+    if (e.key === 'Escape') {
+      // Only dismiss when focus is on the textarea / body — stray OS-level Escapes
+      // (Spotlight, dictation, emoji picker) shouldn't close the dialog.
+      if (document.activeElement === dialogInput || document.activeElement === document.body) {
+        e.preventDefault();
+        onCancel();
+      }
+      return;
+    }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSubmit(); }
+  };
+
+  dialogSubmit.addEventListener('click', onSubmit);
+  dialogCancel.addEventListener('click', onCancel);
+  dialogBackdrop.addEventListener('mousedown', onBackdropDown);
+  dialogBackdrop.addEventListener('click', onBackdrop);
+  // Capture phase so we see the key before the textarea's own handlers.
+  document.addEventListener('keydown', onKey, true);
+  dialogInput.addEventListener('compositionstart', onCompositionStart);
+  dialogInput.addEventListener('compositionend', onCompositionEnd);
+}
+
+// ============================================================
+// Render comment list
+// ============================================================
+
+function renderCommentList() {
+  const list = document.getElementById('comment-list');
+  const count = document.getElementById('comment-count');
+  const resolvedCount = document.getElementById('resolved-count');
+  const outdatedCount = document.getElementById('outdated-count');
+  const fabBadge = document.getElementById('fab-badge');
+  const help = document.getElementById('comment-help');
+
+  const activeCount = comments.filter(c => !c.resolved && !c.outdated).length;
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+
+  if (help) help.style.display = comments.length === 0 ? 'block' : 'none';
+
+  count.textContent = activeCount;
+  if (resolvedNum > 0) {
+    resolvedCount.style.display = 'inline-block';
+    resolvedCount.textContent = `✓ ${resolvedNum}`;
+  } else {
+    resolvedCount.style.display = 'none';
+  }
+  if (outdatedNum > 0) {
+    outdatedCount.style.display = 'inline-block';
+    outdatedCount.textContent = outdatedNum;
+  } else {
+    outdatedCount.style.display = 'none';
+  }
+  if (activeCount > 0) {
+    fabBadge.textContent = activeCount;
+    fabBadge.style.display = 'block';
+  } else {
+    fabBadge.style.display = 'none';
+  }
+
+  if (comments.length === 0) {
+    list.innerHTML = '<div class="empty-state">尚無 comment<br><br>在本文選擇文字 →<br>點 toolbar 的「💬 新增 comment」</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  // Sort: active first, dim (resolved/outdated) last; within each group by section order
+  const sorted = [...comments].sort((a, b) => {
+    const aDim = !!(a.resolved || a.outdated);
+    const bDim = !!(b.resolved || b.outdated);
+    if (aDim !== bDim) return aDim ? 1 : -1;
+    const na = parseInt((a.sectionId || '').replace(/\D/g, '')) || 999;
+    const nb = parseInt((b.sectionId || '').replace(/\D/g, '')) || 999;
+    if (na !== nb) return na - nb;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+
+  sorted.forEach(c => {
+    const isResolved = c.resolved === true;
+    const isOutdated = c.outdated === true && !isResolved;
+    const card = document.createElement('div');
+    let cls = 'comment-card';
+    if (isResolved) cls += ' resolved';
+    if (isOutdated) cls += ' outdated';
+    card.className = cls;
+    card.dataset.commentId = c.id;
+
+    const toggleLabel = isResolved ? '↩ Undo' : '✓ Resolve';
+    let statusPill = '';
+    if (isResolved) statusPill = '<span class="status-pill resolved">✓ resolved</span>';
+    else if (isOutdated) statusPill = '<span class="status-pill outdated">outdated</span>';
+
+    card.innerHTML = `
+      <div class="comment-card-head">
+        <div class="comment-section">${escapeHtml(c.sectionLabel || c.sectionId)}</div>
+        ${statusPill}
+      </div>
+      <div class="comment-quote">${escapeHtml(c.selectedText.length > 140 ? c.selectedText.slice(0, 140) + '…' : c.selectedText)}</div>
+      <div class="comment-body">${escapeHtml(c.comment)}</div>
+      <div class="comment-meta">
+        <span>${new Date(c.createdAt).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+        <span style="display:flex; gap:6px;">
+          <button class="btn-toggle" data-id="${c.id}">${toggleLabel}</button>
+          <button class="btn-delete" data-id="${c.id}" title="刪除 comment" aria-label="刪除">×</button>
+        </span>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.classList.contains('btn-delete')) return;
+      if (e.target.classList.contains('btn-toggle')) return;
+      if (isOutdated) {
+        showToast('⧖ 文字已不在 doc 中（doc 可能已修改）');
+        return;
+      }
+      scrollToMark(c.id);
+    });
+    card.querySelector('.btn-toggle').addEventListener('click', e => {
+      e.stopPropagation();
+      toggleResolved(c.id);
+    });
+    card.querySelector('.btn-delete').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('刪除這個 comment？')) return;
+      deleteComment(c.id);
+    });
+    list.appendChild(card);
+  });
+}
+
+function toggleResolved(id) {
+  const c = comments.find(x => x.id === id);
+  if (!c) return;
+  c.resolved = !c.resolved;
+  if (c.resolved) {
+    c.resolvedAt = new Date().toISOString();
+    // Resolved overrides outdated (already "done"); outdated visual hidden by precedence
+  } else {
+    delete c.resolvedAt;
+    // Re-check outdated: if no mark exists in DOM, text is gone → outdated
+    const hasMark = !!document.querySelector(`mark.annot[data-comment-id="${c.id}"]`);
+    c.outdated = !hasMark;
+  }
+  saveComments();
+  updateMarkResolvedState(id, c.resolved);
+  renderCommentList();
+  const msg = c.resolved
+    ? '✓ 標為 resolved'
+    : (c.outdated ? '↩ 恢復為待處理（⧖ outdated）' : '↩ 恢復為待處理');
+  showToast(msg);
+}
+
+function updateMarkResolvedState(commentId, isResolved) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    m.classList.toggle('resolved', isResolved);
+  });
+}
+
+function scrollToMark(commentId) {
+  const mark = document.querySelector(`mark.annot[data-comment-id="${commentId}"]`);
+  if (!mark) {
+    showToast('找不到對應的 highlight（可能 orphan）');
+    return;
+  }
+  mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  flashMark(commentId);
+}
+
+function scrollToCommentCard(commentId) {
+  const card = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
+  if (!card) return;
+  // Open mobile panel if needed
+  document.getElementById('comment-panel').classList.add('open');
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.style.transition = 'background 0.3s';
+  card.style.background = 'var(--primary-light)';
+  setTimeout(() => { card.style.background = ''; }, 800);
+}
+
+function flashMark(commentId) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    m.classList.remove('pulse');
+    // force reflow
+    void m.offsetWidth;
+    m.classList.add('pulse');
+    setTimeout(() => m.classList.remove('pulse'), 1700);
+  });
+}
+
+function flashComment(commentId) { flashMark(commentId); }
+
+function deleteComment(id) {
+  comments = comments.filter(c => c.id !== id);
+  saveComments();
+  unwrapMark(id);
+  renderCommentList();
+  showToast('已刪除');
+}
+
+// ============================================================
+// Export
+// ============================================================
+
+function getActiveSorted() {
+  return comments.filter(c => !c.resolved && !c.outdated).sort((a, b) => {
+    const na = parseInt((a.sectionId || '').replace(/\D/g, '')) || 999;
+    const nb = parseInt((b.sectionId || '').replace(/\D/g, '')) || 999;
+    if (na !== nb) return na - nb;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+}
+
+function buildJsonPayload(active) {
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+  return {
+    version: 1,
+    doc: DOC_NAME,
+    exported_at: new Date().toISOString(),
+    comment_count: active.length,
+    resolved_excluded: resolvedNum,
+    outdated_excluded: outdatedNum,
+    comments: active
+  };
+}
+
+function buildPromptMarkdown(active) {
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+  let md = `# Comments on ${DOC_NAME}\n\n`;
+  md += `Exported: ${new Date().toISOString()}\n`;
+  md += `Total: ${active.length} comment${active.length > 1 ? 's' : ''} (active only)\n`;
+  if (resolvedNum > 0) md += `Resolved (excluded): ${resolvedNum}\n`;
+  if (outdatedNum > 0) md += `Outdated / orphaned (excluded): ${outdatedNum}\n`;
+  md += `\n---\n\n`;
+  active.forEach((c, i) => {
+    md += `## ${i + 1}. ${c.sectionLabel || c.sectionId}\n\n`;
+    md += `**Selected text** (from ${c.sectionId}):\n\n> ${c.selectedText.split('\n').join('\n> ')}\n\n`;
+    md += `**My comment**:\n${c.comment}\n\n`;
+    md += `---\n\n`;
+  });
+  return md;
+}
+
+function downloadBlob(content, mime, filename) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Copy JSON to clipboard (primary daily action — no file download)
+document.getElementById('btn-copy-json').addEventListener('click', () => {
+  const active = getActiveSorted();
+  if (active.length === 0) {
+    showToast(comments.length > 0 ? '全部 resolved，沒有 active comment' : '沒有 comment');
+    return;
+  }
+  const json = JSON.stringify(buildJsonPayload(active), null, 2);
+  navigator.clipboard?.writeText(json).then(() => {
+    const note = comments.length - active.length > 0 ? `（排除 ${comments.length - active.length} 個 resolved）` : '';
+    showToast(`✓ Copied ${active.length} comment 到剪貼簿 ${note}`);
+  }).catch(() => showToast('複製失敗，瀏覽器拒絕剪貼簿存取'));
+});
+
+// Export dropdown menu
+const exportMenuBtn = document.getElementById('btn-export-menu');
+const exportDropdown = document.getElementById('export-dropdown');
+exportMenuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  exportDropdown.classList.toggle('show');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.export-menu-wrap')) exportDropdown.classList.remove('show');
+});
+exportDropdown.querySelectorAll('.export-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const fmt = opt.dataset.format;
+    exportDropdown.classList.remove('show');
+    const active = getActiveSorted();
+    if (active.length === 0) {
+      showToast(comments.length > 0 ? '全部 resolved，沒有 active comment' : '沒有 comment');
+      return;
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    if (fmt === 'json') {
+      const json = JSON.stringify(buildJsonPayload(active), null, 2);
+      downloadBlob(json, 'application/json', `design-comments-${date}.json`);
+      showToast(`↓ Downloaded design-comments-${date}.json`);
+    } else if (fmt === 'prompt') {
+      const md = buildPromptMarkdown(active);
+      downloadBlob(md, 'text/markdown', `design-comments-prompt-${date}.md`);
+      showToast(`↓ Downloaded design-comments-prompt-${date}.md`);
+    }
+  });
+});
+
+document.getElementById('btn-clear-all').addEventListener('click', () => {
+  if (comments.length === 0) return;
+  if (!confirm(`刪除全部 ${comments.length} 個 comment？`)) return;
+  comments.forEach(c => unwrapMark(c.id));
+  comments = [];
+  saveComments();
+  renderCommentList();
+  showToast('已清空');
+});
+
+document.getElementById('btn-resolve-all').addEventListener('click', () => {
+  const active = comments.filter(c => !c.resolved && !c.outdated);
+  if (active.length === 0) {
+    showToast(comments.length > 0 ? '沒有 active comment（outdated 不算）' : '沒有 comment');
+    return;
+  }
+  if (!confirm(`把全部 ${active.length} 個 active comment 標為 resolved？（outdated 不會被標）`)) return;
+  const now = new Date().toISOString();
+  active.forEach(c => {
+    c.resolved = true;
+    c.resolvedAt = now;
+    updateMarkResolvedState(c.id, true);
+  });
+  saveComments();
+  renderCommentList();
+  showToast(`✓ 已標 ${active.length} 個 comment 為 resolved`);
+});
+
+// ============================================================
+// Mobile FAB
+// ============================================================
+
+document.getElementById('comment-fab').addEventListener('click', () => {
+  document.getElementById('comment-panel').classList.toggle('open');
+});
+
+// ============================================================
+// Mermaid lightbox (click to zoom + pan)
+// ============================================================
+
+let currentMmPanZoom = null;
+const mmBackdrop = document.getElementById('mm-modal-backdrop');
+const mmSvgWrap = document.getElementById('mm-modal-svg-wrap');
+const mmTitle = document.getElementById('mm-modal-title');
+
+function findDiagramLabel(mermaidEl) {
+  let n = mermaidEl.previousElementSibling;
+  while (n) {
+    if (n.tagName === 'H3' || n.tagName === 'H4' || n.tagName === 'H2') return n.textContent.trim();
+    n = n.previousElementSibling;
+  }
+  const sec = mermaidEl.closest('section');
+  if (sec) {
+    const h = sec.querySelector('h2');
+    if (h) return h.textContent.trim();
+  }
+  return 'Mermaid diagram';
+}
+
+function openMermaidLightbox(mermaidEl) {
+  const origSvg = mermaidEl.querySelector('svg');
+  if (!origSvg) return;
+  const cloned = origSvg.cloneNode(true);
+  cloned.removeAttribute('style');
+  cloned.removeAttribute('width');
+  cloned.removeAttribute('height');
+  cloned.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  mmSvgWrap.innerHTML = '';
+  mmSvgWrap.appendChild(cloned);
+  mmTitle.textContent = findDiagramLabel(mermaidEl);
+  mmBackdrop.classList.add('show');
+
+  setTimeout(() => {
+    try {
+      currentMmPanZoom = svgPanZoom(cloned, {
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        fit: true,
+        center: true,
+        minZoom: 0.3,
+        maxZoom: 12,
+        zoomScaleSensitivity: 0.4,
+        dblClickZoomEnabled: true
+      });
+    } catch (e) {
+      console.warn('pan-zoom init failed', e);
+    }
+  }, 40);
+}
+
+function closeMermaidLightbox() {
+  mmBackdrop.classList.remove('show');
+  if (currentMmPanZoom) {
+    try { currentMmPanZoom.destroy(); } catch (e) {}
+    currentMmPanZoom = null;
+  }
+  mmSvgWrap.innerHTML = '';
+}
+
+function bindMermaidLightbox() {
+  document.querySelectorAll('.mermaid').forEach(el => {
+    if (el.dataset.lbBound) return;
+    el.dataset.lbBound = '1';
+    el.addEventListener('click', (e) => {
+      const sel = window.getSelection();
+      if (sel && sel.toString().trim().length > 0 && el.contains(sel.anchorNode)) return;
+      openMermaidLightbox(el);
+    });
+  });
+}
+
+document.getElementById('mm-close').addEventListener('click', closeMermaidLightbox);
+document.getElementById('mm-zoom-in').addEventListener('click', () => currentMmPanZoom?.zoomIn());
+document.getElementById('mm-zoom-out').addEventListener('click', () => currentMmPanZoom?.zoomOut());
+document.getElementById('mm-reset').addEventListener('click', () => {
+  if (!currentMmPanZoom) return;
+  currentMmPanZoom.resetZoom();
+  currentMmPanZoom.center();
+  currentMmPanZoom.fit();
+});
+mmBackdrop.addEventListener('click', (e) => { if (e.target === mmBackdrop) closeMermaidLightbox(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && mmBackdrop.classList.contains('show')) closeMermaidLightbox();
+});
+
+// ============================================================
+// Sidebar toggle (floating menu button → hover overlay / click pin)
+// ============================================================
+
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const sidebarEl = document.getElementById('sidebar');
+let sidebarPinned = false;
+let sidebarHoverTimer = null;
+
+function setSidebarPinned(pinned) {
+  sidebarPinned = pinned;
+  document.body.classList.toggle('sidebar-pinned', pinned);
+  if (pinned) {
+    sidebarEl.classList.add('show', 'pinned-mode');
+    sidebarEl.classList.remove('hover-mode');
+  } else {
+    sidebarEl.classList.remove('show', 'pinned-mode', 'hover-mode');
+  }
+}
+
+function showSidebarHover() {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+  sidebarEl.classList.add('show', 'hover-mode');
+}
+
+function hideSidebarHover() {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+  sidebarHoverTimer = setTimeout(() => {
+    if (!sidebarPinned) {
+      sidebarEl.classList.remove('show', 'hover-mode');
+    }
+  }, 180);
+}
+
+sidebarToggle.addEventListener('click', () => setSidebarPinned(!sidebarPinned));
+sidebarToggle.addEventListener('mouseenter', showSidebarHover);
+sidebarToggle.addEventListener('mouseleave', hideSidebarHover);
+sidebarEl.addEventListener('mouseenter', () => {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+});
+sidebarEl.addEventListener('mouseleave', hideSidebarHover);
+// Click on a TOC link while in hover mode → also close
+sidebarEl.querySelectorAll('.toc a').forEach(a => {
+  a.addEventListener('click', () => {
+    if (!sidebarPinned) {
+      sidebarEl.classList.remove('show', 'hover-mode');
+    }
+  });
+});
+
+// ============================================================
+// Learning Panel (🎓 Learning Notes)
+// ============================================================
+// Optional: only wired up when the source doc had a `## Learning Notes` section and the
+// panel markup was emitted. Fully feature-detected — when the markup is absent (still an
+// HTML comment) getElementById returns null and this block no-ops, so docs without
+// Learning Notes render and behave exactly as before. Runs top-level (outside init) so it
+// works in annotations-off mode too. Mutually exclusive with the TOC sidebar (both live on
+// the left edge) so the two panels can never overlap.
+(function () {
+  const learnToggle = document.getElementById('learning-toggle');
+  const learnEl = document.getElementById('learning-panel');
+  if (!learnToggle || !learnEl) return;
+
+  const learnClose = document.getElementById('learning-close');
+  const LEARN_OPEN_KEY = STORAGE_KEY + '-learn-open';
+
+  function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function isLearningOpen() { return document.body.classList.contains('learning-open'); }
+
+  function setLearningOpen(open) {
+    document.body.classList.toggle('learning-open', open);
+    learnToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    safeSet(LEARN_OPEN_KEY, open ? '1' : '0');
+    if (open) {
+      // Close the TOC so the two left-edge panels never overlap.
+      try { setSidebarPinned(false); } catch (e) {}
+      try { sidebarEl.classList.remove('show', 'hover-mode', 'pinned-mode'); } catch (e) {}
+    }
+  }
+
+  learnToggle.addEventListener('click', () => setLearningOpen(!isLearningOpen()));
+  if (learnClose) learnClose.addEventListener('click', () => setLearningOpen(false));
+
+  // If the TOC is invoked (hover or click), yield to it.
+  try {
+    sidebarToggle.addEventListener('mouseenter', () => { if (isLearningOpen()) setLearningOpen(false); });
+    sidebarToggle.addEventListener('click', () => { if (isLearningOpen()) setLearningOpen(false); });
+    sidebarEl.addEventListener('mouseenter', () => { if (isLearningOpen()) setLearningOpen(false); });
+  } catch (e) {}
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isLearningOpen()) setLearningOpen(false);
+  });
+
+  // Restore last state (default closed).
+  if (safeGet(LEARN_OPEN_KEY) === '1') setLearningOpen(true);
+})();
+
+// ============================================================
+// File Sync (File System Access API + Import JSON)
+// ============================================================
+// Persistence options, in order of preference when available:
+//   1. File System Access API — auto-sync to <doc>.comments.json (Chrome/Edge via localhost)
+//   2. Import JSON — manual file picker (all browsers, cross-browser migration)
+//   3. localStorage — always on as cache (existing behavior)
+
+const FILE_SYNC_DB = 'htmlify-file-sync-v1';
+const FILE_SYNC_STORE = 'handles';
+const FILE_SYNC_KEY = STORAGE_KEY;  // per-doc handle key (one shared DB, isolated per document)
+
+function openSyncDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(FILE_SYNC_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(FILE_SYNC_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function storeFileHandle(handle) {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readwrite');
+    tx.objectStore(FILE_SYNC_STORE).put(handle, FILE_SYNC_KEY);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function retrieveFileHandle() {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readonly');
+    const req = tx.objectStore(FILE_SYNC_STORE).get(FILE_SYNC_KEY);
+    req.onsuccess = () => res(req.result || null);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function clearFileHandle() {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readwrite');
+    tx.objectStore(FILE_SYNC_STORE).delete(FILE_SYNC_KEY);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+const fileSync = {
+  handle: null,
+  enabled: false,
+  filename: null,
+  saveTimer: null,
+
+  isAvailable() { return typeof window.showSaveFilePicker === 'function'; },
+
+  async restore() {
+    if (!this.isAvailable()) return false;
+    try {
+      const h = await retrieveFileHandle();
+      if (!h) return false;
+      this.handle = h;
+      this.filename = h.name;
+      const perm = await h.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') { this.enabled = true; return true; }
+      this.enabled = false;
+      return false;
+    } catch (e) { console.warn('[file-sync] restore', e); return false; }
+  },
+
+  async ensurePermission() {
+    if (!this.handle) return false;
+    let p = await this.handle.queryPermission({ mode: 'readwrite' });
+    if (p !== 'granted') p = await this.handle.requestPermission({ mode: 'readwrite' });
+    this.enabled = (p === 'granted');
+    return this.enabled;
+  },
+
+  async link() {
+    if (!this.isAvailable()) {
+      showToast('此 browser 不支援 File System Access API（Chrome / Edge only）— 改用 Import JSON');
+      return false;
+    }
+    try {
+      const h = await window.showSaveFilePicker({
+        suggestedName: sidecarName(),
+        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      this.handle = h;
+      this.filename = h.name;
+      this.enabled = true;
+      await storeFileHandle(h);
+
+      // If the file already had content AND we have diverging unsaved local edits, ask which wins.
+      // When not dirty, in-memory already matches the file (we fetched it) — just save, no prompt.
+      try {
+        const file = await h.getFile();
+        const text = await file.text();
+        if (text.trim() && isDirty()) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed.comments) && parsed.comments.length > 0) {
+            const useFile = confirm(
+              `檔案內已有 ${parsed.comments.length} 個 comment。\n\n` +
+              `[OK] 用檔案內容覆蓋目前 ${comments.length} 個\n` +
+              `[Cancel] 用目前 ${comments.length} 個覆蓋檔案`
+            );
+            if (useFile) {
+              comments = parsed.comments;
+              saveCommentsLocal();
+              document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+              comments.forEach(c => {
+                const ok = restoreComment(c);
+                c.outdated = !ok && !c.resolved;
+                if (ok && c.resolved) updateMarkResolvedState(c.id, true);
+              });
+              renderCommentList();
+            }
+          }
+        }
+      } catch (e) { /* new empty file, OK */ }
+
+      await this.save();
+      updateSyncStatus();
+      showToast(`📁 已連結到 ${this.filename}，後續自動同步`);
+      return true;
+    } catch (e) {
+      if (e.name !== 'AbortError') { console.warn('[file-sync] link', e); showToast('連結檔案失敗'); }
+      return false;
+    }
+  },
+
+  async unlink() {
+    this.handle = null;
+    this.filename = null;
+    this.enabled = false;
+    await clearFileHandle();
+    updateSyncStatus();
+    showToast('已解除檔案連結（改回 localStorage only）');
+  },
+
+  async save() {
+    if (!this.handle || !this.enabled) return false;
+    try {
+      const data = {
+        version: 1,
+        doc: DOC_NAME,
+        saved_at: new Date().toISOString(),
+        comment_count: comments.length,
+        comments
+      };
+      const writable = await this.handle.createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+      clearDirty();
+      return true;
+    } catch (e) { console.warn('[file-sync] save', e); return false; }
+  },
+
+  scheduleSave() {
+    if (!this.enabled) return;
+    clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => this.save(), 250);
+  },
+
+  async loadIfLinked() {
+    if (!this.handle || !this.enabled) return null;
+    try {
+      const file = await this.handle.getFile();
+      const text = await file.text();
+      if (!text.trim()) return { comments: [] };
+      return JSON.parse(text);
+    } catch (e) { console.warn('[file-sync] load', e); return null; }
+  }
+};
+
+function updateSyncStatus() {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const file = sidecarName();
+  const src = loadComments._source;
+  const dirty = isDirty();
+
+  if (fileSync.enabled) {
+    el.className = 'sync-status synced';
+    el.innerHTML = `<span>📁</span> Synced · <code>${escapeHtml(fileSync.filename)}</code> · 編輯自動寫入 · <button class="btn-link" data-action="unlink">unlink</button>`;
+  } else if (fileSync.handle && !fileSync.enabled) {
+    el.className = 'sync-status pending';
+    el.innerHTML = `<span>⚠</span> 已記得檔案 (<code>${escapeHtml(fileSync.filename)}</code>) · <button class="btn-link" data-action="resume">grant permission</button> · <button class="btn-link" data-action="unlink">unlink</button>`;
+  } else if (dirty) {
+    el.className = 'sync-status pending';
+    const writeBtn = fileSync.isAvailable()
+      ? `<button class="btn-link" data-action="link">save to ${escapeHtml(file)}…</button>`
+      : `<button class="btn-link" data-action="export">download ${escapeHtml(file)}…</button>`;
+    el.innerHTML = `<span>💾</span> 有未存入 <code>${escapeHtml(file)}</code> 的本機編輯 · ${writeBtn} · <button class="btn-link" data-action="import">import…</button>`;
+  } else if (src === 'fetch') {
+    el.className = 'sync-status readonly';
+    const editBtn = fileSync.isAvailable()
+      ? ` · <button class="btn-link" data-action="link">enable editing…</button>`
+      : '';
+    el.innerHTML = `<span>📄</span> 自動載入自 <code>${escapeHtml(file)}</code>（read-only）${editBtn} · <button class="btn-link" data-action="import">import…</button>`;
+  } else if (fileSync.isAvailable()) {
+    el.className = 'sync-status local';
+    el.innerHTML = `<span>💾</span> Local only · <button class="btn-link" data-action="link">link to ${escapeHtml(file)}…</button> · <button class="btn-link" data-action="import">import…</button>`;
+  } else {
+    el.className = 'sync-status local';
+    el.innerHTML = `<span>💾</span> Local only · 此 browser 不支援 File API · <button class="btn-link" data-action="import">import JSON…</button>`;
+  }
+  // Wire dynamic buttons
+  el.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const a = btn.dataset.action;
+      if (a === 'link') await fileSync.link();
+      else if (a === 'unlink') await fileSync.unlink();
+      else if (a === 'export') {
+        const data = { version: 1, doc: DOC_NAME, saved_at: new Date().toISOString(), comment_count: comments.length, comments };
+        downloadBlob(JSON.stringify(data, null, 2), 'application/json', file);
+        showToast(`↓ 已下載 ${file} — 放到 HTML 同層再 commit`);
+      }
+      else if (a === 'resume') {
+        const ok = await fileSync.ensurePermission();
+        if (ok) {
+          const remote = await fileSync.loadIfLinked();
+          if (remote && Array.isArray(remote.comments)) {
+            comments = remote.comments;
+            clearDirty();
+            saveCommentsLocal();
+            document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+            comments.forEach(c => {
+              const ok2 = restoreComment(c);
+              c.outdated = !ok2 && !c.resolved;
+              if (ok2 && c.resolved) updateMarkResolvedState(c.id, true);
+            });
+            renderCommentList();
+          }
+          updateSyncStatus();
+          showToast('✓ 檔案同步已重新啟用');
+        }
+      }
+      else if (a === 'import') importJsonFromFile();
+    });
+  });
+}
+
+function importJsonFromFile() {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) { resolve(null); return; }
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data.comments)) { showToast('JSON 格式不對（缺少 comments array）'); resolve(null); return; }
+        let take;
+        if (comments.length === 0) {
+          take = 'replace';
+        } else {
+          const ans = confirm(
+            `目前已有 ${comments.length} 個 comment，檔案內有 ${data.comments.length} 個。\n\n` +
+            `[OK] 取代（用檔案覆蓋目前）\n` +
+            `[Cancel] 合併（依 id 去重，重複的保留現有）`
+          );
+          take = ans ? 'replace' : 'merge';
+        }
+        if (take === 'replace') {
+          comments = data.comments;
+        } else {
+          const existing = new Set(comments.map(c => c.id));
+          data.comments.forEach(c => { if (!existing.has(c.id)) comments.push(c); });
+        }
+        saveComments();
+        document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+        comments.forEach(c => {
+          const ok = restoreComment(c);
+          c.outdated = !ok && !c.resolved;
+          if (ok && c.resolved) updateMarkResolvedState(c.id, true);
+        });
+        renderCommentList();
+        showToast(`✓ ${take === 'replace' ? '已取代' : '已合併'}：現在 ${comments.length} 個 comment`);
+        resolve(data);
+      } catch (err) { console.warn('import failed', err); showToast('JSON 解析失敗'); resolve(null); }
+    };
+    input.click();
+  });
+}
+
+// ============================================================
+// Comment panel resize (drag the left edge; width persists)
+// ============================================================
+const COMMENT_WIDTH_KEY = STORAGE_KEY + '-width';
+const COMMENT_W_MIN = 240;
+const COMMENT_W_MAX = 760;
+
+// Keep the fixed handle aligned with the panel's actual left edge (the layout is
+// centered with a max-width, so the edge isn't simply viewport-width − panel-width).
+function positionResizeHandle() {
+  const handle = document.getElementById('comment-resize-handle');
+  const panel = document.getElementById('comment-panel');
+  if (!handle || !panel) return;
+  if (getComputedStyle(handle).display === 'none') return;  // mobile
+  const r = panel.getBoundingClientRect();
+  if (r.width === 0) return;  // panel hidden (annotations-off)
+  handle.style.left = (r.left - 4) + 'px';
+}
+
+function applyCommentWidth(px) {
+  const w = Math.round(Math.min(COMMENT_W_MAX, Math.max(COMMENT_W_MIN, px)));
+  document.documentElement.style.setProperty('--comment-w', w + 'px');
+  positionResizeHandle();
+  return w;
+}
+
+function applyStoredCommentWidth() {
+  const raw = localStorage.getItem(COMMENT_WIDTH_KEY);
+  if (raw) {
+    const n = parseInt(raw, 10);
+    if (!isNaN(n)) applyCommentWidth(n);
+  }
+}
+
+function bindCommentResize() {
+  const handle = document.getElementById('comment-resize-handle');
+  if (!handle || handle.dataset.bound) return;
+  handle.dataset.bound = '1';
+
+  let startX = 0, startW = 0, dragging = false;
+
+  function currentWidth() {
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--comment-w');
+    const n = parseInt(v, 10);
+    return isNaN(n) ? 320 : n;
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    applyCommentWidth(startW + (startX - x));  // drag left → panel grows (right-anchored)
+    e.preventDefault();
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('comment-resizing');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    localStorage.setItem(COMMENT_WIDTH_KEY, String(currentWidth()));
+  }
+  function onDown(e) {
+    dragging = true;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startW = currentWidth();
+    document.body.classList.add('comment-resizing');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    e.preventDefault();
+  }
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
+  handle.addEventListener('dblclick', () => {  // double-click resets to default
+    applyCommentWidth(320);
+    localStorage.setItem(COMMENT_WIDTH_KEY, '320');
+  });
+  window.addEventListener('resize', positionResizeHandle);
+  positionResizeHandle();
+}
+
+// Apply persisted width + bind drag immediately (independent of comment loading)
+applyStoredCommentWidth();
+bindCommentResize();
+
+// ============================================================
+// Init (wait for mermaid + hljs to finish rendering)
+// ============================================================
+
+async function init() {
+  bindMermaidLightbox();
+  // Annotation system is opt-out: skip wiring it up when body.annotations-off is set.
+  if (!document.body.classList.contains('annotations-off')) {
+    await loadComments();
+    updateSyncStatus();
+  }
+  positionResizeHandle();
+}
+// Wait a bit for mermaid SVG rendering to settle
+setTimeout(init, 1800);
+</script>
+
+</body>
+</html>

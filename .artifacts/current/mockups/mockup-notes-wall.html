@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curator's Notes + Quantification Wall — section mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  :root {
+    --bg: #f2f2ee; --surface: #fbfbf9; --ink: #22252a; --muted: #6d7178;
+    --line: #d9dad3; --accent: #35597e; --open: #a8392e; --open-bg: rgba(168,57,46,.09);
+    --done: #47714f; --done-bg: rgba(71,113,79,.10); --wip: #9a6b15; --wip-bg: rgba(154,107,21,.10);
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, "Inter", "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.7; font-size: 15px; }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+  .wing-head { display: flex; align-items: baseline; gap: .9rem; border-bottom: 2px solid var(--ink); padding-bottom: .5rem; margin-bottom: .4rem; }
+  .wing-no { font-family: var(--serif); color: var(--accent); letter-spacing: .1em; font-size: 1rem; }
+  .wing-head h2 { font-family: var(--serif); font-size: 1.45rem; letter-spacing: .02em; }
+  .wing-sub { color: var(--muted); font-size: .85rem; margin-bottom: 1.5rem; }
+  .spacer { height: 3rem; }
+
+  /* Curator's Notes */
+  .notes { list-style: none; padding: 0; counter-reset: note; }
+  .notes li {
+    counter-increment: note;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+    padding: 1rem 1.3rem 1rem 3.4rem; margin-bottom: .8rem; position: relative;
+  }
+  .notes li::before {
+    content: counter(note, upper-roman);
+    position: absolute; left: 1.15rem; top: 1.05rem;
+    font-family: var(--serif); color: var(--accent); font-size: .95rem; letter-spacing: .05em;
+  }
+  .notes strong { display: block; font-family: var(--serif); font-size: 1.02rem; margin-bottom: .15rem; }
+  .notes p { font-size: .9rem; color: #4a4e55; }
+  .notes .refs { font-family: var(--mono); font-size: .74rem; color: var(--muted); margin-top: .3rem; }
+
+  /* Quantification Wall */
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  th { text-align: left; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--ink); padding: .55rem .8rem; white-space: nowrap; }
+  td { border-bottom: 1px solid var(--line); padding: .6rem .8rem; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .m-pill { font-size: .7rem; font-weight: 600; padding: .12rem .55rem; border-radius: 999px; white-space: nowrap; }
+  .m-pill.measured { color: var(--done); background: var(--done-bg); }
+  .m-pill.partial { color: var(--wip); background: var(--wip-bg); }
+  .m-pill.none { color: var(--open); background: var(--open-bg); }
+  .metric { font-family: var(--mono); color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .exref { font-family: var(--mono); font-size: .76rem; color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ═══════ Curator's Notes ═══════ -->
+    <div class="wing-head"><span class="wing-no">CURATOR'S NOTES</span><h2>Patterns Across the Halls</h2></div>
+    <p class="wing-sub">What the individual failures add up to — the cross-cutting lessons a single exhibit can't show.</p>
+
+    <ol class="notes">
+      <li>
+        <strong>The model believes whatever the harness feeds it.</strong>
+        <p>Silent garbage quotes, misclassified errors, sections that overflow their boundary — on the surface they read as "hallucination", but the root cause lives in the tool layer. Verify tool output before blaming model behavior.</p>
+        <div class="refs">HE-03 · HE-04 · CE-03</div>
+      </li>
+      <li>
+        <strong>Prompt-harden, then pin with an eval.</strong>
+        <p>PE-01 gave birth to the entire eval framework. Every failure fixed since leaves behind a scorer, a regression assertion, or a contract test. A fix without an eval isn't finished.</p>
+        <div class="refs">PE-01 · PE-04</div>
+      </li>
+      <li>
+        <strong>Format control needs a two-sided pincer.</strong>
+        <p>Tighten the prompt <em>and</em> widen the parser. Locking output format by prompt alone always drifts under real traffic — downstream must tolerate what the model actually emits.</p>
+        <div class="refs">PE-02 · PE-05</div>
+      </li>
+    </ol>
+
+    <div class="spacer"></div>
+
+    <!-- ═══════ Quantification Wall ═══════ -->
+    <div class="wing-head"><span class="wing-no">PERMANENT COLLECTION</span><h2>The Quantification Wall</h2></div>
+    <p class="wing-sub">Every exhibit should eventually carry a number. Where measurement stands today — including the honest gaps.</p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Exhibit</th><th>Coverage</th><th>What exists</th><th>What's missing</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="exref">PE-01</span> Language policy</td>
+            <td><span class="m-pill measured">Measured</span></td>
+            <td>8-case eval, CJK-ratio scorer — <span class="metric">5/8 → 8/8</span> baseline</td>
+            <td>Parallel eval stacks have drifted; needs consolidation</td>
+          </tr>
+          <tr>
+            <td><span class="exref">CE-02</span> Cross-ticker contamination</td>
+            <td><span class="m-pill measured">Measured</span></td>
+            <td>18-question p@10 A/B — <span class="metric">0.622 → 1.00</span></td>
+            <td>Router ticker-extraction accuracy untested in isolation</td>
+          </tr>
+          <tr>
+            <td><span class="exref">PE-02</span> Citation format compliance</td>
+            <td><span class="m-pill none">Not measured</span></td>
+            <td>E2E happy path only</td>
+            <td>No format-compliance or inline-[N] scorer</td>
+          </tr>
+          <tr>
+            <td><span class="exref">HE-01</span> News specificity</td>
+            <td><span class="m-pill partial">Instrumented</span></td>
+            <td>30-question failure taxonomy + execution-health scorer</td>
+            <td>Human annotation not yet run; no URL-pattern scorer</td>
+          </tr>
+          <tr>
+            <td><span class="exref">HE-05</span> 10-K source grounding</td>
+            <td><span class="m-pill none">Not measured</span></td>
+            <td>—</td>
+            <td>Tool returns no URL, so grounding can't be verified at all</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</body>
+</html>

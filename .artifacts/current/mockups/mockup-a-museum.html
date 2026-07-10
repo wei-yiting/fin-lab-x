@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup A — Museum plaque style</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  :root {
+    --bg: #f2f2ee; --surface: #fbfbf9; --ink: #22252a; --muted: #6d7178;
+    --line: #d9dad3; --accent: #35597e; --open: #a8392e; --open-bg: rgba(168,57,46,.09);
+    --done: #47714f; --done-bg: rgba(71,113,79,.10);
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, "Inter", "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.7; font-size: 15px; }
+
+  /* shared app nav (both mockups have this) */
+  .appnav { display: flex; align-items: center; gap: 1.2rem; padding: .7rem 1.4rem; background: #fff; border-bottom: 1px solid #e5e5e5; font-size: .88rem; }
+  .appnav .brand { font-weight: 600; font-size: 1.02rem; margin-right: .4rem; }
+  .appnav .badge { font-size: 9px; text-transform: uppercase; border: 1px solid #d4d4d4; border-radius: 5px; padding: 1px 6px; color: #555; }
+  .appnav a { color: #666; text-decoration: none; padding: .2rem .1rem; }
+  .appnav a.active { color: #111; font-weight: 600; border-bottom: 2px solid #111; }
+
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  .eyebrow { font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: .8rem; }
+  h1 { font-family: var(--serif); font-size: 2.5rem; letter-spacing: .04em; line-height: 1.2; margin-bottom: .8rem; }
+  .lede { color: var(--muted); max-width: 38rem; margin-bottom: 2.6rem; }
+
+  .wing-head { display: flex; align-items: baseline; gap: .9rem; border-bottom: 2px solid var(--ink); padding-bottom: .5rem; margin-bottom: .4rem; }
+  .wing-no { font-family: var(--serif); color: var(--accent); letter-spacing: .1em; font-size: 1rem; }
+  .wing-head h2 { font-family: var(--serif); font-size: 1.45rem; letter-spacing: .02em; }
+  .wing-sub { color: var(--muted); font-size: .85rem; margin-bottom: 1.5rem; }
+
+  .exhibit { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 1.3rem 1.5rem 1.1rem; margin-bottom: 1.3rem; }
+  .plaque { display: flex; align-items: center; gap: .7rem; margin-bottom: .45rem; }
+  .acc { font-family: var(--mono); font-size: .74rem; color: var(--accent); letter-spacing: .08em; border: 1px solid var(--accent); border-radius: 3px; padding: .04rem .45rem; }
+  .pill { font-size: .7rem; font-weight: 600; letter-spacing: .05em; padding: .13rem .6rem; border-radius: 999px; }
+  .pill.done { color: var(--done); background: var(--done-bg); }
+  .pill.open { color: var(--open); background: var(--open-bg); }
+  .exhibit h3 { font-family: var(--serif); font-size: 1.12rem; line-height: 1.45; margin-bottom: .85rem; }
+  .fl { display: block; font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: .05rem; }
+  .field { margin-bottom: .65rem; }
+  .metric { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+  code { font-family: var(--mono); font-size: .85em; background: rgba(53,89,126,.07); border-radius: 3px; padding: .06em .35em; }
+  .prov { margin-top: .9rem; padding-top: .55rem; border-top: 1px dashed var(--line); font-size: .76rem; color: var(--muted); }
+</style>
+</head>
+<body>
+  <nav class="appnav">
+    <span class="brand">FinLab-X</span><span class="badge">v1</span>
+    <a href="#">Chat</a>
+    <a href="#" class="active">Failure Museum</a>
+  </nav>
+
+  <div class="wrap">
+    <p class="eyebrow">FinLab-X · AI Engineering Archive</p>
+    <h1>The Failure Museum</h1>
+    <p class="lede">Failures that made the agent worse — prompt, context, and harness engineering cases excavated from 15 PRs and 12 worktrees, each with its symptom, root cause, and the strategy that fixed it.</p>
+
+    <div class="wing-head"><span class="wing-no">HALL I</span><h2>Prompt Engineering</h2></div>
+    <p class="wing-sub">Where the system prompt failed to govern model output — language, format, and policies that collided with reality.</p>
+
+    <article class="exhibit">
+      <div class="plaque"><span class="acc">PE-01</span><span class="pill done">FIXED</span></div>
+      <h3>Chinese query text leaked into tool arguments — “微軟最近新聞” sent verbatim to the search engine</h3>
+      <div class="field"><span class="fl">Scene</span>
+        The user asks in Chinese; the agent passes the raw Chinese query to Tavily search instead of translating it to "MSFT recent news". Failures were only caught by manually reading transcripts.
+      </div>
+      <div class="field"><span class="fl">Root cause</span>
+        A single vague prompt line — "Always think and search in English" — with no explicit rule, no example, and no guardrail at the tool-schema level.
+      </div>
+      <div class="field"><span class="fl">Quantified</span>
+        Baseline eval: <span class="metric">5/8 failing</span> → after the fix <span class="metric">8/8 passing</span> (3-run stability <span class="metric">95.8%</span>). This failure gave birth to the repo's entire eval framework.
+      </div>
+      <div class="prov">PR #3 · commits <code>65ba25b</code>, <code>8a29d9c</code> · <code>language_policy_scorer.py</code></div>
+    </article>
+
+    <div class="wing-head" style="margin-top:2.4rem"><span class="wing-no">HALL III</span><h2>Harness &amp; Tools</h2></div>
+    <p class="wing-sub">The model believes whatever the harness feeds it.</p>
+
+    <article class="exhibit">
+      <div class="plaque"><span class="acc">HE-01</span><span class="pill open">STILL OPEN</span></div>
+      <h3>News search cites generic ticker pages instead of the actual article</h3>
+      <div class="field"><span class="fl">Scene</span>
+        Asked for "recent negative news", the agent's top citation points to <code>reuters.com/markets/companies/TSLA.F/</code> — a quote page that supports no specific claim. First-hand evidence sits in the diagnostic run CSVs.
+      </div>
+      <div class="field"><span class="fl">Status</span>
+        Unfixed; currently instrumented as a measurement target (30-question failure taxonomy, human annotation pending).
+      </div>
+      <div class="prov">near_v1_diagnostic 2026-04-24 CSVs · <code>financial.py:132-136</code></div>
+    </article>
+  </div>
+</body>
+</html>

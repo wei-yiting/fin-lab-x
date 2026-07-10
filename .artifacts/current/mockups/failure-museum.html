@@ -1,0 +1,667 @@
+<title>FinLabX 失敗博物館</title>
+<style>
+  :root {
+    --bg: #f2f2ee;
+    --surface: #fbfbf9;
+    --surface2: #f6f6f2;
+    --ink: #22252a;
+    --muted: #6d7178;
+    --line: #d9dad3;
+    --accent: #35597e;
+    --accent-ink: #2c4a69;
+    --open: #a8392e;
+    --open-bg: rgba(168, 57, 46, 0.09);
+    --wip: #9a6b15;
+    --wip-bg: rgba(154, 107, 21, 0.10);
+    --done: #47714f;
+    --done-bg: rgba(71, 113, 79, 0.10);
+    --code-bg: rgba(53, 89, 126, 0.07);
+    --serif: "Songti TC", "Noto Serif TC", Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Segoe UI", "Noto Sans TC", sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17191c;
+      --surface: #1e2126;
+      --surface2: #22252b;
+      --ink: #e6e4de;
+      --muted: #9a9e97;
+      --line: #33373d;
+      --accent: #7ea4c8;
+      --accent-ink: #93b5d4;
+      --open: #d8756a;
+      --open-bg: rgba(216, 117, 106, 0.13);
+      --wip: #cf9d4a;
+      --wip-bg: rgba(207, 157, 74, 0.13);
+      --done: #7fae88;
+      --done-bg: rgba(127, 174, 136, 0.13);
+      --code-bg: rgba(126, 164, 200, 0.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17191c;
+    --surface: #1e2126;
+    --surface2: #22252b;
+    --ink: #e6e4de;
+    --muted: #9a9e97;
+    --line: #33373d;
+    --accent: #7ea4c8;
+    --accent-ink: #93b5d4;
+    --open: #d8756a;
+    --open-bg: rgba(216, 117, 106, 0.13);
+    --wip: #cf9d4a;
+    --wip-bg: rgba(207, 157, 74, 0.13);
+    --done: #7fae88;
+    --done-bg: rgba(127, 174, 136, 0.13);
+    --code-bg: rgba(126, 164, 200, 0.12);
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f2ee;
+    --surface: #fbfbf9;
+    --surface2: #f6f6f2;
+    --ink: #22252a;
+    --muted: #6d7178;
+    --line: #d9dad3;
+    --accent: #35597e;
+    --accent-ink: #2c4a69;
+    --open: #a8392e;
+    --open-bg: rgba(168, 57, 46, 0.09);
+    --wip: #9a6b15;
+    --wip-bg: rgba(154, 107, 21, 0.10);
+    --done: #47714f;
+    --done-bg: rgba(71, 113, 79, 0.10);
+    --code-bg: rgba(53, 89, 126, 0.07);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.75;
+    margin: 0;
+    font-size: 15.5px;
+  }
+  .wrap {
+    max-width: 47.5rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+  }
+
+  /* ── Header ── */
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 0.9rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.1rem, 5vw, 2.9rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+  .lede {
+    color: var(--muted);
+    max-width: 40rem;
+    margin: 0 0 1.6rem;
+  }
+  .charter {
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    padding: 0.9rem 1.15rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 2rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .charter strong { color: var(--ink); }
+
+  /* ── Wing nav ── */
+  .halls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 3.2rem;
+    padding: 0;
+    list-style: none;
+  }
+  .halls a {
+    display: inline-block;
+    padding: 0.32rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.83rem;
+    transition: border-color 0.15s;
+  }
+  .halls a:hover, .halls a:focus-visible { border-color: var(--accent); color: var(--accent-ink); }
+
+  /* ── Wing header ── */
+  .wing { margin: 0 0 3.6rem; }
+  .wing-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.55rem;
+    margin-bottom: 0.5rem;
+  }
+  .wing-no {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .wing-head h2 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin: 0;
+  }
+  .wing-sub {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin: 0 0 1.6rem;
+  }
+
+  /* ── Exhibit card (museum plaque) ── */
+  .exhibit {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.35rem 1.5rem 1.15rem;
+    margin: 0 0 1.4rem;
+  }
+  .plaque-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.45rem;
+  }
+  .acc-no {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 0.05rem 0.45rem;
+  }
+  .pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 0.14rem 0.6rem;
+    border-radius: 999px;
+  }
+  .pill.done { color: var(--done); background: var(--done-bg); }
+  .pill.wip  { color: var(--wip);  background: var(--wip-bg); }
+  .pill.open { color: var(--open); background: var(--open-bg); }
+  .exhibit h3 {
+    font-family: var(--serif);
+    font-size: 1.13rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 0 0 0.9rem;
+    text-wrap: balance;
+  }
+  .field { margin: 0 0 0.7rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+  }
+  .field p, .field ul, .field ol { margin: 0; }
+  .field ul, .field ol { padding-left: 1.25rem; }
+  .field li { margin-bottom: 0.2rem; }
+  .provenance {
+    margin-top: 0.95rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--line);
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .metric {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.84em;
+    background: var(--code-bg);
+    border-radius: 3px;
+    padding: 0.08em 0.35em;
+    word-break: break-word;
+  }
+
+  /* ── Tables ── */
+  .scroll { overflow-x: auto; margin: 0.4rem 0 0.4rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.86rem;
+    background: var(--surface);
+  }
+  th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--ink);
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+  }
+  td {
+    border-bottom: 1px solid var(--line);
+    padding: 0.55rem 0.75rem;
+    vertical-align: top;
+    min-width: 7rem;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Curator notes ── */
+  .note-list { padding-left: 1.25rem; margin: 0; }
+  .note-list > li { margin-bottom: 0.85rem; }
+  .note-list > li::marker { color: var(--accent); font-weight: 700; }
+
+  .ask {
+    background: var(--wip-bg);
+    border: 1px solid var(--wip);
+    border-radius: 6px;
+    padding: 1.1rem 1.3rem;
+    margin: 0 0 1.2rem;
+  }
+  .ask .field-label { color: var(--wip); }
+  .ask p { margin: 0.2rem 0 0; }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  a { color: var(--accent-ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">FinLabX · AI Engineering 考古檔案</p>
+    <h1>失敗博物館</h1>
+    <p class="lede">建立財經研究 Agent 的過程中，那些讓 agent 表現變差的失敗：症狀、root cause、解法策略，與量化現況。整理自 15 個 PR 的 commit 歷史、12 個 worktree 與診斷紀錄。</p>
+    <div class="charter"><strong>收錄標準</strong> — 只收 prompt engineering、context engineering、harness / tool engineering 造成 agent 行為不佳的案例。純軟體工程 bug（streaming contract、eval infra、CI、Docker 等）不在館藏，另存於完整目錄 <code>.artifacts/current/failure_museum_catalog.md</code>。</div>
+    <ul class="halls">
+      <li><a href="#hall-1">第一展廳 · Prompt Engineering</a></li>
+      <li><a href="#hall-2">第二展廳 · Context Engineering</a></li>
+      <li><a href="#hall-3">第三展廳 · Harness &amp; Tools</a></li>
+      <li><a href="#wall">量化牆</a></li>
+      <li><a href="#notes">策展筆記</a></li>
+      <li><a href="#pending">待考證</a></li>
+    </ul>
+  </header>
+
+  <!-- ════════ 第一展廳 ════════ -->
+  <section class="wing" id="hall-1">
+    <div class="wing-head">
+      <span class="wing-no">第一展廳</span>
+      <h2>Prompt Engineering</h2>
+    </div>
+    <p class="wing-sub">System prompt 管不住模型輸出的案例 — 語言、格式、措辭，以及 policy 本身設計錯誤。</p>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">PE-01</span><span class="pill done">已修復</span></div>
+      <h3>中文查詢原文漏進 tool arguments — 「微軟最近新聞」直接丟給搜尋引擎</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>使用者用中文提問，agent 把「微軟最近新聞」原封不動傳給 Tavily search，而不是轉成 "MSFT recent news"；最終回應的語言也會與使用者語言不符。失敗只能靠人工翻對話發現。</p>
+      </div>
+      <div class="field"><span class="field-label">Root cause</span>
+        <p>Prompt 只寫了一句模糊的 "Always think and search in English" — 沒有明確規則、沒有範例、tool schema 欄位層級沒有 guardrail。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>三層防禦：(1) system prompt 明確規則 + before/after 範例；(2) tool schema 的 query 欄位描述直接標 <code>(MUST be in English)</code>；(3) 建 8-case eval suite 用 CJK-ratio 程式化斷言防 regression。</p>
+      </div>
+      <div class="field"><span class="field-label">量化</span>
+        <p>Baseline <span class="metric">5/8 失敗</span> → 修復後 <span class="metric">8/8 通過</span>（3-run stability <span class="metric">95.8%</span>）。這個 failure 直接催生了整個 eval framework — repo 的第一個 eval 因它而生。</p>
+      </div>
+      <div class="provenance">PR #3 · commits <code>65ba25b</code>、<code>8a29d9c</code> · <code>language_policy_scorer.py</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">PE-02</span><span class="pill done">已修復</span><span class="pill open">殘留 3 bug</span></div>
+      <h3>Citation 格式漂移 — prompt 鎖不住輸出格式，Sources 區塊 render 失敗</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>LLM 輸出的 reference definitions 不符 CommonMark，前端 extractor 抓不到 → Sources 區塊空白、引用原文直接上屏。實際觀察到 5 種漂移：bullet 前綴 <code>- [1]: URL</code>、「來源：」標題黏住第一條 definition、definition 前缺空行、無冒號的 <code>[N] URL</code>、中文回應的全形括號 <code>【N】</code>。</p>
+      </div>
+      <div class="field"><span class="field-label">Root cause</span>
+        <p>Prompt 沒有把模型鎖死在單一格式；輸出格式在真實流量下自然漂移（全形括號在中文語境特別頻繁）— 前端 parser 卻只認理想格式。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>雙端夾擊：prompt 端 LINK FORMAT 規則收緊（強制 <code>[N]: &lt;url&gt; "&lt;title&gt;"</code>、禁全形括號、禁 References heading）；前端 <code>normalizeRefDefs()</code> 修復管線容錯，每條 regex 對應一種「實測觀察到的 failure mode」。</p>
+      </div>
+      <div class="field"><span class="field-label">量化</span>
+        <p>無 citation-format compliance scorer（缺口）；目前只有 E2E test 鎖 happy path。修復自身留下 3 個殘留 bug：strip regex 會誤刪 <code>[2024] Revenue grew...</code> 這種正文行、jump-link anchor 永遠不可達、cursor sentinel 在 code block 內字面上屏。</p>
+      </div>
+      <div class="provenance">PR #12 · commits <code>aec4152</code>、<code>5b558f2</code> · <code>markdown-sources.ts</code>（註解逐條標明 observed failure modes）</div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">PE-03</span><span class="pill done">已修復（僅 prompt 防禦）</span></div>
+      <h3>正文沒有 inline [N] — 引用清單與 claim 脫鉤</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>模型傾向只在文末列 sources、正文不放 inline <code>[N]</code> 標記，讀者無法對應哪個 claim 來自哪個 source。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>Prompt 強制規則："A response that lists [1]: url without an inline [1] in the body is INVALID — do not emit it." 目前沒有 scorer 驗證此規則是否真的被遵守（缺口）。</p>
+      </div>
+      <div class="provenance">commit <code>5b558f2</code> · <code>system_prompt.md:25</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">PE-04</span><span class="pill done">Policy 已轉向</span></div>
+      <h3>Citation policy 與現實衝突 — 曾經「強制」引用 generic ticker page</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>純 API 資料（yfinance 報價、基本面）沒有任何可引用的 URL，與「所有 claim 都要有 source」的 zero-hallucination 政策直接相撞。政策演化三部曲：(1) 早期規定 yfinance-only 時省略 references → Sources 缺位；(2) 反轉成<strong>強制</strong>每個 claim 附 <code>finance.yahoo.com/quote/TICKER</code> — 自己設計出「用 generic ticker page 冒充 source」的失敗（與 HE-01 同型）；(3) Finnhub 抽換時放棄 URL 硬性要求 — API 資料 cite by provider name，URL 只要求真的有 URL 的來源。</p>
+      </div>
+      <div class="field"><span class="field-label">教訓</span>
+        <p>Citation policy 必須貼合資料來源的現實，而不是強迫模型捏造 URL。轉向後加了 DECISION-001 regression 斷言，確保 prompt 不再殘留 yahoo/yfinance 字樣。</p>
+      </div>
+      <div class="provenance">commits <code>5b558f2</code> → <code>7af4cdd</code>（PR #15）</div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">PE-05</span><span class="pill done">已修復</span></div>
+      <h3>內部 tool-call budget 被模型說成「我被 rate limit 了」</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>Tool-call 預算用盡時，middleware 的 block 訊息被 LLM 轉述成「我遇到 rate limit」— 把內部 orchestration 限制與 SEC/Tavily 的真實 429 混為一談，向使用者提供錯誤的失敗原因。後續連鎖：backend 把訊息改寫成 "this is NOT a rate limit…" 澄清後，前端的 <code>/rate limit/i</code> regex 反而匹配到澄清句自己，render 出「Too many requests」— 與本意完全相反。</p>
+      </div>
+      <div class="field"><span class="field-label">Root cause</span>
+        <p>錯誤語意以 free-form prose 跨越「模型 ↔ harness ↔ 前端」三層，每一層都在對字串做猜測式解讀；缺乏結構化的 <code>errorClass</code>。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>Prompt 明文規則（"Do NOT tell the user 'I hit a rate limit'"）+ backend 措辭改為 "NOT an <em>external</em> rate limit" 讓誤匹配子字串消失；typed errorClass 列為獨立 refactor（未落地）。</p>
+      </div>
+      <div class="provenance">PR #14 · commits <code>37addf7</code>、<code>066a80f</code> · <code>system_prompt.md:8-9</code></div>
+    </article>
+  </section>
+
+  <!-- ════════ 第二展廳 ════════ -->
+  <section class="wing" id="hall-2">
+    <div class="wing-head">
+      <span class="wing-no">第二展廳</span>
+      <h2>Context Engineering</h2>
+    </div>
+    <p class="wing-sub">餵進模型的 context 本身有問題 — 錯的公司、錯的年度、溢出的 section、被英文淹沒的語言指令。</p>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">CE-01</span><span class="pill done">已修復</span></div>
+      <h3>讀完英文 10-K 之後，回應語言漂移成英文</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>Agent 讀入數千字的英文 SEC filing section 後，in-context 的英文量壓過 system prompt 裡的 language policy，忽略「以使用者語言回答」改用英文回覆。System prompt 在 context 開頭，離生成點最遠 — 距離就是弱化。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>Language-directive sandwich：tool output 用 <code>_LANGUAGE_DIRECTIVE_PRE/_POST</code> 前後包夾 section 內容，把語言指令錨定在「英文內容即將淹沒 policy 的邊界上」（程式碼自述）。並利用 dict insertion order 確保 pre-directive 一定先於 content 出現。</p>
+      </div>
+      <div class="provenance">PR #14 · commit <code>0de9d04</code> · <code>sec_filing_tools.py:58-68, 275-289</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">CE-02</span><span class="pill done">機制已修</span><span class="pill open">同型 year-filter 仍 open</span></div>
+      <h3>跨公司污染 — 問 AMD 供應鏈風險，retrieval 給了 7 篇 Intel + 3 篇 NVIDIA、0 篇 AMD</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>Naive dense retrieval 下，中文 query 問 AMD 供應鏈風險，top-10 chunks 全是競爭對手的 10-K。實驗報告原文：「系統完美地誤導下游 LLM 用 Intel 和 NVIDIA 的供應鏈描述回答 AMD 的問題。」</p>
+      </div>
+      <div class="field"><span class="field-label">Root cause</span>
+        <p>語意相似度在「同產業競爭對手」之間最強 — 正是最不能搞混的公司；小語料 ticker（AMD 僅佔 4.5% chunks）被語意鄰居淹沒；中文 query → 英文 chunks 的跨語言條件放大 entity mismatch。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>Three-layer contract：payload metadata + Qdrant KeywordIndex + tenant-aware HNSW，query 時強制 <code>must=[ticker=X]</code> filter。</p>
+      </div>
+      <div class="field"><span class="field-label">量化</span>
+        <p>18 題 A/B：naive mean <span class="metric">p@10 = 0.622</span>（std 0.312，AMD 三題平均 <span class="metric">0.13</span>，最低 0.00）→ filter 後 <span class="metric">p@10 = 1.00</span>。Caveat：實驗假設 oracle ticker，router 從 query 抽 ticker 的準確率未被隔離測試；且 <code>"year": None</code> 時 year filter 被丟掉 — 跨<em>年份</em>污染這條同型 failure 在 main 上仍未修。</p>
+      </div>
+      <div class="provenance">worktree rag-filter-eval · <code>experiment_results.md</code> · v2 pipeline PR #11 · audit #18</div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">CE-03</span><span class="pill done">已修復</span></div>
+      <h3>Section 溢出邊界 — 要 Item 11，拿到的內容夾帶 Items 12–14</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p><code>get_section("11")</code> 回傳的文字實際包含 Items 12/13/14 的內容 — agent 說「根據 Item 11」時，引用的出處對不上實際內容；char 數與 stub 判定也一起失真。Human UAT 抓到：AAPL FY2025 的 Item 11 有 2080 chars 未被標 stub，實為挾帶了後面三個 item 的 "incorporated by reference" 文字。</p>
+      </div>
+      <div class="field"><span class="field-label">Root cause</span>
+        <p>Upstream edgartools 的 section 切分偶爾越界 — 外部 library 給的 context 邊界不可信。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p><code>trim_text_to_item_boundary()</code> 在 list 與 get 兩側都用 regex 切到下一個 item 邊界，配真實 EDGAR integration assertions（<code>get_section('11')</code> 不得包含 "Item 12."）。700+ 自動化測試沒抓到，human UAT 才抓到。</p>
+      </div>
+      <div class="provenance">PR #14 UAT · commit <code>7d7f3e4</code> · <code>sec_core.py:110-132</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">CE-04</span><span class="pill done">已修復</span></div>
+      <h3>空殼 section 被當成實質內容 — "incorporated by reference" 一句話混進 context</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>10-K 的 Part III Items 10–14 常只有「incorporated by reference to the Proxy Statement」一句。Agent 取用後可能以 10-K 為 source 回答其實在 DEF 14A 的資訊，或浪費 tool-call budget 抓一堆空殼。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p><code>is_stub_section()</code>（經驗校準 100-char threshold）+ <code>is_stub</code>/<code>stub_reason</code> metadata + reading guide 直接向 LLM 解釋 stub 的語意；ingestion 側同步清除（"Part III stubs dilute retrieval relevance"）。這是把 <em>domain 知識做成 context 標注</em>的例子 — 不是給模型更多內容，是給模型內容的「品質標籤」。</p>
+      </div>
+      <div class="provenance">PR #14 · <code>sec_core.py:135-188</code> · PR #9 commit <code>bfa8f75</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">CE-05</span><span class="pill done">已修復（重寫設計中）</span></div>
+      <h3>Context 供應鏈崩壞 — heading 偵測失效讓 chunking 與 item 過濾整條退化</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>RAG 的 context 品質上游是 SEC HTML 解析。28-ticker sweep 有 <span class="metric">24 家</span>被標 needs_review：TOC 條目跟正文一起 promote（JPM h1=22，應為 4）、非粗體 heading 整批靜默丟棄（JPM h2=0）、拆進多個 span 的 "Item 7." 黏成 "Item7.MD&amp;A" 後 regex 靜默不匹配。下游後果：chunk 的 item 標籤全部 <code>_unknown</code>、item-filtered retrieval 失效、老 filing 的硬換行把 Markdown 碎成一行一句 — chunking 全毀。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>SSOT region detection + bold-aware dedup + 23-ticker hard-gate baseline（needs_review 24 → 2）。長期解法：~1000 行手刻 parser 每加一家公司就冒新 quirk，已完成 990 行設計改用 edgartools native API 重寫（實作未開始）。</p>
+      </div>
+      <div class="field"><span class="field-label">教訓</span>
+        <p>第一版 dedup 修復還弄壞了三家原本健康的 ticker — 修 context 供應鏈時，「已健康樣本」要先鎖成 regression 網。</p>
+      </div>
+      <div class="provenance">PR #6/#8/#11 · commits <code>66fec6c</code>、<code>2c29bf3</code> · worktree improve-rag-ingestion</div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">CE-06</span><span class="pill open">部分未修</span></div>
+      <h3>年度語意錯位 — 模型拿到的「最新」10-K 不一定是使用者以為的那份</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>兩層問題：(1) 非曆年制公司的 fiscal year 與使用者心中的年份錯位 — NVDA 的 FY2026 在 2026-01 結束，使用者問「2025 年報」時模型容易拿錯；eval dataset 自己都踩過 NVDA off-by-one。(2) 「最新一期」的解析結果被 <code>@lru_cache</code> 永久快取 — 公司發布新 10-K 後，長駐 process 在重啟前一直回舊年度，context 靜默過期。</p>
+      </div>
+      <div class="field"><span class="field-label">現況</span>
+        <p>Ingestion 側已改由 <code>period_of_report</code> 推導年度（而非 filing_date）；但使用者語意的判斷仍全靠 LLM 自行猜測、stale cache 仍未修。</p>
+      </div>
+      <div class="provenance">PR #6 commits <code>3391039</code>、<code>4683cb7</code> · audit C2 · <code>sec_retrieval/README.md:23</code></div>
+    </article>
+  </section>
+
+  <!-- ════════ 第三展廳 ════════ -->
+  <section class="wing" id="hall-3">
+    <div class="wing-head">
+      <span class="wing-no">第三展廳</span>
+      <h2>Harness &amp; Tool Engineering</h2>
+    </div>
+    <p class="wing-sub">Tool 的輸出品質、錯誤語意與呼叫規劃 — harness 給模型什麼，模型就相信什麼。</p>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-01</span><span class="pill open">未修</span></div>
+      <h3>新聞搜尋回傳 generic ticker page — citation 指向不支撐任何 claim 的報價頁</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>問「最近的利空新聞」，Tavily 的 top result 是新聞網站的 ticker 總覽頁而非事件文章。第一手證據（diagnostic run 的 tool_outputs 原文）：UNH 題引用 <code>cnbc.com/quotes/UNH</code>、TSLA 題引用 <code>reuters.com/markets/companies/TSLA.F/</code>。</p>
+      </div>
+      <div class="field"><span class="field-label">Root cause（推測，未正式分析）</span>
+        <p>Query 組法 <code>f"{ticker} {query}"</code> 的 ticker 前綴推高 ticker-page 排序；<code>include_domains</code> 限定的三個大站（Reuters/Bloomberg/CNBC）本身 aggregator 頁面就多。</p>
+      </div>
+      <div class="field"><span class="field-label">現況</span>
+        <p>未修 — Finnhub 抽換明文 "keep tavily" 不動它。目前把它做成診斷軌的量測對象：30 題 diagnostic dataset 中 <code>source_coverage_gap</code> 被標為 primary ×4 / secondary ×4，可調旋鈕標 <code>tavily_sources</code>。人工標註尚未執行，還沒有 measured 分數。修法候選（<code>topic="news"</code>、日期過濾、URL pattern 排除 <code>/markets/companies/</code>、去掉 ticker 前綴）皆未嘗試。</p>
+      </div>
+      <div class="provenance">near_v1_diagnostic_20260424 CSVs · <code>financial.py:132-136</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-02</span><span class="pill open">未修（待人工標註）</span></div>
+      <h3>Tool routing 偏移 — 新聞題被報價工具「回答」</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>同一批 diagnostic run 觀察到：問新聞事件，agent 先呼叫 <code>yfinance_stock_quote</code>，用估值數據拼湊回答 — 工具選擇偏離題意。30 題失敗模式分類中 <code>tool_routing_error</code> 是最大宗（<span class="metric">11/30</span> 題被預判為此類），可調旋鈕多數指向 <code>max_tool_calls</code> 與 tool description。</p>
+      </div>
+      <div class="field"><span class="field-label">現況</span>
+        <p>診斷軌（execution_health scorer + Langfuse 人工標註）已建好、未跑第一輪 — routing 品質目前只有預判分類，沒有實測分數。</p>
+      </div>
+      <div class="provenance">near_v1_diagnostic dataset（30 題 × 15 欄 failure taxonomy）· EVAL-V1-DIAGNOSTIC-WALKTHROUGH.md</div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-03</span><span class="pill done">已修復 ×3</span></div>
+      <h3>無效 ticker 的靜默垃圾 — 三個資料來源、三種「不報錯的錯」</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>同一類 failure 在三代資料來源各發生一次。External API 對 invalid input 不 raise，回傳看起來像資料的垃圾 — harness 若原樣轉交，模型就把垃圾當事實。</p>
+      </div>
+      <div class="field"><span class="field-label">三代標本</span>
+        <div class="scroll"><table>
+          <thead><tr><th>來源</th><th>API 行為</th><th>對 agent 的風險</th></tr></thead>
+          <tbody>
+            <tr><td>yfinance <code>.info</code></td><td>回 <code>{"currentPrice": null}</code> 不 raise</td><td>模型分不清「無效 ticker」與「休市」→ 幻覺解讀</td></tr>
+            <tr><td>yfinance 1.x（404）</td><td>只 log error，回近空 dict</td><td>被誤分類成 retryable → 誤觸 retry + 錯誤語意</td></tr>
+            <tr><td>Finnhub</td><td>回全零 quote <code>{c:0, h:0, ...}</code></td><td>模型把 <strong>$0.00</strong> 當真實股價回報</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>每代都是同一帖藥：在 client 層偵測垃圾形狀 → 轉成明確的 domain error（<code>ValueError</code> / <code>TickerNotFoundError</code>）→ 經 sanitizer 給模型清楚的錯誤語意；並用 opt-in live contract tests 鎖住對 API 行為的假設。教訓：<strong>每接一個資料來源，先探明它的 invalid-input 行為</strong> — 換 API 不會消滅這類失敗，每個新 API 都有自己的靜默垃圾形狀。</p>
+      </div>
+      <div class="provenance">PR #7 commit <code>0ed8965</code> · quant worktree · PR #15 commit <code>b9fa675</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-04</span><span class="pill open">未修</span></div>
+      <h3>Tool 錯誤語意誤導 — DNS 失敗被轉譯成「這家公司不存在」</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>EDGAR 錯誤分類的 catch-all 把 DNS 失敗、timeout、parsing bug 一律轉成 <code>TickerNotFoundError</code> — LLM 收到後自信地告訴使用者「查無此公司」。Tool 層直接違反 zero-hallucination 政策：模型沒有幻覺，是 harness 餵了它一個錯誤的事實。</p>
+      </div>
+      <div class="field"><span class="field-label">教訓</span>
+        <p>錯誤分類是 harness 對模型的「事實陳述」。infrastructure error 與 domain error 混淆時，模型會把基礎設施故障當成領域知識轉述給使用者。</p>
+      </div>
+      <div class="provenance">audit B3 · <code>sec_core.py</code> <code>_classify_edgar_error</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-05</span><span class="pill open">未修 · 待考證</span></div>
+      <h3>SEC tool 不回傳 URL，prompt 卻要求 SEC 引用附 URL — 模型只能自己編</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p><code>sec_filing_get_section</code> 的 output 只有 ticker / fiscal_year / period_of_report / content — 完全沒有 URL 欄位。但 prompt 的 LINK FORMAT 規則要求「真的有 URL 的來源（Tavily news、SEC filings）」列 URL。矛盾的結果：模型引用 10-K 時，任何它寫出來的 URL 都不是 grounded 的，只能憑記憶捏造 sec.gov 連結。這是「10-K source 到現在還會錯」最可疑的機制。</p>
+      </div>
+      <div class="field"><span class="field-label">現況</span>
+        <p>未修。候選解法：讓 tool 回傳 filing 的 accession-number URL，使引用可 grounded。10-K 引用品質目前<strong>沒有任何可信量測</strong>（sec_retrieval dataset 仍是 draft placeholder）。</p>
+      </div>
+      <div class="provenance"><code>sec_filing_tools.py:275-283</code>（output schema）· <code>system_prompt.md</code> LINK FORMAT</div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-06</span><span class="pill done">已修復</span></div>
+      <h3>模型規劃了重複的平行 tool calls — 同一份 filing 打了 EDGAR 兩次</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>一個問題觸發兩次 <code>list_sections</code> + 兩次 <code>get_section</code>：LangGraph 自由規劃平行 tool calls，兩個並發呼叫同時 miss 還沒 populate 的 <code>lru_cache</code>，EDGAR 被打兩次。Human UAT 的 cache-reuse 步驟才抓到。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>Defense in depth：prompt 規則抑制「規劃端」的重複呼叫 + single-flight registry（後到的呼叫 block 在先到者的 Future 上）作為 harness 端安全網。單靠 prompt 管不住規劃行為 — harness 要有兜底。</p>
+      </div>
+      <div class="provenance">PR #14 UAT · commit <code>ccb8ae8</code></div>
+    </article>
+
+    <article class="exhibit">
+      <div class="plaque-row"><span class="acc-no">HE-07</span><span class="pill wip">修復中（PR #15 open）</span></div>
+      <h3>Tool 基座不可靠 — yfinance 常態 rate limit 讓 agent 間歇性失能</h3>
+      <div class="field"><span class="field-label">情境</span>
+        <p>yfinance 是非官方 Yahoo scraping、無 SLA，即時行情 tool calls 間歇性失敗（IP throttling）— 對使用者呈現為 agent 不穩定，實際是 tool 基座在退化。</p>
+      </div>
+      <div class="field"><span class="field-label">解法</span>
+        <p>換 Finnhub 官方 free-tier API（60 calls/min），並把 tool 顆粒度圍繞 rate budget 設計 — 三個 tool 拆開，讓「問一個價格 = 恰好一次 call」。Harness 設計把外部配額當一級公民。</p>
+      </div>
+      <div class="provenance">PR #15 · commits <code>283f367</code>、<code>7af4cdd</code></div>
+    </article>
+  </section>
+
+  <!-- ════════ 量化牆 ════════ -->
+  <section class="wing" id="wall">
+    <div class="wing-head">
+      <span class="wing-no">常設展</span>
+      <h2>量化牆 — 哪些失敗有被量測</h2>
+    </div>
+    <p class="wing-sub">博物館的下一步是每件展品都有 evaluation。現況盤點：</p>
+    <div class="scroll"><table>
+      <thead><tr><th>展品</th><th>現有量測</th><th>缺口</th></tr></thead>
+      <tbody>
+        <tr><td>PE-01 語言政策</td><td>✅ 8-case eval + CJK-ratio scorer（5/8 → 8/8 有 baseline）</td><td>兩套平行 eval stack 已 drift，待收斂</td></tr>
+        <tr><td>CE-02 跨公司污染</td><td>✅ 18 題 p@10 A/B（0.622 → 1.00）</td><td>router 抽 ticker 的準確率未隔離測試</td></tr>
+        <tr><td>CE-05 SEC retrieval 品質</td><td>⚠️ IR metrics 存在但 scorer 有 P0 bug、dataset 是 draft</td><td>目前分數不可信；修復在 worktree 未 commit</td></tr>
+        <tr><td>PE-02/03 citation 合規</td><td>❌ 只有 E2E happy path</td><td>無格式合規率 / inline-[N] scorer</td></tr>
+        <tr><td>HE-01/02 news 品質與 routing</td><td>⚠️ 診斷軌已建（30 題 failure taxonomy + execution_health）</td><td>人工標註未跑第一輪；無 URL-pattern 自動 scorer</td></tr>
+        <tr><td>HE-05 10-K source 正確性</td><td>❌ 無</td><td>tool 不回 URL，grounding 根本無從驗證</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ════════ 策展筆記 ════════ -->
+  <section class="wing" id="notes">
+    <div class="wing-head">
+      <span class="wing-no">策展筆記</span>
+      <h2>橫向 Patterns</h2>
+    </div>
+    <ol class="note-list">
+      <li><strong>模型相信 harness 給它的一切。</strong>靜默垃圾（HE-03）、錯誤分類（HE-04）、溢出的 section（CE-03）— 模型端看起來是「幻覺」或「答錯」，root cause 都在 tool 層。修模型行為之前先驗 tool 輸出。</li>
+      <li><strong>Prompt 硬化 + eval 固定是標準修法。</strong>PE-01 直接催生 eval framework；之後每個修好的失敗都留下 scorer、regression 斷言或 contract test。沒有 eval 的修復（PE-03）等於還沒修完。</li>
+      <li><strong>格式管控要雙端夾擊。</strong>PE-02 同時收緊 prompt 與放寬前端 parser — 單靠 prompt 鎖格式在真實流量下必然漂移，下游一定要容錯。</li>
+      <li><strong>Policy 要貼合資料現實。</strong>PE-04 的教訓：對沒有 URL 的資料來源強制要求 URL，模型只有兩條路 — 抗命或捏造。政策設計錯誤會直接製造幻覺。</li>
+      <li><strong>Prompt 管不住規劃行為，harness 要兜底。</strong>HE-06 的 defense in depth：prompt 抑制 + single-flight 安全網。對模型的行為約束永遠要有非 prompt 的第二層。</li>
+      <li><strong>Human-in-the-loop 抓到自動化抓不到的。</strong>CE-03 的 section 溢出、HE-06 的重複呼叫都是 human UAT 發現 — 700+ 自動化測試對 concurrency 行為與真實資料內容缺陷都不可見。</li>
+    </ol>
+  </section>
+
+  <!-- ════════ 待考證 ════════ -->
+  <section class="wing" id="pending">
+    <div class="wing-head">
+      <span class="wing-no">待考證</span>
+      <h2>需要館長確認的兩件事</h2>
+    </div>
+    <div class="ask">
+      <span class="field-label">HE-05 · 10-K source 錯誤的具體樣態</span>
+      <p>你看到的錯是 URL 錯/捏造的 sec.gov 連結、年度錯、還是 item/section 錯？有印象中的實例或可撈的 Langfuse trace 嗎？這決定展品定稿與 evaluation 設計方向。</p>
+    </div>
+    <div class="ask">
+      <span class="field-label">HE-01 · Reuters 案例的出處</span>
+      <p>你記憶中的 Reuters ticker page 案例，就是 2026-04-24 那批 diagnostic run（TSLA → <code>reuters.com/markets/companies/TSLA.F/</code>），還是更早的手動測試？</p>
+    </div>
+  </section>
+
+  <footer>
+    FinLabX 失敗博物館 · 策展於 2026-07-07 · 完整考古目錄（含 streaming / eval-infra / process 類）見 <code>.artifacts/current/failure_museum_catalog.md</code>
+  </footer>
+</div>

@@ -1,0 +1,3404 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FinLabX 失敗博物館 — 素材目錄</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github.min.css">
+<style>
+/* ── Instrument-panel palette: cool ledger neutrals + teal accent + violet hub.
+   Light is the base; dark is redefined at token level below so every component
+   that styles through var() follows both themes. Reading-column widths are
+   intentionally left in the layout rules, not here. */
+:root {
+  --bg: #eceef1;
+  --card-bg: #ffffff;
+  --text: #14181f;
+  --text-muted: #3f4855;
+  --text-subtle: #6b7480;
+  --border: #dde1e7;
+  --border-strong: #c6ccd4;
+  --code-bg: #f0f2f5;
+  --code-ink: #2b3542;
+  --primary: #0c7d84;
+  --primary-light: #d6ecee;
+  --architecture: #2563eb;
+  --architecture-bg: #e8f0fe;
+  --sunset: #b4640f;
+  --sunset-bg: #fbeeda;
+  --inspect: #147045;
+  --inspect-bg: #e2f4ea;
+  --decision: #7c4dbd;
+  --decision-bg: #f0e9fb;
+  --ab: #c23b46;
+  --ab-bg: #fbe9e9;
+  --api: #0c7d84;
+  --api-bg: #dff1f2;
+  --open: #9a6410;
+  --open-bg: #fbeeda;
+  --info-fg: #1f5fae;
+  --warn-fg: #9a5410;
+  --key-fg: #6a3fb0;
+  --success-fg: #147045;
+  --row-hover: #f4f6f8;
+  --shadow: 0 1px 2px rgba(20,24,31,.04), 0 4px 16px rgba(20,24,31,.05);
+  --mono: "SFMono-Regular", "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --comment-w: 320px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1319;
+    --card-bg: #171c24;
+    --text: #eef1f5;
+    --text-muted: #b7bfca;
+    --text-subtle: #8b94a0;
+    --border: #262d38;
+    --border-strong: #333c48;
+    --code-bg: #10151c;
+    --code-ink: #bcc6d2;
+    --primary: #3fb8bf;
+    --primary-light: #16323a;
+    --architecture: #77aef0;
+    --architecture-bg: #142944;
+    --sunset: #e0a15a;
+    --sunset-bg: #33260f;
+    --inspect: #6fd79b;
+    --inspect-bg: #10321f;
+    --decision: #b18ce6;
+    --decision-bg: #241834;
+    --ab: #ec8d8d;
+    --ab-bg: #3a1c1c;
+    --api: #3fb8bf;
+    --api-bg: #10302f;
+    --open: #e0a15a;
+    --open-bg: #33260f;
+    --info-fg: #77aef0;
+    --warn-fg: #e0a15a;
+    --key-fg: #c3a3ef;
+    --success-fg: #6fd79b;
+    --row-hover: #1d232c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.28);
+  }
+}
+/* Explicit theme override (wins over the media query in both directions) */
+:root[data-theme="light"] {
+  --bg: #eceef1; --card-bg: #ffffff; --text: #14181f; --text-muted: #3f4855;
+  --text-subtle: #6b7480; --border: #dde1e7; --border-strong: #c6ccd4;
+  --code-bg: #f0f2f5; --code-ink: #2b3542; --primary: #0c7d84; --primary-light: #d6ecee;
+  --architecture: #2563eb; --architecture-bg: #e8f0fe; --sunset: #b4640f; --sunset-bg: #fbeeda;
+  --inspect: #147045; --inspect-bg: #e2f4ea; --decision: #7c4dbd; --decision-bg: #f0e9fb;
+  --ab: #c23b46; --ab-bg: #fbe9e9; --api: #0c7d84; --api-bg: #dff1f2; --open: #9a6410; --open-bg: #fbeeda;
+  --info-fg: #1f5fae; --warn-fg: #9a5410; --key-fg: #6a3fb0; --success-fg: #147045;
+  --row-hover: #f4f6f8; --shadow: 0 1px 2px rgba(20,24,31,.04), 0 4px 16px rgba(20,24,31,.05);
+}
+:root[data-theme="dark"] {
+  --bg: #0f1319; --card-bg: #171c24; --text: #eef1f5; --text-muted: #b7bfca;
+  --text-subtle: #8b94a0; --border: #262d38; --border-strong: #333c48;
+  --code-bg: #10151c; --code-ink: #bcc6d2; --primary: #3fb8bf; --primary-light: #16323a;
+  --architecture: #77aef0; --architecture-bg: #142944; --sunset: #e0a15a; --sunset-bg: #33260f;
+  --inspect: #6fd79b; --inspect-bg: #10321f; --decision: #b18ce6; --decision-bg: #241834;
+  --ab: #ec8d8d; --ab-bg: #3a1c1c; --api: #3fb8bf; --api-bg: #10302f; --open: #e0a15a; --open-bg: #33260f;
+  --info-fg: #77aef0; --warn-fg: #e0a15a; --key-fg: #c3a3ef; --success-fg: #6fd79b;
+  --row-hover: #1d232c; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.28);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--comment-w);
+  transition: padding-left 0.22s ease;
+}
+body.sidebar-pinned .layout {
+  padding-left: 260px;
+}
+body.comment-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+/* annotations-off mode: hide comment UI, single-column layout */
+body.annotations-off .layout { grid-template-columns: minmax(0, 1fr); max-width: 1100px; margin: 0 auto; }
+body.annotations-off .comment-panel,
+body.annotations-off .comment-fab,
+body.annotations-off .selection-toolbar,
+body.annotations-off #comment-dialog-backdrop { display: none !important; }
+
+/* SIDEBAR TOGGLE BUTTON (floating) */
+.sidebar-toggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 75;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  font-family: inherit;
+  line-height: 1;
+}
+.sidebar-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+body.sidebar-pinned .sidebar-toggle {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* SIDEBAR (fixed off-screen, slides in on hover/pin) */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 62px 18px 22px;
+  z-index: 60;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  font-size: 13.5px;
+}
+.sidebar.show { transform: translateX(0); }
+.sidebar.hover-mode { box-shadow: 6px 0 24px rgba(0, 0, 0, 0.12); }
+.sidebar.pinned-mode { box-shadow: none; }
+.sidebar-brand {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
+.sidebar-brand::before { content: "▚ "; color: var(--primary); }
+.sidebar-sub {
+  font-family: var(--mono);
+  color: var(--text-subtle);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  margin-bottom: 20px;
+}
+.toc {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.toc li { margin: 2px 0; }
+.toc a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.1s, color 0.1s;
+}
+.toc a:hover { background: var(--code-bg); color: var(--text); }
+.toc-num {
+  display: inline-block;
+  width: 22px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--primary);
+  font-feature-settings: "tnum";
+  flex-shrink: 0;
+}
+.toc-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* LEARNING PANEL (🎓 Learning Notes — optional floating panel, sibling of the TOC.
+   Violet accent to read as "calm / educational", distinct from the blue TOC/links and
+   the yellow annotation marks. All rules are inert unless the panel markup is present. */
+.learning-toggle {
+  position: fixed;
+  bottom: 14px;
+  left: 14px;
+  z-index: 75;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+  font-family: inherit;
+}
+.learning-toggle:hover {
+  background: var(--decision-bg);
+  border-color: var(--decision);
+}
+body.learning-open .learning-toggle {
+  background: var(--decision);
+  border-color: var(--decision);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+.learning-panel {
+  position: fixed;
+  bottom: 62px;
+  left: 14px;
+  width: 340px;
+  max-width: calc(100vw - 28px);
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--decision);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.18);
+  z-index: 74;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+body.learning-open .learning-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.learning-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.learning-panel-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--decision);
+  letter-spacing: -0.01em;
+}
+.learning-close {
+  border: none;
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+.learning-close:hover { background: var(--code-bg); color: var(--text); }
+.learning-panel-body {
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.learning-panel-body > *:first-child { margin-top: 4px; }
+.learning-panel-body h3 { font-size: 14.5px; margin: 16px 0 6px; }
+.learning-panel-body h4 {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+  margin: 14px 0 4px;
+}
+.learning-panel-body p { margin: 6px 0; }
+.learning-panel-body ul,
+.learning-panel-body ol { padding-left: 20px; margin: 6px 0; }
+.learning-panel-body li { margin: 3px 0; }
+.learning-panel-body pre { font-size: 12px; border-radius: 8px; }
+.learning-panel-body :not(pre) > code { font-size: 12.5px; }
+@media (max-width: 480px) {
+  .learning-panel { width: calc(100vw - 28px); max-height: 74vh; }
+}
+
+/* MAIN */
+main {
+  padding: 32px 56px 80px;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+/* Reading column: flowing text + headings are capped to a comfortable measure
+   and CENTERED, so wide tables / diagrams / code break past it symmetrically
+   (shared center axis) and the text block never looks skewed. The hero stays
+   inside the same centered column. */
+.hero {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+.doc-section > p,
+.doc-section > ul,
+.doc-section > ol,
+.doc-section > h3,
+.doc-section > h4,
+.doc-section > .callout,
+.doc-section > .section-head {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+/* HERO */
+.hero {
+  margin-bottom: 56px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+.status-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  background: var(--open-bg);
+  color: var(--open);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 4px 0 8px;
+  line-height: 1.2;
+}
+.hero .subtitle {
+  font-size: 17px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.stat-num {
+  font-family: var(--mono);
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 8px;
+}
+
+.prereq {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+.research-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.research-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+}
+
+/* SECTIONS */
+section.doc-section { margin-bottom: 56px; scroll-margin-top: 24px; }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-strong);
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  font-feature-settings: "tnum";
+  min-width: 28px;
+}
+.section-head h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+  flex: 1;
+}
+.section-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tag-architecture { background: var(--architecture-bg); color: var(--architecture); }
+.tag-sunset { background: var(--sunset-bg); color: var(--sunset); }
+.tag-inspect { background: var(--inspect-bg); color: var(--inspect); }
+.tag-decision { background: var(--decision-bg); color: var(--decision); }
+.tag-ab { background: var(--ab-bg); color: var(--ab); }
+.tag-api { background: var(--api-bg); color: var(--api); }
+.tag-open { background: var(--open-bg); color: var(--open); }
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 32px 0 14px;
+  color: var(--text);
+}
+h4 {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 22px 0 10px;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+p { margin: 0 0 14px; }
+
+/* INLINE */
+code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--code-ink);
+}
+strong { color: var(--text); font-weight: 600; }
+em { font-style: italic; color: var(--text-muted); }
+
+/* CODE BLOCK */
+pre {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 14px 0 20px;
+  border: 1px solid var(--border);
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+
+/* TABLES */
+.table-wrap {
+  overflow-x: auto;
+  margin: 14px 0 22px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+thead {
+  background: var(--code-bg);
+}
+th {
+  text-align: left;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-strong);
+}
+td {
+  padding: 10px 14px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.6;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--row-hover); }
+
+/* DECISION TABLE — colored num + larger row gap */
+.decisions-table td:first-child {
+  font-weight: 700;
+  text-align: center;
+  color: white;
+  width: 44px;
+  font-feature-settings: "tnum";
+  font-size: 13px;
+}
+.decisions-table.cat-pipeline td:first-child { background: var(--architecture); }
+.decisions-table.cat-coexist td:first-child { background: var(--sunset); }
+.decisions-table.cat-ab td:first-child { background: var(--ab); }
+.decisions-table.cat-api td:first-child { background: var(--api); }
+.decisions-table td:nth-child(2) {
+  font-weight: 600;
+  width: 28%;
+}
+.decisions-table td:nth-child(3) {
+  width: 38%;
+}
+.decisions-table td:nth-child(4) {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* MERMAID */
+.mermaid {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  margin: 18px 0 24px;
+  overflow-x: auto;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+/* CALLOUT */
+.callout {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0 20px;
+  border-left: 4px solid;
+  font-size: 14px;
+}
+.callout-info { background: var(--architecture-bg); border-color: var(--architecture); color: var(--info-fg); }
+.callout-warn { background: var(--sunset-bg); border-color: var(--sunset); color: var(--warn-fg); }
+.callout-key { background: var(--decision-bg); border-color: var(--decision); color: var(--key-fg); }
+.callout-success { background: var(--inspect-bg); border-color: var(--inspect); color: var(--success-fg); }
+.callout strong { color: inherit; }
+
+/* LISTS */
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+ul li, ol li { margin-bottom: 6px; }
+
+/* SUMMARY/DETAILS */
+details {
+  margin: 14px 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+details[open] summary { margin-bottom: 8px; }
+
+/* FOOTER */
+footer {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-subtle);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* === ANNOTATION SYSTEM === */
+
+.comment-panel {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 16px;
+  border-left: 1px solid var(--border);
+  background: var(--card-bg);
+  font-size: 13px;
+}
+/* Drag handle tracking the panel's left edge — drag left to widen (panel grows leftward).
+   position:fixed (left set by JS) so it never scrolls away when the panel overflows. */
+.comment-resize-handle {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 9px;
+  cursor: ew-resize;
+  z-index: 50;
+  touch-action: none;
+}
+.comment-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+.comment-resize-handle:hover::after,
+body.comment-resizing .comment-resize-handle::after {
+  background: var(--primary);
+}
+.comment-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.comment-panel-title {
+  font-weight: 700; font-size: 14px;
+}
+/* unified badge sizing — all three same height/padding/font */
+.comment-count-badge,
+.resolved-count-badge,
+.outdated-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  font-feature-settings: "tnum";
+}
+.comment-count-badge::before,
+.outdated-count-badge::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+.comment-count-badge { background: #fef08a; color: #854d0e; padding-left: 6px; }
+.comment-count-badge::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23854d0e' d='M4 3C2.9 3 2 3.9 2 5v10c0 1.1.9 2 2 2h4v4l5-4h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H4z'/></svg>");
+}
+.comment-help {
+  font-size: 11.5px; color: var(--text-subtle);
+  line-height: 1.5; margin-bottom: 14px;
+  padding: 8px 10px; background: var(--code-bg); border-radius: 6px;
+}
+.comment-actions {
+  display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.btn-action {
+  padding: 6px 10px;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.btn-action:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.btn-action.btn-danger:hover { background: var(--ab-bg); color: var(--ab); border-color: var(--ab); }
+.btn-action.btn-primary-action {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.btn-action.btn-primary-action:hover {
+  filter: brightness(1.08);
+  color: white;
+}
+.btn-icon {
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 1px;
+}
+.caret { font-size: 9px; opacity: 0.7; margin-left: 1px; }
+
+/* Export dropdown */
+.export-menu-wrap { position: relative; display: inline-block; }
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  display: none;
+  min-width: 180px;
+  padding: 4px;
+}
+.export-dropdown.show { display: block; }
+.export-option {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text);
+  border-radius: 4px;
+}
+.export-option:hover { background: var(--primary-light); color: var(--primary); }
+
+.comment-list { display: flex; flex-direction: column; gap: 8px; }
+.comment-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card:hover {
+  border-color: var(--primary);
+  transform: translateX(-2px);
+  box-shadow: -2px 2px 8px rgba(37, 99, 235, 0.08);
+}
+.comment-section {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.comment-quote {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--code-bg);
+  border-left: 2px solid #facc15;
+  padding: 5px 8px;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 6px;
+  line-height: 1.45;
+  font-style: italic;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.comment-body {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.comment-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10.5px; color: var(--text-subtle);
+}
+.btn-delete {
+  background: transparent; border: none;
+  color: var(--text-subtle);
+  cursor: pointer; font-size: 13px;
+  padding: 2px 5px; border-radius: 4px;
+  font-family: inherit;
+  line-height: 1;
+  opacity: 0.55;
+  transition: opacity 0.12s, background 0.12s, color 0.12s;
+}
+.btn-delete:hover {
+  background: var(--ab-bg);
+  color: var(--ab);
+  opacity: 1;
+}
+.empty-state {
+  color: var(--text-subtle); font-size: 12.5px;
+  text-align: center; padding: 32px 12px; line-height: 1.7;
+}
+
+/* annotation marks — pale highlight always carries dark ink so it stays legible
+   in dark mode (body text is light there; inherit would be unreadable on yellow). */
+mark.annot {
+  background: #fef08a;
+  color: #1a1a1a;
+  padding: 1px 2px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  border-bottom: 1px dashed #ca8a04;
+}
+mark.annot:hover { background: #fde047; }
+mark.annot.pulse {
+  animation: pulse-mark 1.6s ease-in-out;
+}
+@keyframes pulse-mark {
+  0%, 100% { background: #fef08a; }
+  50% { background: #facc15; box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.35); }
+}
+
+/* selection toolbar — fixed dark chip (tooltip-style) so it reads on both
+   light and dark pages; var(--text) would invert to near-white in dark mode
+   and hide the white label. */
+.selection-toolbar {
+  position: absolute;
+  display: none;
+  background: #1f2530;
+  color: white;
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 1000;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  white-space: nowrap;
+}
+.selection-toolbar button {
+  background: transparent; color: white; border: none;
+  padding: 6px 12px;
+  font-size: 12.5px; cursor: pointer; border-radius: 5px;
+  font-family: inherit;
+}
+.selection-toolbar button:hover { background: rgba(255,255,255,0.18); }
+
+/* comment dialog */
+.dialog-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 2000;
+}
+.dialog-backdrop.show { display: flex; }
+.comment-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  width: 480px; max-width: 90vw;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+.comment-dialog h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.comment-dialog .selection-preview {
+  background: var(--code-bg);
+  border-left: 3px solid #facc15;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  max-height: 100px; overflow-y: auto;
+  font-style: italic;
+  line-height: 1.5;
+}
+.comment-dialog textarea {
+  width: 100%; min-height: 100px;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit; font-size: 14px;
+  line-height: 1.5; resize: vertical;
+  box-sizing: border-box;
+}
+.comment-dialog textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(12, 125, 132, 0.18);
+}
+.dialog-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px;
+}
+.dialog-hint { font-size: 11.5px; color: var(--text-subtle); }
+.dialog-buttons { display: flex; gap: 6px; }
+.btn-primary {
+  background: var(--primary); color: white; border: none;
+  padding: 8px 18px; border-radius: 6px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-secondary {
+  background: var(--code-bg); color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+}
+.btn-secondary:hover { background: var(--border); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: white;
+  padding: 12px 18px;
+  border-radius: 8px; font-size: 13px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 3000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  max-width: 400px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* floating fab for mobile */
+.comment-fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--primary); color: white; border: none;
+  font-size: 22px; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(12, 125, 132, 0.4);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 40;
+}
+.comment-fab-badge {
+  position: absolute; top: -2px; right: -2px;
+  background: var(--ab); color: white;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; min-width: 18px;
+  text-align: center;
+}
+
+/* === MERMAID LIGHTBOX === */
+.mermaid {
+  cursor: zoom-in;
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.mermaid:hover {
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+  border-color: var(--primary);
+}
+.mermaid::after {
+  content: '🔍 click to zoom';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.mermaid:hover::after { opacity: 1; }
+
+.mm-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.88);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 5000;
+}
+.mm-modal-backdrop.show { display: flex; }
+.mm-modal-frame {
+  width: 95vw; height: 92vh;
+  background: white;
+  border-radius: 12px;
+  position: relative;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+.mm-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.mm-modal-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.mm-modal-actions { display: flex; gap: 6px; }
+.mm-modal-actions button {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mm-modal-actions button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.mm-modal-svg-wrap {
+  flex: 1;
+  overflow: hidden;
+  background: white;
+}
+.mm-modal-svg-wrap svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+}
+
+/* === RESOLVED STATE (dimmed + muted gray-green) === */
+mark.annot.resolved {
+  background: #e6ede9 !important;
+  color: #5f6b66 !important;
+  border-bottom-color: #c0ccc4 !important;
+  opacity: 1 !important;
+}
+mark.annot.resolved:hover {
+  background: #d4ddd7 !important;
+  color: #1a1a1a !important;
+}
+
+.comment-card.resolved {
+  background: #f3f6f4;
+  border-color: #e0e8e3;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card.resolved:hover {
+  opacity: 0.95;
+  border-color: #c8d3cc;
+  box-shadow: -2px 2px 8px rgba(120, 130, 125, 0.08);
+}
+.comment-card.resolved .comment-quote {
+  border-left-color: transparent;
+  background: #eef2f0;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.status-pill.resolved {
+  background: #e6ede9;
+  color: #6b7975;
+}
+.status-pill.outdated {
+  background: #dbe6f3;
+  color: #3d5b7e;
+}
+
+/* outdated state — same dim as resolved but with subtle blue tint */
+.comment-card.outdated {
+  background: #f4f8fc;
+  border-color: #dbe4ee;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.comment-card.outdated:hover {
+  opacity: 0.95;
+  border-color: #bccbdc;
+  box-shadow: -2px 2px 8px rgba(80, 110, 150, 0.1);
+}
+.comment-card.outdated .comment-quote {
+  border-left-color: transparent;
+  background: #e8eff7;
+}
+
+.comment-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.btn-toggle:hover {
+  background: #bbf7d0;
+  color: #047857;
+  border-color: #86efac;
+}
+.comment-card.resolved .btn-toggle:hover {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.comment-counts {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.resolved-count-badge { background: #e6ede9; color: #6b7975; }
+.outdated-count-badge { background: #dbe6f3; color: #3d5b7e; padding-left: 6px; }
+.outdated-count-badge::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%233d5b7e' d='M5 2h14v2l-5 8 5 8v2H5v-2l5-8-5-8V2z'/></svg>");
+}
+.status-pill.outdated::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%233d5b7e' d='M5 2h14v2l-5 8 5 8v2H5v-2l5-8-5-8V2z'/></svg>");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* === FILE SYNC STATUS === */
+.sync-status {
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sync-status.local {
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.sync-status.synced {
+  background: var(--inspect-bg);
+  color: var(--inspect);
+  border: 1px solid #6ee7b7;
+}
+.sync-status.pending {
+  background: var(--open-bg);
+  color: #854d0e;
+  border: 1px solid #fde68a;
+}
+.sync-status.readonly {
+  background: var(--architecture-bg, #eff6ff);
+  color: var(--architecture, #1d4ed8);
+  border: 1px solid #bfdbfe;
+}
+.sync-status code {
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+  font-weight: 600;
+}
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.btn-link:hover { color: var(--primary); }
+
+/* MOBILE */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  body.sidebar-pinned .layout { padding-left: 260px; }
+  .comment-panel {
+    position: fixed; top: 0; right: 0;
+    width: 320px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.2s;
+    box-shadow: -8px 0 24px rgba(0,0,0,0.12);
+  }
+  .comment-panel.open { transform: translateX(0); }
+  .comment-fab { display: flex; }
+  .comment-resize-handle { display: none; }
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  body.sidebar-pinned .layout { padding-left: 0; }
+  main { padding: 24px 20px 64px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- FLOATING SIDEBAR TOGGLE -->
+<button class="sidebar-toggle" id="sidebar-toggle" title="Table of contents (hover preview · click to pin)">≡</button>
+
+<!-- SIDEBAR (fixed positioned, hidden by default, hover or click toggle button to show) -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">失敗博物館</div>
+  <div class="sidebar-sub">Failure Museum 素材目錄</div>
+  <nav>
+    <ul class="toc">
+      <li><a href="#s1"><span class="toc-num">1.</span><span class="toc-label">三大記憶主題驗證結果</span></a></li>
+      <li><a href="#s2"><span class="toc-num">2.</span><span class="toc-label">展區 A — Citation 與 Source 呈現</span></a></li>
+      <li><a href="#s3"><span class="toc-num">3.</span><span class="toc-label">展區 B — SEC 10-K 工具</span></a></li>
+      <li><a href="#s4"><span class="toc-num">4.</span><span class="toc-label">展區 C — News 工具</span></a></li>
+      <li><a href="#s5"><span class="toc-num">5.</span><span class="toc-label">展區 D — Market Data 工具</span></a></li>
+      <li><a href="#s6"><span class="toc-num">6.</span><span class="toc-label">展區 E — Prompt / Policy</span></a></li>
+      <li><a href="#s7"><span class="toc-num">7.</span><span class="toc-label">展區 F — Streaming / Contract</span></a></li>
+      <li><a href="#s8"><span class="toc-num">8.</span><span class="toc-label">展區 G — RAG Ingestion / Retrieval</span></a></li>
+      <li><a href="#s9"><span class="toc-num">9.</span><span class="toc-label">展區 H — Eval 系統自身失敗</span></a></li>
+      <li><a href="#s10"><span class="toc-num">10.</span><span class="toc-label">展區 I — Infra / Process</span></a></li>
+      <li><a href="#s11"><span class="toc-num">11.</span><span class="toc-label">橫向 Patterns（策展敘事）</span></a></li>
+      <li><a href="#s12"><span class="toc-num">12.</span><span class="toc-label">量化現況與 Eval 缺口</span></a></li>
+      <li><a href="#s13"><span class="toc-num">13.</span><span class="toc-label">❓ 待討論問題</span></a></li>
+      <li><a href="#s14"><span class="toc-num">14.</span><span class="toc-label">附錄：證據索引</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!--{{LEARNING_PANEL}}
+     OPTIONAL 🎓 Learning Panel — include ONLY when the source markdown has a
+     `## Learning Notes` section (matched case-insensitively, by convention the last
+     section). Replace this entire comment with the block below, filling
+     the LEARNING_CONTENT slot with the rendered Learning Notes sub-content (h3/h4, <ul>/<ol>,
+     <pre><code class="language-*">, callouts…). Do NOT wrap it in a <section id> — this
+     content is deliberately extracted out of the numbered sections and lives only here.
+     If the source has NO Learning Notes section, leave this comment exactly as-is: nothing
+     renders, no toggle appears, and the page behaves identically to before.
+
+<button class="learning-toggle" id="learning-toggle" title="🎓 Learning Notes" aria-label="Toggle Learning Notes" aria-expanded="false">🎓</button>
+<aside class="learning-panel" id="learning-panel" aria-label="Learning Notes">
+  <div class="learning-panel-header">
+    <span class="learning-panel-title">🎓 Learning Notes</span>
+    <button class="learning-close" id="learning-close" title="收合 (Esc)" aria-label="Close">×</button>
+  </div>
+  <div class="learning-panel-body">
+    {{LEARNING_CONTENT}}
+  </div>
+</aside>
+-->
+
+<div class="layout">
+
+<main>
+
+<!-- HERO — status-badge / stats-grid / prereq / research-links are all OPTIONAL.
+     Omit any block that the source doc doesn't justify (see references/styling-guide.md). -->
+<header class="hero">
+  <span class="status-badge">draft · 待討論</span>
+  <h1>FinLabX 失敗博物館 — 素材目錄</h1>
+  <p class="subtitle">建立 Agent 過程中的失敗情境完整考古：症狀、root cause、解法策略與量化現況 — 供「失敗博物館」頁面策展用</p>
+
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-num">60+</div><div class="stat-label">失敗展品</div></div>
+    <div class="stat"><div class="stat-num">15</div><div class="stat-label">PRs 考古</div></div>
+    <div class="stat"><div class="stat-num">12</div><div class="stat-label">Worktrees 掃描</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">待討論問題</div></div>
+  </div>
+
+  <div class="prereq"><strong>調查範圍</strong> · 全部 15 個 PR（含各 branch 的中間 fix commits）、<code>fin-lab-x-wt/</code> 12 個 worktree、2026-07-06 全 repo 稽核報告、eval 系統與診斷文件。標記：✅ 已修復｜🔧 修復中（in branch / uncommitted）｜⛔ 仍未修｜❓ 待討論（不臆測）。</div>
+  <div class="research-links">
+    <span class="research-chip">repo_audit_report.md</span>
+    <span class="research-chip">experiment_results.md</span>
+    <span class="research-chip">EVAL-V1-DIAGNOSTIC-WALKTHROUGH.md</span>
+    <span class="research-chip">ai_sdk_v6_contract_findings.md</span>
+  </div>
+</header>
+
+<section id="s1" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§1</span>
+    <h2>你記憶中三個主題的驗證結果</h2>
+    <span class="section-tag tag-ab">驗證</span>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>記憶主題</th><th>驗證結果</th><th>對應展品</th></tr></thead>
+    <tbody>
+      <tr><td>Source citations format 不對 → 前端 render 失敗</td><td><strong>證實</strong> ✅ 已修（雙端夾擊），但修復本身留下 3 個殘留 bug 仍 open</td><td>A1</td></tr>
+      <tr><td>News fetch 抓到 generic ticker page 而非具體文章</td><td><strong>證實</strong> ⛔ 未修。diagnostic run 的 CSV 有第一手證據：UNH 題引用 CNBC quotes 頁、TSLA 題引用 Reuters 公司頁</td><td>C1</td></tr>
+      <tr><td>10-K 的 source 到現在還會錯</td><td><strong>部分證實</strong>（confidence: medium）❓ 找到 5 個有實碼佐證的候選機制，但沒有任何文件記錄「錯的樣態」——需要你補充 symptom</td><td>B7</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s2" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§2</span>
+    <h2>展區 A — Citation 與 Source 呈現管線</h2>
+    <span class="section-tag tag-api">Contract</span>
+  </div>
+
+  <h3>A1. Citation 格式漂移 → Sources 區塊 render 失敗　✅（殘留 3 bug ⛔）</h3>
+  <ul>
+    <li><strong>情境</strong>：LLM 輸出的 reference definitions 不符 CommonMark spec，前端 <code>markdown-sources</code> extractor 抓不到 → Sources UI 區塊空白、原始引用文字直接顯示在正文裡。</li>
+    <li><strong>實例</strong>：實際觀察到至少 5 種 malformed 格式（前端程式碼註解逐條標明 "one observed failure mode seen in real responses"）：
+      <ol>
+        <li>bullet 前綴 <code>- [1]: URL</code>（CommonMark 要求 reference definition 在 column 0）</li>
+        <li>「來源：」/「References」標題行黏住第一條 definition，使它變成普通段落</li>
+        <li>definition 前缺空行，被併進前一個段落</li>
+        <li>無冒號的 <code>[N] URL</code> 格式</li>
+        <li>全形括號 <code>【N】</code> inline citation（中文回應特別常見）</li>
+      </ol>
+    </li>
+    <li><strong>Root cause</strong>：前端 parser 針對理想化格式打造；system prompt 沒有把 LLM 鎖死在單一格式，輸出自然漂移。</li>
+    <li><strong>解法</strong>：雙端夾擊（pincer）——(1) 前端 <code>normalizeRefDefs()</code> 三條 regex 修復管線 + <code>FALLBACK_RE</code> 容錯 + strip 雜訊；(2) system prompt LINK FORMAT 規則收緊（強制 <code>[N]: &lt;url&gt; "&lt;title&gt;"</code>、禁全形括號、禁 References heading、禁過場語），再用 MSW fixture + E2E test（<code>citation-sources.spec.ts</code>）鎖住。</li>
+    <li><strong>量化</strong>：無 citation-format compliance scorer（缺口）。目前只有 E2E test 鎖住 happy path。</li>
+    <li><strong>證據</strong>：<code>frontend/src/lib/markdown-sources.ts:11-127</code>、<code>AssistantMessage.tsx:52-58</code>、commits <code>aec4152</code>、<code>5b558f2</code>、<code>239c0706f9</code>（RefSup 改 target=_blank + title）；audit #60/#61/#69。</li>
+  </ul>
+  <div class="callout callout-warn"><strong>殘留 bug（audit 標記，仍 ⛔）</strong> · #61：display-strip regex 的冒號是 optional，<code>[2024] Revenue grew 12%...</code> 這種正文行會被靜默刪除；#69：<code>#src-N</code> jump-link anchor 因 href 被覆寫成外部 URL 而永遠不可達；#60：cursor sentinel <code>⌧CURSOR⌧</code> 在 code block / table 內會字面上屏。</div>
+
+  <h3>A2. 正文 inline [N] 與底部 reference list 脫鉤　✅（僅 prompt 防禦）</h3>
+  <ul>
+    <li><strong>情境</strong>：LLM 只在文末列 URL、正文沒有對應的 inline <code>[N]</code>，讀者無法對應 claim ↔ source。</li>
+    <li><strong>解法</strong>：prompt 強制規則："A response that lists [1]: url without an inline [1] in the body is INVALID — do not emit it"。</li>
+    <li><strong>量化</strong>：無 scorer 驗證此規則（缺口）。</li>
+    <li><strong>證據</strong>：<code>system_prompt.md:25</code>、commit <code>5b558f2</code>。</li>
+  </ul>
+
+  <h3>A3. API 資料沒有可引用 URL → 曾強制引用 generic ticker page　✅（policy 演化）</h3>
+  <ul>
+    <li><strong>情境</strong>：純 yfinance 回答（報價、基本面）沒有任何外部 URL 可引用，與「所有 claim 都要有 source」的 zero-hallucination 政策直接衝突。</li>
+    <li><strong>演化過程</strong>（本身就是一個展品級的故事）：
+      <ol>
+        <li>早期 prompt 規定「yfinance-only 時省略 references」→ Sources 區塊缺位</li>
+        <li>反轉：<strong>強制</strong>每個 yfinance claim 附 <code>https://finance.yahoo.com/quote/TICKER</code> —— 用 generic ticker overview page 冒充 source（與 C1 的 failure 同型，只是這次是自己設計出來的）</li>
+        <li>PR #15（Finnhub 抽換）：放棄 URL 硬性要求 —— "Finnhub free tier has no public per-ticker page — do NOT fabricate a per-ticker URL"，API 資料改為 cite by provider name（"According to Finnhub…"），URL 只要求「真的有 URL 的來源」（Tavily news、SEC filings），並加 DECISION-001 regression 斷言 prompt 不再殘留 yahoo/yfinance 字樣。</li>
+      </ol>
+    </li>
+    <li><strong>解法策略</strong>：讓 citation policy 貼合資料來源的現實，而不是強迫捏造 URL。</li>
+    <li><strong>證據</strong>：commits <code>5b558f2</code>、<code>7af4cdd</code>（feat/finnhub-agent-tools branch）；PR #15 body。</li>
+  </ul>
+</section>
+
+<section id="s3" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§3</span>
+    <h2>展區 B — SEC 10-K 工具與 source 正確性</h2>
+  </div>
+
+  <h3>B1. edgartools section 內容溢出 item 邊界　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>get_section("11")</code> 回傳的內容實際包含 Items 12–14 —— 來源標註（「根據 Item 11」）對不上實際內容；char_count 與 stub 判定也因此失真。</li>
+    <li><strong>實例</strong>：human UAT（PR #14 review）抓到：AAPL FY2025 的 Item 11 有 2080 chars 且未被標為 stub，但 Items 10/12/13 都是 stub —— 因為 Item 11 的 body 挾帶了 12/13/14 的 "incorporated by reference" 文字；Item 9C 同病；key "14" 甚至從 TOC 整個消失。</li>
+    <li><strong>Root cause</strong>：upstream edgartools 的 <code>TenK.document.sections</code> 切分 bug。</li>
+    <li><strong>解法</strong>：<code>trim_text_to_item_boundary()</code>（<code>backend/common/sec_core.py</code>）在 list 與 get 兩側都用 regex 切到下一個 item 邊界 + 真實 EDGAR integration assertions（Item 11 必須是 stub；<code>get_section('11')</code> 不得包含 "Item 12."）。</li>
+    <li><strong>量化</strong>：sec_integration tests 覆蓋此 case；無 corpus-wide bleed 偵測。</li>
+    <li><strong>證據</strong>：PR #14 UAT review comment（完整 tool JSON）、commit <code>7d7f3e43ae</code>、<code>sec_core.py:110-132</code>。</li>
+  </ul>
+  <div class="callout callout-key"><strong>備註</strong> · 這是 700+ 自動化測試沒抓到、<strong>human UAT 才抓到</strong>的兩個 bug 之一（另一個是 B6）。</div>
+
+  <h3>B2. 空殼 section（incorporated by reference）被當實質內容　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：Part III Items 10–14 常只有一句「incorporated by reference to the Proxy Statement」；agent 取用後可能以 10-K 為 source 回答實際上在 DEF 14A 的資訊，或浪費 tool-call budget 抓空殼。</li>
+    <li><strong>解法</strong>：<code>is_stub_section()</code>（經驗校準的 100-char threshold）+ <code>is_stub</code>/<code>stub_reason</code> metadata + reading guide 向 LLM 解釋 stub 語意；ingestion 側同步清除（PR #9 "Part III stubs dilute retrieval relevance"）。</li>
+    <li><strong>證據</strong>：<code>sec_core.py:135-188</code>、<code>sec_filing_tools.py:246-250</code>（Item 1c pre-2023 專屬錯誤）、PR #9 commit <code>bfa8f75</code>。</li>
+  </ul>
+
+  <h3>B3. Fiscal year 語意陷阱　✅（ingestion）/ 部分殘留</h3>
+  <ul>
+    <li><strong>情境</strong>：fiscal year 若從 <code>filing_date</code> 推導，一月申報的 10-K 會被歸到錯誤年度；非曆年制公司（NVDA FY2026 於 2026-01 結束）容易與使用者心中的「2025 年報」錯位。</li>
+    <li><strong>實例</strong>：eval dataset 自己就踩過 —— NVDA fiscal year off-by-one（commit <code>2c29bf3474</code> 修正）；<code>scenarios/sec_retrieval/README.md:23</code> 特別警告此語意。</li>
+    <li><strong>解法</strong>：fiscal_year 一律從 <code>period_of_report</code> 推導（PR #6 commits <code>3391039ee9</code>、<code>4683cb7b7c</code>）。</li>
+    <li><strong>殘留</strong>：使用者語意（「2025 年報」到底指 FY 還是曆年）仍靠 LLM 自行判斷，無 guardrail。</li>
+  </ul>
+
+  <h3>B4. Latest fiscal year 永久 lru_cache　⛔</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>fiscal_year=None</code>（拿最新一期）的解析結果被 <code>@lru_cache</code> 永久快取 → 公司發布新 10-K 後，長駐 process 在重啟前一直回舊年度 —— 年度標註靜默過期。</li>
+    <li><strong>證據</strong>：audit C2、<code>sec_core.py:293</code>。<strong>狀態</strong>：⛔ audit 排程中，未修。</li>
+  </ul>
+
+  <h3>B5. DNS 失敗被轉譯成「這家公司不存在」　⛔</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>_classify_edgar_error</code> 的 catch-all 把 DNS 失敗 / timeout / parsing bug 一律轉成 <code>TickerNotFoundError</code> → LLM 自信地告訴使用者「查無此公司」—— tool 層直接違反 zero-hallucination 政策。</li>
+    <li><strong>證據</strong>：audit B3、<code>sec_core.py</code>。<strong>狀態</strong>：⛔ 未修。</li>
+  </ul>
+
+  <h3>B6. LangGraph 平行 tool 規劃 → 同一 filing 打 EDGAR 兩次　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：human UAT 的 cache-reuse 步驟失敗：一個問題觸發兩次 <code>list_sections</code> + 兩次 <code>get_section</code>。兩個並發呼叫同時 miss <code>functools.lru_cache</code>（都還沒 populate），EDGAR 被打兩次。</li>
+    <li><strong>Root cause</strong>：<code>lru_cache</code> 沒有 in-flight de-duplication；LangGraph 會自由規劃重複的平行 tool calls。</li>
+    <li><strong>解法</strong>：defense in depth —— system prompt 規則抑制規劃端 + single-flight registry（輸家 block 在贏家的 Future 上）作為安全網。</li>
+    <li><strong>證據</strong>：PR #14 review、commit <code>ccb8ae85e2</code>。</li>
+  </ul>
+
+  <h3>B7. 10-K source 至今仍會錯（你的記憶主題）　⛔ ❓</h3>
+  <ul>
+    <li><strong>情境</strong>：（你回報）回應引用的 10-K 來源到現在還是會錯。repo 內<strong>沒有任何文件記錄具體錯的樣態</strong>，以下是有實碼佐證的候選機制（事實陳述，非結論）：
+      <ol>
+        <li><strong>SEC tools 的 output 完全不含 URL</strong>（<code>sec_filing_get_section</code> 只回 ticker / fiscal_year / period_of_report / content），但 prompt LINK FORMAT 又要求「SEC filings 這類真的有 URL 的來源」要列 URL → LLM 引用 SEC 內容時，<strong>任何它寫出來的 URL 都不是 grounded 的</strong>，只能自己編（fabricated sec.gov link 的幻覺風險）。</li>
+        <li><strong>B4 的 stale cache</strong> → 年度標錯。</li>
+        <li><strong>B3 的 fiscal year 語意錯位</strong> → 使用者以為的年度 vs 實際 FY。</li>
+        <li><strong>B5 的錯誤誤分類</strong> → 「公司不存在」的錯誤陳述。</li>
+        <li><strong>section resolution 靜默跳過</strong>：<code>_iter_resolved_sections</code> 對解析不出 item key 的 section silently skip、重複 key 用 <code>setdefault</code> 取第一個。</li>
+      </ol>
+    </li>
+    <li><strong>量化</strong>：<code>sec_retrieval</code> eval dataset 仍是 status: draft 的 10 列手寫 placeholder，且 scorer 有 P0 bug（H4）——<strong>10-K 引用品質目前沒有任何可信的量測</strong>。</li>
+  </ul>
+  <div class="callout callout-warn"><strong>❓ 待你補充</strong> · (a) 你看到的「錯的 source」是 URL 錯、年度錯、還是 item/section 錯？有沒有印象中的實例或可撈的 Langfuse trace？(b) 是否應該讓 SEC tool 直接回傳 filing 的 accession-number URL，讓引用 grounded？</div>
+</section>
+
+<section id="s4" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§4</span>
+    <h2>展區 C — News 工具</h2>
+  </div>
+
+  <h3>C1. 新聞搜尋引用 generic ticker page 而非具體文章（你的記憶主題）　⛔</h3>
+  <ul>
+    <li><strong>情境</strong>：問「最近的利空新聞」，Tavily 回傳的 top result 是新聞網站的 ticker 報價/總覽頁，不是事件文章 —— citation 指向的頁面不支撐任何具體 claim。</li>
+    <li><strong>實例</strong>（第一手證據，diagnostic run CSV 的 <code>output.tool_outputs</code> 原文）：
+      <ul>
+        <li>UNH 題引用 <code>[1]: https://www.cnbc.com/quotes/UNH "UNH: UnitedHealth Group Inc - Stock Price, Quote and News - CNBC"</code></li>
+        <li>TSLA 題引用 <code>[1]: https://www.reuters.com/markets/companies/TSLA.F/</code></li>
+        <li>同一批 run 還觀察到 tool routing 偏移：agent 先呼叫 <code>yfinance_stock_quote</code> 用估值數據「回答」新聞題。</li>
+      </ul>
+    </li>
+    <li><strong>Root cause</strong>：未有正式 root-cause 分析（INFERRED：query 組法是 <code>f"{ticker} {query}"</code>，ticker 前綴推高 ticker-page 的排序；<code>include_domains=[reuters.com, bloomberg.com, cnbc.com]</code> 限域內 aggregator 頁面本來就多）。</li>
+    <li><strong>狀態</strong>：⛔ <strong>未修</strong>。Finnhub 抽換明文「keep tavily」不動它。目前的對策是把它做成診斷軌的量測對象：near_v1_diagnostic dataset 30 題中 <code>source_coverage_gap</code> 是 primary failure mechanism ×4、secondary ×4，4 題的 <code>likely_tuning_lever = tavily_sources</code>。</li>
+    <li><strong>量化</strong>：診斷軌（execution_health + Langfuse 人工標註）已建好但<strong>人工標註尚未執行</strong> —— 還沒有 measured 分數。</li>
+    <li><strong>證據</strong>：<code>fin-lab-x-wt/v1-eval-experiment-pipeline/backend/evals/results/near_v1_diagnostic_20260424_*.csv</code>、<code>financial.py:132-136</code>、<code>EVAL-V1-DIAGNOSTIC-WALKTHROUGH.md</code>。</li>
+  </ul>
+  <div class="callout callout-warn"><strong>❓ 待你確認</strong> · (a) 你記憶中的 Reuters 案例就是 2026-04-24 那批 diagnostic run（TSLA→<code>reuters.com/markets/companies/TSLA.F/</code>），還是更早的手動測試？(b) 修法候選（Tavily <code>topic="news"</code> 參數、published_date 過濾、URL pattern 排除 <code>/markets/companies/</code>、去掉 query 的 ticker 前綴）有沒有評估過？repo 內找不到嘗試痕跡。</div>
+</section>
+
+<section id="s5" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§5</span>
+    <h2>展區 D — Market Data 工具（yfinance → Finnhub 全史）</h2>
+  </div>
+
+  <h3>D1. yfinance 常態性 rate limit → 整組工具汰換　🔧（PR #15 open）</h3>
+  <ul>
+    <li><strong>情境</strong>：yfinance 是非官方 Yahoo scraping、無 SLA，即時行情 tool calls 間歇性失敗（IP throttling）。</li>
+    <li><strong>解法</strong>：換 Finnhub 官方 free-tier REST API（60 calls/min），三個 tool 拆開讓「問一個價格 = 恰好一次 call」以貼合 rate budget；quant ingestion 子系統保留 yfinance（各自為 documented owner）。</li>
+    <li><strong>策略</strong>：用官方、有文件的 API 換掉非官方 scraper，且 tool 顆粒度圍繞 rate budget 設計。</li>
+    <li><strong>證據</strong>：PR #15 body、commits <code>283f3676af</code>、<code>7af4cdd387</code>。</li>
+  </ul>
+
+  <h3>D2. 無效 ticker 的靜默失敗家族（三代同題）</h3>
+  <p>同一個「external API 對 invalid input 不報錯」的 failure，在三個資料來源各發生一次：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>世代</th><th>API 行為</th><th>風險</th><th>解法</th><th>證據</th></tr></thead>
+    <tbody>
+      <tr><td>yfinance <code>.info</code>（PR #7）</td><td>回 <code>{"currentPrice": null}</code> 不 raise</td><td>LLM 分不清「無效 ticker」vs「休市」→ 幻覺</td><td>雙欄位 guard → <code>ValueError</code> → sanitized SSE error（human reviewer 抓到，266 tests 沒抓到）</td><td><code>0ed8965f1e</code></td></tr>
+      <tr><td>yfinance 1.x 404（quant worktree）</td><td>HTTP 404 只 log，回近空 dict</td><td>被誤分類成 retryable 的 <code>EmptyResponseError</code> → 誤觸 retry + 錯誤語意誤導</td><td>檢查 <code>symbol</code>/<code>quoteType</code> 皆缺 → <code>YFinanceTickerNotFoundError</code> + live drift canary test</td><td>quant-yfinance-ingestion uncommitted diff 🔧</td></tr>
+      <tr><td>Finnhub（PR #15）</td><td>回全零 quote <code>{c:0, h:0, ...}</code> 不 raise</td><td>agent 把 $0.00 當真實價格回報</td><td>全零/空 map 偵測 → <code>ValueError</code> + opt-in live tests 鎖住假設</td><td><code>b9fa6757a8</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout callout-key"><strong>策展價值</strong> · 換掉一個 API 不會消滅這類 failure —— 每個新 API 都有自己的「靜默垃圾」形狀。教訓是<strong>每接一個資料來源就要先探明它的 invalid-input 行為並寫 live contract test</strong>。</div>
+</section>
+
+<section id="s6" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§6</span>
+    <h2>展區 E — Prompt / Policy Compliance</h2>
+  </div>
+
+  <h3>E1. Language policy 違規：CJK 漏進 tool arguments　✅</h3>
+  <div class="callout callout-key"><strong>鎮館之寶</strong> · 這個 failure 直接催生了整個 eval framework —— repo 的第一個 eval 因它而生。</div>
+  <ul>
+    <li><strong>情境</strong>：使用者用中文問，agent 把「微軟最近新聞」原文丟給 Tavily search（而非 "MSFT recent news"）；回應語言也會與使用者語言不符。失敗只能靠人工發現。</li>
+    <li><strong>量化（第一個有 baseline 的 failure）</strong>：baseline eval <strong>5/8 失敗</strong> → prompt 修復後 <strong>8/8 通過</strong>（3-run stability 95.8%）。</li>
+    <li><strong>Root cause</strong>："Always think and search in English" 太模糊 —— 無明確規則、無範例、tool schema 欄位層級無 guardrail。</li>
+    <li><strong>解法</strong>：三層 —— (1) system prompt 明確規則 + before/after 範例；(2) tool schema 的 query 欄位描述加 <code>(MUST be in English)</code>；(3) 建立 8-case eval suite（CJK-ratio 程式化斷言）防 regression。</li>
+    <li><strong>證據</strong>：PR #3、commits <code>65ba25b5a9</code>、<code>8a29d9c</code>；<code>backend/evals/scorers/language_policy_scorer.py</code>。</li>
+  </ul>
+
+  <h3>E2. 讀完英文 10-K 後回應語言漂移　✅（防禦碼存在；incident 為 INFERRED）</h3>
+  <ul>
+    <li><strong>情境</strong>：agent 讀入大量英文 SEC filing 內容後，in-context 英文壓過 system prompt 的 language policy，改用英文回覆。</li>
+    <li><strong>解法</strong>：language-directive sandwich —— tool output 用 <code>_LANGUAGE_DIRECTIVE_PRE/_POST</code> 前後包夾 section content，並利用 dict insertion order 確保 pre-directive 先於 content 出現（程式碼自述 "anchoring the language policy at the boundary where in-context English would otherwise dominate"）。</li>
+    <li><strong>證據</strong>：<code>sec_filing_tools.py:58-68, 275-289</code>、commit <code>0de9d04</code>（PR #14）。</li>
+  </ul>
+
+  <h3>E3. 內部 tool-call budget 被說成「我被 rate limit 了」—— 同一誤判在兩層各發生一次　✅</h3>
+  <ul>
+    <li><strong>Layer 1（LLM 層）</strong>：<code>ToolCallLimitMiddleware</code> 的 block 訊息被 LLM 轉述成「我遇到 rate limit」，把內部預算限制與 SEC/Yahoo/Tavily 的真實 429 混為一談。</li>
+    <li><strong>Layer 2（前端層）</strong>：backend 把訊息改寫成明文「this is NOT a rate limit from SEC EDGAR…」之後，前端的 friendly-error regex <code>/rate limit/i</code> <strong>匹配到澄清句自己</strong>，render 出「Too many requests. Please wait a moment.」—— 與本意完全相反。</li>
+    <li><strong>Root cause</strong>：tool 錯誤以 free-form 字串跨 FE/BE wire，沒有結構化的 <code>errorClass</code> 欄位，只能對 prose 做 regex 分類（commit 自承是 architectural gap 的 workaround）。</li>
+    <li><strong>解法</strong>：sentinel pattern 排在 <code>/rate limit/i</code> 之前 + backend 措辭改為 "NOT an <em>external</em> rate limit" 讓子字串消失；typed errorClass 列為獨立 refactor（❓ 尚未見落地）。</li>
+    <li><strong>證據</strong>：PR #14 commits <code>37addf7690</code>、<code>066a80f148</code>；<code>system_prompt.md:8-9</code>。</li>
+  </ul>
+</section>
+
+<section id="s7" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§7</span>
+    <h2>展區 F — Streaming / 前後端 Contract</h2>
+    <span class="section-tag tag-api">Contract</span>
+  </div>
+
+  <h3>F1. AI SDK v6 wire format mismatch：backend 拒收所有真實前端請求　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：前端（AI SDK v6 <code>DefaultChatTransport</code>）送 <code>{messages: [...], trigger}</code>，backend <code>StreamChatRequest</code> 期望 flat <code>{message: str}</code> → 合法 payload 全數被拒。<strong>對所有 MSW-mocked 前端測試不可見</strong>——mock fixtures 編碼了同一個錯誤假設；只有 BDD browser-use 對真實 backend 驗證時才爆出來。</li>
+    <li><strong>解法</strong>：兩步 —— 先在前端用 <code>prepareSendMessagesRequest</code> 墊 shim 解鎖，然後 backend 對齊 SDK wire format（PR #10）、刪掉 shim。策略：<strong>在 source of truth（SDK 格式）修 contract，然後刪除臨時墊片</strong>。</li>
+    <li><strong>證據</strong>：PR #10、commits <code>993c7c03af</code>、<code>91d4dd3009</code>、<code>1943857875</code>。</li>
+  </ul>
+
+  <h3>F2. Contract 修復的第一版自己又有兩個洞　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：PR #10 第一版用 <code>list[dict]</code> 收 nested messages —— malformed payload 噴 500 <code>AttributeError</code>（而非 422）；SDK 把 user message 拆成多個 text parts 時<strong>只讀 <code>parts[0]</code>，其餘靜默截斷</strong>。</li>
+    <li><strong>解法</strong>：typed nested Pydantic models（<code>MessagePart</code>/<code>ChatMessage</code>）讓驗證發生在欄位層級；join 全部 text parts。由 code review 抓到，非測試。</li>
+    <li><strong>證據</strong>：commit <code>bf234cb973</code>。</li>
+  </ul>
+
+  <h3>F3. AI SDK v6 未文件化行為集（contract findings）　✅（文件化）</h3>
+  <p>實測發現、寫進 <code>docs/ai_sdk_v6_contract_findings.md</code> 的地雷：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>行為</th><th>後果</th></tr></thead>
+    <tbody>
+      <tr><td>SSE <code>error</code> chunk <strong>不會</strong>進 <code>message.parts[]</code></td><td>等 parts 出現 error 的整條 UI 分支是 dead code（原設計的 inline ErrorBlock 因此砍掉）</td></tr>
+      <tr><td>fixture 寫 <code>textDelta</code> 而非 <code>delta</code> 會被 SDK <strong>靜默丟棄</strong></td><td>「stream 看起來 valid 其實是空的」→ 造成 H2 的 false-positive 測試</td></tr>
+      <tr><td><code>HttpChatTransport</code> 丟出的 Error <strong>不帶 HTTP status</strong></td><td>500/409/422 全部分類成 unknown → 通用錯誤文案（解法：<code>statusAwareFetch</code> 搶先丟 <code>ChatHttpError</code>）</td></tr>
+      <tr><td>部分 turn regenerate 有 race window</td><td>客戶端在 LangGraph commit 前斷線 → 404（附可執行 probe script）</td></tr>
+      <tr><td>tool part 的名稱在 <code>part.type='tool-{name}'</code> 而非 <code>part.toolName</code></td><td>tool 卡片標題全部顯示 "undefined"（解法：<code>resolveToolName()</code> fallback chain）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>F4. Regenerate / Retry 狀態機連環 bug（同一主題 regress 兩次）　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：(a) regenerate 一律 422 —— 為 submit path 寫的 <code>model_validator</code> 拒收帶 message history 的 regenerate payload；(b) pre-stream error 後 retry 把 user message 重複 append 一次；(c) round-1 code review 的「修復」把同一 bug 重新引入 mid-stream retry path；(d) <code>regenerate()</code> 在失敗後重試會 4xx-loop，因為 AI SDK 在發請求前就<strong>不可逆地移除</strong> assistant message。</li>
+    <li><strong>解法</strong>：驗證邏輯按 trigger path 分家；shape-aware smart retry（依最後一則訊息的形狀分派：user → slice + <code>sendMessage</code>；partial assistant → <code>regenerate({messageId})</code> + 4xx fallback）。regression 先用 dedicated integration test 證明再修。</li>
+    <li><strong>證據</strong>：commits <code>63630e9b36</code>、<code>a8b18b867f</code>、<code>96c4098b</code>、<code>daad71e5f6</code>。</li>
+  </ul>
+
+  <h3>F5. Mid-stream 錯誤被 pre-stream classifier 吃掉　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：context-length-exceeded、rate limit 等 mid-stream SSE 錯誤被 render 成通用 "Something went wrong"，<code>error-messages.ts</code> 裡已定義好的 friendly 訊息從未被顯示。</li>
+    <li><strong>解法</strong>：以「最後一則訊息是 partial assistant turn 且錯誤非 HTTP/network 層」判定 mid-stream，路由到 mid-stream-sse classifier。</li>
+    <li><strong>證據</strong>：commit <code>cacc8d7cb4</code>。</li>
+  </ul>
+
+  <h3>F6. Backend 例外時 SSE 不送 error/finish frame → 前端永久掛住　⛔</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>chat.py</code> 只 catch <code>ValueError</code>（且幾乎是 dead code）；<code>sse_serializer.py</code> 的 <code>json.dumps</code> 無 <code>default=str</code>，tool args 帶不可序列化值即 mid-stream <code>TypeError</code> —— 前端永遠停在未完成的訊息上。失敗路徑零測試。</li>
+    <li><strong>狀態</strong>：⛔ audit B1，未修。<strong>證據</strong>：<code>chat.py:117-119</code>、audit B1/#41。</li>
+  </ul>
+
+  <h3>F7. Multi-provider streaming reasoning：BDD 抓出的 6 個生命週期 bug　🔧（branch 未 push）</h3>
+  <ul>
+    <li><strong>情境</strong>（worktree <code>multi-provider-streaming-reasoning</code>，36 commits）：
+      <ol>
+        <li>reasoning chunks 在 tool call 之後的 gap 中丟失</li>
+        <li>使用者按 Stop 被播報成「正常完成」（<code>onFinish</code> 未分 isAbort）</li>
+        <li>abort 時 Langfuse 缺 <code>reasoning_tail_aborted</code> 標記、reasoning metadata 落庫不可靠</li>
+        <li>AI SDK v6 <code>onData</code> 只對 <code>data-*</code> chunks 觸發 → 多個 handler 分支是 dead code、<code>onFinish</code> 未接線</li>
+        <li>STOPPED 指示器 render 位置跳動</li>
+        <li>依賴 Langfuse SDK <strong>私有屬性 <code>CallbackHandler._runs</code></strong> → 用 contract tests 鎖型別防升級靜默破壞</li>
+      </ol>
+    </li>
+    <li><strong>狀態</strong>：🔧 fixed on branch（BDD 第二輪 14 PASS / 0 FAIL），但 <strong>branch 未 push、無 PR、本機唯一副本</strong>；且 uncommitted 變更中混入意外的 <code>backend/Dockerfile</code> 刪除，照樣 commit 會弄壞 CI。</li>
+    <li><strong>證據</strong>：commits <code>48798a3</code>、<code>4da26d1</code>、<code>3d422d2</code>、<code>e8cedea</code>、<code>c89c33b</code>、<code>3439c78</code>、<code>508eb37</code>；WORKTREES-BRIEF。</li>
+  </ul>
+
+  <h3>F8. Tool 錯誤原文直達 LLM/使用者　✅（有殘留不一致 ⛔）</h3>
+  <ul>
+    <li><strong>情境</strong>：tool exception 的路徑、API key、stack trace 原文流向 LLM 與使用者。</li>
+    <li><strong>解法</strong>：<code>tool_error_sanitizer.py</code>（strip keys/connection strings/paths/tracebacks）+ <code>_HandleToolErrors</code> middleware。</li>
+    <li><strong>殘留</strong>：audit B4 —— 舊 dead stack <code>tools/sec_filing.py:61-62</code> 吞例外回傳未 sanitize 的 error dict，繞過整個機制；audit #44 —— sanitizer 的 <code>_UNIX_PATH</code> regex 反而把合法 sec.gov URL path 打成 <code>[path]</code>，降級使用者該看到的錯誤。</li>
+  </ul>
+</section>
+
+<section id="s8" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§8</span>
+    <h2>展區 G — RAG Ingestion 與 Retrieval</h2>
+  </div>
+
+  <h3>G1. 跨公司污染：問 AMD 拿到 Intel + NVIDIA　✅（機制層）</h3>
+  <div class="callout callout-success"><strong>量化最完整的展品</strong> · 18 題 A/B 實驗 —— naive collection mean <strong>p@10 = 0.622</strong>（std 0.312，range 0.00–1.00；AMD 三題平均 0.13）；three-layer + filter 後 <strong>p@10 = 1.00</strong>（報告自注：filter 之下這是 tautology，非賣點——重點是 baseline 有多不可靠）。</div>
+  <ul>
+    <li><strong>情境</strong>：naive dense retrieval 下，中文 query 問 AMD 供應鏈風險，top-10 chunks = <strong>7×INTC + 3×NVDA + 0×AMD</strong>。實驗報告原文：「系統完美地誤導下游 LLM 用 Intel 和 NVIDIA 的供應鏈描述回答 AMD 的問題」。</li>
+    <li><strong>Root cause</strong>：語意相似度在「同產業競爭對手」之間最強（正是最不能搞混的公司）；小語料 ticker（AMD 僅 83 chunks / 4.5%）被語意鄰居淹沒；中文 query → 英文 chunks 的跨語言條件放大 entity mismatch。</li>
+    <li><strong>解法</strong>：three-layer contract —— payload metadata + Qdrant KeywordIndex + tenant-aware HNSW（<code>is_tenant=True</code>）+ query 時 <code>must=[ticker=X]</code> filter。已進 main 的 v2 pipeline（PR #11）。</li>
+    <li><strong>殘留 caveat</strong>：實驗假設 oracle ticker（router 從 query 抽 ticker 的準確率被隔離，是獨立議題）；且 audit #18 —— <code>retriever.py:281</code> 在呼叫者傳 <code>"year": None</code> 時 year filter 被丟掉 → <strong>跨年份污染這條同型 failure 在 main 上仍 ⛔</strong>。</li>
+    <li><strong>證據</strong>：<code>fin-lab-x-wt/rag-filter-eval/artifacts/experiment_results.md</code>、<code>retrieval_diff_20260513_082123.md</code>、6 份 result CSVs。</li>
+  </ul>
+
+  <h3>G2. SEC HTML heading 偵測長征（28 家 ticker 的 markup 地獄）　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：heading promotion heuristics 是照一種 document generator（bold Workiva）調的，套到異質 corpus 上全面翻車。28-ticker discovery sweep 有 <strong>24 家被標 needs_review</strong>。</li>
+    <li><strong>實例</strong>：
+      <ul>
+        <li>TOC 的 PART/Item 條目與正文一起被 promote → JPM h1=22（應為 4）、CRM h2=48、BAC h2=45、BRK.A/B 的 Items 10–14 出現在 Item 1 <strong>之前</strong>（非單調）</li>
+        <li>JPM/INTC 用非粗體 heading（font-weight:400 + font-size jump）→ 只認 <code>&lt;b&gt;/&lt;strong&gt;</code> 的邏輯<strong>整批靜默丟棄</strong>（JPM h2=0）</li>
+        <li>Donnelley/Workiva 把 "Item 7." 拆到多個 <code>&lt;span&gt;</code> → <code>get_text(strip=True)</code> 黏成 "Item7.MD&amp;A" → regex 靜默不匹配</li>
+      </ul>
+    </li>
+    <li><strong>修復又引發 regression（展品中的展品）</strong>：第一版 pure last-occurrence-wins dedup 修好了目標 ticker，卻弄壞了原本健康的 JNJ/MSFT/BAC（它們 TOC 是粗體但正文 PART divider 非粗體）→ 改 bold-aware dedup，並建立 <strong>23-ticker hard-gate baseline regression harness</strong>（把已健康的 ticker 鎖住當 regression 網）。</li>
+    <li><strong>成果</strong>：24 → 2 needs_review（PG/INTC 接受 graceful degradation）。</li>
+    <li><strong>證據</strong>：PR #8、commits <code>66fec6c8df</code>、<code>54c8dd1c66</code>、<code>5eec055f66</code>。</li>
+  </ul>
+
+  <h3>G3. HTML→Markdown 轉換的三個地雷（PR #6）　✅</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>地雷</th><th>症狀</th><th>解法</th></tr></thead>
+    <tbody>
+      <tr><td>Rust html-to-markdown 從 <code>&lt;title&gt;</code> 自動生成 frontmatter</td><td>存檔的 10-K 有<strong>兩個</strong> YAML frontmatter 疊在一起，弄壞下游 metadata contract</td><td>adapter 先 strip 轉換器的 title block</td></tr>
+      <tr><td>老 filing（GE 2008）的 text node 內嵌硬換行</td><td>Markdown 變成一行一句碎片（<code>Item\n1A. Risk Factors.</code>），<strong>RAG chunking 全毀</strong></td><td><code>_normalize_text_whitespace</code> 模擬瀏覽器 whitespace collapse（<code>&lt;pre&gt;/&lt;code&gt;</code> 等除外）</td></tr>
+      <tr><td>MSFT 2025 inline-XBRL 把 heading 拆 span</td><td><code>get_text(strip=True)</code> 產出 "PARTI"、"LEGALPROCEEDINGS" → section 偵測失敗；PART II/III/IV <strong>純屬運氣</strong>才通過</td><td><code>" ".join(get_text().split())</code> —— join 後再 normalize，不是逐字串 strip</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>G4. 手刻 HTML parser 的長期不可維護 → edgartools 重寫設計　🔧（設計完成，零實作）</h3>
+  <ul>
+    <li><strong>情境</strong>：~1000 行手刻 parsing（<code>html_preprocessor</code> ~300 行 + <code>sec_heading_promoter</code> ~365 行 regex/font-size heuristics），每加一家公司就冒新 quirk（JNJ/MSFT/BAC/BRK 各有專屬 workaround）。配套 research 證實 ALL-CAPS heading 規則不可靠（多數公司用 Title-Case）、<code>filing.markdown()</code> 品質跨 sector 不一（12 家中 8 家良好）。</li>
+    <li><strong>解法（設計）</strong>：Path 2 —— 用 edgartools native API（<code>tenk[item_key]</code>、<code>filing.markdown()</code>）取代整個手刻 pipeline，舊版凍結為 <code>_html</code> suffix 做 A/B sunset。</li>
+    <li><strong>狀態</strong>：🔧 990 行 design.md + 6 份 research memos + 9 個 probe scripts 已 rescue 進 branch（<code>0242332</code>），實作未開始。</li>
+    <li><strong>證據</strong>：<code>improve-rag-ingestion/artifacts/current/design.md</code>。</li>
+  </ul>
+
+  <h3>G5. Retrieval 其他已修/未修條目（速覽）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>條目</th><th>症狀</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td><code>parse_item()</code> 只看 header_path 第一層</td><td>有 Part 層級的 filing 全部標 <code>_unknown</code> → item-filtered retrieval 壞掉</td><td>✅ PR #11（BDD 對真實 filing 驗證才抓到）</td></tr>
+      <tr><td>單次 upsert 超過 Qdrant 32MB payload 上限</td><td>BAC ~1100 chunks（73MB）ingest 失敗</td><td>✅ BATCH_SIZE=100</td></tr>
+      <tr><td>JIT ingestion 在 embeddings 已完成時仍打 EDGAR</td><td>浪費 API calls + 弄壞 integration tests</td><td>✅ PR #11</td></tr>
+      <tr><td>ingest 先刪舊 points 再呼叫 embedding API</td><td>OpenAI 失敗時舊資料已消失 → 該 ticker/year 檢索<strong>靜默回空</strong>（point ID 是 deterministic uuid5，本可直接 upsert 覆蓋）</td><td>⛔ audit C4</td></tr>
+      <tr><td>EDGAR retry 只 catch <code>ConnectionError/OSError</code>，edgartools 走 httpx</td><td><strong>retry 機制實質是死的</strong>；已有正確的 <code>_classify_edgar_error()</code> 卻沒被用</td><td>⛔ audit C3</td></tr>
+      <tr><td>MarkdownCleaner 過度熱心的規則</td><td>句子切分器丟掉以數字/引號/括號開頭的真實內容；fixtures 與 production 形狀不符</td><td>✅ PR #9（"conservative by design: 寧留噪音不誤刪"）</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s9" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§9</span>
+    <h2>展區 H — Eval 系統自身的失敗（Meta 展區：量測工具本身壞掉）</h2>
+    <span class="section-tag tag-ab">Eval</span>
+  </div>
+
+  <h3>H1. Vacuous pass 家族：綠燈但什麼都沒測</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>案例</th><th>機制</th><th>解法</th></tr></thead>
+    <tbody>
+      <tr><td>language-policy eval 假通過（PR #3）</td><td>assertion loop 迭代「實際被呼叫的 tool」——期望的 tool 沒被呼叫 = 零斷言 = PASS；ticker args 被 <code>continue</code> 跳過驗證</td><td><code>matched_expected_tool</code> flag + 強制斷言 + ticker regex</td></tr>
+      <tr><td>CI type-check 檢查了零個檔案（PR #5）</td><td><code>tsc --noEmit</code> 不跟 project references → root tsconfig 沒檔案 → 永遠綠</td><td><code>tsc -b --noEmit</code></td></tr>
+      <tr><td>self-fulfilling integration tests</td><td>測試自己重新實作一份 <code>_preflight_check</code>（副本已 drift）、banner test 自己 print 自己 assert</td><td>改為驅動真正的 production 函式 🔧（worktree 未 commit）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>H2. 兩個 defect 互相抵銷的 false-positive 測試　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>useChat.stop()</code> abort 測試 round-1 PASS 是假的：fixture 用 <code>textDelta</code>（AI SDK v6 實為 <code>delta</code>）→ SDK 靜默丟掉所有 text chunk → <code>stop()</code> 執行時沒有 in-flight text → 測試「通過」但從未行使 abort path。修正欄位名後測試又「失敗」——那是 MSW handler 不支援 <code>request.signal.abort</code> 的<strong>第二個 fixture defect 偽裝成 product bug</strong>。</li>
+    <li><strong>教訓</strong>：test plan 照假設的 wire format 寫、mock 基礎設施不 abort-aware —— 兩層假設疊加，PASS 與 FAIL 都不可信。</li>
+    <li><strong>證據</strong>：commit <code>913fdeafb3</code>（commit body 有完整 post-mortem）、<code>90fa11476d</code>。</li>
+  </ul>
+
+  <h3>H3. MagicMock 滿足任何屬性 → 「簡化」通過全部單元測試、對真實 EDGAR 直接 crash　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：review-driven 簡化移除了 <code>getattr(tenk.company, "name", ...)</code> 的防禦 fallback。單元測試全綠（MagicMock 自動提供 <code>.name</code>），對真實 edgartools 直接 <code>AttributeError</code>——<code>tenk.company</code> 是 plain <code>str</code>。</li>
+    <li><strong>解法</strong>：還原 fallback + 用「bare string」regression test 把真實形狀編碼進單元測試。</li>
+    <li><strong>證據</strong>：commit <code>eaa80fa314</code>（PR #14）。</li>
+  </ul>
+
+  <h3>H4. Scorer 拿到 JSON 字串逐字元迭代 → IR metrics 全是雜訊　🔧（P0）</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>dataset_loader._convert_cell</code> 從不 <code>json.loads</code> → <code>expected_header_paths</code> 以字串進 scorer → <code>for p in expected</code> <strong>逐字元迭代</strong>、<code>startswith(p)</code> 用單一字元比對 → recall@5/10、MRR、MAP 產出「接近零但非零」的分數，<strong>看起來像真實的爛成績</strong>，靜默污染 retrieval 品質追蹤。既有 unit tests 全部餵 Python list，永遠測不到這條路。</li>
+    <li><strong>狀態</strong>：🔧 fix 完整（<code>column_types</code> typed conversion + loader→scorer 整合測試）但在 worktree <code>eval-pipeline-fixes</code> <strong>未 commit</strong>。注意：<code>v1-eval-experiment-pipeline</code> 複製了 loader 私有邏輯，此修復<strong>不會自動生效</strong>到 diagnostic 軌。</li>
+    <li><strong>證據</strong>：audit P0-1、<code>eval-pipeline-fixes</code> uncommitted diff。</li>
+  </ul>
+
+  <h3>H5. 指標實作錯誤：「MAP」根本不是 MAP　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：scorer 實作的是「每個 expected entry 第一次命中的 reciprocal rank 取平均」，掛名 MAP。命中 rank 1 和 3 時回報 0.667，正典 MAP 是 0.833 —— <strong>系統性低估</strong> retrieval 品質，cross-company 案例（3+ expected entries）失真最大。</li>
+    <li><strong>解法</strong>：改為正典 <code>AP = (1/R)·Σ P@k</code>（引 Manning/Raghavan/Schütze Ch.8）+ greedy one-to-one binding + 5 個正典 AP 單元案例。</li>
+    <li><strong>證據</strong>：commit <code>a1353f8489</code>（PR #11）。</li>
+  </ul>
+
+  <h3>H6. Eval dataset 本身就是錯的（ground truth 汙染）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>案例</th><th>錯誤</th><th>發現方式</th></tr></thead>
+    <tbody>
+      <tr><td>sec_retrieval：NVDA fiscal year off-by-one；expected_header_paths 缺 Part 前綴</td><td>scorer 對著錯誤期望打分</td><td>BDD E2E 對真實資料驗證（<code>2c29bf3474</code>）</td></tr>
+      <tr><td>language_policy LP-02：scenario 要 GOOGL、dataset 寫 AAPL</td><td>測試案例與 scenario 不符</td><td>BDD loop（<code>2c8d6e1335</code>）</td></tr>
+      <tr><td>LP-02 的 AAPL/GOOGL 在兩套平行 eval stack 中<strong>各自漂移</strong></td><td>兩個 source of truth 量測不同的東西</td><td>audit E3 ⛔</td></tr>
+      <tr><td><code>item 1a</code> vs <code>Item 1A</code> 大小寫差異靜默失分</td><td>near-miss 靜默 0 分</td><td>建了 <code>validate_sec_eval_dataset.py</code> 做 case-insensitive near-miss 偵測 ✅</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>H7. 外部平台整合的失敗（Braintrust / Langfuse）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>案例</th><th>症狀</th><th>解法</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td>Braintrust API 憑記憶寫（hallucinated import path / types）</td><td><code>set_global_handler</code> import 錯位置、<code>Eval()</code> data 型別錯</td><td>對照真實 SDK 修正（→ 後來的 Context7 驗證規則的起源案例）</td><td>✅</td></tr>
+      <tr><td><code>result.scores</code> 假設是 Score objects，實為 raw floats</td><td>result CSV 寫入失敗</td><td>兩種格式都支援</td><td>✅</td></tr>
+      <tr><td>scorer 的 <code>"SKIPPED"</code> 字串 sentinel 洩漏到 Braintrust</td><td>刻意 skip 的 row 在 UI 顯示為 scorer error</td><td>平台邊界把 sentinel 轉回 <code>None</code></td><td>🔧 未 commit</td></tr>
+      <tr><td>非 local 模式同一 task <strong>跑兩次</strong>（dual-run）</td><td>雙倍 LLM 花費、CSV 與 Braintrust 記錄互相矛盾</td><td>方向已列入 audit 決策點 6</td><td>⛔</td></tr>
+      <tr><td>Braintrust process 級 singleton handler</td><td>eval scenario 只能循序跑（max_concurrency=1）</td><td>擴規模前需解</td><td>⛔</td></tr>
+      <tr><td>Langfuse free plan 限制（35 字元 score-config 名稱、單一 annotation queue）</td><td>命名被迫縮寫 + profile 收斂</td><td>alias 映射 + 單一 profile</td><td>✅</td></tr>
+      <tr><td>eval run 結束時 "Event loop is closed" 洗版</td><td>async client 在 loop teardown 後被 GC；nested <code>asyncio.run</code></td><td>在 owning loop 內 <code>finally</code> close + 單一 event loop + <code>braintrust.flush()</code></td><td>✅</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>H8. BDD loop 一輪抓出 6 個 eval-runner defect（PR #4）　✅</h3>
+  <p>task 無 timeout 可掛死、scorer 回 <code>None</code> 直接 crash runner、生成的 <code>output.*</code> keys 撞爆 CSV 原欄位、Braintrust 上傳先於 local CSV 寫入（上傳失敗 = 全部結果消失）、LP-02 dataset 錯、judge wrapper 對空 rubric 變數列誤動作。單一 commit <code>2c8d6e1335</code> 一次列出 —— <strong>執行完整 pipeline 對真實行為驗證（BDD loop）才找得到，unit tests 全部沒抓到</strong>。</p>
+
+  <h3>H9. 自動 code-review loop 產生 false-positive findings、fixer 照單全收　✅（revert）</h3>
+  <ul>
+    <li><strong>情境</strong>：reviewer agent 標了不是問題的問題，fixer agent 沒驗證外部 library 的真實 contract 就「修」了正確的程式碼：(1) 把 cache-first 邏輯改成先查本地 cache —— 但本地 cache <strong>不可能知道</strong> SEC 有沒有更新的 filing，會回 stale data；(2) 為 html-to-markdown <strong>不可能出現</strong>的回傳形狀加防禦碼和測試。</li>
+    <li><strong>解法</strong>：revert + 把真實 invariants 寫進 README。這是 multi-agent review loop 自身的 meta-failure。</li>
+    <li><strong>證據</strong>：commit <code>5334e9eec8</code>（PR #6）。</li>
+  </ul>
+
+  <h3>H10. 開放式問答無法自動打分 → 診斷軌設計決策</h3>
+  <ul>
+    <li><strong>情境</strong>：near-v1 開放式財經問答<strong>沒有 golden answer</strong>，LLM judge 自動打分容易失真。</li>
+    <li><strong>解法（設計層決策）</strong>：機器只量 <code>execution_health</code>（跑得順不順），答案品質交人工在 Langfuse 標註；30 題 dataset 用 <code>primary_failure_mechanism</code> 分類學把「預期會怎麼失敗」正式編碼（tool_routing_error ×11、evidence_synthesis_limit ×6、multi_entity_overload ×5、source_coverage_gap ×4、overreach_vs_abstain ×4）。</li>
+    <li><strong>狀態</strong>：pipeline 建好、<strong>人工標註尚未執行</strong>——這是 news/10-K 引用品質量化的前置條件。</li>
+    <li><strong>證據</strong>：<code>EVAL-V1-DIAGNOSTIC-WALKTHROUGH.md</code>、near_v1_diagnostic dataset.csv。</li>
+  </ul>
+</section>
+
+<section id="s10" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§10</span>
+    <h2>展區 I — Infra / Process 失敗</h2>
+  </div>
+
+  <h3>I1. <code>backend/.env</code>（真實 API keys）被烤進 Docker image　🔧（P0）</h3>
+  <ul>
+    <li><strong>情境</strong>：docker-compose 與 CI 都用 <code>context: .</code>（repo root），但 Docker <strong>只讀 context 根目錄的 <code>.dockerignore</code></strong> —— 既有的 <code>backend/.dockerignore</code> 從未被讀取，<code>COPY backend/ ./backend/</code> 把 <code>.env</code> 複製進 builder 與 runtime 兩層 layer。<code>docker history</code> / <code>docker save</code> 可還原憑證；image 一旦 push 即外洩。附帶 build context 上傳 <code>node_modules</code>/<code>.venv</code>/<code>.git</code>。</li>
+    <li><strong>解法</strong>：root <code>.dockerignore</code>（含 <code>**/.env.*</code>）+ multi-stage Dockerfile + non-root user。</li>
+    <li><strong>狀態</strong>：🔧 worktree <code>dockerignore-env-leak</code> 的 diff 完整但<strong>全部未 commit</strong>。</li>
+    <li><strong>證據</strong>：audit P0-3、worktree uncommitted diff。</li>
+  </ul>
+
+  <h3>I2. 六週設計工作曾只存在單一機器的 gitignored 目錄（process failure）　✅</h3>
+  <ul>
+    <li><strong>情境</strong>：<code>improve-rag-ingestion</code> 從 git 看是空 branch，實際藏 53KB design.md + 6 研究 memos；<code>rag-filter-eval</code> 的實驗報告 + 6 個 result CSVs（文章要引用的數據）全被 <code>.gitignore</code> 排除；3 個 branch 完全未 push —— 單一磁碟故障即全滅。</li>
+    <li><strong>解法</strong>：4 個 rescue commits（force-add 進 branch history）+ CLAUDE.md 新增規則「Commit <code>artifacts/current/</code> to the feature branch as it evolves」，規則本文明寫教訓來源。</li>
+    <li><strong>策展價值</strong>：failure → 直接改寫工作協定的範例。</li>
+  </ul>
+
+  <h3>I3. 其他 infra 展品（速覽）</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>條目</th><th>一句話</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td>LangSmith → Langfuse 遷移</td><td>觀測層 vendor 選型未考慮規劃中的 LlamaIndex RAG（LangSmith 不支援）→ 整包自製 tracing 一個 sprint 後全刪重來</td><td>✅（教訓：選型要對照 roadmap）</td></tr>
+      <tr><td>Langfuse session id 兩連發</td><td>硬編碼 <code>"new_session"</code> 把所有對話 lump 成一個 session；修好後 UUID 又只回給 client、沒傳給 Langfuse（生成時機在 <code>arun()</code> 之後）</td><td>✅ PR #2</td></tr>
+      <tr><td>OTel detach error 噪音</td><td><code>propagate_attributes()</code> 跨 async generator 邊界 → 無害但洗版；refcounted logging filter workaround → Langfuse 升級修掉 root cause 後 filter 反而該刪（audit #46：會遮住未來真 detach 錯誤）</td><td>filter 清理 ⛔</td></tr>
+      <tr><td><code>.env</code> 載入依賴 CWD</td><td><code>load_dotenv()</code> 相對 CWD 解析 → 換目錄啟動就 silently 缺 keys；<strong>PR #1 和 PR #4 各踩一次</strong></td><td>✅（<code>__file__</code> 錨定）</td></tr>
+      <tr><td>DuckDB <code>ON CONFLICT SET</code> 拒收 bare <code>CURRENT_TIMESTAMP</code></td><td>binder 當成 column identifier（DDL DEFAULT 卻可以）→ 改 <code>now()</code> + WHY comment 防止未來被「修」回去</td><td>✅ PR #13</td></tr>
+      <tr><td>SQL 三值邏輯繞過 CHECK</td><td><code>NULL BETWEEN 1 AND 4</code> 是 NULL 不是 FALSE → 無效列靜默通過（design review 抓到，preventive）</td><td>✅ PR #13</td></tr>
+      <tr><td>Vitest 吃掉 Playwright specs</td><td>兩套 runner 打架</td><td>✅ exclude glob</td></tr>
+      <tr><td>Docs 重大漂移</td><td>AGENTS.md / file_structure.md 描述不存在的 Next.js / BaseAgent / LangSmith —— 「錯的手冊比沒有更糟，agent 會照著下錯指令」</td><td>⛔ audit G1</td></tr>
+      <tr><td>兩套錯誤 hierarchy 同名 class</td><td><code>TickerNotFoundError</code> ×2 → import 錯一個，<code>except</code> 靜默永不匹配（audit C3 正是實例）</td><td>⛔ audit D4</td></tr>
+      <tr><td>Session guard 失效</td><td>in-process lock 在 multi-worker 下無效；<code>/chat/invoke</code> 完全繞過 busy guard → 交錯寫壞 SQLite checkpoint</td><td>⛔ audit A1/A2</td></tr>
+      <tr><td><code>__pycache__</code> 被 commit</td><td>PR #1 的 repo hygiene</td><td>✅</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s11" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§11</span>
+    <h2>橫向 Patterns（策展敘事層）</h2>
+    <span class="section-tag tag-decision">Patterns</span>
+  </div>
+
+  <ol>
+    <li><strong>Mock 編碼了與程式碼相同的錯誤假設</strong> —— 最高頻 pattern：wire format mismatch（F1）、tool name undefined（F3）、false-positive abort test（H2）、MagicMock <code>.name</code>（H3）全部「mocked tests 全綠、真實系統翻車」。標準修法：BDD browser-use / 真實 integration 驗證找出真形狀 → 把真形狀回填成 unit-level regression test。</li>
+    <li><strong>Vacuous pass（綠燈但什麼都沒測）</strong> —— eval 假通過、CI 檢查零檔案、self-fulfilling tests、dead retry。教訓：每個 gate 都要能回答「它曾經 fail 過嗎？」。</li>
+    <li><strong>修復的標準模式是「prompt 硬化 + eval 固定」</strong> —— E1 直接催生 eval framework；此後幾乎每類 failure 都留下 scorer、regression 斷言（DECISION-001）、contract test 或 probe script。</li>
+    <li><strong>雙端夾擊（two-sided pincer）</strong> —— citation 格式同時在 backend prompt 與 frontend normalize 管線佈防；budget-vs-rate-limit 同時改 backend 措辭與 frontend regex。</li>
+    <li><strong>外部 API 的靜默垃圾形狀</strong> —— yfinance null、yfinance 404 空殼、Finnhub 全零、edgartools section bleed、AI SDK 未文件化行為：每接一個依賴就要探明 invalid-input 行為並用 live contract test 鎖住。</li>
+    <li><strong>修復自己引發 regression</strong> —— PART dedup 弄壞健康 ticker（G2）、review-loop false-positive「修好」正確程式碼（H9）、citation strip regex 誤刪正文（A1 殘留）、round-1 review fix 重新引入 retry bug（F4）。對策：hard-gate baseline（已健康樣本鎖住）+ 對修復本身 review。</li>
+    <li><strong>Human 在迴路中抓到自動化抓不到的</strong> —— PR #7 invalid ticker（human reviewer）、PR #14 section bleed 與 double-EDGAR（human UAT）：concurrency 行為與真實資料內容缺陷對 unit/integration suites 都不可見。</li>
+  </ol>
+</section>
+
+<section id="s12" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§12</span>
+    <h2>量化現況與 Evaluation 缺口</h2>
+    <span class="section-tag tag-ab">Eval</span>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Failure 主題</th><th>現有量測</th><th>缺口</th></tr></thead>
+    <tbody>
+      <tr><td>Language policy（E1）</td><td>✅ 8-case eval + CJK-ratio scorer（5/8→8/8 有 baseline）</td><td>兩套平行 stack 已 drift（H6）待收斂</td></tr>
+      <tr><td>RAG cross-ticker（G1）</td><td>✅ 18 題 p@10 A/B 實驗（0.622→1.00）</td><td>router ticker 抽取準確率未隔離測試</td></tr>
+      <tr><td>SEC retrieval 品質</td><td>⚠️ IR metrics 存在但 scorer 有 P0 bug（H4）+ dataset 是 draft placeholder</td><td><strong>目前分數不可信</strong>；修復在 worktree 未 commit</td></tr>
+      <tr><td>Citation format compliance（A1/A2）</td><td>❌ 只有 E2E happy path</td><td>無 scorer 驗證 inline [N]、格式合規率</td></tr>
+      <tr><td>News 具體性（C1）</td><td>⚠️ 診斷軌已建（failure taxonomy + execution_health）</td><td>人工標註未執行；無 URL-pattern 自動 scorer</td></tr>
+      <tr><td>10-K source 正確性（B7）</td><td>❌ 無</td><td>無任何量測；tool 不回 URL 使 grounding 無從驗證</td></tr>
+      <tr><td>開放式回答品質（H10）</td><td>⚠️ execution_health only（by design）</td><td>Langfuse 人工標註 loop 未跑第一輪</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="s13" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§13</span>
+    <h2>待與你討論的問題（我不臆測的部分）</h2>
+    <span class="section-tag tag-open">Open</span>
+  </div>
+
+  <ol>
+    <li><strong>B7（10-K source 錯誤）的具體樣態</strong>：你看到的錯是 (a) URL 錯/捏造的 sec.gov 連結、(b) 年度錯、(c) item/section 錯、還是 (d) 內容對不上出處？有沒有印象中的實例或可撈的 Langfuse trace？這決定 B7 在博物館怎麼寫、以及對應 evaluation 怎麼設計。</li>
+    <li><strong>C1（news generic page）</strong>：你記憶中的 Reuters 案例就是 2026-04-24 那批 diagnostic run（TSLA→<code>reuters.com/markets/companies/TSLA.F/</code>），還是更早的手動測試？有沒有嘗試過任何 Tavily query rewriting / URL-pattern filter？（repo 內找不到嘗試痕跡）</li>
+    <li><strong>博物館收錄範圍</strong>：只收 agent-behavior failures（展區 A–E + G1），還是 eval-meta（H）與 infra/process（I）也要上牆？H 和 I 的故事性很強（vacuous pass、review-loop false positives、六週工作差點消失），但和「建立 Agent 的 failure」主題略有距離。</li>
+    <li><strong>「現行展品」專區</strong>：audit 中仍 open 的 P0/high（H4 scorer 雜訊、F6 SSE 掛死、B4/B5、G5 的 delete-before-embed 與 dead retry、I1 env leak）要不要在博物館標成「還活著的 bug」專區？這會讓博物館兼具 roadmap 功能。</li>
+  </ol>
+  <div class="callout callout-warn"><strong>順帶的風險提醒（非問題）</strong> · <code>multi-provider-streaming-reasoning</code>（36 commits）未 push、本機唯一副本，且 uncommitted 變更混入 <code>backend/Dockerfile</code> 刪除；<code>dockerignore-env-leak</code> 與 <code>eval-pipeline-fixes</code> 的 P0 修復都完整但未 commit。</div>
+</section>
+
+<section id="s14" class="doc-section">
+  <div class="section-head">
+    <span class="section-num">§14</span>
+    <h2>附錄：證據索引</h2>
+  </div>
+
+  <ul>
+    <li><strong>主稽核</strong>：<code>.artifacts/current/repo_audit_report.md</code>（2026-07-06）</li>
+    <li><strong>實驗數據</strong>：<code>fin-lab-x-wt/rag-filter-eval/artifacts/experiment_results.md</code></li>
+    <li><strong>診斷軌</strong>：<code>fin-lab-x-wt/EVAL-V1-DIAGNOSTIC-WALKTHROUGH.md</code>、<code>EVAL-STATUS-BRIEF.md</code>、<code>v1-eval-experiment-pipeline/backend/evals/results/near_v1_diagnostic_20260424_*.csv</code></li>
+    <li><strong>Parsing 研究</strong>：<code>fin-lab-x-wt/improve-rag-ingestion/artifacts/current/design.md</code> + <code>research_*.md</code></li>
+    <li><strong>關鍵程式碼</strong>：<code>frontend/src/lib/markdown-sources.ts</code>、<code>backend/common/sec_core.py</code>、<code>backend/agent_engine/tools/sec_filing_tools.py</code>、<code>backend/agent_engine/tools/financial.py</code>、<code>backend/agent_engine/streaming/tool_error_sanitizer.py</code>、<code>backend/agent_engine/agents/versions/v1_baseline/system_prompt.md</code>、<code>docs/ai_sdk_v6_contract_findings.md</code></li>
+    <li><strong>關鍵 commits</strong>：<code>8a29d9c</code>（language policy）、<code>aec4152</code>/<code>5b558f2</code>（citation）、<code>3783ce8</code>（wire format）、<code>66a3295</code>（heading saga）、<code>e1d9d98</code>（SEC tool refactor）、<code>7af4cdd</code>（citation policy 轉向）、<code>2c8d6e1335</code>（BDD 六連修）、<code>913fdeafb3</code>（false-positive test post-mortem）、<code>5334e9eec8</code>（review-loop revert）</li>
+  </ul>
+</section>
+
+<footer>
+  Rendered from .artifacts/current/failure_museum_catalog.md · 2026-07-07
+</footer>
+
+</main>
+
+<!-- COMMENT PANEL -->
+<aside class="comment-panel" id="comment-panel">
+  <div class="comment-resize-handle" id="comment-resize-handle" title="拖曳調整寬度"></div>
+  <div class="comment-panel-header">
+    <span class="comment-panel-title">Comments</span>
+    <span class="comment-counts">
+      <span class="comment-count-badge" id="comment-count" title="待處理 (active)">0</span>
+      <span class="resolved-count-badge" id="resolved-count" title="已 resolved" style="display:none">✓ 0</span>
+      <span class="outdated-count-badge" id="outdated-count" title="Outdated — doc 已修改，原文字找不到" style="display:none">0</span>
+    </span>
+  </div>
+
+  <div class="sync-status local" id="sync-status">
+    <span>💾</span> Local only · checking…
+  </div>
+
+  <div class="comment-help" id="comment-help">
+    選文字 → 「💬 新增 comment」→ 寫想法。<br>
+    Comment card 上 「Resolve」 切灰綠；Export 只匯出未 resolved。
+  </div>
+
+  <div class="comment-actions">
+    <button class="btn-action btn-primary-action" id="btn-copy-json" title="複製 active JSON 到剪貼簿">
+      <span class="btn-icon">⧉</span> Copy JSON
+    </button>
+    <div class="export-menu-wrap">
+      <button class="btn-action" id="btn-export-menu" title="下載檔案 (JSON / Prompt)">
+        <span class="btn-icon">↓</span> Export <span class="caret">▾</span>
+      </button>
+      <div class="export-dropdown" id="export-dropdown" role="menu">
+        <button class="export-option" data-format="json">JSON file (.json)</button>
+        <button class="export-option" data-format="prompt">Prompt markdown (.md)</button>
+      </div>
+    </div>
+    <button class="btn-action" id="btn-resolve-all" title="把所有 active comment 標為 resolved">
+      <span class="btn-icon">✓</span> Resolve all
+    </button>
+    <button class="btn-action btn-danger" id="btn-clear-all" title="刪除全部 comment">
+      <span class="btn-icon">×</span> Clear
+    </button>
+  </div>
+
+  <div class="comment-list" id="comment-list"></div>
+</aside>
+
+</div>
+
+<!-- FAB (mobile) -->
+<button class="comment-fab" id="comment-fab" aria-label="Toggle comments">💬<span class="comment-fab-badge" id="fab-badge" style="display:none">0</span></button>
+
+<!-- SELECTION TOOLBAR -->
+<div class="selection-toolbar" id="selection-toolbar">
+  <button id="btn-add-comment">💬 新增 comment</button>
+</div>
+
+<!-- COMMENT DIALOG -->
+<div class="dialog-backdrop" id="comment-dialog-backdrop">
+  <div class="comment-dialog">
+    <h3>新增 comment</h3>
+    <div class="selection-preview" id="dialog-selection-preview"></div>
+    <textarea id="comment-input" placeholder="寫下你對這段內容的想法、疑問、要 Claude 修改的方向…"></textarea>
+    <div class="dialog-actions">
+      <span class="dialog-hint">⌘+Enter 送出 · Esc 取消</span>
+      <div class="dialog-buttons">
+        <button class="btn-secondary" id="comment-cancel">取消</button>
+        <button class="btn-primary" id="comment-submit">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MERMAID LIGHTBOX MODAL -->
+<div class="mm-modal-backdrop" id="mm-modal-backdrop">
+  <div class="mm-modal-frame">
+    <div class="mm-modal-toolbar">
+      <span class="mm-modal-title" id="mm-modal-title">Mermaid diagram</span>
+      <div class="mm-modal-actions">
+        <button id="mm-zoom-in" title="Zoom in">＋</button>
+        <button id="mm-zoom-out" title="Zoom out">－</button>
+        <button id="mm-reset" title="Reset">⤺ reset</button>
+        <button id="mm-close" title="Close (Esc)">✕ close</button>
+      </div>
+    </div>
+    <div class="mm-modal-svg-wrap" id="mm-modal-svg-wrap"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+<script>
+// Theme-aware mermaid: use mermaid's fully-tuned built-in themes ('default'
+// light / 'dark' dark) so every diagram type (sequence, class, state, ER)
+// keeps proper contrast. Only a light accent tint is overridden — do NOT
+// switch to theme:'base' with a hand-rolled palette; base derives dozens of
+// secondary colors from the few you set and readability collapses on
+// class/sequence diagrams. (Theme read once at load — htmlify follows the OS
+// preference; there is no runtime toggle.)
+var _mmDark = (document.documentElement.getAttribute('data-theme') === 'dark') ||
+  (!document.documentElement.getAttribute('data-theme') &&
+   window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+mermaid.initialize({
+  startOnLoad: true,
+  theme: _mmDark ? 'dark' : 'default',
+  themeVariables: _mmDark
+    ? { fontSize: '14px' }
+    : { primaryColor: '#dff1f2', primaryBorderColor: '#0c7d84', lineColor: '#6b7480', fontSize: '14px' },
+  flowchart: { curve: 'basis', htmlLabels: true },
+  sequence: { useMaxWidth: true },
+  er: { useMaxWidth: true }
+});
+hljs.highlightAll();
+</script>
+
+<script>
+// ============================================================
+// Annotation / Comment System
+// ============================================================
+
+const STORAGE_KEY = 'htmlify-comments-failure-museum-catalog-v1';
+const STORAGE_DIRTY = STORAGE_KEY + '-dirty';
+const DOC_NAME = 'failure_museum_catalog.md — FinLabX 失敗博物館素材目錄';
+let comments = [];
+
+// Sidecar JSON lives next to this HTML: <basename>.comments.json
+function sidecarName() {
+  const file = location.pathname.split('/').pop() || 'index.html';
+  const base = file.replace(/\.html?$/i, '') || 'index';
+  return base + '.comments.json';
+}
+function sidecarUrl() { return './' + sidecarName(); }
+
+// Dirty = in-memory edits not yet written to the sidecar file
+function markDirty() { localStorage.setItem(STORAGE_DIRTY, '1'); }
+function clearDirty() { localStorage.removeItem(STORAGE_DIRTY); }
+function isDirty() { return localStorage.getItem(STORAGE_DIRTY) === '1'; }
+
+// Zero-gesture read of the committed/deployed sidecar (source of truth in the static+git model).
+// fetch() of a relative path is blocked on file://, so this only runs when served over http(s).
+async function fetchSidecar() {
+  if (location.protocol === 'file:') return null;
+  try {
+    const res = await fetch(sidecarUrl(), { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && Array.isArray(data.comments)) ? data : null;
+  } catch (e) { return null; }
+}
+
+function uid() {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function getContainingSection(node) {
+  while (node && node !== document.body) {
+    if (node.nodeType === 1 && node.tagName === 'SECTION' && node.id) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+
+// ============================================================
+// Mark wrapping
+// ============================================================
+
+function wrapRange(range, commentId) {
+  // Collect text nodes that intersect with range
+  const root = range.commonAncestorContainer.nodeType === 3
+    ? range.commonAncestorContainer.parentNode
+    : range.commonAncestorContainer;
+
+  const textNodes = [];
+  if (range.commonAncestorContainer.nodeType === 3) {
+    textNodes.push(range.commonAncestorContainer);
+  } else {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        return range.intersectsNode(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    let n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+  }
+
+  for (const node of textNodes) {
+    // skip if already inside a mark or inside non-content area
+    if (node.parentNode.closest('mark.annot')) continue;
+    if (node.parentNode.closest('.comment-panel, .selection-toolbar, .dialog-backdrop, .toast, .sidebar')) continue;
+
+    const start = (node === range.startContainer) ? range.startOffset : 0;
+    const end = (node === range.endContainer) ? range.endOffset : node.textContent.length;
+    if (start >= end) continue;
+
+    const text = node.textContent;
+    const before = text.slice(0, start);
+    const wrapped = text.slice(start, end);
+    const after = text.slice(end);
+
+    if (!wrapped.trim()) continue;
+
+    const mark = document.createElement('mark');
+    mark.className = 'annot';
+    mark.dataset.commentId = commentId;
+    mark.textContent = wrapped;
+    mark.addEventListener('click', e => {
+      e.stopPropagation();
+      flashComment(commentId);
+      scrollToCommentCard(commentId);
+    });
+
+    const frag = document.createDocumentFragment();
+    if (before) frag.appendChild(document.createTextNode(before));
+    frag.appendChild(mark);
+    if (after) frag.appendChild(document.createTextNode(after));
+
+    node.parentNode.replaceChild(frag, node);
+  }
+}
+
+function unwrapMark(commentId) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    const text = document.createTextNode(m.textContent);
+    m.parentNode.replaceChild(text, m);
+  });
+  // Normalize adjacent text nodes
+  document.querySelectorAll('main').forEach(n => n.normalize());
+}
+
+// Restore: find selected text in section, wrap it
+function restoreComment(c) {
+  const section = document.getElementById(c.sectionId);
+  if (!section) return false;
+
+  // Concatenate all text nodes, tracking node + offset
+  const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      if (n.parentNode.closest('.comment-panel, .selection-toolbar, .dialog-backdrop, .toast')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const map = [];
+  let combined = '';
+  let n;
+  while ((n = walker.nextNode())) {
+    map.push({ node: n, start: combined.length });
+    combined += n.textContent;
+  }
+
+  // Normalize whitespace for comparison (selected text may have whitespace differences)
+  const target = c.selectedText;
+  const idx = combined.indexOf(target);
+  if (idx < 0) return false;
+
+  const endIdx = idx + target.length;
+
+  let startNode, startOffset, endNode, endOffset;
+  for (const item of map) {
+    const nodeStart = item.start;
+    const nodeEnd = nodeStart + item.node.textContent.length;
+    if (startNode === undefined && idx >= nodeStart && idx < nodeEnd) {
+      startNode = item.node;
+      startOffset = idx - nodeStart;
+    }
+    if (endNode === undefined && endIdx > nodeStart && endIdx <= nodeEnd) {
+      endNode = item.node;
+      endOffset = endIdx - nodeStart;
+    }
+    if (startNode && endNode) break;
+  }
+
+  if (!startNode || !endNode) return false;
+
+  try {
+    const range = document.createRange();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    wrapRange(range, c.id);
+    return true;
+  } catch (e) {
+    console.warn('restore failed', c.id, e);
+    return false;
+  }
+}
+
+// ============================================================
+// Storage
+// ============================================================
+
+async function loadComments() {
+  let source = null;  // 'handle' | 'fetch' | 'local-dirty' | 'local'
+
+  // 1. Linked handle (read + write authority) takes precedence over everything
+  try {
+    await fileSync.restore();
+    if (fileSync.enabled) {
+      const remote = await fileSync.loadIfLinked();
+      if (remote && Array.isArray(remote.comments)) {
+        comments = remote.comments;
+        clearDirty();
+        source = 'handle';
+      }
+    }
+  } catch (e) {
+    console.warn('[file-sync] restore/load failed', e);
+  }
+
+  // 2. Auto-fetch the sidecar (read-only, zero gesture). Skip if we have unsaved local
+  //    edits — those would otherwise be clobbered by the older committed file.
+  if (!source) {
+    const fetched = await fetchSidecar();
+    if (fetched) {
+      if (isDirty()) {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        try { comments = raw ? JSON.parse(raw) : fetched.comments; }
+        catch (e) { comments = fetched.comments; }
+        source = 'local-dirty';
+      } else {
+        comments = fetched.comments;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));  // refresh cache
+        source = 'fetch';
+      }
+    }
+  }
+
+  // 3. localStorage fallback (offline / file:// / sidecar not deployed yet)
+  if (!source) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try { comments = JSON.parse(raw); }
+      catch (e) { comments = []; }
+    }
+    source = 'local';
+  }
+  loadComments._source = source;
+
+  // Migrate legacy `addressed` field → `resolved`
+  comments.forEach(c => {
+    if (c.addressed !== undefined && c.resolved === undefined) {
+      c.resolved = c.addressed;
+      if (c.addressedAt) c.resolvedAt = c.addressedAt;
+      delete c.addressed;
+      delete c.addressedAt;
+    }
+  });
+  saveCommentsLocal();  // refresh cache only — must not mark dirty during load
+  // re-wrap marks + recompute outdated state (must wait for mermaid to settle so DOM is stable)
+  let outdated = 0;
+  comments.forEach(c => {
+    const ok = restoreComment(c);
+    if (ok) {
+      c.outdated = false;
+      if (c.resolved) updateMarkResolvedState(c.id, true);
+    } else {
+      // text not found → outdated (unless already resolved, then it stays resolved)
+      c.outdated = !c.resolved;
+      if (c.outdated) outdated++;
+    }
+  });
+  saveCommentsLocal();
+  renderCommentList();
+  if (outdated > 0) showToast(`⧖ ${outdated} comment outdated — 原文字已不在 doc 中`);
+}
+
+function saveComments() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+  if (typeof fileSync !== 'undefined' && fileSync.enabled) {
+    fileSync.scheduleSave();  // clears dirty on a successful file write
+  } else {
+    markDirty();              // edits exist that aren't in the sidecar file yet
+  }
+  if (typeof updateSyncStatus === 'function') updateSyncStatus();
+}
+
+// Local-only save (no file sync trigger) — used during import/restore to avoid feedback loops
+function saveCommentsLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+}
+
+// ============================================================
+// Selection toolbar
+// ============================================================
+
+const toolbar = document.getElementById('selection-toolbar');
+let pendingRange = null;
+let pendingText = null;
+let pendingSection = null;
+
+function handleSelection() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      hideToolbar();
+      return;
+    }
+    const text = sel.toString().trim();
+    if (!text || text.length < 2) {
+      hideToolbar();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const section = getContainingSection(range.commonAncestorContainer);
+    if (!section) {
+      hideToolbar();
+      return;
+    }
+    // Don't trigger inside comment panel/dialog
+    if (range.commonAncestorContainer.parentNode && range.commonAncestorContainer.parentNode.closest && range.commonAncestorContainer.parentNode.closest('.comment-panel, .dialog-backdrop')) {
+      hideToolbar();
+      return;
+    }
+
+    pendingRange = range.cloneRange();
+    pendingText = text;
+    pendingSection = section;
+    showToolbarAt(range);
+  }, 0);
+}
+
+function showToolbarAt(range) {
+  const rect = range.getBoundingClientRect();
+  toolbar.style.display = 'flex';
+  // Position above selection
+  const top = window.scrollY + rect.top - toolbar.offsetHeight - 10;
+  const left = window.scrollX + rect.left + rect.width / 2 - 75;
+  toolbar.style.top = `${Math.max(top, window.scrollY + 8)}px`;
+  toolbar.style.left = `${Math.max(left, 8)}px`;
+}
+
+function hideToolbar() {
+  toolbar.style.display = 'none';
+}
+
+document.addEventListener('mouseup', e => {
+  if (e.target.closest('.selection-toolbar, .comment-panel, .dialog-backdrop')) return;
+  handleSelection();
+});
+document.addEventListener('keyup', e => {
+  if (e.shiftKey) handleSelection();
+});
+document.addEventListener('mousedown', e => {
+  if (!e.target.closest('.selection-toolbar')) hideToolbar();
+});
+
+// ============================================================
+// Add comment flow
+// ============================================================
+
+document.getElementById('btn-add-comment').addEventListener('click', () => {
+  if (!pendingRange || !pendingText || !pendingSection) return;
+  showCommentDialog(pendingText, (commentText) => {
+    if (!commentText) return;
+
+    const sectionTitle = pendingSection.querySelector('h2')?.textContent.replace(/^§\d+\s*/, '').trim() || '';
+    const sectionNumMatch = pendingSection.id.match(/^s(\d+)$/);
+    const sectionLabel = sectionNumMatch ? `§${sectionNumMatch[1]} ${sectionTitle}` : sectionTitle;
+
+    const c = {
+      id: uid(),
+      sectionId: pendingSection.id,
+      sectionLabel,
+      selectedText: pendingText,
+      comment: commentText,
+      resolved: false,
+      createdAt: new Date().toISOString()
+    };
+
+    comments.push(c);
+    saveComments();
+
+    try {
+      wrapRange(pendingRange, c.id);
+    } catch (e) {
+      console.warn('wrap failed, attempting restore', e);
+      restoreComment(c);
+    }
+
+    window.getSelection().removeAllRanges();
+    hideToolbar();
+    pendingRange = null;
+    pendingText = null;
+    pendingSection = null;
+    renderCommentList();
+    showToast('Comment 已新增');
+  });
+});
+
+// ============================================================
+// Dialog
+// ============================================================
+
+const dialogBackdrop = document.getElementById('comment-dialog-backdrop');
+const dialogPreview = document.getElementById('dialog-selection-preview');
+const dialogInput = document.getElementById('comment-input');
+const dialogSubmit = document.getElementById('comment-submit');
+const dialogCancel = document.getElementById('comment-cancel');
+
+function showCommentDialog(selectedText, callback) {
+  dialogPreview.textContent = selectedText.slice(0, 500) + (selectedText.length > 500 ? '…' : '');
+  dialogInput.value = '';
+  dialogBackdrop.classList.add('show');
+  setTimeout(() => dialogInput.focus(), 50);
+
+  const cleanup = () => {
+    dialogBackdrop.classList.remove('show');
+    dialogSubmit.removeEventListener('click', onSubmit);
+    dialogCancel.removeEventListener('click', onCancel);
+    dialogBackdrop.removeEventListener('click', onBackdrop);
+    document.removeEventListener('keydown', onKey);
+  };
+  const onSubmit = () => { const v = dialogInput.value.trim(); cleanup(); callback(v); };
+  const onCancel = () => { cleanup(); callback(null); };
+  const onBackdrop = (e) => { if (e.target === dialogBackdrop) onCancel(); };
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSubmit(); }
+  };
+  dialogSubmit.addEventListener('click', onSubmit);
+  dialogCancel.addEventListener('click', onCancel);
+  dialogBackdrop.addEventListener('click', onBackdrop);
+  document.addEventListener('keydown', onKey);
+}
+
+// ============================================================
+// Render comment list
+// ============================================================
+
+function renderCommentList() {
+  const list = document.getElementById('comment-list');
+  const count = document.getElementById('comment-count');
+  const resolvedCount = document.getElementById('resolved-count');
+  const outdatedCount = document.getElementById('outdated-count');
+  const fabBadge = document.getElementById('fab-badge');
+  const help = document.getElementById('comment-help');
+
+  const activeCount = comments.filter(c => !c.resolved && !c.outdated).length;
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+
+  if (help) help.style.display = comments.length === 0 ? 'block' : 'none';
+
+  count.textContent = activeCount;
+  if (resolvedNum > 0) {
+    resolvedCount.style.display = 'inline-block';
+    resolvedCount.textContent = `✓ ${resolvedNum}`;
+  } else {
+    resolvedCount.style.display = 'none';
+  }
+  if (outdatedNum > 0) {
+    outdatedCount.style.display = 'inline-block';
+    outdatedCount.textContent = outdatedNum;
+  } else {
+    outdatedCount.style.display = 'none';
+  }
+  if (activeCount > 0) {
+    fabBadge.textContent = activeCount;
+    fabBadge.style.display = 'block';
+  } else {
+    fabBadge.style.display = 'none';
+  }
+
+  if (comments.length === 0) {
+    list.innerHTML = '<div class="empty-state">尚無 comment<br><br>在本文選擇文字 →<br>點 toolbar 的「💬 新增 comment」</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  // Sort: active first, dim (resolved/outdated) last; within each group by section order
+  const sorted = [...comments].sort((a, b) => {
+    const aDim = !!(a.resolved || a.outdated);
+    const bDim = !!(b.resolved || b.outdated);
+    if (aDim !== bDim) return aDim ? 1 : -1;
+    const na = parseInt((a.sectionId || '').replace(/\D/g, '')) || 999;
+    const nb = parseInt((b.sectionId || '').replace(/\D/g, '')) || 999;
+    if (na !== nb) return na - nb;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+
+  sorted.forEach(c => {
+    const isResolved = c.resolved === true;
+    const isOutdated = c.outdated === true && !isResolved;
+    const card = document.createElement('div');
+    let cls = 'comment-card';
+    if (isResolved) cls += ' resolved';
+    if (isOutdated) cls += ' outdated';
+    card.className = cls;
+    card.dataset.commentId = c.id;
+
+    const toggleLabel = isResolved ? '↩ Undo' : '✓ Resolve';
+    let statusPill = '';
+    if (isResolved) statusPill = '<span class="status-pill resolved">✓ resolved</span>';
+    else if (isOutdated) statusPill = '<span class="status-pill outdated">outdated</span>';
+
+    card.innerHTML = `
+      <div class="comment-card-head">
+        <div class="comment-section">${escapeHtml(c.sectionLabel || c.sectionId)}</div>
+        ${statusPill}
+      </div>
+      <div class="comment-quote">${escapeHtml(c.selectedText.length > 140 ? c.selectedText.slice(0, 140) + '…' : c.selectedText)}</div>
+      <div class="comment-body">${escapeHtml(c.comment)}</div>
+      <div class="comment-meta">
+        <span>${new Date(c.createdAt).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+        <span style="display:flex; gap:6px;">
+          <button class="btn-toggle" data-id="${c.id}">${toggleLabel}</button>
+          <button class="btn-delete" data-id="${c.id}" title="刪除 comment" aria-label="刪除">×</button>
+        </span>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.classList.contains('btn-delete')) return;
+      if (e.target.classList.contains('btn-toggle')) return;
+      if (isOutdated) {
+        showToast('⧖ 文字已不在 doc 中（doc 可能已修改）');
+        return;
+      }
+      scrollToMark(c.id);
+    });
+    card.querySelector('.btn-toggle').addEventListener('click', e => {
+      e.stopPropagation();
+      toggleResolved(c.id);
+    });
+    card.querySelector('.btn-delete').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('刪除這個 comment？')) return;
+      deleteComment(c.id);
+    });
+    list.appendChild(card);
+  });
+}
+
+function toggleResolved(id) {
+  const c = comments.find(x => x.id === id);
+  if (!c) return;
+  c.resolved = !c.resolved;
+  if (c.resolved) {
+    c.resolvedAt = new Date().toISOString();
+    // Resolved overrides outdated (already "done"); outdated visual hidden by precedence
+  } else {
+    delete c.resolvedAt;
+    // Re-check outdated: if no mark exists in DOM, text is gone → outdated
+    const hasMark = !!document.querySelector(`mark.annot[data-comment-id="${c.id}"]`);
+    c.outdated = !hasMark;
+  }
+  saveComments();
+  updateMarkResolvedState(id, c.resolved);
+  renderCommentList();
+  const msg = c.resolved
+    ? '✓ 標為 resolved'
+    : (c.outdated ? '↩ 恢復為待處理（⧖ outdated）' : '↩ 恢復為待處理');
+  showToast(msg);
+}
+
+function updateMarkResolvedState(commentId, isResolved) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    m.classList.toggle('resolved', isResolved);
+  });
+}
+
+function scrollToMark(commentId) {
+  const mark = document.querySelector(`mark.annot[data-comment-id="${commentId}"]`);
+  if (!mark) {
+    showToast('找不到對應的 highlight（可能 orphan）');
+    return;
+  }
+  mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  flashMark(commentId);
+}
+
+function scrollToCommentCard(commentId) {
+  const card = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
+  if (!card) return;
+  // Open mobile panel if needed
+  document.getElementById('comment-panel').classList.add('open');
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.style.transition = 'background 0.3s';
+  card.style.background = 'var(--primary-light)';
+  setTimeout(() => { card.style.background = ''; }, 800);
+}
+
+function flashMark(commentId) {
+  document.querySelectorAll(`mark.annot[data-comment-id="${commentId}"]`).forEach(m => {
+    m.classList.remove('pulse');
+    // force reflow
+    void m.offsetWidth;
+    m.classList.add('pulse');
+    setTimeout(() => m.classList.remove('pulse'), 1700);
+  });
+}
+
+function flashComment(commentId) { flashMark(commentId); }
+
+function deleteComment(id) {
+  comments = comments.filter(c => c.id !== id);
+  saveComments();
+  unwrapMark(id);
+  renderCommentList();
+  showToast('已刪除');
+}
+
+// ============================================================
+// Export
+// ============================================================
+
+function getActiveSorted() {
+  return comments.filter(c => !c.resolved && !c.outdated).sort((a, b) => {
+    const na = parseInt((a.sectionId || '').replace(/\D/g, '')) || 999;
+    const nb = parseInt((b.sectionId || '').replace(/\D/g, '')) || 999;
+    if (na !== nb) return na - nb;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+}
+
+function buildJsonPayload(active) {
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+  return {
+    version: 1,
+    doc: DOC_NAME,
+    exported_at: new Date().toISOString(),
+    comment_count: active.length,
+    resolved_excluded: resolvedNum,
+    outdated_excluded: outdatedNum,
+    comments: active
+  };
+}
+
+function buildPromptMarkdown(active) {
+  const resolvedNum = comments.filter(c => c.resolved).length;
+  const outdatedNum = comments.filter(c => c.outdated && !c.resolved).length;
+  let md = `# Comments on ${DOC_NAME}\n\n`;
+  md += `Exported: ${new Date().toISOString()}\n`;
+  md += `Total: ${active.length} comment${active.length > 1 ? 's' : ''} (active only)\n`;
+  if (resolvedNum > 0) md += `Resolved (excluded): ${resolvedNum}\n`;
+  if (outdatedNum > 0) md += `Outdated / orphaned (excluded): ${outdatedNum}\n`;
+  md += `\n---\n\n`;
+  active.forEach((c, i) => {
+    md += `## ${i + 1}. ${c.sectionLabel || c.sectionId}\n\n`;
+    md += `**Selected text** (from ${c.sectionId}):\n\n> ${c.selectedText.split('\n').join('\n> ')}\n\n`;
+    md += `**My comment**:\n${c.comment}\n\n`;
+    md += `---\n\n`;
+  });
+  return md;
+}
+
+function downloadBlob(content, mime, filename) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Copy JSON to clipboard (primary daily action — no file download)
+document.getElementById('btn-copy-json').addEventListener('click', () => {
+  const active = getActiveSorted();
+  if (active.length === 0) {
+    showToast(comments.length > 0 ? '全部 resolved，沒有 active comment' : '沒有 comment');
+    return;
+  }
+  const json = JSON.stringify(buildJsonPayload(active), null, 2);
+  navigator.clipboard?.writeText(json).then(() => {
+    const note = comments.length - active.length > 0 ? `（排除 ${comments.length - active.length} 個 resolved）` : '';
+    showToast(`✓ Copied ${active.length} comment 到剪貼簿 ${note}`);
+  }).catch(() => showToast('複製失敗，瀏覽器拒絕剪貼簿存取'));
+});
+
+// Export dropdown menu
+const exportMenuBtn = document.getElementById('btn-export-menu');
+const exportDropdown = document.getElementById('export-dropdown');
+exportMenuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  exportDropdown.classList.toggle('show');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.export-menu-wrap')) exportDropdown.classList.remove('show');
+});
+exportDropdown.querySelectorAll('.export-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const fmt = opt.dataset.format;
+    exportDropdown.classList.remove('show');
+    const active = getActiveSorted();
+    if (active.length === 0) {
+      showToast(comments.length > 0 ? '全部 resolved，沒有 active comment' : '沒有 comment');
+      return;
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    if (fmt === 'json') {
+      const json = JSON.stringify(buildJsonPayload(active), null, 2);
+      downloadBlob(json, 'application/json', `design-comments-${date}.json`);
+      showToast(`↓ Downloaded design-comments-${date}.json`);
+    } else if (fmt === 'prompt') {
+      const md = buildPromptMarkdown(active);
+      downloadBlob(md, 'text/markdown', `design-comments-prompt-${date}.md`);
+      showToast(`↓ Downloaded design-comments-prompt-${date}.md`);
+    }
+  });
+});
+
+document.getElementById('btn-clear-all').addEventListener('click', () => {
+  if (comments.length === 0) return;
+  if (!confirm(`刪除全部 ${comments.length} 個 comment？`)) return;
+  comments.forEach(c => unwrapMark(c.id));
+  comments = [];
+  saveComments();
+  renderCommentList();
+  showToast('已清空');
+});
+
+document.getElementById('btn-resolve-all').addEventListener('click', () => {
+  const active = comments.filter(c => !c.resolved && !c.outdated);
+  if (active.length === 0) {
+    showToast(comments.length > 0 ? '沒有 active comment（outdated 不算）' : '沒有 comment');
+    return;
+  }
+  if (!confirm(`把全部 ${active.length} 個 active comment 標為 resolved？（outdated 不會被標）`)) return;
+  const now = new Date().toISOString();
+  active.forEach(c => {
+    c.resolved = true;
+    c.resolvedAt = now;
+    updateMarkResolvedState(c.id, true);
+  });
+  saveComments();
+  renderCommentList();
+  showToast(`✓ 已標 ${active.length} 個 comment 為 resolved`);
+});
+
+// ============================================================
+// Mobile FAB
+// ============================================================
+
+document.getElementById('comment-fab').addEventListener('click', () => {
+  document.getElementById('comment-panel').classList.toggle('open');
+});
+
+// ============================================================
+// Mermaid lightbox (click to zoom + pan)
+// ============================================================
+
+let currentMmPanZoom = null;
+const mmBackdrop = document.getElementById('mm-modal-backdrop');
+const mmSvgWrap = document.getElementById('mm-modal-svg-wrap');
+const mmTitle = document.getElementById('mm-modal-title');
+
+function findDiagramLabel(mermaidEl) {
+  let n = mermaidEl.previousElementSibling;
+  while (n) {
+    if (n.tagName === 'H3' || n.tagName === 'H4' || n.tagName === 'H2') return n.textContent.trim();
+    n = n.previousElementSibling;
+  }
+  const sec = mermaidEl.closest('section');
+  if (sec) {
+    const h = sec.querySelector('h2');
+    if (h) return h.textContent.trim();
+  }
+  return 'Mermaid diagram';
+}
+
+function openMermaidLightbox(mermaidEl) {
+  const origSvg = mermaidEl.querySelector('svg');
+  if (!origSvg) return;
+  const cloned = origSvg.cloneNode(true);
+  cloned.removeAttribute('style');
+  cloned.removeAttribute('width');
+  cloned.removeAttribute('height');
+  cloned.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  mmSvgWrap.innerHTML = '';
+  mmSvgWrap.appendChild(cloned);
+  mmTitle.textContent = findDiagramLabel(mermaidEl);
+  mmBackdrop.classList.add('show');
+
+  setTimeout(() => {
+    try {
+      currentMmPanZoom = svgPanZoom(cloned, {
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        fit: true,
+        center: true,
+        minZoom: 0.3,
+        maxZoom: 12,
+        zoomScaleSensitivity: 0.4,
+        dblClickZoomEnabled: true
+      });
+    } catch (e) {
+      console.warn('pan-zoom init failed', e);
+    }
+  }, 40);
+}
+
+function closeMermaidLightbox() {
+  mmBackdrop.classList.remove('show');
+  if (currentMmPanZoom) {
+    try { currentMmPanZoom.destroy(); } catch (e) {}
+    currentMmPanZoom = null;
+  }
+  mmSvgWrap.innerHTML = '';
+}
+
+function bindMermaidLightbox() {
+  document.querySelectorAll('.mermaid').forEach(el => {
+    if (el.dataset.lbBound) return;
+    el.dataset.lbBound = '1';
+    el.addEventListener('click', (e) => {
+      const sel = window.getSelection();
+      if (sel && sel.toString().trim().length > 0 && el.contains(sel.anchorNode)) return;
+      openMermaidLightbox(el);
+    });
+  });
+}
+
+document.getElementById('mm-close').addEventListener('click', closeMermaidLightbox);
+document.getElementById('mm-zoom-in').addEventListener('click', () => currentMmPanZoom?.zoomIn());
+document.getElementById('mm-zoom-out').addEventListener('click', () => currentMmPanZoom?.zoomOut());
+document.getElementById('mm-reset').addEventListener('click', () => {
+  if (!currentMmPanZoom) return;
+  currentMmPanZoom.resetZoom();
+  currentMmPanZoom.center();
+  currentMmPanZoom.fit();
+});
+mmBackdrop.addEventListener('click', (e) => { if (e.target === mmBackdrop) closeMermaidLightbox(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && mmBackdrop.classList.contains('show')) closeMermaidLightbox();
+});
+
+// ============================================================
+// Sidebar toggle (floating menu button → hover overlay / click pin)
+// ============================================================
+
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const sidebarEl = document.getElementById('sidebar');
+let sidebarPinned = false;
+let sidebarHoverTimer = null;
+
+function setSidebarPinned(pinned) {
+  sidebarPinned = pinned;
+  document.body.classList.toggle('sidebar-pinned', pinned);
+  if (pinned) {
+    sidebarEl.classList.add('show', 'pinned-mode');
+    sidebarEl.classList.remove('hover-mode');
+  } else {
+    sidebarEl.classList.remove('show', 'pinned-mode', 'hover-mode');
+  }
+}
+
+function showSidebarHover() {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+  sidebarEl.classList.add('show', 'hover-mode');
+}
+
+function hideSidebarHover() {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+  sidebarHoverTimer = setTimeout(() => {
+    if (!sidebarPinned) {
+      sidebarEl.classList.remove('show', 'hover-mode');
+    }
+  }, 180);
+}
+
+sidebarToggle.addEventListener('click', () => setSidebarPinned(!sidebarPinned));
+sidebarToggle.addEventListener('mouseenter', showSidebarHover);
+sidebarToggle.addEventListener('mouseleave', hideSidebarHover);
+sidebarEl.addEventListener('mouseenter', () => {
+  if (sidebarPinned) return;
+  clearTimeout(sidebarHoverTimer);
+});
+sidebarEl.addEventListener('mouseleave', hideSidebarHover);
+// Click on a TOC link while in hover mode → also close
+sidebarEl.querySelectorAll('.toc a').forEach(a => {
+  a.addEventListener('click', () => {
+    if (!sidebarPinned) {
+      sidebarEl.classList.remove('show', 'hover-mode');
+    }
+  });
+});
+
+// ============================================================
+// Learning Panel (🎓 Learning Notes)
+// ============================================================
+// Optional: only wired up when the source doc had a `## Learning Notes` section and the
+// panel markup was emitted. Fully feature-detected — when the markup is absent (still an
+// HTML comment) getElementById returns null and this block no-ops, so docs without
+// Learning Notes render and behave exactly as before. Runs top-level (outside init) so it
+// works in annotations-off mode too. Mutually exclusive with the TOC sidebar (both live on
+// the left edge) so the two panels can never overlap.
+(function () {
+  const learnToggle = document.getElementById('learning-toggle');
+  const learnEl = document.getElementById('learning-panel');
+  if (!learnToggle || !learnEl) return;
+
+  const learnClose = document.getElementById('learning-close');
+  const LEARN_OPEN_KEY = STORAGE_KEY + '-learn-open';
+
+  function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function isLearningOpen() { return document.body.classList.contains('learning-open'); }
+
+  function setLearningOpen(open) {
+    document.body.classList.toggle('learning-open', open);
+    learnToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    safeSet(LEARN_OPEN_KEY, open ? '1' : '0');
+    if (open) {
+      // Close the TOC so the two left-edge panels never overlap.
+      try { setSidebarPinned(false); } catch (e) {}
+      try { sidebarEl.classList.remove('show', 'hover-mode', 'pinned-mode'); } catch (e) {}
+    }
+  }
+
+  learnToggle.addEventListener('click', () => setLearningOpen(!isLearningOpen()));
+  if (learnClose) learnClose.addEventListener('click', () => setLearningOpen(false));
+
+  // If the TOC is invoked (hover or click), yield to it.
+  try {
+    sidebarToggle.addEventListener('mouseenter', () => { if (isLearningOpen()) setLearningOpen(false); });
+    sidebarToggle.addEventListener('click', () => { if (isLearningOpen()) setLearningOpen(false); });
+    sidebarEl.addEventListener('mouseenter', () => { if (isLearningOpen()) setLearningOpen(false); });
+  } catch (e) {}
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isLearningOpen()) setLearningOpen(false);
+  });
+
+  // Restore last state (default closed).
+  if (safeGet(LEARN_OPEN_KEY) === '1') setLearningOpen(true);
+})();
+
+// ============================================================
+// File Sync (File System Access API + Import JSON)
+// ============================================================
+// Persistence options, in order of preference when available:
+//   1. File System Access API — auto-sync to <doc>.comments.json (Chrome/Edge via localhost)
+//   2. Import JSON — manual file picker (all browsers, cross-browser migration)
+//   3. localStorage — always on as cache (existing behavior)
+
+const FILE_SYNC_DB = 'htmlify-file-sync-v1';
+const FILE_SYNC_STORE = 'handles';
+const FILE_SYNC_KEY = STORAGE_KEY;  // per-doc handle key (one shared DB, isolated per document)
+
+function openSyncDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(FILE_SYNC_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(FILE_SYNC_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function storeFileHandle(handle) {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readwrite');
+    tx.objectStore(FILE_SYNC_STORE).put(handle, FILE_SYNC_KEY);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function retrieveFileHandle() {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readonly');
+    const req = tx.objectStore(FILE_SYNC_STORE).get(FILE_SYNC_KEY);
+    req.onsuccess = () => res(req.result || null);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function clearFileHandle() {
+  const db = await openSyncDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(FILE_SYNC_STORE, 'readwrite');
+    tx.objectStore(FILE_SYNC_STORE).delete(FILE_SYNC_KEY);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+const fileSync = {
+  handle: null,
+  enabled: false,
+  filename: null,
+  saveTimer: null,
+
+  isAvailable() { return typeof window.showSaveFilePicker === 'function'; },
+
+  async restore() {
+    if (!this.isAvailable()) return false;
+    try {
+      const h = await retrieveFileHandle();
+      if (!h) return false;
+      this.handle = h;
+      this.filename = h.name;
+      const perm = await h.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') { this.enabled = true; return true; }
+      this.enabled = false;
+      return false;
+    } catch (e) { console.warn('[file-sync] restore', e); return false; }
+  },
+
+  async ensurePermission() {
+    if (!this.handle) return false;
+    let p = await this.handle.queryPermission({ mode: 'readwrite' });
+    if (p !== 'granted') p = await this.handle.requestPermission({ mode: 'readwrite' });
+    this.enabled = (p === 'granted');
+    return this.enabled;
+  },
+
+  async link() {
+    if (!this.isAvailable()) {
+      showToast('此 browser 不支援 File System Access API（Chrome / Edge only）— 改用 Import JSON');
+      return false;
+    }
+    try {
+      const h = await window.showSaveFilePicker({
+        suggestedName: sidecarName(),
+        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      this.handle = h;
+      this.filename = h.name;
+      this.enabled = true;
+      await storeFileHandle(h);
+
+      // If the file already had content AND we have diverging unsaved local edits, ask which wins.
+      // When not dirty, in-memory already matches the file (we fetched it) — just save, no prompt.
+      try {
+        const file = await h.getFile();
+        const text = await file.text();
+        if (text.trim() && isDirty()) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed.comments) && parsed.comments.length > 0) {
+            const useFile = confirm(
+              `檔案內已有 ${parsed.comments.length} 個 comment。\n\n` +
+              `[OK] 用檔案內容覆蓋目前 ${comments.length} 個\n` +
+              `[Cancel] 用目前 ${comments.length} 個覆蓋檔案`
+            );
+            if (useFile) {
+              comments = parsed.comments;
+              saveCommentsLocal();
+              document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+              comments.forEach(c => {
+                const ok = restoreComment(c);
+                c.outdated = !ok && !c.resolved;
+                if (ok && c.resolved) updateMarkResolvedState(c.id, true);
+              });
+              renderCommentList();
+            }
+          }
+        }
+      } catch (e) { /* new empty file, OK */ }
+
+      await this.save();
+      updateSyncStatus();
+      showToast(`📁 已連結到 ${this.filename}，後續自動同步`);
+      return true;
+    } catch (e) {
+      if (e.name !== 'AbortError') { console.warn('[file-sync] link', e); showToast('連結檔案失敗'); }
+      return false;
+    }
+  },
+
+  async unlink() {
+    this.handle = null;
+    this.filename = null;
+    this.enabled = false;
+    await clearFileHandle();
+    updateSyncStatus();
+    showToast('已解除檔案連結（改回 localStorage only）');
+  },
+
+  async save() {
+    if (!this.handle || !this.enabled) return false;
+    try {
+      const data = {
+        version: 1,
+        doc: DOC_NAME,
+        saved_at: new Date().toISOString(),
+        comment_count: comments.length,
+        comments
+      };
+      const writable = await this.handle.createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+      clearDirty();
+      return true;
+    } catch (e) { console.warn('[file-sync] save', e); return false; }
+  },
+
+  scheduleSave() {
+    if (!this.enabled) return;
+    clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => this.save(), 250);
+  },
+
+  async loadIfLinked() {
+    if (!this.handle || !this.enabled) return null;
+    try {
+      const file = await this.handle.getFile();
+      const text = await file.text();
+      if (!text.trim()) return { comments: [] };
+      return JSON.parse(text);
+    } catch (e) { console.warn('[file-sync] load', e); return null; }
+  }
+};
+
+function updateSyncStatus() {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const file = sidecarName();
+  const src = loadComments._source;
+  const dirty = isDirty();
+
+  if (fileSync.enabled) {
+    el.className = 'sync-status synced';
+    el.innerHTML = `<span>📁</span> Synced · <code>${escapeHtml(fileSync.filename)}</code> · 編輯自動寫入 · <button class="btn-link" data-action="unlink">unlink</button>`;
+  } else if (fileSync.handle && !fileSync.enabled) {
+    el.className = 'sync-status pending';
+    el.innerHTML = `<span>⚠</span> 已記得檔案 (<code>${escapeHtml(fileSync.filename)}</code>) · <button class="btn-link" data-action="resume">grant permission</button> · <button class="btn-link" data-action="unlink">unlink</button>`;
+  } else if (dirty) {
+    el.className = 'sync-status pending';
+    const writeBtn = fileSync.isAvailable()
+      ? `<button class="btn-link" data-action="link">save to ${escapeHtml(file)}…</button>`
+      : `<button class="btn-link" data-action="export">download ${escapeHtml(file)}…</button>`;
+    el.innerHTML = `<span>💾</span> 有未存入 <code>${escapeHtml(file)}</code> 的本機編輯 · ${writeBtn} · <button class="btn-link" data-action="import">import…</button>`;
+  } else if (src === 'fetch') {
+    el.className = 'sync-status readonly';
+    const editBtn = fileSync.isAvailable()
+      ? ` · <button class="btn-link" data-action="link">enable editing…</button>`
+      : '';
+    el.innerHTML = `<span>📄</span> 自動載入自 <code>${escapeHtml(file)}</code>（read-only）${editBtn} · <button class="btn-link" data-action="import">import…</button>`;
+  } else if (fileSync.isAvailable()) {
+    el.className = 'sync-status local';
+    el.innerHTML = `<span>💾</span> Local only · <button class="btn-link" data-action="link">link to ${escapeHtml(file)}…</button> · <button class="btn-link" data-action="import">import…</button>`;
+  } else {
+    el.className = 'sync-status local';
+    el.innerHTML = `<span>💾</span> Local only · 此 browser 不支援 File API · <button class="btn-link" data-action="import">import JSON…</button>`;
+  }
+  // Wire dynamic buttons
+  el.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const a = btn.dataset.action;
+      if (a === 'link') await fileSync.link();
+      else if (a === 'unlink') await fileSync.unlink();
+      else if (a === 'export') {
+        const data = { version: 1, doc: DOC_NAME, saved_at: new Date().toISOString(), comment_count: comments.length, comments };
+        downloadBlob(JSON.stringify(data, null, 2), 'application/json', file);
+        showToast(`↓ 已下載 ${file} — 放到 HTML 同層再 commit`);
+      }
+      else if (a === 'resume') {
+        const ok = await fileSync.ensurePermission();
+        if (ok) {
+          const remote = await fileSync.loadIfLinked();
+          if (remote && Array.isArray(remote.comments)) {
+            comments = remote.comments;
+            clearDirty();
+            saveCommentsLocal();
+            document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+            comments.forEach(c => {
+              const ok2 = restoreComment(c);
+              c.outdated = !ok2 && !c.resolved;
+              if (ok2 && c.resolved) updateMarkResolvedState(c.id, true);
+            });
+            renderCommentList();
+          }
+          updateSyncStatus();
+          showToast('✓ 檔案同步已重新啟用');
+        }
+      }
+      else if (a === 'import') importJsonFromFile();
+    });
+  });
+}
+
+function importJsonFromFile() {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) { resolve(null); return; }
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data.comments)) { showToast('JSON 格式不對（缺少 comments array）'); resolve(null); return; }
+        let take;
+        if (comments.length === 0) {
+          take = 'replace';
+        } else {
+          const ans = confirm(
+            `目前已有 ${comments.length} 個 comment，檔案內有 ${data.comments.length} 個。\n\n` +
+            `[OK] 取代（用檔案覆蓋目前）\n` +
+            `[Cancel] 合併（依 id 去重，重複的保留現有）`
+          );
+          take = ans ? 'replace' : 'merge';
+        }
+        if (take === 'replace') {
+          comments = data.comments;
+        } else {
+          const existing = new Set(comments.map(c => c.id));
+          data.comments.forEach(c => { if (!existing.has(c.id)) comments.push(c); });
+        }
+        saveComments();
+        document.querySelectorAll('mark.annot').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+        comments.forEach(c => {
+          const ok = restoreComment(c);
+          c.outdated = !ok && !c.resolved;
+          if (ok && c.resolved) updateMarkResolvedState(c.id, true);
+        });
+        renderCommentList();
+        showToast(`✓ ${take === 'replace' ? '已取代' : '已合併'}：現在 ${comments.length} 個 comment`);
+        resolve(data);
+      } catch (err) { console.warn('import failed', err); showToast('JSON 解析失敗'); resolve(null); }
+    };
+    input.click();
+  });
+}
+
+// ============================================================
+// Comment panel resize (drag the left edge; width persists)
+// ============================================================
+const COMMENT_WIDTH_KEY = STORAGE_KEY + '-width';
+const COMMENT_W_MIN = 240;
+const COMMENT_W_MAX = 760;
+
+// Keep the fixed handle aligned with the panel's actual left edge (the layout is
+// centered with a max-width, so the edge isn't simply viewport-width − panel-width).
+function positionResizeHandle() {
+  const handle = document.getElementById('comment-resize-handle');
+  const panel = document.getElementById('comment-panel');
+  if (!handle || !panel) return;
+  if (getComputedStyle(handle).display === 'none') return;  // mobile
+  const r = panel.getBoundingClientRect();
+  if (r.width === 0) return;  // panel hidden (annotations-off)
+  handle.style.left = (r.left - 4) + 'px';
+}
+
+function applyCommentWidth(px) {
+  const w = Math.round(Math.min(COMMENT_W_MAX, Math.max(COMMENT_W_MIN, px)));
+  document.documentElement.style.setProperty('--comment-w', w + 'px');
+  positionResizeHandle();
+  return w;
+}
+
+function applyStoredCommentWidth() {
+  const raw = localStorage.getItem(COMMENT_WIDTH_KEY);
+  if (raw) {
+    const n = parseInt(raw, 10);
+    if (!isNaN(n)) applyCommentWidth(n);
+  }
+}
+
+function bindCommentResize() {
+  const handle = document.getElementById('comment-resize-handle');
+  if (!handle || handle.dataset.bound) return;
+  handle.dataset.bound = '1';
+
+  let startX = 0, startW = 0, dragging = false;
+
+  function currentWidth() {
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--comment-w');
+    const n = parseInt(v, 10);
+    return isNaN(n) ? 320 : n;
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    applyCommentWidth(startW + (startX - x));  // drag left → panel grows (right-anchored)
+    e.preventDefault();
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('comment-resizing');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    localStorage.setItem(COMMENT_WIDTH_KEY, String(currentWidth()));
+  }
+  function onDown(e) {
+    dragging = true;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startW = currentWidth();
+    document.body.classList.add('comment-resizing');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    e.preventDefault();
+  }
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
+  handle.addEventListener('dblclick', () => {  // double-click resets to default
+    applyCommentWidth(320);
+    localStorage.setItem(COMMENT_WIDTH_KEY, '320');
+  });
+  window.addEventListener('resize', positionResizeHandle);
+  positionResizeHandle();
+}
+
+// Apply persisted width + bind drag immediately (independent of comment loading)
+applyStoredCommentWidth();
+bindCommentResize();
+
+// ============================================================
+// Init (wait for mermaid + hljs to finish rendering)
+// ============================================================
+
+async function init() {
+  bindMermaidLightbox();
+  // Annotation system is opt-out: skip wiring it up when body.annotations-off is set.
+  if (!document.body.classList.contains('annotations-off')) {
+    await loadComments();
+    updateSyncStatus();
+  }
+  positionResizeHandle();
+}
+// Wait a bit for mermaid SVG rendering to settle
+setTimeout(init, 1800);
+</script>
+
+</body>
+</html>

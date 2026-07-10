@@ -590,7 +590,7 @@ class TestRunScenario:
     @patch("backend.evals.eval_runner._run_local_eval")
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
-    def test_run_scenario_diagnostic_platform_uses_eval_once_and_writes_manifest_contract_csv(
+    def test_run_scenario_diagnostic_platform_uses_eval_once_and_writes_result_csv(
         self,
         mock_resolve_task: MagicMock,
         mock_resolve_scorers: MagicMock,
@@ -631,7 +631,15 @@ class TestRunScenario:
 
         def fake_eval(project: str, **kwargs: Any) -> SimpleNamespace:
             eval_calls.append({"project": project, **kwargs})
-            return SimpleNamespace(results=[], summary=SimpleNamespace())
+            results = [
+                SimpleNamespace(
+                    input=case.input,
+                    output={"response": "ok"},
+                    scores={"diagnostic_execution_health": 1.0},
+                )
+                for case in kwargs["data"]
+            ]
+            return SimpleNamespace(results=results, summary=SimpleNamespace())
 
         braintrust_module = ModuleType("braintrust")
         setattr(braintrust_module, "Eval", fake_eval)
@@ -671,31 +679,33 @@ class TestRunScenario:
         assert eval_call["metadata"]["selected_row_count"] == 1
         assert eval_call["metadata"]["agent_version"] == "v1_override"
         assert eval_call["metadata"]["git_commit"] == "12f85db"
+        assert "slice_hash" not in eval_call["metadata"]
 
         eval_cases = eval_call["data"]
         assert len(eval_cases) == 1
         assert eval_cases[0].id == "2"
-        assert eval_cases[0].metadata["row_id"] == "2"
-        assert eval_cases[0].metadata["run_label"] == "slice-run"
-        assert eval_cases[0].metadata["slice_label"] == "focused-boundary"
+        braintrust_metadata = eval_cases[0].metadata
+        assert braintrust_metadata["row_id"] == "2"
+        assert braintrust_metadata["run_label"] == "slice-run"
+        assert braintrust_metadata["slice_label"] == "focused-boundary"
+        # Identity separation: Braintrust metadata carries observed identity +
+        # category/capability_band, never the reference_* projection.
+        assert braintrust_metadata["category"] == "regulatory_or_legal_risk"
+        assert braintrust_metadata["capability_band"] == "boundary"
+        assert not any(
+            key.startswith("reference_") for key in braintrust_metadata
+        )
 
         with result_path.open("r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             rows = list(reader)
 
         assert reader.fieldnames is not None
-        assert "output.response" not in reader.fieldnames
+        assert "output.response" in reader.fieldnames
+        assert "score_diagnostic_execution_health" in reader.fieldnames
         assert len(rows) == 1
-        assert rows[0]["row_id"] == "2"
-        assert rows[0]["session_id"] == "near_v1_diagnostic::slice-run::2"
-        assert rows[0]["experiment_name"] == eval_call["experiment_name"]
-        assert rows[0]["run_label"] == "slice-run"
-        assert rows[0]["dataset_version"] == "2026-04-24"
-        assert rows[0]["slice_label"] == "focused-boundary"
-        assert rows[0]["slice_type"] == "row_ids"
-        assert rows[0]["selected_row_ids"] == '["2"]'
-        assert rows[0]["git_commit"] == "12f85db"
-        assert rows[0]["braintrust_project"] == "finlab-x"
+        assert rows[0]["id"] == "2"
+        assert rows[0]["output.response"] == "ok"
 
     def _setup_diagnostic_scenario(
         self, tmp_path: Path, scenario_name: str = "near_v1_diagnostic"
@@ -798,99 +808,24 @@ class TestRunScenario:
         assert trace_metadata["slice_label"] == "rows-2"
         assert trace_metadata["slice_type"] == "row_ids"
         assert trace_metadata["slice_selector"] == "2"
+        assert trace_metadata["reference_capability_band"] == "boundary"
+        assert trace_metadata["reference_expected_behavior"] == "may_pass_with_tuning"
+        assert (
+            trace_metadata["reference_primary_failure_mechanism"]
+            == "tool_routing_error"
+        )
+        assert (
+            trace_metadata["reference_secondary_failure_mechanism"]
+            == "evidence_synthesis_limit"
+        )
         assert trace_metadata["reference_best_source"] == "mixed"
+        assert trace_metadata["reference_likely_tuning_lever"] == "max_tool_calls"
         assert trace_metadata["reference_pass_signals"] == ["b"]
         assert trace_metadata["experiment_name"].startswith("near_v1_diagnostic_")
-
-    @patch("backend.evals.eval_runner.resolve_git_commit", return_value="abc1234")
-    @patch("backend.evals.eval_runner.write_diagnostic_run_manifest")
-    @patch("backend.evals.eval_runner._init_platform_tracing")
-    @patch("backend.evals.eval_runner._run_local_eval")
-    @patch("backend.evals.eval_runner.resolve_scorers")
-    @patch("backend.evals.eval_runner.resolve_function")
-    def test_run_scenario_diagnostic_platform_mode_uses_eval_once_and_writes_manifest(
-        self,
-        mock_resolve_task: MagicMock,
-        mock_resolve_scorers: MagicMock,
-        mock_run_local_eval: MagicMock,
-        mock_init_tracing: MagicMock,
-        mock_write_manifest: MagicMock,
-        mock_git_commit: MagicMock,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        scenarios_dir, _ = self._setup_diagnostic_scenario(tmp_path)
-        mock_resolve_task.return_value = MagicMock(return_value={"response": "ok"})
-        fake_scorer = MagicMock(return_value=1.0)
-        fake_scorer.__name__ = "diagnostic_execution_health"
-        mock_resolve_scorers.return_value = [fake_scorer]
-        mock_write_manifest.return_value = tmp_path / "results" / "manifest.csv"
-
-        eval_calls: list[dict[str, Any]] = []
-        eval_cases: list[dict[str, Any]] = []
-        flushed: list[bool] = []
-
-        class FakeEvalCase:
-            def __init__(self, **kwargs: Any) -> None:
-                eval_cases.append(kwargs)
-
-        fake_braintrust = SimpleNamespace(
-            Eval=lambda *args, **kwargs: eval_calls.append(
-                {"args": args, "kwargs": kwargs}
-            ),
-            EvalCase=FakeEvalCase,
-            flush=lambda: flushed.append(True),
-        )
-
-        monkeypatch.setitem(sys.modules, "braintrust", fake_braintrust)
-        monkeypatch.setenv("BRAINTRUST_API_KEY", "test-key")
-
-        with patch(
-            "backend.evals.eval_runner.load_braintrust_config",
-            return_value=SimpleNamespace(
-                project="finlab-x",
-                api_key_env="BRAINTRUST_API_KEY",
-                local_mode=False,
-            ),
-        ):
-            from backend.evals.eval_runner import run_scenario
-
-            result_path = run_scenario(
-                "near_v1_diagnostic",
-                local_only=False,
-                output_dir=tmp_path / "results",
-                scenarios_dir=scenarios_dir,
-                run_label="baseline",
-                run_group="near-v1",
-                row_ids="2",
-            )
-
-        assert result_path == tmp_path / "results" / "manifest.csv"
-        mock_run_local_eval.assert_not_called()
-        assert len(eval_calls) == 1
-        assert len(eval_cases) == 1
-        assert eval_cases[0]["id"] == "2"
-        assert eval_cases[0]["metadata"]["row_id"] == "2"
-        assert (
-            eval_calls[0]["kwargs"]["metadata"]["dataset_name"] == "near_v1_diagnostic"
-        )
-        assert eval_calls[0]["kwargs"]["metadata"]["selected_row_count"] == 1
-        manifest_rows = mock_write_manifest.call_args.kwargs["manifest_rows"]
-        assert manifest_rows == [
-            {
-                "row_id": "2",
-                "session_id": "near_v1_diagnostic::baseline::2",
-                "experiment_name": eval_calls[0]["kwargs"]["experiment_name"],
-                "run_label": "baseline",
-                "dataset_version": "2026-04-24",
-                "slice_label": "rows-2",
-                "slice_type": "row_ids",
-                "selected_row_ids": ["2"],
-                "git_commit": "abc1234",
-                "braintrust_project": "finlab-x",
-            }
-        ]
-        assert flushed == [True]
+        # Identity separation: raw dataset columns are not projected into the
+        # Langfuse trace metadata (only reference_* prefixed copies).
+        assert "expected_near_v1_behavior" not in trace_metadata
+        assert "category" not in trace_metadata
 
 
 # ---------------------------------------------------------------------------

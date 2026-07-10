@@ -17,6 +17,8 @@ import logging
 import os
 import re
 import sys
+from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -34,11 +36,7 @@ from backend.evals.diagnostic.dataset_selector import (
     parse_diagnostic_slice_args,
     select_diagnostic_slice,
 )
-from backend.evals.diagnostic.metadata_projector import project_diagnostic_metadata
-from backend.evals.diagnostic.models import resolve_git_commit
-from backend.evals.diagnostic.run_manifest_writer import (
-    write_run_manifest_csv as write_diagnostic_run_manifest,
-)
+from backend.evals.diagnostic.models import DiagnosticSliceIdentity, resolve_git_commit
 from backend.evals.eval_spec_schema import (
     load_braintrust_config,
     load_scenario_config,
@@ -352,8 +350,6 @@ def run_scenario(
     agent_version: str | None = None,
     slice_label: str | None = None,
     row_ids: str | None = None,
-    field_filter: str | None = None,
-    manifest: str | None = None,
 ) -> Path:
     """Execute a single evaluation scenario.
 
@@ -423,8 +419,6 @@ def run_scenario(
             agent_version,
             slice_label,
             row_ids,
-            field_filter,
-            manifest,
         ]
 
         if config.diagnostic is None:
@@ -501,8 +495,6 @@ def run_scenario(
 
         slice_args = parse_diagnostic_slice_args(
             row_ids=row_ids,
-            field_filter=field_filter,
-            manifest=manifest,
             slice_label=slice_label,
         )
         selected_rows, slice_identity = select_diagnostic_slice(
@@ -569,7 +561,7 @@ def run_scenario(
                     for row in diagnostic_data
                 ]
 
-                Eval(
+                eval_result = Eval(
                     bt_config.project,
                     data=eval_cases,
                     task=wrapped_task,
@@ -583,7 +575,6 @@ def run_scenario(
                         "slice_label": slice_identity.slice_label,
                         "slice_type": slice_identity.slice_type,
                         "selected_row_count": len(selected_rows),
-                        "slice_hash": slice_identity.slice_hash,
                         "agent_version": effective_agent_version,
                         "git_commit": git_commit,
                     },
@@ -594,27 +585,13 @@ def run_scenario(
                 import braintrust
 
                 braintrust.flush()
-                manifest_rows = [
-                    {
-                        "row_id": row["metadata"]["row_id"],
-                        "session_id": row["input"]["session_id"],
-                        "experiment_name": experiment_name,
-                        "run_label": effective_run_label,
-                        "dataset_version": diagnostic_config.dataset_version,
-                        "slice_label": slice_identity.slice_label,
-                        "slice_type": slice_identity.slice_type,
-                        "selected_row_ids": list(slice_identity.selected_row_ids),
-                        "git_commit": git_commit,
-                        "braintrust_project": bt_config.project,
-                    }
-                    for row in diagnostic_data
-                ]
-                return write_diagnostic_run_manifest(
-                    scenario_name=scenario_name,
-                    output_dir=output_dir,
+                return write_result_csv(
+                    eval_result,
+                    scenario_name,
+                    scorer_names,
+                    output_dir,
                     original_columns=original_columns,
                     original_rows=selected_rows,
-                    manifest_rows=manifest_rows,
                 )
             except Exception:
                 logger.error("Braintrust upload failed", exc_info=True)
@@ -623,6 +600,108 @@ def run_scenario(
         otel_logger.removeFilter(otel_filter)
 
     raise AssertionError("run_scenario did not return a result path")
+
+
+@dataclass(frozen=True)
+class _DiagnosticMetadataProjection:
+    """Projected metadata shared across execution and tracing systems."""
+
+    session_id: str
+    braintrust_metadata: dict[str, object]
+    langfuse_metadata: dict[str, object]
+
+
+def _build_diagnostic_session_id(
+    *, dataset_name: str, run_label: str, row_id: str
+) -> str:
+    """Build a deterministic session id for one diagnostic row execution."""
+    for field_name, value in (
+        ("dataset_name", dataset_name),
+        ("run_label", run_label),
+        ("row_id", row_id),
+    ):
+        if "::" in value:
+            raise ValueError(f"{field_name} must not contain '::'")
+    return f"{dataset_name}::{run_label}::{row_id}"
+
+
+def _project_diagnostic_metadata(
+    *,
+    row: dict[str, object],
+    dataset_name: str,
+    dataset_version: str,
+    run_label: str,
+    run_group: str,
+    agent_version: str,
+    experiment_name: str,
+    slice_identity: DiagnosticSliceIdentity,
+) -> _DiagnosticMetadataProjection:
+    """Project one canonical metadata bundle for diagnostic execution."""
+    row_id = _require_diagnostic_str(row, "id")
+    capability_band = _require_diagnostic_str(row, "capability_band")
+
+    identity_metadata: dict[str, object] = {
+        "row_id": row_id,
+        "dataset_name": dataset_name,
+        "dataset_version": dataset_version,
+        "run_label": run_label,
+        "run_group": run_group,
+        "agent_version": agent_version,
+        "slice_label": slice_identity.slice_label,
+        "slice_type": slice_identity.slice_type,
+    }
+
+    braintrust_metadata = {
+        **identity_metadata,
+        "category": _require_diagnostic_str(row, "category"),
+        "capability_band": capability_band,
+    }
+    langfuse_metadata = {
+        **identity_metadata,
+        "experiment_name": experiment_name,
+        "slice_selector": slice_identity.slice_selector,
+        "reference_capability_band": capability_band,
+        "reference_expected_behavior": _require_diagnostic_str(
+            row, "expected_near_v1_behavior"
+        ),
+        "reference_primary_failure_mechanism": _require_diagnostic_str(
+            row, "primary_failure_mechanism"
+        ),
+        "reference_secondary_failure_mechanism": _optional_diagnostic_str(
+            row, "secondary_failure_mechanism"
+        ),
+        "reference_best_source": _require_diagnostic_str(row, "expected_best_source"),
+        "reference_likely_tuning_lever": _require_diagnostic_str(
+            row, "likely_tuning_lever"
+        ),
+        "reference_pass_signals": deepcopy(row["draft_pass_signals"]),
+    }
+
+    return _DiagnosticMetadataProjection(
+        session_id=_build_diagnostic_session_id(
+            dataset_name=dataset_name,
+            run_label=run_label,
+            row_id=row_id,
+        ),
+        braintrust_metadata=braintrust_metadata,
+        langfuse_metadata=langfuse_metadata,
+    )
+
+
+def _require_diagnostic_str(row: dict[str, object], key: str) -> str:
+    value = row[key]
+    if not isinstance(value, str):
+        raise TypeError(f"{key} must be a string")
+    return value
+
+
+def _optional_diagnostic_str(row: dict[str, object], key: str) -> str | None:
+    value = row.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{key} must be a string when provided")
+    return value
 
 
 def _build_diagnostic_eval_rows(
@@ -647,7 +726,7 @@ def _build_diagnostic_eval_rows(
     rows: list[dict[str, Any]] = []
     for raw_row in selected_rows:
         normalized_row = _normalize_diagnostic_row(raw_row)
-        projection = project_diagnostic_metadata(
+        projection = _project_diagnostic_metadata(
             row=normalized_row,
             dataset_name=dataset_name,
             dataset_version=dataset_version,
@@ -815,8 +894,6 @@ def main(
     parser.add_argument("--agent-version", help="Diagnostic agent version")
     parser.add_argument("--slice-label", help="Diagnostic slice label override")
     parser.add_argument("--row-ids", help="Diagnostic comma-separated row ids")
-    parser.add_argument("--field-filter", help="Diagnostic field filter column=value")
-    parser.add_argument("--manifest", help="Diagnostic manifest file path")
 
     args = parser.parse_args(argv)
 
@@ -850,8 +927,6 @@ def main(
                     agent_version=args.agent_version,
                     slice_label=args.slice_label,
                     row_ids=args.row_ids,
-                    field_filter=args.field_filter,
-                    manifest=args.manifest,
                 )
                 print(f"  {name}: {result_path}")
                 succeeded += 1
@@ -879,8 +954,6 @@ def main(
         agent_version=args.agent_version,
         slice_label=args.slice_label,
         row_ids=args.row_ids,
-        field_filter=args.field_filter,
-        manifest=args.manifest,
     )
     print(f"Result: {result_path}")
 

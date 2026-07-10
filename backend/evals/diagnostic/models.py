@@ -13,10 +13,9 @@ class DiagnosticSliceIdentity:
     """Stable identity for a selected diagnostic dataset slice."""
 
     slice_label: str
-    slice_type: Literal["full_dataset", "row_ids", "field_filter", "manifest"]
+    slice_type: Literal["full_dataset", "row_ids"]
     slice_selector: str
     selected_row_ids: tuple[str, ...]
-    slice_hash: str
 
 
 def resolve_git_commit(cwd: Path | None = None) -> str:

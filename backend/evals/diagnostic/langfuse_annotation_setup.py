@@ -66,26 +66,6 @@ class ProvisioningError(RuntimeError):
     """Raised when the current Langfuse project has incompatible annotation setup."""
 
 
-TRIAGE_BINARY_PROFILE = AnnotationProfile(
-    key="triage_binary",
-    default_queue_name="near-v1-diagnostic-triage",
-    description=(
-        "First-pass near-v1 diagnostic triage. Use this queue to mark whether a "
-        "trace is good enough or should continue into deeper diagnostic review."
-    ),
-    score_configs=(
-        ScoreConfigSpec(
-            name="triage_outcome",
-            data_type="CATEGORICAL",
-            category_labels=("good", "bad"),
-            description="First-pass binary quality triage: good or bad.",
-        ),
-    ),
-)
-
-_TRIAGE_OUTCOME_SCORE_CONFIG = TRIAGE_BINARY_PROFILE.score_configs[0]
-
-
 _FAILURE_MECHANISM_LABELS = (
     "tool_routing_error",
     "evidence_synthesis_limit",
@@ -96,14 +76,21 @@ _FAILURE_MECHANISM_LABELS = (
 )
 
 
-DIAGNOSTIC_V1_PROFILE = AnnotationProfile(
-    key="diagnostic_v1",
+DIAGNOSTIC_TRIAGE_V1_PROFILE = AnnotationProfile(
+    key="diagnostic_triage_v1",
     default_queue_name="near-v1-diagnostic-review-v1",
     description=(
-        "Full near-v1 diagnostic review schema. Use after triage to capture "
-        "observed outcome, prompt alignment, failure mechanism, and tuning lever."
+        "Single-queue near-v1 diagnostic review schema. Start with "
+        "triage_outcome=good/bad, then fill the full diagnostic fields only for "
+        "traces that need deeper review."
     ),
     score_configs=(
+        ScoreConfigSpec(
+            name="triage_outcome",
+            data_type="CATEGORICAL",
+            category_labels=("good", "bad"),
+            description="First-pass binary quality triage: good or bad.",
+        ),
         ScoreConfigSpec(
             name="observed_outcome",
             data_type="CATEGORICAL",
@@ -171,28 +158,6 @@ DIAGNOSTIC_V1_PROFILE = AnnotationProfile(
 )
 
 
-DIAGNOSTIC_TRIAGE_V1_PROFILE = AnnotationProfile(
-    key="diagnostic_triage_v1",
-    default_queue_name="near-v1-diagnostic-review-v1",
-    description=(
-        "Single-queue near-v1 diagnostic review schema. Start with "
-        "triage_outcome=good/bad, then fill the full diagnostic fields only for "
-        "traces that need deeper review."
-    ),
-    score_configs=(
-        _TRIAGE_OUTCOME_SCORE_CONFIG,
-        *DIAGNOSTIC_V1_PROFILE.score_configs,
-    ),
-)
-
-
-PROFILES = {
-    DIAGNOSTIC_TRIAGE_V1_PROFILE.key: DIAGNOSTIC_TRIAGE_V1_PROFILE,
-    TRIAGE_BINARY_PROFILE.key: TRIAGE_BINARY_PROFILE,
-    DIAGNOSTIC_V1_PROFILE.key: DIAGNOSTIC_V1_PROFILE,
-}
-
-
 def provision_annotation_setup(
     *,
     client: _LangfuseApiClient,
@@ -254,14 +219,8 @@ def main(argv: list[str] | None = None) -> None:
         description="Provision Langfuse score configs and annotation queues"
     )
     parser.add_argument(
-        "--profile",
-        choices=[*PROFILES.keys(), "all"],
-        default=DIAGNOSTIC_TRIAGE_V1_PROFILE.key,
-        help="Annotation profile to provision",
-    )
-    parser.add_argument(
         "--queue-name",
-        help="Queue name override. Only valid when provisioning a single profile.",
+        help="Queue name override for the diagnostic annotation queue.",
     )
     parser.add_argument(
         "--score-configs-only",
@@ -270,33 +229,21 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
 
-    if args.profile == "all" and args.queue_name:
-        parser.error("--queue-name can only be used with a single --profile")
-
     client = cast(_LangfuseApiClient, build_langfuse_api_from_env())
-    selected_profiles = _select_profiles(args.profile)
-
-    for profile in selected_profiles:
-        result = provision_annotation_setup(
-            client=client,
-            profile=profile,
-            queue_name=args.queue_name,
-            create_queue=not args.score_configs_only,
+    result = provision_annotation_setup(
+        client=client,
+        profile=DIAGNOSTIC_TRIAGE_V1_PROFILE,
+        queue_name=args.queue_name,
+        create_queue=not args.score_configs_only,
+    )
+    print(f"Profile: {result.profile.key}")
+    for config in result.score_configs:
+        print(f"  score_config: {config.name} ({config.data_type}) id={config.id}")
+    if result.annotation_queue is not None:
+        print(
+            "  annotation_queue: "
+            f"{result.annotation_queue.name} id={result.annotation_queue.id}"
         )
-        print(f"Profile: {result.profile.key}")
-        for config in result.score_configs:
-            print(f"  score_config: {config.name} ({config.data_type}) id={config.id}")
-        if result.annotation_queue is not None:
-            print(
-                "  annotation_queue: "
-                f"{result.annotation_queue.name} id={result.annotation_queue.id}"
-            )
-
-
-def _select_profiles(profile_key: str) -> tuple[AnnotationProfile, ...]:
-    if profile_key == "all":
-        return (DIAGNOSTIC_TRIAGE_V1_PROFILE,)
-    return (PROFILES[profile_key],)
 
 
 def _list_score_configs(client: _LangfuseApiClient) -> list[Any]:

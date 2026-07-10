@@ -64,7 +64,7 @@ flowchart TB
 | Typed keys 宣告 | `CustomTypeOptions` declaration merging，key typo 編譯失敗；由 CI 既有的 `tsc -b` 把守 |
 | `LanguageToggle` | ChatHeader 右側 segmented「中｜EN」，單擊切換、現行語言高亮；切換觸發 `changeLanguage()`（detector 自動 cache 回 localStorage）並同步 `document.documentElement.lang` |
 | error-messages 模組 | lookup tables（HTTP status map、regex pattern tables）保持純邏輯，**回傳 message key 而非英文字串**；`ErrorBlock` 渲染時以 `t()` 解析 |
-| Content layer pattern | `content/<feature>/<name>.<locale>.ts` 共用 typed schema，依 `i18n.language` 動態 import（lazy，不進主 bundle）；本 issue 交付 pattern 定義與型別，無實際內容 |
+| Content layer pattern | `content/<feature>/<name>.<locale>.ts` 共用 typed schema，依 `i18n.language` 動態 import（lazy，不進主 bundle）；本 issue 交付 **generic pattern（`Locale` type + 檔名慣例 + 最小示例型別）**——具體的 exhibits schema 屬 DEV-81 設計範圍，本 issue 不臆造 |
 
 ## 4. Data flow
 
@@ -83,7 +83,8 @@ resolveErrorTitle(...): ErrorTitleKey  // ErrorTitleKey ⊂ typed catalog keys
 
 // content layer pattern（DEV-81 沿用）
 // content/<feature>/<name>.<locale>.ts，共用 schema，依 locale lazy import
-const load = (locale: Locale) => import(`@/content/museum/exhibits.${locale}.ts`);
+// 注意：Vite 對帶變數的 dynamic import 有限制，實作採 import.meta.glob 或相對路徑
+const load = (locale: Locale) => import(`./content/museum/exhibits.${locale}.ts`);
 ```
 
 ## 6. Key design decisions

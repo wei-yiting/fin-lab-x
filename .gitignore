@@ -36,3 +36,7 @@ data/
 .DS_Store
 *.sw?
 .claude/
+
+# understand-anything worktree-local knowledge graph
+backend/evals/.ua/
+.ua/

@@ -37,7 +37,7 @@ FinLab-X is a **portfolio demonstration project** for AI-engineering roles. Its 
 - **Availability: best-effort.** Cold starts and transient failures are answered by manual retry. No SLA.
 - **Crash recovery: restart-and-rerun.** Nothing survives a restart except what Neon/Qdrant/DuckDB already persist. No checkpoint/job-queue machinery.
 - **External API failures (EDGAR, Finnhub, LLM providers): single retry + legible error.** One deliberate exception: **upstream rate-limit signals (429 / `Retry-After`) are honored with a bounded backoff, implemented once in the shared client layer** (`sec_core`, finnhub client) — EDGAR enforces 10 req/s and Finnhub free tier 60/min, so 429 during JIT ingest is a *normal* path, and respecting it is part of failing legibly. No other backoff ladders, no circuit breakers, no fallback providers, no jitter tuning.
-- **JIT failure semantics: legible failure is the standard.** Arbitrary tickers WILL hit unsupported cases (foreign filers, missing XBRL, no EDGAR presence). Required behavior: a structured, user-facing explanation of what failed and why. Silent partial/empty answers are bugs; exhaustively *handling* every filing variant is over-engineering. Ingestion is all-or-nothing per ticker — a failed ingest leaves no partial retrievable state.
+- **JIT failure semantics: legible failure is the standard.** Arbitrary tickers WILL hit unsupported cases (foreign filers, missing XBRL, no EDGAR presence). Required behavior: a structured, user-facing explanation of what failed and why. Silent partial/empty answers are bugs; exhaustively *handling* every filing variant is over-engineering. Ingestion is all-or-nothing per ticker — a failed ingest leaves no partial retrievable state. The sanctioned mechanism is **write-then-commit-marker**: upsert content first, write the completion marker last, and retrieval treats only marker-complete tickers as present. This satisfies all-or-nothing under concurrent same-ticker JIT (§1) with no locks and no cross-store transactions — concurrent ingests converge on deterministic IDs, and a completion marker is not a lock.
 - **Data integrity: re-runnable from source.** Corruption is fixed by wiping and re-ingesting the affected ticker. No cross-store transactions.
 
 ---
@@ -46,7 +46,7 @@ FinLab-X is a **portfolio demonstration project** for AI-engineering roles. Its 
 
 Reviewers MUST NOT request these; implementations MUST NOT add them. **If code implementing any of these already exists, flag it for removal or simplification, not improvement.**
 
-**Infrastructure**: horizontal scaling; multi-region/DR; accounts/RBAC/OAuth; per-user quotas or abuse detection (the §1 cost cap is the whole story); encryption beyond managed-service defaults; migration frameworks (manual scripts fine); adversarial input validation (demo-breaking inputs only); exhaustive SEC filing-variant coverage; distributed locks / ingestion queues; concurrency hardening beyond avoiding global mutable state; LLM cost optimization beyond obvious waste.
+**Infrastructure**: horizontal scaling; multi-region/DR; accounts/RBAC/OAuth; per-user quotas or abuse detection (the §1 cost cap is the whole story); encryption beyond managed-service defaults; migration frameworks (manual scripts fine); adversarial input *hardening* — abuse detection, WAF-style rules, fuzzing, injection-hunting beyond framework defaults (basic type/shape/size validation at API and external-data boundaries is NOT this — it belongs to the §4 API-contract standard and may never be waived by citing this line); exhaustive SEC filing-variant coverage; distributed locks / ingestion queues; concurrency hardening beyond avoiding global mutable state; LLM cost optimization beyond obvious waste.
 
 **Eval platform machinery** (single operator, minutes-long full runs — the pressures these serve don't exist): dataset slicing / subset selectors; cross-run comparability guards; run manifests / registries; multi-annotator reconciliation or latest-wins merging; eval-gated CI (see §8 for the minimal narrative exception).
 
@@ -67,7 +67,7 @@ These zones ARE the portfolio. Hold them to production standards; flag shortcuts
 | **Architecture decision records** | Every non-obvious decision appended to `docs/decisions.md` (ADR style: ≤100 words, decision + rejected alternatives + why). Long-lived, append-only; `design.md` files remain per-feature and disposable. Where this envelope reduced robustness, the ADR cites §9. |
 | **Retrieval correctness** | Multi-ticker isolation (metadata filtering) must be *correct*, not best-effort — cross-ticker bleed is a demo-killing bug, and the JIT-grown ticker set makes this a moving surface. The filter contract carries a regression eval. |
 | **JIT failure legibility** | Per §2 — this is demo-facing behavior (viewers WILL type unsupported tickers) and is held to production standard. |
-| **API contract** | Response schemas typed and stable; errors structured and actionable (they appear in demos and walkthroughs). |
+| **API contract** | Response schemas typed and stable; errors structured and actionable (they appear in demos and walkthroughs). Requests get basic type/shape/size validation at the boundary (framework-level, e.g. Pydantic 422s) — this is part of the contract, not §3 adversarial hardening. |
 
 ---
 

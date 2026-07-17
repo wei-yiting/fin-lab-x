@@ -15,13 +15,15 @@ def canonicalize_ticker(raw: str) -> str:
     return stripped.upper()
 
 
-def sentinel_id(ticker: str, year: int) -> str:
-    """Deterministic sentinel point ID for (ticker, year)."""
+def commit_marker_id(ticker: str, year: int) -> str:
+    """Deterministic commit-marker point ID for (ticker, year)."""
     return str(uuid5(NAMESPACE_DNS, f"{ticker}:{year}:_status"))
 
 
-def check_sentinel_complete(client, collection: str, ticker: str, year: int) -> bool:
-    """Return True iff a 'complete' sentinel point exists for (ticker, year).
+def check_commit_marker_complete(
+    client, collection: str, ticker: str, year: int
+) -> bool:
+    """Return True iff a 'complete' commit marker exists for (ticker, year).
 
     Sync Qdrant client only — the vector-search and JIT paths use the sync
     client. Catches all exceptions and returns False so that a transient lookup
@@ -31,7 +33,7 @@ def check_sentinel_complete(client, collection: str, ticker: str, year: int) -> 
     try:
         points = client.retrieve(
             collection_name=collection,
-            ids=[sentinel_id(ticker, year)],
+            ids=[commit_marker_id(ticker, year)],
             with_payload=True,
         )
         return (

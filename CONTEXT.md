@@ -41,9 +41,9 @@ _Avoid_: crawl, prewarm
 The two independent SEC data paths — the RAG path (filing HTML → Markdown → chunks → Qdrant) and the Quant path (XBRL → DuckDB).
 _Avoid_: "V2 pipeline" / "V3 pipeline" (collides with agent versions)
 
-**Sentinel point**:
-The deterministic per-(ticker, year) Qdrant point whose status payload records ingest state; only a `complete` sentinel counts as a cache hit.
-_Avoid_: commit marker (the design-envelope name for the same mechanism — one name repo-wide)
+**Commit marker**:
+The completion record an ingest writes as its very last step; retrieval treats only marker-complete data as present. The write-last discipline is what makes "committed or absent" hold.
+_Avoid_: sentinel point (current identifier name in the RAG-path code; rename when that code is next touched)
 
 **Committed or absent**:
 The ingestion invariant: a failed, concurrent, or abandoned ingest must never leave partial or stale-mixed retrievable data. Refresh is wipe-before-rerun.

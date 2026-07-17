@@ -14,7 +14,7 @@ from backend.ingestion.sec_dense_pipeline.collection_schema import (
 )
 from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
-    sentinel_id,
+    commit_marker_id,
 )
 from backend.utils.span_tracing import traced_span
 
@@ -108,14 +108,14 @@ async def ingest_filing(
             client, collection, vector_size=_EMBED_DIM
         )
 
-        sentinel_point_id = sentinel_id(ticker, year)
-        sentinel_vector = [0.0] * _EMBED_DIM
+        marker_point_id = commit_marker_id(ticker, year)
+        marker_vector = [0.0] * _EMBED_DIM
         await client.upsert(
             collection_name=collection,
             points=[
                 models.PointStruct(
-                    id=sentinel_point_id,
-                    vector=sentinel_vector,
+                    id=marker_point_id,
+                    vector=marker_vector,
                     payload={
                         "ticker": ticker,
                         "year": year,
@@ -230,8 +230,8 @@ async def ingest_filing(
                 collection_name=collection,
                 points=[
                     models.PointStruct(
-                        id=sentinel_point_id,
-                        vector=sentinel_vector,
+                        id=marker_point_id,
+                        vector=marker_vector,
                         payload={
                             "ticker": ticker,
                             "year": year,

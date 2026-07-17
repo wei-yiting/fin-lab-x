@@ -12,9 +12,9 @@ _Avoid_: multi-agent, router, supervisor
 A versioned config directory that fully defines an Orchestrator's behavior; the runtime code is version-agnostic.
 _Avoid_: hardcoded agent, agent subclass
 
-**Agent version**:
-One of the five capability tiers `v1_baseline` → `v5_analyst`, each a Workflow Profile. Only `v1_baseline` is implemented; v2–v5 are placeholders. Always use the full name.
-_Avoid_: bare "v1" / "v2" / "v3" (collides with pipeline generations and PRD phases)
+**Capability tier**:
+One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. Only `baseline` is implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
+_Avoid_: v1–v5 / bare version numbers for agents (legacy naming; collides with pipeline generations, PRD phases, and external SDK versions)
 
 **Capability**:
 Anything the Orchestrator can act through — Tools, Skills, MCP, Subagents. Only Tools (atomic, stateless, strictly-typed functions) exist today; the other three are documented placeholders.
@@ -79,8 +79,16 @@ _Avoid_: "golden dataset V1/V2/V3" (there is one dataset; the versions are the a
 **near-v1 diagnostic**:
 A diagnostic dataset annotating each question with a capability band (core / boundary / reach) and the expected near-v1 behavior — a probe of where a near-v1 agent should pass or fail.
 
-**Eval track**:
-One of two deliberately separated kinds of evaluation: the Regression Guardrail (compact pytest gate) and Quality Improvement (dataset-driven scoring uploaded to Braintrust). Never mixed.
+**Prompt Regression Suite**:
+The stable set of test cases rerun manually before merging any system-prompt or model change, answering "did existing behavior get worse" with an objective pass/fail. A development-stage gate, deliberately kept out of CI.
+_Avoid_: Regression Guardrail (a guardrail is a runtime concept — see Guardrail)
+
+**Quality Track**:
+The Braintrust experiment track that measures quality movement while iterating on prompts or models — answers "did it get better". Complements the Prompt Regression Suite; the two are never mixed.
+_Avoid_: Quality Improvement (superseded README wording)
+
+**Guardrail**:
+A runtime mechanism that checks each production request's input and output in real time (blocking prompt injection, filtering unsafe content). Never the name for a development-stage test or eval; no guardrail exists in this repo yet.
 
 **Scenario**:
 The convention-based unit of evaluation: a directory with an `eval_spec.yaml` (task, column mapping, scorers), auto-discovered without a registry.

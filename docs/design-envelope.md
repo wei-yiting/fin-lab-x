@@ -11,7 +11,7 @@
 FinLab-X is a **portfolio demonstration project** for AI-engineering roles. Its value is *depth in the differentiating zones* (§4) — agent architecture, evaluation rigor, failure observability — not breadth of production hardening. The July 2026 audit found ~8–10k removable lines; nearly all shared one cause: machinery built for scale pressures that do not exist here. Three principles prevent recurrence:
 
 1. **Scale-pressure test.** Every piece of defensive or infrastructural machinery must name the scale pressure that forces it (many operators, many runs, large data, real deploy risk). If the pressure is not listed in §1, the machinery is out of scope — regardless of whether it is best practice at production scale.
-2. **Reachability rule.** Every code path, enum state, config option, CLI flag, and schema field must be *selected or consumed by something in the repo at merge time*. Unreachable generality is deleted, not documented. (Precedent: three-provider `_init_model` branches while every config selected `openai:gpt-5-mini`; `reasoning: "unsupported"` tri-state nothing set.)
+2. **Reachability rule.** Every code path, enum state, config option, CLI flag, and schema field must be *selected or consumed by something in the repo at merge time*. Unreachable generality is deleted, not documented. (Precedent: the pytest `-m eval` language-policy guardrail, documented as a pre-merge regression gate that no CI job or script ever invoked.)
 3. **Evidence gate.** A design element whose own supporting research reports weak results does not ship without the guards that research demands — or does not ship at all. (Precedent: the prelude payload field shipped always-on although its research memo found 8% clean extraction and mandated a size cap + per-item gating.)
 
 ---
@@ -50,7 +50,7 @@ Reviewers MUST NOT request these; implementations MUST NOT add them. **If code i
 
 **Eval platform machinery** (single operator, minutes-long full runs — the pressures these serve don't exist): dataset slicing / subset selectors; cross-run comparability guards; run manifests / registries; multi-annotator reconciliation or latest-wins merging; eval-gated CI (see §8 for the minimal narrative exception).
 
-**Speculative generality**: provider branches, enum states, config options, or schema fields with no in-repo consumer (Reachability rule, §0). Multi-provider abstraction is out of scope *until a second provider config actually exists in `versions/`*.
+**Speculative generality**: enum states, config options, or schema fields with no in-repo consumer (Reachability rule, §0). Multi-provider model support is *not* this — swapping the configured model to compare quality across providers is a deliberate, sanctioned design.
 
 **Observability ceremony outside §4 scope**: per-retry/per-attempt event streams; pacing/throughput statistics persisted to metadata nothing reads; span instrumentation of operator batch jobs; defensive multi-fallback wrappers around vendor-SDK private attributes.
 
@@ -62,10 +62,9 @@ These zones ARE the portfolio. Hold them to production standards; flag shortcuts
 
 | Zone | Standard |
 |---|---|
-| **Eval — measurement rigor** | The question: *"can these scores be trusted?"* Rigor does not depend on scale and applies in full: (a) Golden Dataset versioned in git with per-item curation rationale (why selected, which failure mode); (b) LLM judge validated against human-labeled ground truth with reported **TPR/TNR per dimension**; (c) rubrics binary and calibrated — never free-form 1–5; (d) dimensions derived from observed failures, mutually distinguishable, and **able to move when the compared thing changes** (a dimension the pinned model holds constant across versions is dead weight); (e) reproducibility: judge model, temperature, dataset version recorded per run; (f) component-level evals (retrieved chunks, SQL, tool selection), not only end-to-end. Platform machinery stays excluded per §3. |
+| **Eval — measurement rigor** | The question: *"can these scores be trusted?"* Rigor does not depend on scale, but it binds incrementally — each requirement takes effect when the thing it governs first ships (a Golden Dataset → (a); an LLM judge → (b), (c); cross-version comparison → (d); and so on), never as a day-one gate: (a) Golden Dataset versioned in git with per-item curation rationale (why selected, which failure mode); (b) LLM judge validated against human-labeled ground truth with reported **TPR/TNR per dimension**; (c) rubrics binary and calibrated — never free-form 1–5; (d) dimensions derived from observed failures, mutually distinguishable, and **able to move when the compared thing changes** (a dimension the pinned model holds constant across versions is dead weight); (e) reproducibility: judge model, temperature, dataset version recorded per run; (f) component-level evals (retrieved chunks, SQL, tool selection), not only end-to-end. Platform machinery stays excluded per §3. |
 | **Observability** | Scope: **user-facing execution paths** — agent runtime (chat, tool calls, reasoning), eval runs, and JIT ingestion triggered by a user query — fully traced in Langfuse; every failure attributable to a failure-taxonomy category from the trace alone; no silent failures. Granularity cap: deep enough to attribute root cause, no deeper — per-retry event streams and throughput stats are §3 ceremony. Operator batch refresh gets logs + one run-summary record, not span trees. |
 | **Architecture decision records** | Every non-obvious decision recorded in `docs/adr/` — one file per decision (`NNNN-slug.md`; ≤100 words, decision + rejected alternatives + why). Long-lived; entries are never edited after the fact — a reversed decision gets a new ADR that supersedes the old by number. `design.md` files remain per-feature and disposable. Where this envelope reduced robustness, the ADR cites §9. |
-| **Retrieval correctness** | Multi-ticker isolation (metadata filtering) must be *correct*, not best-effort — cross-ticker bleed is a demo-killing bug, and the JIT-grown ticker set makes this a moving surface. The filter contract carries a regression eval. |
 | **JIT failure legibility** | Per §2 — this is demo-facing behavior (viewers WILL type unsupported tickers) and is held to production standard. |
 | **API contract** | Response schemas typed and stable; errors structured and actionable (they appear in demos and walkthroughs). Boundary validation is part of the contract: requests get basic type/shape/size validation (framework-level 422s), and external-data responses (EDGAR/Finnhub/LLM/tool payloads) are validated at the boundary so violations surface as structured, trace-attributable errors — never silent partial answers. *How* is the implementation's choice. Fuzzing and abuse detection stay out of scope (§3). |
 
@@ -145,7 +144,7 @@ Canonical precedents from the July 2026 audit — reviewers pattern-match agains
 | `compare_guard.py` — 166-line CLI + 6 verdicts to tell one operator two full runs are comparable | §3 eval platform; §0 scale-pressure |
 | 4-mode `dataset_selector` + SHA-256 slice hashing for a 31-row CSV | §3 eval platform |
 | Prelude payload field vs its own 8%-success research memo | §0 evidence gate |
-| Dead Anthropic/Gemini branches; `reasoning:"unsupported"` tri-state | §0 reachability |
+| pytest `-m eval` language-policy regression gate that no CI job or script ever invokes | §0 reachability |
 | `STUB_*`/`EMIT_*`/`FORCE_*` env flags in streaming prod code | §5 rule 4 |
 | 254-line DST test (tests DuckDB); frozenset-is-frozenset tests | §5 rule 1 |
 | Live yfinance "drift watchdog" suite guarding an abandoned vendor | §5 rule 2 |

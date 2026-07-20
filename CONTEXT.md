@@ -116,12 +116,12 @@ One conversation thread, checkpointed under a thread id. The busy-guard rejects 
 **Journey**:
 An end-to-end multi-tool user scenario; the unit of journey-level verification.
 
-**Reasoning indicator**:
-The frontend "thinking" placeholder shown before the first streamed part arrives. Not model reasoning tokens.
-_Avoid_: reasoning stream (that is the provider-token feature)
+**Waiting indicator**:
+The frontend placeholder shown between sending a message and the first streamed part arriving — it fills perceived latency and has nothing to do with model reasoning.
+_Avoid_: reasoning indicator (current component name; rename when that code is next touched), thinking indicator
 
 **Reasoning stream**:
-Provider reasoning tokens streamed as their own domain events (multi-provider branch).
+Provider reasoning tokens streamed as their own domain events. The word "reasoning" belongs to this feature alone — never to the waiting indicator.
 
 **Tool progress**:
 A transient sidecar SSE event that updates a running tool card without entering message history.

@@ -38,8 +38,11 @@ Fetching, parsing, and embedding a filing on demand at query time instead of pre
 _Avoid_: crawl, prewarm
 
 **Two-path SEC architecture**:
-The two independent SEC data paths — the RAG path (filing HTML → Markdown → chunks → Qdrant) and the Quant path (XBRL → DuckDB).
-_Avoid_: "V2 pipeline" / "V3 pipeline" (collides with agent versions)
+The two independent SEC data paths — the **RAG path** (filing HTML → Markdown → chunks → Qdrant) and the **fundamentals path** (XBRL → DuckDB). A path is the whole route from source to the store agents query; the ETL programs along it are components, not the path itself.
+_Avoid_: "V2 pipeline" / "V3 pipeline" (legacy vN naming); "Quant path" (collides with the `quant` capability tier)
+
+**Pipeline**:
+An ETL program that moves data along a path (filing parsing, chunk embedding, fundamentals loading). A path contains pipelines plus stores; agents query stores, never pipelines.
 
 **Commit marker**:
 The completion record an ingest writes as its very last step; retrieval treats only marker-complete data as present. The write-last discipline is what makes "committed or absent" hold.
@@ -61,12 +64,12 @@ The preprocessing stage that promotes raw 10-K markup to semantic heading levels
 The curated ~10–20 ticker set eligible for batch ingestion; anything outside it is served by JIT only.
 
 **Ingestion run**:
-One audited ETL invocation, recorded as a row (success or error) in the quant pipeline's `ingestion_runs` table.
+One audited ETL invocation on the fundamentals path, recorded as a row (success or error) in the `ingestion_runs` table.
 
 ## Evaluation
 
 **EDD (Evaluation-Driven Development)**:
-The process gate: an agent version advances only on measured improvement over the previous version on the Golden Dataset.
+The process gate: a capability tier ships only on measured improvement over the previous tier on the Golden Dataset.
 _Avoid_: "eval-driven" in the casual sense of "defer this decision until an eval shows we need it"
 
 **Golden Dataset**:

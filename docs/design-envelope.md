@@ -64,7 +64,7 @@ These zones ARE the portfolio. Hold them to production standards; flag shortcuts
 |---|---|
 | **Eval — measurement rigor** | The question: *"can these scores be trusted?"* Rigor does not depend on scale and applies in full: (a) Golden Dataset versioned in git with per-item curation rationale (why selected, which failure mode); (b) LLM judge validated against human-labeled ground truth with reported **TPR/TNR per dimension**; (c) rubrics binary and calibrated — never free-form 1–5; (d) dimensions derived from observed failures, mutually distinguishable, and **able to move when the compared thing changes** (a dimension the pinned model holds constant across versions is dead weight); (e) reproducibility: judge model, temperature, dataset version recorded per run; (f) component-level evals (retrieved chunks, SQL, tool selection), not only end-to-end. Platform machinery stays excluded per §3. |
 | **Observability** | Scope: **user-facing execution paths** — agent runtime (chat, tool calls, reasoning), eval runs, and JIT ingestion triggered by a user query — fully traced in Langfuse; every failure attributable to a failure-taxonomy category from the trace alone; no silent failures. Granularity cap: deep enough to attribute root cause, no deeper — per-retry event streams and throughput stats are §3 ceremony. Operator batch refresh gets logs + one run-summary record, not span trees. |
-| **Architecture decision records** | Every non-obvious decision appended to `docs/decisions.md` (ADR style: ≤100 words, decision + rejected alternatives + why). Long-lived, append-only; `design.md` files remain per-feature and disposable. Where this envelope reduced robustness, the ADR cites §9. |
+| **Architecture decision records** | Every non-obvious decision recorded in `docs/adr/` — one file per decision (`NNNN-slug.md`; ≤100 words, decision + rejected alternatives + why). Long-lived; entries are never edited after the fact — a reversed decision gets a new ADR that supersedes the old by number. `design.md` files remain per-feature and disposable. Where this envelope reduced robustness, the ADR cites §9. |
 | **Retrieval correctness** | Multi-ticker isolation (metadata filtering) must be *correct*, not best-effort — cross-ticker bleed is a demo-killing bug, and the JIT-grown ticker set makes this a moving surface. The filter contract carries a regression eval. |
 | **JIT failure legibility** | Per §2 — this is demo-facing behavior (viewers WILL type unsupported tickers) and is held to production standard. |
 | **API contract** | Response schemas typed and stable; errors structured and actionable (they appear in demos and walkthroughs). Boundary validation is part of the contract: requests get basic type/shape/size validation (framework-level 422s), and external-data responses (EDGAR/Finnhub/LLM/tool payloads) are validated at the boundary so violations surface as structured, trace-attributable errors — never silent partial answers. *How* is the implementation's choice. Fuzzing and abuse detection stay out of scope (§3). |
@@ -94,7 +94,7 @@ Test depth follows the zone map — tests are subject to the same proportionalit
 
 - README only where behavior is not evident from the code; **no per-test-folder READMEs** (precedent: two shipped already describing flags and events that don't exist).
 - Schema/column comments: one line.
-- `docs/decisions.md` is the durable narrative (§4); per-feature `design.md` is disposable and may go stale without maintenance obligations.
+- `docs/adr/` is the durable narrative (§4); per-feature `design.md` is disposable and may go stale without maintenance obligations.
 - The production alternative to any envelope-reduced behavior is one line (§9), not a design section.
 
 ---
@@ -120,7 +120,7 @@ Apply in order:
 
 ## 8. Narrative-Value Exception
 
-A §3-excluded component may be reinstated in **minimal form** only if it directly serves the demonstration narrative (interview walkthrough, talk, published content). The reinstated version must be the simplest that tells the story (e.g., a ~5-item CI smoke-eval, not an eval gate), and the narrative purpose must be recorded in `docs/decisions.md` citing this section. "Might be useful someday" is not a narrative purpose.
+A §3-excluded component may be reinstated in **minimal form** only if it directly serves the demonstration narrative (interview walkthrough, talk, published content). The reinstated version must be the simplest that tells the story (e.g., a ~5-item CI smoke-eval, not an eval gate), and the narrative purpose must be recorded in a `docs/adr/` entry citing this section. "Might be useful someday" is not a narrative purpose.
 
 ---
 

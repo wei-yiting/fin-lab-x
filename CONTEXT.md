@@ -69,18 +69,15 @@ One audited ETL invocation on the fundamentals path, recorded as a row (success 
 ## Evaluation
 
 **EDD (Evaluation-Driven Development)**:
-The process gate: a capability tier ships only on measured improvement over the previous tier on the Golden Dataset.
-_Avoid_: "eval-driven" in the casual sense of "defer this decision until an eval shows we need it"
+Development steered by evals throughout the lifecycle: quality criteria live as eval sets defined up front, and every strategy choice, iteration, and tier promotion is justified by measured results — evals play the role tests play in TDD.
+_Avoid_: "eval-driven" for postponing a decision (that is defer until evidence); framing EDD as only a final promotion gate
 
 **Golden Dataset**:
-The git-versioned, hand-curated set of ~30 open-ended financial questions with per-item curation rationale; the baseline for architecture comparison.
+The git-versioned, hand-curated set of ~30 open-ended financial questions with per-item curation rationale. Its flagship use is the cross-tier comparison — `baseline` / `reader` / `quant` under the same LLM model id — isolating architecture-caused capability gaps.
 
-**Golden dataset run**:
-Executing the single `golden_dataset` scenario against agent versions v1–v3 with the same LLM model id, isolating architecture-driven capability gaps.
-_Avoid_: "golden dataset V1/V2/V3" (there is one dataset; the versions are the agents under test)
-
-**near-v1 diagnostic**:
-A diagnostic dataset annotating each question with a capability band (core / boundary / reach) and the expected near-v1 behavior — a probe of where a near-v1 agent should pass or fail.
+**Baseline behavior diagnostic**:
+The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / reach) and the expected pass/fail behavior, scored by deterministic execution checks (ran to completion, right tool chosen) plus human trace review. It diagnoses behavior and names the tuning lever; it never grades answer quality.
+_Avoid_: near-v1 diagnostic (legacy dataset/scenario name, to be renamed at rework)
 
 **Prompt Regression Suite**:
 The stable set of test cases rerun manually before merging any system-prompt or model change, answering "did existing behavior get worse" with an objective pass/fail. A development-stage gate, deliberately kept out of CI.
@@ -95,6 +92,9 @@ A runtime mechanism that checks each production request's input and output in re
 
 **Scenario**:
 The convention-based unit of evaluation: a directory with an `eval_spec.yaml` (task, column mapping, scorers), auto-discovered without a registry.
+
+**Eval run**:
+One execution of a scenario against a single agent configuration, persisted as one Braintrust experiment (Quality Track) and optionally compared against a pinned base experiment. Compose freely: "a golden-dataset run of `reader`".
 
 **Scorer**:
 A scoring function `(output, expected, input) → Score` — programmatic when the criterion is structurally decidable, LLM-judge when semantic.
@@ -136,6 +136,10 @@ The calibration contract fixing the project's scale (portfolio demo, ≤3 concur
 
 **Production-Grade Zone**:
 An area held to full production standard because it is the portfolio value itself: eval rigor, observability, ADRs, retrieval correctness, failure legibility, API contract.
+
+**Defer until evidence**:
+Postponing a design decision until an eval result or incident demonstrates the need. An anti-over-engineering discipline; not a form of EDD.
+_Avoid_: "eval-driven" as the name for this
 
 **Legible failure**:
 An unsupported input produces a structured, user-facing explanation — never a silent empty or partial answer.

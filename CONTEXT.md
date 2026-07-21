@@ -45,8 +45,8 @@ _Avoid_: "V2 pipeline" / "V3 pipeline" (legacy vN naming); "Quant path" (collide
 An ETL program that moves data along a path (filing parsing, chunk embedding, fundamentals loading). A path contains pipelines plus stores; agents query stores, never pipelines.
 
 **Commit marker**:
-The completion record an ingest writes as its very last step; retrieval treats only marker-complete data as present. The write-last discipline is what makes "committed or absent" hold.
-_Avoid_: sentinel point (current identifier name in the RAG-path code; rename when that code is next touched)
+A per-(ticker, year) point written as `status: "pending"` at ingest start, then overwritten as `status: "complete"` as the final commit step. Retrieval treats only a `complete` marker as present; the write-`complete`-last discipline is what makes "committed or absent" hold.
+_Avoid_: sentinel point (legacy term; code identifiers already renamed to commit_marker_* — the term survives only in backend/ingestion/sec_dense_pipeline/README.md prose, to be updated when that doc is next touched)
 
 **Committed or absent**:
 The ingestion invariant: a failed, concurrent, or abandoned ingest must never leave partial or stale-mixed retrievable data. Refresh is wipe-before-rerun.
@@ -135,7 +135,7 @@ The citation strategy: source extraction runs exactly once when the stream finis
 The calibration contract fixing the project's scale (portfolio demo, ≤3 concurrent users, 1 operator). Robustness beyond it is over-engineering; shortcuts inside Production-Grade Zones are under-engineering — equal-severity findings.
 
 **Production-Grade Zone**:
-An area held to full production standard because it is the portfolio value itself: eval rigor, observability, ADRs, retrieval correctness, failure legibility, API contract.
+An area held to full production standard because it is the portfolio value itself. The authoritative zone list and per-zone standards live in design-envelope §4 — never enumerate them elsewhere.
 
 **Defer until evidence**:
 Postponing a design decision until an eval result or incident demonstrates the need. An anti-over-engineering discipline; not a form of EDD.

@@ -13,7 +13,7 @@ Both domains share one Langfuse project and emit `snake_case` spans (`sec_` pref
 
 | Config key | Value | Effect in Langfuse |
 |---|---|---|
-| `metadata.langfuse_trace_name` | `f"{VersionConfig.name}_{mode}"` (e.g., `baseline_stream`, `baseline_invoke`) | Renames the root trace so product/version/endpoint are visible |
+| `metadata.langfuse_trace_name` | `f"{WorkflowProfileConfig.name}_{mode}"` (e.g., `baseline_stream`, `baseline_invoke`) | Renames the root trace so product/version/endpoint are visible |
 | `run_name` | `"chat-turn"` | Renames the LangChain root chain span (otherwise defaults to the Runnable class name `LangGraph`) |
 | `metadata.request_id` | `uuid.uuid4().hex` minted by each FastAPI handler | Per-request correlation attribute |
 

@@ -1,15 +1,15 @@
 from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.agents.config_loader import (
-    VersionConfig,
-    VersionConfigLoader,
+    WorkflowProfileConfig,
+    ProfileConfigLoader,
     ModelConfig,
     ConstraintsConfig,
 )
 
 __all__ = [
     "Orchestrator",
-    "VersionConfig",
-    "VersionConfigLoader",
+    "WorkflowProfileConfig",
+    "ProfileConfigLoader",
     "ModelConfig",
     "ConstraintsConfig",
 ]

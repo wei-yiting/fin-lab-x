@@ -1,4 +1,4 @@
-"""Version-agnostic Orchestrator for FinLab-X.
+"""Profile-agnostic Orchestrator for FinLab-X.
 
 Uses LangChain's create_agent to handle the tool calling loop automatically.
 The Orchestrator does NOT manually manage bind_tools or tool execution —
@@ -32,7 +32,7 @@ from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import TypedDict
 
-from backend.agent_engine.agents.config_loader import VersionConfig
+from backend.agent_engine.agents.config_loader import WorkflowProfileConfig
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
@@ -208,9 +208,9 @@ class _LangfusePropagationAttributes(TypedDict, total=False):
 
 
 class Orchestrator:
-    """Version-agnostic Orchestrator that loads capabilities from config."""
+    """Profile-agnostic Orchestrator that loads capabilities from config."""
 
-    def __init__(self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None):
+    def __init__(self, config: WorkflowProfileConfig, *, checkpointer: BaseCheckpointSaver | None = None):
         setup_tools()
         self._validate_edgar_identity(config)
         self.config = config
@@ -246,7 +246,7 @@ class Orchestrator:
         Supported placeholders:
         - ``{section_soft_cap_chars}`` — computed from the active model's
           context window
-        - ``{max_tool_calls_per_run}`` — passed through from the version's
+        - ``{max_tool_calls_per_run}`` — passed through from the profile's
           ``constraints.max_tool_calls_per_run``; ``None`` means the prompt
           doesn't reference this variable (tests may omit it)
 
@@ -275,9 +275,9 @@ class Orchestrator:
         )
 
     @staticmethod
-    def _validate_edgar_identity(config: VersionConfig) -> None:
-        """Fast-fail at startup if the version config loads a SEC tool without
-        ``EDGAR_IDENTITY`` set. Versions without SEC tools skip the check so
+    def _validate_edgar_identity(config: WorkflowProfileConfig) -> None:
+        """Fast-fail at startup if the profile config loads a SEC tool without
+        ``EDGAR_IDENTITY`` set. Profiles without SEC tools skip the check so
         non-SEC deployments stay unaffected.
         """
         needs_sec = any(
@@ -464,7 +464,7 @@ class Orchestrator:
     ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
 
-        trace_name is derived from agent version + endpoint mode, e.g.
+        trace_name is derived from the profile name + endpoint mode, e.g.
         ``baseline_stream``. request_id + extras (trigger, message_id, ...)
         go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
         attaches them to the root trace via the ``langfuse_trace_name`` path.

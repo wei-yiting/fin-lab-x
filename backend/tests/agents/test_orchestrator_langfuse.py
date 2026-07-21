@@ -7,7 +7,7 @@ from typing import Any, cast
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, RemoveMessage
 
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import VersionConfig, ModelConfig
+from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ModelConfig
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
@@ -18,9 +18,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
 )
 
 
-def _make_config() -> VersionConfig:
+def _make_config() -> WorkflowProfileConfig:
     """Create minimal test config."""
-    return VersionConfig(
+    return WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -39,7 +39,7 @@ def _mock_agent_response() -> dict:
     }
 
 
-def _create_orchestrator(config: VersionConfig) -> Orchestrator:
+def _create_orchestrator(config: WorkflowProfileConfig) -> Orchestrator:
     """Create orchestrator with all external deps mocked."""
     with (
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
@@ -690,7 +690,7 @@ class TestLangfuseTraceMetadata:
     @pytest.mark.asyncio
     async def test_trace_name_follows_config_name_dynamically(self):
         """Swap in a different tier's config — trace_name must track, no code change needed."""
-        config = VersionConfig(
+        config = WorkflowProfileConfig(
             version="0.2.0",
             name="reader",
             description="Hypothetical reader tier",

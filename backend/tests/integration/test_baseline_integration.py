@@ -9,11 +9,11 @@ from typing import Any
 from unittest.mock import Mock, patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import VersionConfig, VersionConfigLoader
+from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ProfileConfigLoader
 from backend.agent_engine.tools.registry import get_tools_by_names
 
 
-def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Any:
+def _create_orchestrator(config: WorkflowProfileConfig, mock_tools: list) -> Any:
     """Create an Orchestrator with mocked create_agent and tool registry.
 
     Patches create_agent, init_chat_model, and get_tools_by_names so no real
@@ -36,7 +36,7 @@ def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Any:
         return orch
 
 
-def _create_orchestrator_with_mocked_llm(config: VersionConfig) -> Orchestrator:
+def _create_orchestrator_with_mocked_llm(config: WorkflowProfileConfig) -> Orchestrator:
     with (
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
@@ -52,7 +52,7 @@ def _create_orchestrator_with_mocked_llm(config: VersionConfig) -> Orchestrator:
 
 def test_yfinance_tool_integration():
     """Test that yfinance tool output is correctly extracted."""
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -96,7 +96,7 @@ def test_yfinance_tool_integration():
 
 def test_tavily_tool_integration():
     """Test that tavily tool output is correctly extracted."""
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -139,7 +139,7 @@ def test_tavily_tool_integration():
 
 def test_sec_tool_integration():
     """Test that SEC tool output is correctly extracted."""
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -183,7 +183,7 @@ def test_sec_tool_integration():
 
 def test_multi_tool_integration():
     """Test that multiple tools called in sequence are all extracted."""
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -246,7 +246,7 @@ def test_multi_tool_integration():
 
 def test_zero_hallucination_policy():
     """Test that response without tool calls is correctly extracted."""
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -272,7 +272,7 @@ def test_zero_hallucination_policy():
 
 
 def test_config_loading_from_yaml():
-    config = VersionConfigLoader("baseline").load()
+    config = ProfileConfigLoader("baseline").load()
 
     assert config.version == "0.1.0"
     assert config.name == "baseline"
@@ -282,7 +282,7 @@ def test_config_loading_from_yaml():
 
 
 def test_system_prompt_loaded_from_file():
-    config = VersionConfigLoader("baseline").load()
+    config = ProfileConfigLoader("baseline").load()
 
     assert config.system_prompt is not None
     assert "ZERO HALLUCINATION" in config.system_prompt
@@ -301,7 +301,7 @@ def test_tool_registry_has_tools():
 
 
 def test_orchestrator_uses_config_system_prompt():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -316,7 +316,7 @@ def test_orchestrator_uses_config_system_prompt():
 
 
 def test_orchestrator_falls_back_to_default_prompt():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -330,7 +330,7 @@ def test_orchestrator_falls_back_to_default_prompt():
 
 
 def test_extract_result_empty_messages():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
@@ -345,7 +345,7 @@ def test_extract_result_empty_messages():
 
 
 def test_extract_result_no_final_ai_message():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",

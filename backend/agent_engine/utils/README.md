@@ -20,7 +20,7 @@ by the Orchestrator to render `{section_soft_cap_chars}` into system prompts.
 
 ## Workflow — adding or updating a model
 
-1. Add the new model name to the relevant `backend/agent_engine/agents/versions/*/orchestrator_config.yaml`.
+1. Add the new model name to the relevant `backend/agent_engine/agents/profiles/*/orchestrator_config.yaml`.
 2. Regenerate the registry:
    ```bash
    uv run --extra dev python backend/scripts/refresh_model_context_registry.py

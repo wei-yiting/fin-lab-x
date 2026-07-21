@@ -43,7 +43,7 @@ Profiles allow for rapid experimentation and safe rollbacks. By switching a prof
 
 ### Profile Directory Structure
 
-Each version in `backend/agent_engine/agents/versions/` currently contains:
+Each version in `backend/agent_engine/agents/profiles/` currently contains:
 
 - `orchestrator_config.yaml`: Model selection (e.g., GPT-4o, Claude 3.5 Sonnet), temperature, and tool-specific limits.
 

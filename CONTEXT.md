@@ -46,7 +46,7 @@ An ETL program that moves data along a path (filing parsing, chunk embedding, fu
 
 **Commit marker**:
 A per-(ticker, year) point written as `status: "pending"` at ingest start, then overwritten as `status: "complete"` as the final commit step. Retrieval treats only a `complete` marker as present; the write-`complete`-last discipline is what makes "committed or absent" hold.
-_Avoid_: sentinel point (legacy term; code identifiers already renamed to commit_marker_* — the term survives only in backend/ingestion/sec_dense_pipeline/README.md prose, to be updated when that doc is next touched)
+_Avoid_: sentinel point (legacy term)
 
 **Committed or absent**:
 The ingestion invariant: a failed, concurrent, or abandoned ingest must never leave partial or stale-mixed retrievable data. Refresh is wipe-before-rerun.

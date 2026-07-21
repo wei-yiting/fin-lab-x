@@ -147,7 +147,7 @@ from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 loader = ProfileConfigLoader('baseline')
 config = loader.load()
 
-print(config.tools)  # ['finnhub_stock_quote', 'finnhub_company_basic_financials', 'finnhub_get_available_fields', ...]
+print(config.tools)  # ['finnhub_stock_quote', 'finnhub_company_basic_financials', ...]
 print(config.model.name)  # 'gpt-4o-mini'
 print(config.version)  # '0.1.0'
 ```

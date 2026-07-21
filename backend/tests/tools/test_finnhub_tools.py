@@ -13,7 +13,6 @@ from backend.agent_engine.tools.finnhub_client import (
 )
 from backend.agent_engine.tools.finnhub_tools import (
     finnhub_company_basic_financials,
-    finnhub_get_available_fields,
     finnhub_stock_quote,
 )
 
@@ -82,6 +81,9 @@ def test_finnhub_company_basic_financials_happy_present_only():
         "52WeekHigh": 200.0,
         "52WeekLow": 150.0,
         "peTTM": 28.4,
+        "forwardPE": 25.1,
+        "grossMarginTTM": 47.9,
+        "enterpriseValue": 4803130.0,
         "beta": 1.2,
         "roeTTM": None,  # present but None -> excluded
     }
@@ -92,6 +94,9 @@ def test_finnhub_company_basic_financials_happy_present_only():
     assert result["fiftyTwoWeekHigh"] == 200.0
     assert result["fiftyTwoWeekLow"] == 150.0
     assert result["peTTM"] == 28.4
+    assert result["forwardPE"] == 25.1
+    assert result["grossMarginTTM"] == 47.9
+    assert result["enterpriseValue"] == 4803130.0
     assert result["beta"] == 1.2
     # None-valued metric is excluded
     assert "roeTTM" not in result
@@ -104,24 +109,6 @@ def test_finnhub_company_basic_financials_empty_metric_raises():
     with patch(_SEAM, return_value=_mock_client(basic_financials={"metric": {}})):
         with pytest.raises(ValueError, match="basic financials"):
             _tool_call(finnhub_company_basic_financials, {"ticker": "ZZZZ"})
-
-
-def test_finnhub_get_available_fields_lists_present_fields():
-    metric = {
-        "peTTM": 28.4,
-        "beta": 1.2,
-    }
-    with patch(_SEAM, return_value=_mock_client(basic_financials={"metric": metric})):
-        result = _tool_call(finnhub_get_available_fields, {"ticker": "aapl"})
-
-    assert result["ticker"] == "AAPL"
-    assert result["total_fields"] == 2
-    assert set(result["available_fields"].keys()) == {"peTTM", "beta"}
-    assert result["available_fields"]["peTTM"]["available"] is True
-    assert result["available_fields"]["peTTM"]["description"] == (
-        "Trailing twelve-month P/E ratio"
-    )
-    assert result["available_fields"]["beta"]["description"] == "Beta coefficient"
 
 
 def test_finnhub_stock_quote_missing_api_key_raises():
@@ -181,8 +168,11 @@ def test_live_catalog_metric_keys_resolve():
         for out_key, spec in BASIC_FINANCIALS_CATALOG.items()
         if metric.get(spec.metric_key) is not None
     ]
-    # All 19 resolved for AAPL when authored; allow minor day-to-day variance.
-    assert len(resolved) >= 17, f"only {len(resolved)}/19 catalog keys resolved: {resolved}"
+    # All 22 resolved for AAPL when authored; allow minor day-to-day variance.
+    total = len(BASIC_FINANCIALS_CATALOG)
+    assert len(resolved) >= total - 2, (
+        f"only {len(resolved)}/{total} catalog keys resolved: {resolved}"
+    )
 
 
 @pytest.mark.finnhub_integration

@@ -56,41 +56,41 @@ def test_finnhub_tool_integration():
         version="0.1.0",
         name="baseline",
         description="Test version",
-        tools=["finnhub_get_available_fields"],
+        tools=["finnhub_company_basic_financials"],
     )
 
     mock_tool = Mock()
-    mock_tool.name = "finnhub_get_available_fields"
+    mock_tool.name = "finnhub_company_basic_financials"
 
     orch = _create_orchestrator(config, [mock_tool])
 
     # Simulate agent returning message history with tool call + result
     orch.agent.invoke.return_value = {
         "messages": [
-            HumanMessage(content="What data is available for AAPL?"),
+            HumanMessage(content="What are AAPL's fundamentals?"),
             AIMessage(
                 content="",
                 tool_calls=[
                     {
-                        "name": "finnhub_get_available_fields",
+                        "name": "finnhub_company_basic_financials",
                         "args": {"ticker": "AAPL"},
                         "id": "call_1",
                     }
                 ],
             ),
             ToolMessage(
-                content='{"ticker": "AAPL", "available_fields": {}}',
+                content='{"ticker": "AAPL", "peTTM": 28.4}',
                 tool_call_id="call_1",
-                name="finnhub_get_available_fields",
+                name="finnhub_company_basic_financials",
             ),
-            AIMessage(content="AAPL has these fields available."),
+            AIMessage(content="AAPL fundamentals summary."),
         ]
     }
 
-    result = orch.run("What data is available for AAPL?")
+    result = orch.run("What are AAPL's fundamentals?")
 
     assert len(result["tool_outputs"]) > 0
-    assert result["tool_outputs"][0]["tool"] == "finnhub_get_available_fields"
+    assert result["tool_outputs"][0]["tool"] == "finnhub_company_basic_financials"
     assert result["tool_outputs"][0]["args"]["ticker"] == "AAPL"
 
 

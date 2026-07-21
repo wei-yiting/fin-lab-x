@@ -9,7 +9,6 @@ that go through edgartools + blocking I/O benefit from explicit
 from backend.agent_engine.tools.news_search import tavily_financial_search
 from backend.agent_engine.tools.finnhub_tools import (
     finnhub_company_basic_financials,
-    finnhub_get_available_fields,
     finnhub_stock_quote,
 )
 from backend.agent_engine.tools.sec_filing import sec_filing_downloader
@@ -22,7 +21,6 @@ from backend.agent_engine.tools.sec_filing_tools import (
 TOOLS_WITHOUT_OBSERVE = [
     finnhub_stock_quote,
     finnhub_company_basic_financials,
-    finnhub_get_available_fields,
     tavily_financial_search,
 ]
 
@@ -68,7 +66,6 @@ def test_all_tools_have_valid_schema():
     expected_schemas = {
         "finnhub_stock_quote": "FinnhubStockQuoteInput",
         "finnhub_company_basic_financials": "FinnhubCompanyBasicFinancialsInput",
-        "finnhub_get_available_fields": "FinnhubGetAvailableFieldsInput",
         "tavily_financial_search": "TavilyFinancialSearchInput",
         "sec_filing_list_sections": "SecFilingListSectionsInput",
         "sec_filing_get_section": "SecFilingGetSectionInput",

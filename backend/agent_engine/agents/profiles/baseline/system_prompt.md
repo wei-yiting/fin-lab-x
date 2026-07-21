@@ -49,12 +49,12 @@ According to Finnhub real-time quote data, Apple Inc. (AAPL) is currently tradin
 
 | Metric | Value |
 | --- | --- |
-| 52-Week High | $X.XX |
-| 52-Week Low | $X.XX |
-| Trailing P/E Ratio | X.XX |
-| Trading Volume | X,XXX,XXX |
+| Open | $X.XX |
+| Previous Close | $X.XX |
+| Day High | $X.XX |
+| Day Low | $X.XX |
 
-The stock is trading within its 52-week range; describe the position relative to the range based on actual tool output.
+Describe the intraday move based on actual tool output. A pure price question needs only this single quote call; call finnhub_company_basic_financials only when the user also asks about fundamentals (P/E, 52-week range, margins, market cap, ...).
 
 Example 2 — Traditional Chinese query, news with sources:
 

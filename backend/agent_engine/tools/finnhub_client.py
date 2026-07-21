@@ -18,19 +18,28 @@ class FieldSpec(NamedTuple):
 
 
 # output key -> (Finnhub `metric` key, neutral English description)
+# Unit conventions (verified against live free-tier responses): ratio/margin/yield
+# values are percentages (47.86 means 47.86%), unlike the response's `series`
+# section which uses fractions; monetary aggregates (marketCapitalization,
+# enterpriseValue) are millions of the issuer's reporting currency, not USD.
 BASIC_FINANCIALS_CATALOG: dict[str, FieldSpec] = {
     "fiftyTwoWeekHigh": FieldSpec("52WeekHigh", "52-week high price"),
     "fiftyTwoWeekLow": FieldSpec("52WeekLow", "52-week low price"),
     "peTTM": FieldSpec("peTTM", "Trailing twelve-month P/E ratio"),
+    "forwardPE": FieldSpec("forwardPE", "Forward P/E ratio"),
     "psTTM": FieldSpec("psTTM", "Trailing twelve-month price-to-sales"),
     "pb": FieldSpec("pbQuarterly", "Price-to-book ratio"),
     "marketCap": FieldSpec(
         "marketCapitalization", "Market capitalization (millions of reporting currency)"
     ),
+    "enterpriseValue": FieldSpec(
+        "enterpriseValue", "Enterprise value (millions of reporting currency)"
+    ),
     "beta": FieldSpec("beta", "Beta coefficient"),
     "epsTTM": FieldSpec("epsTTM", "Earnings per share (TTM)"),
     "roeTTM": FieldSpec("roeTTM", "Return on equity (TTM)"),
     "roaTTM": FieldSpec("roaTTM", "Return on assets (TTM)"),
+    "grossMarginTTM": FieldSpec("grossMarginTTM", "Gross margin (TTM)"),
     "netProfitMarginTTM": FieldSpec(
         "netProfitMarginTTM", "Net profit margin (TTM)"
     ),

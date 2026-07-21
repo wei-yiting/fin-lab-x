@@ -1,9 +1,14 @@
-"""Finnhub agent tools: real-time quote, curated fundamentals, field discovery.
+"""Finnhub agent tools: real-time quote and curated fundamentals.
 
-Three LangChain `@tool` functions backed by the `finnhub_client` domain core.
+Two LangChain `@tool` functions backed by the `finnhub_client` domain core.
 Each tool normalizes the ticker, emits an optional stream event when running in a
 streaming context, and returns a plain dict. Errors bubble up as raised
 exceptions (consistent with the SEC tools), handled by `_HandleToolErrors`.
+
+There is deliberately no field-discovery tool: it would hit the same
+`/stock/metric` endpoint as the fundamentals tool while returning strictly less
+information, doubling the free-tier API cost of every fundamentals question.
+The catalog is small enough to summarize in the tool description instead.
 """
 
 from typing import Annotated, Any
@@ -73,7 +78,14 @@ def finnhub_company_basic_financials(
     ticker: str,
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> dict[str, Any]:
-    """Retrieve curated company fundamentals (52wk H/L, peTTM, marketCap, beta, ROE, margins...) via Finnhub."""
+    """Retrieve curated company fundamentals for a ticker via Finnhub.
+
+    Covers valuation (trailing/forward P/E, P/S, P/B, market cap, enterprise
+    value), 52-week high/low, profitability (gross/operating/net margins, EPS,
+    ROE, ROA), leverage and liquidity (debt-to-equity, current/quick ratio),
+    growth (revenue and EPS TTM YoY), dividend yield, beta, and average volume.
+    Returns only the fields Finnhub actually has for this ticker.
+    """
     try:
         writer = get_stream_writer()
     except Exception:
@@ -94,39 +106,3 @@ def finnhub_company_basic_financials(
         if spec.metric_key in metric and metric[spec.metric_key] is not None:
             out[out_key] = metric[spec.metric_key]
     return out
-
-
-class FinnhubGetAvailableFieldsInput(BaseModel):
-    """Input schema for the Finnhub available-fields discovery tool."""
-
-    ticker: str = Field(
-        ..., description="Stock ticker symbol to query available fields"
-    )
-
-
-@tool("finnhub_get_available_fields", args_schema=FinnhubGetAvailableFieldsInput)
-def finnhub_get_available_fields(
-    ticker: str,
-    tool_call_id: Annotated[str, InjectedToolCallId],
-) -> dict[str, Any]:
-    """Discover which curated fundamental fields Finnhub actually has for this ticker."""
-    try:
-        writer = get_stream_writer()
-    except Exception:
-        writer = None
-    t = ticker.strip().upper()
-    if writer:
-        writer(
-            {
-                "status": "querying_fields",
-                "message": f"Discovering fields for {t}...",
-                "toolName": "finnhub_get_available_fields",
-                "toolCallId": tool_call_id,
-            }
-        )
-    metric = fetch_basic_financials(t)
-    available: dict[str, Any] = {}
-    for out_key, spec in BASIC_FINANCIALS_CATALOG.items():
-        if spec.metric_key in metric and metric[spec.metric_key] is not None:
-            available[out_key] = {"description": spec.description, "available": True}
-    return {"ticker": t, "available_fields": available, "total_fields": len(available)}

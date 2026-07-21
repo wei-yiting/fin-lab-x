@@ -128,13 +128,13 @@ flowchart TD
 
 V3 supports structured numeric queries (e.g., "show me five-year revenue trend") by ingesting yfinance API responses and SEC XBRL — SEC's tagged financial data format — directly into DuckDB. **It does not share the V2 HTML→Markdown pipeline**: source format and downstream consumption pattern are fundamentally different. The two pipelines coexist as independent siblings.
 
-The shared foundation lives under `backend/ingestion/quant_data_pipeline/`:
+The shared foundation lives under `backend/ingestion/fundamentals_pipeline/`:
 
 - `duck_db/schema.sql` — single DDL source for eight tables (companies, market_valuations, quarterly/annual_financials, segment_financials, geographic_revenue, customer_concentration, ingestion_runs) with full `COMMENT ON COLUMN` coverage. Quarterly ↔ annual schemas are kept byte-for-byte mirrored (minus `fiscal_quarter`) by a test guard. `segment_financials` and `geographic_revenue` use a `period_type` discriminator plus a table-level `CHECK` to enforce `(period_type='quarterly' ⇔ fiscal_quarter ∈ 1..4)` and `(period_type='annual' ⇔ fiscal_quarter IS NULL)`.
 - `duck_db/connection.py`, `duck_db/upsert.py`, `duck_db/row_models.py` — connection bootstrap, idempotent column-level merge (`updated_at` managed by the helper, not declared in DTOs), and five Pydantic row DTOs.
 - `calendar_to_fiscal_period.py` — `normalize_fiscal_period(period_end, fiscal_year_end_month)` maps a calendar `period_end` date to `(fiscal_year, fiscal_quarter)`; the only supported conversion path.
 - `quant_ingestion_runs.py` — `ingestion_run(...)` context manager writes one audit row per ETL invocation (success or error) to `ingestion_runs`; records `report.rows_written_total` on both paths so partial-write counts survive exceptions.
-- `quant_retry.py`, `quant_pipeline_errors.py` — `with_retry` exponential-backoff decorator scoped to `TransientError`, plus a six-class flat error taxonomy (root + five leaves) that subsystems subclass for domain-specific errors.
+- `retry.py`, `errors.py` — `with_retry` exponential-backoff decorator scoped to `TransientError`, plus a six-class flat error taxonomy (root + five leaves) that subsystems subclass for domain-specific errors.
 - `config/ticker_universe.yaml` + `ticker_universe_loader.py` — canonical ten-ticker cross-industry universe shared by batch CLI, `validate` subcommand, and agent-side boundary checks.
 
 Subsystem fetchers (yfinance and SEC XBRL) consume this foundation and are out of scope for the foundation PR.

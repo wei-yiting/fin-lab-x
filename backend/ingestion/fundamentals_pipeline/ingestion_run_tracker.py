@@ -1,4 +1,4 @@
-"""Audit wrapper for quant ingestion runs.
+"""Audit wrapper for fundamentals ingestion runs.
 
 Wraps a fetcher invocation in a context manager that writes one
 ``ingestion_runs`` row per call (success or error) with caller-supplied

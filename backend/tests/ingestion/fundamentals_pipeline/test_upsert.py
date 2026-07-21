@@ -4,11 +4,11 @@ from datetime import date, datetime
 import pytest
 from pydantic import BaseModel
 
-from backend.ingestion.quant_data_pipeline.duck_db.row_models import (
+from backend.ingestion.fundamentals_pipeline.duck_db.row_models import (
     CompanyRow,
     YFinanceQuarterlyRow,
 )
-from backend.ingestion.quant_data_pipeline.duck_db.upsert import upsert_rows
+from backend.ingestion.fundamentals_pipeline.duck_db.upsert import upsert_rows
 
 
 def test_empty_list_short_circuit(tmp_duckdb):

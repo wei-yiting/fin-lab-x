@@ -3,13 +3,13 @@ from datetime import date
 import duckdb
 import pytest
 
-from backend.ingestion.quant_data_pipeline.calendar_to_fiscal_period import normalize_fiscal_period
-from backend.ingestion.quant_data_pipeline.duck_db.row_models import (
+from backend.ingestion.fundamentals_pipeline.calendar_to_fiscal_period import normalize_fiscal_period
+from backend.ingestion.fundamentals_pipeline.duck_db.row_models import (
     CompanyRow,
     YFinanceQuarterlyRow,
 )
-from backend.ingestion.quant_data_pipeline.duck_db.upsert import upsert_rows
-from backend.ingestion.quant_data_pipeline.ingestion_run_tracker import (
+from backend.ingestion.fundamentals_pipeline.duck_db.upsert import upsert_rows
+from backend.ingestion.fundamentals_pipeline.ingestion_run_tracker import (
     track_ingestion_run,
 )
 

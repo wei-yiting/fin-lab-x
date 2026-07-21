@@ -4,7 +4,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import TypeVar
 
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import TransientError
+from backend.ingestion.fundamentals_pipeline.errors import TransientError
 
 _T = TypeVar("_T")
 

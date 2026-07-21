@@ -1,8 +1,8 @@
 import pytest
 import yaml
 
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import ConfigurationError
-from backend.ingestion.quant_data_pipeline.ticker_universe_loader import load_ticker_universe
+from backend.ingestion.fundamentals_pipeline.errors import ConfigurationError
+from backend.ingestion.fundamentals_pipeline.ticker_universe_loader import load_ticker_universe
 
 EXPECTED_TICKERS = ["MSFT", "NVDA", "CRM", "WMT", "JPM", "BRK.B", "JNJ", "KO", "XOM", "CAT"]
 

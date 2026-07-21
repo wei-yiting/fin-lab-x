@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import ConfigurationError
+from backend.ingestion.fundamentals_pipeline.errors import ConfigurationError
 
 _UNIVERSE_PATH = Path(__file__).parent / "config" / "ticker_universe.yaml"
 

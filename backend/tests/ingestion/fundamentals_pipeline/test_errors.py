@@ -1,9 +1,9 @@
 import pytest
 
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import (
+from backend.ingestion.fundamentals_pipeline.errors import (
     ConfigurationError,
     DataValidationError,
-    QuantPipelineError,
+    FundamentalsPipelineError,
     SchemaError,
     TickerNotFoundError,
     TransientError,
@@ -20,7 +20,7 @@ SUBCLASSES = [
 
 @pytest.mark.parametrize("cls", SUBCLASSES)
 def test_subclass_inherits_from_base_and_exception(cls):
-    assert issubclass(cls, QuantPipelineError)
+    assert issubclass(cls, FundamentalsPipelineError)
     assert issubclass(cls, Exception)
 
 

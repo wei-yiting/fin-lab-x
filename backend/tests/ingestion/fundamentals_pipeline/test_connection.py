@@ -3,9 +3,9 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from backend.ingestion.quant_data_pipeline.duck_db import connection as connection_module
-from backend.ingestion.quant_data_pipeline.duck_db.connection import get_connection
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import SchemaError
+from backend.ingestion.fundamentals_pipeline.duck_db import connection as connection_module
+from backend.ingestion.fundamentals_pipeline.duck_db.connection import get_connection
+from backend.ingestion.fundamentals_pipeline.errors import SchemaError
 
 EXPECTED_TABLES = {
     "companies",

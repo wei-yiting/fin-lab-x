@@ -1,5 +1,5 @@
 -- ============================================================
--- Quant Data Pipeline — DuckDB Schema
+-- Fundamentals Pipeline — DuckDB Schema
 -- ============================================================
 
 -- companies

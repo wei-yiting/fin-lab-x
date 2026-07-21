@@ -50,7 +50,7 @@ def upsert_rows(
         [f"{c} = EXCLUDED.{c}" for c in non_pk]
         + ["updated_at = now()"]
     )
-    staging_name = f"__quant_upsert_staging_{uuid4().hex[:8]}"
+    staging_name = f"__fundamentals_upsert_staging_{uuid4().hex[:8]}"
     sql = (
         f"INSERT INTO {table} ({', '.join(columns)}) "
         f"SELECT {', '.join(columns)} FROM {staging_name} "

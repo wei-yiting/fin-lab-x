@@ -2,15 +2,15 @@ import logging
 
 import pytest
 
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import TransientError
-from backend.ingestion.quant_data_pipeline.quant_retry import with_retry
+from backend.ingestion.fundamentals_pipeline.errors import TransientError
+from backend.ingestion.fundamentals_pipeline.retry import with_retry
 
 
 @pytest.fixture
 def fake_sleep(monkeypatch):
     recorded: list[float] = []
     monkeypatch.setattr(
-        "backend.ingestion.quant_data_pipeline.quant_retry.time.sleep",
+        "backend.ingestion.fundamentals_pipeline.retry.time.sleep",
         lambda s: recorded.append(s),
     )
     return recorded

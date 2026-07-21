@@ -1,18 +1,18 @@
-"""Shared pytest fixtures for the quant data pipeline foundation tests.
+"""Shared pytest fixtures for the fundamentals pipeline foundation tests.
 
 Subsystem test packages (yfinance, SEC XBRL) can reuse ``tmp_duckdb`` across
 package boundaries either by adding to their own ``conftest.py``::
 
-    pytest_plugins = ["backend.tests.ingestion.quant_data_pipeline.conftest"]
+    pytest_plugins = ["backend.tests.ingestion.fundamentals_pipeline.conftest"]
 
 or by importing the fixture directly::
 
-    from backend.tests.ingestion.quant_data_pipeline.conftest import tmp_duckdb
+    from backend.tests.ingestion.fundamentals_pipeline.conftest import tmp_duckdb
 """
 
 import pytest
 
-from backend.ingestion.quant_data_pipeline.duck_db.connection import get_connection
+from backend.ingestion.fundamentals_pipeline.duck_db.connection import get_connection
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from backend.ingestion.quant_data_pipeline.calendar_to_fiscal_period import (
+from backend.ingestion.fundamentals_pipeline.calendar_to_fiscal_period import (
     normalize_fiscal_period,
 )
 

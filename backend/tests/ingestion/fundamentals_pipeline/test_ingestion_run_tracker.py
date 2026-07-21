@@ -2,10 +2,10 @@ import json
 
 import pytest
 
-from backend.ingestion.quant_data_pipeline.ingestion_run_tracker import (
+from backend.ingestion.fundamentals_pipeline.ingestion_run_tracker import (
     track_ingestion_run,
 )
-from backend.ingestion.quant_data_pipeline.quant_pipeline_errors import TickerNotFoundError
+from backend.ingestion.fundamentals_pipeline.errors import TickerNotFoundError
 
 
 def test_success_path(tmp_duckdb):

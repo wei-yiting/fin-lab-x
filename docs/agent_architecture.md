@@ -16,7 +16,7 @@ FinLab-X utilizes a **Single Orchestrator** pattern. Instead of complex multi-ag
 
 The core AI runtime resides in `backend/agent_engine/`. The directory is organized as follows:
 
-- `agents/`: Central reasoning engine (version-agnostic Orchestrator). Contains `base.py`, `config_loader.py`, and `versions/`.
+- `agents/`: Central reasoning engine (profile-agnostic Orchestrator). Contains `base.py`, `config_loader.py`, and `profiles/`.
 - `tools/`: A library of atomic functions (e.g., `get_stock_price`, `search_sec_filings`).
 - `skills/`: Complex, reusable capabilities (e.g., `perform_discounted_cash_flow_analysis`).
 - `docs/`: Observability strategy and guardrails for Langfuse tracing; tracing wiring itself lives in `agents/base.py` (`CallbackHandler` + `propagate_attributes` + LangChain `config.metadata`).
@@ -25,7 +25,7 @@ The core AI runtime resides in `backend/agent_engine/`. The directory is organiz
 - `core/`: (Planned) Shared core primitives (state, memory).
 - `infrastructure/`: (Planned) Integrations for persistence and external services.
 
-## 3. Versioned Workflow Profiles
+## 3. Workflow Profiles
 
 FinLab-X uses **Workflow Profiles** to manage the evolution of agent capabilities. Each profile is a self-contained configuration that defines how the agent behaves.
 
@@ -33,7 +33,7 @@ FinLab-X uses **Workflow Profiles** to manage the evolution of agent capabilitie
 
 Profiles allow for rapid experimentation and safe rollbacks. By switching a profile ID, the system loads a different set of prompts, tool configurations, and model parameters.
 
-### Versions
+### Capability Tiers
 
 1.  **baseline**: Standard RAG (Retrieval-Augmented Generation) with basic financial tool access.
 2.  **reader**: Optimized for long-context document analysis and multi-document synthesis.
@@ -43,14 +43,48 @@ Profiles allow for rapid experimentation and safe rollbacks. By switching a prof
 
 ### Profile Directory Structure
 
-Each version in `backend/agent_engine/agents/profiles/` currently contains:
+Each profile in `backend/agent_engine/agents/profiles/` currently contains:
 
 - `orchestrator_config.yaml`: Model selection (e.g., GPT-4o, Claude 3.5 Sonnet), temperature, and tool-specific limits.
 
-Future versions (v2+) will include:
+Profiles beyond `baseline` will additionally include:
 
 - `system_prompt.md`: The core identity and behavioral instructions for the agent.
 - `README.md`: Documentation of the profile's specific use cases, strengths, and known limitations.
+
+### Capability tier vs Workflow Profile
+
+Two distinct concepts share the same five names, so it is worth being explicit about which layer a name refers to (see the `Capability tier` and `Workflow Profile` entries in [`CONTEXT.md`](../CONTEXT.md)):
+
+- A **Capability tier** is a *position on the capability ladder* — a roadmap/documentation concept. It answers "how far up the ladder is this agent, and what does it add?" Nothing in the runtime resolves it; the answer lives in the roadmap.
+- A **Workflow Profile** is a *config directory the runtime loads* (`orchestrator_config.yaml` + `system_prompt.md`). It answers "which bundle of prompt, model, and tools does the server start with?" `ProfileConfigLoader` reads the directory and is unaware the ladder exists.
+
+```mermaid
+flowchart TB
+    subgraph concept["Capability tier — concept layer: a position on the capability ladder (roadmap / docs)"]
+        direction LR
+        T1["baseline"] --> T2["reader"] --> T3["quant"] --> T4["graph"] --> T5["analyst"]
+    end
+
+    subgraph physical["Workflow Profile — physical layer: a config directory the runtime loads"]
+        direction LR
+        P1["profiles/baseline/<br/>orchestrator_config.yaml"]
+        P2["profiles/reader/<br/>(placeholder)"]
+        P3["profiles/quant/<br/>(placeholder)"]
+        P4["profiles/graph/<br/>(placeholder)"]
+        P5["profiles/analyst/<br/>(placeholder)"]
+    end
+
+    T1 -. "lends its name to" .-> P1
+    T2 -. "lends its name to" .-> P2
+    T3 -. "lends its name to" .-> P3
+    T4 -. "lends its name to" .-> P4
+    T5 -. "lends its name to" .-> P5
+
+    RT["Runtime (profile-agnostic)<br/>ProfileConfigLoader"] -- "loads a profile;<br/>unaware of the ladder" --> P1
+```
+
+They are 1:1 today, but not by definition. A future eval-only variant (e.g. `baseline_exp_a`) would be a Workflow Profile that is *not* a tier; conversely `graph` and `analyst` are tiers whose profiles are still placeholders. The runtime only ever loads a profile — so code, directories, and the loader all speak "profile", while "tier" stays in the roadmap and these docs.
 
 ## 4. Design Principles
 
@@ -77,26 +111,26 @@ The agent invokes two independent SEC data pipelines depending on the task. They
 flowchart TD
     Agent[Agent Orchestrator]
 
-    subgraph V2 [RAG Pipeline V2 current]
-        V2A[SEC EDGAR HTML]
-        V2B[LocalFilingStore Markdown]
-        V2C[Qdrant dense vectors]
-        V2A --> V2B --> V2C
+    subgraph RAG [RAG path — current]
+        RAG_HTML[SEC EDGAR HTML]
+        RAG_MD[LocalFilingStore Markdown]
+        RAG_VEC[Qdrant dense vectors]
+        RAG_HTML --> RAG_MD --> RAG_VEC
     end
 
-    subgraph V3 [Quant Pipeline V3 planned]
-        V3A[SEC EDGAR XBRL]
-        V3B[DuckDB tables]
-        V3A --> V3B
+    subgraph FUND [fundamentals path — planned]
+        FUND_XBRL[SEC EDGAR XBRL]
+        FUND_DUCK[DuckDB tables]
+        FUND_XBRL --> FUND_DUCK
     end
 
-    Agent -->|search_sec_filings| V2C
-    Agent -->|query_financial_data| V3B
+    Agent -->|search_sec_filings| RAG_VEC
+    Agent -->|query_financial_data| FUND_DUCK
 ```
 
-### V2 — Current RAG Pipeline
+### RAG path — current
 
-V2 retrieves unstructured text from 10-K filings. Two modules:
+The RAG path retrieves unstructured text from 10-K filings. Two modules:
 
 - `backend/ingestion/sec_filing_pipeline/` — downloads HTML from EDGAR, converts to Markdown, persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)` returning a `ParsedFiling`. Granular methods (`resolve_latest_year`, `download_raw`, `parse_raw`) are also public for callers that need finer-grained control or per-step tracing.
 - `backend/ingestion/sec_dense_pipeline/` — chunks the Markdown, embeds with OpenAI `text-embedding-3-large`, stores in Qdrant. Idempotent via per-(ticker, year) commit markers (status `pending` / `complete`).
@@ -124,16 +158,16 @@ flowchart TD
 3. **Filing cache (markdown layer).** On embedding miss, check `LocalFilingStore` for the cached `ParsedFiling`. On hit, re-embed that markdown directly. On miss, call `pipeline.download_raw()` + `pipeline.parse_raw()` to fetch from EDGAR and persist the markdown locally.
 4. **Ingest.** Always runs on embedding miss regardless of filing-cache state. Idempotent via UUID5 point IDs (same content → same IDs → safe re-run).
 
-### V3 — Quant Pipeline (foundation layer in place)
+### Fundamentals path (foundation layer in place)
 
-V3 supports structured numeric queries (e.g., "show me five-year revenue trend") by ingesting yfinance API responses and SEC XBRL — SEC's tagged financial data format — directly into DuckDB. **It does not share the V2 HTML→Markdown pipeline**: source format and downstream consumption pattern are fundamentally different. The two pipelines coexist as independent siblings.
+The fundamentals path supports structured numeric queries (e.g., "show me five-year revenue trend") by ingesting yfinance API responses and SEC XBRL — SEC's tagged financial data format — directly into DuckDB. **It does not share the RAG path's HTML→Markdown pipeline**: source format and downstream consumption pattern are fundamentally different. The two pipelines coexist as independent siblings.
 
 The shared foundation lives under `backend/ingestion/fundamentals_pipeline/`:
 
 - `duck_db/schema.sql` — single DDL source for eight tables (companies, market_valuations, quarterly/annual_financials, segment_financials, geographic_revenue, customer_concentration, ingestion_runs) with full `COMMENT ON COLUMN` coverage. Quarterly ↔ annual schemas are kept byte-for-byte mirrored (minus `fiscal_quarter`) by a test guard. `segment_financials` and `geographic_revenue` use a `period_type` discriminator plus a table-level `CHECK` to enforce `(period_type='quarterly' ⇔ fiscal_quarter ∈ 1..4)` and `(period_type='annual' ⇔ fiscal_quarter IS NULL)`.
 - `duck_db/connection.py`, `duck_db/upsert.py`, `duck_db/row_models.py` — connection bootstrap, idempotent column-level merge (`updated_at` managed by the helper, not declared in DTOs), and five Pydantic row DTOs.
 - `calendar_to_fiscal_period.py` — `normalize_fiscal_period(period_end, fiscal_year_end_month)` maps a calendar `period_end` date to `(fiscal_year, fiscal_quarter)`; the only supported conversion path.
-- `quant_ingestion_runs.py` — `ingestion_run(...)` context manager writes one audit row per ETL invocation (success or error) to `ingestion_runs`; records `report.rows_written_total` on both paths so partial-write counts survive exceptions.
+- `ingestion_run_tracker.py` — `ingestion_run(...)` context manager writes one audit row per ETL invocation (success or error) to `ingestion_runs`; records `report.rows_written_total` on both paths so partial-write counts survive exceptions.
 - `retry.py`, `errors.py` — `with_retry` exponential-backoff decorator scoped to `TransientError`, plus a six-class flat error taxonomy (root + five leaves) that subsystems subclass for domain-specific errors.
 - `config/ticker_universe.yaml` + `ticker_universe_loader.py` — canonical ten-ticker cross-industry universe shared by batch CLI, `validate` subcommand, and agent-side boundary checks.
 

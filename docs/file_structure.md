@@ -99,7 +99,7 @@ A Next.js full-stack application responsible for providing a Generative UI.
 - Enables evaluation, debugging, and continuous improvement.
 
 ### 5.3 Versioned Workflows
-- Each version (v1-v5) is independently callable.
+- Each profile (baseline through analyst) is independently callable.
 - `orchestrator_config.yaml` defines allowed tools and model settings.
 - Enables safe experimentation and easy rollback.
 

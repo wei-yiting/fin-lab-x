@@ -223,7 +223,7 @@ For section-level access without going through the full pipeline (no Markdown co
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Download tool | edgartools (existing dependency) | Free, AI-ready, built-in SEC rate limiting (10 req/sec) and caching, XBRL parsing for future v3 |
+| Download tool | edgartools (existing dependency) | Free, AI-ready, built-in SEC rate limiting (10 req/sec) and caching, XBRL parsing for the future fundamentals path |
 | edgartools role | Download + metadata only | Don't depend on its parsing — keep general HTML parsing skills transferable |
 | Intermediate format | Markdown with heading hierarchy | Best LlamaIndex ecosystem support, human-readable for debugging, preserves all chunking options |
 | HTML→MD converter | html-to-markdown (Rust) + markdownify fallback | ~208 MB/s compresses JIT latency; adapter pattern guarantees cross-platform compatibility |
@@ -231,7 +231,7 @@ For section-level access without going through the full pipeline (no Markdown co
 | LlamaParse | Not used | Portfolio project — practice chunking hands-on, reduce external dependencies and cost |
 | Metadata format | YAML frontmatter in .md | Single file, no orphaned metadata, native support in Obsidian and similar tools |
 | Storage key | `{ticker}/{filing_type}/{fiscal_year}.md` | Naturally unique, flat lookup, no index needed |
-| Table handling | No special treatment — converted to Markdown tables inline | Numeric tables reserved for v3 DuckDB (XBRL); text/mixed tables go through RAG; eval-driven if special handling needed |
+| Table handling | No special treatment — converted to Markdown tables inline | Numeric tables reserved for the fundamentals path (XBRL to DuckDB); text/mixed tables go through the RAG path; eval-driven if special handling needed |
 | Docker platform | `--platform linux/amd64` in Dockerfile | html-to-markdown lacks linux-aarch64 wheel; Rosetta 2 emulation perf impact is negligible |
 
 ## Known Constraints

@@ -8,8 +8,8 @@ A modular AI system providing Just-in-Time (JIT) intelligence for US growth stoc
 The single central LLM brain that plans, selects tools, and manages state. Describes the top-level control flow only: Subagents are Capabilities the Orchestrator acts through, not peer agents behind a router or supervisor.
 
 **Workflow Profile**:
-A versioned config directory that fully defines an Orchestrator's behavior; the runtime code is version-agnostic.
-_Avoid_: hardcoded agent, agent subclass
+A versioned config directory that fully defines an Orchestrator's behavior; the runtime code is version-agnostic. Loaded by `ProfileConfigLoader`; named after the capability tier it realizes.
+_Avoid_: hardcoded agent, agent subclass, workflow version (legacy code vocabulary for the config bundle, retired by the capability-tier rename — the profile's own semver still lives in the `version` field)
 
 **Capability tier**:
 One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. Only `baseline` is implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.

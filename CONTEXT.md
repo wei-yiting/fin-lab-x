@@ -5,8 +5,7 @@ A modular AI system providing Just-in-Time (JIT) intelligence for US growth stoc
 ## Orchestration
 
 **Single Orchestrator**:
-The architecture's one central LLM brain that plans, selects tools, and manages state. Deliberately not a multi-agent router.
-_Avoid_: multi-agent, router, supervisor
+The single central LLM brain that plans, selects tools, and manages state. Describes the top-level control flow only: Subagents are Capabilities the Orchestrator acts through, not peer agents behind a router or supervisor.
 
 **Workflow Profile**:
 A versioned config directory that fully defines an Orchestrator's behavior; the runtime code is version-agnostic.
@@ -18,12 +17,6 @@ _Avoid_: v1–v5 / bare version numbers for agents (legacy naming; collides with
 
 **Capability**:
 Anything the Orchestrator can act through — Tools, Skills, MCP, Subagents. Only Tools (atomic, stateless, strictly-typed functions) exist today; the other three are documented placeholders.
-
-**Progressive Disclosure**:
-Exposing capability metadata to the Orchestrator only when relevant, to protect the context window.
-
-**Code as Interface**:
-The LLM interacts with strictly-typed Python functions and Pydantic schemas, not natural-language tool descriptions.
 
 **Zero Hallucination Policy**:
 Every claim in an answer must be grounded in tool output and carry a citation.
@@ -38,7 +31,7 @@ Fetching, parsing, and embedding a filing on demand at query time instead of pre
 _Avoid_: crawl, prewarm
 
 **Two-path SEC architecture**:
-The two independent SEC data paths — the **RAG path** (filing HTML → Markdown → chunks → Qdrant) and the **fundamentals path** (XBRL → DuckDB). A path is the whole route from source to the store agents query; the ETL programs along it are components, not the path itself.
+The two independent SEC data paths — the **RAG path** (raw filing → parsed document → chunks → Qdrant) and the **fundamentals path** (XBRL → DuckDB). A path is the whole route from source to the store agents query; the ETL programs along it are components, not the path itself.
 _Avoid_: "V2 pipeline" / "V3 pipeline" (legacy vN naming); "Quant path" (collides with the `quant` capability tier)
 
 **Pipeline**:
@@ -64,7 +57,7 @@ The preprocessing stage that promotes raw 10-K markup to semantic heading levels
 The curated ~10–20 ticker set eligible for batch ingestion; anything outside it is served by JIT only.
 
 **Ingestion run**:
-One audited ETL invocation on the fundamentals path, recorded as a row (success or error) in the `ingestion_runs` table.
+One audited ETL invocation on the fundamentals path, recorded as a row (success or error) in the `ingestion_runs` table. The RAG path keeps no run audit; its integrity mechanism is the commit marker.
 
 ## Evaluation
 
@@ -105,6 +98,11 @@ All LLM-judge dimensions score 0/1, one LLM call per criterion — never free-fo
 **sec_retrieval**:
 Names two things: the root trace span on retrieval, and the eval scenario measuring retrieval quality. Qualify which one you mean ("sec_retrieval span" / "sec_retrieval scenario").
 
+## Verification
+
+**Journey**:
+An end-to-end multi-tool user scenario; the unit of journey-level verification. Verification checks that an implementation meets its stated goal — distinct from evaluation, which measures agent quality.
+
 ## Streaming & chat
 
 **Domain Event**:
@@ -112,9 +110,6 @@ A frozen value object (`MessageStart`, `TextDelta`, `ToolCall`, `Finish`, …) f
 
 **Session**:
 One conversation thread, checkpointed under a thread id. The busy-guard rejects concurrent runs on the same session (HTTP 409).
-
-**Journey**:
-An end-to-end multi-tool user scenario; the unit of journey-level verification.
 
 **Waiting indicator**:
 The frontend placeholder shown between sending a message and the first streamed part arriving — it fills perceived latency and has nothing to do with model reasoning.
@@ -126,16 +121,17 @@ Provider reasoning tokens streamed as their own domain events. The word "reasoni
 **Tool progress**:
 A transient sidecar SSE event that updates a running tool card without entering message history.
 
-**Defer-to-ready**:
-The citation strategy: source extraction runs exactly once when the stream finishes, never during streaming.
+**Extract-on-finish**:
+The citation strategy: source extraction runs exactly once when the stream finishes (status leaves `streaming` — ready, error, or stop), never during streaming.
+_Avoid_: defer-to-ready (superseded name)
 
 ## Design calibration
 
 **Design Envelope**:
-The calibration contract fixing the project's scale (portfolio demo, ≤3 concurrent users, 1 operator). Robustness beyond it is over-engineering; shortcuts inside Production-Grade Zones are under-engineering — equal-severity findings.
+The calibration contract fixing the project's scale — the numbers live in `docs/design-envelope.md` (SSOT). Robustness beyond it is over-engineering; shortcuts inside Production-Grade Zones are under-engineering — equal-severity findings.
 
 **Production-Grade Zone**:
-An area held to full production standard because it is the portfolio value itself. The authoritative zone list and per-zone standards live in design-envelope §4 — never enumerate them elsewhere.
+An area held to full production standard because it is the portfolio value itself; the authoritative zone list and per-zone standards live in design-envelope §4.
 
 **Defer until evidence**:
 Postponing a design decision until an eval result or incident demonstrates the need. An anti-over-engineering discipline; not a form of EDD.

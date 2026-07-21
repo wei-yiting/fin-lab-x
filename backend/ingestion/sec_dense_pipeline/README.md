@@ -21,7 +21,7 @@ chunks = await search(query="NVIDIA export control risks", top_k=10)
 
 ## Key Components
 
-- **`vectorizer.py`** -- Ingestion: parses markdown into section-aware chunks, generates embeddings, upserts into Qdrant. Manages sentinel points to track ingestion status per (ticker, year).
+- **`vectorizer.py`** -- Ingestion: parses markdown into section-aware chunks, generates embeddings, upserts into Qdrant. Manages commit-marker points to track ingestion status per (ticker, year).
 - **`retriever.py`** -- Search: embeds a query, runs vector similarity search against Qdrant, and returns ranked `Chunk` results. Supports JIT (just-in-time) ingestion when a requested filing is not yet indexed.
 
 ## Qdrant Payload Schema
@@ -41,7 +41,7 @@ Each **content point** stores:
 | `text` | string | Chunk text content |
 | `ingested_at` | string | ISO 8601 ingestion timestamp |
 
-Each **sentinel point** stores `ticker`, `year`, and `status` (`"pending"` or `"complete"`).
+Each **commit marker** stores `ticker`, `year`, and `status` (`"pending"` or `"complete"`).
 
 ## Environment Variables
 
@@ -75,9 +75,9 @@ Defined in `retriever.py`:
 When `search()` receives a filter with `ticker` (and optionally `year`):
 
 1. **Year resolution.** If `year` is specified, use it. If omitted, call `SECFilingPipeline.resolve_latest_year(ticker, "10-K")` — a cheap EDGAR metadata lookup — to learn the truly latest year. Local store is never consulted for "what is latest"; EDGAR is the source of truth.
-2. **Embedding cache check.** Look up the (ticker, resolved_year) sentinel in Qdrant. If status is `complete`, JIT is skipped and search proceeds against existing embeddings.
+2. **Embedding cache check.** Look up the (ticker, resolved_year) commit marker in Qdrant. If status is `complete`, JIT is skipped and search proceeds against existing embeddings.
 3. **Filing acquisition.** On embedding miss: check `LocalFilingStore` for a cached `ParsedFiling`. If missing, call `pipeline.download_raw()` then `pipeline.parse_raw()` to fetch from EDGAR and persist the markdown locally.
-4. **Ingestion.** Run `ingest_filing()` to chunk, embed, and upsert into Qdrant. Sentinel transitions `pending` → `complete`.
+4. **Ingestion.** Run `ingest_filing()` to chunk, embed, and upsert into Qdrant. The commit marker transitions `pending` → `complete`.
 5. **Disable.** If `SEC_DISABLE_JIT=1` is set, all of the above is skipped and `JITDisabledError` is raised.
 
 Error mapping: `TickerNotFoundError` from EDGAR becomes `JITInvalidTickerError`, `FilingNotFoundError` becomes `JITFilingNotFoundError` (both subclasses of `JITTickerNotFoundError` so a single `except JITTickerNotFoundError` still catches both). `ConfigurationError` propagates unchanged. Other `SECError` subtypes (e.g., `TransientError`) fall through to the outer handler and are wrapped as `CorpusUnavailableError`. All SEC domain errors are defined in `backend/common/sec_core.py`. Qdrant HTTP 404 responses also surface as `CorpusUnavailableError` via explicit `UnexpectedResponse.status_code` checking — no substring matching on error messages.

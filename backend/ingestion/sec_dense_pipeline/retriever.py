@@ -12,7 +12,7 @@ from backend.ingestion.sec_dense_pipeline.collection_schema import (
 )
 from backend.ingestion.sec_dense_pipeline.common import (
     canonicalize_ticker,
-    check_sentinel_complete,
+    check_commit_marker_complete,
 )
 from backend.utils.span_tracing import traced_span
 from backend.ingestion.sec_dense_pipeline.vectorizer import (
@@ -72,11 +72,13 @@ def _check_caches(
 ) -> tuple[bool, bool]:
     """Return (embedding_cache_hit, filing_cache_hit).
 
-    Both checks are cheap: Qdrant sentinel lookup + local filesystem exists.
+    Both checks are cheap: Qdrant commit-marker lookup + local filesystem exists.
     Checking both unconditionally keeps the span's output schema uniform so
     the Langfuse UI always shows both flags side by side.
     """
-    embedding_hit = check_sentinel_complete(qdrant_client, collection, ticker, year)
+    embedding_hit = check_commit_marker_complete(
+        qdrant_client, collection, ticker, year
+    )
     filing_hit = LocalFilingStore().exists(ticker, FilingType.TEN_K, year)
     return embedding_hit, filing_hit
 

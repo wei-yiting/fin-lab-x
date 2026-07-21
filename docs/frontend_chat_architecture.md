@@ -198,14 +198,14 @@ stateDiagram-v2
 
 The non-obvious behaviors of `@ai-sdk/react@3.0.144` + `ai@6.0.142` — SSE error routing, `stop()` semantics, partial-turn regenerate, wire format quirks — are documented in a dedicated reference: [`ai_sdk_v6_contract_findings.md`](./ai_sdk_v6_contract_findings.md).
 
-## 7. Markdown & Sources: Defer-to-Ready
+## 7. Markdown & Sources: Extract-on-Finish
 
 `react-markdown` does not expose unified's `file.data`, so a remark plugin cannot return `ExtractedSources` back to React. Two options were considered and rejected:
 
 1. Run a standalone `extractSources(text)` on every `text-delta` — forces two full parses per delta and pushes `AssistantMessage` into stateful territory.
 2. Patch `react-markdown` internals — not worth the maintenance burden.
 
-The shipped strategy is **defer-to-ready**:
+The shipped strategy is **extract-on-finish**:
 
 - While `status === 'streaming' && isLast`, skip `extractSources` entirely. Raw `[N]: url "title"` definition lines are briefly visible in the stream; `[N]` stays as literal text; no Sources block; no RefSup.
 - When `status` leaves `streaming` (ready / error / stop), a `useMemo` in `AssistantMessage` runs `extractSources` exactly once. The derived text (with definition lines stripped) plus the sources array is handed to the stateless `Markdown` organism and the `Sources` molecule.

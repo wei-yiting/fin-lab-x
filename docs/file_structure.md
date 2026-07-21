@@ -45,7 +45,7 @@ The core, independent AI logic (agents, tools, skills). Designed to run independ
 Data ingestion pipelines that land source material into their respective stores. Each subdirectory is an independent pipeline; they share only the cross-pipeline utilities under `backend/utils/`.
 
 - **`sec_filing_pipeline/`**: Downloads SEC 10-K/10-Q HTML from EDGAR, converts to Markdown, persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)`.
-- **`sec_dense_pipeline/`**: Chunks filing Markdown, embeds via OpenAI, upserts into Qdrant. Idempotent per `(ticker, year)` sentinel points. `retriever.search()` is the single Langfuse trace root for RAG queries.
+- **`sec_dense_pipeline/`**: Chunks filing Markdown, embeds via OpenAI, upserts into Qdrant. Idempotent per `(ticker, year)` commit markers. `retriever.search()` is the single Langfuse trace root for RAG queries.
 - **`quant_data_pipeline/`**: Foundation layer shared by yfinance and SEC XBRL subsystems — DuckDB connection/schema, Pydantic row DTOs, `upsert_rows()` column-level merge, `ingestion_run()` audit context manager, retry decorator, calendar-to-fiscal-period helper, error taxonomy, ticker universe YAML + loader. See module README for the full public API.
 
 ### 2.4 Cross-Pipeline Utilities (`backend/utils/`)

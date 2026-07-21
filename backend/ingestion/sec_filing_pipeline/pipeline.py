@@ -124,8 +124,8 @@ class SECFilingPipeline:
         """Return EDGAR's latest fiscal year for a ticker without downloading content.
 
         Cheap metadata-only call. Use this when you need to know the truly latest
-        year before deciding whether a cache hit (e.g., embedding sentinel) is
-        actually current.
+        year before deciding whether a cache hit (e.g., the embedding commit
+        marker) is actually current.
         """
         self._validate_filing_type(filing_type)
         return self._downloader.get_latest_fiscal_year(ticker, filing_type)

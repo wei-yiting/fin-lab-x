@@ -125,11 +125,11 @@ async def run_sec_retrieval(input: Any) -> dict:
 
 
 async def run_v1(input: Any) -> OrchestratorResult:
-    """Braintrust task function: run v1_baseline agent via async streaming.
+    """Braintrust task function: run baseline agent via async streaming.
 
     Uses astream_run() to match the production API code path.
     """
-    orchestrator = _get_orchestrator("v1_baseline")
+    orchestrator = _get_orchestrator("baseline")
     if isinstance(input, str):
         prompt = input
     elif isinstance(input, Mapping):

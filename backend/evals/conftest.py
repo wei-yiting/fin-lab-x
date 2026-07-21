@@ -32,6 +32,6 @@ def _clear_if_available() -> None:
 @pytest.fixture(scope="module")
 def orchestrator():
     """Real Orchestrator with actual LLM — used for eval tests only."""
-    config = VersionConfigLoader("v1_baseline").load()
+    config = VersionConfigLoader("baseline").load()
     with SqliteSaver.from_conn_string(":memory:") as checkpointer:
         yield Orchestrator(config, checkpointer=checkpointer)

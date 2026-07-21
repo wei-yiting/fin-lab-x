@@ -112,7 +112,7 @@ def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Task 9: two-step SEC tool registration + v1_baseline prompt strategy
+# Task 9: two-step SEC tool registration + baseline prompt strategy
 # ---------------------------------------------------------------------------
 
 
@@ -121,7 +121,7 @@ V1_BASELINE_PROMPT_PATH = (
     / "agent_engine"
     / "agents"
     / "versions"
-    / "v1_baseline"
+    / "baseline"
     / "system_prompt.md"
 )
 
@@ -139,17 +139,17 @@ _V1_BASELINE_TOOLS = [
 ]
 
 EXPECTED_TOOLS_BY_VERSION = {
-    "v1_baseline": _V1_BASELINE_TOOLS,
-    "v2_reader": _V1_BASELINE_TOOLS,
-    "v3_quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
-    "v4_graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
-    "v5_analyst": _V1_BASELINE_TOOLS
+    "baseline": _V1_BASELINE_TOOLS,
+    "reader": _V1_BASELINE_TOOLS,
+    "quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
+    "graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
+    "analyst": _V1_BASELINE_TOOLS
     + ["duckdb_query", "text_to_sql", "neo4j_query", "text_to_cypher"],
 }
 
 
-def test_v1_baseline_system_prompt_advertises_sec_tools():
-    """The v1_baseline prompt must point the agent at the two-step SEC tools.
+def test_baseline_system_prompt_advertises_sec_tools():
+    """The baseline prompt must point the agent at the two-step SEC tools.
 
     The detailed strategy (10-K item table, fiscal_year-passing rules, stub
     semantics, soft-cap behavior) was moved into the sec_filing_list_sections
@@ -164,11 +164,11 @@ def test_v1_baseline_system_prompt_advertises_sec_tools():
     assert "{section_soft_cap_chars}" not in text
 
 
-def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
-    """Building the real v1_baseline Orchestrator must produce a non-empty
+def test_orchestrator_baseline_renders_prompt_end_to_end(monkeypatch):
+    """Building the real baseline Orchestrator must produce a non-empty
     rendered system prompt with no unsubstituted placeholders.
 
-    The v1_baseline prompt no longer references {section_soft_cap_chars}
+    The baseline prompt no longer references {section_soft_cap_chars}
     (it was moved to the SEC tool's reading_guide), so this test now only
     checks that rendering succeeds and the SEC tool pointer survives.
 
@@ -177,7 +177,7 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
     not actual model wiring.
     """
     monkeypatch.setenv("EDGAR_IDENTITY", "test@example.com")
-    config = VersionConfigLoader("v1_baseline").load()
+    config = VersionConfigLoader("baseline").load()
 
     with (
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,

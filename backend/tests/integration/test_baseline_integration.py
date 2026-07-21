@@ -1,4 +1,4 @@
-"""Integration tests for v1 orchestrator.
+"""Integration tests for the baseline orchestrator.
 
 Tests mock create_agent at the Orchestrator level, simulating the agent's
 message history output to verify _extract_result correctly parses responses
@@ -54,7 +54,7 @@ def test_yfinance_tool_integration():
     """Test that yfinance tool output is correctly extracted."""
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=["yfinance_get_available_fields"],
     )
@@ -98,7 +98,7 @@ def test_tavily_tool_integration():
     """Test that tavily tool output is correctly extracted."""
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=["tavily_financial_search"],
     )
@@ -141,7 +141,7 @@ def test_sec_tool_integration():
     """Test that SEC tool output is correctly extracted."""
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=["sec_filing_list_sections"],
     )
@@ -185,7 +185,7 @@ def test_multi_tool_integration():
     """Test that multiple tools called in sequence are all extracted."""
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=["yfinance_stock_quote", "tavily_financial_search"],
     )
@@ -248,7 +248,7 @@ def test_zero_hallucination_policy():
     """Test that response without tool calls is correctly extracted."""
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
     )
@@ -272,17 +272,17 @@ def test_zero_hallucination_policy():
 
 
 def test_config_loading_from_yaml():
-    config = VersionConfigLoader("v1_baseline").load()
+    config = VersionConfigLoader("baseline").load()
 
     assert config.version == "0.1.0"
-    assert config.name == "v1_baseline"
+    assert config.name == "baseline"
     assert "yfinance_stock_quote" in config.tools
     assert "tavily_financial_search" in config.tools
     assert config.model.name == "gpt-4o-mini"
 
 
 def test_system_prompt_loaded_from_file():
-    config = VersionConfigLoader("v1_baseline").load()
+    config = VersionConfigLoader("baseline").load()
 
     assert config.system_prompt is not None
     assert "ZERO HALLUCINATION" in config.system_prompt
@@ -303,7 +303,7 @@ def test_tool_registry_has_tools():
 def test_orchestrator_uses_config_system_prompt():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         system_prompt="Custom test prompt",
@@ -318,7 +318,7 @@ def test_orchestrator_uses_config_system_prompt():
 def test_orchestrator_falls_back_to_default_prompt():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         system_prompt=None,
@@ -332,7 +332,7 @@ def test_orchestrator_falls_back_to_default_prompt():
 def test_extract_result_empty_messages():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
     )
@@ -347,7 +347,7 @@ def test_extract_result_empty_messages():
 def test_extract_result_no_final_ai_message():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=["yfinance_stock_quote"],
     )

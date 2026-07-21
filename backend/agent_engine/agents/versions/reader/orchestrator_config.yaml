@@ -1,12 +1,12 @@
 # =============================================================================
 # NOTE: This configuration is illustrative / placeholder only.
 # The tools, model settings, and constraints below are preliminary and subject
-# to change once the v3_quant workflow is fully implemented and validated.
+# to change once the reader workflow is fully implemented and validated.
 # =============================================================================
 
-version: "0.3.0"
-name: "v3_quant"
-description: "Numerical reasoning, data visualization, and quantitative modeling"
+version: "0.2.0"
+name: "reader"
+description: "Long-context document analysis and multi-document synthesis"
 
 tools:
   - yfinance_stock_quote
@@ -14,12 +14,10 @@ tools:
   - tavily_financial_search
   - sec_filing_list_sections
   - sec_filing_get_section
-  - duckdb_query
-  - text_to_sql
 
 model:
   name: "gpt-4o"
   temperature: 0.0
 
 constraints:
-  max_tool_calls_per_run: 8
+  max_tool_calls_per_run: 5

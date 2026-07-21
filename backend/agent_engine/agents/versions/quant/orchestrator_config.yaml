@@ -1,12 +1,12 @@
 # =============================================================================
 # NOTE: This configuration is illustrative / placeholder only.
 # The tools, model settings, and constraints below are preliminary and subject
-# to change once the v5_analyst workflow is fully implemented and validated.
+# to change once the quant workflow is fully implemented and validated.
 # =============================================================================
 
-version: "0.5.0"
-name: "v5_analyst"
-description: "Comprehensive investment research assistant combining all capabilities"
+version: "0.3.0"
+name: "quant"
+description: "Numerical reasoning, data visualization, and quantitative modeling"
 
 tools:
   - yfinance_stock_quote
@@ -16,12 +16,10 @@ tools:
   - sec_filing_get_section
   - duckdb_query
   - text_to_sql
-  - neo4j_query
-  - text_to_cypher
 
 model:
   name: "gpt-4o"
   temperature: 0.0
 
 constraints:
-  max_tool_calls_per_run: 15
+  max_tool_calls_per_run: 8

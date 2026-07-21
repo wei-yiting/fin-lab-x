@@ -465,7 +465,7 @@ class Orchestrator:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
 
         trace_name is derived from agent version + endpoint mode, e.g.
-        ``v1_baseline_stream``. request_id + extras (trigger, message_id, ...)
+        ``baseline_stream``. request_id + extras (trigger, message_id, ...)
         go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
         attaches them to the root trace via the ``langfuse_trace_name`` path.
         """

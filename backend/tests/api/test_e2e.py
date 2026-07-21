@@ -50,7 +50,7 @@ def test_e2e_chat_flow():
         mock_ctx.__aexit__ = AsyncMock(return_value=False)
         mock_sqlite_cls.from_conn_string.return_value = mock_ctx
 
-        config = VersionConfigLoader("v1_baseline").load()
+        config = VersionConfigLoader("baseline").load()
         with TestClient(app) as client:
             response = client.post(
                 "/api/v1/chat/invoke", json={"message": "Analyze AAPL"}
@@ -66,7 +66,7 @@ def test_e2e_chat_flow():
 def test_e2e_tool_registry_populated():
     from backend.agent_engine.tools.registry import get_tools_by_names
 
-    config = VersionConfigLoader("v1_baseline").load()
+    config = VersionConfigLoader("baseline").load()
     tools = get_tools_by_names(config.tools)
 
     assert tools

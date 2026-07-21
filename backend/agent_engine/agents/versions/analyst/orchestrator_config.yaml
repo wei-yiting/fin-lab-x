@@ -1,12 +1,12 @@
 # =============================================================================
 # NOTE: This configuration is illustrative / placeholder only.
 # The tools, model settings, and constraints below are preliminary and subject
-# to change once the v4_graph workflow is fully implemented and validated.
+# to change once the analyst workflow is fully implemented and validated.
 # =============================================================================
 
-version: "0.4.0"
-name: "v4_graph"
-description: "Knowledge graph-based corporate relationship and supply chain analysis"
+version: "0.5.0"
+name: "analyst"
+description: "Comprehensive investment research assistant combining all capabilities"
 
 tools:
   - yfinance_stock_quote
@@ -14,6 +14,8 @@ tools:
   - tavily_financial_search
   - sec_filing_list_sections
   - sec_filing_get_section
+  - duckdb_query
+  - text_to_sql
   - neo4j_query
   - text_to_cypher
 
@@ -22,4 +24,4 @@ model:
   temperature: 0.0
 
 constraints:
-  max_tool_calls_per_run: 10
+  max_tool_calls_per_run: 15

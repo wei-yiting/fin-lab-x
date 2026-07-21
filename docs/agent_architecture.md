@@ -35,11 +35,11 @@ Profiles allow for rapid experimentation and safe rollbacks. By switching a prof
 
 ### Versions
 
-1.  **v1_baseline**: Standard RAG (Retrieval-Augmented Generation) with basic financial tool access.
-2.  **v2_reader**: Optimized for long-context document analysis and multi-document synthesis.
-3.  **v3_quant**: Specialized in numerical reasoning, data visualization, and quantitative modeling.
-4.  **v4_graph**: Leverages knowledge graphs to understand complex corporate relationships and supply chains.
-5.  **v5_analyst**: The flagship profile, combining all previous capabilities into a comprehensive investment research assistant.
+1.  **baseline**: Standard RAG (Retrieval-Augmented Generation) with basic financial tool access.
+2.  **reader**: Optimized for long-context document analysis and multi-document synthesis.
+3.  **quant**: Specialized in numerical reasoning, data visualization, and quantitative modeling.
+4.  **graph**: Leverages knowledge graphs to understand complex corporate relationships and supply chains.
+5.  **analyst**: The flagship profile, combining all previous capabilities into a comprehensive investment research assistant.
 
 ### Profile Directory Structure
 

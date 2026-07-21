@@ -2,11 +2,11 @@
 Versioned workflow configurations (v1-v5). This directory stores the declarative definitions for different agent analysis profiles, allowing the system to switch between different reasoning strategies and toolsets.
 
 ## Map
-- `v1_baseline/`: Standard RAG financial analysis profile.
-- `v2_reader/`: Profile optimized for long-context document synthesis and extraction.
-- `v3_quant/`: Profile focused on numerical reasoning and quantitative modeling.
-- `v4_graph/`: Profile utilizing knowledge graph-based analysis.
-- `v5_analyst/`: Comprehensive investment research assistant profile.
+- `baseline/`: Standard RAG financial analysis profile.
+- `reader/`: Profile optimized for long-context document synthesis and extraction.
+- `quant/`: Profile focused on numerical reasoning and quantitative modeling.
+- `graph/`: Profile utilizing knowledge graph-based analysis.
+- `analyst/`: Comprehensive investment research assistant profile.
 - **Key Files per Version**:
     - `orchestrator_config.yaml`: Defines the version string, tool list, model parameters, and runtime constraints.
     - `system_prompt.md`: Contains the specific system instructions and persona for the agent version.

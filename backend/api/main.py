@@ -23,7 +23,7 @@ from backend.api.routers import chat, chat_invoke  # noqa: E402
 logger = logging.getLogger(__name__)
 
 APP_VERSION = "0.1.0"
-DEFAULT_WORKFLOW_VERSION = "v1_baseline"
+DEFAULT_WORKFLOW_VERSION = "baseline"
 
 
 @asynccontextmanager

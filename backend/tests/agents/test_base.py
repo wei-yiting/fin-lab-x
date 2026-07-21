@@ -27,7 +27,7 @@ def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Orchestrato
 def test_orchestrator_initialization_with_config():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=["yfinance_stock_quote"],
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
@@ -37,14 +37,14 @@ def test_orchestrator_initialization_with_config():
     mock_tool.name = "yfinance_stock_quote"
 
     orch = _create_orchestrator(config, [mock_tool])
-    assert orch.config.name == "v1_baseline"
+    assert orch.config.name == "baseline"
     assert len(orch.tools) == 1
 
 
 def test_orchestrator_run_returns_response():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
@@ -69,7 +69,7 @@ def test_orchestrator_uses_config_system_prompt():
     custom_prompt = "You are a custom financial assistant."
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         system_prompt=custom_prompt,
@@ -82,7 +82,7 @@ def test_orchestrator_uses_config_system_prompt():
 def test_orchestrator_falls_back_to_default_prompt():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         system_prompt=None,
@@ -105,7 +105,7 @@ def test_orchestrator_falls_back_to_default_prompt():
 def test_orchestrator_result_has_typed_structure():
     config = VersionConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
     )

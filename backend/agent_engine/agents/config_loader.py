@@ -29,7 +29,7 @@ class VersionConfig(BaseModel):
 
     Fields:
         version: Semantic version string (e.g., "0.1.0")
-        name: Version identifier (e.g., "v1_baseline")
+        name: Version identifier (e.g., "baseline")
         description: Human-readable description of this version's capabilities
         tools: List of tool names to load from the tool registry
         model: LLM model configuration
@@ -59,7 +59,7 @@ class VersionConfigLoader:
         """Initialize loader for a specific version.
 
         Args:
-            version_name: Name of the version (e.g., 'v1_baseline', 'v2_reader')
+            version_name: Name of the version (e.g., 'baseline', 'reader')
         """
         self.version_name = version_name
         self.config_path = self.VERSIONS_DIR / version_name / "orchestrator_config.yaml"
@@ -110,7 +110,7 @@ class VersionConfigLoader:
         """
         versions = []
         for item in cls.VERSIONS_DIR.iterdir():
-            if item.is_dir() and item.name.startswith("v"):
+            if item.is_dir():
                 config_file = item / "orchestrator_config.yaml"
                 if config_file.exists():
                     versions.append(item.name)

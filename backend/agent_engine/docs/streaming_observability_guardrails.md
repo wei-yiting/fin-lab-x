@@ -67,7 +67,7 @@ Set request-level correlation attributes (`session_id`, `request_id`, `trace_nam
        "callbacks": [handler],
        "run_name": "chat-turn",
        "metadata": {
-           "langfuse_trace_name": "v1_baseline_stream",
+           "langfuse_trace_name": "baseline_stream",
            "langfuse_session_id": session_id,
            "request_id": request_id,
        },

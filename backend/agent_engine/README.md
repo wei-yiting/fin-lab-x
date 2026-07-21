@@ -54,7 +54,7 @@ Langfuse integration traces all AI agent execution in FinLab-X. Requires `langfu
 | Mechanism | Where | What It Does |
 |---|---|---|
 | `CallbackHandler` | Per-request instance built in `_build_langfuse_config()` | Auto-traces LLM calls, tool dispatch, chain steps (including tool I/O) |
-| `config["metadata"]["langfuse_trace_name"]` | `f"{VersionConfig.name}_{mode}"` in `_build_langfuse_config()` | Renames root trace (`v1_baseline_stream` / `v1_baseline_invoke`) via Langfuse ≥4.3.1 PR #1626 |
+| `config["metadata"]["langfuse_trace_name"]` | `f"{VersionConfig.name}_{mode}"` in `_build_langfuse_config()` | Renames root trace (`baseline_stream` / `baseline_invoke`) via Langfuse ≥4.3.1 PR #1626 |
 | `config["run_name"]` | `"chat-turn"` in `_build_langfuse_config()` | Renames the LangChain root chain span so it's not called `LangGraph` |
 | `config["metadata"]["request_id"]` | `uuid.uuid4().hex` minted per FastAPI request | Per-request correlation attribute |
 | `propagate_attributes(trace_name=..., session_id=...)` | Wraps `invoke`/`ainvoke`/`astream` in `Orchestrator` | Sets `trace_name` on OTel context + propagates session_id to children (incl. any `@observe` tools) |
@@ -116,11 +116,11 @@ Decorator stacking order: `@tool` (outer) → `@observe` (inner).
 
 Each version has an independent `orchestrator_config.yaml` defining available tools and model settings:
 
-- **v1_baseline (0.1.0)**: Naive single-chain financial analysis
-- **v2_reader (0.2.0)**: Long-context document analysis with RAG
-- **v3_quant (0.3.0)**: Numerical reasoning and quantitative modeling
-- **v4_graph (0.4.0)**: Knowledge graph-based analysis
-- **v5_analyst (0.5.0)**: Comprehensive investment research assistant
+- **baseline (0.1.0)**: Naive single-chain financial analysis
+- **reader (0.2.0)**: Long-context document analysis with RAG
+- **quant (0.3.0)**: Numerical reasoning and quantitative modeling
+- **graph (0.4.0)**: Knowledge graph-based analysis
+- **analyst (0.5.0)**: Comprehensive investment research assistant
 
 ## Usage
 
@@ -129,7 +129,7 @@ from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.agents.config_loader import VersionConfigLoader
 
 # Load version config
-config_loader = VersionConfigLoader('v1_baseline')
+config_loader = VersionConfigLoader('baseline')
 config = config_loader.load()
 
 # Initialize orchestrator
@@ -144,7 +144,7 @@ result = orchestrator.run("Analyze AAPL stock")
 ```python
 from backend.agent_engine.agents.config_loader import VersionConfigLoader
 
-loader = VersionConfigLoader('v1_baseline')
+loader = VersionConfigLoader('baseline')
 config = loader.load()
 
 print(config.tools)  # ['yfinance_stock_quote', 'yfinance_get_available_fields', ...]

@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from backend.agent_engine.agents.base import Orchestrator, OrchestratorResult
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     StreamError,
@@ -24,9 +24,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 
 @functools.lru_cache(maxsize=4)
-def _get_orchestrator(version: str) -> Orchestrator:
-    """Return a cached Orchestrator for the given version to avoid repeated init."""
-    config = VersionConfigLoader(version).load()
+def _get_orchestrator(profile: str) -> Orchestrator:
+    """Return a cached Orchestrator for the given profile to avoid repeated init."""
+    config = ProfileConfigLoader(profile).load()
     return Orchestrator(config, checkpointer=None)
 
 
@@ -124,12 +124,12 @@ async def run_sec_retrieval(input: Any) -> dict:
     return {"retrieved_chunks": [chunk.model_dump() for chunk in chunks]}
 
 
-async def run_v1(input: Any) -> OrchestratorResult:
-    """Braintrust task function: run v1_baseline agent via async streaming.
+async def run_baseline(input: Any) -> OrchestratorResult:
+    """Braintrust task function: run baseline agent via async streaming.
 
     Uses astream_run() to match the production API code path.
     """
-    orchestrator = _get_orchestrator("v1_baseline")
+    orchestrator = _get_orchestrator("baseline")
     if isinstance(input, str):
         prompt = input
     elif isinstance(input, Mapping):

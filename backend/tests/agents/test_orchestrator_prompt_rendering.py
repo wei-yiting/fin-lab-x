@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 from backend.agent_engine.utils import model_context
 from backend.common.sec_core import ConfigurationError
 
@@ -112,7 +112,7 @@ def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Task 9: two-step SEC tool registration + v1_baseline prompt strategy
+# Task 9: two-step SEC tool registration + baseline prompt strategy
 # ---------------------------------------------------------------------------
 
 
@@ -120,13 +120,13 @@ V1_BASELINE_PROMPT_PATH = (
     Path(__file__).resolve().parents[2]
     / "agent_engine"
     / "agents"
-    / "versions"
-    / "v1_baseline"
+    / "profiles"
+    / "baseline"
     / "system_prompt.md"
 )
 
-VERSIONS_DIR = (
-    Path(__file__).resolve().parents[2] / "agent_engine" / "agents" / "versions"
+PROFILES_DIR = (
+    Path(__file__).resolve().parents[2] / "agent_engine" / "agents" / "profiles"
 )
 
 
@@ -138,18 +138,18 @@ _V1_BASELINE_TOOLS = [
     "sec_filing_get_section",
 ]
 
-EXPECTED_TOOLS_BY_VERSION = {
-    "v1_baseline": _V1_BASELINE_TOOLS,
-    "v2_reader": _V1_BASELINE_TOOLS,
-    "v3_quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
-    "v4_graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
-    "v5_analyst": _V1_BASELINE_TOOLS
+EXPECTED_TOOLS_BY_PROFILE = {
+    "baseline": _V1_BASELINE_TOOLS,
+    "reader": _V1_BASELINE_TOOLS,
+    "quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
+    "graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
+    "analyst": _V1_BASELINE_TOOLS
     + ["duckdb_query", "text_to_sql", "neo4j_query", "text_to_cypher"],
 }
 
 
-def test_v1_baseline_system_prompt_advertises_sec_tools():
-    """The v1_baseline prompt must point the agent at the two-step SEC tools.
+def test_baseline_system_prompt_advertises_sec_tools():
+    """The baseline prompt must point the agent at the two-step SEC tools.
 
     The detailed strategy (10-K item table, fiscal_year-passing rules, stub
     semantics, soft-cap behavior) was moved into the sec_filing_list_sections
@@ -164,11 +164,11 @@ def test_v1_baseline_system_prompt_advertises_sec_tools():
     assert "{section_soft_cap_chars}" not in text
 
 
-def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
-    """Building the real v1_baseline Orchestrator must produce a non-empty
+def test_orchestrator_baseline_renders_prompt_end_to_end(monkeypatch):
+    """Building the real baseline Orchestrator must produce a non-empty
     rendered system prompt with no unsubstituted placeholders.
 
-    The v1_baseline prompt no longer references {section_soft_cap_chars}
+    The baseline prompt no longer references {section_soft_cap_chars}
     (it was moved to the SEC tool's reading_guide), so this test now only
     checks that rendering succeeds and the SEC tool pointer survives.
 
@@ -177,7 +177,7 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
     not actual model wiring.
     """
     monkeypatch.setenv("EDGAR_IDENTITY", "test@example.com")
-    config = VersionConfigLoader("v1_baseline").load()
+    config = ProfileConfigLoader("baseline").load()
 
     with (
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
@@ -226,12 +226,12 @@ def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):
     assert get_tool("sec_official_docs_retriever") is None
 
 
-@pytest.mark.parametrize("version", sorted(EXPECTED_TOOLS_BY_VERSION.keys()))
-def test_all_versions_use_new_tool_names(version):
-    """Every version config must replace sec_official_docs_retriever with the
+@pytest.mark.parametrize("profile", sorted(EXPECTED_TOOLS_BY_PROFILE.keys()))
+def test_all_profiles_use_new_tool_names(profile):
+    """Every profile config must replace sec_official_docs_retriever with the
     two-step pair and preserve all other tools in their original order.
     """
-    yaml_path = VERSIONS_DIR / version / "orchestrator_config.yaml"
+    yaml_path = PROFILES_DIR / profile / "orchestrator_config.yaml"
     with yaml_path.open() as f:
         config_dict = yaml.safe_load(f)
 
@@ -239,4 +239,4 @@ def test_all_versions_use_new_tool_names(version):
     assert "sec_official_docs_retriever" not in tools
     assert "sec_filing_list_sections" in tools
     assert "sec_filing_get_section" in tools
-    assert tools == EXPECTED_TOOLS_BY_VERSION[version]
+    assert tools == EXPECTED_TOOLS_BY_PROFILE[profile]

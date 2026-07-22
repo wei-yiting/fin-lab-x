@@ -7,7 +7,7 @@ from typing import Any, cast
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, RemoveMessage
 
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import VersionConfig, ModelConfig
+from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ModelConfig
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
@@ -18,11 +18,11 @@ from backend.agent_engine.streaming.domain_events_schema import (
 )
 
 
-def _make_config() -> VersionConfig:
+def _make_config() -> WorkflowProfileConfig:
     """Create minimal test config."""
-    return VersionConfig(
+    return WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
@@ -39,7 +39,7 @@ def _mock_agent_response() -> dict:
     }
 
 
-def _create_orchestrator(config: VersionConfig) -> Orchestrator:
+def _create_orchestrator(config: WorkflowProfileConfig) -> Orchestrator:
     """Create orchestrator with all external deps mocked."""
     with (
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
@@ -79,7 +79,7 @@ class TestRunInjectsLangfuseCallback:
             mock_handler_cls.assert_called_once()
             # trace_name is always set; session_id only when present
             prop_kwargs = mock_propagate_attributes.call_args.kwargs
-            assert prop_kwargs["trace_name"] == "v1_baseline_invoke"
+            assert prop_kwargs["trace_name"] == "baseline_invoke"
             assert "session_id" not in prop_kwargs
             call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
@@ -108,7 +108,7 @@ class TestRunInjectsLangfuseCallback:
 
             assert result["response"] == "Test response"
             prop_kwargs = mock_propagate_attributes.call_args.kwargs
-            assert prop_kwargs == {"trace_name": "v1_baseline_invoke"}
+            assert prop_kwargs == {"trace_name": "baseline_invoke"}
             call_args = agent.invoke.call_args
             config_arg = call_args[1].get("config")
             assert "callbacks" in config_arg
@@ -158,7 +158,7 @@ class TestRunInjectsLangfuseCallback:
 
             prop_kwargs = mock_propagate_attributes.call_args.kwargs
             assert prop_kwargs == {
-                "trace_name": "v1_baseline_invoke",
+                "trace_name": "baseline_invoke",
                 "session_id": "sess-456",
             }
             call_args = agent.invoke.call_args
@@ -190,7 +190,7 @@ class TestArunInjectsLangfuseCallback:
 
             mock_handler_cls.assert_called_once()
             prop_kwargs = mock_propagate_attributes.call_args.kwargs
-            assert prop_kwargs == {"trace_name": "v1_baseline_invoke"}
+            assert prop_kwargs == {"trace_name": "baseline_invoke"}
             call_args = agent.ainvoke.call_args
             config_arg = call_args[1].get("config")
             assert config_arg is not None
@@ -219,7 +219,7 @@ class TestArunInjectsLangfuseCallback:
 
             prop_kwargs = mock_propagate_attributes.call_args.kwargs
             assert prop_kwargs == {
-                "trace_name": "v1_baseline_invoke",
+                "trace_name": "baseline_invoke",
                 "session_id": "sess-123",
             }
             call_args = agent.ainvoke.call_args
@@ -349,7 +349,7 @@ class TestAstreamRun:
         mock_handler_cls.assert_called_once()
         prop_kwargs = mock_propagate.call_args.kwargs
         assert prop_kwargs == {
-            "trace_name": "v1_baseline_stream",
+            "trace_name": "baseline_stream",
             "session_id": "sess-99",
         }
         config_arg = captured_kwargs.get("config", {})
@@ -603,7 +603,7 @@ class TestLangfuseTraceMetadata:
             config_arg = agent.ainvoke.call_args[1]["config"]
             assert config_arg["run_name"] == "chat-turn"
             metadata = config_arg["metadata"]
-            assert metadata["langfuse_trace_name"] == "v1_baseline_invoke"
+            assert metadata["langfuse_trace_name"] == "baseline_invoke"
             assert metadata["request_id"] == "req-1"
 
     @pytest.mark.asyncio
@@ -641,7 +641,7 @@ class TestLangfuseTraceMetadata:
         config_arg = captured_kwargs["config"]
         assert config_arg["run_name"] == "chat-turn"
         metadata = config_arg["metadata"]
-        assert metadata["langfuse_trace_name"] == "v1_baseline_stream"
+        assert metadata["langfuse_trace_name"] == "baseline_stream"
         assert metadata["request_id"] == "req-1"
         assert "trigger" not in metadata
 
@@ -688,12 +688,12 @@ class TestLangfuseTraceMetadata:
         assert metadata["trigger"] == "regenerate"
 
     @pytest.mark.asyncio
-    async def test_trace_name_follows_config_version_dynamically(self):
-        """Swap in a v2 config — trace_name must track, no code change needed."""
-        config = VersionConfig(
+    async def test_trace_name_follows_config_name_dynamically(self):
+        """Swap in a different tier's config — trace_name must track, no code change needed."""
+        config = WorkflowProfileConfig(
             version="0.2.0",
-            name="v2_test",
-            description="Hypothetical v2",
+            name="reader",
+            description="Hypothetical reader tier",
             tools=[],
             model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
         )
@@ -712,8 +712,8 @@ class TestLangfuseTraceMetadata:
 
             config_arg = agent.ainvoke.call_args[1]["config"]
             assert (
-                config_arg["metadata"]["langfuse_trace_name"] == "v2_test_invoke"
+                config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
             )
             assert (
-                mock_propagate.call_args.kwargs["trace_name"] == "v2_test_invoke"
+                mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"
             )

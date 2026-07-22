@@ -1,4 +1,4 @@
-"""SEC filing structured access tools for FinLab-X agent (v2+).
+"""SEC filing structured access tools for the FinLab-X agent.
 
 Provides section-level access to SEC 10-K filings backed by edgartools,
 with canonical ordering, stub detection, and fiscal year resolution.

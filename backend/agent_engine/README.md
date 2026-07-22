@@ -6,42 +6,42 @@ The core AI orchestration layer for FinLab-X, responsible for managing agents, t
 
 ## Map
 
-- `agents/`: Version-agnostic Orchestrator and version configs.
+- `agents/`: Profile-agnostic Orchestrator and Workflow Profile configs.
 - `tools/`: Atomic, stateless tool functions and central registry.
 - `skills/`: Higher-level capabilities (placeholder).
 
 ## Design Pattern
 
-The Agent Engine follows a **Version-Agnostic Orchestrator** pattern:
+The Agent Engine follows a **Profile-Agnostic Orchestrator** pattern:
 - **Single Orchestrator**: A central brain that executes workflows based on configuration.
-- **Configuration-Driven**: Capabilities, tools, and model settings are defined in version-specific YAML files.
+- **Configuration-Driven**: Capabilities, tools, and model settings are defined in per-profile YAML files.
 - **Stateless Tools**: Tools are atomic, stateless functions that can be easily plugged into any workflow.
 
 ## Extension Algorithm
 
-To add a new component (tool, skill, or agent version):
+To add a new component (tool, skill, or agent profile):
 
 ### Adding a New Tool
 1. Create a new Python file in `backend/agent_engine/tools/`.
 2. Define the tool function with clear docstrings and type hints.
 3. Register the tool in the central tool registry.
-4. Add the tool name to the relevant `orchestrator_config.yaml` in `backend/agent_engine/agents/versions/`.
+4. Add the tool name to the relevant `orchestrator_config.yaml` in `backend/agent_engine/agents/profiles/`.
 
 ### Adding a New Skill
 1. Create a new module in `backend/agent_engine/skills/`.
 2. Implement the skill logic, ensuring it is modular and reusable.
 3. Expose the skill through a clear interface.
 
-### Adding a New Agent Version
-1. Create a new directory in `backend/agent_engine/agents/versions/` (e.g., `v6_new_agent/`).
-2. Create an `orchestrator_config.yaml` file defining the tools, model, and version metadata.
-3. Update the `VersionConfigLoader` if necessary to support the new version.
+### Adding a New Agent Profile
+1. Create a new directory in `backend/agent_engine/agents/profiles/` , named after its capability tier (e.g., `graph/`).
+2. Create an `orchestrator_config.yaml` file defining the tools, model, and profile metadata (name, semantic version, description).
+3. Update the `ProfileConfigLoader` if necessary to support the new profile.
 
 ## Architecture
 
 ### Components
 
-- **Agents**: Central reasoning engine (version-agnostic Orchestrator, loads capabilities from config)
+- **Agents**: Central reasoning engine (profile-agnostic Orchestrator, loads capabilities from config)
 - **Tools**: Atomic, stateless functions (yfinance, Tavily, SEC)
 - **Observability**: Langfuse tracing via `CallbackHandler` + LangChain `config.metadata` (trace_name, request_id) + `propagate_attributes()` for session correlation
 
@@ -54,13 +54,13 @@ Langfuse integration traces all AI agent execution in FinLab-X. Requires `langfu
 | Mechanism | Where | What It Does |
 |---|---|---|
 | `CallbackHandler` | Per-request instance built in `_build_langfuse_config()` | Auto-traces LLM calls, tool dispatch, chain steps (including tool I/O) |
-| `config["metadata"]["langfuse_trace_name"]` | `f"{VersionConfig.name}_{mode}"` in `_build_langfuse_config()` | Renames root trace (`v1_baseline_stream` / `v1_baseline_invoke`) via Langfuse ≥4.3.1 PR #1626 |
+| `config["metadata"]["langfuse_trace_name"]` | `f"{WorkflowProfileConfig.name}_{mode}"` in `_build_langfuse_config()` | Renames root trace (`baseline_stream` / `baseline_invoke`) via Langfuse ≥4.3.1 PR #1626 |
 | `config["run_name"]` | `"chat-turn"` in `_build_langfuse_config()` | Renames the LangChain root chain span so it's not called `LangGraph` |
 | `config["metadata"]["request_id"]` | `uuid.uuid4().hex` minted per FastAPI request | Per-request correlation attribute |
 | `propagate_attributes(trace_name=..., session_id=...)` | Wraps `invoke`/`ainvoke`/`astream` in `Orchestrator` | Sets `trace_name` on OTel context + propagates session_id to children (incl. any `@observe` tools) |
 | `@observe()` | Applied selectively on deterministic helpers and on a tool when it needs sub-spans / custom metadata | Traces a function as a single observation |
 
-Trace name follows the agent `VersionConfig.name` dynamically — switching to a future `v2_xxx` config automatically re-names traces to `v2_xxx_{mode}` with no code change.
+Trace name follows the agent `WorkflowProfileConfig.name` dynamically — switching to the `reader` profile automatically re-names traces to `reader_{mode}` with no code change.
 
 ### When to Use Which
 
@@ -109,27 +109,27 @@ Decorator stacking order: `@tool` (outer) → `@observe` (inner).
 
 1. **Single Orchestrator**: One central brain, not multi-agent routing
 2. **Observability First**: Every step is traced via Langfuse
-3. **Version-Agnostic Orchestrator**: Capabilities defined by version config, not code
+3. **Profile-Agnostic Orchestrator**: Capabilities defined by profile config, not code
 4. **Zero Hallucination Policy**: All responses must be grounded in tool outputs
 
-## Versioned Workflows
+## Workflow Profiles
 
-Each version has an independent `orchestrator_config.yaml` defining available tools and model settings:
+Each profile has an independent `orchestrator_config.yaml` defining available tools and model settings:
 
-- **v1_baseline (0.1.0)**: Naive single-chain financial analysis
-- **v2_reader (0.2.0)**: Long-context document analysis with RAG
-- **v3_quant (0.3.0)**: Numerical reasoning and quantitative modeling
-- **v4_graph (0.4.0)**: Knowledge graph-based analysis
-- **v5_analyst (0.5.0)**: Comprehensive investment research assistant
+- **baseline (0.1.0)**: Naive single-chain financial analysis
+- **reader (0.2.0)**: Long-context document analysis with RAG
+- **quant (0.3.0)**: Numerical reasoning and quantitative modeling
+- **graph (0.4.0)**: Knowledge graph-based analysis
+- **analyst (0.5.0)**: Comprehensive investment research assistant
 
 ## Usage
 
 ```python
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 
-# Load version config
-config_loader = VersionConfigLoader('v1_baseline')
+# Load profile config
+config_loader = ProfileConfigLoader('baseline')
 config = config_loader.load()
 
 # Initialize orchestrator
@@ -139,12 +139,12 @@ orchestrator = Orchestrator(config)
 result = orchestrator.run("Analyze AAPL stock")
 ```
 
-## Loading Version Config
+## Loading Profile Config
 
 ```python
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 
-loader = VersionConfigLoader('v1_baseline')
+loader = ProfileConfigLoader('baseline')
 config = loader.load()
 
 print(config.tools)  # ['yfinance_stock_quote', 'yfinance_get_available_fields', ...]

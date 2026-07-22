@@ -1,0 +1,25 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the graph workflow is fully implemented and validated.
+# =============================================================================
+
+version: "0.4.0"
+name: "graph"
+description: "Knowledge graph-based corporate relationship and supply chain analysis"
+
+tools:
+  - yfinance_stock_quote
+  - yfinance_get_available_fields
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+  - neo4j_query
+  - text_to_cypher
+
+model:
+  name: "gpt-4o"
+  temperature: 0.0
+
+constraints:
+  max_tool_calls_per_run: 10

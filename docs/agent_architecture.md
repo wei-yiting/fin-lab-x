@@ -61,18 +61,23 @@ Two distinct concepts share the same five names, so it is worth being explicit a
 
 ```mermaid
 flowchart TB
-    subgraph concept["Capability tier — concept layer: a position on the capability ladder (roadmap / docs)"]
+    subgraph concept["Capability tier — concept layer: a rung on the capability ladder, baseline → reader → quant → graph → analyst (lives in the roadmap and docs)"]
         direction LR
-        T1["baseline"] --> T2["reader"] --> T3["quant"] --> T4["graph"] --> T5["analyst"]
+        T1["1. baseline<br/>basic tools"]
+        T2["2. reader<br/>+ long-context filing reading"]
+        T3["3. quant<br/>+ structured financials"]
+        T4["4. graph<br/>+ knowledge graph"]
+        T5["5. analyst<br/>+ multi-step synthesis"]
     end
 
-    subgraph physical["Workflow Profile — physical layer: a config directory the runtime loads"]
+    subgraph physical["Workflow Profile — physical layer: one config directory (lives on the filesystem, consumed by the runtime)"]
         direction LR
-        P1["profiles/baseline/<br/>orchestrator_config.yaml"]
+        P1["profiles/baseline/<br/>orchestrator_config.yaml<br/>+ system_prompt.md"]
         P2["profiles/reader/<br/>(placeholder)"]
         P3["profiles/quant/<br/>(placeholder)"]
         P4["profiles/graph/<br/>(placeholder)"]
         P5["profiles/analyst/<br/>(placeholder)"]
+        PX["(hypothetical)<br/>profiles/baseline_exp_a/<br/>eval variant — no rung"]
     end
 
     T1 -. "lends its name to" .-> P1
@@ -81,10 +86,16 @@ flowchart TB
     T4 -. "lends its name to" .-> P4
     T5 -. "lends its name to" .-> P5
 
-    RT["Runtime (profile-agnostic)<br/>ProfileConfigLoader"] -- "loads a profile;<br/>unaware of the ladder" --> P1
+    RT["Runtime (profile-agnostic) — ProfileConfigLoader<br/>resolves 'which config bundle to load'; never asks which rung it is"]
+    RT -- "loads one profile" --> P1
+
+    classDef hypo fill:#f6f6f6,stroke:#999,stroke-dasharray:4 3,color:#555
+    class PX hypo
 ```
 
-They are 1:1 today, but not by definition. A future eval-only variant (e.g. `baseline_exp_a`) would be a Workflow Profile that is *not* a tier; conversely `graph` and `analyst` are tiers whose profiles are still placeholders. The runtime only ever loads a profile — so code, directories, and the loader all speak "profile", while "tier" stays in the roadmap and these docs.
+Read the dotted edges in one direction only: a tier lends its name to a profile, and the arrow stops there. Nothing resolves in the other direction — `ProfileConfigLoader` takes a directory name, and the ladder is not an input to it.
+
+The five pairs are 1:1 today, but not by definition, and the diagram is drawn to show both ways that can break. `graph` and `analyst` are tiers whose profiles hold only placeholder config — the rung is real, the loadable bundle is not. Conversely, a future eval-only variant such as `baseline_exp_a` would be a legal profile directory with no rung above it, which is why it sits in the physical layer with no incoming "lends its name to" edge. The runtime only ever loads a profile — so code, directories, and the loader all speak "profile", while "tier" stays in the roadmap and these docs.
 
 ## 4. Design Principles
 

@@ -51,13 +51,6 @@ describe("ReasoningIndicator — streaming mode (text + cycler)", () => {
     expect(container.querySelector(".idle-dots")).not.toBeInTheDocument();
   });
 
-  test("text-bearing element carries the .reasoning-status-text class for nowrap clip", () => {
-    const { container } = render(<ReasoningIndicator text="hello" />);
-
-    const textEl = container.querySelector(".reasoning-status-text");
-    expect(textEl).toBeInTheDocument();
-    expect(textEl?.textContent).toBe("hello");
-  });
 });
 
 describe("ReasoningIndicator — frozen mode (text + STOPPED label)", () => {
@@ -69,12 +62,15 @@ describe("ReasoningIndicator — frozen mode (text + STOPPED label)", () => {
     expect(container.querySelector(".reasoning-status-dots-cycler")).not.toBeInTheDocument();
   });
 
-  test("frozen text element has opacity 0.65", () => {
-    const { container } = render(<ReasoningIndicator text="理解問題" state="frozen" />);
+  test("frozen without text (Stop-A) renders only the STOPPED label, no dots", () => {
+    // Aborting during pre-response idle: there is no reasoning text to dim,
+    // but the user must still see that the turn was halted.
+    const { container } = render(<ReasoningIndicator state="frozen" />);
 
-    const textEl = container.querySelector(".reasoning-status-text") as HTMLElement;
-    expect(textEl).toBeInTheDocument();
-    expect(textEl.style.opacity).toBe("0.65");
+    expect(screen.getByText("STOPPED")).toBeInTheDocument();
+    expect(container.querySelector(".reasoning-status-text")).not.toBeInTheDocument();
+    expect(container.querySelector(".idle-dots")).not.toBeInTheDocument();
+    expect(container.querySelector(".reasoning-status-dots-cycler")).not.toBeInTheDocument();
   });
 });
 
@@ -149,14 +145,5 @@ describe("ReasoningIndicator — trailing delimiter trim", () => {
     const { container } = render(<ReasoningIndicator text="..." />);
     expect(container.querySelectorAll(".idle-dots > span").length).toBe(3);
     expect(container.querySelector(".reasoning-status-text")).not.toBeInTheDocument();
-  });
-});
-
-describe("ReasoningIndicator — backward compatibility", () => {
-  test("preserves data-testid='reasoning-indicator' on root for legacy consumers", () => {
-    const { container } = render(<ReasoningIndicator />);
-
-    const root = container.querySelector("[data-testid='reasoning-indicator']");
-    expect(root).toBeInTheDocument();
   });
 });

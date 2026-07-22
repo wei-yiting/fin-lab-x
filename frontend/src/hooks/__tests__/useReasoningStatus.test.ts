@@ -46,94 +46,58 @@ describe("useReasoningStatus — data-reasoning-status ingestion", () => {
     expect(result.current.reasoningStatusText).toBe("third");
   });
 
-  test("data: null is ignored (defensive)", () => {
-    const { result } = renderHook(() => useReasoningStatus());
-    act(() => {
-      result.current.handleData({ type: "data-reasoning-status", data: null as never });
-    });
-    expect(result.current.reasoningStatusText).toBeNull();
-  });
-
-  test("ignores event when part.data is missing", () => {
-    const { result } = renderHook(() => useReasoningStatus());
-
-    act(() => {
-      result.current.handleData({
-        type: "data-reasoning-status",
-        data: { text: "valid" },
+  test.each([
+    ["data is null", { type: "data-reasoning-status", data: null }],
+    ["data is missing", { type: "data-reasoning-status" }],
+    ["data.text is not a string", { type: "data-reasoning-status", data: {} }],
+  ])(
+    "malformed reasoning payload (%s) is ignored — prior valid text preserved",
+    (_label, malformed) => {
+      // All three trip the same `typeof part.data?.text === "string"` guard.
+      const { result } = renderHook(() => useReasoningStatus());
+      act(() => {
+        result.current.handleData({
+          type: "data-reasoning-status",
+          data: { text: "valid" },
+        });
       });
-    });
-    expect(result.current.reasoningStatusText).toBe("valid");
+      expect(result.current.reasoningStatusText).toBe("valid");
 
-    act(() => {
-      result.current.handleData({ type: "data-reasoning-status" });
-    });
-
-    expect(result.current.reasoningStatusText).toBe("valid");
-  });
-
-  test("ignores event when part.data.text is not a string", () => {
-    const { result } = renderHook(() => useReasoningStatus());
-
-    act(() => {
-      result.current.handleData({
-        type: "data-reasoning-status",
-        data: { text: "valid" },
+      act(() => {
+        result.current.handleData(malformed as never);
       });
-    });
-    expect(result.current.reasoningStatusText).toBe("valid");
-
-    act(() => {
-      result.current.handleData({
-        type: "data-reasoning-status",
-        data: {},
-      });
-    });
-
-    expect(result.current.reasoningStatusText).toBe("valid");
-  });
+      expect(result.current.reasoningStatusText).toBe("valid");
+    },
+  );
 });
 
 describe("useReasoningStatus — clear triggers", () => {
-  test("text-start chunks are no-ops via handleData (AI SDK v6 does not route them)", () => {
-    // AI SDK v6 only forwards data-* chunks through onData. text-start is
-    // dispatched via the messages array; ChatPanel's layoutEffect calls
-    // hideReasoningStatus() in response. handleData itself ignores it.
-    const { result } = renderHook(() => useReasoningStatus());
+  test.each([
+    ["text-start", { type: "text-start" }],
+    ["tool-input-available", { type: "tool-input-available" }],
+    ["an unknown event type", { type: "some-unknown-event" }],
+  ])(
+    "%s is a no-op via handleData (AI SDK v6 routes non-data-* events elsewhere)",
+    (_label, event) => {
+      // AI SDK v6 only forwards data-* chunks through onData; text-start, tool
+      // lifecycle, and unknown events are dispatched via the messages array
+      // (ChatPanel's layoutEffect handles clearing). handleData ignores them.
+      const { result } = renderHook(() => useReasoningStatus());
 
-    act(() => {
-      result.current.handleData({
-        type: "data-reasoning-status",
-        data: { text: "thinking" },
+      act(() => {
+        result.current.handleData({
+          type: "data-reasoning-status",
+          data: { text: "thinking" },
+        });
       });
-    });
-    expect(result.current.reasoningStatusText).toBe("thinking");
+      expect(result.current.reasoningStatusText).toBe("thinking");
 
-    act(() => {
-      result.current.handleData({ type: "text-start" });
-    });
-
-    // text remains — handleData is intentionally a no-op for non-data-* events.
-    expect(result.current.reasoningStatusText).toBe("thinking");
-  });
-
-  test("tool-input-available chunks are no-ops via handleData (same reason)", () => {
-    const { result } = renderHook(() => useReasoningStatus());
-
-    act(() => {
-      result.current.handleData({
-        type: "data-reasoning-status",
-        data: { text: "thinking" },
+      act(() => {
+        result.current.handleData(event as never);
       });
-    });
-    expect(result.current.reasoningStatusText).toBe("thinking");
-
-    act(() => {
-      result.current.handleData({ type: "tool-input-available" });
-    });
-
-    expect(result.current.reasoningStatusText).toBe("thinking");
-  });
+      expect(result.current.reasoningStatusText).toBe("thinking");
+    },
+  );
 
   test("hideReasoningStatus() blanks text without latching the cleared guard", () => {
     const { result } = renderHook(() => useReasoningStatus());
@@ -347,23 +311,6 @@ describe("useReasoningStatus — routing isolation", () => {
         id: "tc-1",
         data: { text: "should-be-ignored" } as never,
       });
-    });
-
-    expect(result.current.reasoningStatusText).toBe("thinking");
-  });
-
-  test("unknown event type is a no-op", () => {
-    const { result } = renderHook(() => useReasoningStatus());
-
-    act(() => {
-      result.current.handleData({
-        type: "data-reasoning-status",
-        data: { text: "thinking" },
-      });
-    });
-
-    act(() => {
-      result.current.handleData({ type: "some-unknown-event" });
     });
 
     expect(result.current.reasoningStatusText).toBe("thinking");

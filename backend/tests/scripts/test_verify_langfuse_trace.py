@@ -95,6 +95,31 @@ def test_expect_reasoning_on_passes_when_all_generations_have_nonempty_reasoning
     assert out["expectation"] == "reasoning-on"
 
 
+def test_expect_reasoning_on_passes_when_one_generation_empty_but_another_has_text(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Relaxed per-call contract: Anthropic/OpenAI skip reasoning on short
+    tool-decision turns, so a trace with an empty-reasoning generation PLUS a
+    generation that carries text must still PASS. Locks the relaxation against
+    a regression back to 'every generation must be non-empty'."""
+    _install_fake_fetch(
+        monkeypatch,
+        _trace(
+            [
+                _root_span(),
+                _gen("g1", reasoning=""),
+                _gen("g2", reasoning="the synthesizing chain of thought"),
+            ]
+        ),
+    )
+
+    code = vlt.main(["trace-abc", "--expect-reasoning-on"])
+
+    assert code == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["ok"] is True
+
+
 def test_expect_reasoning_on_fails_when_generation_has_empty_reasoning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

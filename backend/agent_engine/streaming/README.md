@@ -35,6 +35,20 @@ LangChain AIMessageChunk (with reasoning content_blocks)
 
 Persistence runs in parallel via `ReasoningTraceCallback.on_llm_end` writing the joined reasoning to `metadata.reasoning` on the current chat_model generation span.
 
+## `metadata.reasoning` Value Contract
+
+`ReasoningTraceCallback` writes `metadata.reasoning` on every chat-model GENERATION (always-write-key on the completed path). The value is one of five shapes:
+
+| State                              | Condition                                                            | Value                                                          |
+| ---------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Reasoning text                     | capability ∈ {`"on"`, `"off"`} AND `content_blocks` has reasoning     | `"\n".join(reasoning_block["reasoning"], ...)`                |
+| No reasoning emitted               | capability ∈ {`"on"`, `"off"`} AND no reasoning blocks                | `""`                                                          |
+| Unsupported model                  | `capability == "unsupported"`                                        | `"<unsupported>"` sentinel                                    |
+| Oversize payload                   | joined UTF-8 length > 500_000 bytes                                  | first 500KB + `... [truncated, original {N} bytes]` suffix    |
+| Extraction failure                 | `_compute_reasoning_value` raised                                    | `""` — defensive fallback so the always-write-key contract holds |
+
+The **abort path** is mode-aware: when `asyncio.CancelledError` propagates through `astream_run`, `on_llm_end` never fires, so `metadata.reasoning` may be absent on the in-flight GENERATION. `Orchestrator._handle_abort_cleanup` writes `metadata.reasoning_tail_aborted` on that GENERATION (the segmenter tail; `""` if the buffer was empty) and stamps `metadata.status="aborted"` on the root chain. Operators querying aborted traces must read those two keys instead of `metadata.reasoning`. See `agent_engine/agents/README.md` for the full abort protocol; `backend/scripts/validation/verify_langfuse_trace.py` enforces both shapes.
+
 ## Data Flow
 
 ```

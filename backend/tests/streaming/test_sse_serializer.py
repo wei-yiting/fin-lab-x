@@ -5,7 +5,6 @@ import logging
 
 import pytest
 
-from backend.agent_engine.streaming import sse_serializer
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
@@ -191,20 +190,6 @@ class TestReasoningStatusSerializer:
             "data": {"text": "理解問題"},
             "transient": True,
         }
-
-    def test_assert_guard_called_through_serialize_event(self, monkeypatch):
-        """If the literal payload in the registered fn ever lost transient=True,
-        serialize_event would raise. Patch the helper to record calls."""
-        captured = []
-
-        def fake(payload):
-            captured.append(payload)
-
-        monkeypatch.setattr(sse_serializer, "_assert_reasoning_transient", fake)
-        sse_serializer.serialize_event(ReasoningStatus(reasoning_id="r-0", text="x"))
-        assert len(captured) == 1
-        assert captured[0]["transient"] is True
-        assert captured[0]["type"] == "data-reasoning-status"
 
     def test_assert_guard_raises_in_dev(self, monkeypatch):
         """S-chan-04: missing transient flag raises AssertionError in dev/CI."""

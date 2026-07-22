@@ -227,6 +227,78 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
   );
 });
 
+describe("AssistantMessage — aborted message (Stop states)", () => {
+  test("aborted with text body appends inline STOPPED label after the text", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "text" as const, text: "partial answer" }],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        isAborted={true}
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+    expect(screen.getByText(/partial answer/)).toBeInTheDocument();
+    expect(screen.getByTestId("text-stopped-label")).toHaveTextContent("STOPPED");
+  });
+
+  test("aborted WITH text keeps Regenerate (there is something to regenerate from)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "text" as const, text: "partial answer" }],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        isAborted={true}
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
+  });
+
+  test("aborted with only a tool part (no text) hides Regenerate (C2.a)", () => {
+    // Stop-C: aborted mid-tool with no text body — the backend regenerate
+    // path 422s on the missing finalized AIMessage, so the button is gated off.
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        {
+          type: "tool" as const,
+          state: "input-available",
+          toolCallId: "tc-1",
+          toolName: "x",
+          input: {},
+        },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        isAborted={true}
+        abortedTools={new Set(["tc-1"])}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
+});
+
 describe("AssistantMessage — D39.b data-reasoning-* filter", () => {
   test("filters data-reasoning-status parts from rendered transcript", () => {
     const message = {

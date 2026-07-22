@@ -209,12 +209,8 @@ class TestFlush:
         seg.flush()
         assert seg.flush() is None
 
-    def test_flush_on_empty_returns_none(self):
-        seg = ReasoningSegmenter()
-        assert seg.flush() is None
-
-    def test_flush_idempotent_on_empty(self):
-        """Repeated flush on already-empty buffer never raises."""
+    def test_flush_on_empty_is_none_and_idempotent(self):
+        """An empty buffer flushes to None, and repeated flushes never raise."""
         seg = ReasoningSegmenter()
         assert seg.flush() is None
         assert seg.flush() is None

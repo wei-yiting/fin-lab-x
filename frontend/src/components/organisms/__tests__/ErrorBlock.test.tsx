@@ -35,7 +35,7 @@ describe("ErrorBlock", () => {
       />,
     );
 
-    await user.click(screen.getByTestId("error-detail-toggle"));
+    await user.click(screen.getByRole("button", { name: /show details/i }));
     expect(screen.getByTestId("error-raw-detail")).toHaveTextContent("stack trace ...");
   });
 
@@ -51,7 +51,7 @@ describe("ErrorBlock", () => {
         errorClass="pre-stream-404"
       />,
     );
-    expect(screen.queryByTestId("error-retry-btn")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
   test("long detail (>200 chars) is truncated with show-more affordance", async () => {
@@ -66,7 +66,7 @@ describe("ErrorBlock", () => {
       />,
     );
 
-    await user.click(screen.getByTestId("error-detail-toggle"));
+    await user.click(screen.getByRole("button", { name: /show details/i }));
     const detail = screen.getByTestId("error-raw-detail");
     expect(detail.textContent!.length).toBeLessThan(longDetail.length);
   });
@@ -98,7 +98,6 @@ describe("ErrorBlock", () => {
     );
 
     expect(screen.getByRole("alert")).toBeInTheDocument();
-    expect(screen.getByTestId("stream-error-block")).toHaveAttribute("role", "alert");
   });
 
   test("toggle button is not rendered when friendly.detail is absent", () => {
@@ -110,7 +109,7 @@ describe("ErrorBlock", () => {
       />,
     );
     expect(screen.getByTestId("error-title")).toBeInTheDocument();
-    expect(screen.queryByTestId("error-detail-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /details/i })).not.toBeInTheDocument();
     expect(screen.queryByTestId("error-raw-detail")).not.toBeInTheDocument();
   });
 });

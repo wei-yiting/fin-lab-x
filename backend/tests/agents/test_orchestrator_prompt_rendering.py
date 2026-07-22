@@ -243,8 +243,10 @@ def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):
 
 @pytest.mark.parametrize("version", sorted(EXPECTED_TOOLS_BY_VERSION.keys()))
 def test_all_versions_use_new_tool_names(version):
-    """Every version config must replace sec_official_docs_retriever with the
-    two-step pair and preserve all other tools in their original order.
+    """Every version config must replace the deprecated single SEC retriever
+    with the two-step pair. We assert that invariant, NOT the exact tool list /
+    ordering — pinning the full list change-detects every intentional tool
+    addition across all five versions at once.
     """
     yaml_path = VERSIONS_DIR / version / "orchestrator_config.yaml"
     with yaml_path.open() as f:
@@ -254,4 +256,3 @@ def test_all_versions_use_new_tool_names(version):
     assert "sec_official_docs_retriever" not in tools
     assert "sec_filing_list_sections" in tools
     assert "sec_filing_get_section" in tools
-    assert tools == EXPECTED_TOOLS_BY_VERSION[version]

@@ -27,6 +27,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextEnd,
     TextStart,
 )
+from backend.agent_engine.streaming.reasoning_trace_callback import (
+    ReasoningTraceCallback,
+)
 
 # Reuse orchestrator builders from the existing langfuse test module
 from backend.tests.agents.test_orchestrator_langfuse import (
@@ -161,32 +164,30 @@ class TestLangfuseEndpointOutageResilience:
 
 @pytest.mark.asyncio
 class TestDualHandlerResilience:
-    """J-obs-03: a broken Langfuse handler coexisting with other callbacks
-    (e.g. a Braintrust handler registered globally during eval) must not
-    corrupt the sibling handler's callback sequence."""
+    """J-obs-03: a broken Langfuse handler must not gate out the sibling
+    callback the Orchestrator wires alongside it (the ReasoningTraceCallback —
+    same coexistence shape an eval-time Braintrust handler would have)."""
 
-    async def test_sibling_callback_in_config_alongside_broken_handler(self):
-        """When _build_langfuse_config puts a broken primary handler into
-        callbacks, a sibling handler (stand-in for Braintrust global handler)
-        injected before astream runs receives the same callback stream — the
-        broken sibling does not remove or gate other callbacks."""
+    async def test_real_config_keeps_sibling_callback_when_langfuse_handler_broken(
+        self,
+    ):
+        """Drive the REAL ``_build_langfuse_config`` (not a patched stand-in):
+        when the Langfuse handler class produces a broken handler, the actual
+        callbacks list the Orchestrator hands to ``astream`` must still contain
+        BOTH the broken handler AND the sibling ReasoningTraceCallback, and the
+        stream must complete with full domain events. The earlier version of
+        this test patched the builder and asserted a call its own mock made —
+        it passed even if the real dual-handler wiring were broken. This drives
+        the real wiring instead, so dropping a callback on handler trouble fails
+        the test."""
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
 
-        broken = BrokenHandler()
-        sibling = MagicMock()
-
-        captured_config: dict = {}
+        captured_kwargs: dict = {}
 
         async def mock_astream(*args, **kwargs):
-            captured_config.update(kwargs.get("config", {}))
-            # Sibling probe: real LangChain would call these; we invoke them
-            # directly to assert "the broken handler does not gate which
-            # callbacks the framework is willing to dispatch to".
-            for cb in captured_config.get("callbacks", []):
-                if cb is sibling:
-                    cb.on_llm_start({}, ["prompt"])
+            captured_kwargs.update(kwargs)
             yield {
                 "type": "messages",
                 "data": (
@@ -197,15 +198,12 @@ class TestDualHandlerResilience:
 
         agent.astream = mock_astream
 
-        original_build = orch._build_langfuse_config
-
-        def _build_with_sibling(*args, **kwargs):
-            cfg, prop, handler = original_build(*args, **kwargs)
-            cfg["callbacks"] = [broken, sibling]
-            return cfg, prop, handler
-
+        broken = BrokenHandler()
         with (
-            patch.object(orch, "_build_langfuse_config", side_effect=_build_with_sibling),
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler",
+                return_value=broken,
+            ),
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
@@ -214,9 +212,11 @@ class TestDualHandlerResilience:
             events = await _drain(orch.astream_run(message="hi", session_id="s-d1"))
 
         _assert_complete_stream(events)
-        callbacks = captured_config.get("callbacks", [])
-        assert broken in callbacks and sibling in callbacks, (
-            "both handlers must be preserved — framework decides which to call; "
-            "Orchestrator must not short-circuit on handler-level failure"
+        callbacks = captured_kwargs.get("config", {}).get("callbacks", [])
+        # The broken Langfuse handler is present in the real callbacks list...
+        assert broken in callbacks, "Langfuse handler must still be attached"
+        # ...and it did NOT gate out the sibling reasoning callback.
+        assert any(isinstance(c, ReasoningTraceCallback) for c in callbacks), (
+            "dual-handler invariant: a broken Langfuse handler must not remove "
+            "the sibling ReasoningTraceCallback from the dispatched callbacks"
         )
-        sibling.on_llm_start.assert_called_once()

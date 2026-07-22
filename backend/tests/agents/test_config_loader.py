@@ -154,10 +154,12 @@ def test_model_config_rejects_unknown_field():
     "version",
     ["v1_baseline", "v2_reader", "v3_quant", "v4_graph", "v5_analyst"],
 )
-def test_all_shipped_versions_use_openai_reasoning_on(version):
+def test_all_shipped_versions_load_into_valid_model_config(version):
+    """Loader contract: every shipped version YAML parses into a ModelConfig
+    with a non-empty model name and a recognized reasoning literal. We do NOT
+    pin the exact model/reasoning values here — that is a product decision the
+    loader test should not change-detect (a deliberate model swap must not
+    require editing this test)."""
     config = VersionConfigLoader(version).load()
-    assert config.model.name == "openai:gpt-5-mini"
-    assert config.model.reasoning == "on"
-    # OpenAI's Responses API uses reasoning={effort, summary} (set in
-    # _init_model), not thinking_budget, so the field is null.
-    assert config.model.thinking_budget is None
+    assert config.model.name
+    assert config.model.reasoning in {"on", "off", "unsupported"}

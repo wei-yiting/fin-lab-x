@@ -172,6 +172,22 @@ class TestInitModelOpenAI:
             assert "thinking_budget" not in kwargs
             assert "thinking" not in kwargs
 
+    def test_bare_name_reasoning_on_uses_openai_responses_api(self):
+        """A bare name + reasoning='on' must route into the OpenAI reasoning
+        branch (responses API + unified reasoning dict), not just the off path.
+        Guards against a default-provider regression that would silently drop
+        reasoning kwargs for prefix-less model names."""
+        cfg = ModelConfig(
+            name="gpt-5-mini",
+            temperature=0.0,
+            reasoning="on",
+        )
+        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
+            _init_model(cfg)
+            kwargs = mock_init.call_args.kwargs
+            assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
+            assert kwargs["use_responses_api"] is True
+
 
 class TestInitModelUnsupported:
     """``reasoning='unsupported'`` short-circuits all reasoning kwargs.

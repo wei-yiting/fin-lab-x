@@ -1,6 +1,7 @@
 """Tests for Langfuse CallbackHandler injection in Orchestrator."""
 
 import asyncio
+import logging
 import pytest
 from collections import OrderedDict
 from unittest.mock import patch, MagicMock, AsyncMock
@@ -734,11 +735,12 @@ class TestLangfuseTraceMetadata:
 
 class TestReasoningTraceCallbackInjection:
     """Task 6 / F4 / F7 / F8 — ReasoningTraceCallback must be wired into the
-    callbacks list ahead of langfuse.langchain.CallbackHandler so it writes
-    metadata.reasoning before Langfuse pops the generation off contextvars."""
+    callbacks list and wired with the langfuse.langchain.CallbackHandler so it
+    can resolve the GENERATION by run_id and write metadata.reasoning. List
+    ordering is not load-bearing — see _build_langfuse_config."""
 
     @pytest.mark.asyncio
-    async def test_astream_callbacks_include_reasoning_callback_first(self):
+    async def test_astream_callbacks_include_reasoning_callback_wired_to_handler(self):
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
@@ -772,9 +774,15 @@ class TestReasoningTraceCallbackInjection:
                 pass
 
         callbacks = captured_kwargs["config"]["callbacks"]
-        assert len(callbacks) == 2
-        assert isinstance(callbacks[0], ReasoningTraceCallback)
-        assert callbacks[1] is mock_handler
+        reasoning_callbacks = [
+            c for c in callbacks if isinstance(c, ReasoningTraceCallback)
+        ]
+        assert len(reasoning_callbacks) == 1
+        assert mock_handler in callbacks
+        # Load-bearing wiring (list ordering is NOT — see _build_langfuse_config
+        # docstring): the callback holds the handler reference so it can resolve
+        # the GENERATION by run_id.
+        assert reasoning_callbacks[0]._handler is mock_handler
 
     @pytest.mark.asyncio
     async def test_astream_reasoning_callback_uses_config_capability(self):
@@ -812,11 +820,10 @@ class TestReasoningTraceCallbackInjection:
                 pass
 
         callbacks = captured_kwargs["config"]["callbacks"]
-        rc = callbacks[0]
-        assert isinstance(rc, ReasoningTraceCallback)
+        rc = next(c for c in callbacks if isinstance(c, ReasoningTraceCallback))
         assert rc._capability == "on"
 
-    def test_run_callbacks_include_reasoning_callback_first(self):
+    def test_run_callbacks_include_reasoning_callback_wired_to_handler(self):
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
@@ -841,12 +848,18 @@ class TestReasoningTraceCallbackInjection:
             orch.run("test prompt", request_id="req-abc")
 
         callbacks = agent.invoke.call_args[1]["config"]["callbacks"]
-        assert len(callbacks) == 2
-        assert isinstance(callbacks[0], ReasoningTraceCallback)
-        assert callbacks[1] is mock_handler
+        reasoning_callbacks = [
+            c for c in callbacks if isinstance(c, ReasoningTraceCallback)
+        ]
+        assert len(reasoning_callbacks) == 1
+        assert mock_handler in callbacks
+        # Load-bearing wiring (list ordering is NOT — see _build_langfuse_config
+        # docstring): the callback holds the handler reference so it can resolve
+        # the GENERATION by run_id.
+        assert reasoning_callbacks[0]._handler is mock_handler
 
     @pytest.mark.asyncio
-    async def test_arun_callbacks_include_reasoning_callback_first(self):
+    async def test_arun_callbacks_include_reasoning_callback_wired_to_handler(self):
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
@@ -871,9 +884,15 @@ class TestReasoningTraceCallbackInjection:
             await orch.arun("test prompt", request_id="req-abc")
 
         callbacks = agent.ainvoke.call_args[1]["config"]["callbacks"]
-        assert len(callbacks) == 2
-        assert isinstance(callbacks[0], ReasoningTraceCallback)
-        assert callbacks[1] is mock_handler
+        reasoning_callbacks = [
+            c for c in callbacks if isinstance(c, ReasoningTraceCallback)
+        ]
+        assert len(reasoning_callbacks) == 1
+        assert mock_handler in callbacks
+        # Load-bearing wiring (list ordering is NOT — see _build_langfuse_config
+        # docstring): the callback holds the handler reference so it can resolve
+        # the GENERATION by run_id.
+        assert reasoning_callbacks[0]._handler is mock_handler
 
 
 class TestAstreamAbortCleanup:
@@ -992,6 +1011,51 @@ class TestAstreamAbortCleanup:
         assert any(
             c.kwargs.get("metadata", {}).get("status") == "aborted" for c in chain_calls
         )
+
+    @pytest.mark.asyncio
+    async def test_cancel_with_empty_runs_propagates_and_warns(
+        self, caplog: pytest.LogCaptureFixture
+    ):
+        """D35 robustness: if ``handler._runs`` holds neither an in-flight
+        GENERATION nor a root CHAIN at abort time (e.g. cancel before Langfuse
+        registered any observation), cleanup must not raise — it logs a warning
+        and still re-raises CancelledError to the caller. Without this the
+        abort path could mask the cancellation behind an AttributeError."""
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+        # Buffer a reasoning tail so the "no in-flight generation" warning path
+        # (tail collected but nowhere to write it) is exercised.
+        self._astream_with_reasoning_then_cancel(agent)
+
+        handler_mock = MagicMock()
+        handler_mock._runs = OrderedDict()  # empty: no generation, no chain
+        with (
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler",
+                return_value=handler_mock,
+            ),
+            patch(
+                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+            caplog.at_level(
+                logging.WARNING, logger="backend.agent_engine.agents.base"
+            ),
+        ):
+            with pytest.raises(asyncio.CancelledError):
+                async for _ in orch.astream_run(
+                    message="test", session_id="sess-empty-runs"
+                ):
+                    pass
+
+        messages = " ".join(rec.message for rec in caplog.records)
+        assert "no in-flight LangfuseGeneration found" in messages
+        assert "no LangfuseChain root found" in messages
 
     @pytest.mark.asyncio
     async def test_cancel_propagates_even_when_langfuse_update_raises(self):

@@ -7,6 +7,8 @@ and tool outputs.
 
 from typing import Any
 from unittest.mock import Mock, patch, MagicMock
+
+import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.agents.config_loader import VersionConfig, VersionConfigLoader
@@ -50,135 +52,51 @@ def _create_orchestrator_with_mocked_llm(config: VersionConfig) -> Orchestrator:
         return orch
 
 
-def test_yfinance_tool_integration():
-    """Test that yfinance tool output is correctly extracted."""
+@pytest.mark.parametrize(
+    "tool_name, args",
+    [
+        ("yfinance_get_available_fields", {"ticker": "AAPL"}),
+        ("tavily_financial_search", {"query": "latest news", "ticker": "TSLA"}),
+        ("sec_filing_list_sections", {"ticker": "MSFT", "doc_type": "10-K"}),
+    ],
+    ids=["yfinance", "tavily", "sec"],
+)
+def test_single_tool_output_is_extracted(tool_name, args):
+    """A single tool call yields a single tool_output carrying the tool name
+    and the echoed args. yfinance / tavily / sec are the same extraction
+    equivalence class — only the tool name and args strings differ — so they
+    share one parametrized test. Multi-tool sequencing is covered separately by
+    test_multi_tool_integration."""
     config = VersionConfig(
         version="0.1.0",
         name="v1_baseline",
         description="Test version",
-        tools=["yfinance_get_available_fields"],
+        tools=[tool_name],
     )
 
     mock_tool = Mock()
-    mock_tool.name = "yfinance_get_available_fields"
-
-    orch = _create_orchestrator(config, [mock_tool])
-
-    # Simulate agent returning message history with tool call + result
-    orch.agent.invoke.return_value = {
-        "messages": [
-            HumanMessage(content="What data is available for AAPL?"),
-            AIMessage(
-                content="",
-                tool_calls=[
-                    {
-                        "name": "yfinance_get_available_fields",
-                        "args": {"ticker": "AAPL"},
-                        "id": "call_1",
-                    }
-                ],
-            ),
-            ToolMessage(
-                content='{"ticker": "AAPL", "available_fields": {}}',
-                tool_call_id="call_1",
-                name="yfinance_get_available_fields",
-            ),
-            AIMessage(content="AAPL has these fields available."),
-        ]
-    }
-
-    result = orch.run("What data is available for AAPL?")
-
-    assert len(result["tool_outputs"]) > 0
-    assert result["tool_outputs"][0]["tool"] == "yfinance_get_available_fields"
-    assert result["tool_outputs"][0]["args"]["ticker"] == "AAPL"
-
-
-def test_tavily_tool_integration():
-    """Test that tavily tool output is correctly extracted."""
-    config = VersionConfig(
-        version="0.1.0",
-        name="v1_baseline",
-        description="Test version",
-        tools=["tavily_financial_search"],
-    )
-
-    mock_tool = Mock()
-    mock_tool.name = "tavily_financial_search"
+    mock_tool.name = tool_name
 
     orch = _create_orchestrator(config, [mock_tool])
 
     orch.agent.invoke.return_value = {
         "messages": [
-            HumanMessage(content="What's the latest news about TSLA?"),
+            HumanMessage(content="q"),
             AIMessage(
                 content="",
-                tool_calls=[
-                    {
-                        "name": "tavily_financial_search",
-                        "args": {"query": "latest news", "ticker": "TSLA"},
-                        "id": "call_1",
-                    }
-                ],
+                tool_calls=[{"name": tool_name, "args": args, "id": "call_1"}],
             ),
-            ToolMessage(
-                content='{"results": []}',
-                tool_call_id="call_1",
-                name="tavily_financial_search",
-            ),
-            AIMessage(content="No recent news for TSLA."),
+            ToolMessage(content="{}", tool_call_id="call_1", name=tool_name),
+            AIMessage(content="done"),
         ]
     }
 
-    result = orch.run("What's the latest news about TSLA?")
+    result = orch.run("q")
 
     assert len(result["tool_outputs"]) > 0
-    assert result["tool_outputs"][0]["tool"] == "tavily_financial_search"
-    assert result["tool_outputs"][0]["args"]["ticker"] == "TSLA"
-
-
-def test_sec_tool_integration():
-    """Test that SEC tool output is correctly extracted."""
-    config = VersionConfig(
-        version="0.1.0",
-        name="v1_baseline",
-        description="Test version",
-        tools=["sec_filing_list_sections"],
-    )
-
-    mock_tool = Mock()
-    mock_tool.name = "sec_filing_list_sections"
-
-    orch = _create_orchestrator(config, [mock_tool])
-
-    orch.agent.invoke.return_value = {
-        "messages": [
-            HumanMessage(content="Get the latest 10-K for MSFT"),
-            AIMessage(
-                content="",
-                tool_calls=[
-                    {
-                        "name": "sec_filing_list_sections",
-                        "args": {"ticker": "MSFT", "doc_type": "10-K"},
-                        "id": "call_1",
-                    }
-                ],
-            ),
-            ToolMessage(
-                content='{"ticker": "MSFT", "doc_type": "10-K"}',
-                tool_call_id="call_1",
-                name="sec_filing_list_sections",
-            ),
-            AIMessage(content="MSFT 10-K filing retrieved."),
-        ]
-    }
-
-    result = orch.run("Get the latest 10-K for MSFT")
-
-    assert len(result["tool_outputs"]) > 0
-    assert result["tool_outputs"][0]["tool"] == "sec_filing_list_sections"
-    assert result["tool_outputs"][0]["args"]["ticker"] == "MSFT"
-    assert result["tool_outputs"][0]["args"]["doc_type"] == "10-K"
+    output = result["tool_outputs"][0]
+    assert output["tool"] == tool_name
+    assert output["args"] == args
 
 
 def test_multi_tool_integration():

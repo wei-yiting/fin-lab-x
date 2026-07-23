@@ -389,6 +389,132 @@ async def gate_sec() -> bool:
     )
 
 
+# --- DEV-60 reasoning-tracing probe ------------------------------------------
+
+
+class ReasoningEnrichProbe(AsyncCallbackHandler):
+    """F7-relevant probe: can a sibling callback enrich the Braintrust LLM
+    span by run_id (the pattern that on Langfuse requires the private `_runs`
+    dict + suffers the OTel-context no-op bug)? Braintrust's handler exposes
+    `spans: dict[UUID, Span]` — must run BEFORE the handler in the callbacks
+    list so the span is looked up before the handler ends/pops it."""
+
+    raise_error = False
+
+    def __init__(self, bt_handler: Any):
+        self.bt = bt_handler
+        self._captured: dict[Any, Any] = {}
+        self.enriched: list[str] = []
+        self.errors: list[str] = []
+
+    def _capture(self, run_id: Any) -> None:
+        # The Braintrust handler is sync/run_inline and pops the span in its
+        # own on_llm_end before an async sibling runs — so grab the span ref
+        # at llm-start (it exists by then; chat-model start dispatches first).
+        span = dict(getattr(self.bt, "spans", {}) or {}).get(run_id)
+        if span is not None:
+            self._captured[run_id] = span
+
+    async def on_chat_model_start(self, *args: Any, run_id: Any, **kwargs: Any) -> None:
+        self._capture(run_id)
+
+    async def on_llm_start(self, *args: Any, run_id: Any, **kwargs: Any) -> None:
+        self._capture(run_id)
+
+    async def on_llm_end(self, response: Any, *, run_id: Any, **kwargs: Any) -> None:
+        span = self._captured.get(run_id) or dict(getattr(self.bt, "spans", {}) or {}).get(run_id)
+        if span is None:
+            self.errors.append(f"no span for run_id {run_id}")
+            return
+        try:
+            span.log(metadata={"reasoning_enrich_probe": f"run:{run_id}"})
+            self.enriched.append(str(run_id))
+        except Exception as e:
+            self.errors.append(f"{type(e).__name__}: {e}")
+
+
+async def gate_reasoning() -> bool:
+    """DEV-60: reasoning-capable model (gpt-5-mini, responses API — mirrors
+    multi-provider _init_model's openai branch) under astream + per-request
+    Braintrust handler. Checks reasoning blocks stream through, and probes
+    run_id-based span enrichment."""
+    if "reasoning_agent" not in agent_singleton:
+        model = init_chat_model(
+            "gpt-5-mini", reasoning_effort="medium", use_responses_api=True
+        )
+        agent_singleton["reasoning_agent"] = create_agent(
+            model=model, tools=[poc_price_note, poc_retrieve], system_prompt=_SYSTEM_PROMPT
+        )
+    agent = agent_singleton["reasoning_agent"]
+
+    handler = BraintrustCallbackHandler()
+    probe = ReasoningEnrichProbe(handler)
+    request_id = uuid.uuid4().hex[:8]
+    config = {
+        "callbacks": [probe, handler],
+        "run_name": "gate-reasoning",
+        "metadata": {"poc_case": "gate-reasoning", "request_id": request_id},
+        "configurable": {"thread_id": f"gate-reasoning-{request_id}"},
+    }
+
+    reasoning_chunks = 0
+    text_chunks = 0
+    tool_names: list[str] = []
+    final_text = ""
+    error: str | None = None
+    with braintrust.start_span(name="request:gate-reasoning", type="task") as root:
+        try:
+            link = root.permalink()
+        except Exception:
+            link = None
+        root.log(input="reasoning gate", metadata={"poc_case": "gate-reasoning", "request_id": request_id})
+        try:
+            async for raw in agent.astream(
+                {"messages": [{"role": "user", "content": "Compare ACME's revenue growth against its price level. Use tools."}]},
+                config=config,
+                stream_mode=["messages", "updates"],
+                version="v2",
+            ):
+                mode, data = raw if isinstance(raw, tuple) else ("updates", raw)
+                if mode == "messages":
+                    msg = data[0]
+                    for block in getattr(msg, "content_blocks", None) or []:
+                        btype = block.get("type", "") if isinstance(block, dict) else ""
+                        if "reasoning" in btype:
+                            reasoning_chunks += 1
+                        elif btype == "text":
+                            text_chunks += 1
+                            final_text += block.get("text", "")
+                elif mode == "updates" and isinstance(data, dict):
+                    for node_out in data.values():
+                        for m in (node_out or {}).get("messages", []):
+                            if type(m).__name__ == "ToolMessage":
+                                tool_names.append(m.name or "?")
+        except Exception as e:
+            error = f"{type(e).__name__}: {e}"
+        root.log(output=final_text.strip())
+
+    print(f"\n=== gate-reasoning (request_id={request_id}) ===")
+    checks = [
+        ("stream completed without error", error is None),
+        ("reasoning blocks streamed", reasoning_chunks > 0),
+        ("tool call observed", bool(tool_names)),
+        ("final answer produced", bool(final_text.strip())),
+        ("run_id span lookup + enrich worked", bool(probe.enriched) and not probe.errors),
+    ]
+    ok = all(p for _, p in checks)
+    for label, passed in checks:
+        print(f"  [{'PASS' if passed else 'FAIL'}] {label}")
+    print(f"  reasoning_chunks={reasoning_chunks} text_chunks={text_chunks} tools={tool_names}")
+    print(f"  probe: enriched={len(probe.enriched)} errors={probe.errors or 'none'}")
+    if error:
+        print(f"  stream_error: {error}")
+    print(f"  trace: {link or '(search gate-reasoning in UI)'}")
+    print("  UI-CHECK: ChatOpenAI generation span output — does it contain the "
+          "reasoning content natively (vs text-only)? metadata.reasoning_enrich_probe present?")
+    return ok
+
+
 async def gate_traced() -> bool:
     """Finding 5 remediation probe: @traced (migrated @observe) + start_span
     (migrated traced_span) + LlamaIndex dispatcher, all under a LangGraph tool
@@ -438,6 +564,7 @@ GATES = {
     "sec": gate_sec,
     "traced": gate_traced,
     "ingest-root": gate_ingest_root,
+    "reasoning": gate_reasoning,
     "nesting": gate_nesting,
     "streaming": gate_streaming,
     "concurrency": gate_concurrency,

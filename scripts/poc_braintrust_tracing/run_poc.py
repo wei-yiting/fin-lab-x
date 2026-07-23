@@ -117,6 +117,26 @@ async def sec_rag_search(query: str, ticker: str) -> str:
     )
 
 
+# --- Finding 5 probe: migrated span_tracing pattern (@observe → @traced) ----
+from braintrust import traced
+
+
+@traced(name="sec_retrieval_migrated", type="function")
+async def _traced_search_impl(query: str) -> str:
+    """Simulates the migrated retriever: @traced outer span (was @observe) +
+    start_span sub-span (was traced_span) + LlamaIndex dispatcher spans."""
+    with braintrust.start_span(name="check_cache_migrated", type="function") as s:
+        s.log(input={"query": query}, output={"embedding_cache_hit": True})
+    nodes = await build_retriever().aretrieve(query)
+    return "\n".join(n.get_content() for n in nodes)
+
+
+@tool
+async def poc_traced_retrieve(query: str) -> str:
+    """Retrieve company facts via the migration-pattern traced search."""
+    return await _traced_search_impl(query)
+
+
 _SYSTEM_PROMPT = (
     "You are a terse financial assistant. ALWAYS answer using tools: "
     "use poc_retrieve for company fundamentals questions, poc_price_note "
@@ -125,9 +145,13 @@ _SYSTEM_PROMPT = (
 )
 
 
-def build_agent(*, sec: bool = False) -> Any:
-    key = "sec_agent" if sec else "agent"
-    tools = [poc_price_note, poc_retrieve] + ([sec_rag_search] if sec else [])
+def build_agent(*, sec: bool = False, traced_tool: bool = False) -> Any:
+    key = "sec_agent" if sec else ("traced_agent" if traced_tool else "agent")
+    tools = [poc_price_note, poc_retrieve]
+    if sec:
+        tools.append(sec_rag_search)
+    if traced_tool:
+        tools = [poc_price_note, poc_traced_retrieve]
     if key not in agent_singleton:
         model = init_chat_model("gpt-4o-mini", temperature=0)
         agent_singleton[key] = create_agent(
@@ -160,9 +184,10 @@ async def run_case(
     *,
     extra_handlers: list[Any] | None = None,
     sec: bool = False,
+    traced_tool: bool = False,
 ) -> dict[str, Any]:
     """One streamed agent request with its own per-request Braintrust handler."""
-    agent = build_agent(sec=sec)
+    agent = build_agent(sec=sec, traced_tool=traced_tool)
     handler = BraintrustCallbackHandler()
     request_id = uuid.uuid4().hex[:8]
     config = {
@@ -364,9 +389,55 @@ async def gate_sec() -> bool:
     )
 
 
+async def gate_traced() -> bool:
+    """Finding 5 remediation probe: @traced (migrated @observe) + start_span
+    (migrated traced_span) + LlamaIndex dispatcher, all under a LangGraph tool
+    span in one trace."""
+    r = await run_case(
+        "gate-traced-migration",
+        "Using the research corpus, what did Globex acquire?",
+        traced_tool=True,
+    )
+    return _report(
+        r,
+        [
+            ("stream completed without error", r["stream_error"] is None),
+            ("poc_traced_retrieve executed", "poc_traced_retrieve" in r["tools"]),
+        ],
+        [
+            "tool span → sec_retrieval_migrated (@traced) → check_cache_migrated "
+            "+ VectorIndexRetriever/OpenAIEmbedding, ALL in one trace",
+        ],
+    )
+
+
+async def gate_ingest_root() -> bool:
+    """Finding 6 remediation probe: wrapping an ingestion run in an explicit
+    root span must collapse the orphan dispatcher-span forest into one trace."""
+    from llama_index.core import Document as _Doc, VectorStoreIndex as _VSI
+
+    with braintrust.start_span(name="ingestion:poc-corpus", type="task") as root:
+        try:
+            link = root.permalink()
+        except Exception:
+            link = None
+        _VSI.from_documents(
+            [_Doc(text=t) for t in _FAKE_DOCS],
+            embed_model=OpenAIEmbedding(model="text-embedding-3-small"),
+        )
+        root.log(input={"docs": len(_FAKE_DOCS)}, output="ingested")
+    print("\n=== gate-ingest-root ===")
+    print(f"  trace: {link or '(search ingestion:poc-corpus in UI)'}")
+    print("  UI-CHECK: ALL SentenceSplitter/OpenAIEmbedding spans from this build "
+          "are inside the single 'ingestion:poc-corpus' trace — no orphan traces")
+    return True
+
+
 GATES = {
     "gate1": gate1,
     "sec": gate_sec,
+    "traced": gate_traced,
+    "ingest-root": gate_ingest_root,
     "nesting": gate_nesting,
     "streaming": gate_streaming,
     "concurrency": gate_concurrency,

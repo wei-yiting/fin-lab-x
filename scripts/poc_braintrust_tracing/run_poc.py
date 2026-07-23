@@ -42,7 +42,9 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[2] / "backend" / ".env")
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO_ROOT))  # for backend.* imports when run as a script
+load_dotenv(_REPO_ROOT / "backend" / ".env")
 
 BT_PROJECT = "poc-braintrust-tracing"  # isolated project: POC noise stays out of eval projects
 
@@ -103,19 +105,35 @@ async def poc_retrieve(query: str) -> str:
     return "\n".join(n.get_content() for n in nodes)
 
 
+@tool
+async def sec_rag_search(query: str, ticker: str) -> str:
+    """Search a company's SEC 10-K filing. Provide an English search query and the stock ticker."""
+    from backend.ingestion.sec_dense_pipeline.retriever import search
+
+    chunks = await search(query=query, filters={"ticker": ticker}, top_k=5)
+    return "\n---\n".join(
+        f"[{c.ticker} FY{c.year} {c.item} | {c.header_path}] {c.text[:400]}"
+        for c in chunks
+    )
+
+
 _SYSTEM_PROMPT = (
     "You are a terse financial assistant. ALWAYS answer using tools: "
-    "use poc_retrieve for company fundamentals questions and poc_price_note "
-    "for price questions. Answer in one sentence."
+    "use poc_retrieve for company fundamentals questions, poc_price_note "
+    "for price questions, and sec_rag_search for SEC filing questions. "
+    "Answer in one sentence."
 )
 
 
-def build_agent() -> Any:
-    model = init_chat_model("gpt-4o-mini", temperature=0)
-    return agent_singleton.setdefault(
-        "agent",
-        create_agent(model=model, tools=[poc_price_note, poc_retrieve], system_prompt=_SYSTEM_PROMPT),
-    )
+def build_agent(*, sec: bool = False) -> Any:
+    key = "sec_agent" if sec else "agent"
+    tools = [poc_price_note, poc_retrieve] + ([sec_rag_search] if sec else [])
+    if key not in agent_singleton:
+        model = init_chat_model("gpt-4o-mini", temperature=0)
+        agent_singleton[key] = create_agent(
+            model=model, tools=tools, system_prompt=_SYSTEM_PROMPT
+        )
+    return agent_singleton[key]
 
 
 agent_singleton: dict[str, Any] = {}
@@ -141,9 +159,10 @@ async def run_case(
     prompt: str,
     *,
     extra_handlers: list[Any] | None = None,
+    sec: bool = False,
 ) -> dict[str, Any]:
     """One streamed agent request with its own per-request Braintrust handler."""
-    agent = build_agent()
+    agent = build_agent(sec=sec)
     handler = BraintrustCallbackHandler()
     request_id = uuid.uuid4().hex[:8]
     config = {
@@ -314,8 +333,40 @@ async def gate_rule13() -> bool:
     )
 
 
+async def gate_sec() -> bool:
+    """Realistic path: LangGraph tool → sec_dense_pipeline.search() → Qdrant +
+    LlamaIndex embed_query. Prewarms the JIT ingest OUTSIDE request scope so
+    the gate trace shows the steady-state read path (cache hit)."""
+    from backend.ingestion.sec_dense_pipeline.retriever import search
+
+    print("\n[prewarm] JIT ingest AAPL 10-K (EDGAR download + embed on first run — may take minutes)")
+    warm = await search(query="risk factors", filters={"ticker": "AAPL"}, top_k=3)
+    print(f"[prewarm] done — {len(warm)} chunks (FY{warm[0].year if warm else '?'})")
+
+    r = await run_case(
+        "gate-sec-rag",
+        "According to its latest 10-K, what are Apple's main risk factors? Use sec_rag_search with ticker AAPL.",
+        sec=True,
+    )
+    return _report(
+        r,
+        [
+            ("stream completed without error", r["stream_error"] is None),
+            ("sec_rag_search executed", "sec_rag_search" in r["tools"]),
+            ("substantive answer produced", len(r["final_text"]) > 40),
+        ],
+        [
+            "LlamaIndex OpenAIEmbedding span (query embed) nests UNDER the "
+            "sec_rag_search tool span, same trace",
+            "Langfuse-internal spans (sec_retrieval @observe / traced_span) are "
+            "NOT expected in Braintrust — note what visibility is lost vs Langfuse",
+        ],
+    )
+
+
 GATES = {
     "gate1": gate1,
+    "sec": gate_sec,
     "nesting": gate_nesting,
     "streaming": gate_streaming,
     "concurrency": gate_concurrency,

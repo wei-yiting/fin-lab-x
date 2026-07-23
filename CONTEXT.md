@@ -72,12 +72,12 @@ The git-versioned, hand-curated set of ~30 open-ended financial questions with p
 The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / reach) and the expected pass/fail behavior, scored by deterministic execution checks (ran to completion, right tool chosen) plus human trace review. It diagnoses behavior and names the tuning lever; it never grades answer quality.
 _Avoid_: near-v1 diagnostic (legacy dataset/scenario name, to be renamed at rework)
 
-**Prompt Regression Suite**:
-The stable set of test cases rerun manually before merging any system-prompt or model change, answering "did existing behavior get worse" with a binary pass/fail — scorers may be programmatic or binary-rubric LLM judges, but the verdict is always red/green. A development-stage gate, deliberately kept out of CI.
-_Avoid_: Regression Guardrail (a guardrail is a runtime concept — see Guardrail)
+**Regression Suite**:
+The stable set of test cases rerun manually before merging any change to a scenario's behavior determinants — system prompt, model, or retrieval pipeline — answering "did existing behavior get worse" with a binary red/green verdict. Scorers may be programmatic or binary-rubric LLM judges; each gated scorer's mean score must clear its declared floor. A development-stage gate, deliberately kept out of CI.
+_Avoid_: Prompt Regression Suite (superseded — the suite also gates non-prompt subsystems such as retrieval); Regression Guardrail (a guardrail is a runtime concept — see Guardrail)
 
 **Quality Track**:
-The Braintrust experiment track that measures quality movement while iterating on prompts or models — answers "did it get better". Complements the Prompt Regression Suite; the two are never mixed.
+The Braintrust experiment track that measures quality movement while iterating on prompts or models — answers "did it get better". Complements the Regression Suite; the two are never mixed.
 _Avoid_: Quality Improvement (superseded README wording)
 
 **Guardrail**:

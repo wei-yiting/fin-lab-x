@@ -37,3 +37,6 @@ data/
 .DS_Store
 *.sw?
 .claude/
+
+# Understand Anything
+.ua/

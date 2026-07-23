@@ -62,7 +62,7 @@ def _root_span(*, status: str | None = None) -> dict[str, Any]:
 def _trace(observations: list[dict[str, Any]], trace_metadata: dict | None = None) -> dict[str, Any]:
     return {
         "id": "trace-abc",
-        "name": "v3_quant_stream",
+        "name": "quant_stream",
         "metadata": trace_metadata or {},
         "observations": observations,
     }

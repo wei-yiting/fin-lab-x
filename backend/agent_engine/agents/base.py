@@ -1,4 +1,4 @@
-"""Version-agnostic Orchestrator for FinLab-X.
+"""Profile-agnostic Orchestrator for FinLab-X.
 
 Uses LangChain's create_agent to handle the tool calling loop automatically.
 The Orchestrator does NOT manually manage bind_tools or tool execution —
@@ -36,7 +36,10 @@ from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import TypedDict
 
-from backend.agent_engine.agents.config_loader import ModelConfig, VersionConfig
+from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    WorkflowProfileConfig,
+)
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
@@ -178,7 +181,7 @@ LANGUAGE POLICY:
 
 TOOL CALL BUDGET:
 - You may make at most {max_tool_calls_per_run} tool calls per request (across the entire run). Plan before you call: if a question needs more data than the budget allows, prioritize the most decision-relevant calls first and summarize with what you have.
-- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT an external rate limit from SEC, Yahoo Finance, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
+- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT an external rate limit from SEC, Finnhub, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
 
 ZERO HALLUCINATION POLICY:
 - Only use data from provided tools
@@ -187,7 +190,7 @@ ZERO HALLUCINATION POLICY:
 
 CITATION REQUIREMENTS:
 - Support all claims with specific data points from tool outputs
-- Cite sources by tool name (e.g., "According to yfinance data...")
+- Cite sources by tool name (e.g., "According to Finnhub data...")
 - Flag any data quality issues or stale data
 
 RESPONSE FORMAT:
@@ -234,7 +237,7 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
     The upstream ``ToolCallLimitMiddleware`` injects a ToolMessage reading
     "Tool call limit exceeded. Do not call '<name>' again." When the model
     reads that phrase it tends to paraphrase it to the user as "I hit a
-    rate limit", conflating our internal budget with a real SEC / Yahoo /
+    rate limit", conflating our internal budget with a real SEC / Finnhub /
     Tavily 429. This subclass reuses the upstream counting logic via
     ``super().after_model()`` and rewrites the injected message to an
     explicit, non-ambiguous form that tells the model both (a) not to
@@ -249,7 +252,7 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
             "Per-run tool-call budget reached for this request. "
             f"Do not call {scope} again in this run. "
             "This is an INTERNAL orchestration budget — it is NOT an "
-            "external rate limit from SEC EDGAR, Yahoo Finance, Tavily, "
+            "external rate limit from SEC EDGAR, Finnhub, Tavily, "
             "or any other external API. Summarize with the data already "
             "collected; do not describe this to the user as a network or "
             "API failure."
@@ -313,10 +316,13 @@ class _LangfusePropagationAttributes(TypedDict, total=False):
 
 
 class Orchestrator:
-    """Version-agnostic Orchestrator that loads capabilities from config."""
+    """Profile-agnostic Orchestrator that loads capabilities from config."""
 
     def __init__(
-        self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None
+        self,
+        config: WorkflowProfileConfig,
+        *,
+        checkpointer: BaseCheckpointSaver | None = None,
     ):
         setup_tools()
         self._validate_edgar_identity(config)
@@ -353,7 +359,7 @@ class Orchestrator:
         Supported placeholders:
         - ``{section_soft_cap_chars}`` — computed from the active model's
           context window
-        - ``{max_tool_calls_per_run}`` — passed through from the version's
+        - ``{max_tool_calls_per_run}`` — passed through from the profile's
           ``constraints.max_tool_calls_per_run``; ``None`` means the prompt
           doesn't reference this variable (tests may omit it)
         - ``{today_date}`` — ISO-8601 date the orchestrator was instantiated.
@@ -388,9 +394,9 @@ class Orchestrator:
         return _PROMPT_PLACEHOLDER_RE.sub(lambda m: str(provided[m.group(1)]), raw)
 
     @staticmethod
-    def _validate_edgar_identity(config: VersionConfig) -> None:
-        """Fast-fail at startup if the version config loads a SEC tool without
-        ``EDGAR_IDENTITY`` set. Versions without SEC tools skip the check so
+    def _validate_edgar_identity(config: WorkflowProfileConfig) -> None:
+        """Fast-fail at startup if the profile config loads a SEC tool without
+        ``EDGAR_IDENTITY`` set. Profiles without SEC tools skip the check so
         non-SEC deployments stay unaffected.
         """
         needs_sec = any(t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools)
@@ -692,8 +698,8 @@ class Orchestrator:
     ) -> tuple[RunnableConfig, _LangfusePropagationAttributes, "CallbackHandler"]:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
 
-        trace_name is derived from agent version + endpoint mode, e.g.
-        ``v1_baseline_stream``. request_id + extras (trigger, message_id, ...)
+        trace_name is derived from the profile name + endpoint mode, e.g.
+        ``baseline_stream``. request_id + extras (trigger, message_id, ...)
         go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
         attaches them to the root trace via the ``langfuse_trace_name`` path.
 

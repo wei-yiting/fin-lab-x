@@ -1,6 +1,6 @@
 """Tests for eval task functions.
 
-Verifies that run_v1 uses the async streaming path (astream_run) and
+Verifies that run_baseline uses the async streaming path (astream_run) and
 correctly collects domain events into OrchestratorResult.
 """
 
@@ -53,17 +53,17 @@ async def _async_gen(events: list):
 def test_run_v1_string_input_calls_astream_run(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_v1
+    from backend.evals.eval_tasks import run_baseline
 
-    result = asyncio.run(run_v1("微軟最近有什麼新聞？"))
+    result = asyncio.run(run_baseline("微軟最近有什麼新聞？"))
 
-    mock_get_orch.assert_called_once_with("v1_baseline")
+    mock_get_orch.assert_called_once_with("baseline")
     mock_orchestrator.astream_run.assert_called_once()
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "微軟最近有什麼新聞？"
@@ -74,15 +74,15 @@ def test_run_v1_string_input_calls_astream_run(mock_get_orch: MagicMock) -> None
 def test_run_v1_dict_input_extracts_prompt(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_v1
+    from backend.evals.eval_tasks import run_baseline
 
-    result = asyncio.run(run_v1({"prompt": "test query"}))
+    result = asyncio.run(run_baseline({"prompt": "test query"}))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "test query"
@@ -98,35 +98,35 @@ def test_run_v1_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
     )
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_v1
+    from backend.evals.eval_tasks import run_baseline
 
-    result = asyncio.run(run_v1("蘋果公司最新的財報表現如何？"))
+    result = asyncio.run(run_baseline("蘋果公司最新的財報表現如何？"))
 
     assert result["response"] == "蘋果公司最新財報表現良好"
     assert len(result["tool_outputs"]) == 1
     assert result["tool_outputs"][0]["tool"] == "tavily_financial_search"
     assert result["tool_outputs"][0]["result"] == "Earnings beat expectations..."
     assert result["model"] == "gpt-4o"
-    assert result["version"] == "v1_baseline"
+    assert result["version"] == "baseline"
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
 def test_run_v1_scalar_input_converted_to_string(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_v1
+    from backend.evals.eval_tasks import run_baseline
 
-    asyncio.run(run_v1(42))
+    asyncio.run(run_baseline(42))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "42"
@@ -136,15 +136,15 @@ def test_run_v1_scalar_input_converted_to_string(mock_get_orch: MagicMock) -> No
 def test_run_v1_float_input_converted_to_string(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_v1
+    from backend.evals.eval_tasks import run_baseline
 
-    asyncio.run(run_v1(3.14))
+    asyncio.run(run_baseline(3.14))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "3.14"
@@ -154,15 +154,15 @@ def test_run_v1_float_input_converted_to_string(mock_get_orch: MagicMock) -> Non
 def test_run_v1_list_input_converted_to_string(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_v1
+    from backend.evals.eval_tasks import run_baseline
 
-    asyncio.run(run_v1(["a", "b"]))
+    asyncio.run(run_baseline(["a", "b"]))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "['a', 'b']"

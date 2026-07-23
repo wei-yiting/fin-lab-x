@@ -11,6 +11,18 @@ The codebase is split into two primary environments:
 - **Frontend (`/frontend`)**: TypeScript-based Next.js Generative UI.
 - **Evaluation (`backend/evaluation`)**: Independent LLMOps and evaluation framework.
 
+### Design Envelope (read before designing, implementing, or reviewing)
+
+All design, implementation, and code-review decisions are calibrated against
+[`docs/design-envelope.md`](docs/design-envelope.md) — the single source of truth for scale
+assumptions, robustness targets, and depth allocation. Two symmetric rules:
+
+- Robustness beyond the envelope is **over-engineering** — flag it for removal, not improvement.
+- Shortcuts inside an envelope §4 Production-Grade Zone are **under-engineering**.
+
+Both are Major findings in review (envelope §7). Cite envelope sections by number instead of
+assuming production-scale requirements.
+
 ## 2. Build, Lint, and Test Commands
 
 ### Backend (Python / FastAPI / LangGraph)
@@ -100,3 +112,13 @@ When modifying or generating code, strictly follow the project's **Clean Archite
 - **Security Check:** Avoid committing secrets. If working with API keys (e.g., OpenAI, LangSmith), ensure they are loaded via environment variables and NEVER hardcoded in source files.
 
 (Remember: Always write tests to verify your code before completing a task!)
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in Linear — team Project-Dev (`DEV-`), project FinLab-X. Features are parent issues; tickets are sub-issues with native blocking relations. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` at the repo root plus `docs/adr/`. See `docs/agents/domain.md`.

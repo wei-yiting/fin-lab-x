@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 from backend.agent_engine.utils import model_context
 from backend.common.sec_core import ConfigurationError
 
@@ -106,57 +106,57 @@ def test_validate_edgar_identity_fast_fail(monkeypatch):
 
 def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
     monkeypatch.delenv("EDGAR_IDENTITY", raising=False)
-    config = SimpleNamespace(tools=["yfinance_stock_quote"])
+    config = SimpleNamespace(tools=["finnhub_stock_quote"])
     # Should NOT raise
     Orchestrator._validate_edgar_identity(config)
 
 
 # ---------------------------------------------------------------------------
-# Task 9: two-step SEC tool registration + v1_baseline prompt strategy
+# Task 9: two-step SEC tool registration + baseline prompt strategy
 # ---------------------------------------------------------------------------
 
 
-V1_BASELINE_PROMPT_PATH = (
+BASELINE_PROMPT_PATH = (
     Path(__file__).resolve().parents[2]
     / "agent_engine"
     / "agents"
-    / "versions"
-    / "v1_baseline"
+    / "profiles"
+    / "baseline"
     / "system_prompt.md"
 )
 
-VERSIONS_DIR = (
-    Path(__file__).resolve().parents[2] / "agent_engine" / "agents" / "versions"
+PROFILES_DIR = (
+    Path(__file__).resolve().parents[2] / "agent_engine" / "agents" / "profiles"
 )
 
 
-_V1_BASELINE_TOOLS = [
-    "yfinance_stock_quote",
-    "yfinance_get_available_fields",
+_BASELINE_TOOLS = [
+    "finnhub_stock_quote",
+    "finnhub_company_basic_financials",
     "tavily_financial_search",
     "sec_filing_list_sections",
     "sec_filing_get_section",
 ]
 
-EXPECTED_TOOLS_BY_VERSION = {
-    "v1_baseline": _V1_BASELINE_TOOLS,
-    "v2_reader": _V1_BASELINE_TOOLS,
-    "v3_quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
-    "v4_graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
-    "v5_analyst": _V1_BASELINE_TOOLS
+EXPECTED_TOOLS_BY_PROFILE = {
+    "baseline": _BASELINE_TOOLS,
+    "reader": _BASELINE_TOOLS,
+    "quant": _BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
+    "graph": _BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
+    "analyst": _BASELINE_TOOLS
     + ["duckdb_query", "text_to_sql", "neo4j_query", "text_to_cypher"],
 }
 
 
-def test_v1_baseline_system_prompt_advertises_sec_tools():
-    """The v1_baseline prompt must point the agent at the two-step SEC tools.
+def test_baseline_system_prompt_advertises_sec_tools():
+    """The baseline prompt must point the agent at the two-step SEC tools.
 
     The detailed strategy (10-K item table, fiscal_year-passing rules, stub
     semantics, soft-cap behavior) was moved into the sec_filing_list_sections
     tool's reading_guide output for progressive disclosure — the system
     prompt now only carries a high-level pointer.
     """
-    text = V1_BASELINE_PROMPT_PATH.read_text()
+    text = BASELINE_PROMPT_PATH.read_text()
     assert "sec_filing_list_sections" in text
     assert "sec_filing_get_section" in text
     # Detailed strategy is no longer in the prompt — it lives in the tool output.
@@ -164,11 +164,25 @@ def test_v1_baseline_system_prompt_advertises_sec_tools():
     assert "{section_soft_cap_chars}" not in text
 
 
-def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
-    """Building the real v1_baseline Orchestrator must produce a non-empty
+def test_baseline_system_prompt_has_no_yahoo_residue():
+    """DECISION-001 regression guard: the baseline prompt must not reference
+    Yahoo or the dropped yfinance tool. Quote/fundamentals claims are cited by
+    data provider name (Finnhub) with no fabricated per-ticker URL.
+
+    forwardPE is deliberately NOT asserted absent: live verification
+    (2026-07-21, AAPL/MSFT/TSM) showed the free-tier /stock/metric map does
+    include forwardPE, so it is part of the fundamentals catalog.
+    """
+    text = BASELINE_PROMPT_PATH.read_text().lower()
+    assert "yahoo" not in text
+    assert "yfinance" not in text
+
+
+def test_orchestrator_baseline_renders_prompt_end_to_end(monkeypatch):
+    """Building the real baseline Orchestrator must produce a non-empty
     rendered system prompt with no unsubstituted placeholders.
 
-    The v1_baseline prompt no longer references {section_soft_cap_chars}
+    The baseline prompt no longer references {section_soft_cap_chars}
     (it was moved to the SEC tool's reading_guide), so this test now only
     checks that rendering succeeds and the SEC tool pointer survives.
 
@@ -177,7 +191,7 @@ def test_orchestrator_v1_baseline_renders_prompt_end_to_end(monkeypatch):
     not actual model wiring.
     """
     monkeypatch.setenv("EDGAR_IDENTITY", "test@example.com")
-    config = VersionConfigLoader("v1_baseline").load()
+    config = ProfileConfigLoader("baseline").load()
 
     with (
         patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
@@ -241,14 +255,14 @@ def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):
     assert get_tool("sec_official_docs_retriever") is None
 
 
-@pytest.mark.parametrize("version", sorted(EXPECTED_TOOLS_BY_VERSION.keys()))
-def test_all_versions_use_new_tool_names(version):
-    """Every version config must replace the deprecated single SEC retriever
+@pytest.mark.parametrize("profile", sorted(EXPECTED_TOOLS_BY_PROFILE.keys()))
+def test_all_profiles_use_new_tool_names(profile):
+    """Every profile config must replace the deprecated single SEC retriever
     with the two-step pair. We assert that invariant, NOT the exact tool list /
     ordering — pinning the full list change-detects every intentional tool
-    addition across all five versions at once.
+    addition across all five profiles at once.
     """
-    yaml_path = VERSIONS_DIR / version / "orchestrator_config.yaml"
+    yaml_path = PROFILES_DIR / profile / "orchestrator_config.yaml"
     with yaml_path.open() as f:
         config_dict = yaml.safe_load(f)
 

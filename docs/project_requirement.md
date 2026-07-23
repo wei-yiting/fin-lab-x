@@ -17,7 +17,7 @@ This approach solves the "cold start" problem, provides dynamic modifiability, a
 
 ---
 
-## 2. The "Laboratory" Evolutionary Path (v1 - v5)
+## 2. The "Laboratory" Evolutionary Path (baseline to analyst)
 
 The project is structured as a laboratory to demonstrate the evolution of AI capabilities and the resolution of common financial analysis pain points (latency, structural reasoning, and numerical hallucinations).
 
@@ -27,7 +27,7 @@ Every phase must be evaluated using a predetermined "Golden Dataset" of 30-100 f
 
 ---
 
-### Phase 1: v1 - The Naive Generalist (Baseline)
+### Phase 1 (`baseline`) - The Naive Generalist (Baseline)
 
 - **Goal:** Establish a baseline to demonstrate the flaws of relying solely on LLMs + basic web search for complex financial queries (specifically highlighting "information noise" and lack of cross-document reasoning).
 - **Architecture:** Direct LLM Function Calling (Reactive). **No dedicated Router.**
@@ -40,18 +40,18 @@ Every phase must be evaluated using a predetermined "Golden Dataset" of 30-100 f
 
 ---
 
-### Phase 2: v2 - The Intelligent Reader (Structured RAG)
+### Phase 2 (`reader`) - The Intelligent Reader (Structured RAG)
 
 - **Goal:** Solve the "long-context hallucination" problem and improve reading comprehension of dense financial texts.
 - **Architecture:** Introduction of a Basic Classifier/Router (Chat vs. RAG).
 - **New Capabilities (Data Foundry):**
   - Vector Database (e.g., Qdrant) integration.
   - Intelligent chunking strategies (e.g., semantic or section-based parsing) for SEC filings (10-K, 10-Q).
-- **Evaluation Focus:** Improvement in Context Precision and Faithfulness (Ragas) compared to v1.
+- **Evaluation Focus:** Improvement in Context Precision and Faithfulness (Ragas) compared to `baseline`.
 
 ---
 
-### Phase 3: v3 - The Quant Specialist (Structured Data Integration)
+### Phase 3 (`quant`) - The Quant Specialist (Structured Data Integration)
 
 - **Goal:** Solve "numerical hallucinations" by enabling precise queries on structured financial data.
 - **Architecture:** Tri-State Router (Qualitative / Quantitative / Web Search).
@@ -64,7 +64,7 @@ Every phase must be evaluated using a predetermined "Golden Dataset" of 30-100 f
 
 ---
 
-### Phase 4: v4 - The Detective (Graph Reasoning)
+### Phase 4 (`graph`) - The Detective (Graph Reasoning)
 
 - **Goal:** Solve the "implicit relationship" problem to identify hidden supply chain or competitive risks.
 - **Architecture:** Semantic Router incorporating Graph-Query logic.
@@ -78,7 +78,7 @@ Every phase must be evaluated using a predetermined "Golden Dataset" of 30-100 f
 
 ---
 
-### Phase 5: v5 - The Analyst (Synthesis and Generative UI)
+### Phase 5 (`analyst`) - The Analyst (Synthesis and Generative UI)
 
 - **Goal:** Combine all capabilities into a cohesive, interactive terminal experience that performs multi-step reasoning.
 - **Architecture:** The Orchestrator matures into a "Planner," orchestrating multiple tools and skills sequentially (e.g., Plan -> Execute SQL Skill -> Execute Graph Skill -> Synthesize).

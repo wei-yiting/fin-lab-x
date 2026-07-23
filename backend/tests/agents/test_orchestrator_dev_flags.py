@@ -15,7 +15,10 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import ModelConfig, VersionConfig
+from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    WorkflowProfileConfig,
+)
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     StreamError,
@@ -23,9 +26,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 
 def _create_orchestrator() -> Orchestrator:
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         model=ModelConfig(name="gpt-4o-mini", reasoning="off"),

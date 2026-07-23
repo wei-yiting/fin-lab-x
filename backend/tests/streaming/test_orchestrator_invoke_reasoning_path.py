@@ -19,7 +19,10 @@ from langchain_core.outputs import ChatGeneration, LLMResult
 from langfuse.langchain import CallbackHandler
 
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import ModelConfig, VersionConfig
+from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    WorkflowProfileConfig,
+)
 from backend.agent_engine.streaming import reasoning_trace_callback as rtc_module
 from backend.agent_engine.streaming.reasoning_trace_callback import (
     ReasoningTraceCallback,
@@ -37,17 +40,17 @@ class _FakeGeneration:
         self.updates.append(metadata)
 
 
-def _make_config(reasoning: str = "on") -> VersionConfig:
-    return VersionConfig(
+def _make_config(reasoning: str = "on") -> WorkflowProfileConfig:
+    return WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         model=ModelConfig(name="gpt-4o-mini", reasoning=reasoning),
     )
 
 
-def _create_orchestrator(config: VersionConfig) -> Orchestrator:
+def _create_orchestrator(config: WorkflowProfileConfig) -> Orchestrator:
     with (
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,

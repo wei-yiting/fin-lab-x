@@ -7,6 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables BEFORE importing application modules.
 # Tools and tracing may read env vars (OPENAI_API_KEY, LANGCHAIN_TRACING_V2, etc.)
@@ -16,19 +17,19 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver  # noqa: E402
 
 from backend.agent_engine.agents.base import Orchestrator  # noqa: E402
-from backend.agent_engine.agents.config_loader import VersionConfigLoader  # noqa: E402
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader  # noqa: E402
 from backend.api.routers import chat, chat_invoke  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
 APP_VERSION = "0.1.0"
-DEFAULT_WORKFLOW_VERSION = "v1_baseline"
+DEFAULT_WORKFLOW_PROFILE = "baseline"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize application-level singletons on startup."""
-    config = VersionConfigLoader(DEFAULT_WORKFLOW_VERSION).load()
+    config = ProfileConfigLoader(DEFAULT_WORKFLOW_PROFILE).load()
 
     db_path = os.environ.get("CHECKPOINT_DB_PATH", "data/checkpoints.db")
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
@@ -51,11 +52,25 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+allowed_origins_str = os.getenv("API_ALLOWED_ORIGINS", "")
+allowed_origins = [
+    origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "HEAD", "POST"],
+    allow_headers=["*"],
+    max_age=86400,
+)
+
 app.include_router(chat.router)
 app.include_router(chat_invoke.router)
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "version": APP_VERSION}

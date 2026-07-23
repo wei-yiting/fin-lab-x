@@ -71,7 +71,7 @@ def test_load_registry_handles_non_dict_yaml(tmp_path, monkeypatch, caplog):
 
 
 def test_registry_yaml_matches_orchestrator_configs():
-    """Sanity: committed YAML covers every model referenced in versions/*.
+    """Sanity: committed YAML covers every model referenced in profiles/*.
 
     Provider-prefixed names (e.g. ``google_genai:gemini-2.5-flash``) match
     against the bare key (``gemini-2.5-flash``) — see ``_strip_provider_prefix``.
@@ -79,9 +79,9 @@ def test_registry_yaml_matches_orchestrator_configs():
     from pathlib import Path
     import yaml
 
-    versions = Path("backend/agent_engine/agents/versions")
+    profiles = Path("backend/agent_engine/agents/profiles")
     needed = set()
-    for cfg in versions.glob("*/orchestrator_config.yaml"):
+    for cfg in profiles.glob("*/orchestrator_config.yaml"):
         data = yaml.safe_load(cfg.read_text()) or {}
         name = (data.get("model") or {}).get("name")
         if isinstance(name, str):

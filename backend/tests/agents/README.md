@@ -1,6 +1,6 @@
 # Agent Tests
 
-Unit tests for `backend.agent_engine.agents` — `Orchestrator`, `_init_model` provider routing, `VersionConfigLoader`, prompt rendering / EDGAR identity fast-fail, dev-only env-flag handlers, and Langfuse `CallbackHandler` injection.
+Unit tests for `backend.agent_engine.agents` — `Orchestrator`, `_init_model` provider routing, `ProfileConfigLoader`, prompt rendering / EDGAR identity fast-fail, dev-only env-flag handlers, and Langfuse `CallbackHandler` injection.
 
 ## Files
 
@@ -8,7 +8,7 @@ Unit tests for `backend.agent_engine.agents` — `Orchestrator`, `_init_model` p
 |------|--------------------|
 | `test_base.py` | `Orchestrator` end-to-end shape + `_extract_result` |
 | `test_init_model.py` | Provider prefix routing in `_init_model` (OpenAI / Anthropic / Gemini); reasoning capability + `thinking_budget` config |
-| `test_config_loader.py` | `VersionConfigLoader` strict schema, `ModelConfig.reasoning` field, registry lookup |
+| `test_config_loader.py` | `ProfileConfigLoader` strict schema, `ModelConfig.reasoning` field, registry lookup |
 | `test_orchestrator_prompt_rendering.py` | `_render_prompt()` placeholder substitution; EDGAR identity fast-fail |
 | `test_orchestrator_langfuse.py` | `CallbackHandler` injection, `ReasoningTraceCallback` wiring, abort cleanup writes the always-write `reasoning_tail_aborted` key |
 | `test_orchestrator_dev_flags.py` | `BYPASS_TOOL_LIMIT` / `FORCE_REASONING_NON_TRANSIENT` and other dev env flags |

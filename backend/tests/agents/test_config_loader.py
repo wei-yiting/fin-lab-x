@@ -1,4 +1,4 @@
-"""Tests for VersionConfigLoader strict-schema behavior."""
+"""Tests for ProfileConfigLoader strict-schema behavior."""
 
 from pathlib import Path
 
@@ -8,14 +8,14 @@ from pydantic import ValidationError
 
 from backend.agent_engine.agents.config_loader import (
     ModelConfig,
-    VersionConfigLoader,
+    ProfileConfigLoader,
 )
 
 
-def _write_version_yaml(base_dir: Path, version_name: str, payload: dict) -> None:
-    version_dir = base_dir / version_name
-    version_dir.mkdir(parents=True, exist_ok=True)
-    (version_dir / "orchestrator_config.yaml").write_text(yaml.safe_dump(payload))
+def _write_profile_yaml(base_dir: Path, profile_name: str, payload: dict) -> None:
+    profile_dir = base_dir / profile_name
+    profile_dir.mkdir(parents=True, exist_ok=True)
+    (profile_dir / "orchestrator_config.yaml").write_text(yaml.safe_dump(payload))
 
 
 def _valid_payload(name: str) -> dict:
@@ -35,11 +35,11 @@ def test_load_raises_on_unknown_constraint_key(tmp_path, monkeypatch):
     payload = _valid_payload("v_test_stale_constraint")
     # Simulate a stale YAML still using the old key name.
     payload["constraints"] = {"max_tool_calls_per_step": 5}
-    _write_version_yaml(tmp_path, "v_test_stale_constraint", payload)
+    _write_profile_yaml(tmp_path, "v_test_stale_constraint", payload)
 
-    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
 
-    loader = VersionConfigLoader("v_test_stale_constraint")
+    loader = ProfileConfigLoader("v_test_stale_constraint")
     with pytest.raises(ValidationError) as exc_info:
         loader.load()
 
@@ -47,14 +47,14 @@ def test_load_raises_on_unknown_constraint_key(tmp_path, monkeypatch):
 
 
 def test_load_raises_on_unknown_top_level_key(tmp_path, monkeypatch):
-    """Typos at the top level of VersionConfig must fail fast."""
+    """Typos at the top level of WorkflowProfileConfig must fail fast."""
     payload = _valid_payload("v_test_stale_top_level")
     payload["descripton"] = "typo of description"  # intentional typo
-    _write_version_yaml(tmp_path, "v_test_stale_top_level", payload)
+    _write_profile_yaml(tmp_path, "v_test_stale_top_level", payload)
 
-    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
 
-    loader = VersionConfigLoader("v_test_stale_top_level")
+    loader = ProfileConfigLoader("v_test_stale_top_level")
     with pytest.raises(ValidationError) as exc_info:
         loader.load()
 
@@ -64,11 +64,11 @@ def test_load_raises_on_unknown_top_level_key(tmp_path, monkeypatch):
 def test_load_accepts_valid_payload(tmp_path, monkeypatch):
     """Sanity: the strict schema still accepts a well-formed payload."""
     payload = _valid_payload("v_test_valid")
-    _write_version_yaml(tmp_path, "v_test_valid", payload)
+    _write_profile_yaml(tmp_path, "v_test_valid", payload)
 
-    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
 
-    loader = VersionConfigLoader("v_test_valid")
+    loader = ProfileConfigLoader("v_test_valid")
     config = loader.load()
 
     assert config.name == "v_test_valid"
@@ -94,10 +94,10 @@ def test_model_config_accepts_reasoning_on_with_null_budget(tmp_path, monkeypatc
         "reasoning": "on",
         "thinking_budget": None,
     }
-    _write_version_yaml(tmp_path, "v_test_reasoning_on", payload)
-    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+    _write_profile_yaml(tmp_path, "v_test_reasoning_on", payload)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
 
-    config = VersionConfigLoader("v_test_reasoning_on").load()
+    config = ProfileConfigLoader("v_test_reasoning_on").load()
     assert config.model.reasoning == "on"
     assert config.model.thinking_budget is None
     assert config.model.name == "google_genai:gemini-2.5-flash"
@@ -111,10 +111,10 @@ def test_model_config_accepts_explicit_thinking_budget(tmp_path, monkeypatch):
         "reasoning": "on",
         "thinking_budget": 2048,
     }
-    _write_version_yaml(tmp_path, "v_test_explicit_budget", payload)
-    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+    _write_profile_yaml(tmp_path, "v_test_explicit_budget", payload)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
 
-    config = VersionConfigLoader("v_test_explicit_budget").load()
+    config = ProfileConfigLoader("v_test_explicit_budget").load()
     assert config.model.thinking_budget == 2048
 
 
@@ -125,11 +125,11 @@ def test_model_config_rejects_unknown_reasoning_literal(tmp_path, monkeypatch):
         "temperature": 0.0,
         "reasoning": "invalid",
     }
-    _write_version_yaml(tmp_path, "v_test_bad_reasoning", payload)
-    monkeypatch.setattr(VersionConfigLoader, "VERSIONS_DIR", tmp_path)
+    _write_profile_yaml(tmp_path, "v_test_bad_reasoning", payload)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
 
     with pytest.raises(ValidationError) as exc_info:
-        VersionConfigLoader("v_test_bad_reasoning").load()
+        ProfileConfigLoader("v_test_bad_reasoning").load()
     assert "reasoning" in str(exc_info.value)
 
 
@@ -145,21 +145,21 @@ def test_model_config_rejects_unknown_field():
 
 
 # ---------------------------------------------------------------------------
-# Task 5: v1-v5 yaml smoke load — every shipped version runs on OpenAI
+# Task 5: profile yaml smoke load — every shipped profile runs on OpenAI
 # gpt-5-mini with reasoning summaries via the Responses API.
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
-    "version",
-    ["v1_baseline", "v2_reader", "v3_quant", "v4_graph", "v5_analyst"],
+    "profile",
+    ["baseline", "reader", "quant", "graph", "analyst"],
 )
-def test_all_shipped_versions_load_into_valid_model_config(version):
-    """Loader contract: every shipped version YAML parses into a ModelConfig
+def test_all_shipped_profiles_load_into_valid_model_config(profile):
+    """Loader contract: every shipped profile YAML parses into a ModelConfig
     with a non-empty model name and a recognized reasoning literal. We do NOT
     pin the exact model/reasoning values here — that is a product decision the
     loader test should not change-detect (a deliberate model swap must not
     require editing this test)."""
-    config = VersionConfigLoader(version).load()
+    config = ProfileConfigLoader(profile).load()
     assert config.model.name
     assert config.model.reasoning in {"on", "off", "unsupported"}

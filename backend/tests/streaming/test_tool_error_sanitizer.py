@@ -76,14 +76,14 @@ class TestStackTraceStripping:
     def test_python_traceback_reduced_to_last_line(self):
         raw = (
             "Traceback (most recent call last):\n"
-            '  File "/app/agent_engine/tools/yfinance.py", line 42, in fetch\n'
+            '  File "/app/agent_engine/tools/finnhub_client.py", line 42, in fetch\n'
             "    response = session.get(url)\n"
             '  File "/app/.venv/lib/requests/api.py", line 75, in get\n'
             "    return request('GET', url)\n"
-            "TimeoutError: yfinance API timeout after 30s"
+            "TimeoutError: Finnhub API timeout after 30s"
         )
         result = sanitize_tool_error(raw)
-        assert "yfinance API timeout" in result
+        assert "Finnhub API timeout" in result
         assert "Traceback" not in result
         assert "/app/agent_engine" not in result
 
@@ -97,8 +97,8 @@ class TestNormalErrorsPreserved:
     """User-facing error descriptions must pass through unchanged."""
 
     def test_simple_timeout(self):
-        raw = "yfinance API timeout"
-        assert sanitize_tool_error(raw) == "yfinance API timeout"
+        raw = "Finnhub API timeout"
+        assert sanitize_tool_error(raw) == "Finnhub API timeout"
 
     def test_rate_limit(self):
         raw = "Rate limit exceeded, please retry later"

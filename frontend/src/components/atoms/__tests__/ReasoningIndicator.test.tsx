@@ -50,7 +50,6 @@ describe("ReasoningIndicator — streaming mode (text + cycler)", () => {
 
     expect(container.querySelector(".idle-dots")).not.toBeInTheDocument();
   });
-
 });
 
 describe("ReasoningIndicator — frozen mode (text + STOPPED label)", () => {

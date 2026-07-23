@@ -45,15 +45,15 @@ uv run uvicorn backend.api.main:app --reload
 
 See `backend/agent_engine/README.md` and `docs/agent_architecture.md` for detailed architecture documentation.
 
-## Versioned Workflows
+## Workflow Profiles
 
-FinLab-X uses versioned workflow configurations. Each version can be called independently:
+FinLab-X exposes each capability tier as a Workflow Profile. Each profile can be loaded independently:
 
 ```bash
-# List available versions
+# List available profiles
 uv run python -c "
-from backend.agent_engine.agents.config_loader import VersionConfigLoader
-print(VersionConfigLoader.list_available_versions())
+from backend.agent_engine.agents.config_loader import ProfileConfigLoader
+print(ProfileConfigLoader.list_available_profiles())
 "
 ```
 

@@ -2,7 +2,7 @@ name: language_policy
 csv: dataset.csv
 
 task:
-  function: backend.evals.eval_tasks.run_v1
+  function: backend.evals.eval_tasks.run_baseline
 
 column_mapping:
   prompt: input

@@ -1,13 +1,13 @@
-"""Tests for the version-agnostic Orchestrator."""
+"""Tests for the profile-agnostic Orchestrator."""
 
 from typing import Any, cast
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from backend.agent_engine.agents.base import Orchestrator, _DEFAULT_SYSTEM_PROMPT
-from backend.agent_engine.agents.config_loader import VersionConfig, ModelConfig
+from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ModelConfig
 
 
-def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Orchestrator:
+def _create_orchestrator(config: WorkflowProfileConfig, mock_tools: list) -> Orchestrator:
     with (
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,
@@ -25,26 +25,26 @@ def _create_orchestrator(config: VersionConfig, mock_tools: list) -> Orchestrato
 
 
 def test_orchestrator_initialization_with_config():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
-        tools=["yfinance_stock_quote"],
+        tools=["finnhub_stock_quote"],
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
     )
 
     mock_tool = MagicMock()
-    mock_tool.name = "yfinance_stock_quote"
+    mock_tool.name = "finnhub_stock_quote"
 
     orch = _create_orchestrator(config, [mock_tool])
-    assert orch.config.name == "v1_baseline"
+    assert orch.config.name == "baseline"
     assert len(orch.tools) == 1
 
 
 def test_orchestrator_run_returns_response():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
@@ -67,9 +67,9 @@ def test_orchestrator_run_returns_response():
 
 def test_orchestrator_uses_config_system_prompt():
     custom_prompt = "You are a custom financial assistant."
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         system_prompt=custom_prompt,
@@ -80,9 +80,9 @@ def test_orchestrator_uses_config_system_prompt():
 
 
 def test_orchestrator_falls_back_to_default_prompt():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
         system_prompt=None,
@@ -103,9 +103,9 @@ def test_orchestrator_falls_back_to_default_prompt():
 
 
 def test_orchestrator_result_has_typed_structure():
-    config = VersionConfig(
+    config = WorkflowProfileConfig(
         version="0.1.0",
-        name="v1_baseline",
+        name="baseline",
         description="Test version",
         tools=[],
     )

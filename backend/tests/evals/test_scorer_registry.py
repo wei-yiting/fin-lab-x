@@ -206,12 +206,12 @@ def test_tool_arg_no_cjk_validates_ticker_by_regex(
         {
             "tool_outputs": [
                 {
-                    "tool": "yfinance_stock_quote",
+                    "tool": "finnhub_stock_quote",
                     "args": {"ticker": ticker},
                 }
             ]
         },
-        {"search_query_no_cjk": True, "tool": "yfinance_stock_quote"},
+        {"search_query_no_cjk": True, "tool": "finnhub_stock_quote"},
         input="What is the current price?",
     )
 

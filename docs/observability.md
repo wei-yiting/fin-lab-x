@@ -3,7 +3,7 @@
 This document covers Langfuse tracing patterns across the two tracing domains in the codebase:
 
 1. **Agent layer** — orchestrator, LLM calls, tool invocations. Traced through LangChain's Langfuse `CallbackHandler` (injected per request) plus `@observe` on individual tool functions.
-2. **Ingestion pipelines** — chunking, embedding, Qdrant upsert, EDGAR download/parse for SEC, and (planned) fetch/upsert for the quant subsystem. SEC entry point `search()` opens the trace root; all inner spans only emit when a trace is already active. The shared `traced_span()` helper in `backend/utils/span_tracing.py` is the single mechanism used by any ingestion pipeline that needs structural (not env-toggled) trace boundaries.
+2. **Ingestion pipelines** — chunking, embedding, Qdrant upsert, EDGAR download/parse for SEC, and (planned) fetch/upsert for the fundamentals subsystem. SEC entry point `search()` opens the trace root; all inner spans only emit when a trace is already active. The shared `traced_span()` helper in `backend/utils/span_tracing.py` is the single mechanism used by any ingestion pipeline that needs structural (not env-toggled) trace boundaries.
 
 Both domains share one Langfuse project and emit `snake_case` spans (`sec_` prefix for SEC-specific operations).
 
@@ -13,7 +13,7 @@ Both domains share one Langfuse project and emit `snake_case` spans (`sec_` pref
 
 | Config key | Value | Effect in Langfuse |
 |---|---|---|
-| `metadata.langfuse_trace_name` | `f"{VersionConfig.name}_{mode}"` (e.g., `v1_baseline_stream`, `v1_baseline_invoke`) | Renames the root trace so product/version/endpoint are visible |
+| `metadata.langfuse_trace_name` | `f"{WorkflowProfileConfig.name}_{mode}"` (e.g., `baseline_stream`, `baseline_invoke`) | Renames the root trace so product/version/endpoint are visible |
 | `run_name` | `"chat-turn"` | Renames the LangChain root chain span (otherwise defaults to the Runnable class name `LangGraph`) |
 | `metadata.request_id` | `uuid.uuid4().hex` minted by each FastAPI handler | Per-request correlation attribute |
 

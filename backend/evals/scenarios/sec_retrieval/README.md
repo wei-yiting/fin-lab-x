@@ -1,6 +1,6 @@
 # SEC Retrieval Eval Scenario
 
-Evaluates the v2 RAG pipeline's retrieval quality for SEC 10-K filings.
+Evaluates the RAG path's retrieval quality for SEC 10-K filings.
 
 ## Scorers
 

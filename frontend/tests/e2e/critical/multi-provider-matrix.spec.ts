@@ -36,12 +36,48 @@ type MatrixRow = {
 const FIXTURE_DIR = path.join(__dirname, "fixtures", "agent-capability");
 
 const ROWS: MatrixRow[] = [
-  { id: "gemini-on", name: "Gemini reasoning ON", fixture: "gemini-on.yaml", expectation: "reasoning-on", blockedBy: null },
-  { id: "gemini-off", name: "Gemini reasoning OFF", fixture: "gemini-off.yaml", expectation: "reasoning-off", blockedBy: "runtime agent-capability override not exposed by backend" },
-  { id: "anthropic-on", name: "Anthropic reasoning ON", fixture: "anthropic-on.yaml", expectation: "reasoning-on", blockedBy: "ANTHROPIC_API_KEY" },
-  { id: "anthropic-off", name: "Anthropic reasoning OFF", fixture: "anthropic-off.yaml", expectation: "reasoning-off", blockedBy: "ANTHROPIC_API_KEY" },
-  { id: "openai-on", name: "OpenAI Responses reasoning ON", fixture: "openai-on.yaml", expectation: "reasoning-on", blockedBy: "OPENAI_API_KEY" },
-  { id: "openai-off", name: "OpenAI Responses reasoning OFF", fixture: "openai-off.yaml", expectation: "reasoning-off", blockedBy: "OPENAI_API_KEY" },
+  {
+    id: "gemini-on",
+    name: "Gemini reasoning ON",
+    fixture: "gemini-on.yaml",
+    expectation: "reasoning-on",
+    blockedBy: null,
+  },
+  {
+    id: "gemini-off",
+    name: "Gemini reasoning OFF",
+    fixture: "gemini-off.yaml",
+    expectation: "reasoning-off",
+    blockedBy: "runtime agent-capability override not exposed by backend",
+  },
+  {
+    id: "anthropic-on",
+    name: "Anthropic reasoning ON",
+    fixture: "anthropic-on.yaml",
+    expectation: "reasoning-on",
+    blockedBy: "ANTHROPIC_API_KEY",
+  },
+  {
+    id: "anthropic-off",
+    name: "Anthropic reasoning OFF",
+    fixture: "anthropic-off.yaml",
+    expectation: "reasoning-off",
+    blockedBy: "ANTHROPIC_API_KEY",
+  },
+  {
+    id: "openai-on",
+    name: "OpenAI Responses reasoning ON",
+    fixture: "openai-on.yaml",
+    expectation: "reasoning-on",
+    blockedBy: "OPENAI_API_KEY",
+  },
+  {
+    id: "openai-off",
+    name: "OpenAI Responses reasoning OFF",
+    fixture: "openai-off.yaml",
+    expectation: "reasoning-off",
+    blockedBy: "OPENAI_API_KEY",
+  },
 ];
 
 test(

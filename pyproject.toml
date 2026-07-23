@@ -8,6 +8,7 @@ dependencies = [
     "duckdb>=1.0.0",
     "edgartools>=5.17.1",
     "fastapi>=0.115.0",
+    "finnhub-python>=2.4.28",
     "html-to-markdown>=3.0.2,<4.0.0",
     "langchain>=1.2.10",
     "langchain-anthropic>=0.4.0",
@@ -53,8 +54,9 @@ markers = [
     "integration: integration tests requiring external services (Qdrant, etc.)",
     "sec_integration: SEC integration tests that hit real SEC EDGAR APIs",
     "langfuse_internal_contract: pins assumptions about langfuse.langchain.CallbackHandler private state (e.g. _runs). Run after Langfuse SDK upgrades to surface contract drift.",
+    "finnhub_integration: Finnhub integration tests that hit the real Finnhub free API",
 ]
-addopts = "-m 'not eval and not sec_integration and not integration'"
+addopts = "-m 'not eval and not sec_integration and not integration and not finnhub_integration'"
 
 [tool.ruff]
 line-length = 88

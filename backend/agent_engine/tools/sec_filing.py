@@ -1,4 +1,4 @@
-"""SEC filing pipeline tool for FinLab-X agent (v2+).
+"""SEC filing pipeline tool for the FinLab-X agent.
 
 Downloads and parses SEC filings via SECFilingPipeline, returning metadata and
 the local file path for downstream RAG consumption. Uses the full pipeline

@@ -1,0 +1,27 @@
+# =============================================================================
+# NOTE: This configuration is illustrative / placeholder only.
+# The tools, model settings, and constraints below are preliminary and subject
+# to change once the quant workflow is fully implemented and validated.
+# =============================================================================
+
+version: "0.3.0"
+name: "quant"
+description: "Numerical reasoning, data visualization, and quantitative modeling"
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+  - duckdb_query
+  - text_to_sql
+
+model:
+  name: "openai:gpt-5-mini"
+  temperature: 0.0
+  reasoning: "on"
+  thinking_budget: null
+
+constraints:
+  max_tool_calls_per_run: 8

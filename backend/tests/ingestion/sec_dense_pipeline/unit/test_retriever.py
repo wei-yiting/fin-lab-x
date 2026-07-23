@@ -116,11 +116,11 @@ def test_jit_disabled_error_is_separate() -> None:
     assert "batch" in str(err).lower()
 
 
-# --- _check_caches (Qdrant sentinel + local filing store) ---
+# --- _check_caches (Qdrant commit marker + local filing store) ---
 
-def _mock_qdrant_client(sentinel_complete: bool = False):
+def _mock_qdrant_client(marker_complete: bool = False):
     client = MagicMock()
-    if sentinel_complete:
+    if marker_complete:
         mock_point = MagicMock()
         mock_point.payload = {"status": "complete"}
         client.retrieve.return_value = [mock_point]
@@ -130,7 +130,7 @@ def _mock_qdrant_client(sentinel_complete: bool = False):
 
 
 @pytest.mark.parametrize(
-    "sentinel_complete,filing_exists,expected",
+    "marker_complete,filing_exists,expected",
     [
         (False, False, (False, False)),
         (True, False, (True, False)),
@@ -138,8 +138,8 @@ def _mock_qdrant_client(sentinel_complete: bool = False):
         (True, True, (True, True)),
     ],
 )
-def test_check_caches_matrix(sentinel_complete, filing_exists, expected) -> None:
-    client = _mock_qdrant_client(sentinel_complete=sentinel_complete)
+def test_check_caches_matrix(marker_complete, filing_exists, expected) -> None:
+    client = _mock_qdrant_client(marker_complete=marker_complete)
     with patch(
         "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
     ) as mock_store_cls:

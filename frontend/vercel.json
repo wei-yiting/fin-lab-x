@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://REPLACE_ME_BEFORE_DEPLOY/api/:path*"
+      "destination": "https://fin-lab-x.onrender.com/api/:path*"
     }
   ]
 }

@@ -1,7 +1,7 @@
 """Refresh backend/agent_engine/utils/model_context_registry.yaml using litellm.
 
 Dev-only — requires `litellm` from [project.optional-dependencies].dev.
-Reads all backend/agent_engine/agents/profiles/*/orchestrator_config.yaml to
+Reads all backend/agent_engine/agents/versions/*/orchestrator_config.yaml to
 collect unique model names. For each name, calls litellm.get_model_info().
 Missing/erroring entries preserve any existing `manual` source row; unknown
 models log a warning and are skipped (must be filled in manually).
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_PROFILES_DIR = _REPO_ROOT / "backend" / "agent_engine" / "agents" / "profiles"
+_VERSIONS_DIR = _REPO_ROOT / "backend" / "agent_engine" / "agents" / "versions"
 _REGISTRY_PATH = (
     _REPO_ROOT
     / "backend"
@@ -33,7 +33,7 @@ _REGISTRY_PATH = (
 
 def _collect_model_names() -> list[str]:
     names: set[str] = set()
-    for cfg in sorted(_PROFILES_DIR.glob("*/orchestrator_config.yaml")):
+    for cfg in sorted(_VERSIONS_DIR.glob("*/orchestrator_config.yaml")):
         data = yaml.safe_load(cfg.read_text()) or {}
         model = (data.get("model") or {}).get("name")
         if isinstance(model, str) and model:
@@ -75,7 +75,7 @@ def _refresh(names: list[str], existing: dict[str, dict[str, Any]]) -> dict[str,
 def main() -> int:
     names = _collect_model_names()
     if not names:
-        logger.error("No model names found under %s", _PROFILES_DIR)
+        logger.error("No model names found under %s", _VERSIONS_DIR)
         return 1
     logger.info("Discovered models: %s", ", ".join(names))
     existing = _load_existing_registry()

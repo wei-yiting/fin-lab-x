@@ -15,7 +15,7 @@ pytestmark = pytest.mark.asyncio
 
 
 def _qdrant_count(ticker: str) -> int:
-    """Count content points (non-marker) for a ticker."""
+    """Count content points (non-sentinel) for a ticker."""
     from qdrant_client import QdrantClient, models
 
     client = QdrantClient(url=QDRANT_URL)
@@ -126,8 +126,8 @@ async def test_reingest_same_filing_no_duplicates(clean_collection, mock_openai_
 
 
 @pytest.mark.integration
-async def test_partial_failure_marker_pending(clean_collection):
-    from backend.ingestion.sec_dense_pipeline.common import commit_marker_id
+async def test_partial_failure_sentinel_pending(clean_collection):
+    from backend.ingestion.sec_dense_pipeline.common import sentinel_id
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
@@ -154,7 +154,7 @@ async def test_partial_failure_marker_pending(clean_collection):
     client = QdrantClient(url=QDRANT_URL)
     points = client.retrieve(
         collection_name=TEST_COLLECTION,
-        ids=[commit_marker_id("TEST", 2025)],
+        ids=[sentinel_id("TEST", 2025)],
         with_payload=True,
     )
     assert len(points) == 1
@@ -163,7 +163,7 @@ async def test_partial_failure_marker_pending(clean_collection):
 
 @pytest.mark.integration
 async def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embed):
-    from backend.ingestion.sec_dense_pipeline.common import commit_marker_id
+    from backend.ingestion.sec_dense_pipeline.common import sentinel_id
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
 
@@ -192,7 +192,7 @@ async def test_rerun_after_partial_failure_recovers(clean_collection, mock_opena
     client = QdrantClient(url=QDRANT_URL)
     points = client.retrieve(
         collection_name=TEST_COLLECTION,
-        ids=[commit_marker_id("TEST", 2025)],
+        ids=[sentinel_id("TEST", 2025)],
         with_payload=True,
     )
     assert len(points) == 1
@@ -204,7 +204,7 @@ async def test_rerun_after_partial_failure_recovers(clean_collection, mock_opena
 
     points = client.retrieve(
         collection_name=TEST_COLLECTION,
-        ids=[commit_marker_id("TEST", 2025)],
+        ids=[sentinel_id("TEST", 2025)],
         with_payload=True,
     )
     assert len(points) == 1
@@ -218,7 +218,7 @@ async def test_rerun_after_partial_failure_recovers(clean_collection, mock_opena
 def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys):
     from unittest.mock import MagicMock
 
-    from backend.ingestion.sec_dense_pipeline.common import commit_marker_id
+    from backend.ingestion.sec_dense_pipeline.common import sentinel_id
     from backend.common.sec_core import (
         FilingNotFoundError,
         FilingType,
@@ -264,7 +264,7 @@ def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys
     for ticker in ["NVDA", "INTC"]:
         points = client.retrieve(
             collection_name=TEST_COLLECTION,
-            ids=[commit_marker_id(ticker, 2025)],
+            ids=[sentinel_id(ticker, 2025)],
             with_payload=True,
         )
         assert len(points) == 1

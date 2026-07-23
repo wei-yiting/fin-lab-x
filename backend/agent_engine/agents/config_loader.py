@@ -12,6 +12,8 @@ class ModelConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    model_config = ConfigDict(extra="forbid")
+
     name: str = "gpt-4o-mini"
     temperature: float = 0.0
 

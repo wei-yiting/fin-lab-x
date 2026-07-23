@@ -9,7 +9,7 @@ import pytest
 def _edgar_identity_placeholder(monkeypatch):
     """Provide a synthetic ``EDGAR_IDENTITY`` for tests that don't set one.
 
-    ``Orchestrator.__init__`` fast-fails when a profile config loads any SEC
+    ``Orchestrator.__init__`` fast-fails when a version config loads any SEC
     tool without ``EDGAR_IDENTITY`` set. Most unit/integration tests fully
     mock the underlying edgartools, so the value is meaningless to them —
     but the startup check still fires. CI doesn't export the variable, so

@@ -6,10 +6,10 @@ that go through edgartools + blocking I/O benefit from explicit
 @observe spans, so they are on the allow-list.
 """
 
-from backend.agent_engine.tools.financial import (
-    tavily_financial_search,
-    yfinance_get_available_fields,
-    yfinance_stock_quote,
+from backend.agent_engine.tools.news_search import tavily_financial_search
+from backend.agent_engine.tools.finnhub_tools import (
+    finnhub_company_basic_financials,
+    finnhub_stock_quote,
 )
 from backend.agent_engine.tools.sec_filing import sec_filing_downloader
 from backend.agent_engine.tools.sec_filing_tools import (
@@ -19,8 +19,8 @@ from backend.agent_engine.tools.sec_filing_tools import (
 
 
 TOOLS_WITHOUT_OBSERVE = [
-    yfinance_stock_quote,
-    yfinance_get_available_fields,
+    finnhub_stock_quote,
+    finnhub_company_basic_financials,
     tavily_financial_search,
 ]
 
@@ -64,8 +64,8 @@ def test_all_tools_have_valid_schema():
     """Every registered tool — with or without @observe — must still
     expose name / description / args_schema so LangChain can bind it."""
     expected_schemas = {
-        "yfinance_stock_quote": "YFinanceStockQuoteInput",
-        "yfinance_get_available_fields": "YFinanceGetAvailableFieldsInput",
+        "finnhub_stock_quote": "FinnhubStockQuoteInput",
+        "finnhub_company_basic_financials": "FinnhubCompanyBasicFinancialsInput",
         "tavily_financial_search": "TavilyFinancialSearchInput",
         "sec_filing_list_sections": "SecFilingListSectionsInput",
         "sec_filing_get_section": "SecFilingGetSectionInput",

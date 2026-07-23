@@ -29,12 +29,12 @@ def test_orchestrator_initialization_with_config():
         version="0.1.0",
         name="baseline",
         description="Test version",
-        tools=["yfinance_stock_quote"],
+        tools=["finnhub_stock_quote"],
         model=ModelConfig(name="gpt-4o-mini", temperature=0.0),
     )
 
     mock_tool = MagicMock()
-    mock_tool.name = "yfinance_stock_quote"
+    mock_tool.name = "finnhub_stock_quote"
 
     orch = _create_orchestrator(config, [mock_tool])
     assert orch.config.name == "baseline"

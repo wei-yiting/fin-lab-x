@@ -41,7 +41,7 @@ def sanitize_tool_error(raw_error: str) -> str:
     """Remove API keys, internal paths/hostnames, connection strings, stack traces.
 
     Preserves enough description for user understanding
-    (e.g., 'yfinance API timeout').
+    (e.g., 'Finnhub API timeout').
     """
     if not raw_error:
         return raw_error

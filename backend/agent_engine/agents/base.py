@@ -73,7 +73,7 @@ LANGUAGE POLICY:
 
 TOOL CALL BUDGET:
 - You may make at most {max_tool_calls_per_run} tool calls per request (across the entire run). Plan before you call: if a question needs more data than the budget allows, prioritize the most decision-relevant calls first and summarize with what you have.
-- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT an external rate limit from SEC, Yahoo Finance, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
+- Once the budget is exhausted, every remaining tool call in this run is blocked and you will see a ToolMessage stating "Per-run tool-call budget reached". This is an INTERNAL orchestration limit — it is NOT an external rate limit from SEC, Finnhub, Tavily, or any other external API. Do NOT tell the user "I hit a rate limit" or describe it as a network/API failure.
 
 ZERO HALLUCINATION POLICY:
 - Only use data from provided tools
@@ -82,7 +82,7 @@ ZERO HALLUCINATION POLICY:
 
 CITATION REQUIREMENTS:
 - Support all claims with specific data points from tool outputs
-- Cite sources by tool name (e.g., "According to yfinance data...")
+- Cite sources by tool name (e.g., "According to Finnhub data...")
 - Flag any data quality issues or stale data
 
 RESPONSE FORMAT:
@@ -129,7 +129,7 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
     The upstream ``ToolCallLimitMiddleware`` injects a ToolMessage reading
     "Tool call limit exceeded. Do not call '<name>' again." When the model
     reads that phrase it tends to paraphrase it to the user as "I hit a
-    rate limit", conflating our internal budget with a real SEC / Yahoo /
+    rate limit", conflating our internal budget with a real SEC / Finnhub /
     Tavily 429. This subclass reuses the upstream counting logic via
     ``super().after_model()`` and rewrites the injected message to an
     explicit, non-ambiguous form that tells the model both (a) not to
@@ -144,7 +144,7 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
             "Per-run tool-call budget reached for this request. "
             f"Do not call {scope} again in this run. "
             "This is an INTERNAL orchestration budget — it is NOT an "
-            "external rate limit from SEC EDGAR, Yahoo Finance, Tavily, "
+            "external rate limit from SEC EDGAR, Finnhub, Tavily, "
             "or any other external API. Summarize with the data already "
             "collected; do not describe this to the user as a network or "
             "API failure."

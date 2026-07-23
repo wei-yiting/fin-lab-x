@@ -15,10 +15,10 @@ def setup_tools() -> None:
     if _tools_registered:
         return
 
-    from backend.agent_engine.tools.financial import (
-        tavily_financial_search,
-        yfinance_get_available_fields,
-        yfinance_stock_quote,
+    from backend.agent_engine.tools.news_search import tavily_financial_search
+    from backend.agent_engine.tools.finnhub_tools import (
+        finnhub_company_basic_financials,
+        finnhub_stock_quote,
     )
     from backend.agent_engine.tools.sec_filing import sec_filing_downloader
     from backend.agent_engine.tools.sec_filing_tools import (
@@ -26,8 +26,10 @@ def setup_tools() -> None:
         sec_filing_list_sections,
     )
 
-    register_tool("yfinance_stock_quote", yfinance_stock_quote)
-    register_tool("yfinance_get_available_fields", yfinance_get_available_fields)
+    register_tool("finnhub_stock_quote", finnhub_stock_quote)
+    register_tool(
+        "finnhub_company_basic_financials", finnhub_company_basic_financials
+    )
     register_tool("tavily_financial_search", tavily_financial_search)
     register_tool("sec_filing_list_sections", sec_filing_list_sections)
     register_tool("sec_filing_get_section", sec_filing_get_section)

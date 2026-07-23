@@ -50,47 +50,47 @@ def _create_orchestrator_with_mocked_llm(config: WorkflowProfileConfig) -> Orche
         return orch
 
 
-def test_yfinance_tool_integration():
-    """Test that yfinance tool output is correctly extracted."""
+def test_finnhub_tool_integration():
+    """Test that finnhub tool output is correctly extracted."""
     config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
-        tools=["yfinance_get_available_fields"],
+        tools=["finnhub_company_basic_financials"],
     )
 
     mock_tool = Mock()
-    mock_tool.name = "yfinance_get_available_fields"
+    mock_tool.name = "finnhub_company_basic_financials"
 
     orch = _create_orchestrator(config, [mock_tool])
 
     # Simulate agent returning message history with tool call + result
     orch.agent.invoke.return_value = {
         "messages": [
-            HumanMessage(content="What data is available for AAPL?"),
+            HumanMessage(content="What are AAPL's fundamentals?"),
             AIMessage(
                 content="",
                 tool_calls=[
                     {
-                        "name": "yfinance_get_available_fields",
+                        "name": "finnhub_company_basic_financials",
                         "args": {"ticker": "AAPL"},
                         "id": "call_1",
                     }
                 ],
             ),
             ToolMessage(
-                content='{"ticker": "AAPL", "available_fields": {}}',
+                content='{"ticker": "AAPL", "peTTM": 28.4}',
                 tool_call_id="call_1",
-                name="yfinance_get_available_fields",
+                name="finnhub_company_basic_financials",
             ),
-            AIMessage(content="AAPL has these fields available."),
+            AIMessage(content="AAPL fundamentals summary."),
         ]
     }
 
-    result = orch.run("What data is available for AAPL?")
+    result = orch.run("What are AAPL's fundamentals?")
 
     assert len(result["tool_outputs"]) > 0
-    assert result["tool_outputs"][0]["tool"] == "yfinance_get_available_fields"
+    assert result["tool_outputs"][0]["tool"] == "finnhub_company_basic_financials"
     assert result["tool_outputs"][0]["args"]["ticker"] == "AAPL"
 
 
@@ -187,11 +187,11 @@ def test_multi_tool_integration():
         version="0.1.0",
         name="baseline",
         description="Test version",
-        tools=["yfinance_stock_quote", "tavily_financial_search"],
+        tools=["finnhub_stock_quote", "tavily_financial_search"],
     )
 
     mock_tool_1 = Mock()
-    mock_tool_1.name = "yfinance_stock_quote"
+    mock_tool_1.name = "finnhub_stock_quote"
     mock_tool_2 = Mock()
     mock_tool_2.name = "tavily_financial_search"
 
@@ -205,7 +205,7 @@ def test_multi_tool_integration():
                 content="",
                 tool_calls=[
                     {
-                        "name": "yfinance_stock_quote",
+                        "name": "finnhub_stock_quote",
                         "args": {"ticker": "AAPL"},
                         "id": "call_1",
                     }
@@ -214,7 +214,7 @@ def test_multi_tool_integration():
             ToolMessage(
                 content='{"ticker": "AAPL", "current_price": 150}',
                 tool_call_id="call_1",
-                name="yfinance_stock_quote",
+                name="finnhub_stock_quote",
             ),
             AIMessage(
                 content="",
@@ -240,7 +240,7 @@ def test_multi_tool_integration():
     # Verify both tools were extracted
     assert len(result["tool_outputs"]) >= 2
     tool_names = [t["tool"] for t in result["tool_outputs"]]
-    assert "yfinance_stock_quote" in tool_names
+    assert "finnhub_stock_quote" in tool_names
     assert "tavily_financial_search" in tool_names
 
 
@@ -276,7 +276,7 @@ def test_config_loading_from_yaml():
 
     assert config.version == "0.1.0"
     assert config.name == "baseline"
-    assert "yfinance_stock_quote" in config.tools
+    assert "finnhub_stock_quote" in config.tools
     assert "tavily_financial_search" in config.tools
     assert config.model.name == "gpt-4o-mini"
 
@@ -292,7 +292,7 @@ def test_system_prompt_loaded_from_file():
 def test_tool_registry_has_tools():
     tools = get_tools_by_names(
         [
-            "yfinance_stock_quote",
+            "finnhub_stock_quote",
             "tavily_financial_search",
         ]
     )
@@ -349,11 +349,11 @@ def test_extract_result_no_final_ai_message():
         version="0.1.0",
         name="baseline",
         description="Test version",
-        tools=["yfinance_stock_quote"],
+        tools=["finnhub_stock_quote"],
     )
 
     mock_tool = Mock()
-    mock_tool.name = "yfinance_stock_quote"
+    mock_tool.name = "finnhub_stock_quote"
 
     orch = _create_orchestrator(config, [mock_tool])
 
@@ -364,7 +364,7 @@ def test_extract_result_no_final_ai_message():
                     content="",
                     tool_calls=[
                         {
-                            "name": "yfinance_stock_quote",
+                            "name": "finnhub_stock_quote",
                             "args": {"ticker": "AAPL"},
                             "id": "call_1",
                         }
@@ -373,7 +373,7 @@ def test_extract_result_no_final_ai_message():
                 ToolMessage(
                     content='{"ticker": "AAPL", "price": 150}',
                     tool_call_id="call_1",
-                    name="yfinance_stock_quote",
+                    name="finnhub_stock_quote",
                 ),
             ]
         }

@@ -20,7 +20,7 @@ def test_e2e_chat_flow():
                     tool_calls=[
                         {
                             "id": "call_1",
-                            "name": "yfinance_stock_quote",
+                            "name": "finnhub_stock_quote",
                             "args": {"ticker": "AAPL"},
                         }
                     ],
@@ -28,7 +28,7 @@ def test_e2e_chat_flow():
                 ToolMessage(
                     content="price=100",
                     tool_call_id="call_1",
-                    name="yfinance_stock_quote",
+                    name="finnhub_stock_quote",
                 ),
                 AIMessage(content="AAPL analysis", tool_calls=[]),
             ]

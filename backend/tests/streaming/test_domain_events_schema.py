@@ -32,7 +32,11 @@ class TestFrozenImmutability:
             evt.delta = "world"  # type: ignore[misc]
 
     def test_tool_call_is_frozen(self):
-        evt = ToolCall(tool_call_id="tc1", tool_name="yfinance", args={"ticker": "AAPL"})
+        evt = ToolCall(
+            tool_call_id="tc1",
+            tool_name="finnhub_stock_quote",
+            args={"ticker": "AAPL"},
+        )
         with pytest.raises(AttributeError):
             evt.tool_name = "other"  # type: ignore[misc]
 
@@ -69,9 +73,13 @@ class TestConstruction:
         assert evt.text_id == "t1"
 
     def test_tool_call(self):
-        evt = ToolCall(tool_call_id="tc1", tool_name="yfinance", args={"ticker": "AAPL"})
+        evt = ToolCall(
+            tool_call_id="tc1",
+            tool_name="finnhub_stock_quote",
+            args={"ticker": "AAPL"},
+        )
         assert evt.tool_call_id == "tc1"
-        assert evt.tool_name == "yfinance"
+        assert evt.tool_name == "finnhub_stock_quote"
         assert evt.args == {"ticker": "AAPL"}
 
     def test_tool_result(self):

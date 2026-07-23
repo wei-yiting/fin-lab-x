@@ -61,12 +61,16 @@ class TestTextEnd:
 
 class TestToolCall:
     def test_wire_format(self):
-        evt = ToolCall(tool_call_id="tc-1", tool_name="yfinance", args={"ticker": "AAPL"})
+        evt = ToolCall(
+            tool_call_id="tc-1",
+            tool_name="finnhub_stock_quote",
+            args={"ticker": "AAPL"},
+        )
         payload = _parse_sse(serialize_event(evt))
         assert payload == {
             "type": "tool-input-available",
             "toolCallId": "tc-1",
-            "toolName": "yfinance",
+            "toolName": "finnhub_stock_quote",
             "input": {"ticker": "AAPL"},
         }
 

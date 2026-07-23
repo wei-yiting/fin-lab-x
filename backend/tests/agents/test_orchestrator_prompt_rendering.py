@@ -106,7 +106,7 @@ def test_validate_edgar_identity_fast_fail(monkeypatch):
 
 def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
     monkeypatch.delenv("EDGAR_IDENTITY", raising=False)
-    config = SimpleNamespace(tools=["yfinance_stock_quote"])
+    config = SimpleNamespace(tools=["finnhub_stock_quote"])
     # Should NOT raise
     Orchestrator._validate_edgar_identity(config)
 
@@ -116,7 +116,7 @@ def test_validate_edgar_identity_skipped_when_no_sec_tool(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-V1_BASELINE_PROMPT_PATH = (
+BASELINE_PROMPT_PATH = (
     Path(__file__).resolve().parents[2]
     / "agent_engine"
     / "agents"
@@ -130,20 +130,20 @@ PROFILES_DIR = (
 )
 
 
-_V1_BASELINE_TOOLS = [
-    "yfinance_stock_quote",
-    "yfinance_get_available_fields",
+_BASELINE_TOOLS = [
+    "finnhub_stock_quote",
+    "finnhub_company_basic_financials",
     "tavily_financial_search",
     "sec_filing_list_sections",
     "sec_filing_get_section",
 ]
 
 EXPECTED_TOOLS_BY_PROFILE = {
-    "baseline": _V1_BASELINE_TOOLS,
-    "reader": _V1_BASELINE_TOOLS,
-    "quant": _V1_BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
-    "graph": _V1_BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
-    "analyst": _V1_BASELINE_TOOLS
+    "baseline": _BASELINE_TOOLS,
+    "reader": _BASELINE_TOOLS,
+    "quant": _BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
+    "graph": _BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
+    "analyst": _BASELINE_TOOLS
     + ["duckdb_query", "text_to_sql", "neo4j_query", "text_to_cypher"],
 }
 
@@ -156,12 +156,26 @@ def test_baseline_system_prompt_advertises_sec_tools():
     tool's reading_guide output for progressive disclosure — the system
     prompt now only carries a high-level pointer.
     """
-    text = V1_BASELINE_PROMPT_PATH.read_text()
+    text = BASELINE_PROMPT_PATH.read_text()
     assert "sec_filing_list_sections" in text
     assert "sec_filing_get_section" in text
     # Detailed strategy is no longer in the prompt — it lives in the tool output.
     assert "10-K STANDARD SECTION TITLES" not in text
     assert "{section_soft_cap_chars}" not in text
+
+
+def test_baseline_system_prompt_has_no_yahoo_residue():
+    """DECISION-001 regression guard: the baseline prompt must not reference
+    Yahoo or the dropped yfinance tool. Quote/fundamentals claims are cited by
+    data provider name (Finnhub) with no fabricated per-ticker URL.
+
+    forwardPE is deliberately NOT asserted absent: live verification
+    (2026-07-21, AAPL/MSFT/TSM) showed the free-tier /stock/metric map does
+    include forwardPE, so it is part of the fundamentals catalog.
+    """
+    text = BASELINE_PROMPT_PATH.read_text().lower()
+    assert "yahoo" not in text
+    assert "yfinance" not in text
 
 
 def test_orchestrator_baseline_renders_prompt_end_to_end(monkeypatch):

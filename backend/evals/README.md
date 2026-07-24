@@ -147,6 +147,9 @@ column_mapping:
   <csv_column>: expected.<field>
   <csv_column>: metadata.<field>
 
+column_types:                   # (optional) pin how specific CSV columns are parsed
+  <csv_column>: json            # one of: json | str | float | bool
+
 scorers:
   - name: string
     function: string            # Python dotpath, e.g. "backend.evals.scorers.language_policy_scorer.response_language"
@@ -160,6 +163,20 @@ scorers:
       Y: 1.0
       N: 0.0
 ```
+
+### `column_types` (optional)
+
+`column_types` maps a CSV column name to one of `json` | `str` | `float` | `bool`,
+pinning how that column's cell is parsed. It is optional; a column not listed
+falls back to auto-detection (`_convert_cell`: empty → `None`, `true`/`false` →
+bool, float-parseable → float, otherwise str). Two real uses:
+
+- `json` — for list/dict columns stored as JSON strings (the `sec_retrieval`
+  case). Without it, a cell like `["NVDA / 2026 / Part I / Item 1A"]` stays a raw
+  string and downstream scorers iterate it character-by-character, turning
+  recall/MRR/MAP into noise.
+- `str` — to keep an identifier column (e.g. a ticker `"TRUE"`) from being
+  coerced to bool or float by auto-detection.
 
 ## Quality Iteration Workflow
 

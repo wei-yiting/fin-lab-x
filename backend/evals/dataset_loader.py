@@ -200,11 +200,25 @@ def apply_column_mapping(
     Public entry point so callers that build eval rows outside
     :func:`load_dataset` (e.g. diagnostic eval paths) reuse the same
     column-mapping and type-pinning logic instead of duplicating it.
+
+    Enforces the same mapping contract as :func:`load_dataset`: the column
+    mapping and declared types are validated, and a mapped source column that
+    is absent from ``source_row`` is rejected instead of silently becoming
+    ``None``.
     """
+    _validate_column_mapping(column_mapping)
+    resolved_types = column_types or {}
+    _validate_column_types(column_mapping, resolved_types)
+
+    missing_columns = [column for column in column_mapping if column not in source_row]
+    if missing_columns:
+        missing_list = ", ".join(missing_columns)
+        raise ValueError(f"CSV missing columns: {missing_list}")
+
     return _map_source_row(
         source_row,
         column_mapping,
-        column_types or {},
+        resolved_types,
         _row_object_buckets(column_mapping),
     )
 

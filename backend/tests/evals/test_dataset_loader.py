@@ -286,7 +286,9 @@ def test_load_dataset_parses_json_list_columns_from_raw_csv(tmp_path: Path) -> N
     csv_path = write_csv(
         tmp_path,
         "question,expected_header_paths,answer_snippets\n"
-        'What are NVIDIA'"'"'s risks?,'
+        "What are NVIDIA"
+        "'"
+        "s risks?,"
         '"[""NVDA / 2026 / Part I / Item 1A""]","[""export controls""]"\n',
     )
 
@@ -392,3 +394,33 @@ def test_apply_column_mapping_matches_load_dataset_row(tmp_path: Path) -> None:
         "expected": {"header_paths": ["NVDA / 2026 / Part I / Item 1A"]},
         "metadata": {},
     }
+
+
+def test_apply_column_mapping_rejects_invalid_target_bucket() -> None:
+    """The public helper enforces the same target-bucket contract as load_dataset."""
+    with pytest.raises(
+        ValueError, match="Unsupported column_mapping target bucket: foo"
+    ):
+        apply_column_mapping({"c": "x"}, {"c": "foo.bar"})
+
+
+def test_apply_column_mapping_rejects_column_types_for_unmapped_column() -> None:
+    """column_types naming a column absent from column_mapping is rejected."""
+    with pytest.raises(ValueError, match="unmapped column: ghost"):
+        apply_column_mapping(
+            {"prompt": "hello"}, {"prompt": "input"}, {"ghost": "json"}
+        )
+
+
+def test_apply_column_mapping_rejects_unknown_column_type() -> None:
+    """An unsupported column_type value is rejected before mapping."""
+    with pytest.raises(ValueError, match="Unsupported column_type 'list'"):
+        apply_column_mapping(
+            {"prompt": "hello"}, {"prompt": "input"}, {"prompt": "list"}
+        )
+
+
+def test_apply_column_mapping_rejects_missing_mapped_column() -> None:
+    """A mapped source column absent from the row dict is rejected, not None-filled."""
+    with pytest.raises(ValueError, match="missing.*answer"):
+        apply_column_mapping({"prompt": "hello"}, {"answer": "expected.response"})

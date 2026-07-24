@@ -397,9 +397,7 @@ def run_scenario(
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
         original_columns, original_rows = load_raw_csv_rows(csv_path)
-        raw_data = load_dataset(
-            csv_path, config.column_mapping, config.column_types
-        )
+        raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
 
         scorers = resolve_scorers(config.scorers)
         task_fn = resolve_function(config.task.function, label="task")

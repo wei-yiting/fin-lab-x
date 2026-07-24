@@ -47,8 +47,7 @@ def upsert_rows(
     # DuckDB's binder parses bare CURRENT_TIMESTAMP as a column reference inside
     # ON CONFLICT DO UPDATE SET, so use now() (CURRENT_TIMESTAMP() doesn't exist).
     set_clause = ", ".join(
-        [f"{c} = EXCLUDED.{c}" for c in non_pk]
-        + ["updated_at = now()"]
+        [f"{c} = EXCLUDED.{c}" for c in non_pk] + ["updated_at = now()"]
     )
     staging_name = f"__fundamentals_upsert_staging_{uuid4().hex[:8]}"
     sql = (

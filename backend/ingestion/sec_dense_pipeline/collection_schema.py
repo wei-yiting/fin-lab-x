@@ -149,7 +149,9 @@ def _create_index_if_missing(client, collection: str, field: str, schema) -> Non
             raise
 
 
-async def _async_create_index_if_missing(client, collection: str, field: str, schema) -> None:
+async def _async_create_index_if_missing(
+    client, collection: str, field: str, schema
+) -> None:
     try:
         await client.create_payload_index(
             collection_name=collection,
@@ -166,9 +168,7 @@ def _ensure_indexes(client, collection: str) -> None:
     ticker_entry = schema.get("ticker")
     if ticker_entry is not None and not _is_tenant_index(ticker_entry):
         try:
-            client.delete_payload_index(
-                collection_name=collection, field_name="ticker"
-            )
+            client.delete_payload_index(collection_name=collection, field_name="ticker")
         except UnexpectedResponse as exc:
             # 404 means the index was already dropped by another worker.
             if getattr(exc, "status_code", None) != 404:

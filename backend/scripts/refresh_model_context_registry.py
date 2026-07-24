@@ -8,6 +8,7 @@ models log a warning and are skipped (must be filled in manually).
 
 Run with: uv run --extra dev python backend/scripts/refresh_model_context_registry.py
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,11 +24,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROFILES_DIR = _REPO_ROOT / "backend" / "agent_engine" / "agents" / "profiles"
 _REGISTRY_PATH = (
-    _REPO_ROOT
-    / "backend"
-    / "agent_engine"
-    / "utils"
-    / "model_context_registry.yaml"
+    _REPO_ROOT / "backend" / "agent_engine" / "utils" / "model_context_registry.yaml"
 )
 
 
@@ -48,7 +45,9 @@ def _load_existing_registry() -> dict[str, dict[str, Any]]:
     return {}
 
 
-def _refresh(names: list[str], existing: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+def _refresh(
+    names: list[str], existing: dict[str, dict[str, Any]]
+) -> dict[str, dict[str, Any]]:
     import litellm  # dev-only; not imported at top level
 
     out: dict[str, dict[str, Any]] = dict(existing)
@@ -61,7 +60,9 @@ def _refresh(names: list[str], existing: dict[str, dict[str, Any]]) -> dict[str,
             out[name] = {"max_input_tokens": int(max_input), "source": "litellm"}
         except Exception as exc:
             if name in existing:
-                logger.warning("litellm miss for %r (%s); preserving existing entry.", name, exc)
+                logger.warning(
+                    "litellm miss for %r (%s); preserving existing entry.", name, exc
+                )
             else:
                 logger.warning(
                     "litellm miss for %r (%s); skip. Add manually as "

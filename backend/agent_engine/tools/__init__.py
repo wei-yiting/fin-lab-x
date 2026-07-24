@@ -27,9 +27,7 @@ def setup_tools() -> None:
     )
 
     register_tool("finnhub_stock_quote", finnhub_stock_quote)
-    register_tool(
-        "finnhub_company_basic_financials", finnhub_company_basic_financials
-    )
+    register_tool("finnhub_company_basic_financials", finnhub_company_basic_financials)
     register_tool("tavily_financial_search", tavily_financial_search)
     register_tool("sec_filing_list_sections", sec_filing_list_sections)
     register_tool("sec_filing_get_section", sec_filing_get_section)

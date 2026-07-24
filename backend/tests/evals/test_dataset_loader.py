@@ -232,7 +232,11 @@ def test_load_dataset_parses_rfc4180_cells_correctly(tmp_path: Path) -> None:
 
     rows = load_dataset(
         csv_path,
-        {"prompt": "input", "answer": "expected.response", "category": "metadata.category"},
+        {
+            "prompt": "input",
+            "answer": "expected.response",
+            "category": "metadata.category",
+        },
     )
 
     assert rows == [

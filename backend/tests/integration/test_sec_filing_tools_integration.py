@@ -170,9 +170,7 @@ def test_list_sections_stub_marker_aapl() -> None:
 
     for key in ("10", "11"):
         section = next((s for s in result["sections"] if s["key"] == key), None)
-        assert section is not None, (
-            f"AAPL FY2025 must list a section with key {key!r}"
-        )
+        assert section is not None, f"AAPL FY2025 must list a section with key {key!r}"
         assert section.get("is_stub") is True, (
             f"Item {key} must be flagged is_stub=True; got {section!r}"
         )

@@ -7,7 +7,9 @@ from backend.agent_engine.agents.base import Orchestrator, _DEFAULT_SYSTEM_PROMP
 from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ModelConfig
 
 
-def _create_orchestrator(config: WorkflowProfileConfig, mock_tools: list) -> Orchestrator:
+def _create_orchestrator(
+    config: WorkflowProfileConfig, mock_tools: list
+) -> Orchestrator:
     with (
         patch("backend.agent_engine.agents.base.get_tools_by_names") as mock_get_tools,
         patch("backend.agent_engine.agents.base.create_agent") as mock_create,

@@ -1,6 +1,5 @@
 """Tests for tool error sanitizer — removes secrets, paths, connection strings, stack traces."""
 
-
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 
 

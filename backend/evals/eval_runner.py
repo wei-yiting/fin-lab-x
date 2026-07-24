@@ -50,6 +50,7 @@ class _SuppressContextDetach(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         return "Failed to detach context" not in record.getMessage()
 
+
 logger = logging.getLogger(__name__)
 
 _ERROR_MARKER = "ERROR"
@@ -122,15 +123,11 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
         async def wrapped(input: Any) -> Any:
             try:
                 if timeout is not None:
-                    result = await asyncio.wait_for(
-                        task_fn(input), timeout=timeout
-                    )
+                    result = await asyncio.wait_for(task_fn(input), timeout=timeout)
                 else:
                     result = await task_fn(input)
             except asyncio.TimeoutError:
-                logger.error(
-                    "Task function timed out after %.1f seconds", timeout
-                )
+                logger.error("Task function timed out after %.1f seconds", timeout)
                 return _ERROR_MARKER
             except Exception:
                 logger.error("Task function raised an exception", exc_info=True)
@@ -163,9 +160,7 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
             try:
                 status, value = result_q.get(timeout=timeout)
             except queue.Empty:
-                logger.error(
-                    "Task function timed out after %.1f seconds", timeout
-                )
+                logger.error("Task function timed out after %.1f seconds", timeout)
                 return _ERROR_MARKER
             if status == "error":
                 logger.error("Task function raised an exception: %s", value)

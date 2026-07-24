@@ -19,15 +19,7 @@ def _with_frontmatter(body: str, ticker: str = "TEST") -> str:
     helper is only used to verify the cleaner still handles the stored
     shape correctly when called from tests or downstream re-processing.
     """
-    return (
-        "---\n"
-        f"ticker: {ticker}\n"
-        "filing_type: 10-K\n"
-        "fiscal_year: 2025\n"
-        "---\n"
-        "\n"
-        f"{body}"
-    )
+    return f"---\nticker: {ticker}\nfiling_type: 10-K\nfiscal_year: 2025\n---\n\n{body}"
 
 
 # ===========================================================================
@@ -109,11 +101,7 @@ class TestStripCoverPage:
 class TestStripPageSeparators:
     def test_strips_separator_with_toc_link(self, cleaner):
         markdown = (
-            "Some content here.\n\n"
-            "81\n"
-            "---\n"
-            "[Table of Contents](#toc1)\n"
-            "More content.\n"
+            "Some content here.\n\n81\n---\n[Table of Contents](#toc1)\nMore content.\n"
         )
         result = cleaner._strip_page_separators(markdown)
         assert "---" not in result
@@ -135,11 +123,7 @@ class TestStripPageSeparators:
         assert "82" not in result
 
     def test_preserves_markdown_table_separator(self, cleaner):
-        markdown = (
-            "| Col1 | Col2 |\n"
-            "| --- | --- |\n"
-            "| a    | b    |\n"
-        )
+        markdown = "| Col1 | Col2 |\n| --- | --- |\n| a    | b    |\n"
         result = cleaner._strip_page_separators(markdown)
         assert "| --- | --- |" in result
         assert "| a    | b    |" in result
@@ -263,7 +247,7 @@ class TestStripPartIIIStubs:
             "Rodney M. Smith is our Chief Financial Officer. Mr. Smith joined us in "
             "October 2009. He previously held the role of Treasurer. He earned his "
             "M.B.A from Suffolk University and a Bachelor of Science from Merrimack.\n\n"
-            "The information under \"Election of Directors\" from the Definitive Proxy "
+            'The information under "Election of Directors" from the Definitive Proxy '
             "Statement is incorporated herein by reference.\n\n"
             "## ITEM 11. EXECUTIVE COMPENSATION\n"
         )
@@ -305,11 +289,7 @@ class TestStripPartIIIStubs:
 
     def test_strips_empty_body_item_heading(self, cleaner):
         # CRM TOC pseudo-heading case: ## Item 10. with no body
-        markdown = (
-            "## Item 10.\n\n"
-            "## Item 11.\n\n"
-            "## Item 12.\n"
-        )
+        markdown = "## Item 10.\n\n## Item 11.\n\n## Item 12.\n"
         result = cleaner._strip_part_iii_stubs(markdown)
         # All three are empty-body → stripped
         assert "## Item 10." not in result
@@ -340,7 +320,7 @@ class TestStripPartIIIStubs:
         markdown = (
             "## Item 10. Directors\n\n"
             "Information is incorporated by reference. "
-            "\"Executive Compensation\" section describes additional context "
+            '"Executive Compensation" section describes additional context '
             "about the compensation committee, its charter, and the "
             "role of outside independent directors.\n\n"
             "## Item 11. Compensation\n"
@@ -444,9 +424,7 @@ class TestNormalizeItemHeadings:
         assert "10-k" not in result
 
     def test_m12_hyphenated_s_k_preserved(self, cleaner):
-        result = cleaner._normalize_headings(
-            "## ITEM 15. REGULATION S-K EXHIBITS\n"
-        )
+        result = cleaner._normalize_headings("## ITEM 15. REGULATION S-K EXHIBITS\n")
         assert "## Item 15. Regulation S-K Exhibits" in result
 
 
@@ -572,8 +550,7 @@ class TestCleanEndToEnd:
 
     def test_clean_pure_passthrough_when_no_anchor(self, cleaner, caplog):
         markdown = (
-            "Just plain content without any structure.\n"
-            "More plain content here.\n"
+            "Just plain content without any structure.\nMore plain content here.\n"
         )
         with caplog.at_level(logging.WARNING):
             result = cleaner.clean(markdown)

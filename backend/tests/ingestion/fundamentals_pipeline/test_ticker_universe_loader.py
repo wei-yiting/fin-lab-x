@@ -2,9 +2,22 @@ import pytest
 import yaml
 
 from backend.ingestion.fundamentals_pipeline.errors import ConfigurationError
-from backend.ingestion.fundamentals_pipeline.ticker_universe_loader import load_ticker_universe
+from backend.ingestion.fundamentals_pipeline.ticker_universe_loader import (
+    load_ticker_universe,
+)
 
-EXPECTED_TICKERS = ["MSFT", "NVDA", "CRM", "WMT", "JPM", "BRK.B", "JNJ", "KO", "XOM", "CAT"]
+EXPECTED_TICKERS = [
+    "MSFT",
+    "NVDA",
+    "CRM",
+    "WMT",
+    "JPM",
+    "BRK.B",
+    "JNJ",
+    "KO",
+    "XOM",
+    "CAT",
+]
 
 
 def test_load_default_universe():
@@ -48,7 +61,7 @@ def test_loader_rejects_scalar_string(tmp_path):
 
 def test_loader_rejects_dict(tmp_path):
     p = tmp_path / "u.yaml"
-    p.write_text('tickers:\n  MSFT: 1\n')
+    p.write_text("tickers:\n  MSFT: 1\n")
     with pytest.raises(ConfigurationError, match="must be a list"):
         load_ticker_universe(p)
 
@@ -62,6 +75,6 @@ def test_loader_rejects_empty_string_in_list(tmp_path):
 
 def test_loader_rejects_null_in_list(tmp_path):
     p = tmp_path / "u.yaml"
-    p.write_text('tickers:\n  - MSFT\n  - null\n')
+    p.write_text("tickers:\n  - MSFT\n  - null\n")
     with pytest.raises(ConfigurationError, match="non-empty string"):
         load_ticker_universe(p)

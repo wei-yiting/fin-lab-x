@@ -110,9 +110,13 @@ def test_column_level_merge(tmp_duckdb):
         "FROM quarterly_financials WHERE ticker='NVDA' AND fiscal_year=2025 AND fiscal_quarter=3"
     ).fetchone()
     assert row is not None
-    assert row[0] == 10_000_000, "product_revenue_usd must be untouched by yfinance upsert"
+    assert row[0] == 10_000_000, (
+        "product_revenue_usd must be untouched by yfinance upsert"
+    )
     assert row[1] == 20_000_000, "current_rpo_usd must be untouched by yfinance upsert"
-    assert row[2] == 50_000_000_000, "total_revenue_usd must be written by yfinance upsert"
+    assert row[2] == 50_000_000_000, (
+        "total_revenue_usd must be written by yfinance upsert"
+    )
 
 
 def test_updated_at_assertion_guard(tmp_duckdb):

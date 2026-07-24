@@ -48,13 +48,9 @@ def test_successful_download(sample_filing):
     mock_pipeline = MagicMock()
     mock_pipeline.process.return_value = sample_filing
 
-    with patch(
-        "backend.agent_engine.tools.sec_filing.SECFilingPipeline"
-    ) as cls:
+    with patch("backend.agent_engine.tools.sec_filing.SECFilingPipeline") as cls:
         cls.create.return_value = mock_pipeline
-        result = sec_filing_downloader.invoke(
-            {"ticker": "AAPL", "filing_type": "10-K"}
-        )
+        result = sec_filing_downloader.invoke({"ticker": "AAPL", "filing_type": "10-K"})
 
     assert result["ticker"] == "AAPL"
     assert result["company_name"] == "Apple Inc."
@@ -67,13 +63,9 @@ def test_pipeline_error_returns_error_dict():
     mock_pipeline = MagicMock()
     mock_pipeline.process.side_effect = TickerNotFoundError("Ticker ZZZZ not found")
 
-    with patch(
-        "backend.agent_engine.tools.sec_filing.SECFilingPipeline"
-    ) as cls:
+    with patch("backend.agent_engine.tools.sec_filing.SECFilingPipeline") as cls:
         cls.create.return_value = mock_pipeline
-        result = sec_filing_downloader.invoke(
-            {"ticker": "ZZZZ", "filing_type": "10-K"}
-        )
+        result = sec_filing_downloader.invoke({"ticker": "ZZZZ", "filing_type": "10-K"})
 
     assert result["error"] is True
     assert "TickerNotFoundError" in result["message"]

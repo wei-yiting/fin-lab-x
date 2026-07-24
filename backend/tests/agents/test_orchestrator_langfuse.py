@@ -4,7 +4,12 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from contextlib import nullcontext
 from typing import Any, cast
-from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, RemoveMessage
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    HumanMessage,
+    RemoveMessage,
+)
 
 from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ModelConfig
@@ -125,7 +130,9 @@ class TestRunInjectsLangfuseCallback:
         agent.invoke.return_value = _mock_agent_response()
 
         with (
-            patch("backend.agent_engine.agents.base.CallbackHandler") as mock_handler_cls,
+            patch(
+                "backend.agent_engine.agents.base.CallbackHandler"
+            ) as mock_handler_cls,
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
@@ -266,9 +273,7 @@ class TestAstreamRun:
         ):
             mock_handler_cls.return_value = MagicMock()
             events = []
-            async for event in orch.astream_run(
-                message="test", session_id="sess-1"
-            ):
+            async for event in orch.astream_run(message="test", session_id="sess-1"):
                 events.append(event)
 
         assert isinstance(events[0], MessageStart)
@@ -307,9 +312,7 @@ class TestAstreamRun:
             ),
         ):
             mock_handler_cls.return_value = MagicMock()
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-42"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-42"):
                 pass
 
         config_arg = captured_kwargs.get("config", {})
@@ -341,9 +344,7 @@ class TestAstreamRun:
         ):
             mock_handler = MagicMock()
             mock_handler_cls.return_value = mock_handler
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-99"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-99"):
                 pass
 
         mock_handler_cls.assert_called_once()
@@ -441,9 +442,7 @@ class TestAstreamRun:
                 events.append(event)
 
         assert any(isinstance(e, StreamError) for e in events)
-        assert any(
-            isinstance(e, Finish) and e.finish_reason == "error" for e in events
-        )
+        assert any(isinstance(e, Finish) and e.finish_reason == "error" for e in events)
 
     @pytest.mark.asyncio
     async def test_exception_yields_stream_error_and_finish(self):
@@ -468,9 +467,7 @@ class TestAstreamRun:
         ):
             mock_handler_cls.return_value = MagicMock()
             events = []
-            async for event in orch.astream_run(
-                message="test", session_id="sess-err"
-            ):
+            async for event in orch.astream_run(message="test", session_id="sess-err"):
                 events.append(event)
 
         assert len(events) == 2
@@ -529,9 +526,7 @@ class TestAstreamRun:
             ),
         ):
             mock_handler_cls.return_value = MagicMock()
-            async for _ in orch.astream_run(
-                message="test", session_id="sess-1"
-            ):
+            async for _ in orch.astream_run(message="test", session_id="sess-1"):
                 pass
 
         assert captured_kwargs["stream_mode"] == ["messages", "updates", "custom"]
@@ -711,9 +706,5 @@ class TestLangfuseTraceMetadata:
             await orch.arun("test", session_id="sess-1", request_id="req-1")
 
             config_arg = agent.ainvoke.call_args[1]["config"]
-            assert (
-                config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
-            )
-            assert (
-                mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"
-            )
+            assert config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
+            assert mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"

@@ -118,7 +118,15 @@ def test_finnhub_stock_quote_missing_api_key_raises():
 
 
 def test_finnhub_ticker_normalization_uppercase():
-    quote = {"c": 100.0, "pc": 99.0, "o": 99.5, "d": 1.0, "dp": 1.0, "h": 101.0, "l": 98.0}
+    quote = {
+        "c": 100.0,
+        "pc": 99.0,
+        "o": 99.5,
+        "d": 1.0,
+        "dp": 1.0,
+        "h": 101.0,
+        "l": 98.0,
+    }
     client = _mock_client(quote=quote)
     with patch(_SEAM, return_value=client):
         result = _tool_call(finnhub_stock_quote, {"ticker": "aapl"})
@@ -129,7 +137,15 @@ def test_finnhub_ticker_normalization_uppercase():
 
 def test_finnhub_tools_work_without_stream_writer():
     """Tools must tolerate non-streaming context where get_stream_writer() raises."""
-    quote = {"c": 190.5, "pc": 187.0, "o": 188.0, "d": 3.5, "dp": 1.87, "h": 191.0, "l": 186.5}
+    quote = {
+        "c": 190.5,
+        "pc": 187.0,
+        "o": 188.0,
+        "d": 3.5,
+        "dp": 1.87,
+        "h": 191.0,
+        "l": 186.5,
+    }
     with patch(_SEAM, return_value=_mock_client(quote=quote)):
         result = _tool_call(finnhub_stock_quote, {"ticker": "AAPL"})
 

@@ -35,9 +35,7 @@ from backend.evals.scorers.sec_retrieval_scorer import (
         ),
     ],
 )
-def test_is_hit(
-    chunk_path, chunk_text, expected_paths, snippets, expected_hit
-) -> None:
+def test_is_hit(chunk_path, chunk_text, expected_paths, snippets, expected_hit) -> None:
     chunk = {"header_path": chunk_path, "text": chunk_text}
     expected = {"header_paths": expected_paths}
     if snippets is not None:
@@ -159,7 +157,11 @@ def test_map_unmatched_expected_reduces_score() -> None:
             "AMD / 2025 / Item 1A",
             "INTC / 2025 / Item 1A",
         ],
-        "answer_snippets": ["export controls", "export restrictions", "trade compliance"],
+        "answer_snippets": [
+            "export controls",
+            "export restrictions",
+            "trade compliance",
+        ],
     }
     assert abs(_compute_map(chunks, expected) - 1.0 / 3) < 1e-6
 

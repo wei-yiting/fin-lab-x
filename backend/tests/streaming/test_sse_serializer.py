@@ -142,7 +142,9 @@ class TestFinish:
         }
 
     def test_wire_format_with_explicit_usage(self):
-        evt = Finish(finish_reason="stop", usage=Usage(input_tokens=100, output_tokens=50))
+        evt = Finish(
+            finish_reason="stop", usage=Usage(input_tokens=100, output_tokens=50)
+        )
         payload = _parse_sse(serialize_event(evt))
         assert payload["messageMetadata"]["usage"] == {"totalTokens": 150}
 

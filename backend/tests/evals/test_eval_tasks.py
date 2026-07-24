@@ -35,12 +35,16 @@ def _mock_astream_events(
     events.append(TextEnd(text_id="t-1"))
 
     if tool_name and tool_result:
-        events.extend([
-            ToolCall(tool_call_id="tc-1", tool_name=tool_name, args={}),
-            ToolResult(tool_call_id="tc-1", result=tool_result),
-        ])
+        events.extend(
+            [
+                ToolCall(tool_call_id="tc-1", tool_name=tool_name, args={}),
+                ToolResult(tool_call_id="tc-1", result=tool_result),
+            ]
+        )
 
-    events.append(Finish(finish_reason="stop", usage=Usage(input_tokens=10, output_tokens=20)))
+    events.append(
+        Finish(finish_reason="stop", usage=Usage(input_tokens=10, output_tokens=20))
+    )
     return events
 
 

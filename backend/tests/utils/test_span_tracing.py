@@ -30,8 +30,12 @@ def test_outer_span_active_opens_observation(monkeypatch):
     )
     fake_client = MagicMock()
     fake_observation = MagicMock()
-    fake_client.start_as_current_observation.return_value.__enter__ = lambda self: fake_observation
-    fake_client.start_as_current_observation.return_value.__exit__ = lambda self, *args: None
+    fake_client.start_as_current_observation.return_value.__enter__ = lambda self: (
+        fake_observation
+    )
+    fake_client.start_as_current_observation.return_value.__exit__ = (
+        lambda self, *args: None
+    )
     monkeypatch.setattr(
         "backend.utils.span_tracing.get_client",
         lambda: fake_client,

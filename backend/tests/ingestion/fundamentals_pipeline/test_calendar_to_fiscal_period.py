@@ -6,6 +6,7 @@ from backend.ingestion.fundamentals_pipeline.calendar_to_fiscal_period import (
     normalize_fiscal_period,
 )
 
+
 # fmt: off
 @pytest.mark.parametrize(
     "fye_month, period_end, expected",

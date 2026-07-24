@@ -36,9 +36,6 @@ def check_commit_marker_complete(
             ids=[commit_marker_id(ticker, year)],
             with_payload=True,
         )
-        return (
-            len(points) > 0
-            and points[0].payload.get("status") == "complete"
-        )
+        return len(points) > 0 and points[0].payload.get("status") == "complete"
     except Exception:
         return False

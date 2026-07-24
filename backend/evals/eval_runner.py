@@ -236,6 +236,24 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
     return wrapped
 
 
+def _to_braintrust_scorer(wrapped: Any) -> Any:
+    """Adapt a locally-wrapped scorer for Braintrust's ``Eval(scores=...)``.
+
+    ``_SKIPPED_MARKER`` is a local-CSV encoding used to distinguish a scorer
+    that intentionally returned ``None`` from one that errored. Braintrust has
+    no such sentinel — its native "no score" signal is ``None``. Passing the
+    bare "SKIPPED" string straight through makes Braintrust surface it as a
+    scorer error, so we strip it at the platform boundary.
+    """
+
+    def bt_scorer(*, output: Any, expected: Any, **kwargs: Any) -> Any:
+        result = wrapped(output=output, expected=expected, **kwargs)
+        return None if result == _SKIPPED_MARKER else result
+
+    bt_scorer.__name__ = getattr(wrapped, "__name__", "scorer")
+    return bt_scorer
+
+
 def write_result_csv(
     eval_result: Any,
     scenario_name: str,
@@ -379,7 +397,7 @@ def run_scenario(
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
         original_columns, original_rows = load_raw_csv_rows(csv_path)
-        raw_data = load_dataset(csv_path, config.column_mapping)
+        raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
 
         scorers = resolve_scorers(config.scorers)
         task_fn = resolve_function(config.task.function, label="task")
@@ -436,7 +454,7 @@ def run_scenario(
                     bt_config.project,
                     data=eval_cases,
                     task=wrapped_task,
-                    scores=wrapped_scorers,
+                    scores=[_to_braintrust_scorer(s) for s in wrapped_scorers],
                     experiment_name=experiment_name,
                     no_send_logs=False,
                 )

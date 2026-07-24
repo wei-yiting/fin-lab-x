@@ -559,9 +559,136 @@ async def gate_ingest_root() -> bool:
     return True
 
 
+def _block_reasoning_text(block: Any) -> str:
+    """Defensive reasoning-text extraction across LangChain block shapes."""
+    if not isinstance(block, dict):
+        return ""
+    if isinstance(block.get("reasoning"), str):
+        return block["reasoning"]
+    if isinstance(block.get("text"), str):
+        return block["text"]
+    parts = []
+    for s in block.get("summary") or []:
+        if isinstance(s, dict) and isinstance(s.get("text"), str):
+            parts.append(s["text"])
+    return "".join(parts)
+
+
+async def gate_reasoning_trace_level() -> bool:
+    """Post-F7-ruling design mapped onto Braintrust: collect reasoning segments
+    during astream, write the joined full text (per-call boundary markers) ONCE
+    to the request root span at stream end — public API only, zero handler
+    internals. Then verify via the Braintrust REST API that the metadata
+    persisted."""
+    if "reasoning_sum_agent" not in agent_singleton:
+        model = init_chat_model(
+            "gpt-5-mini",
+            reasoning={"effort": "medium", "summary": "auto"},
+            use_responses_api=True,
+        )
+        agent_singleton["reasoning_sum_agent"] = create_agent(
+            model=model, tools=[poc_price_note, poc_retrieve], system_prompt=_SYSTEM_PROMPT
+        )
+    agent = agent_singleton["reasoning_sum_agent"]
+
+    handler = BraintrustCallbackHandler()
+    request_id = uuid.uuid4().hex[:8]
+    config = {
+        "callbacks": [handler],
+        "run_name": "gate-reasoning-trace",
+        "metadata": {"poc_case": "gate-reasoning-trace", "request_id": request_id},
+        "configurable": {"thread_id": f"gate-reasoning-trace-{request_id}"},
+    }
+
+    segments: dict[str, list[str]] = {}  # AIMessage id → reasoning text pieces
+    tool_names: list[str] = []
+    error: str | None = None
+    root_span_id: str | None = None
+    with braintrust.start_span(name="request:gate-reasoning-trace", type="task") as root:
+        root_span_id = root.span_id
+        try:
+            link = root.permalink()
+        except Exception:
+            link = None
+        root.log(input="reasoning trace-level gate", metadata={"poc_case": "gate-reasoning-trace", "request_id": request_id})
+        try:
+            async for raw in agent.astream(
+                {"messages": [{"role": "user", "content": (
+                    "Strictly one tool call at a time, never in parallel: first call "
+                    "poc_price_note for ACME and wait for the result; then, using that result, "
+                    "call poc_retrieve for ACME revenue facts; then compare price vs revenue growth."
+                )}]},
+                config=config,
+                stream_mode=["messages", "updates"],
+                version="v2",
+            ):
+                mode, data = raw if isinstance(raw, tuple) else ("updates", raw)
+                if mode == "messages":
+                    msg = data[0]
+                    for block in getattr(msg, "content_blocks", None) or []:
+                        if isinstance(block, dict) and "reasoning" in block.get("type", ""):
+                            text = _block_reasoning_text(block)
+                            if text:
+                                segments.setdefault(msg.id or "?", []).append(text)
+                elif mode == "updates" and isinstance(data, dict):
+                    for node_out in data.values():
+                        for m in (node_out or {}).get("messages", []):
+                            if type(m).__name__ == "ToolMessage":
+                                tool_names.append(m.name or "?")
+        except Exception as e:
+            error = f"{type(e).__name__}: {e}"
+        # Post-F7 design: single key, per-call boundary markers inside the value.
+        joined = "\n\n=== llm-call boundary ===\n\n".join(
+            "".join(parts) for parts in segments.values()
+        )
+        root.log(metadata={"reasoning": joined or "<no-reasoning-emitted>"})
+        root.log(output=f"{len(segments)} reasoning segment groups")
+
+    braintrust.flush()
+
+    # Verify persistence via public REST API — the post-F7 verify script's job.
+    persisted = None
+    try:
+        import urllib.request
+
+        req = urllib.request.Request(
+            "https://api.braintrust.dev/v1/project_logs/9d978f09-ab2c-4bce-88d5-15c7522fd2ff/fetch?limit=100",
+            headers={"Authorization": f"Bearer {os.environ['BRAINTRUST_API_KEY']}"},
+        )
+        import json as _json
+
+        rows = _json.load(urllib.request.urlopen(req))["events"]
+        for r in rows:
+            if r.get("span_id") == root_span_id:
+                persisted = (r.get("metadata") or {}).get("reasoning")
+                break
+    except Exception as e:
+        persisted = f"<api-error: {e}>"
+
+    print(f"\n=== gate-reasoning-trace (request_id={request_id}) ===")
+    checks = [
+        ("stream completed without error", error is None),
+        ("readable reasoning collected (summary=auto)", bool(segments) and any(any(p for p in v) for v in segments.values())),
+        ("multiple llm-call segments (tool loop)", len(segments) >= 2),
+        ("root metadata.reasoning persisted (API-verified)", isinstance(persisted, str) and len(persisted) > 20 and not persisted.startswith("<")),
+        ("per-call boundary marker present", isinstance(persisted, str) and "llm-call boundary" in persisted),
+    ]
+    ok = all(p for _, p in checks)
+    for label, passed in checks:
+        print(f"  [{'PASS' if passed else 'FAIL'}] {label}")
+    print(f"  segments={len(segments)} tools={tool_names}")
+    if isinstance(persisted, str):
+        print(f"  persisted reasoning ({len(persisted)} chars): {persisted[:200]}...")
+    if error:
+        print(f"  stream_error: {error}")
+    print(f"  trace: {link or '(search gate-reasoning-trace in UI)'}")
+    return ok
+
+
 GATES = {
     "gate1": gate1,
     "sec": gate_sec,
+    "reasoning-trace": gate_reasoning_trace_level,
     "traced": gate_traced,
     "ingest-root": gate_ingest_root,
     "reasoning": gate_reasoning,

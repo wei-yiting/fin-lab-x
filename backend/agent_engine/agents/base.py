@@ -210,7 +210,12 @@ class _LangfusePropagationAttributes(TypedDict, total=False):
 class Orchestrator:
     """Profile-agnostic Orchestrator that loads capabilities from config."""
 
-    def __init__(self, config: WorkflowProfileConfig, *, checkpointer: BaseCheckpointSaver | None = None):
+    def __init__(
+        self,
+        config: WorkflowProfileConfig,
+        *,
+        checkpointer: BaseCheckpointSaver | None = None,
+    ):
         setup_tools()
         self._validate_edgar_identity(config)
         self.config = config
@@ -270,9 +275,7 @@ class Orchestrator:
             raise ValueError(
                 f"Prompt references undefined variables: {sorted(missing)}"
             )
-        return _PROMPT_PLACEHOLDER_RE.sub(
-            lambda m: str(provided[m.group(1)]), raw
-        )
+        return _PROMPT_PLACEHOLDER_RE.sub(lambda m: str(provided[m.group(1)]), raw)
 
     @staticmethod
     def _validate_edgar_identity(config: WorkflowProfileConfig) -> None:
@@ -280,13 +283,9 @@ class Orchestrator:
         ``EDGAR_IDENTITY`` set. Profiles without SEC tools skip the check so
         non-SEC deployments stay unaffected.
         """
-        needs_sec = any(
-            t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools
-        )
+        needs_sec = any(t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools)
         if needs_sec and not os.getenv("EDGAR_IDENTITY"):
-            raise ConfigurationError(
-                "EDGAR_IDENTITY environment variable is not set."
-            )
+            raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     def run(
         self,
@@ -300,7 +299,11 @@ class Orchestrator:
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
         )
-        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        thread_id = (
+            session_id
+            if isinstance(session_id, str) and session_id
+            else str(uuid.uuid4())
+        )
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = self.agent.invoke(
@@ -325,7 +328,11 @@ class Orchestrator:
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
         )
-        thread_id = session_id if isinstance(session_id, str) and session_id else str(uuid.uuid4())
+        thread_id = (
+            session_id
+            if isinstance(session_id, str) and session_id
+            else str(uuid.uuid4())
+        )
         config["configurable"] = {"thread_id": thread_id}
         with propagate_attributes(**propagation):
             result = await self.agent.ainvoke(
@@ -421,9 +428,7 @@ class Orchestrator:
 
         if message_id:
             if message_id not in turn_ids:
-                raise ValueError(
-                    "messageId does not match the last assistant message"
-                )
+                raise ValueError("messageId does not match the last assistant message")
 
         return turn_start
 
@@ -443,16 +448,16 @@ class Orchestrator:
 
         self._find_regenerate_target(messages, message_id)
 
-    async def _prepare_regenerate(
-        self, config: dict, message_id: str | None
-    ) -> None:
+    async def _prepare_regenerate(self, config: dict, message_id: str | None) -> None:
         state = await self.agent.aget_state(config)
         messages = state.values.get("messages", [])
 
         target_idx = self._find_regenerate_target(messages, message_id)
 
         to_remove = [RemoveMessage(id=m.id) for m in messages[target_idx:]]
-        await self.agent.aupdate_state(config, {"messages": to_remove}, as_node="__start__")
+        await self.agent.aupdate_state(
+            config, {"messages": to_remove}, as_node="__start__"
+        )
 
     def _build_langfuse_config(
         self,

@@ -30,7 +30,9 @@ def _get_orchestrator(profile: str) -> Orchestrator:
     return Orchestrator(config, checkpointer=None)
 
 
-async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> OrchestratorResult:
+async def _astream_collect(
+    orchestrator: Orchestrator, prompt: str
+) -> OrchestratorResult:
     """Run astream_run and collect domain events into OrchestratorResult."""
     session_id = f"eval-{uuid.uuid4()}"
 
@@ -50,11 +52,13 @@ async def _astream_collect(orchestrator: Orchestrator, prompt: str) -> Orchestra
             tool_names[event.tool_call_id] = event.tool_name
             tool_args[event.tool_call_id] = event.args
         elif isinstance(event, ToolResult):
-            tool_outputs.append({
-                "tool": tool_names.get(event.tool_call_id, "unknown"),
-                "args": tool_args.get(event.tool_call_id, {}),
-                "result": event.result,
-            })
+            tool_outputs.append(
+                {
+                    "tool": tool_names.get(event.tool_call_id, "unknown"),
+                    "args": tool_args.get(event.tool_call_id, {}),
+                    "result": event.result,
+                }
+            )
         elif isinstance(event, ToolError):
             errors.append(event.error)
         elif isinstance(event, StreamError):

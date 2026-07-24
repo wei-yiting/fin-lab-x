@@ -18,7 +18,9 @@ TRUSTED_NEWS_DOMAINS = [
 class TavilyFinancialSearchInput(BaseModel):
     """Input schema for Tavily financial search tool."""
 
-    query: str = Field(..., description="Financial news search query (MUST be in English)")
+    query: str = Field(
+        ..., description="Financial news search query (MUST be in English)"
+    )
     ticker: str = Field(..., description="Stock ticker to focus search on")
 
 
@@ -44,7 +46,14 @@ def tavily_financial_search(
 
     normalized_ticker = ticker.strip().upper()
     if writer:
-        writer({"status": "searching_news", "message": f"Searching news for {normalized_ticker}...", "toolName": "tavily_financial_search", "toolCallId": tool_call_id})
+        writer(
+            {
+                "status": "searching_news",
+                "message": f"Searching news for {normalized_ticker}...",
+                "toolName": "tavily_financial_search",
+                "toolCallId": tool_call_id,
+            }
+        )
 
     client = TavilyClient(api_key=api_key)
     full_query = f"{normalized_ticker} {query}".strip()

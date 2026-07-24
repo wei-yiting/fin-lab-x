@@ -40,23 +40,15 @@ BASIC_FINANCIALS_CATALOG: dict[str, FieldSpec] = {
     "roeTTM": FieldSpec("roeTTM", "Return on equity (TTM)"),
     "roaTTM": FieldSpec("roaTTM", "Return on assets (TTM)"),
     "grossMarginTTM": FieldSpec("grossMarginTTM", "Gross margin (TTM)"),
-    "netProfitMarginTTM": FieldSpec(
-        "netProfitMarginTTM", "Net profit margin (TTM)"
-    ),
-    "operatingMarginTTM": FieldSpec(
-        "operatingMarginTTM", "Operating margin (TTM)"
-    ),
+    "netProfitMarginTTM": FieldSpec("netProfitMarginTTM", "Net profit margin (TTM)"),
+    "operatingMarginTTM": FieldSpec("operatingMarginTTM", "Operating margin (TTM)"),
     "currentRatio": FieldSpec("currentRatioQuarterly", "Current ratio"),
     "quickRatio": FieldSpec("quickRatioQuarterly", "Quick ratio"),
-    "debtToEquity": FieldSpec(
-        "totalDebt/totalEquityQuarterly", "Debt-to-equity ratio"
-    ),
+    "debtToEquity": FieldSpec("totalDebt/totalEquityQuarterly", "Debt-to-equity ratio"),
     "dividendYield": FieldSpec(
         "dividendYieldIndicatedAnnual", "Indicated annual dividend yield"
     ),
-    "revenueGrowthTTMYoy": FieldSpec(
-        "revenueGrowthTTMYoy", "Revenue growth (TTM YoY)"
-    ),
+    "revenueGrowthTTMYoy": FieldSpec("revenueGrowthTTMYoy", "Revenue growth (TTM YoY)"),
     "epsGrowthTTMYoy": FieldSpec("epsGrowthTTMYoy", "EPS growth (TTM YoY)"),
     "tenDayAvgVolume": FieldSpec(
         "10DayAverageTradingVolume", "10-day average trading volume"
@@ -76,9 +68,7 @@ def fetch_quote(symbol: str) -> dict[str, Any]:
     # Finnhub's free tier returns an all-zero payload (not an error) for unknown
     # tickers. Require BOTH current and previous-close to be 0/None: checking `c`
     # alone would false-positive a legitimately-zero pre-market price.
-    if not data or (
-        data.get("c") in (0, None) and data.get("pc") in (0, None)
-    ):
+    if not data or (data.get("c") in (0, None) and data.get("pc") in (0, None)):
         raise ValueError(
             f"No quote data for ticker '{symbol}'. The symbol may be invalid, "
             f"delisted, or not covered by Finnhub free tier."

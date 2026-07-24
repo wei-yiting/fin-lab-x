@@ -118,6 +118,7 @@ def test_jit_disabled_error_is_separate() -> None:
 
 # --- _check_caches (Qdrant commit marker + local filing store) ---
 
+
 def _mock_qdrant_client(marker_complete: bool = False):
     client = MagicMock()
     if marker_complete:
@@ -149,6 +150,7 @@ def test_check_caches_matrix(marker_complete, filing_exists, expected) -> None:
 
 
 # --- _resolve_latest_year (EDGAR metadata call) ---
+
 
 @pytest.mark.asyncio
 async def test_resolve_latest_year_calls_edgar() -> None:
@@ -188,6 +190,7 @@ async def test_resolve_latest_year_converts_filing_not_found() -> None:
 
 
 # --- _download_and_parse (EDGAR download + markdown parse) ---
+
 
 @pytest.mark.asyncio
 async def test_download_and_parse_returns_filing() -> None:
@@ -243,6 +246,7 @@ async def test_download_and_parse_converts_filing_not_found() -> None:
 # span context survives the thread hop so that any future span emitted from a
 # worker thread would still nest under the coroutine's @observe root instead
 # of becoming an orphan trace.
+
 
 @pytest.mark.asyncio
 async def test_asyncio_to_thread_preserves_otel_context() -> None:

@@ -30,7 +30,9 @@ def build_noise_tokens(soup: BeautifulSoup) -> frozenset[str]:
         text = tag.get_text(strip=True)
         if _MIN_HEADING_TEXT_LEN <= len(text) <= _REPEATED_TEXT_MAX_LEN:
             counter[text] += 1
-    return frozenset(t for t, count in counter.items() if count >= _REPEATED_TEXT_MIN_OCCURRENCES)
+    return frozenset(
+        t for t, count in counter.items() if count >= _REPEATED_TEXT_MIN_OCCURRENCES
+    )
 
 
 def is_self_reference(text: str) -> bool:
@@ -100,9 +102,7 @@ def detect_item_regions(soup: BeautifulSoup) -> list[ItemRegion]:
         return []
 
     # Sort by document position (idx) to preserve raw document order
-    sorted_items = sorted(
-        last_occurrence.items(), key=lambda kv: kv[1][0]
-    )
+    sorted_items = sorted(last_occurrence.items(), key=lambda kv: kv[1][0])
     ordered = [(item_num, tag) for item_num, (_, tag) in sorted_items]
 
     regions: list[ItemRegion] = []
@@ -318,7 +318,9 @@ def promote_subsections(
     # Region transitions are signalled by start_tag identity. Each non-None
     # end_tag is the next region's start_tag, so a single start_tag lookup
     # handles both "enter region N" and "leave region N-1".
-    start_tag_ids: dict[int, int] = {id(r.start_tag): idx for idx, r in enumerate(regions)}
+    start_tag_ids: dict[int, int] = {
+        id(r.start_tag): idx for idx, r in enumerate(regions)
+    }
 
     current_region_idx: int | None = None
     region_blocks: list[list[Tag]] = [[] for _ in regions]

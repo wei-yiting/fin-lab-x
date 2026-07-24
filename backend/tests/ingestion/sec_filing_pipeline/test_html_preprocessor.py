@@ -588,7 +588,7 @@ class TestSubsectionPromotion:
         html = (
             '<div><span style="font-weight:700;font-size:10pt">Item 1. Business</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Our Company</span></div>'
-            '<p>We design GPUs.</p>'
+            "<p>We design GPUs.</p>"
         )
         result = preprocessor.preprocess(html)
         assert "<h2>" in result
@@ -636,16 +636,18 @@ class TestClassCFallback:
         result = preprocessor.preprocess(html)
         assert "<h2>" not in result
 
-    def test_intc_non_bold_item_not_promoted_when_size_below_strong_signal(self, preprocessor):
+    def test_intc_non_bold_item_not_promoted_when_size_below_strong_signal(
+        self, preprocessor
+    ):
         # Non-bold Item with sibling block. The strong-signal path now
         # bypasses sibling checks for clear font-size jumps, so the
         # rejection must come from a sub-threshold size ratio (10.5/10
         # = 1.05 < 1.1) rather than the isolation sibling guard.
         html = (
-            '<div>'
+            "<div>"
             '<div><span style="font-weight:400;font-size:10.5pt">Item 1. Business</span></div>'
             '<div><span style="font-size:10pt">Some sibling block content here long enough to count.</span></div>'
-            '</div>'
+            "</div>"
         )
         result = preprocessor.preprocess(html)
         result_soup = BeautifulSoup(result, "html.parser")

@@ -66,7 +66,9 @@ def _build_llm_judge(scorer_config: ScorerConfig) -> Callable[..., Any]:
 
     template_vars = _TEMPLATE_VAR_RE.findall(scorer_config.rubric)
 
-    def _llm_judge_wrapper(output: Any, expected: Any, *, input: Any = None, **kwargs: Any) -> Any:
+    def _llm_judge_wrapper(
+        output: Any, expected: Any, *, input: Any = None, **kwargs: Any
+    ) -> Any:
         """Skip scoring when rubric template variables are missing or empty."""
         for var in template_vars:
             if var == "input":

@@ -77,9 +77,7 @@ def _run_single(argv: list[str]) -> None:
     parser.add_argument(
         "--force", action="store_true", help="Bypass cache and re-download"
     )
-    parser.add_argument(
-        "--verbose", action="store_true", help="Show full metadata"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Show full metadata")
     parser.add_argument(
         "--json", action="store_true", dest="json_output", help="Output as JSON"
     )
@@ -110,9 +108,7 @@ def _run_batch(argv: list[str]) -> None:
         description="Download and parse SEC filings for multiple tickers",
     )
     parser.add_argument("tickers", nargs="+", help="Stock ticker symbols")
-    parser.add_argument(
-        "--filing-type", required=True, help="Filing type (e.g. 10-K)"
-    )
+    parser.add_argument("--filing-type", required=True, help="Filing type (e.g. 10-K)")
     parser.add_argument(
         "--verbose", action="store_true", help="Show full metadata per ticker"
     )

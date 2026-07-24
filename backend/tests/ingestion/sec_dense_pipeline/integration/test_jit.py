@@ -12,15 +12,20 @@ from backend.tests.ingestion.sec_dense_pipeline.integration.conftest import (
 
 def _qdrant_count(ticker: str) -> int:
     from qdrant_client import QdrantClient, models
+
     client = QdrantClient(url=QDRANT_URL)
     result = client.count(
         collection_name=TEST_COLLECTION,
         count_filter=models.Filter(
             must=[
-                models.FieldCondition(key="ticker", match=models.MatchValue(value=ticker)),
+                models.FieldCondition(
+                    key="ticker", match=models.MatchValue(value=ticker)
+                ),
             ],
             must_not=[
-                models.FieldCondition(key="status", match=models.MatchAny(any=["pending", "complete"])),
+                models.FieldCondition(
+                    key="status", match=models.MatchAny(any=["pending", "complete"])
+                ),
             ],
         ),
     )
@@ -30,12 +35,15 @@ def _qdrant_count(ticker: str) -> int:
 def _qdrant_count_raw(ticker: str) -> int:
     """Count points with exact ticker value (case sensitive)."""
     from qdrant_client import QdrantClient, models
+
     client = QdrantClient(url=QDRANT_URL)
     result = client.count(
         collection_name=TEST_COLLECTION,
         count_filter=models.Filter(
             must=[
-                models.FieldCondition(key="ticker", match=models.MatchValue(value=ticker)),
+                models.FieldCondition(
+                    key="ticker", match=models.MatchValue(value=ticker)
+                ),
             ],
         ),
     )
@@ -63,18 +71,23 @@ def _mock_raw_filing(ticker="NVDA", year=2025):
 
 
 @contextmanager
-def _patch_pipeline_and_store(*, latest_year=2025, raw=None, parsed=None, store_hit=None):
+def _patch_pipeline_and_store(
+    *, latest_year=2025, raw=None, parsed=None, store_hit=None
+):
     """Patch SECFilingPipeline.create and LocalFilingStore for retriever JIT tests.
 
     Returns (mock_pipeline, mock_store) so tests can assert on call counts.
     """
     raw = raw if raw is not None else _mock_raw_filing(year=latest_year)
     parsed = parsed if parsed is not None else _mock_filing(year=latest_year)
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.SECFilingPipeline.create"
-    ) as mock_create, patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
-    ) as mock_store_cls:
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.SECFilingPipeline.create"
+        ) as mock_create,
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore"
+        ) as mock_store_cls,
+    ):
         mock_pipeline = MagicMock()
         mock_pipeline.resolve_latest_year.return_value = latest_year
         mock_pipeline.download_raw.return_value = raw
@@ -156,7 +169,9 @@ async def test_jit_does_not_fire_without_ticker(clean_collection, mock_openai_em
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_lowercase_ticker_does_not_dual_store(clean_collection, mock_openai_embed):
+async def test_lowercase_ticker_does_not_dual_store(
+    clean_collection, mock_openai_embed
+):
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
     with _patch_pipeline_and_store(latest_year=2025):
@@ -184,12 +199,16 @@ async def test_disable_jit_raises(clean_collection, monkeypatch):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_jit_fires_edgar_fallback_on_empty_store(clean_collection, mock_openai_embed):
+async def test_jit_fires_edgar_fallback_on_empty_store(
+    clean_collection, mock_openai_embed
+):
     """Verify full JIT path when filing is absent from local store: EDGAR -> parse -> ingest -> search."""
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
     with _patch_pipeline_and_store(latest_year=2025) as (mock_pipeline, _):
-        result = await search(query="GPU data center revenue", filters={"ticker": "NVDA"}, top_k=10)
+        result = await search(
+            query="GPU data center revenue", filters={"ticker": "NVDA"}, top_k=10
+        )
 
     assert len(result) > 0
     assert all(c.ticker == "NVDA" for c in result)
@@ -199,12 +218,17 @@ async def test_jit_fires_edgar_fallback_on_empty_store(clean_collection, mock_op
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_jit_uses_local_store_when_filing_cached(clean_collection, mock_openai_embed):
+async def test_jit_uses_local_store_when_filing_cached(
+    clean_collection, mock_openai_embed
+):
     """When LocalFilingStore has the filing, JIT should not call EDGAR download."""
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
     cached = _mock_filing(year=2025)
-    with _patch_pipeline_and_store(latest_year=2025, store_hit=cached) as (mock_pipeline, _):
+    with _patch_pipeline_and_store(latest_year=2025, store_hit=cached) as (
+        mock_pipeline,
+        _,
+    ):
         result = await search(query="test", filters={"ticker": "NVDA"}, top_k=10)
 
     assert len(result) > 0

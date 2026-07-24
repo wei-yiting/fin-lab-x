@@ -17,7 +17,9 @@ def load_ticker_universe(path: Path | None = None) -> list[str]:
     try:
         data = yaml.safe_load(text)
     except yaml.YAMLError as exc:
-        raise ConfigurationError(f"Failed to parse ticker universe YAML at {target}") from exc
+        raise ConfigurationError(
+            f"Failed to parse ticker universe YAML at {target}"
+        ) from exc
     try:
         tickers = data["tickers"]
     except (TypeError, KeyError) as exc:

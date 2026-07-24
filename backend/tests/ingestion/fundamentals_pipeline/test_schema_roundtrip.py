@@ -3,7 +3,9 @@ from datetime import date
 import duckdb
 import pytest
 
-from backend.ingestion.fundamentals_pipeline.calendar_to_fiscal_period import normalize_fiscal_period
+from backend.ingestion.fundamentals_pipeline.calendar_to_fiscal_period import (
+    normalize_fiscal_period,
+)
 from backend.ingestion.fundamentals_pipeline.duck_db.row_models import (
     CompanyRow,
     YFinanceQuarterlyRow,
@@ -16,21 +18,24 @@ from backend.ingestion.fundamentals_pipeline.ingestion_run_tracker import (
 
 def test_foundation_roundtrip(tmp_duckdb):
     # 1. Insert company
-    assert upsert_rows(
-        tmp_duckdb,
-        "companies",
-        ["ticker"],
-        [
-            CompanyRow(
-                ticker="MSFT",
-                company_name="Microsoft Corporation",
-                sector="Technology",
-                industry="Software",
-                fy_end_month=6,
-                fy_end_day=30,
-            )
-        ],
-    ) == 1
+    assert (
+        upsert_rows(
+            tmp_duckdb,
+            "companies",
+            ["ticker"],
+            [
+                CompanyRow(
+                    ticker="MSFT",
+                    company_name="Microsoft Corporation",
+                    sector="Technology",
+                    industry="Software",
+                    fy_end_month=6,
+                    fy_end_day=30,
+                )
+            ],
+        )
+        == 1
+    )
     row = tmp_duckdb.execute(
         "SELECT ticker, company_name, fy_end_month, updated_at FROM companies WHERE ticker='MSFT'"
     ).fetchone()
@@ -83,7 +88,7 @@ def test_segment_financials_supports_both_period_types(tmp_duckdb):
         "SELECT period_type, fiscal_quarter FROM segment_financials "
         "WHERE ticker='MSFT' ORDER BY period_type"
     ).fetchall()
-    assert rows == [('annual', None), ('quarterly', 3)]
+    assert rows == [("annual", None), ("quarterly", 3)]
 
 
 def test_geographic_revenue_supports_both_period_types(tmp_duckdb):
@@ -101,7 +106,7 @@ def test_geographic_revenue_supports_both_period_types(tmp_duckdb):
         "SELECT period_type, fiscal_quarter FROM geographic_revenue "
         "WHERE ticker='MSFT' ORDER BY period_type"
     ).fetchall()
-    assert rows == [('annual', None), ('quarterly', 3)]
+    assert rows == [("annual", None), ("quarterly", 3)]
 
 
 def test_segment_financials_rejects_quarterly_with_null_quarter(tmp_duckdb):

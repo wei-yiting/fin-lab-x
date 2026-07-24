@@ -113,9 +113,7 @@ _ITEM_HEADING_RE = re.compile(
 
 # Bare Item heading with no inline title — used by split-title merge to look at the
 # next non-blank line for a split-off title.
-_BARE_ITEM_HEADING_RE = re.compile(
-    r"^(## (?:ITEM|Item)\s+\d+[A-Z]?)\.?[ \t]*$"
-)
+_BARE_ITEM_HEADING_RE = re.compile(r"^(## (?:ITEM|Item)\s+\d+[A-Z]?)\.?[ \t]*$")
 
 # Whitelisted abbreviations preserved during title-casing.
 _ABBREVIATIONS = frozenset(
@@ -124,7 +122,22 @@ _ABBREVIATIONS = frozenset(
 
 # Small words that stay lowercase in Title Case (after the first word).
 _TITLE_CASE_SMALL_WORDS = frozenset(
-    {"of", "the", "and", "for", "to", "in", "on", "at", "by", "a", "an", "or", "as", "is"}
+    {
+        "of",
+        "the",
+        "and",
+        "for",
+        "to",
+        "in",
+        "on",
+        "at",
+        "by",
+        "a",
+        "an",
+        "or",
+        "as",
+        "is",
+    }
 )
 
 _NEXT_LINE_TITLE_MAX_LEN = 100

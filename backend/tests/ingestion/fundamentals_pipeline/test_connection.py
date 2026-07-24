@@ -3,7 +3,9 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from backend.ingestion.fundamentals_pipeline.duck_db import connection as connection_module
+from backend.ingestion.fundamentals_pipeline.duck_db import (
+    connection as connection_module,
+)
 from backend.ingestion.fundamentals_pipeline.duck_db.connection import get_connection
 from backend.ingestion.fundamentals_pipeline.errors import SchemaError
 

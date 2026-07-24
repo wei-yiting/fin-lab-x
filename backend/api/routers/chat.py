@@ -92,7 +92,10 @@ async def stream_chat(
             )
         except ValueError as e:
             err_msg = str(e)
-            if "no conversation" in err_msg.lower() or "no assistant" in err_msg.lower():
+            if (
+                "no conversation" in err_msg.lower()
+                or "no assistant" in err_msg.lower()
+            ):
                 raise HTTPException(status_code=404, detail=err_msg)
             raise HTTPException(status_code=422, detail=err_msg)
 

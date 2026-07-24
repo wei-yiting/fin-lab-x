@@ -145,14 +145,18 @@ class TestDownloadWithFiscalYear:
         fy2023_filing.period_of_report = date(2023, 9, 30)
         fy2023_filing.filing_date = date(2023, 11, 1)
         fy2023_filing.accession_number = "0000320193-23-000100"
-        fy2023_filing.filing_url = "https://www.sec.gov/Archives/edgar/data/320193/fy2023.htm"
+        fy2023_filing.filing_url = (
+            "https://www.sec.gov/Archives/edgar/data/320193/fy2023.htm"
+        )
         fy2023_filing.html.return_value = "<html>FY2023</html>"
 
         fy2024_filing = MagicMock()
         fy2024_filing.period_of_report = date(2024, 9, 28)
         fy2024_filing.filing_date = date(2024, 11, 1)
         fy2024_filing.accession_number = "0000320193-24-000123"
-        fy2024_filing.filing_url = "https://www.sec.gov/Archives/edgar/data/320193/fy2024.htm"
+        fy2024_filing.filing_url = (
+            "https://www.sec.gov/Archives/edgar/data/320193/fy2024.htm"
+        )
         fy2024_filing.html.return_value = "<html>FY2024</html>"
 
         filtered = MagicMock()

@@ -98,6 +98,9 @@ All LLM-judge dimensions score 0/1, one LLM call per criterion — never free-fo
 **sec_retrieval**:
 Names two things: the root trace span on retrieval, and the eval scenario measuring retrieval quality. Qualify which one you mean ("sec_retrieval span" / "sec_retrieval scenario").
 
+**Trace Archive**:
+A curated bundle of traces pulled from the tracing platform within its retention window and kept in the repo (`docs/observability/trace-archives/`) as the permanent record — typically a notable failure and its later successful counterpart. Re-uploadable to the platform for side-by-side analysis. Event-driven, per trace worth keeping; never a bulk backup of all traces.
+
 ## Verification
 
 **Journey**:

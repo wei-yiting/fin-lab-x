@@ -29,7 +29,9 @@ true but not a value argument.
 
 - **Retention drops 30 → 14 days** on the free tier. Accepted: archival is event-driven, and
   the issue-sync checklist gains a step — "any trace worth archiving from this session? Pull it
-  now into `docs/observability/trace-archives/`" — so the window never depends on memory alone.
+  now into `data/trace-archives/`" — so the window never depends on memory alone. The archive
+  lives under `data/` (it is data, not prose) as the sole git-tracked carve-out from the
+  otherwise runtime-only `data/` ignore rule.
 - **Quota**: free tier is 1 GB/month processed data, shared with the eval track. Estimated
   heavy-dev usage is 100–200 MB/month (~5x headroom); overage stops ingestion (no billing).
   No pre-emptive payload engineering beyond the ingestion-sampling already in migration scope.

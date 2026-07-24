@@ -45,13 +45,29 @@ def test_all_sec_errors_inherit_from_sec_error():
 
 def test_tenk_standard_titles_shape():
     expected_keys = {
-        "1", "1a", "1b", "1c",
-        "2", "3", "4",
-        "5", "6",
-        "7", "7a",
+        "1",
+        "1a",
+        "1b",
+        "1c",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "7a",
         "8",
-        "9", "9a", "9b", "9c",
-        "10", "11", "12", "13", "14", "15", "16",
+        "9",
+        "9a",
+        "9b",
+        "9c",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
     }
     assert set(TENK_STANDARD_TITLES.keys()) == expected_keys
     assert len(TENK_STANDARD_TITLES) == len(expected_keys)

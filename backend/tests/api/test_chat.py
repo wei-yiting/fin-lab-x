@@ -16,6 +16,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 # --- helpers ---
 
+
 def _msg(role: str, text: str, msg_id: str = "m1") -> dict:
     return {"id": msg_id, "role": role, "parts": [{"type": "text", "text": text}]}
 
@@ -45,13 +46,18 @@ def _clear_overrides():
 
 # --- happy path ---
 
+
 class TestStreamChatHappyPath:
     def test_returns_200_with_sse_content_type(self, client):
         _override_orchestrator(_make_mock_orchestrator())
         try:
             response = client.post(
                 "/api/v1/chat",
-                json={"id": "s1", "messages": [_msg("user", "hi")], "trigger": "submit-message"},
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
             )
             assert response.status_code == 200
             assert response.headers["content-type"].startswith("text/event-stream")
@@ -63,7 +69,11 @@ class TestStreamChatHappyPath:
         try:
             response = client.post(
                 "/api/v1/chat",
-                json={"id": "s1", "messages": [_msg("user", "hi")], "trigger": "submit-message"},
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
             )
             assert response.headers["x-vercel-ai-ui-message-stream"] == "v1"
         finally:
@@ -74,7 +84,11 @@ class TestStreamChatHappyPath:
         try:
             response = client.post(
                 "/api/v1/chat",
-                json={"id": "s1", "messages": [_msg("user", "hi")], "trigger": "submit-message"},
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
             )
             body = response.text
             assert "data: " in body
@@ -88,11 +102,16 @@ class TestStreamChatHappyPath:
 
 # --- validation ---
 
+
 class TestStreamChatValidation:
     def test_id_empty_string_returns_422(self, client):
         response = client.post(
             "/api/v1/chat",
-            json={"id": "", "messages": [_msg("user", "hi")], "trigger": "submit-message"},
+            json={
+                "id": "",
+                "messages": [_msg("user", "hi")],
+                "trigger": "submit-message",
+            },
         )
         assert response.status_code == 422
 
@@ -106,7 +125,11 @@ class TestStreamChatValidation:
     def test_submit_with_no_user_message_returns_422(self, client):
         response = client.post(
             "/api/v1/chat",
-            json={"id": "s1", "messages": [_msg("assistant", "hi")], "trigger": "submit-message"},
+            json={
+                "id": "s1",
+                "messages": [_msg("assistant", "hi")],
+                "trigger": "submit-message",
+            },
         )
         assert response.status_code == 422
 
@@ -140,6 +163,7 @@ class TestStreamChatValidation:
 
 
 # --- AI SDK v6 specific ---
+
 
 class TestStreamChatAiSdkV6Format:
     def test_submit_message_extracts_last_user_text(self, client):
@@ -224,6 +248,7 @@ class TestStreamChatAiSdkV6Format:
 
 # --- session lock ---
 
+
 class TestStreamChatSessionLock:
     def test_concurrent_request_returns_409(self, client):
         session_id = "locked-session"
@@ -233,7 +258,11 @@ class TestStreamChatSessionLock:
         try:
             response = client.post(
                 "/api/v1/chat",
-                json={"id": session_id, "messages": [_msg("user", "hi")], "trigger": "submit-message"},
+                json={
+                    "id": session_id,
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
             )
             assert response.status_code == 409
             assert response.json()["detail"] == "Session busy"
@@ -242,6 +271,7 @@ class TestStreamChatSessionLock:
 
 
 # --- orchestrator error ---
+
 
 class TestStreamChatOrchestratorError:
     def test_value_error_yields_sse_error_events(self, client):
@@ -257,7 +287,11 @@ class TestStreamChatOrchestratorError:
         try:
             response = client.post(
                 "/api/v1/chat",
-                json={"id": "s1", "messages": [_msg("user", "hi")], "trigger": "submit-message"},
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
             )
             assert response.status_code == 200
             body = response.text
@@ -285,9 +319,7 @@ class TestRenamedInvokeEndpoint:
         )
         app.dependency_overrides[get_invoke_orch] = lambda: mock
         try:
-            response = client.post(
-                "/api/v1/chat/invoke", json={"message": "test"}
-            )
+            response = client.post("/api/v1/chat/invoke", json={"message": "test"})
             assert response.status_code == 200
             assert response.json()["response"] == "ok"
         finally:

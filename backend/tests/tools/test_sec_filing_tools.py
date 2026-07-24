@@ -19,7 +19,9 @@ from backend.common.sec_core import (
 # Helpers
 # ---------------------------------------------------------------------------
 
-NON_STUB_TEXT = "This is a real section with substantive content that is not a stub. " * 50
+NON_STUB_TEXT = (
+    "This is a real section with substantive content that is not a stub. " * 50
+)
 STUB_TEXT = (
     "The information required by this Item is incorporated herein by reference "
     "from the Company's 2026 Proxy Statement."
@@ -59,6 +61,7 @@ def _make_tenk(sections: dict[str, MagicMock], period: str = "2025-09-27") -> Ma
 # Autouse cache-clearing (mirrors backend/tests/common/conftest.py)
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def _clear_caches():
     _fetch_filing_obj_cached.cache_clear()
@@ -71,6 +74,7 @@ def _clear_caches():
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 def test_list_sections_canonical_order():
     """Sections in output must follow TENK_STANDARD_TITLES key order regardless
@@ -86,11 +90,22 @@ def test_list_sections_canonical_order():
     tenk = _make_tenk(scrambled)
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
-        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+        result = _tool_call(
+            sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
+        )
 
     keys_in_output = [s["key"] for s in result["sections"]]
     canonical_keys = [k for k in TENK_STANDARD_TITLES if k in {"1", "1a", "7"}]
@@ -107,11 +122,22 @@ def test_list_sections_output_schema():
     )
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
-        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+        result = _tool_call(
+            sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
+        )
 
     assert result["fiscal_year"] == 2025
     assert result["period_of_report"] == "2025-09-27"
@@ -134,11 +160,22 @@ def test_list_sections_handles_str_company_field():
     tenk.company = "Apple Inc."
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
-        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+        result = _tool_call(
+            sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
+        )
 
     assert result["company_name"] == "Apple Inc."
 
@@ -156,11 +193,22 @@ def test_list_sections_stub_flag_optional_on_wire():
     tenk = _make_tenk(sections)
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
-        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+        result = _tool_call(
+            sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
+        )
 
     by_key = {s["key"]: s for s in result["sections"]}
 
@@ -171,9 +219,12 @@ def test_list_sections_stub_flag_optional_on_wire():
         )
 
     # Stub: key + char_count + is_stub + stub_reason
-    assert set(by_key["11"].keys()) == {"key", "char_count", "is_stub", "stub_reason"}, (
-        f"Stub section '11' has unexpected keys: {by_key['11'].keys()}"
-    )
+    assert set(by_key["11"].keys()) == {
+        "key",
+        "char_count",
+        "is_stub",
+        "stub_reason",
+    }, f"Stub section '11' has unexpected keys: {by_key['11'].keys()}"
     assert by_key["11"]["is_stub"] is True
     assert by_key["11"]["stub_reason"]
 
@@ -190,9 +241,18 @@ def test_list_sections_stream_event_resolved_fy():
     mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         _tool_call(sec_filing_list_sections, {"ticker": "aapl", "fiscal_year": None})
 
@@ -216,15 +276,28 @@ def test_list_sections_uses_metadata_only_fy_resolve():
     )
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk) as mock_fetch,
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ) as mock_fetch,
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
         _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": None})
 
     call_kwargs = mock_fetch.call_args
     # fetch_filing_obj(ticker_upper, FilingType(doc_type), resolved_fy)
-    passed_fy = call_kwargs.args[2] if len(call_kwargs.args) >= 3 else call_kwargs.kwargs.get("fiscal_year")
+    passed_fy = (
+        call_kwargs.args[2]
+        if len(call_kwargs.args) >= 3
+        else call_kwargs.kwargs.get("fiscal_year")
+    )
     assert passed_fy is not None
     assert isinstance(passed_fy, int)
 
@@ -242,7 +315,10 @@ def test_list_sections_raises_ticker_not_found():
             "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
             side_effect=TickerNotFoundError("ZZZZ not found"),
         ),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         with pytest.raises(TickerNotFoundError):
             # Use .func to bypass LangChain tool wrapper which catches exceptions
@@ -267,11 +343,22 @@ def test_list_sections_includes_reading_guide():
     )
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
-        result = _tool_call(sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025})
+        result = _tool_call(
+            sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
+        )
 
     guide = result["reading_guide"]
     assert isinstance(guide, str)
@@ -310,6 +397,7 @@ def test_list_sections_observe_span_name():
 # Tests for sec_filing_get_section (Task 7)
 # ---------------------------------------------------------------------------
 
+
 def test_get_section_wire_format_non_stub():
     """Non-stub get_section output must be exactly {period_of_report, content}."""
     from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
@@ -320,9 +408,18 @@ def test_get_section_wire_format_non_stub():
     )
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
         result = _tool_call(
             sec_filing_get_section,
@@ -356,9 +453,18 @@ def test_get_section_wire_format_stub():
     )
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
         result = _tool_call(
             sec_filing_get_section,
@@ -399,9 +505,18 @@ def test_get_section_char_count_matches_list():
     )
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", side_effect=RuntimeError("no writer")),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            side_effect=RuntimeError("no writer"),
+        ),
     ):
         list_result = _tool_call(
             sec_filing_list_sections, {"ticker": "AAPL", "fiscal_year": 2025}
@@ -411,7 +526,9 @@ def test_get_section_char_count_matches_list():
             {"ticker": "AAPL", "section_key": "1a", "fiscal_year": 2025},
         )
 
-    char_count_1a = next(s for s in list_result["sections"] if s["key"] == "1a")["char_count"]
+    char_count_1a = next(s for s in list_result["sections"] if s["key"] == "1a")[
+        "char_count"
+    ]
     assert char_count_1a == len(get_result["content"])
 
 
@@ -423,9 +540,17 @@ def test_get_section_bad_key_no_stream_event():
     mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj") as mock_fetch,
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj"
+        ) as mock_fetch,
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         with pytest.raises(SectionNotFoundError):
             inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
@@ -459,9 +584,18 @@ def test_get_section_stream_event_title_mapping(section_key):
     mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         _tool_call(
             sec_filing_get_section,
@@ -493,9 +627,18 @@ def test_get_section_raises_section_not_found_with_hint():
     mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         with pytest.raises(SectionNotFoundError) as exc_info:
             inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
@@ -527,9 +670,18 @@ def test_get_section_1c_pre_2023_specific_message():
     mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj", return_value=tenk),
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2019),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2019,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         with pytest.raises(SectionNotFoundError) as exc_info:
             inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
@@ -556,9 +708,17 @@ def test_get_section_parse_item_number_failure_no_event():
     mock_writer = MagicMock(side_effect=lambda evt: captured_events.append(evt))
 
     with (
-        patch("backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj") as mock_fetch,
-        patch("backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year", return_value=2025),
-        patch("backend.agent_engine.tools.sec_filing_tools.get_stream_writer", return_value=mock_writer),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj"
+        ) as mock_fetch,
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.get_stream_writer",
+            return_value=mock_writer,
+        ),
     ):
         with pytest.raises(SectionNotFoundError):
             inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)

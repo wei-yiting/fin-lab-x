@@ -19,7 +19,9 @@ from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, LLMResult
 
 from backend.agent_engine.streaming import reasoning_trace_callback as rtc_module
-from backend.agent_engine.streaming.reasoning_trace_callback import ReasoningTraceCallback
+from backend.agent_engine.streaming.reasoning_trace_callback import (
+    ReasoningTraceCallback,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -77,7 +79,9 @@ class TestSchemaScenarios:
 
         _invoke(cb, _llm_result(msg))
 
-        assert _written_metadata(client) == {"reasoning": "first thought\nsecond thought"}
+        assert _written_metadata(client) == {
+            "reasoning": "first thought\nsecond thought"
+        }
 
     def test_capability_on_no_reasoning_blocks_writes_empty_string(
         self, monkeypatch: pytest.MonkeyPatch
@@ -374,9 +378,7 @@ class TestLookupGenerationDriftFallback:
             agent_reasoning_capability="on",
             langfuse_handler=handler,  # type: ignore[arg-type]
         )
-        msg = AIMessage(
-            content=[{"type": "reasoning", "reasoning": "happy uuid path"}]
-        )
+        msg = AIMessage(content=[{"type": "reasoning", "reasoning": "happy uuid path"}])
 
         with caplog.at_level(logging.WARNING, logger=rtc_module.__name__):
             cb.on_llm_end(_llm_result(msg), run_id=rid, parent_run_id=None)
@@ -417,9 +419,7 @@ class TestLookupGenerationDriftFallback:
         assert gen.updates == [{"reasoning": "str-fallback thought"}]
         # Drift warning fired exactly once with the expected mode tag
         drift_records = [
-            rec
-            for rec in caplog.records
-            if "Langfuse _runs key drifted" in rec.message
+            rec for rec in caplog.records if "Langfuse _runs key drifted" in rec.message
         ]
         assert len(drift_records) == 1, (
             f"Expected 1 drift warning, got {len(drift_records)}: "
@@ -453,9 +453,7 @@ class TestLookupGenerationDriftFallback:
 
         assert gen.updates == [{"reasoning": "hex thought"}]
         drift_records = [
-            rec
-            for rec in caplog.records
-            if "Langfuse _runs key drifted" in rec.message
+            rec for rec in caplog.records if "Langfuse _runs key drifted" in rec.message
         ]
         assert len(drift_records) == 1
         assert "uuid.hex" in drift_records[0].message
@@ -484,9 +482,7 @@ class TestLookupGenerationDriftFallback:
                 cb.on_llm_end(_llm_result(msg), run_id=rid, parent_run_id=None)
 
         drift_records = [
-            rec
-            for rec in caplog.records
-            if "Langfuse _runs key drifted" in rec.message
+            rec for rec in caplog.records if "Langfuse _runs key drifted" in rec.message
         ]
         assert len(drift_records) == 1, (
             f"Drift warning must be one-shot per process; got {len(drift_records)} records"

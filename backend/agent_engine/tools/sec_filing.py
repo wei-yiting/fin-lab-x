@@ -23,9 +23,7 @@ class SecFilingDownloaderInput(BaseModel):
     """Input schema for SEC filing downloader tool."""
 
     ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
-    filing_type: Literal["10-K"] = Field(
-        default="10-K", description="SEC filing type"
-    )
+    filing_type: Literal["10-K"] = Field(default="10-K", description="SEC filing type")
     fiscal_year: int | None = Field(
         default=None, description="Fiscal year (omit for latest)"
     )

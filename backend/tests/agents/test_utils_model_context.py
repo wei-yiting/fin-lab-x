@@ -30,7 +30,9 @@ def test_get_model_context_window_unknown_fallback_and_warn_once(monkeypatch, ca
         r2 = get_model_context_window("made-up-model-9000")
         r3 = get_model_context_window("made-up-model-9000")
     assert r1 == r2 == r3 == DEFAULT_CONTEXT_WINDOW
-    warnings = [rec for rec in caplog.records if "made-up-model-9000" in rec.getMessage()]
+    warnings = [
+        rec for rec in caplog.records if "made-up-model-9000" in rec.getMessage()
+    ]
     assert len(warnings) == 1
 
 
@@ -38,7 +40,9 @@ def test_get_model_context_window_unknown_fallback_and_warn_once(monkeypatch, ca
     "ctx_tokens,expected_chars",
     [(128_000, 204_800), (200_000, 320_000), (131_072, 209_715)],
 )
-def test_compute_section_soft_cap_chars_formula(monkeypatch, ctx_tokens, expected_chars):
+def test_compute_section_soft_cap_chars_formula(
+    monkeypatch, ctx_tokens, expected_chars
+):
     monkeypatch.setattr(
         model_context,
         "_REGISTRY",
@@ -48,7 +52,9 @@ def test_compute_section_soft_cap_chars_formula(monkeypatch, ctx_tokens, expecte
 
 
 @pytest.mark.parametrize("bad_fraction", [0, -0.1, 1.1, 2.0])
-def test_compute_section_soft_cap_chars_rejects_invalid_fraction(monkeypatch, bad_fraction):
+def test_compute_section_soft_cap_chars_rejects_invalid_fraction(
+    monkeypatch, bad_fraction
+):
     monkeypatch.setattr(
         model_context,
         "_REGISTRY",
@@ -67,7 +73,9 @@ def test_load_registry_handles_non_dict_yaml(tmp_path, monkeypatch, caplog):
         model_context._load_registry()
     # Registry stays empty, no crash
     assert model_context._REGISTRY == {}
-    assert any("did not parse to a mapping" in rec.getMessage() for rec in caplog.records)
+    assert any(
+        "did not parse to a mapping" in rec.getMessage() for rec in caplog.records
+    )
 
 
 def test_registry_yaml_matches_orchestrator_configs():
@@ -86,9 +94,12 @@ def test_registry_yaml_matches_orchestrator_configs():
         name = (data.get("model") or {}).get("name")
         if isinstance(name, str):
             needed.add(name)
-    registry = yaml.safe_load(
-        Path("backend/agent_engine/utils/model_context_registry.yaml").read_text()
-    ) or {}
+    registry = (
+        yaml.safe_load(
+            Path("backend/agent_engine/utils/model_context_registry.yaml").read_text()
+        )
+        or {}
+    )
     registry_keys = set(registry.keys())
     missing = []
     for name in needed:
@@ -105,11 +116,14 @@ def test_get_model_context_window_strips_provider_prefix(monkeypatch):
     monkeypatch.setattr(
         model_context,
         "_REGISTRY",
-        {"gemini-2.5-flash": {"max_input_tokens": 1_048_576, "source": "google_official"}},
+        {
+            "gemini-2.5-flash": {
+                "max_input_tokens": 1_048_576,
+                "source": "google_official",
+            }
+        },
     )
-    assert (
-        get_model_context_window("google_genai:gemini-2.5-flash") == 1_048_576
-    )
+    assert get_model_context_window("google_genai:gemini-2.5-flash") == 1_048_576
 
 
 def test_compute_section_soft_cap_chars_with_prefixed_gemini(monkeypatch):
@@ -119,10 +133,12 @@ def test_compute_section_soft_cap_chars_with_prefixed_gemini(monkeypatch):
     monkeypatch.setattr(
         model_context,
         "_REGISTRY",
-        {"gemini-2.5-flash": {"max_input_tokens": 1_048_576, "source": "google_official"}},
+        {
+            "gemini-2.5-flash": {
+                "max_input_tokens": 1_048_576,
+                "source": "google_official",
+            }
+        },
     )
     # 1_048_576 * 0.4 * 4 = 1_677_721 (int truncation)
-    assert (
-        compute_section_soft_cap_chars("google_genai:gemini-2.5-flash")
-        == 1_677_721
-    )
+    assert compute_section_soft_cap_chars("google_genai:gemini-2.5-flash") == 1_677_721

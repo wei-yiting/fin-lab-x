@@ -66,7 +66,9 @@ class TestAnthropicInterleave:
 
         all_events = events_a + events_t1 + events_b + events_t2
 
-        assert all_events[0] == MessageStart(message_id="msg-anth", session_id=SESSION_ID)
+        assert all_events[0] == MessageStart(
+            message_id="msg-anth", session_id=SESSION_ID
+        )
         # Reasoning sentences emitted (terminator + \n strips newline)
         reasoning_events = [e for e in all_events if isinstance(e, ReasoningStatus)]
         assert len(reasoning_events) == 2

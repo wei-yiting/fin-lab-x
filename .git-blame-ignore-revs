@@ -1,0 +1,7 @@
+# Revisions listed here are skipped by `git blame`.
+# GitHub's blame UI reads this file automatically; locally, run once:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Bulk ruff format of backend/ — pure formatting, no logic changes (DEV-104, PR #20).
+# AST-equivalence verified 74/74. See docs/adr/0004-ci-only-ruff-format-enforcement.md
+688a6117ca9ba7ebfcfa2141bb7790be7b2edbe2

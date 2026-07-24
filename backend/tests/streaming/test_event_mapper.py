@@ -120,7 +120,9 @@ class TestToolCallHappyPath:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         # Text before tool call
-        events = mapper.process_chunk(make_messages_chunk_text("Let me check", msg_id="msg-1"))
+        events = mapper.process_chunk(
+            make_messages_chunk_text("Let me check", msg_id="msg-1")
+        )
         assert MessageStart(message_id="msg-1", session_id=SESSION_ID) in events
         assert TextStart(text_id="text-0") in events
         assert TextDelta(text_id="text-0", delta="Let me check") in events
@@ -134,9 +136,14 @@ class TestToolCallHappyPath:
 
         # Agent update — ToolCall emitted with complete name + args
         events = mapper.process_chunk(
-            make_updates_agent([{"id": "tc-1", "name": "poc_add", "args": {"a": 1, "b": 2}}])
+            make_updates_agent(
+                [{"id": "tc-1", "name": "poc_add", "args": {"a": 1, "b": 2}}]
+            )
         )
-        assert ToolCall(tool_call_id="tc-1", tool_name="poc_add", args={"a": 1, "b": 2}) in events
+        assert (
+            ToolCall(tool_call_id="tc-1", tool_name="poc_add", args={"a": 1, "b": 2})
+            in events
+        )
 
         # Tool result
         events = mapper.process_chunk(make_updates_tool_result("tc-1", "3"))
@@ -342,7 +349,9 @@ class TestReasoningHoldAndFlushOrdering:
         # tool_call_chunk in the next chunk — the buffered fragment must
         # be flushed as ReasoningStatus before the text block closes.
         mapper = StreamEventMapper(session_id=SESSION_ID)
-        mapper.process_chunk(make_messages_chunk_reasoning("partial-thought", msg_id="msg-A"))
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("partial-thought", msg_id="msg-A")
+        )
 
         events = mapper.process_chunk(
             make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
@@ -362,7 +371,9 @@ class TestChunkIdBoundary:
         # Buffer "step 1" (no terminator) under msg-A
         mapper.process_chunk(make_messages_chunk_reasoning("step 1", msg_id="msg-A"))
         # Same chunk.id arrives — must NOT trigger flush
-        events = mapper.process_chunk(make_messages_chunk_reasoning(" continues", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning(" continues", msg_id="msg-A")
+        )
 
         rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
         assert rs_events == []
@@ -372,7 +383,9 @@ class TestChunkIdBoundary:
 
         mapper.process_chunk(make_messages_chunk_reasoning("partial", msg_id="msg-A"))
         # id=None is continuation per D27.1, no boundary flush
-        events = mapper.process_chunk(make_messages_chunk_reasoning(" more", msg_id=None))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning(" more", msg_id=None)
+        )
 
         rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
         assert rs_events == []
@@ -384,7 +397,9 @@ class TestChunkIdBoundary:
         mapper.process_chunk(make_messages_chunk_reasoning("tail-A", msg_id="msg-A"))
         # New chunk.id msg-B → boundary: flush buffered tail. The new reasoning
         # ends with `\n` (immediate terminator) so it emits in the same call.
-        events = mapper.process_chunk(make_messages_chunk_reasoning("new B.\n", msg_id="msg-B"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("new B.\n", msg_id="msg-B")
+        )
 
         rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
         assert len(rs_events) == 2
@@ -403,9 +418,15 @@ class TestReasoningIdLifecycle:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = []
-        events += mapper.process_chunk(make_messages_chunk_reasoning("first.\n", msg_id="msg-A"))
-        events += mapper.process_chunk(make_messages_chunk_reasoning("second.\n", msg_id="msg-A"))
-        events += mapper.process_chunk(make_messages_chunk_reasoning("third.\n", msg_id="msg-A"))
+        events += mapper.process_chunk(
+            make_messages_chunk_reasoning("first.\n", msg_id="msg-A")
+        )
+        events += mapper.process_chunk(
+            make_messages_chunk_reasoning("second.\n", msg_id="msg-A")
+        )
+        events += mapper.process_chunk(
+            make_messages_chunk_reasoning("third.\n", msg_id="msg-A")
+        )
 
         rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
         assert len(rs_events) == 3
@@ -448,7 +469,9 @@ class TestFinalizeReasoningTail:
     def test_finalize_no_segmenter_content_emits_only_finish(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
         mapper.process_chunk(make_messages_chunk_text("done.", msg_id="msg-A"))
-        mapper.process_chunk(make_messages_chunk_tool_call("tc-1", "fn", msg_id="msg-A"))
+        mapper.process_chunk(
+            make_messages_chunk_tool_call("tc-1", "fn", msg_id="msg-A")
+        )
 
         events = mapper.finalize()
 

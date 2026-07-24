@@ -1,12 +1,12 @@
 """Tests for ReasoningSegmenter — sentence boundary splitting + 80-char CJK fallback."""
 
-
 from backend.agent_engine.streaming.reasoning_segmenter import ReasoningSegmenter
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _feed_all(seg: ReasoningSegmenter, delta: str) -> list[str]:
     return list(seg.feed(delta))
@@ -15,6 +15,7 @@ def _feed_all(seg: ReasoningSegmenter, delta: str) -> list[str]:
 # ---------------------------------------------------------------------------
 # Half-width terminator: `.` followed by whitespace
 # ---------------------------------------------------------------------------
+
 
 class TestHalfWidthDotSplit:
     def test_dot_space_splits_sentence(self):
@@ -49,6 +50,7 @@ class TestHalfWidthDotSplit:
 # Full-width (CJK) terminators
 # ---------------------------------------------------------------------------
 
+
 class TestCJKTerminatorSplit:
     def test_cjk_period_splits_immediately(self):
         seg = ReasoningSegmenter()
@@ -75,6 +77,7 @@ class TestCJKTerminatorSplit:
 # Newline terminator — stripped from emitted sentence
 # ---------------------------------------------------------------------------
 
+
 class TestNewlineTerminator:
     def test_newline_splits_and_strips(self):
         seg = ReasoningSegmenter()
@@ -98,6 +101,7 @@ class TestNewlineTerminator:
 # Cross-feed half-width terminator behaviour
 # ---------------------------------------------------------------------------
 
+
 class TestHalfWidthAcrossFeeds:
     def test_halfwidth_dot_at_delta_end_buffers_until_next_whitespace(self):
         """Realistic LLM streaming pattern — punctuation lands at chunk boundary."""
@@ -119,6 +123,7 @@ class TestHalfWidthAcrossFeeds:
 # ---------------------------------------------------------------------------
 # No terminator — buffering behaviour
 # ---------------------------------------------------------------------------
+
 
 class TestNoTerminatorBuffering:
     def test_short_no_terminator_yields_nothing(self):
@@ -143,6 +148,7 @@ class TestNoTerminatorBuffering:
 # ---------------------------------------------------------------------------
 # 80-char soft-emit fallback (D26 / S-stream-09)
 # ---------------------------------------------------------------------------
+
 
 class TestSoftEmitFallback:
     def test_80_char_cjk_no_terminator_soft_emits(self):
@@ -197,6 +203,7 @@ class TestSoftEmitFallback:
 # flush() behaviour
 # ---------------------------------------------------------------------------
 
+
 class TestFlush:
     def test_flush_returns_remaining_buffer(self):
         seg = ReasoningSegmenter()
@@ -220,6 +227,7 @@ class TestFlush:
 # reset() behaviour
 # ---------------------------------------------------------------------------
 
+
 class TestReset:
     def test_reset_clears_buffer(self):
         seg = ReasoningSegmenter()
@@ -240,9 +248,11 @@ class TestReset:
 # feed() is a lazy generator (not a list)
 # ---------------------------------------------------------------------------
 
+
 class TestFeedIsGenerator:
     def test_feed_returns_iterator(self):
         import types
+
         seg = ReasoningSegmenter()
         result = seg.feed("Hello. World")
         assert isinstance(result, types.GeneratorType)
@@ -251,6 +261,7 @@ class TestFeedIsGenerator:
 # ---------------------------------------------------------------------------
 # Mixed CJK + half-width in same feed
 # ---------------------------------------------------------------------------
+
 
 class TestMixedTerminators:
     def test_cjk_then_halfwidth(self):

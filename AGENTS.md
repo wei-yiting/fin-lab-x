@@ -33,7 +33,7 @@ The backend uses **Ruff** for fast linting and formatting, and **Pytest** for te
 
 - Check linting (Ruff): `ruff check backend/`
 - Fix auto-fixable lint issues: `ruff check --fix backend/`
-- Format code (Ruff): `ruff format backend/`
+- **Format code (Ruff) — run before every push:** `ruff format backend/`. CI's lint job runs `ruff format --check backend/` and will reject unformatted code. This is the only enforcement mechanism; there is no pre-commit hook or editor auto-format (see [ADR-0004](docs/adr/0004-ci-only-ruff-format-enforcement.md)).
 - Type checking (MyPy/Pyright - if configured): `mypy backend/` or `pyright backend/`
 
 **Testing (Pytest):**

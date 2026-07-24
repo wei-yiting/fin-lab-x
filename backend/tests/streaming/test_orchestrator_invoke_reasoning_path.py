@@ -157,9 +157,7 @@ class TestReasoningCallbackFiresOnInvokeChain:
                 mode="invoke", request_id="req-1"
             )
             rc = next(
-                c
-                for c in config["callbacks"]
-                if isinstance(c, ReasoningTraceCallback)
+                c for c in config["callbacks"] if isinstance(c, ReasoningTraceCallback)
             )
 
             msg = AIMessage(

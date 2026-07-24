@@ -34,8 +34,10 @@ def _sse(payload: dict) -> str:
 
 # D39.c: reasoning events must always carry transient=True. ToolProgress predates this contract and is intentionally not guarded.
 def _assert_reasoning_transient(payload: dict) -> None:
-    if not (payload.get("type", "").startswith("data-reasoning-")
-            and payload.get("transient") is True):
+    if not (
+        payload.get("type", "").startswith("data-reasoning-")
+        and payload.get("transient") is True
+    ):
         msg = "reasoning SSE event missing transient=True flag"
         if os.environ.get("APP_ENV", "").lower() == "production":
             logger.warning(msg, extra={"payload_type": payload.get("type")})
@@ -50,11 +52,13 @@ def serialize_event(event) -> str:
 
 @serialize_event.register
 def _(event: MessageStart) -> str:
-    return _sse({
-        "type": "start",
-        "messageId": event.message_id,
-        "messageMetadata": {"sessionId": event.session_id},
-    })
+    return _sse(
+        {
+            "type": "start",
+            "messageId": event.message_id,
+            "messageMetadata": {"sessionId": event.session_id},
+        }
+    )
 
 
 @serialize_event.register
@@ -74,40 +78,48 @@ def _(event: TextEnd) -> str:
 
 @serialize_event.register
 def _(event: ToolCall) -> str:
-    return _sse({
-        "type": "tool-input-available",
-        "toolCallId": event.tool_call_id,
-        "toolName": event.tool_name,
-        "input": event.args,
-    })
+    return _sse(
+        {
+            "type": "tool-input-available",
+            "toolCallId": event.tool_call_id,
+            "toolName": event.tool_name,
+            "input": event.args,
+        }
+    )
 
 
 @serialize_event.register
 def _(event: ToolResult) -> str:
-    return _sse({
-        "type": "tool-output-available",
-        "toolCallId": event.tool_call_id,
-        "output": event.result,
-    })
+    return _sse(
+        {
+            "type": "tool-output-available",
+            "toolCallId": event.tool_call_id,
+            "output": event.result,
+        }
+    )
 
 
 @serialize_event.register
 def _(event: ToolError) -> str:
-    return _sse({
-        "type": "tool-output-error",
-        "toolCallId": event.tool_call_id,
-        "errorText": event.error,
-    })
+    return _sse(
+        {
+            "type": "tool-output-error",
+            "toolCallId": event.tool_call_id,
+            "errorText": event.error,
+        }
+    )
 
 
 @serialize_event.register
 def _(event: ToolProgress) -> str:
-    return _sse({
-        "type": "data-tool-progress",
-        "id": event.tool_call_id,
-        "data": event.data,
-        "transient": True,
-    })
+    return _sse(
+        {
+            "type": "data-tool-progress",
+            "id": event.tool_call_id,
+            "data": event.data,
+            "transient": True,
+        }
+    )
 
 
 @serialize_event.register
@@ -137,12 +149,14 @@ def _(event: StreamError) -> str:
 
 @serialize_event.register
 def _(event: Finish) -> str:
-    return _sse({
-        "type": "finish",
-        "finishReason": event.finish_reason,
-        "messageMetadata": {
-            "usage": {
-                "totalTokens": event.usage.input_tokens + event.usage.output_tokens,
+    return _sse(
+        {
+            "type": "finish",
+            "finishReason": event.finish_reason,
+            "messageMetadata": {
+                "usage": {
+                    "totalTokens": event.usage.input_tokens + event.usage.output_tokens,
+                },
             },
-        },
-    })
+        }
+    )

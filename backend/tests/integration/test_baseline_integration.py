@@ -11,7 +11,10 @@ from unittest.mock import Mock, patch, MagicMock
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from backend.agent_engine.agents.base import Orchestrator
-from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, ProfileConfigLoader
+from backend.agent_engine.agents.config_loader import (
+    WorkflowProfileConfig,
+    ProfileConfigLoader,
+)
 from backend.agent_engine.tools.registry import get_tools_by_names
 
 

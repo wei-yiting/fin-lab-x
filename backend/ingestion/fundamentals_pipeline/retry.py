@@ -24,9 +24,7 @@ def with_retry(
     if max_attempts < 1:
         raise ValueError(f"max_attempts must be >= 1, got {max_attempts}")
     if base_delay_seconds < 0:
-        raise ValueError(
-            f"base_delay_seconds must be >= 0, got {base_delay_seconds}"
-        )
+        raise ValueError(f"base_delay_seconds must be >= 0, got {base_delay_seconds}")
 
     def decorator(fn: Callable[..., _T]) -> Callable[..., _T]:
         @wraps(fn)

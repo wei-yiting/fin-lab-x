@@ -78,8 +78,6 @@ def compute_section_soft_cap_chars(model_name: str, fraction: float = 0.4) -> in
         fraction: strictly positive, at most 1.0.
     """
     if not 0 < fraction <= 1:
-        raise ValueError(
-            f"fraction must be in (0, 1], got {fraction}"
-        )
+        raise ValueError(f"fraction must be in (0, 1], got {fraction}")
     ctx = get_model_context_window(model_name)
     return int(ctx * fraction * _SOFT_CAP_CHARS_PER_TOKEN)

@@ -60,16 +60,16 @@ class TestExtractDominantFontSize:
         # span1 = 12pt with "1" (1 char), span2 = 9pt with "Our Company" (11 chars)
         # 9pt wins by character count
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-size:12pt">1</span>'
             '<span style="font-size:9pt">Our Company</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert extract_dominant_font_size(div) == 9.0
 
     def test_extract_dominant_font_size_no_style(self):
-        soup = _parse('<div><span>no font-size here</span></div>')
+        soup = _parse("<div><span>no font-size here</span></div>")
         div = soup.find("div")
         assert extract_dominant_font_size(div) is None
 
@@ -77,10 +77,10 @@ class TestExtractDominantFontSize:
         # heading "Critical Accounting Estimates" at 9pt (29 chars) wins over
         # footnote marker "1" at 6pt (1 char)
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-size:9pt">Critical Accounting Estimates</span>'
             '<span style="font-size:6pt">1</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert extract_dominant_font_size(div) == 9.0
@@ -88,11 +88,11 @@ class TestExtractDominantFontSize:
     def test_extract_dominant_font_size_multiple_spans_same_size(self):
         # two spans at 10pt, one at 8pt — 10pt wins by total char count
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-size:10pt">Hello</span>'
             '<span style="font-size:10pt"> World</span>'
             '<span style="font-size:8pt">foot</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert extract_dominant_font_size(div) == 10.0
@@ -104,7 +104,7 @@ class TestExtractDominantFontSize:
         assert extract_dominant_font_size(div) is None
 
     def test_extract_dominant_font_size_empty_div(self):
-        soup = _parse('<div></div>')
+        soup = _parse("<div></div>")
         div = soup.find("div")
         assert extract_dominant_font_size(div) is None
 
@@ -138,18 +138,16 @@ class TestIsBoldOnlyBlock:
 
     def test_is_bold_only_block_rejects_table_descendant(self):
         soup = _parse(
-            '<table><tr><td>'
+            "<table><tr><td>"
             '<div><span style="font-weight:700">Bold Text In Table</span></div>'
-            '</td></tr></table>'
+            "</td></tr></table>"
         )
         div = soup.find("div")
         assert is_bold_only_block(div) is False
 
     def test_is_bold_only_block_rejects_nested_block(self):
         # div contains a nested p — should be rejected
-        soup = _parse(
-            '<div><p><span style="font-weight:700">Nested</span></p></div>'
-        )
+        soup = _parse('<div><p><span style="font-weight:700">Nested</span></p></div>')
         div = soup.find("div")
         assert is_bold_only_block(div) is False
 
@@ -162,10 +160,10 @@ class TestIsBoldOnlyBlock:
 
     def test_is_bold_only_block_rejects_nested_table(self):
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-weight:700">Text</span>'
-            '<table><tr><td>cell</td></tr></table>'
-            '</div>'
+            "<table><tr><td>cell</td></tr></table>"
+            "</div>"
         )
         div = soup.find("div")
         assert is_bold_only_block(div) is False
@@ -214,9 +212,7 @@ class TestIsBoldOnlyBlock:
     def test_is_bold_only_block_allows_short_dot_ending(self):
         # text <= 30 chars ending with "." is allowed (sentence-end rule only applies when len > 30)
         # "Item 1A." is 8 chars — passes sentence-end rule but is too short if < 3, or here it passes
-        soup = _parse(
-            '<div><span style="font-weight:700">Note 1. Summary</span></div>'
-        )
+        soup = _parse('<div><span style="font-weight:700">Note 1. Summary</span></div>')
         div = soup.find("div")
         # "Note 1. Summary" = 15 chars, <= 30 → sentence-end rule does NOT apply
         assert is_bold_only_block(div) is True
@@ -224,10 +220,10 @@ class TestIsBoldOnlyBlock:
     def test_is_bold_only_block_rejects_mixed_bold_plain(self):
         # one span is bold, one has no bold styling — plain text mixing
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-weight:700">Bold part</span>'
-            '<span>plain part</span>'
-            '</div>'
+            "<span>plain part</span>"
+            "</div>"
         )
         div = soup.find("div")
         assert is_bold_only_block(div) is False
@@ -250,10 +246,10 @@ class TestIsBoldOnlyBlock:
     def test_is_bold_only_block_multiple_bold_spans(self):
         # multiple bold spans, all bold — should pass
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-weight:700">Critical </span>'
             '<span style="font-weight:700">Accounting Policies</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert is_bold_only_block(div) is True
@@ -261,10 +257,10 @@ class TestIsBoldOnlyBlock:
     def test_is_bold_only_block_rejects_div_with_non_bold_span_among_bold(self):
         # mixed: second span has no bold
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-weight:700">Critical</span>'
             '<span style="font-weight:400"> Accounting Policies</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert is_bold_only_block(div) is False
@@ -274,7 +270,7 @@ class TestIsBoldOnlyBlock:
         soup = _parse(
             '<div style="font-weight:700">'
             '<span style="font-size:10pt">Critical Accounting Estimates</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert is_bold_only_block(div) is True
@@ -306,10 +302,10 @@ class TestExtractDominantFontSizeNestedSpans:
     def test_extract_dominant_font_size_nested_spans_no_double_count(self):
         # 10pt has 5 chars (hello), 12pt has 6 chars (winner) — 12pt wins
         soup = _parse(
-            '<div>'
+            "<div>"
             '<span style="font-size:10pt"><span style="font-size:10pt">hello</span></span>'
             '<span style="font-size:12pt">winner</span>'
-            '</div>'
+            "</div>"
         )
         div = soup.find("div")
         assert extract_dominant_font_size(div) == 12.0
@@ -322,14 +318,14 @@ class TestDetectItemRegions:
     def test_detect_item_regions_basic(self):
         # 3 Items, no TOC — returns 3 ItemRegions in order, end_tag chain correct
         soup = _parse(
-            '<html><body>'
-            '<p>Item 1. Business</p>'
-            '<p>Some business text</p>'
-            '<p>Item 2. Risk Factors</p>'
-            '<p>Some risk text</p>'
-            '<p>Item 3. Properties</p>'
-            '<p>Some property text</p>'
-            '</body></html>'
+            "<html><body>"
+            "<p>Item 1. Business</p>"
+            "<p>Some business text</p>"
+            "<p>Item 2. Risk Factors</p>"
+            "<p>Some risk text</p>"
+            "<p>Item 3. Properties</p>"
+            "<p>Some property text</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 3
@@ -345,15 +341,15 @@ class TestDetectItemRegions:
     def test_detect_item_regions_with_toc(self):
         # Same item_num appears twice (TOC + body) — last occurrence (body) is selected
         soup = _parse(
-            '<html><body>'
-            '<p>Item 1. Business</p>'
-            '<p>Item 2. Risk Factors</p>'
-            '<p>--- TOC end ---</p>'
-            '<div>Item 1. Business</div>'
-            '<p>actual business content</p>'
-            '<div>Item 2. Risk Factors</div>'
-            '<p>actual risk content</p>'
-            '</body></html>'
+            "<html><body>"
+            "<p>Item 1. Business</p>"
+            "<p>Item 2. Risk Factors</p>"
+            "<p>--- TOC end ---</p>"
+            "<div>Item 1. Business</div>"
+            "<p>actual business content</p>"
+            "<div>Item 2. Risk Factors</div>"
+            "<p>actual risk content</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 2
@@ -362,18 +358,18 @@ class TestDetectItemRegions:
         assert regions[1].start_tag.name == "div"
 
     def test_detect_item_regions_empty_html(self):
-        soup = _parse('<html></html>')
+        soup = _parse("<html></html>")
         assert detect_item_regions(soup) == []
 
     def test_detect_item_regions_xom_table_cell(self):
         # XOM-style: Item heading inside a <td>
         soup = _parse(
-            '<html><body>'
-            '<table><tr><td>Item 1. Business</td></tr></table>'
-            '<p>Business content</p>'
-            '<table><tr><td>Item 2. Risk Factors</td></tr></table>'
-            '<p>Risk content</p>'
-            '</body></html>'
+            "<html><body>"
+            "<table><tr><td>Item 1. Business</td></tr></table>"
+            "<p>Business content</p>"
+            "<table><tr><td>Item 2. Risk Factors</td></tr></table>"
+            "<p>Risk content</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 2
@@ -384,12 +380,12 @@ class TestDetectItemRegions:
     def test_detect_item_regions_preserves_order(self):
         # Items in non-numeric document order: 5, 1, 10, 2 — must preserve document order
         soup = _parse(
-            '<html><body>'
-            '<p>Item 5. Selected Data</p>'
-            '<p>Item 1. Business</p>'
-            '<p>Item 10. Directors</p>'
-            '<p>Item 2. Risk Factors</p>'
-            '</body></html>'
+            "<html><body>"
+            "<p>Item 5. Selected Data</p>"
+            "<p>Item 1. Business</p>"
+            "<p>Item 10. Directors</p>"
+            "<p>Item 2. Risk Factors</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 4
@@ -400,17 +396,17 @@ class TestDetectItemRegions:
         # only Items 1 and 15. The TOC anchors must be dropped so the
         # final region order is monotonic and limited to body anchors.
         soup = _parse(
-            '<html><body>'
-            '<table><tr>'
-            '<td>Item 1.</td>'
-            '<td>Item 10.</td>'
-            '<td>Item 11.</td>'
-            '</tr></table>'
-            '<div>Item 1. Business</div>'
-            '<p>Business content</p>'
-            '<div>Item 15. Exhibits</div>'
-            '<p>Exhibits content</p>'
-            '</body></html>'
+            "<html><body>"
+            "<table><tr>"
+            "<td>Item 1.</td>"
+            "<td>Item 10.</td>"
+            "<td>Item 11.</td>"
+            "</tr></table>"
+            "<div>Item 1. Business</div>"
+            "<p>Business content</p>"
+            "<div>Item 15. Exhibits</div>"
+            "<p>Exhibits content</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         item_nums = [r.item_num for r in regions]
@@ -423,13 +419,13 @@ class TestDetectItemRegions:
         # (no body anchors at all). non_table_positions is empty, so the
         # drop pass falls through and every item is kept.
         soup = _parse(
-            '<html><body>'
-            '<table>'
-            '<tr><td>Item 1. Business</td></tr>'
-            '<tr><td>Item 2. Properties</td></tr>'
-            '<tr><td>Item 3. Legal</td></tr>'
-            '</table>'
-            '</body></html>'
+            "<html><body>"
+            "<table>"
+            "<tr><td>Item 1. Business</td></tr>"
+            "<tr><td>Item 2. Properties</td></tr>"
+            "<tr><td>Item 3. Legal</td></tr>"
+            "</table>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert [r.item_num for r in regions] == ["1", "2", "3"]
@@ -439,12 +435,12 @@ class TestDetectItemRegions:
         # a body layout table. The table-ancestor item is AFTER body_start
         # so the drop rule does not apply and both are kept.
         soup = _parse(
-            '<html><body>'
-            '<div>Item 1. Business</div>'
-            '<p>Business content</p>'
-            '<table><tr><td>Item 2. Properties</td></tr></table>'
-            '<p>Properties content</p>'
-            '</body></html>'
+            "<html><body>"
+            "<div>Item 1. Business</div>"
+            "<p>Business content</p>"
+            "<table><tr><td>Item 2. Properties</td></tr></table>"
+            "<p>Properties content</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert [r.item_num for r in regions] == ["1", "2"]
@@ -454,12 +450,12 @@ class TestDetectItemRegions:
         # last-occurrence dedup picks the body anchor; the C1 drop rule
         # does not interfere because neither tag has a table ancestor.
         soup = _parse(
-            '<html><body>'
-            '<div>Item 1.</div>'
-            '<p>cover content</p>'
-            '<div>Item 1. Business</div>'
-            '<p>actual business content</p>'
-            '</body></html>'
+            "<html><body>"
+            "<div>Item 1.</div>"
+            "<p>cover content</p>"
+            "<div>Item 1. Business</div>"
+            "<p>actual business content</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 1
@@ -469,13 +465,13 @@ class TestDetectItemRegions:
     def test_detect_item_regions_subnumbered(self):
         # Items 1, 1A, 1B, 1C, 2 — 5 distinct regions in order
         soup = _parse(
-            '<html><body>'
-            '<p>Item 1. Business</p>'
-            '<p>Item 1A. Risk Factors</p>'
-            '<p>Item 1B. Unresolved Staff Comments</p>'
-            '<p>Item 1C. Cybersecurity</p>'
-            '<p>Item 2. Properties</p>'
-            '</body></html>'
+            "<html><body>"
+            "<p>Item 1. Business</p>"
+            "<p>Item 1A. Risk Factors</p>"
+            "<p>Item 1B. Unresolved Staff Comments</p>"
+            "<p>Item 1C. Cybersecurity</p>"
+            "<p>Item 2. Properties</p>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 5
@@ -492,9 +488,9 @@ class TestDetectItemRegions:
         # get_text(strip=True) would collapse this to "Item7.MD&A" and
         # break the Item regex; the normalized path must still detect it.
         soup = _parse(
-            '<html><body>'
-            '<div><span>Item</span><span>&nbsp;7.</span><span> MD&A</span></div>'
-            '</body></html>'
+            "<html><body>"
+            "<div><span>Item</span><span>&nbsp;7.</span><span> MD&A</span></div>"
+            "</body></html>"
         )
         regions = detect_item_regions(soup)
         assert len(regions) == 1
@@ -506,25 +502,25 @@ class TestDetectItemRegions:
 
 class TestDetectPartAnchors:
     def test_single_part_kept(self):
-        soup = _parse('<html><body><div>PART I</div></body></html>')
+        soup = _parse("<html><body><div>PART I</div></body></html>")
         anchors = detect_part_anchors(soup)
         assert len(anchors) == 1
         assert anchors[0].get_text(strip=True) == "PART I"
 
     def test_no_parts_returns_empty(self):
         soup = _parse(
-            '<html><body><p>no part text here</p><div>just business</div></body></html>'
+            "<html><body><p>no part text here</p><div>just business</div></body></html>"
         )
         assert detect_part_anchors(soup) == []
 
     def test_toc_and_body_keeps_last(self):
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<div id="toc">PART I</div>'
-            '<p>table of contents stuff</p>'
+            "<p>table of contents stuff</p>"
             '<div id="body">PART I</div>'
-            '<p>actual body content</p>'
-            '</body></html>'
+            "<p>actual body content</p>"
+            "</body></html>"
         )
         anchors = detect_part_anchors(soup)
         assert len(anchors) == 1
@@ -532,12 +528,12 @@ class TestDetectPartAnchors:
 
     def test_three_occurrences_keeps_last(self):
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<div id="toc">PART I</div>'
-            '<p>as defined in PART I earlier</p>'
+            "<p>as defined in PART I earlier</p>"
             '<div id="xref">PART I</div>'
             '<div id="body">PART I</div>'
-            '</body></html>'
+            "</body></html>"
         )
         anchors = detect_part_anchors(soup)
         assert len(anchors) == 1
@@ -545,17 +541,17 @@ class TestDetectPartAnchors:
 
     def test_multiple_part_numerals_kept(self):
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<div id="toc-1">PART I</div>'
             '<div id="toc-2">PART II</div>'
             '<div id="toc-3">PART III</div>'
             '<div id="toc-4">PART IV</div>'
-            '<p>--- body begins ---</p>'
+            "<p>--- body begins ---</p>"
             '<div id="body-1">PART I</div>'
             '<div id="body-2">PART II</div>'
             '<div id="body-3">PART III</div>'
             '<div id="body-4">PART IV</div>'
-            '</body></html>'
+            "</body></html>"
         )
         anchors = detect_part_anchors(soup)
         assert len(anchors) == 4
@@ -568,9 +564,7 @@ class TestDetectPartAnchors:
 
     def test_split_span_part_text(self):
         soup = _parse(
-            '<html><body>'
-            '<div><span>PART</span><span> I</span></div>'
-            '</body></html>'
+            "<html><body><div><span>PART</span><span> I</span></div></body></html>"
         )
         anchors = detect_part_anchors(soup)
         assert len(anchors) == 1
@@ -578,7 +572,7 @@ class TestDetectPartAnchors:
         assert " ".join(anchors[0].get_text().split()) == "PART I"
 
     def test_case_insensitive_part_text(self):
-        soup = _parse('<html><body><div>part i</div></body></html>')
+        soup = _parse("<html><body><div>part i</div></body></html>")
         anchors = detect_part_anchors(soup)
         assert len(anchors) == 1
 
@@ -588,11 +582,11 @@ class TestDetectPartAnchors:
         # instead of the body tag silently dropping out. This mirrors
         # JNJ/MSFT-style filings where body PART dividers are non-bold.
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<div id="toc"><b>PART I</b></div>'
-            '<p>cover content</p>'
+            "<p>cover content</p>"
             '<div id="body">PART I</div>'
-            '</body></html>'
+            "</body></html>"
         )
 
         def is_bold(tag):
@@ -606,11 +600,11 @@ class TestDetectPartAnchors:
         # Three body PART I occurrences, only the middle one passes the
         # eligibility check; that's the anchor that must be kept.
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<div id="first">PART I</div>'
             '<div id="middle"><b>PART I</b></div>'
             '<div id="last">PART I</div>'
-            '</body></html>'
+            "</body></html>"
         )
 
         def is_bold(tag):
@@ -628,12 +622,12 @@ class TestPromoteSubsections:
     def test_promote_subsections_single_font_size_all_h3(self):
         # 3 bold blocks all same font-size → all become h3
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 1. Business</p>'
             '<div><span style="font-weight:700;font-size:10pt">Our Company</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Our Products</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Our Markets</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
@@ -646,11 +640,11 @@ class TestPromoteSubsections:
     def test_promote_subsections_two_sizes_h3_h4(self):
         # 2 unique font-sizes: largest → h3, smaller → h4
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 1. Business</p>'
             '<div><span style="font-weight:700;font-size:12pt">Big Heading</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Small Heading</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
@@ -663,12 +657,12 @@ class TestPromoteSubsections:
     def test_promote_subsections_three_sizes_h3_h4_h5(self):
         # 3 unique sizes → largest h3, middle h4, smallest h5
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 1. Business</p>'
             '<div><span style="font-weight:700;font-size:12pt">Level One</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Level Two</span></div>'
             '<div><span style="font-weight:700;font-size:8pt">Level Three</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         assert item_tag is not None
@@ -684,13 +678,13 @@ class TestPromoteSubsections:
     def test_promote_subsections_four_sizes_caps_at_h5(self):
         # 4 unique sizes: idx0→h3, idx1→h4, idx2+→h5 (cap)
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 1. Business</p>'
             '<div><span style="font-weight:700;font-size:14pt">Alpha</span></div>'
             '<div><span style="font-weight:700;font-size:12pt">Beta</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Gamma</span></div>'
             '<div><span style="font-weight:700;font-size:8pt">Delta</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         assert item_tag is not None
@@ -706,12 +700,12 @@ class TestPromoteSubsections:
     def test_promote_subsections_excludes_blocks_in_tables(self):
         # bold block inside a <td> must not be promoted
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 1. Business</p>'
-            '<table><tr><td>'
+            "<table><tr><td>"
             '<div><span style="font-weight:700;font-size:10pt">Table Header</span></div>'
-            '</td></tr></table>'
-            '</body></html>'
+            "</td></tr></table>"
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
@@ -723,11 +717,11 @@ class TestPromoteSubsections:
     def test_promote_subsections_outside_item_region_untouched(self):
         # bold block outside any ItemRegion (before first Item) must not be promoted
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<div><span style="font-weight:700;font-size:10pt">Cover Page Heading</span></div>'
             '<p style="font-weight:700">Item 1. Business</p>'
             '<div><span style="font-weight:700;font-size:10pt">Inside Region</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
@@ -745,13 +739,13 @@ class TestPromoteSubsections:
         # Heading text at 9pt (many chars) wins over footnote "1" at 6pt (1 char).
         # All headings land on h3 since there is only one effective size.
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 1. Business</p>'
-            '<div>'
+            "<div>"
             '<span style="font-weight:700;font-size:9pt">Critical Accounting Estimates</span>'
             '<span style="font-weight:700;font-size:6pt">1</span>'
-            '</div>'
-            '</body></html>'
+            "</div>"
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
@@ -768,29 +762,29 @@ class TestPromoteSubsections:
 class TestBuildNoiseTokens:
     def test_build_noise_tokens_page_header(self):
         # "Part I" repeated 20 times across block elements → must be in noise set
-        repeated = '<p>Part I</p>' * 20
-        soup = _parse(f'<html><body>{repeated}</body></html>')
+        repeated = "<p>Part I</p>" * 20
+        soup = _parse(f"<html><body>{repeated}</body></html>")
         noise = build_noise_tokens(soup)
         assert "Part I" in noise
 
     def test_build_noise_tokens_infrequent_text_not_noise(self):
         # "Our Company" appears only once → not a noise token
-        soup = _parse('<html><body><p>Our Company</p></body></html>')
+        soup = _parse("<html><body><p>Our Company</p></body></html>")
         noise = build_noise_tokens(soup)
         assert "Our Company" not in noise
 
     def test_build_noise_tokens_boundary_below_threshold(self):
         # Text appearing exactly 3 times (threshold is 4) → not in noise set
-        repeated = '<p>Section Header</p>' * 3
-        soup = _parse(f'<html><body>{repeated}</body></html>')
+        repeated = "<p>Section Header</p>" * 3
+        soup = _parse(f"<html><body>{repeated}</body></html>")
         noise = build_noise_tokens(soup)
         assert "Section Header" not in noise
 
     def test_build_noise_tokens_long_text_excluded(self):
         # Text longer than 50 chars must not be included even if repeated many times
         long_text = "A" * 51
-        repeated = f'<p>{long_text}</p>' * 20
-        soup = _parse(f'<html><body>{repeated}</body></html>')
+        repeated = f"<p>{long_text}</p>" * 20
+        soup = _parse(f"<html><body>{repeated}</body></html>")
         noise = build_noise_tokens(soup)
         assert long_text not in noise
 
@@ -812,13 +806,16 @@ class TestIsSelfReference:
 class TestPromoteSubsectionsFilters:
     def test_promote_subsections_skips_noise_token_blocks(self):
         # "Part I" appears 5 times across the document → qualifies as noise → not promoted
-        repeated_headers = '<div style="font-weight:700"><span style="font-size:10pt">Part I</span></div>' * 5
+        repeated_headers = (
+            '<div style="font-weight:700"><span style="font-size:10pt">Part I</span></div>'
+            * 5
+        )
         soup = _parse(
-            '<html><body>'
-            f'{repeated_headers}'
+            "<html><body>"
+            f"{repeated_headers}"
             '<p style="font-weight:700">Item 1. Business</p>'
             '<div style="font-weight:700"><span style="font-size:10pt">Part I</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="1", start_tag=item_tag, end_tag=None)]
@@ -831,11 +828,11 @@ class TestPromoteSubsectionsFilters:
     def test_promote_subsections_skips_self_reference(self):
         # Inside Item 7 region, a bold block starting with "Item 7A." should not be promoted
         soup = _parse(
-            '<html><body>'
+            "<html><body>"
             '<p style="font-weight:700">Item 7. Management Discussion</p>'
             '<div><span style="font-weight:700;font-size:10pt">Item 7A. Quantitative</span></div>'
             '<div><span style="font-weight:700;font-size:10pt">Critical Accounting Estimates</span></div>'
-            '</body></html>'
+            "</body></html>"
         )
         item_tag = soup.find("p")
         regions = [ItemRegion(item_num="7", start_tag=item_tag, end_tag=None)]

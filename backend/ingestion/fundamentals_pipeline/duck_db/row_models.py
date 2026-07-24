@@ -129,5 +129,3 @@ class YFinanceAnnualRow(BaseModel):
     stock_buyback_usd: int | None = None
     dividends_paid_usd: int | None = None
     stock_based_compensation_usd: int | None = None
-
-

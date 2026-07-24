@@ -52,9 +52,7 @@ async def test_class_a_produces_deep_header_path(clean_collection, mock_openai_e
     header_paths = [p.payload["header_path"] for p in content_points]
 
     deep_paths = [hp for hp in header_paths if len(hp.split(" / ")) >= 4]
-    assert len(deep_paths) > 0, (
-        f"No deep header paths found. Paths: {header_paths}"
-    )
+    assert len(deep_paths) > 0, f"No deep header paths found. Paths: {header_paths}"
 
     items = [p.payload["item"] for p in content_points]
     assert "Item 1A" in items
@@ -76,9 +74,7 @@ async def test_class_c_produces_shallow_header_path(
 
     for hp in header_paths:
         levels = len(hp.split(" / "))
-        assert levels <= 4, (
-            f"Expected shallow paths, got {levels} levels: {hp}"
-        )
+        assert levels <= 4, f"Expected shallow paths, got {levels} levels: {hp}"
 
 
 @pytest.mark.integration
@@ -100,14 +96,10 @@ async def test_all_metadata_fields_populated(clean_collection, mock_openai_embed
         assert payload["filing_type"] == "10-K"
         assert payload["item"] in ("Item 1", "Item 1A", "Item 7", "_unknown")
         assert payload["header_path"].startswith("NVDA / 2025 / ")
-        assert (
-            isinstance(payload["chunk_index"], int)
-            and payload["chunk_index"] >= 0
-        )
+        assert isinstance(payload["chunk_index"], int) and payload["chunk_index"] >= 0
         assert len(payload["text"]) > 0
         assert (
-            isinstance(payload["ingested_at"], str)
-            and len(payload["ingested_at"]) > 0
+            isinstance(payload["ingested_at"], str) and len(payload["ingested_at"]) > 0
         )
 
 
@@ -138,9 +130,7 @@ async def test_partial_failure_marker_pending(clean_collection):
         call_count += len(texts)
         if call_count > 3:
             raise Exception("Simulated OpenAI failure")
-        return [
-            np.random.default_rng(42).random(_EMBED_DIM).tolist() for _ in texts
-        ]
+        return [np.random.default_rng(42).random(_EMBED_DIM).tolist() for _ in texts]
 
     with patch(
         "backend.ingestion.sec_dense_pipeline.vectorizer._embed_texts",
@@ -162,7 +152,9 @@ async def test_partial_failure_marker_pending(clean_collection):
 
 
 @pytest.mark.integration
-async def test_rerun_after_partial_failure_recovers(clean_collection, mock_openai_embed):
+async def test_rerun_after_partial_failure_recovers(
+    clean_collection, mock_openai_embed
+):
     from backend.ingestion.sec_dense_pipeline.common import commit_marker_id
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from qdrant_client import QdrantClient
@@ -174,9 +166,7 @@ async def test_rerun_after_partial_failure_recovers(clean_collection, mock_opena
         call_count += len(texts)
         if call_count > 3:
             raise Exception("Simulated OpenAI failure")
-        return [
-            np.random.default_rng(42).random(_EMBED_DIM).tolist() for _ in texts
-        ]
+        return [np.random.default_rng(42).random(_EMBED_DIM).tolist() for _ in texts]
 
     with patch(
         "backend.ingestion.sec_dense_pipeline.vectorizer._embed_texts",
@@ -198,9 +188,7 @@ async def test_rerun_after_partial_failure_recovers(clean_collection, mock_opena
     assert len(points) == 1
     assert points[0].payload["status"] == "pending"
 
-    await ingest_filing(
-        ticker="TEST", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
-    )
+    await ingest_filing(ticker="TEST", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 
     points = client.retrieve(
         collection_name=TEST_COLLECTION,

@@ -729,12 +729,8 @@ class TestLangfuseTraceMetadata:
             await orch.arun("test", session_id="sess-1", request_id="req-1")
 
             config_arg = agent.ainvoke.call_args[1]["config"]
-            assert (
-                config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
-            )
-            assert (
-                mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"
-            )
+            assert config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
+            assert mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"
 
 
 class TestReasoningTraceCallbackInjection:
@@ -1047,9 +1043,7 @@ class TestAstreamAbortCleanup:
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
             ),
-            caplog.at_level(
-                logging.WARNING, logger="backend.agent_engine.agents.base"
-            ),
+            caplog.at_level(logging.WARNING, logger="backend.agent_engine.agents.base"),
         ):
             with pytest.raises(asyncio.CancelledError):
                 async for _ in orch.astream_run(

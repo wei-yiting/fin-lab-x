@@ -100,7 +100,9 @@ class StreamEventMapper:
             self._current_reasoning_id = None
 
         if not self._message_started:
-            events.append(MessageStart(message_id=msg_chunk.id, session_id=self._session_id))
+            events.append(
+                MessageStart(message_id=msg_chunk.id, session_id=self._session_id)
+            )
             self._message_started = True
 
         # Iterate the LangChain v1 normalized content_blocks (D1). The lazy
@@ -144,7 +146,9 @@ class StreamEventMapper:
         # the correct total.
         if getattr(msg_chunk, "usage_metadata", None):
             self._total_input_tokens += msg_chunk.usage_metadata.get("input_tokens", 0)
-            self._total_output_tokens += msg_chunk.usage_metadata.get("output_tokens", 0)
+            self._total_output_tokens += msg_chunk.usage_metadata.get(
+                "output_tokens", 0
+            )
 
         return events
 
@@ -226,7 +230,9 @@ class StreamEventMapper:
             self._text_block_open = True
         events.append(TextDelta(text_id=self._current_text_id, delta=text))
 
-    def _handle_tool_call_chunk_block(self, block: dict, events: list[DomainEvent]) -> None:
+    def _handle_tool_call_chunk_block(
+        self, block: dict, events: list[DomainEvent]
+    ) -> None:
         # D28 hold-and-flush — same rationale as _handle_text_block.
         self._flush_segmenter_into(events)
         if self._text_block_open:
@@ -256,17 +262,25 @@ class StreamEventMapper:
             for msg in messages:
                 if isinstance(msg, AIMessage) and msg.tool_calls:
                     for tc in msg.tool_calls:
-                        events.append(ToolCall(
-                            tool_call_id=tc["id"],
-                            tool_name=tc["name"],
-                            args=tc.get("args", {}),
-                        ))
+                        events.append(
+                            ToolCall(
+                                tool_call_id=tc["id"],
+                                tool_name=tc["name"],
+                                args=tc.get("args", {}),
+                            )
+                        )
 
                 if isinstance(msg, ToolMessage):
                     if msg.status == "error":
-                        events.append(ToolError(tool_call_id=msg.tool_call_id, error=msg.content))
+                        events.append(
+                            ToolError(tool_call_id=msg.tool_call_id, error=msg.content)
+                        )
                     else:
-                        events.append(ToolResult(tool_call_id=msg.tool_call_id, result=msg.content))
+                        events.append(
+                            ToolResult(
+                                tool_call_id=msg.tool_call_id, result=msg.content
+                            )
+                        )
                     self._pending_tool_calls.pop(msg.tool_call_id, None)
         return events
 

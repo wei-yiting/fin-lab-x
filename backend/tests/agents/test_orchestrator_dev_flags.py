@@ -64,9 +64,10 @@ class TestForceLlmFailDevFlag:
             if False:  # pragma: no cover
                 yield
 
-        with patch(
-            "langfuse.get_client", return_value=MagicMock()
-        ), patch.object(orch.agent, "astream", _fake_astream):
+        with (
+            patch("langfuse.get_client", return_value=MagicMock()),
+            patch.object(orch.agent, "astream", _fake_astream),
+        ):
             events = asyncio.run(
                 _collect(orch.astream_run(message="hi", session_id="sess-x"))
             )
@@ -80,9 +81,7 @@ class TestForceLlmFailDevFlag:
         stream_errors = [e for e in events if isinstance(e, StreamError)]
         assert stream_errors, "expected a StreamError event"
         assert "FORCE_LLM_FAIL" in stream_errors[0].error_text
-        assert any(
-            isinstance(e, Finish) and e.finish_reason == "error" for e in events
-        )
+        assert any(isinstance(e, Finish) and e.finish_reason == "error" for e in events)
 
     def test_unset_does_not_short_circuit(self, monkeypatch):
         monkeypatch.delenv("FORCE_LLM_FAIL", raising=False)
@@ -95,9 +94,10 @@ class TestForceLlmFailDevFlag:
             if False:
                 yield  # never reached, but keeps this an async generator
 
-        with patch(
-            "langfuse.get_client", return_value=MagicMock()
-        ), patch.object(orch.agent, "astream", _fake_astream):
+        with (
+            patch("langfuse.get_client", return_value=MagicMock()),
+            patch.object(orch.agent, "astream", _fake_astream),
+        ):
             asyncio.run(_collect(orch.astream_run(message="hi", session_id="sess-x")))
 
         assert called["astream"] is True

@@ -56,10 +56,7 @@ def _record_run(conn: DuckDBPyConnection, row: _IngestionRunRow) -> None:
         data["metadata"] = json.dumps(data["metadata"])
     columns = list(data.keys())
     placeholders = ", ".join(["?"] * len(columns))
-    sql = (
-        f"INSERT INTO ingestion_runs ({', '.join(columns)}) "
-        f"VALUES ({placeholders})"
-    )
+    sql = f"INSERT INTO ingestion_runs ({', '.join(columns)}) VALUES ({placeholders})"
     conn.execute(sql, list(data.values()))
 
 

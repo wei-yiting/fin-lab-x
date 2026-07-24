@@ -91,22 +91,16 @@ async def _resolve_latest_year(pipeline: SECFilingPipeline, ticker: str) -> int:
     parent/child relationships for any spans emitted downstream.
     """
     try:
-        return await asyncio.to_thread(
-            pipeline.resolve_latest_year, ticker, "10-K"
-        )
+        return await asyncio.to_thread(pipeline.resolve_latest_year, ticker, "10-K")
     except TickerNotFoundError as exc:
         raise JITInvalidTickerError(
             f"Ticker '{ticker}' not found in SEC EDGAR"
         ) from exc
     except FilingNotFoundError as exc:
-        raise JITFilingNotFoundError(
-            f"No 10-K filing for ticker={ticker}"
-        ) from exc
+        raise JITFilingNotFoundError(f"No 10-K filing for ticker={ticker}") from exc
 
 
-async def _download_and_parse(
-    pipeline: SECFilingPipeline, ticker: str, year: int
-):
+async def _download_and_parse(pipeline: SECFilingPipeline, ticker: str, year: int):
     """Fetch raw filing from EDGAR and parse to markdown.
 
     Emits `sec_edgar_download` and `sec_html_to_markdown` child spans under
@@ -119,9 +113,7 @@ async def _download_and_parse(
         input={"ticker": ticker, "year": year},
     ) as dl_span:
         try:
-            raw = await asyncio.to_thread(
-                pipeline.download_raw, ticker, "10-K", year
-            )
+            raw = await asyncio.to_thread(pipeline.download_raw, ticker, "10-K", year)
         except TickerNotFoundError as exc:
             raise JITInvalidTickerError(
                 f"Ticker '{ticker}' not found in SEC EDGAR"
@@ -130,20 +122,24 @@ async def _download_and_parse(
             raise JITFilingNotFoundError(
                 f"No 10-K filing for ticker={ticker}, year={year}"
             ) from exc
-        dl_span.update(output={
-            "status": "complete",
-            "fiscal_year": raw.fiscal_year,
-        })
+        dl_span.update(
+            output={
+                "status": "complete",
+                "fiscal_year": raw.fiscal_year,
+            }
+        )
 
     with traced_span(
         "sec_html_to_markdown",
         input={"ticker": ticker, "fiscal_year": raw.fiscal_year},
     ) as parse_span:
         filing = await asyncio.to_thread(pipeline.parse_raw, raw, "10-K")
-        parse_span.update(output={
-            "status": "complete",
-            "markdown_length": len(filing.markdown_content),
-        })
+        parse_span.update(
+            output={
+                "status": "complete",
+                "markdown_length": len(filing.markdown_content),
+            }
+        )
 
     return filing
 
@@ -199,10 +195,12 @@ async def search(
                 embedding_hit, filing_hit = _check_caches(
                     client, collection, ticker, year_to_use
                 )
-                cache_span.update(output={
-                    "embedding_cache_hit": embedding_hit,
-                    "filing_cache_hit": filing_hit,
-                })
+                cache_span.update(
+                    output={
+                        "embedding_cache_hit": embedding_hit,
+                        "filing_cache_hit": filing_hit,
+                    }
+                )
 
             if not embedding_hit:
                 if pipeline is None:
@@ -224,10 +222,12 @@ async def search(
                         except Exception:
                             pipeline_span.update(output={"status": "error"})
                             raise
-                        pipeline_span.update(output={
-                            "fiscal_year": filing.metadata.fiscal_year,
-                            "status": "complete",
-                        })
+                        pipeline_span.update(
+                            output={
+                                "fiscal_year": filing.metadata.fiscal_year,
+                                "status": "complete",
+                            }
+                        )
 
                 with traced_span(
                     "sec_dense_ingestion",
@@ -238,8 +238,10 @@ async def search(
                     },
                 ) as ing_span:
                     await ingest_filing(
-                        ticker, year_to_use,
-                        filing.markdown_content, filing.metadata,
+                        ticker,
+                        year_to_use,
+                        filing.markdown_content,
+                        filing.metadata,
                     )
                     ing_span.update(output={"status": "complete"})
 
@@ -260,9 +262,7 @@ async def search(
             try:
                 query_vector = await embed_query(query)
             except Exception as e:
-                raise EmbeddingServiceError(
-                    f"Embedding failed: {e}"
-                ) from e
+                raise EmbeddingServiceError(f"Embedding failed: {e}") from e
             embed_span.update(output={"dimensions": len(query_vector)})
 
         must_conditions: list[models.Condition] = []
@@ -314,11 +314,15 @@ async def search(
                     ],
                 ),
             )
-            search_span.update(output={
-                "num_results": len(results.points),
-                "top_scores": [round(p.score, 4) for p in results.points[:3]],
-                "top_headers": [p.payload.get("header_path", "") for p in results.points[:3]],
-            })
+            search_span.update(
+                output={
+                    "num_results": len(results.points),
+                    "top_scores": [round(p.score, 4) for p in results.points[:3]],
+                    "top_headers": [
+                        p.payload.get("header_path", "") for p in results.points[:3]
+                    ],
+                }
+            )
 
         chunks = []
         for point in results.points:
@@ -341,7 +345,9 @@ async def search(
         get_client().update_current_span(
             metadata={
                 "collection_name": collection,
-                "embed_model": os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large"),
+                "embed_model": os.environ.get(
+                    "SEC_EMBED_MODEL", "text-embedding-3-large"
+                ),
                 "filters_applied": applied_filters or False,
             }
         )
@@ -360,9 +366,7 @@ async def search(
         # Anything else from the vector store is still treated as corpus-level
         # unavailability, but we no longer derive that from message text.
         if getattr(e, "status_code", None) == 404:
-            raise CorpusUnavailableError(
-                f"Qdrant resource missing: {e}"
-            ) from e
+            raise CorpusUnavailableError(f"Qdrant resource missing: {e}") from e
         raise CorpusUnavailableError(f"Qdrant error: {e}") from e
     except Exception as e:
         raise CorpusUnavailableError(f"Search failed: {e}") from e

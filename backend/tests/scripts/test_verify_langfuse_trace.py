@@ -59,7 +59,9 @@ def _root_span(*, status: str | None = None) -> dict[str, Any]:
     }
 
 
-def _trace(observations: list[dict[str, Any]], trace_metadata: dict | None = None) -> dict[str, Any]:
+def _trace(
+    observations: list[dict[str, Any]], trace_metadata: dict | None = None
+) -> dict[str, Any]:
     return {
         "id": "trace-abc",
         "name": "quant_stream",
@@ -68,10 +70,14 @@ def _trace(observations: list[dict[str, Any]], trace_metadata: dict | None = Non
     }
 
 
-def _install_fake_fetch(monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]) -> None:
+def _install_fake_fetch(
+    monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]
+) -> None:
     """Replace the module's network call with a function that returns ``payload``."""
 
-    def _fake(trace_id: str, *, base_url: str, public_key: str, secret_key: str) -> dict[str, Any]:
+    def _fake(
+        trace_id: str, *, base_url: str, public_key: str, secret_key: str
+    ) -> dict[str, Any]:
         return payload
 
     monkeypatch.setattr(vlt, "fetch_trace", _fake)
@@ -164,7 +170,9 @@ def test_expect_reasoning_off_fails_when_any_generation_has_nonempty_reasoning(
 ) -> None:
     _install_fake_fetch(
         monkeypatch,
-        _trace([_root_span(), _gen("g1", reasoning=""), _gen("g2", reasoning="leaked")]),
+        _trace(
+            [_root_span(), _gen("g1", reasoning=""), _gen("g2", reasoning="leaked")]
+        ),
     )
 
     code = vlt.main(["trace-abc", "--expect-reasoning-off"])

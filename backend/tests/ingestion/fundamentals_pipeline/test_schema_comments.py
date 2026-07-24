@@ -11,9 +11,7 @@ def test_quarterly_annual_columns_have_identical_comments(tmp_duckdb):
     q = by_table["quarterly_financials"]
     a = by_table["annual_financials"]
     shared = (set(q) & set(a)) - {"fiscal_quarter"}
-    mismatches = [
-        (c, q[c], a[c]) for c in sorted(shared) if q[c] != a[c]
-    ]
+    mismatches = [(c, q[c], a[c]) for c in sorted(shared) if q[c] != a[c]]
     assert not mismatches, (
         "COMMENT drift between quarterly_financials and annual_financials:\n"
         + "\n".join(f"- {c}\n  Q: {qc!r}\n  A: {ac!r}" for c, qc, ac in mismatches)
@@ -22,10 +20,14 @@ def test_quarterly_annual_columns_have_identical_comments(tmp_duckdb):
 
 def test_every_column_has_a_comment(tmp_duckdb):
     quant_tables = (
-        'companies', 'market_valuations',
-        'quarterly_financials', 'annual_financials',
-        'segment_financials', 'geographic_revenue',
-        'customer_concentration', 'ingestion_runs',
+        "companies",
+        "market_valuations",
+        "quarterly_financials",
+        "annual_financials",
+        "segment_financials",
+        "geographic_revenue",
+        "customer_concentration",
+        "ingestion_runs",
     )
     rows = tmp_duckdb.execute(
         f"""
@@ -35,12 +37,12 @@ def test_every_column_has_a_comment(tmp_duckdb):
         """
     ).fetchall()
     missing = [
-        (table, col) for table, col, comment in rows
+        (table, col)
+        for table, col, comment in rows
         if comment is None or comment.strip() == ""
     ]
-    assert not missing, (
-        "Columns missing COMMENT ON COLUMN:\n"
-        + "\n".join(f"- {t}.{c}" for t, c in missing)
+    assert not missing, "Columns missing COMMENT ON COLUMN:\n" + "\n".join(
+        f"- {t}.{c}" for t, c in missing
     )
 
 
@@ -84,9 +86,7 @@ def test_quarterly_annual_full_schema_mirror(tmp_duckdb):
         "preserving column order."
     )
 
-    mismatches = [
-        (qm, am) for qm, am in zip(q_without_fq, a, strict=True) if qm != am
-    ]
+    mismatches = [(qm, am) for qm, am in zip(q_without_fq, a, strict=True) if qm != am]
     assert not mismatches, (
         "Column metadata drift (type/nullable/default) between quarterly and annual:\n"
         + "\n".join(f"- Q: {qm}\n  A: {am}" for qm, am in mismatches)

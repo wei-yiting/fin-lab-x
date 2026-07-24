@@ -66,12 +66,8 @@ def validate_dataset(
 
     has_failures = False
     for row_idx, row in enumerate(rows, start=1):
-        expected_paths = _parse_json_field(
-            row.get("expected_header_paths", "")
-        )
-        answer_snippets = _parse_json_field(
-            row.get("answer_snippets", "")
-        )
+        expected_paths = _parse_json_field(row.get("expected_header_paths", ""))
+        answer_snippets = _parse_json_field(row.get("answer_snippets", ""))
 
         if expected_paths is None:
             print(f"  Row {row_idx}: ERROR malformed expected_header_paths JSON")
@@ -105,8 +101,7 @@ def validate_dataset(
                     snippet_matches = [
                         p
                         for p in exact_matches
-                        if snippet.lower()
-                        in p.payload.get("text", "").lower()
+                        if snippet.lower() in p.payload.get("text", "").lower()
                     ]
                     if not snippet_matches:
                         print(
@@ -134,8 +129,7 @@ def validate_dataset(
 
             if case_insensitive_matches:
                 actual_paths = {
-                    p.payload.get("header_path", "")
-                    for p in case_insensitive_matches
+                    p.payload.get("header_path", "") for p in case_insensitive_matches
                 }
                 print(
                     f"  Row {row_idx}: NEAR-MISS path='{expected_path}' "
@@ -159,9 +153,7 @@ def validate_dataset(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate SEC retrieval eval dataset"
-    )
+    parser = argparse.ArgumentParser(description="Validate SEC retrieval eval dataset")
     parser.add_argument(
         "--csv",
         type=Path,

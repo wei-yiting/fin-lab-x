@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Do I Understand? — multi-provider-streaming-reasoning</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #1c2330;
+    --muted: #5b6675;
+    --faint: #8a94a3;
+    --line: #e4e8ee;
+    --accent: #3b5bdb;
+    --accent-soft: #eaeefb;
+    --sidebar: #161b26;
+    --sidebar-ink: #c7cedb;
+    --sidebar-faint: #717c8e;
+    --high: #d6336c;
+    --high-soft: #fbe7ef;
+    --med: #e8830c;
+    --med-soft: #fdf0e0;
+    --code-bg: #1e2430;
+    --code-ink: #d7dde8;
+    --code-com: #6d7a8c;
+    --ok: #2f9e44;
+    --mark: #fef08a;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { display: grid; grid-template-columns: 268px minmax(0, 1fr) 348px; align-items: start; }
+
+  /* Sidebar / TOC */
+  aside.sidebar {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--sidebar); color: var(--sidebar-ink);
+    padding: 28px 20px; border-right: 1px solid #0d1118;
+  }
+  aside.sidebar .brand { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--sidebar-faint); }
+  aside.sidebar h1 { font-size: 17px; line-height: 1.35; margin: 8px 0 4px; color: #fff; font-weight: 650; }
+  aside.sidebar .branch { font-family: var(--mono); font-size: 11px; color: var(--sidebar-faint); word-break: break-all; }
+  aside.sidebar nav { margin-top: 22px; }
+  aside.sidebar nav a {
+    display: flex; gap: 9px; align-items: baseline;
+    color: var(--sidebar-ink); text-decoration: none; font-size: 12.5px;
+    padding: 7px 9px; border-radius: 7px; margin: 1px 0; transition: background .12s;
+  }
+  aside.sidebar nav a:hover { background: #232b39; }
+  aside.sidebar nav a.active { background: var(--accent); color: #fff; }
+  aside.sidebar nav a .n { font-family: var(--mono); font-size: 11px; color: var(--sidebar-faint); min-width: 16px; }
+  aside.sidebar nav a.active .n { color: #cdd7ff; }
+  aside.sidebar nav a .dot { width: 7px; height: 7px; border-radius: 50%; margin-left: auto; align-self: center; flex: none; }
+  .dot.high { background: var(--high); }
+  .dot.med { background: var(--med); }
+  aside.sidebar nav .sep { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--sidebar-faint); margin: 16px 0 6px 9px; }
+
+  /* Main */
+  main { padding: 44px clamp(20px, 3.4vw, 56px) 120px; }
+  .hero h2 { font-size: 29px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -.01em; }
+  .hero .sub { color: var(--muted); font-size: 15.5px; margin: 0 0 22px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 9px; margin: 0 0 30px; }
+  .chip {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 13px; font-size: 12.5px; color: var(--muted);
+  }
+  .chip b { color: var(--ink); font-weight: 650; }
+
+  .callout {
+    background: var(--accent-soft); border: 1px solid #cfd9f7; border-radius: 14px;
+    padding: 20px 22px; margin-bottom: 14px;
+  }
+  .callout h3 { margin: 0 0 10px; font-size: 15px; color: var(--accent); }
+  .callout ul { margin: 0; padding-left: 20px; }
+  .callout li { margin: 6px 0; font-size: 14px; color: #2b3242; }
+  .callout li b { color: var(--ink); }
+  .note { font-size: 13px; color: var(--muted); margin: 16px 2px 36px; }
+  .note code { font-family: var(--mono); background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+  .section-label {
+    font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint);
+    margin: 40px 0 14px; border-top: 1px solid var(--line); padding-top: 26px;
+  }
+
+  /* Region card */
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px 26px; margin-bottom: 22px; scroll-margin-top: 18px;
+    box-shadow: 0 1px 2px rgba(20,30,50,.03);
+  }
+  .card-head { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 4px; }
+  .card-num {
+    font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--faint);
+    border: 1px solid var(--line); border-radius: 8px; padding: 3px 9px; flex: none; margin-top: 2px;
+  }
+  .card-title { font-size: 18px; font-weight: 650; margin: 0; line-height: 1.35; flex: 1; }
+  .badge {
+    font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+    padding: 4px 10px; border-radius: 999px; flex: none; margin-top: 3px; white-space: nowrap;
+  }
+  .badge.high { background: var(--high-soft); color: var(--high); }
+  .badge.med { background: var(--med-soft); color: var(--med); }
+  .start {
+    display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .02em;
+    color: #fff; background: var(--accent); border-radius: 5px; padding: 2px 7px; margin-left: 4px; vertical-align: middle;
+  }
+  .loc { font-family: var(--mono); font-size: 12.5px; color: var(--accent); margin: 4px 0 16px 0; word-break: break-all; }
+  .why { font-size: 14.5px; color: var(--muted); margin: 0 0 16px; }
+  .why .tag { font-weight: 650; color: var(--ink); }
+
+  pre {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 11px;
+    padding: 15px 17px; overflow-x: auto; font-family: var(--mono); font-size: 12.4px;
+    line-height: 1.65; margin: 0 0 18px; tab-size: 4;
+  }
+  pre .c { color: var(--code-com); font-style: italic; }
+
+  .q {
+    border-left: 3px solid var(--accent); background: #fafbff;
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 0 0 14px;
+  }
+  .q .qlabel { font-size: 11px; letter-spacing: .06em; color: var(--accent); font-weight: 700; }
+  .q p { margin: 5px 0 0; font-size: 15px; color: var(--ink); }
+
+  .answer-wrap { margin-top: 12px; }
+  .answer-wrap label { font-size: 12px; color: var(--faint); display: block; margin-bottom: 6px; }
+  textarea {
+    width: 100%; min-height: 84px; resize: vertical; font-family: var(--sans); font-size: 14px;
+    color: var(--ink); background: #fcfdfe; border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 13px; line-height: 1.6;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea::placeholder { color: #aab2bf; }
+
+  .blind {
+    background: linear-gradient(135deg, #161b26, #232b3b); color: #eef1f7;
+    border-radius: 16px; padding: 28px 30px; margin-top: 14px;
+  }
+  .blind h3 { margin: 0 0 6px; font-size: 19px; color: #fff; }
+  .blind p { color: #b9c2d2; font-size: 14.5px; margin: 0 0 14px; }
+  .blind textarea { background: #11151d; border-color: #2c3545; color: #eef1f7; }
+  .blind label { color: #8593a8; }
+
+  /* Attestation */
+  .att { background: var(--panel); border: 1px dashed #c3ccd9; border-radius: 16px; padding: 26px 28px; margin-top: 14px; }
+  .att h3 { margin: 0 0 8px; font-size: 18px; }
+  .att p { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; }
+  button {
+    font-family: var(--sans); font-size: 13.5px; font-weight: 600; cursor: pointer;
+    border-radius: 9px; padding: 10px 16px; border: 1px solid var(--line); background: #fff; color: var(--ink);
+    transition: background .12s, border-color .12s;
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.primary:hover { background: #2f4bc4; }
+  button:hover { background: #f1f3f7; }
+  button.primary:hover { background: #2f4bc4; }
+  #attOut {
+    margin-top: 18px; background: var(--code-bg); color: var(--code-ink); border-radius: 11px;
+    padding: 16px 18px; font-family: var(--mono); font-size: 12.4px; white-space: pre-wrap; line-height: 1.6;
+    display: none; max-height: 460px; overflow-y: auto;
+  }
+  .saved-flag { font-size: 12px; color: var(--ok); margin-left: 10px; opacity: 0; transition: opacity .2s; }
+  .saved-flag.show { opacity: 1; }
+  footer { color: var(--faint); font-size: 12.5px; margin-top: 50px; border-top: 1px solid var(--line); padding-top: 20px; }
+
+  /* ===== annotation marks ===== */
+  mark.annot { background: var(--mark); border-radius: 2px; padding: 0 1px; cursor: pointer; transition: background .15s; }
+  mark.annot:hover { background: #fde047; }
+  mark.annot.resolved { background: #e6ede9; color: var(--muted); }
+  mark.annot.flash { animation: flashmark 1.1s ease; }
+  @keyframes flashmark { 0%,100% { background: var(--mark); } 35% { background: #fbbf24; } }
+
+  /* ===== comment panel ===== */
+  aside.comment-panel {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--panel); border-left: 1px solid var(--line);
+    display: flex; flex-direction: column;
+  }
+  .cp-header { padding: 20px 18px 12px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .cp-title { font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+  .cp-count { font-family: var(--mono); font-size: 11.5px; background: var(--high-soft); color: var(--high); border-radius: 999px; padding: 2px 8px; }
+  .cp-count.zero { background: #eef1f5; color: var(--faint); }
+  .cp-help { padding: 12px 18px; font-size: 12px; color: var(--muted); line-height: 1.6; border-bottom: 1px solid var(--line); }
+  .cp-help b { color: var(--ink); }
+  .cp-actions { padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+  .cp-actions button { padding: 7px 11px; font-size: 12.5px; }
+  .cp-list { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .cp-empty { color: var(--faint); font-size: 13px; text-align: center; padding: 40px 16px; line-height: 1.8; }
+
+  .cmt-card { border: 1px solid var(--line); border-radius: 11px; padding: 12px 13px; background: #fff; }
+  .cmt-card.resolved { opacity: .55; background: #f7f9f8; }
+  .cmt-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+  .cmt-sec { font-size: 11px; color: var(--accent); font-weight: 600; flex: 1; cursor: pointer; line-height: 1.4; }
+  .cmt-card.resolved .cmt-sec { color: var(--faint); }
+  .cmt-pill { font-size: 10px; font-weight: 700; color: var(--ok); background: #e6f4ea; border-radius: 999px; padding: 2px 7px; }
+  .cmt-quote {
+    font-size: 12px; color: var(--muted); border-left: 2px solid var(--mark);
+    padding: 2px 0 2px 9px; margin: 0 0 8px; line-height: 1.5; font-style: italic;
+  }
+  .cmt-body { font-size: 13.5px; color: var(--ink); white-space: pre-wrap; line-height: 1.55; margin-bottom: 9px; }
+  .cmt-foot { display: flex; align-items: center; gap: 10px; }
+  .cmt-time { font-size: 11px; color: var(--faint); margin-right: auto; }
+  .cmt-foot button { padding: 4px 9px; font-size: 11.5px; font-weight: 600; border-radius: 7px; }
+  .cmt-foot .resolve-btn { color: var(--ok); border-color: #bfe2cb; }
+  .cmt-foot .del-btn { color: var(--high); border-color: #f3c9d8; }
+
+  /* selection toolbar */
+  .selection-toolbar {
+    position: absolute; display: none; z-index: 80;
+    background: #161b26; border-radius: 9px; padding: 5px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  }
+  .selection-toolbar button {
+    background: transparent; border: none; color: #fff; font-size: 13px; font-weight: 600;
+    padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .selection-toolbar button:hover { background: rgba(255,255,255,.16); }
+
+  /* dialog */
+  .dialog-backdrop {
+    position: fixed; inset: 0; background: rgba(15,20,30,.45); z-index: 100;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .dialog-backdrop.open { display: flex; }
+  .comment-dialog { background: #fff; border-radius: 16px; padding: 22px 24px; width: min(520px, 94vw); box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+  .comment-dialog h4 { margin: 0 0 12px; font-size: 16px; }
+  .selection-preview {
+    font-size: 12.5px; color: var(--muted); background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 9px; padding: 9px 12px; margin-bottom: 12px; max-height: 110px; overflow-y: auto;
+    font-style: italic; line-height: 1.5;
+  }
+  .comment-dialog textarea { min-height: 110px; }
+  .dialog-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+  /* FAB (narrow only) */
+  .comment-fab {
+    display: none; position: fixed; bottom: 22px; right: 22px; z-index: 90;
+    width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: #fff;
+    border: none; font-size: 22px; box-shadow: 0 8px 22px rgba(59,91,219,.4); cursor: pointer;
+    align-items: center; justify-content: center;
+  }
+  .comment-fab .badge-num {
+    position: absolute; top: -4px; right: -4px; background: var(--high); color: #fff;
+    font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 6px; min-width: 18px;
+  }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #161b26; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px;
+    z-index: 120; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 1180px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.sidebar { position: static; height: auto; }
+    aside.comment-panel {
+      position: fixed; top: 0; right: 0; height: 100vh; width: 340px; z-index: 70;
+      transform: translateX(100%); transition: transform .22s ease; box-shadow: -10px 0 28px rgba(0,0,0,.14);
+    }
+    aside.comment-panel.open { transform: translateX(0); }
+    .comment-fab { display: flex; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Do I Understand?</div>
+    <h1>multi-provider streaming reasoning</h1>
+    <div class="branch">feat/multi-provider-streaming-reasoning</div>
+    <nav id="toc">
+      <div class="sep">高風險 clusters</div>
+      <a href="#region-1"><span class="n">01</span> Langfuse <code>_runs</code> 私有 API<span class="dot high"></span></a>
+      <a href="#region-2"><span class="n">02</span> Abort:挑 in-flight generation<span class="dot high"></span></a>
+      <a href="#region-3"><span class="n">03</span> CancelledError 順序 + sync cleanup<span class="dot high"></span></a>
+      <a href="#region-4"><span class="n">04</span> 各 provider 的 reasoning kwargs<span class="dot med"></span></a>
+      <a href="#region-5"><span class="n">05</span> 用 <code>chunk.id</code> 判 LLM 邊界<span class="dot high"></span></a>
+      <a href="#region-6"><span class="n">06</span> Segmenter 80 字 soft-emit<span class="dot med"></span></a>
+      <a href="#region-7"><span class="n">07</span> transient guard 的環境切換<span class="dot med"></span></a>
+      <a href="#region-8"><span class="n">08</span> onFinish:abort/disconnect/error<span class="dot high"></span></a>
+      <a href="#region-9"><span class="n">09</span> cleared/finished ref + hide/clear<span class="dot high"></span></a>
+      <a href="#region-10"><span class="n">10</span> indicator 優先序<span class="dot med"></span></a>
+      <div class="sep">收尾</div>
+      <a href="#blindspot"><span class="n">★</span> Blind-spot 問題</a>
+      <a href="#attestation"><span class="n">✎</span> Author's understanding</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <h2>一場反向的 code review</h2>
+      <p class="sub">這份 worksheet review 的是<em>你</em>,不是 code。Agent 產出一份看起來正確的 diff,速度遠快於任何人能驗證它。merge 前的目標:用你自己的話,找出那些你還無法為它負責的區塊。</p>
+      <div class="stats">
+        <span class="chip"><b>36</b> commits</span>
+        <span class="chip"><b>81</b> files</span>
+        <span class="chip"><b>+7,814</b> / −133 行</span>
+        <span class="chip"><b>3</b> 個高風險 cluster</span>
+        <span class="chip">backend streaming · observability · 前端 reasoning UI</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>怎麼用這份 worksheet</h3>
+      <ul>
+        <li><b>用你自己的話作答,坐著用想的就好。</b>不要回頭問 AI 來幫你答——如果你得問 model 才答得出來,那正是這份檢查要找的 gap。不要執行、修改或跑任何 code;每一題都用文字回答。</li>
+        <li><b>「我不知道」是受歡迎而且有效的答案。</b>它是一個 finding,不是失敗——它標出一塊 merge 前要補的區域。誠實標記它。</li>
+        <li><b>這些不是 quiz。</b>沒有任何一題有唯一的標準答案。它們探的是 diff 裡看不到的東西:為什麼這樣做、後果是什麼、失效時長什麼樣子。</li>
+        <li><b>留言:</b>在本文反白選取任一段文字 → 點浮出的「💬 新增 comment」→ 寫下想法。留言會出現在右側 <b>Comments</b> 面板,可隨時匯出成 JSON 或 prompt。</li>
+        <li>回答會自動存在這個瀏覽器。完成後按最下方的「複製 attestation」,把它貼進 PR description,讓它跟著這次變更一起走。</li>
+      </ul>
+    </div>
+    <p class="note">snippet 才是穩定的錨點;行號(例如 <code>base.py:570</code>)只是次要指標,會隨 branch 移動而 drift。請在編輯器打開對應檔案看完整 context。<b>建議從 region 01、02、08 開始</b>——那是不理解的代價最高的地方。</p>
+
+    <div class="section-label">Cluster A · 把 observability 建立在 SDK 私有 internal 之上</div>
+
+    <!-- R1 -->
+    <section class="card" id="region-1">
+      <div class="card-head">
+        <span class="card-num">01</span>
+        <h3 class="card-title">reasoning metadata 的寫入直接 reach 進 Langfuse 的私有 <code>_runs</code> dict<span class="start">從這開始</span></h3>
+        <span class="badge high">高風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/streaming/reasoning_trace_callback.py:166 · 127–143</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>一個新的、load-bearing 的相依——靠在一個沒有文件的 SDK internal 上。每個 agent 的 <code>metadata.reasoning</code> 都靠在這個 library「為自己 bookkeeping」維護的 dict 裡用 run_id 查表來寫入。當查表 miss 時,code 會 silently fallback 到一條連 docstring 自己都說「在 async path 上可能 silently no-op」的路徑。</p>
+      <pre><span class="c"># 正式的查表路徑:</span>
+runs = self._handler._runs  <span class="c"># type: ignore[union-attr]</span>
+observation = runs.get(run_id)
+...
+<span class="c"># Fallback: legacy / unit-test path with no handler reference. Targets</span>
+<span class="c"># the OTel current-span — works for sync dispatch, may silently no-op</span>
+<span class="c"># on async paths.</span>
+self._client.update_current_generation(metadata={self.METADATA_KEY: value})</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 影響範圍與偵測</span>
+        <p>假設未來某次 Langfuse upgrade 把 <code>_runs</code> 改名、改結構或移除。請走一遍 production 實際會發生什麼:request 會直接 error、會 silently 停止寫入 <code>metadata.reasoning</code>、還是會在 deploy 前被擋下來?誰、或什麼機制會發現?多快發現?contract test 是存在沒錯——但它跑的是使用者實際在用的那個 Langfuse 版本嗎?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a1">已儲存 ✓</span></label>
+        <textarea id="a1" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R2 -->
+    <section class="card" id="region-2">
+      <div class="card-head">
+        <span class="card-num">02</span>
+        <h3 class="card-title">Abort cleanup 假設「<code>_runs</code> 裡最後一個 <code>LangfuseGeneration</code> 就是 in-flight 那個」<span class="start">從這開始</span></h3>
+        <span class="badge high">高風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/agents/base.py:567–603 (_handle_abort_cleanup)</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>使用者 abort 時,tail reasoning 會被歸因到一個用「迭代 <code>handler._runs.values()</code> 並保留最後一個 <code>LangfuseGeneration</code>」挑出來的 generation。正確性靠兩個假設:dict 的插入順序代表「最新」,而且已結束的 run 早就被 pop 掉、所以剩下的都還 in-flight。這在 cancellation 下寫的是不可逆的 trace state。</p>
+      <pre>for observation in handler._runs.values():
+    if isinstance(observation, LangfuseGeneration):
+        in_flight_generation = observation
+    elif isinstance(observation, LangfuseChain) and root_chain is None:
+        root_chain = observation
+...
+in_flight_generation.update(
+    metadata={"reasoning_tail_aborted": "\n".join(tail_segments)},
+)</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 隱藏的假設</span>
+        <p>如果使用者在<em>某個由 tool 觸發的巢狀 LLM call 還開著的時候</em> abort,那「最後一個 <code>LangfuseGeneration</code>」會不會是另一個 generation,而不是你正從 segmenter 排出 reasoning 的那一個?你對「abort 當下 <code>_runs</code> 裡還剩哪些 entry」有多少把握?一筆被歸錯對象的 <code>reasoning_tail_aborted</code>,在事後翻 trace 的人眼裡會長什麼樣?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a2">已儲存 ✓</span></label>
+        <textarea id="a2" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R3 -->
+    <section class="card" id="region-3">
+      <div class="card-head">
+        <span class="card-num">03</span>
+        <h3 class="card-title"><code>CancelledError</code> 排在 <code>except Exception</code> 之前,而且 cleanup「刻意」是 sync 的</h3>
+        <span class="badge high">高風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/agents/base.py:505–516 · 518–544</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>cancellation 是這裡最難的 control flow。<code>CancelledError</code> 是 <code>BaseException</code>,所以必須排在 generic handler 之前,否則它會被誤報成 stream error。cleanup 刻意做成同步的,因為「sync code 不會被 <code>CancelledError</code> 中斷」。然後它再 re-raise。</p>
+      <pre>except asyncio.CancelledError:
+    <span class="c"># D35 abort cleanup. CancelledError is BaseException (not</span>
+    <span class="c"># Exception); list it before the generic except so it doesn't</span>
+    <span class="c"># collapse into the StreamError path.</span>
+    self._handle_abort_cleanup(mapper, handler)
+    raise
+except Exception as e:
+    ...
+    yield StreamError(error_text=sanitize_tool_error(str(e)))</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 後果 / 沒走的那條路</span>
+        <p>如果這兩個 <code>except</code> block 的順序顛倒,使用者(以及 trace)會看到什麼?另外:為什麼 <code>_handle_abort_cleanup</code> 必須維持同步——如果它在 <code>raise</code> 之前 <code>await</code> 一個 Langfuse flush,具體會出什麼錯?如果你說不出最後那個 <code>raise</code> 在保護什麼,它還有在做事嗎?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a3">已儲存 ✓</span></label>
+        <textarea id="a3" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <div class="section-label">Cluster B · multi-provider 模型接線與 stream 轉譯</div>
+
+    <!-- R4 -->
+    <section class="card" id="region-4">
+      <div class="card-head">
+        <span class="card-num">04</span>
+        <h3 class="card-title"><code>_init_model</code> 裡各 provider 的 reasoning kwargs + 啟動時 fail-fast guard</h3>
+        <span class="badge med">中風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/agents/base.py:87–169</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>同一個 function 把 <code>reasoning</code> / <code>thinking_budget</code> map 到三家 provider 互不相容的 kwargs,而 <code>"unsupported"</code> 會在進入任何分支前就 short-circuit、讓任何 reasoning kwarg 都不會送到 model。它還會在 <em>orchestrator init</em> 時就為 Anthropic 的組合(budget &lt; 1024、temperature ≠ 1.0)raise,而不是讓 provider 在 request 中途回 400。</p>
+      <pre>if config.reasoning == "unsupported":
+    return init_chat_model(name, **kwargs)
+...
+<span class="c"># Anthropic extended thinking rejects temperature != 1.0 with HTTP 400</span>
+if config.temperature != 1.0:
+    raise ValueError("...requires temperature=1.0 (got ...)")</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 沒走的那條路 / 覆蓋度</span>
+        <p>在啟動時就 raise、而不是讓 provider 自己在第一個 request 回 400,operational 上的好處是什麼?反過來:有沒有哪些 provider × reasoning 的組合(比如 OpenAI 的 bare name、或 Gemini <code>thinking_budget=None</code>)是這個 function 放行、結果改成在 <em>request 中途</em>才 fail 的?那樣可以接受嗎?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a4">已儲存 ✓</span></label>
+        <textarea id="a4" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R5 -->
+    <section class="card" id="region-5">
+      <div class="card-head">
+        <span class="card-num">05</span>
+        <h3 class="card-title">用 <code>chunk.id</code> 的變化判 LLM-call 邊界,<code>id=None</code> 當作 continuation</h3>
+        <span class="badge high">高風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/streaming/event_mapper.py:96–101 · 174–186</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>整個 reasoning segment 的生命週期都靠這個 heuristic:當 <code>chunk.id</code> 改變就 flush segmenter、reset 它、再 arm 一個新的 <code>reasoning_id</code>;當 <code>id is None</code> 就把該 chunk 當成目前這個 call 的延續。這同時相依於三家 provider 的 chunk 形狀與順序。</p>
+      <pre>if msg_chunk.id is not None and msg_chunk.id != self._current_llm_call_id:
+    self._flush_segmenter_into(events)
+    self._segmenter.reset()
+    self._current_llm_call_id = msg_chunk.id
+    self._current_reasoning_id = None</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 會發生的 failure</span>
+        <p>如果某個 provider 在<em>同一段 reasoning stream 中途</em>送出一個全新的 <code>chunk.id</code>,使用者會看到什麼?反過來,如果它在兩個真正獨立的 LLM call 之間重用同一個 id 呢?三家 provider 裡,你實際驗證過 id 行為的是哪幾家,哪些是假設它成立?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a5">已儲存 ✓</span></label>
+        <textarea id="a5" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R6 -->
+    <section class="card" id="region-6">
+      <div class="card-head">
+        <span class="card-num">06</span>
+        <h3 class="card-title">Segmenter 在 80 字 soft-emit,boundary regex 跳過小數點</h3>
+        <span class="badge med">中風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/streaming/reasoning_segmenter.py:18 · 80 · 104–108</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>一個自製的句子切分器——這種東西很容易加、也很容易出微妙的錯。80 字的 soft-emit 是為了「prevent infinite buffering」,專門對付沒有 <code>。</code> 的 CJK 文字;half-width 的 regex 用 <code>(?&lt;!\d)</code> 來避免把 <code>3.14</code> 切開。</p>
+      <pre>SOFT_EMIT_CHAR_THRESHOLD = 80  <span class="c"># D26 — prevents infinite buffering in CJK text</span>
+...
+if len(remainder) >= self.SOFT_EMIT_CHAR_THRESHOLD:
+    yield remainder
+    self._buffer = ""</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 後果 / 為什麼是這個數字</span>
+        <p>當一個真實的 reasoning 句子超過 80 字、又沒有終止符時,使用者會看到什麼——在這裡把句子切在半句中間可以接受嗎?為什麼是 80,而不是「每個 delta 來就直接 emit」?這個 buffering 到底買到了什麼,是 naive 的逐 delta emit 會失去的?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a6">已儲存 ✓</span></label>
+        <textarea id="a6" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R7 -->
+    <section class="card" id="region-7">
+      <div class="card-head">
+        <span class="card-num">07</span>
+        <h3 class="card-title">transient-flag guard 在 dev <em>raise</em>,但在 production 只 <em>warn</em></h3>
+        <span class="badge med">中風險</span>
+      </div>
+      <div class="loc">backend/agent_engine/streaming/sse_serializer.py:36–43 · 127–129 → AssistantMessage.tsx:47–53</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>reasoning 的 SSE event 必須帶 <code>transient: true</code>,讓 client 永遠不會把它存進 transcript。這個 guard 的行為是看環境而定的,而且有一個 dev-only flag 可以刻意把 flag 拔掉。「真正的」防線在前端。</p>
+      <pre>if os.environ.get("APP_ENV", "").lower() == "production":
+    logger.warning(msg, extra={"payload_type": payload.get("type")})
+else:
+    raise AssertionError(msg)</pre>
+      <pre><span class="c">// AssistantMessage.tsx — 前端的最後一道防線</span>
+message.parts.filter(
+  (part) => typeof part.type !== "string" || !part.type.startsWith("data-reasoning-"),
+)</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 刪掉看看的思想實驗</span>
+        <p>當 backend guard 在真實的 malformed payload 上觸發那條 production warning 時,它實際防住的「使用者看得到的傷害」是什麼——而前端的 filter 是不是其實也會擋掉它?換個問法:如果你把 backend 的 <code>_assert_reasoning_transient</code> 整個拿掉,會壞掉什麼?「prod 只 warn 不 raise」是對的選擇嗎?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a7">已儲存 ✓</span></label>
+        <textarea id="a7" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <div class="section-label">Cluster C · 前端 reasoning indicator 的生命週期與 race</div>
+
+    <!-- R8 -->
+    <section class="card" id="region-8">
+      <div class="card-head">
+        <span class="card-num">08</span>
+        <h3 class="card-title"><code>onFinish</code> 在 abort / disconnect / error 時 short-circuit——但四條路都會 latch <code>finishedRef</code><span class="start">從這開始</span></h3>
+        <span class="badge high">高風險</span>
+      </div>
+      <div class="loc">frontend/src/components/pages/ChatPanel.tsx:71–91</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>這是一個最近才修的 fix(commit「short-circuit onFinish on isDisconnect/isError, not just isAbort」)——error path 的分支正是 AI 寫的 code 最容易「看起來對、其實錯」的地方。契約是:永遠 latch <code>finishedRef</code>,但只在真正自然結束的路徑上才宣告「Response complete」。</p>
+      <pre>handleReasoningData({ type: "finish" });   <span class="c">// 四條路都 latch</span>
+...
+if (isAbort || isDisconnect || isError) return;
+setLastSSEEvent({ type: "finish" });        <span class="c">// 只在自然結束時宣告</span></pre>
+      <div class="q">
+        <span class="qlabel">問題 — 契約變更 / 為什麼</span>
+        <p>修正之前,這裡只在 <code>isAbort</code> 時 short-circuit。當 disconnect 或 error 落到 <code>setLastSSEEvent({type:"finish"})</code> 那條路時,使用者經歷了什麼?還有:為什麼 <code>finishedRef</code> 在四種結局上<em>都</em>要 latch——它擋掉的是哪個會不然就漏到畫面上的 late event?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a8">已儲存 ✓</span></label>
+        <textarea id="a8" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R9 -->
+    <section class="card" id="region-9">
+      <div class="card-head">
+        <span class="card-num">09</span>
+        <h3 class="card-title">兩個 latch(<code>clearedRef</code> / <code>finishedRef</code>)與兩個 cleanup 動詞(<code>hide</code> vs <code>clear</code>)</h3>
+        <span class="badge high">高風險</span>
+      </div>
+      <div class="loc">frontend/src/hooks/useReasoningStatus.ts:22–23 · 50–70 → 用於 ChatPanel.tsx:161</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>用 ref(不是 state),好讓同步的 handler 能在 re-render 之前就 short-circuit。<code>hideReasoningStatus</code> 只清空、不 latch;<code>clearReasoningStatus</code> 清空<em>而且</em> latch,讓那些還 in-flight 的 buffered SSE event 被丟掉。<code>handleStop</code> 刻意呼叫的是 <code>hide</code>,不是 <code>clear</code>。</p>
+      <pre>const hideReasoningStatus = useCallback(() => {
+  setText(null); setStalled(false);            <span class="c">// 下一個 call 的 reasoning 仍可進來</span>
+}, []);
+const clearReasoningStatus = useCallback(() => {
+  setText(null); setStalled(false);
+  clearedRef.current = true;                    <span class="c">// 丟掉還 in-flight 的 late event</span>
+}, []);</pre>
+      <div class="q">
+        <span class="qlabel">問題 — 隱藏的 race</span>
+        <p><code>clearedRef</code> 防的是哪個 <code>hideReasoningStatus</code> <em>刻意不防</em>的 race?後果是:如果 <code>handleStop</code>(ChatPanel:161)改成呼叫 <code>clear</code> 而不是 <code>hide</code>,使用者在<em>下一則</em>訊息會看到什麼——而那正是註解在警告的那個 bug 嗎?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a9">已儲存 ✓</span></label>
+        <textarea id="a9" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- R10 -->
+    <section class="card" id="region-10">
+      <div class="card-head">
+        <span class="card-num">10</span>
+        <h3 class="card-title">indicator 優先序:可見的 text part 贏過 truthy 的 <code>reasoningStatusText</code></h3>
+        <span class="badge med">中風險</span>
+      </div>
+      <div class="loc">frontend/src/lib/reasoning-indicator-logic.ts:41–54</div>
+      <p class="why"><span class="tag">為什麼挑這塊:</span>可見性規則的順序是刻意安排的。當 last-part 是 <code>text</code> 時,code 在還沒讀到 <code>reasoningStatusText</code> 之前就 return <code>false</code>,所以前一個 LLM call 留下的 stale reasoning text 沒辦法在 visible content 開始 stream 後還讓 indicator 活著。而 last-part 是「已完成的 tool」時則改顯示「Synthesizing」。</p>
+      <pre>const lastPart = lastMessage.parts.at(-1);
+if (lastPart) {
+  const t = lastPart.type;
+  if (t === "text") return false;             <span class="c">// text 先贏…</span>
+  ...
+}
+if (reasoningStatusText) return true;          <span class="c">// …之後才檢查</span></pre>
+      <div class="q">
+        <span class="qlabel">問題 — 順序 / 雙重訊號</span>
+        <p>如果你把優先序顛倒、讓 <code>reasoningStatusText</code> 先被檢查,那在「text part 正在 stream、而一個 stale reasoning 句子還留在 state」的那一瞬間,使用者會看到什麼?為什麼短暫的「雙重訊號」(dots indicator + streaming cursor 同時出現)比直接讓 indicator 消失更糟?</p>
+      </div>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="a10">已儲存 ✓</span></label>
+        <textarea id="a10" placeholder="用你自己的話…"></textarea>
+      </div>
+    </section>
+
+    <!-- Blind spot -->
+    <div class="section-label">Blind-spot 問題 — 不管前面答得如何,都回答這題</div>
+    <section class="blind" id="blindspot">
+      <h3>這份 diff 裡,你<em>最不</em>理解的是哪一塊?</h3>
+      <p>如果那塊是錯的,你會怎麼發現它——code review、CI、prod,還是可能永遠不會?想想那條路徑的風險:Langfuse <code>_runs</code> 相依與 abort cleanup 寫的是只在 Langfuse dashboard 才看得到的 trace state(不在 CI assertion,也不在 UI),所以那裡的 silent regression 很可能 ship 出去,然後一路隱形到有人去翻才被發現。</p>
+      <div class="answer-wrap">
+        <label>你的回答 <span class="saved-flag" data-for="ablind">已儲存 ✓</span></label>
+        <textarea id="ablind" placeholder="我最不信任的區塊是…,而我會透過…發現它是錯的"></textarea>
+      </div>
+    </section>
+
+    <!-- Attestation -->
+    <div class="section-label">Step 5 — 你的 attestation</div>
+    <section class="att" id="attestation">
+      <h3>Author's understanding</h3>
+      <p>這是一份資格聲明,不是分數:你能負責的範圍。從上面的回答產生它,然後貼進 PR description,讓它跟著變更一起走、把 reviewer 指向你標記的區塊。你標成「我不知道」的區塊會被歸到 <em>not yet accounted for</em>——那才是誠實、有用的訊號。匯出內容沿用 do-i-understand 的標準英文格式(方便直接貼進 PR);你的逐字回答則保留原文。</p>
+      <div class="btnrow">
+        <button class="primary" id="genBtn">產生 attestation</button>
+        <button id="copyBtn">複製為 Markdown</button>
+        <button id="clearBtn">清除已儲存的答案</button>
+        <span class="saved-flag" id="copyFlag">已複製 ✓</span>
+      </div>
+      <div id="attOut"></div>
+    </section>
+
+    <footer>
+      由 <b>do-i-understand</b> skill 產生 · <code>feat/multi-provider-streaming-reasoning</code> 的反向 review ·
+      錨點是逐字 snippet;行號會 drift——引用前請以當前檔案為準。
+      回答與 comment 都只存在這個瀏覽器(localStorage),不會上傳。
+    </footer>
+  </main>
+
+  <!-- Comment panel (htmlify-style) -->
+  <aside class="comment-panel" id="comment-panel">
+    <div class="cp-header">
+      <span class="cp-title">Comments</span>
+      <span class="cp-count zero" id="cp-count" title="待處理 (active)">0</span>
+    </div>
+    <div class="cp-help">
+      在本文反白選取文字 → 點「<b>💬 新增 comment</b>」→ 寫下想法。<br>
+      留言會 highlight 該段並出現在這裡,可標記 <b>resolved</b> 或匯出。
+    </div>
+    <div class="cp-actions">
+      <button id="cp-copy-json">複製 JSON</button>
+      <button id="cp-export-prompt">匯出 Prompt</button>
+    </div>
+    <div class="cp-list" id="cp-list"></div>
+  </aside>
+</div>
+
+<!-- FAB (narrow screens) -->
+<button class="comment-fab" id="comment-fab" aria-label="切換 Comments 面板">💬<span class="badge-num" id="fab-badge" style="display:none">0</span></button>
+
+<!-- Selection toolbar -->
+<div class="selection-toolbar" id="selection-toolbar">
+  <button id="btn-add-comment">💬 新增 comment</button>
+</div>
+
+<!-- Comment dialog -->
+<div class="dialog-backdrop" id="dialog-backdrop">
+  <div class="comment-dialog">
+    <h4>新增 comment</h4>
+    <div class="selection-preview" id="dialog-preview"></div>
+    <textarea id="comment-input" placeholder="寫下你對這段內容的想法、疑問、或要 Claude 修改的方向…"></textarea>
+    <div class="dialog-btns">
+      <button id="comment-cancel">取消</button>
+      <button class="primary" id="comment-submit">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Answers + attestation
+   ============================================================ */
+(function () {
+  var REGIONS = [
+    { id: "a1",  title: "Langfuse _runs private-API dependency + silent async-fallback", loc: "reasoning_trace_callback.py:166, 127–143" },
+    { id: "a2",  title: "Abort cleanup picks 'last LangfuseGeneration in _runs' as in-flight", loc: "base.py:567–603" },
+    { id: "a3",  title: "CancelledError ordering + synchronous cleanup + re-raise", loc: "base.py:505–544" },
+    { id: "a4",  title: "Per-provider reasoning kwargs + fail-fast startup guards", loc: "base.py:87–169" },
+    { id: "a5",  title: "LLM-call boundary detection via chunk.id transitions", loc: "event_mapper.py:96–101, 174–186" },
+    { id: "a6",  title: "Segmenter 80-char soft-emit threshold + decimal lookbehind", loc: "reasoning_segmenter.py:18, 80, 104–108" },
+    { id: "a7",  title: "Transient-flag guard: raise in dev, warn in prod + frontend backstop", loc: "sse_serializer.py:36–43, 127–129; AssistantMessage.tsx:47–53" },
+    { id: "a8",  title: "onFinish short-circuit on abort/disconnect/error + finishedRef latch", loc: "ChatPanel.tsx:71–91" },
+    { id: "a9",  title: "clearedRef/finishedRef + hide vs clear cleanup verbs", loc: "useReasoningStatus.ts:22–23, 50–70" },
+    { id: "a10", title: "Reasoning-indicator visibility precedence ordering", loc: "reasoning-indicator-logic.ts:41–54" }
+  ];
+  var STORE = "diu_multiprovider_v1";
+  function load() { try { return JSON.parse(localStorage.getItem(STORE) || "{}"); } catch (e) { return {}; } }
+  function save(s) { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch (e) {} }
+
+  var state = load();
+  var ids = REGIONS.map(function (r) { return r.id; }).concat(["ablind"]);
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (state[id]) el.value = state[id];
+    var flag = document.querySelector('.saved-flag[data-for="' + id + '"]');
+    var t;
+    el.addEventListener("input", function () {
+      state[id] = el.value; save(state);
+      if (flag) { flag.classList.add("show"); clearTimeout(t); t = setTimeout(function () { flag.classList.remove("show"); }, 1200); }
+    });
+  });
+
+  function classify(text) {
+    var v = (text || "").trim();
+    if (!v) return "blank";
+    var low = v.toLowerCase();
+    if (low === "idk" || low.indexOf("don't know") !== -1 || low.indexOf("dont know") !== -1 ||
+        low.indexOf("not sure") !== -1 || low.indexOf("no idea") !== -1 ||
+        v.indexOf("不知道") !== -1 || v.indexOf("不確定") !== -1 || v.indexOf("不清楚") !== -1) return "unknown";
+    return "ok";
+  }
+  function buildMarkdown() {
+    var accounted = [], notyet = [];
+    REGIONS.forEach(function (r) {
+      var ans = (state[r.id] || "").trim();
+      var k = classify(ans);
+      if (k === "ok") {
+        accounted.push("- " + r.title + " (" + r.loc + ")\n  A: \"" + ans.replace(/"/g, "'") + "\"");
+      } else {
+        var shown = k === "blank" ? "(not answered)" : ans.replace(/"/g, "'");
+        notyet.push("- " + r.title + " (" + r.loc + ")\n  A: \"" + shown + "\"\n  to clarify: re-read the cited lines and restate the consequence/failure mode in your own words before merge.");
+      }
+    });
+    var blind = (state["ablind"] || "").trim();
+    var ready = notyet.length === 0;
+    var md = "## Author's understanding\n\n";
+    md += "_Reverse review (do-i-understand) of `feat/multi-provider-streaming-reasoning` — 36 commits, 81 files._\n\n";
+    md += "### Accounted for ✓\n" + (accounted.length ? accounted.join("\n") : "_(none yet)_") + "\n\n";
+    md += "### Not yet accounted for ⚠\n" + (notyet.length ? notyet.join("\n") : "_(none)_") + "\n\n";
+    md += "### Least-understood part (blind spot)\n" + (blind ? blind : "_(not answered)_") + "\n\n";
+    md += "### Recommendation\n";
+    md += ready
+      ? "Ready to merge — all flagged regions accounted for in the author's own words.\n"
+      : "One more pass on the " + notyet.length + " flagged region(s) above before merging (the observability/abort regions write trace state that CI and the UI will not catch).\n";
+    return md;
+  }
+
+  var out = document.getElementById("attOut");
+  document.getElementById("genBtn").addEventListener("click", function () { out.textContent = buildMarkdown(); out.style.display = "block"; });
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var md = buildMarkdown(); out.textContent = md; out.style.display = "block";
+    var done = function () { var f = document.getElementById("copyFlag"); f.classList.add("show"); setTimeout(function () { f.classList.remove("show"); }, 1400); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(done, done); else done();
+  });
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    if (!confirm("清除這個瀏覽器裡所有已儲存的回答?")) return;
+    state = {}; save(state);
+    ids.forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ""; });
+    out.style.display = "none";
+  });
+
+  // TOC active highlight
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byHash = {};
+  links.forEach(function (a) { byHash[a.getAttribute("href").slice(1)] = a; });
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        links.forEach(function (l) { l.classList.remove("active"); });
+        var a = byHash[en.target.id]; if (a) a.classList.add("active");
+      }
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("main section[id]").forEach(function (s) { obs.observe(s); });
+})();
+
+/* ============================================================
+   Comment / annotation system (ported from htmlify skill)
+   localStorage-backed; select text -> highlight -> panel card.
+   ============================================================ */
+(function () {
+  var C_KEY = "diu_comments_multiprovider_v1";
+  var DOC_NAME = "do-i-understand — multi-provider-streaming-reasoning";
+  var comments = [];
+  var pending = null; // { range, text, sectionId, sectionLabel }
+
+  var toolbar = document.getElementById("selection-toolbar");
+  var backdrop = document.getElementById("dialog-backdrop");
+  var dialogPreview = document.getElementById("dialog-preview");
+  var input = document.getElementById("comment-input");
+  var list = document.getElementById("cp-list");
+  var panel = document.getElementById("comment-panel");
+
+  function uid() { return "c" + Math.random().toString(36).slice(2, 9); }
+  function nowISO() { return new Date().toISOString(); }
+  function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+  function toast(msg) {
+    var t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 1800);
+  }
+  function saveLocal() { try { localStorage.setItem(C_KEY, JSON.stringify(comments)); } catch (e) {} }
+
+  function getSection(node) {
+    while (node && node !== document.body) {
+      if (node.nodeType === 1 && node.tagName === "SECTION" && node.id) return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+  function sectionLabel(section) {
+    var t = section.querySelector(".card-title") || section.querySelector("h3") || section.querySelector("h2");
+    if (!t) return section.id;
+    var clone = t.cloneNode(true);
+    clone.querySelectorAll(".start").forEach(function (e) { e.remove(); });
+    return clone.textContent.trim();
+  }
+
+  function inUI(node) {
+    var el = node.nodeType === 1 ? node : node.parentNode;
+    return !!(el && el.closest && el.closest(".comment-panel, .selection-toolbar, .dialog-backdrop, .toast, .sidebar, textarea, button"));
+  }
+
+  // wrap the selected range in <mark> across all intersecting text nodes
+  function wrapRange(range, id, resolved) {
+    var root = range.commonAncestorContainer.nodeType === 3
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer;
+    var textNodes = [];
+    if (range.commonAncestorContainer.nodeType === 3) {
+      textNodes.push(range.commonAncestorContainer);
+    } else {
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (n) { return range.intersectsNode(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; }
+      });
+      var n; while ((n = walker.nextNode())) textNodes.push(n);
+    }
+    textNodes.forEach(function (node) {
+      if (node.parentNode.closest("mark.annot")) return;
+      if (inUI(node)) return;
+      var start = node === range.startContainer ? range.startOffset : 0;
+      var end = node === range.endContainer ? range.endOffset : node.textContent.length;
+      if (start >= end) return;
+      var text = node.textContent;
+      var before = text.slice(0, start), wrapped = text.slice(start, end), after = text.slice(end);
+      if (!wrapped.trim()) return;
+      var mark = document.createElement("mark");
+      mark.className = "annot" + (resolved ? " resolved" : "");
+      mark.dataset.commentId = id;
+      mark.textContent = wrapped;
+      mark.addEventListener("click", function (e) { e.stopPropagation(); flash(id); scrollToCard(id); });
+      var frag = document.createDocumentFragment();
+      if (before) frag.appendChild(document.createTextNode(before));
+      frag.appendChild(mark);
+      if (after) frag.appendChild(document.createTextNode(after));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+  function unwrap(id) {
+    document.querySelectorAll('mark.annot[data-comment-id="' + id + '"]').forEach(function (m) {
+      m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    document.querySelectorAll("main").forEach(function (n) { n.normalize(); });
+  }
+  function setMarkResolved(id, resolved) {
+    document.querySelectorAll('mark.annot[data-comment-id="' + id + '"]').forEach(function (m) {
+      m.classList.toggle("resolved", resolved);
+    });
+  }
+  function flash(id) {
+    document.querySelectorAll('mark.annot[data-comment-id="' + id + '"]').forEach(function (m) {
+      m.classList.add("flash"); setTimeout(function () { m.classList.remove("flash"); }, 1100);
+    });
+  }
+
+  // restore a comment's highlight by locating its text within its section
+  function restore(c) {
+    var section = document.getElementById(c.sectionId);
+    if (!section) return false;
+    var walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) { return inUI(n) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }
+    });
+    var map = [], combined = "", n;
+    while ((n = walker.nextNode())) { map.push({ node: n, start: combined.length }); combined += n.textContent; }
+    var idx = combined.indexOf(c.selectedText);
+    if (idx < 0) return false;
+    var endIdx = idx + c.selectedText.length, sN, sO, eN, eO;
+    for (var i = 0; i < map.length; i++) {
+      var it = map[i], ns = it.start, ne = ns + it.node.textContent.length;
+      if (sN === undefined && idx >= ns && idx < ne) { sN = it.node; sO = idx - ns; }
+      if (eN === undefined && endIdx > ns && endIdx <= ne) { eN = it.node; eO = endIdx - ns; }
+      if (sN && eN) break;
+    }
+    if (!sN || !eN) return false;
+    try {
+      var r = document.createRange(); r.setStart(sN, sO); r.setEnd(eN, eO);
+      wrapRange(r, c.id, c.resolved); return true;
+    } catch (e) { return false; }
+  }
+
+  // ---------- selection toolbar ----------
+  function handleSelection() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) { hideToolbar(); return; }
+    var text = sel.toString().trim();
+    if (text.length < 2) { hideToolbar(); return; }
+    var range = sel.getRangeAt(0);
+    if (inUI(range.commonAncestorContainer)) { hideToolbar(); return; }
+    var section = getSection(range.commonAncestorContainer.nodeType === 1
+      ? range.commonAncestorContainer : range.commonAncestorContainer.parentNode);
+    if (!section) { hideToolbar(); return; }
+    pending = { range: range.cloneRange(), text: text, sectionId: section.id, sectionLabel: sectionLabel(section) };
+    var rect = range.getBoundingClientRect();
+    toolbar.style.display = "flex";
+    var top = window.scrollY + rect.top - toolbar.offsetHeight - 10;
+    var leftMax = window.scrollX + document.documentElement.clientWidth - toolbar.offsetWidth - 8;
+    toolbar.style.top = Math.max(top, window.scrollY + 8) + "px";
+    toolbar.style.left = Math.min(Math.max(window.scrollX + rect.left, 8), leftMax) + "px";
+  }
+  function hideToolbar() { toolbar.style.display = "none"; }
+
+  document.addEventListener("mouseup", function (e) {
+    if (e.target.closest(".selection-toolbar, .comment-panel, .dialog-backdrop")) return;
+    setTimeout(handleSelection, 1);
+  });
+  document.addEventListener("mousedown", function (e) {
+    if (!e.target.closest(".selection-toolbar")) hideToolbar();
+  });
+
+  // ---------- dialog ----------
+  function openDialog() {
+    if (!pending) return;
+    dialogPreview.textContent = pending.text;
+    input.value = "";
+    backdrop.classList.add("open");
+    setTimeout(function () { input.focus(); }, 30);
+  }
+  function closeDialog() { backdrop.classList.remove("open"); }
+
+  document.getElementById("btn-add-comment").addEventListener("click", function () { hideToolbar(); openDialog(); });
+  document.getElementById("comment-cancel").addEventListener("click", closeDialog);
+  backdrop.addEventListener("click", function (e) { if (e.target === backdrop) closeDialog(); });
+  document.getElementById("comment-submit").addEventListener("click", function () {
+    var body = input.value.trim();
+    if (!body || !pending) { closeDialog(); return; }
+    var c = {
+      id: uid(), sectionId: pending.sectionId, sectionLabel: pending.sectionLabel,
+      selectedText: pending.text, comment: body, createdAt: nowISO(), resolved: false
+    };
+    comments.push(c);
+    try { wrapRange(pending.range, c.id, false); } catch (e) {}
+    saveLocal(); render();
+    closeDialog();
+    window.getSelection().removeAllRanges();
+    pending = null;
+    toast("已新增 comment");
+  });
+
+  // ---------- panel render ----------
+  function fmtTime(iso) {
+    try { var d = new Date(iso); return d.toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
+    catch (e) { return ""; }
+  }
+  function render() {
+    var active = comments.filter(function (c) { return !c.resolved; });
+    var resolved = comments.filter(function (c) { return c.resolved; });
+    var countEl = document.getElementById("cp-count");
+    countEl.textContent = active.length;
+    countEl.classList.toggle("zero", active.length === 0);
+    var fab = document.getElementById("fab-badge");
+    if (active.length) { fab.textContent = active.length; fab.style.display = "block"; } else { fab.style.display = "none"; }
+
+    if (!comments.length) {
+      list.innerHTML = '<div class="cp-empty">尚無 comment<br><br>在本文反白選取文字 →<br>點「💬 新增 comment」</div>';
+      return;
+    }
+    var ordered = active.concat(resolved);
+    list.innerHTML = "";
+    ordered.forEach(function (c) {
+      var card = document.createElement("div");
+      card.className = "cmt-card" + (c.resolved ? " resolved" : "");
+      card.innerHTML =
+        '<div class="cmt-card-head">' +
+          '<div class="cmt-sec" data-id="' + c.id + '">' + esc(c.sectionLabel || c.sectionId) + "</div>" +
+          (c.resolved ? '<span class="cmt-pill">resolved</span>' : "") +
+        "</div>" +
+        '<div class="cmt-quote">' + esc(c.selectedText.length > 140 ? c.selectedText.slice(0, 140) + "…" : c.selectedText) + "</div>" +
+        '<div class="cmt-body">' + esc(c.comment) + "</div>" +
+        '<div class="cmt-foot">' +
+          '<span class="cmt-time">' + fmtTime(c.createdAt) + "</span>" +
+          '<button class="resolve-btn" data-act="resolve" data-id="' + c.id + '">' + (c.resolved ? "重新開啟" : "✓ Resolve") + "</button>" +
+          '<button class="del-btn" data-act="del" data-id="' + c.id + '">刪除</button>' +
+        "</div>";
+      list.appendChild(card);
+    });
+  }
+
+  list.addEventListener("click", function (e) {
+    var sec = e.target.closest(".cmt-sec");
+    if (sec) { var id = sec.dataset.id; flash(id); scrollToMark(id); return; }
+    var btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    var id = btn.dataset.id, act = btn.dataset.act;
+    var c = comments.find(function (x) { return x.id === id; });
+    if (!c) return;
+    if (act === "resolve") { c.resolved = !c.resolved; if (c.resolved) c.resolvedAt = nowISO(); setMarkResolved(id, c.resolved); saveLocal(); render(); }
+    else if (act === "del") { if (!confirm("刪除這則 comment?")) return; unwrap(id); comments = comments.filter(function (x) { return x.id !== id; }); saveLocal(); render(); }
+  });
+
+  function scrollToMark(id) {
+    var m = document.querySelector('mark.annot[data-comment-id="' + id + '"]');
+    if (m) m.scrollIntoView({ behavior: "smooth", block: "center" });
+    else toast("找不到對應 highlight(可能 orphan)");
+  }
+  function scrollToCard(id) {
+    if (window.innerWidth <= 1180) panel.classList.add("open");
+    var sec = list.querySelector('.cmt-sec[data-id="' + id + '"]');
+    if (sec) { var card = sec.closest(".cmt-card"); card.scrollIntoView({ behavior: "smooth", block: "center" });
+      card.style.transition = "background .3s"; var old = card.style.background; card.style.background = "#fff7d6";
+      setTimeout(function () { card.style.background = old; }, 900); }
+  }
+
+  // ---------- export ----------
+  function activeSorted() { return comments.filter(function (c) { return !c.resolved; }); }
+  function jsonPayload() {
+    var active = activeSorted();
+    return JSON.stringify({
+      version: 1, doc: DOC_NAME, exported_at: nowISO(),
+      comment_count: active.length,
+      resolved_excluded: comments.length - active.length,
+      comments: active.map(function (c) {
+        return { id: c.id, sectionId: c.sectionId, sectionLabel: c.sectionLabel, selectedText: c.selectedText, comment: c.comment, createdAt: c.createdAt };
+      })
+    }, null, 2);
+  }
+  function promptMarkdown() {
+    var active = activeSorted();
+    var md = "# Comments on " + DOC_NAME + "\n\n";
+    if (!active.length) return md + "_(no active comments)_\n";
+    active.forEach(function (c, i) {
+      md += "## " + (i + 1) + ". " + (c.sectionLabel || c.sectionId) + "\n";
+      md += "> " + c.selectedText.replace(/\n/g, "\n> ") + "\n\n";
+      md += c.comment + "\n\n";
+    });
+    return md;
+  }
+  function copy(text, ok) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(ok); }, function () { toast("複製失敗"); });
+    else toast("此瀏覽器不支援複製");
+  }
+  document.getElementById("cp-copy-json").addEventListener("click", function () {
+    if (!activeSorted().length) { toast("沒有 active comment 可匯出"); return; }
+    copy(jsonPayload(), "已複製 JSON");
+  });
+  document.getElementById("cp-export-prompt").addEventListener("click", function () {
+    if (!activeSorted().length) { toast("沒有 active comment 可匯出"); return; }
+    copy(promptMarkdown(), "已複製 Prompt markdown");
+  });
+
+  document.getElementById("comment-fab").addEventListener("click", function () { panel.classList.toggle("open"); });
+
+  // ---------- init ----------
+  try { var raw = localStorage.getItem(C_KEY); if (raw) comments = JSON.parse(raw) || []; } catch (e) { comments = []; }
+  var orphan = 0;
+  comments.forEach(function (c) { if (!restore(c)) orphan++; });
+  render();
+  if (orphan) console.warn("[comments] " + orphan + " comment(s) could not be re-anchored (text changed).");
+})();
+</script>
+</body>
+</html>

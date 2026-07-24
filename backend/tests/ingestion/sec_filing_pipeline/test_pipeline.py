@@ -424,9 +424,7 @@ class TestJITModeRetry:
         assert mock_downloader.download.call_count == 1
 
     @patch("backend.ingestion.sec_filing_pipeline.pipeline.time.sleep")
-    def test_jit_on_retry_callback_called(
-        self, mock_sleep, pipeline, mock_downloader
-    ):
+    def test_jit_on_retry_callback_called(self, mock_sleep, pipeline, mock_downloader):
         mock_downloader.download.side_effect = TransientError("503")
         callback = MagicMock()
 

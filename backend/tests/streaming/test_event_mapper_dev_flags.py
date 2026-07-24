@@ -44,10 +44,12 @@ class TestStubReasoningOnlyDevFlag:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(
-            _msg_with_blocks([
-                {"type": "reasoning", "reasoning": "Thinking.\n"},
-                {"type": "text", "text": "ANSWER"},
-            ])
+            _msg_with_blocks(
+                [
+                    {"type": "reasoning", "reasoning": "Thinking.\n"},
+                    {"type": "text", "text": "ANSWER"},
+                ]
+            )
         )
 
         assert any(isinstance(e, ReasoningStatus) for e in events)
@@ -59,10 +61,12 @@ class TestStubReasoningOnlyDevFlag:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(
-            _msg_with_blocks([
-                {"type": "reasoning", "reasoning": "Plan.\n"},
-                {"type": "tool_call_chunk", "id": "tc-1", "name": "fn"},
-            ])
+            _msg_with_blocks(
+                [
+                    {"type": "reasoning", "reasoning": "Plan.\n"},
+                    {"type": "tool_call_chunk", "id": "tc-1", "name": "fn"},
+                ]
+            )
         )
         # No tool_call should survive the stub. Reasoning should still flow.
         assert any(isinstance(e, ReasoningStatus) for e in events)
@@ -72,7 +76,9 @@ class TestStubReasoningOnlyDevFlag:
         monkeypatch.delenv("STUB_REASONING_ONLY", raising=False)
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
-        events = mapper.process_chunk(_msg_with_blocks([{"type": "text", "text": "OK"}]))
+        events = mapper.process_chunk(
+            _msg_with_blocks([{"type": "text", "text": "OK"}])
+        )
         assert any(isinstance(e, TextDelta) for e in events)
 
 
@@ -88,10 +94,12 @@ class TestStubContentBlocksNoReasoningDevFlag:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(
-            _msg_with_blocks([
-                {"type": "reasoning", "reasoning": "Hidden thought.\n"},
-                {"type": "text", "text": "answer"},
-            ])
+            _msg_with_blocks(
+                [
+                    {"type": "reasoning", "reasoning": "Hidden thought.\n"},
+                    {"type": "text", "text": "answer"},
+                ]
+            )
         )
         # Reasoning is filtered out; text still streams.
         assert not any(isinstance(e, ReasoningStatus) for e in events)
@@ -124,10 +132,14 @@ class TestEmitDelayedReasoningDevFlag:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         first = mapper.process_chunk(
-            _msg_with_blocks([{"type": "reasoning", "reasoning": "First.\n"}], msg_id="m1")
+            _msg_with_blocks(
+                [{"type": "reasoning", "reasoning": "First.\n"}], msg_id="m1"
+            )
         )
         second = mapper.process_chunk(
-            _msg_with_blocks([{"type": "reasoning", "reasoning": "Second.\n"}], msg_id="m1")
+            _msg_with_blocks(
+                [{"type": "reasoning", "reasoning": "Second.\n"}], msg_id="m1"
+            )
         )
 
         first_reasoning = [e for e in first if isinstance(e, ReasoningStatus)]
@@ -169,8 +181,8 @@ class TestEmitLateReasoningDevFlag:
         assert "Finish" in types
         finish_idx = types.index("Finish")
         # ReasoningStatus must appear AFTER Finish.
-        assert "ReasoningStatus" in types[finish_idx + 1:]
-        late = [e for e in events[finish_idx + 1:] if isinstance(e, ReasoningStatus)]
+        assert "ReasoningStatus" in types[finish_idx + 1 :]
+        late = [e for e in events[finish_idx + 1 :] if isinstance(e, ReasoningStatus)]
         assert late and "late" in late[0].reasoning_id
 
     def test_unset_finalize_does_not_emit_late_reasoning(self, monkeypatch):

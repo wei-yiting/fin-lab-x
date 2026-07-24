@@ -45,9 +45,7 @@ class ScorerConfig(BaseModel):
                     "Programmatic ScorerConfig must not include choice_scores"
                 )
             if self.use_cot:
-                raise ValueError(
-                    "Programmatic ScorerConfig must not set use_cot"
-                )
+                raise ValueError("Programmatic ScorerConfig must not set use_cot")
             return self
 
         if self.type != "llm_judge":

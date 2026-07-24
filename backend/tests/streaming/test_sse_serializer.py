@@ -147,7 +147,9 @@ class TestFinish:
         }
 
     def test_wire_format_with_explicit_usage(self):
-        evt = Finish(finish_reason="stop", usage=Usage(input_tokens=100, output_tokens=50))
+        evt = Finish(
+            finish_reason="stop", usage=Usage(input_tokens=100, output_tokens=50)
+        )
         payload = _parse_sse(serialize_event(evt))
         assert payload["messageMetadata"]["usage"] == {"totalTokens": 150}
 
@@ -199,14 +201,18 @@ class TestReasoningStatusSerializer:
         """S-chan-04: missing transient flag raises AssertionError in dev/CI."""
         monkeypatch.delenv("APP_ENV", raising=False)
         bad_payload = {"type": "data-reasoning-status", "id": "r-0"}
-        with pytest.raises(AssertionError, match="reasoning SSE event missing transient=True flag"):
+        with pytest.raises(
+            AssertionError, match="reasoning SSE event missing transient=True flag"
+        ):
             _assert_reasoning_transient(bad_payload)
 
     def test_assert_guard_warns_in_production(self, monkeypatch, caplog):
         """S-chan-04: missing transient flag logs a warning in production, no raise."""
         monkeypatch.setenv("APP_ENV", "production")
         bad_payload = {"type": "data-reasoning-status", "id": "r-0"}
-        with caplog.at_level(logging.WARNING, logger="backend.agent_engine.streaming.sse_serializer"):
+        with caplog.at_level(
+            logging.WARNING, logger="backend.agent_engine.streaming.sse_serializer"
+        ):
             _assert_reasoning_transient(bad_payload)
         assert "reasoning SSE event missing transient=True flag" in caplog.text
         assert caplog.records[0].payload_type == "data-reasoning-status"

@@ -7,6 +7,10 @@ Layout: one directory per bundle — `<YYYY-MM-DD>-<topic>/` containing the NDJS
 files from `bt sync pull` plus a one-line README describing what the bundle records
 (typically a notable failure and, later, its successful counterpart).
 
-Unlike everything else under `data/`, this directory is git-tracked: bundles are
-hand-picked permanent evidence, not reproducible runtime output. Never use it as a
-bulk backup of all traces.
+This directory is git-tracked: bundles are hand-picked permanent evidence, not
+reproducible runtime output (runtime outputs under `data/` — e.g. `sec_filings/`,
+`*.db` — are individually gitignored). Never use it as a bulk backup of all traces.
+
+Besides traces, whole experiments can round-trip the same way
+(`bt sync pull experiment:<name>` / `bt sync push`) — an archived experiment can be
+re-uploaded later to serve as the baseline in platform diff / A-B comparison.

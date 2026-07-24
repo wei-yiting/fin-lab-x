@@ -26,11 +26,10 @@ data/sec_filings/
 npm-debug.log*
 pnpm-debug.log*
 
-# Runtime data (SQLite checkpoints) — data/ is runtime-by-default, so new
-# entries are ignored unless explicitly allowlisted below
-data/*
-# Curated, irreproducible trace bundles (ADR-0005) — must stay git-tracked
-!data/trace-archives/
+# data/ is tracked by default (curated assets like data/trace-archives/, see
+# ADR-0005). When adding a NEW runtime writer under data/, list its output
+# path here explicitly — reproducible runtime output never goes into git.
+# Current runtime outputs: data/sec_filings/ (above), data/*.db (below).
 *.db
 
 # Editor / OS

@@ -39,19 +39,10 @@ def _convert_cell(value: str | None) -> Any:
 def _convert_cell_typed(value: str | None, col_type: str | None) -> Any:
     """Convert a CSV cell using an explicit per-column type when declared.
 
-    A declared type pins how the cell is parsed instead of relying on
-    :func:`_convert_cell` auto-detection. This is what keeps JSON list columns
-    (e.g. ``["NVDA / 2026 / Part I / Item 1A"]``) from being stored as raw
-    strings that downstream scorers then iterate character-by-character, and
-    lets identifier columns stay strings even when they look like ``TRUE`` or a
-    number.
-
-    - ``col_type is None`` -> fall back to :func:`_convert_cell` auto-detection.
-    - None / empty string -> None (regardless of declared type).
-    - ``"json"`` -> ``json.loads`` (list/dict/scalar as encoded).
-    - ``"str"`` -> the raw string, no coercion.
-    - ``"float"`` -> ``float(value)``.
-    - ``"bool"`` -> ``true``/``false`` (case-insensitive).
+    Pinning a type keeps JSON list columns from being stored as raw strings
+    (which scorers would then iterate character-by-character) and keeps
+    identifier columns like a ticker ``"TRUE"`` from auto-coercing to bool/float.
+    ``col_type is None`` falls back to :func:`_convert_cell` auto-detection.
     """
     if col_type is None:
         return _convert_cell(value)
@@ -197,14 +188,10 @@ def apply_column_mapping(
 ) -> dict[str, Any]:
     """Map one raw CSV row into Braintrust ``{input, expected, metadata}`` form.
 
-    Public entry point so callers that build eval rows outside
-    :func:`load_dataset` (e.g. diagnostic eval paths) reuse the same
-    column-mapping and type-pinning logic instead of duplicating it.
-
-    Enforces the same mapping contract as :func:`load_dataset`: the column
-    mapping and declared types are validated, and a mapped source column that
-    is absent from ``source_row`` is rejected instead of silently becoming
-    ``None``.
+    Public so eval-row builders outside :func:`load_dataset` (e.g. diagnostic
+    paths) share one mapping path. Enforces the same validation as
+    :func:`load_dataset` — a missing mapped column is rejected, not silently
+    left ``None``.
     """
     _validate_column_mapping(column_mapping)
     resolved_types = column_types or {}

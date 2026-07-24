@@ -239,11 +239,9 @@ def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
 def _to_braintrust_scorer(wrapped: Any) -> Any:
     """Adapt a locally-wrapped scorer for Braintrust's ``Eval(scores=...)``.
 
-    ``_SKIPPED_MARKER`` is a local-CSV encoding used to distinguish a scorer
-    that intentionally returned ``None`` from one that errored. Braintrust has
-    no such sentinel — its native "no score" signal is ``None``. Passing the
-    bare "SKIPPED" string straight through makes Braintrust surface it as a
-    scorer error, so we strip it at the platform boundary.
+    Braintrust has no skip sentinel — its native "no score" signal is ``None``.
+    Passing the local ``_SKIPPED_MARKER`` string through would surface as a
+    scorer error, so we map it to ``None`` at the platform boundary.
     """
 
     def bt_scorer(*, output: Any, expected: Any, **kwargs: Any) -> Any:

@@ -12,6 +12,10 @@ column_mapping:
   match_mode: expected.match_mode
   answer_snippets: expected.answer_snippets
   query_type: metadata.query_type
+column_types:
+  expected_header_paths: json
+  expected_tickers: json
+  answer_snippets: json
 scorers:
   - name: header_path_recall_at_5
     function: backend.evals.scorers.sec_retrieval_scorer.header_path_recall_at_5

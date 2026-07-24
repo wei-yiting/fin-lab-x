@@ -718,6 +718,44 @@ class TestWrapScorer:
         assert result is not None
 
 
+class TestBraintrustScorerAdapter:
+    """E2 regression: the local SKIPPED sentinel must not reach Braintrust."""
+
+    def test_skipped_marker_becomes_none(self) -> None:
+        from backend.evals.eval_runner import (
+            _SKIPPED_MARKER,
+            _to_braintrust_scorer,
+            _wrap_scorer,
+        )
+
+        def skipping_scorer(*, output: Any, expected: Any, **kw: Any) -> Any:
+            return None
+
+        wrapped = _wrap_scorer(skipping_scorer, "skip")
+        assert wrapped(output="a", expected="b") == _SKIPPED_MARKER
+
+        bt = _to_braintrust_scorer(wrapped)
+        assert bt(output="a", expected="b") is None
+
+    def test_real_score_passes_through(self) -> None:
+        from backend.evals.eval_runner import _to_braintrust_scorer, _wrap_scorer
+
+        def ok_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
+            return 0.75
+
+        bt = _to_braintrust_scorer(_wrap_scorer(ok_scorer, "ok"))
+        assert bt(output="a", expected="b") == 0.75
+
+    def test_preserves_scorer_name(self) -> None:
+        from backend.evals.eval_runner import _to_braintrust_scorer, _wrap_scorer
+
+        def ok_scorer(*, output: Any, expected: Any, **kw: Any) -> float:
+            return 1.0
+
+        bt = _to_braintrust_scorer(_wrap_scorer(ok_scorer, "my_scorer"))
+        assert bt.__name__ == "my_scorer"
+
+
 # ---------------------------------------------------------------------------
 # _filter_kwargs_for
 # ---------------------------------------------------------------------------

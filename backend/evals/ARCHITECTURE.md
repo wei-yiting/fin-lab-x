@@ -126,7 +126,7 @@ graph LR
 
 | Constraint | Impact |
 |------------|--------|
-| CSV must be editable in Google Sheets | Column values are flat string/number — no nested JSON |
+| CSV must be editable in Google Sheets | Cells stay flat, hand-editable values; a cell may hold a JSON-encoded value (e.g. `expected_header_paths`) when its column is pinned via `column_types` |
 | Braintrust `Eval()` expects `{input, expected, metadata}` | `column_mapping` must assemble CSV into these three buckets |
 | Scorer signature: `(output, expected, *, input) → Score` | Aligns with autoevals convention; all scorers (including LLM-judge) follow this interface |
 | Dual-platform via LangChain callbacks, not OTel | Avoids global `TracerProvider` conflicts between Langfuse and Braintrust |

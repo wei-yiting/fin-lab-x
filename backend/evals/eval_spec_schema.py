@@ -85,6 +85,7 @@ class ScenarioConfig(BaseModel):
     task: TaskConfig
     pre_run: PreRunConfig | None = None
     column_mapping: dict[str, str]
+    column_types: dict[str, str] = {}
     scorers: list[ScorerConfig]
 
     @model_validator(mode="after")

@@ -8,7 +8,8 @@ feasibility proven by the DEV-100 POC (all streaming-observability gates PASS, e
 
 **Rejected**: staying on Langfuse. Its only argument was inertia — the two structural pain
 points (`_runs` private-dict dependency, the HQ-17 `update_current_generation()` silent no-op)
-had already been designed away by the F7 final shape, so "current state isn't painful" was
+had already been designed away by the trace-level reasoning persistence redesign, so
+"current state isn't painful" was
 true but not a value argument.
 
 **Why** (three real, verified reasons):
@@ -21,7 +22,7 @@ true but not a value argument.
 2. **Platform unification**: the eval track (Quality Track, Evaluation Runs) already lives on
    Braintrust. One platform means one annotation surface, one API key, one mental model — and
    this project's stated value is evaluation rigor and observability.
-3. **F7 lands in its natural shape**: trace-level reasoning persistence is ~15 lines inside the
+3. **Trace-level reasoning persistence lands in its natural shape**: it's ~15 lines inside the
    streaming wrapper on Braintrust (root-span handle held by the request wrapper, public API
    only) vs a ~229-line callback with private-attribute workarounds on Langfuse.
 
@@ -42,8 +43,9 @@ true but not a value argument.
 - **Version prerequisite**: braintrust 0.11 → ≥0.30, and the deprecated `braintrust-langchain`
   package is removed (`braintrust.integrations.langchain` replaces it).
 - **DEV-107 sequencing**: DEV-107 still ships its Langfuse version (deliberately slimmed —
-  smoke-level verify, no gold-plated tests) to keep the DEV-105 stacked-PR train's F7 slice
-  complete; the migration slice runs immediately after the train merges. Bounded rework
+  smoke-level verify, no gold-plated tests) to keep the DEV-105 stacked-PR train's
+  trace-level reasoning persistence slice complete; the migration slice runs immediately
+  after the train merges. Bounded rework
   (hundreds of lines + one re-verify) is the accepted insurance premium for a clean train.
 - **Guardrails Rule 1** ("Langfuse is the default backend") flips to Braintrust in the
   migration slice PR — docs and code change state in the same commit, never before.

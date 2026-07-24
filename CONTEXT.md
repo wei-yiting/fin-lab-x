@@ -111,12 +111,15 @@ A frozen value object (`MessageStart`, `TextDelta`, `ToolCall`, `Finish`, …) f
 **Session**:
 One conversation thread, checkpointed under a thread id. The busy-guard rejects concurrent runs on the same session (HTTP 409).
 
-**Waiting indicator**:
-The frontend placeholder shown between sending a message and the first streamed part arriving — it fills perceived latency and has nothing to do with model reasoning.
-_Avoid_: reasoning indicator (current component name; rename when that code is next touched), thinking indicator
+**Activity indicator**:
+The ephemeral placeholder line shown when the assistant is working but nothing else on screen is live — from submit until the first streamed content, and between a collapsed reasoning chip and the reply text. Never contains reasoning text; swaps to degraded copy on stall.
+_Avoid_: waiting indicator (superseded by this term), reasoning indicator, thinking indicator, progress indicator (collides with Tool progress)
+
+**Reasoning chip**:
+The collapsible transcript block rendering one provider reasoning segment — live and auto-scrolling while streaming, collapsed to a "Thought for Xs" header afterwards. One chip per reasoning segment; chips persist in the transcript for the session, not across reload.
 
 **Reasoning stream**:
-Provider reasoning tokens streamed as their own domain events. The word "reasoning" belongs to this feature alone — never to the waiting indicator.
+Provider reasoning tokens streamed live to the client, rendered as reasoning chips. The word "reasoning" belongs to this feature alone — never to the activity indicator's placeholder copy.
 
 **Tool progress**:
 A transient sidecar SSE event that updates a running tool card without entering message history.

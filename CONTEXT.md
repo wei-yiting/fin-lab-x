@@ -87,7 +87,7 @@ A runtime mechanism that checks each production request's input and output in re
 The convention-based unit of evaluation: a directory with an `eval_spec.yaml` (task, column mapping, scorers), auto-discovered without a registry.
 
 **Eval run**:
-One execution of a scenario against a single agent configuration, persisted as one Braintrust experiment (Quality Track) and optionally compared against a pinned base experiment. Compose freely: "a golden-dataset run of `reader`".
+One execution of a scenario against a single agent configuration, persisted as one result CSV in git — the permanent record. Uploading a run as a Braintrust experiment (Quality Track) is opt-in per run; an uploaded run can be compared against a pinned base experiment. Compose freely: "a golden-dataset run of `reader`".
 
 **Scorer**:
 A scoring function `(output, expected, input) → Score` — programmatic when the criterion is structurally decidable, LLM-judge when semantic.

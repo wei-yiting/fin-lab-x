@@ -26,6 +26,30 @@ export function isReasoningPart(part: {
   return part.type === "reasoning";
 }
 
+export function isToolPart(part: { type?: unknown }): boolean {
+  return (
+    part.type === "tool" ||
+    part.type === "dynamic-tool" ||
+    (typeof part.type === "string" && part.type.startsWith("tool-"))
+  );
+}
+
+/**
+ * Whether the turn has painted anything the user can see: a non-suppressed
+ * reasoning chip, a tool card, or reply text. Wire frames that create parts
+ * without visible content (`reasoning-start` before its first delta,
+ * `text-start`, step boundaries) don't count — the dead-air placeholder
+ * must keep covering until one of these actually renders.
+ */
+export function turnHasRenderableContent(msg: ChatMessageLike): boolean {
+  return msg.parts.some((part) => {
+    if (isReasoningPart(part)) return !isSuppressedChip(part);
+    if (isToolPart(part)) return true;
+    if (part.type === "text") return ((part as { text?: string }).text ?? "") !== "";
+    return false;
+  });
+}
+
 /**
  * Zero-delta suppression (decision 3): a part that closed without ever
  * carrying a single delta renders no chip at all. A chip whose streamed

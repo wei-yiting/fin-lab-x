@@ -11,6 +11,7 @@ import {
   isChipExpanded,
   isReasoningPart,
   isSuppressedChip,
+  isToolPart,
 } from "@/lib/reasoning-chips";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus } from "@/models";
@@ -37,14 +38,6 @@ interface AssistantMessageProps {
   /** User expand/collapse overrides — beats the tail-only derivation. */
   chipOverrides?: Map<string, boolean>;
   onToggleChip?: (key: string, currentExpanded: boolean) => void;
-}
-
-function isToolPartType(part: MessagePart): boolean {
-  return (
-    part.type === "tool" ||
-    (typeof part.type === "string" && part.type.startsWith("tool-")) ||
-    part.type === "dynamic-tool"
-  );
 }
 
 export function AssistantMessage({
@@ -102,7 +95,7 @@ export function AssistantMessage({
     parts.some(
       (p) =>
         (isReasoningPart(p) && p.state === "streaming") ||
-        (isToolPartType(p) && isRunningToolState(p.state as string)),
+        (isToolPart(p) && isRunningToolState(p.state as string)),
     );
 
   // 1-based reasoning ordinal per part index (chip `data-round`).
@@ -133,7 +126,7 @@ export function AssistantMessage({
           );
         }
 
-        if (isToolPartType(part)) {
+        if (isToolPart(part)) {
           const toolCallId = part.toolCallId as string;
           const isAborted =
             abortedTools.has(toolCallId) && isRunningToolState(part.state as string);

@@ -21,6 +21,23 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("waiting");
   });
 
+  test("window (a): stays visible after the `start` frame flips status to streaming", () => {
+    // The assistant message may not exist yet, exist with no parts, or hold
+    // only not-yet-renderable parts (reasoning-start before its first delta,
+    // step boundaries) — all still dead air, no grace delay.
+    const preContentShapes = [
+      [userMsg],
+      [userMsg, assistantMsg("a1", [])],
+      [userMsg, assistantMsg("a1", [{ type: "step-start" }])],
+      [userMsg, assistantMsg("a1", [{ type: "reasoning", text: "", state: "streaming" }])],
+      [userMsg, assistantMsg("a1", [{ type: "text", text: "" }])],
+    ];
+    for (const messages of preContentShapes) {
+      const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+      expect(result.current).toBe("waiting");
+    }
+  });
+
   test("hidden while a chip is streaming", () => {
     const messages = [
       userMsg,
@@ -104,16 +121,19 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("hidden");
   });
 
-  test("zero-delta suppressed chip does not trigger placeholder churn (S-chip-08)", () => {
+  test("zero-delta suppressed chip: no chip renders, so placeholder keeps covering (S-chip-08)", () => {
+    // No churn: the placeholder has been up since submit and simply stays —
+    // it never flashes off/on around the suppressed part.
     const messages = [
       userMsg,
       assistantMsg("a1", [{ type: "reasoning", text: "", state: "done" }]),
     ];
     const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+    expect(result.current).toBe("waiting");
     act(() => {
       vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);
     });
-    expect(result.current).toBe("hidden");
+    expect(result.current).toBe("waiting");
   });
 
   test("hidden at ready / error status", () => {

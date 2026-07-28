@@ -16,7 +16,9 @@ export function ActivityPlaceholder({ stalled }: ActivityPlaceholderProps) {
       aria-live="polite"
       className="streaming-shimmer px-3 text-sm text-muted-foreground"
     >
-      {stalled ? "Still working…" : "Thinking…"}
+      {stalled ? "Still working" : "Thinking"}
+      {/* aria-hidden so the CSS content cycler never spams the polite queue. */}
+      <span aria-hidden="true" className="thinking-dots" />
     </div>
   );
 }

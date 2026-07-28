@@ -32,7 +32,7 @@ These enums drive both test selectors and rendering logic. They are **not** deri
 - `collapsed` — the resting state: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived, not tracked).
 - `expanded` — user override opened a collapsed chip (`data-round` carries the chip's 1-based ordinal within its message).
 
-Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`), `reasoning-chip-body`, and `activity-placeholder` (the dead-air placeholder; copy `Thinking…` / `Still working…`).
+Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`), `reasoning-chip-body`, and `activity-placeholder` (the dead-air placeholder; copy `Thinking` / `Still working` followed by a CSS-animated `.thinking-dots` ellipsis cycler, `aria-hidden` so the live region announces only the stable copy).
 
 ### `data-error-source` (on `ErrorBlock` root)
 

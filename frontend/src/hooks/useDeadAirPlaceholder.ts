@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { PLACEHOLDER_GRACE_MS } from "@/lib/timing";
-import { isReasoningPart, isSuppressedChip } from "@/lib/reasoning-chips";
+import { isReasoningPart, isSuppressedChip, turnHasRenderableContent } from "@/lib/reasoning-chips";
 import type { ChatMessageLike } from "@/lib/reasoning-chips";
 import type { ChatStatus } from "@/models";
 
@@ -11,8 +11,14 @@ export type PlaceholderState = "hidden" | "waiting";
  * the degraded copy swap is the caller's concern via the stall stopwatch).
  *
  * Covers exactly the two dead-air windows (decision C1):
- *   (a) submit → first streamed content — keyed on `status === "submitted"`
- *       (4-value status; not "streaming with empty parts").
+ *   (a) submit → first *renderable* content. `status === "submitted"` alone
+ *       ends at the stream's first wire frame (`start`), which arrives
+ *       seconds before anything paints — reasoning deltas can lag
+ *       `reasoning-start` by several seconds, and zero-delta reasoning
+ *       blocks never paint at all — so the window extends through
+ *       "streaming but nothing renderable yet". Monotonic per turn: once
+ *       any content renders, parts never un-render, so this can't flash
+ *       back on mid-turn (no grace delay needed).
  *   (b) chip collapse → reply text — last part of the streaming assistant
  *       message is a completed reasoning part with nothing after it, held
  *       behind a grace delay so the chip→tool micro-gap (decision 5: tool
@@ -31,6 +37,11 @@ export function useDeadAirPlaceholder(
   const [elapsedGapKey, setElapsedGapKey] = useState<string | null>(null);
 
   const last = messages.at(-1);
+  const windowA =
+    status === "submitted" ||
+    (status === "streaming" &&
+      (!last || last.role !== "assistant" || !turnHasRenderableContent(last)));
+
   let windowB = false;
   if (status === "streaming" && last && last.role === "assistant" && last.parts.length > 0) {
     const lastPart = last.parts.at(-1)!;
@@ -45,7 +56,7 @@ export function useDeadAirPlaceholder(
     return () => clearTimeout(timer);
   }, [gapKey, graceMs]);
 
-  if (status === "submitted") return "waiting";
+  if (windowA) return "waiting";
   if (windowB && (graceMs <= 0 || elapsedGapKey === gapKey)) return "waiting";
   return "hidden";
 }

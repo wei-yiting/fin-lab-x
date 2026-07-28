@@ -4,8 +4,8 @@ Stateful orchestrator layer — the top of the atomic-design tree. Pages own str
 
 ## Files
 
-| File            | Responsibility                                                                                                                                                                                                                                                                                                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File            | Responsibility                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ChatPanel.tsx` | Sole streaming-chat orchestrator. Owns `useChat({ transport, onData, onFinish })`, `chatId`, `abortedTools`, `lastTriggerRef`, the four non-derived chip stores (`useStallTimer`, `useReasoningTimers`, chip override map, `useDeadAirPlaceholder`'s grace timer), `useToolProgress`, `LiveStatusAnnouncer` wiring. Composes `MessageList` (templates) and `Composer` (organisms). |
 
 ## State rule

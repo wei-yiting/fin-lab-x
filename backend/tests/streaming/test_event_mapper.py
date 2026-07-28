@@ -360,7 +360,8 @@ class TestReasoningNativeParts:
 
 
 class TestReasoningPartBoundaries:
-    """Part closes when the provider moves on: text, tool, new LLM call."""
+    """Part closes when the provider moves on: text, new LLM call, or
+    finalize — NOT a same-round tool-call chunk (S-chip-06 overlap)."""
 
     def test_text_block_closes_open_reasoning_part(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)

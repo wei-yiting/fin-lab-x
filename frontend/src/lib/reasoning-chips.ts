@@ -1,8 +1,9 @@
 /**
  * Pure derivation helpers for reasoning chips (F6′ / ADR-0006).
- * Everything here derives from `useChat`'s `(status, messages)` — the only
- * allowed non-derived stores live in ChatPanel (chip timing map, global
- * stall stopwatch, expand/collapse override map).
+ * Everything here derives from `useChat`'s `(status, messages)` — the four
+ * allowed non-derived stores live in ChatPanel and useDeadAirPlaceholder
+ * (chip timing map, global stall stopwatch, expand/collapse override map,
+ * placeholder grace timer).
  */
 
 export interface ReasoningPartLike {

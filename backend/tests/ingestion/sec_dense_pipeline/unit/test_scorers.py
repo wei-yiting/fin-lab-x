@@ -1,7 +1,7 @@
 import pytest
 from autoevals import Score
 
-from backend.evals.scorers.sec_retrieval_scorer import (
+from backend.evals.scenarios.sec_retrieval.scorer import (
     _compute_map,
     _is_hit,
     header_path_recall_at_5,

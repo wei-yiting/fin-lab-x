@@ -40,12 +40,14 @@ uv run python -m backend.evals.eval_runner language_policy --local-only --output
 
 Use this for a compact "no serious regression" signal.
 
+> **Currently empty.** The one existing guardrail test was retired as part of the
+> scenario-first SSOT consolidation (DEV-89); this track is being rebuilt as a
+> `regression/` package in a follow-up ticket. The commands below describe the
+> intended usage once that lands — running them today collects zero tests.
+
 ```bash
 # Run guardrail eval tests
 uv run pytest backend/evals/ -m eval -v --tb=short
-
-# Run one case
-uv run pytest backend/evals/ -m eval -k "LP-01" -v
 
 # Unit tests only (CI default)
 uv run pytest
@@ -90,7 +92,7 @@ graph TD
     Loader["dataset_loader.py<br/>(CSV → {input, expected, metadata})"]
     Registry["scorer_registry.py<br/>(dotpath → callable)"]
     Tasks["eval_tasks.py<br/>(call agent engine)"]
-    Scorers["scorers/<br/>(scoring functions)"]
+    Scorers["scenarios/*/scorer.py<br/>(scoring functions)"]
     Helpers["eval_helpers.py<br/>(shared utils)"]
 
     CLI -->|loads config| Config
@@ -109,18 +111,19 @@ Each subdirectory under `scenarios/` with an `eval_spec.yaml` is auto-discovered
 scenarios/
 ├── language_policy/
 │   ├── eval_spec.yaml     # Task function, column mapping, scorer list
-│   └── dataset.csv        # Test cases (one row = one eval case)
+│   ├── dataset.csv        # Test cases (one row = one eval case)
+│   └── scorer.py          # Scoring functions (tool_arg_no_cjk, response_language)
 └── sec_retrieval/
     ├── eval_spec.yaml     # Retrieval scorers (recall, MRR, MAP), status: draft
-    └── dataset.csv        # 10 queries across 3 query types (see scenario README)
+    ├── dataset.csv        # 10 queries across 3 query types (see scenario README)
+    └── scorer.py          # Retrieval scoring functions (recall@k, MRR, MAP)
 ```
 
 ### Other files
 
 | File | Role |
 |------|------|
-| `conftest.py` | pytest fixtures for guardrail eval tests. |
-| `test_language_policy.py` | Regression guardrail tests (pytest). |
+| `conftest.py` | pytest fixtures for eval-path tests. |
 | `results/` | Output directory for result CSVs (git-ignored). |
 
 ### Design guidelines
@@ -152,7 +155,7 @@ column_types:                   # (optional) pin how specific CSV columns are pa
 
 scorers:
   - name: string
-    function: string            # Python dotpath, e.g. "backend.evals.scorers.language_policy_scorer.response_language"
+    function: string            # Python dotpath, e.g. "backend.evals.scenarios.language_policy.scorer.response_language"
 
   - name: string
     type: llm_judge
@@ -204,10 +207,13 @@ graph TD
 1. Create `backend/evals/scenarios/<scenario_name>/`.
 2. Add `dataset.csv` and `eval_spec.yaml` (see [schema above](#eval-spec-yaml-schema)).
 3. Add/update task functions in `backend/evals/eval_tasks.py`.
-4. Add/update scorers under `backend/evals/scorers/`.
+4. Add/update scoring functions in `backend/evals/scenarios/<scenario_name>/scorer.py`.
 5. Run `uv run python -m backend.evals.eval_runner <scenario_name> --local-only`.
 
 ### Add a new regression guardrail
+
+> This track is currently being rebuilt as a `regression/` package (DEV-89
+> follow-up); the steps below describe the pre-rebuild pattern for reference only.
 
 1. Add/update `backend/evals/test_*.py` with `@pytest.mark.eval`.
 2. Keep assertions focused on severe regression signals.

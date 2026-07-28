@@ -26,7 +26,7 @@ column_mapping:
   response: output_text
 scorers:
   - name: programmatic_score
-    function: backend.evals.scorers.score_response
+    function: backend.evals.scenarios.example.scorer.score_response
   - name: judge_score
     type: llm_judge
     rubric: Evaluate response quality
@@ -48,7 +48,10 @@ scorers:
         "response": "output_text",
     }
     assert len(config.scorers) == 2
-    assert config.scorers[0].function == "backend.evals.scorers.score_response"
+    assert (
+        config.scorers[0].function
+        == "backend.evals.scenarios.example.scorer.score_response"
+    )
     assert config.scorers[0].type is None
     assert config.scorers[0].use_cot is False
     assert config.scorers[1].type == "llm_judge"
@@ -70,7 +73,7 @@ column_mapping:
   prompt: input_text
 scorers:
   - name: programmatic_score
-    function: backend.evals.scorers.score_response
+    function: backend.evals.scenarios.example.scorer.score_response
 """.strip()
     )
 
@@ -103,7 +106,7 @@ scorers:
         """
   - name: judge_score
     type: llm_judge
-    function: backend.evals.scorers.score_response
+    function: backend.evals.scenarios.example.scorer.score_response
     rubric: Evaluate response quality
 """,
         """
@@ -151,7 +154,7 @@ scorers:
     type: llm_judge
     rubric: Evaluate response quality
   - name: judge_score
-    function: backend.evals.scorers.score_response
+    function: backend.evals.scenarios.example.scorer.score_response
 """.strip()
     )
 
@@ -179,7 +182,7 @@ scorers:
       pass: 1.0
       fail: 0.0
   - name: missing_indent
-    function: backend.evals.scorers.score_response
+    function: backend.evals.scenarios.example.scorer.score_response
     - invalid
 """.strip()
     )
@@ -217,7 +220,7 @@ column_mapping:
   prompt: input_text
 scorers:
   - name: programmatic_score
-    function: backend.evals.scorers.score_response
+    function: backend.evals.scenarios.example.scorer.score_response
   - name: judge_score
     type: llm_judge
     rubric: Judge with a rubric
@@ -227,7 +230,10 @@ scorers:
 
     config = load_scenario_config(config_path)
 
-    assert config.scorers[0].function == "backend.evals.scorers.score_response"
+    assert (
+        config.scorers[0].function
+        == "backend.evals.scenarios.example.scorer.score_response"
+    )
     assert config.scorers[0].type is None
     assert config.scorers[1].function is None
     assert config.scorers[1].type == "llm_judge"

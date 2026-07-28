@@ -18,10 +18,10 @@ column_types:
   answer_snippets: json
 scorers:
   - name: header_path_recall_at_5
-    function: backend.evals.scorers.sec_retrieval_scorer.header_path_recall_at_5
+    function: backend.evals.scenarios.sec_retrieval.scorer.header_path_recall_at_5
   - name: header_path_recall_at_10
-    function: backend.evals.scorers.sec_retrieval_scorer.header_path_recall_at_10
+    function: backend.evals.scenarios.sec_retrieval.scorer.header_path_recall_at_10
   - name: mrr
-    function: backend.evals.scorers.sec_retrieval_scorer.mean_reciprocal_rank
+    function: backend.evals.scenarios.sec_retrieval.scorer.mean_reciprocal_rank
   - name: map
-    function: backend.evals.scorers.sec_retrieval_scorer.mean_average_precision
+    function: backend.evals.scenarios.sec_retrieval.scorer.mean_average_precision

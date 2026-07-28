@@ -24,7 +24,7 @@ flowchart BT
         StatusDot
         RefSup
         Cursor
-        ReasoningIndicator
+        ActivityPlaceholder
         PromptChip
         RegenerateButton
         SourceLink
@@ -68,7 +68,7 @@ flowchart BT
     classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
 
     class P1,P2,P3 primitiveCls
-    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
+    class StatusDot,RefSup,Cursor,ActivityPlaceholder,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
@@ -78,7 +78,7 @@ flowchart BT
 | Layer | Classification rule | Examples |
 |---|---|---|
 | **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw` |
-| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ReasoningIndicator`, `PromptChip`, `RegenerateButton`, `SourceLink`, `UserMessage` |
+| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ActivityPlaceholder`, `PromptChip`, `RegenerateButton`, `SourceLink`, `UserMessage` |
 | **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ToolRow`, `ToolDetail`, `Sources` |
 | **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState` |
 | **templates** | Layout shell that accepts data via props; does not wire `useChat`. | `MessageList` |
@@ -100,8 +100,9 @@ flowchart LR
 
     MessageList --> UserMessage
     MessageList --> AssistantMessage
-    MessageList --> ReasoningIndicator
+    MessageList --> ActivityPlaceholder
 
+    AssistantMessage --> ReasoningChip
     AssistantMessage --> ToolCard
     AssistantMessage --> Markdown
     AssistantMessage --> Sources
@@ -124,7 +125,7 @@ flowchart LR
     classDef templateCls fill:#fef3c7,stroke:#eab308,color:#713f12
     classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
 
-    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
+    class StatusDot,RefSup,Cursor,ActivityPlaceholder,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
@@ -162,6 +163,7 @@ The backend emits AI SDK v6 `uiMessageChunkSchema`-compatible chunks. The fronte
 | `tool-output-available` | `output-available` | 🟢 StatusDot success + generic label `Completed` + expandable INPUT/OUTPUT JSON |
 | `tool-output-error` | `output-error` | 🔴 StatusDot error + friendly translated title (via `lib/error-messages.ts`) + expandable raw detail |
 | `text-start` / `text-delta` / `text-end` | text part | Markdown incremental re-render + trailing `Cursor` while streaming |
+| `reasoning-start` / `reasoning-delta` / `reasoning-end` | reasoning part (`state: streaming → done`) | `ReasoningChip` (ADR-0006): streaming = pinned ~4-line window with live text; `done` = collapsed `Thought for Xs`; part stuck `streaming` after abort = collapsed `Stopped — thought for Xs` |
 | `error` | — (stream-level) | `useChat.error` set; `status → 'error'`. Does **not** append an `error` part to `messages` (see §6). |
 | `finish` | — | `status → 'ready'` |
 | _(no SSE — frontend-only)_ | `aborted` | ⚫ StatusDot gray + label `Aborted` + expandable INPUT |

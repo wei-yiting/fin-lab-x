@@ -126,7 +126,7 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
         # thinking_budget>0 AND include_thoughts=True are passed. Without
         # include_thoughts, the model still spends thinking tokens but
         # AIMessage.content_blocks contains no reasoning blocks, so
-        # metadata.reasoning + data-reasoning-status both end up empty.
+        # metadata.reasoning and the wire reasoning parts both end up empty.
         if config.reasoning == "on":
             kwargs["include_thoughts"] = True
     elif provider == "anthropic":

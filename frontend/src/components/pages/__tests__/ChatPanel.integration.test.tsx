@@ -1,4 +1,13 @@
-import { describe, test, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { describe, test, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
+
+// F6 ruling: exactly one ChatPanel integration case verifies the stall
+// wiring with a mocked small threshold against MSW real time. The mock is
+// file-level (vi.mock hoists); the 10s production default is locked by the
+// useStallTimer fake-timer unit test instead.
+vi.mock("@/lib/timing", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/timing")>();
+  return { ...actual, STALL_THRESHOLD_MS: 700 };
+});
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderHook, act } from "@testing-library/react";
@@ -315,8 +324,8 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 //   - isAbort      — user-initiated stop() (catch block + AbortError)
 //   - isError      — SSE error chunk OR any thrown error in the stream
 //   - isDisconnect — TypeError mentioning "fetch"/"network" (subset of isError)
-// In all three cases the user has another visible affordance (frozen
-// STOPPED indicator, or status === "error" routing in LiveStatusAnnouncer),
+// In all three cases the user has another visible affordance (the aborted
+// chip's Stopped header, or status === "error" routing in LiveStatusAnnouncer),
 // so the ChatPanel must NOT also push a "finish" event into lastSSEEvent —
 // that would race the error path and could leak a misleading "Response
 // complete" announcement.
@@ -587,51 +596,27 @@ describe("ChatPanel integration — stop + clear", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Reasoning indicator wiring (Task 11 / D39)
-//
-// The data-reasoning-status SSE event must flow through useReasoningStatus →
-// MessageList → ReasoningIndicator. text-start hides the reasoning text;
-// click stop while reasoning is in flight freezes the indicator with STOPPED.
+// Reasoning chips (F6′ / ADR-0006) — native reasoning-* parts render as
+// collapsible transcript chips; everything derives from (status, messages).
 // ---------------------------------------------------------------------------
 
-describe("ChatPanel integration — reasoning indicator from data-reasoning-status", () => {
-  const reasoningServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) => {
+describe("ChatPanel integration — reasoning chips golden path", () => {
+  const chipServer = setupServer(
+    http.post("/api/v1/chat", () => {
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "m-rsn" })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "data-reasoning-status",
-                id: "rs-1",
-                data: { text: "Analyzing your request" },
-                transient: true,
-              }),
-            ),
-          );
-          // Hold the connection open so the test can observe the indicator
-          // before text-start clears it. Aborts on stop.
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
-          }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "answer" })),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          send({ type: "start", messageId: "m-chip" });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: "Analyzing the filing" });
+          await new Promise((r) => setTimeout(r, 150));
+          send({ type: "reasoning-end", id: "reasoning-0" });
+          send({ type: "text-start", id: "t1" });
+          send({ type: "text-delta", id: "t1", delta: "the answer" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
           controller.close();
         },
       });
@@ -639,86 +624,142 @@ describe("ChatPanel integration — reasoning indicator from data-reasoning-stat
     }),
   );
 
-  beforeAll(() => reasoningServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => reasoningServer.resetHandlers());
-  afterAll(() => reasoningServer.close());
+  beforeAll(() => chipServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => chipServer.resetHandlers());
+  afterAll(() => chipServer.close());
 
-  test("data-reasoning-status mid-stream shows ReasoningIndicator with text", async () => {
+  test("chip streams its text, then collapses to Thought for Xs when the answer lands", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
-    const textarea = screen.getByTestId("composer-textarea");
-    await user.type(textarea, "tell me");
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
     await user.click(screen.getByTestId("composer-send-btn"));
 
+    // Streaming: chip expanded with live reasoning text.
     await waitFor(
       () => {
-        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(
-          /Analyzing your request/,
-        );
+        const chip = screen.getByTestId("reasoning-chip");
+        expect(chip).toHaveAttribute("data-state", "streaming");
+        expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("Analyzing the filing");
       },
       { timeout: 5000 },
     );
-  }, 15000);
 
-  test("clicking stop during reasoning freezes indicator with STOPPED", async () => {
+    // Completed: chip collapsed to a duration header; the answer rendered;
+    // the reasoning text is no longer visible but reachable by expanding.
+    await waitFor(
+      () => {
+        expect(screen.getByText("the answer")).toBeInTheDocument();
+        expect(screen.getByTestId("reasoning-chip")).toHaveAttribute("data-state", "collapsed");
+      },
+      { timeout: 5000 },
+    );
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Thought for \d+s/);
+    expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
+
+    // Post-hoc expand (S-chip-05 user override).
+    await user.click(screen.getByTestId("reasoning-chip-header"));
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("Analyzing the filing");
+  }, 15000);
+});
+
+describe("ChatPanel integration — abort keeps a collapsed half-chip (S-chip-07)", () => {
+  const abortServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          request.signal.addEventListener(
+            "abort",
+            () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            },
+            { once: true },
+          );
+          send({ type: "start", messageId: "m-abort" });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: "half a thought" });
+          // Hold open (no reasoning-end) until abort.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => abortServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => abortServer.resetHandlers());
+  afterAll(() => abortServer.close());
+
+  test("stop mid-reasoning → chip collapses with Stopped header, text kept", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
-    const textarea = screen.getByTestId("composer-textarea");
-    await user.type(textarea, "tell me");
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
     await user.click(screen.getByTestId("composer-send-btn"));
 
     await waitFor(
       () => {
-        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(
-          /Analyzing your request/,
-        );
+        expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("half a thought");
       },
       { timeout: 5000 },
     );
 
     await user.click(screen.getByTestId("composer-stop-btn"));
 
-    // After C1 fix: handleStop captures the in-flight reasoning text into
-    // abortedMessages and MessageList renders a frozen ReasoningIndicator
-    // with the captured text + STOPPED label below the (empty) assistant
-    // bubble. The frozen text persists across the rest of the chat — user
-    // can see *what* the model was thinking when they hit stop.
     await waitFor(
       () => {
-        expect(screen.getByText(/Analyzing your request/)).toBeInTheDocument();
-        expect(screen.getByText("STOPPED")).toBeInTheDocument();
+        const chip = screen.getByTestId("reasoning-chip");
+        expect(chip).toHaveAttribute("data-state", "collapsed");
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
+          /Stopped — thought for \d+s/,
+        );
       },
       { timeout: 5000 },
     );
+
+    // The half text is preserved behind the header (expand to read).
+    await user.click(screen.getByTestId("reasoning-chip-header"));
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("half a thought");
   }, 15000);
 });
 
-describe("ChatPanel integration — text-start clears reasoning text", () => {
-  const textStartServer = setupServer(
+describe("ChatPanel integration — stall degradation wiring (the ONE ChatPanel case, F6 ruling)", () => {
+  // Mock small threshold + real MSW time. The 10s default itself is locked
+  // by the useStallTimer fake-timer unit test.
+  const SMALL_THRESHOLD = 700;
+  const stallServer = setupServer(
     http.post("/api/v1/chat", () => {
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "m-ts" })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "data-reasoning-status",
-                id: "rs-1",
-                data: { text: "thinking now" },
-                transient: true,
-              }),
-            ),
-          );
-          await new Promise((r) => setTimeout(r, 50));
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "real answer" })),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          send({ type: "start", messageId: "m-stall" });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: "thinking hard" });
+          // Silence beyond the mocked threshold → degraded copy on the
+          // streaming chip header; then a delta arrives and resets it. The
+          // hold is generous (threshold + 2.5s) so the degraded header stays
+          // observable even under parallel-suite load.
+          await new Promise((r) => setTimeout(r, SMALL_THRESHOLD + 2500));
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: " more" });
+          await new Promise((r) => setTimeout(r, 150));
+          send({ type: "reasoning-end", id: "reasoning-0" });
+          send({ type: "text-start", id: "t1" });
+          send({ type: "text-delta", id: "t1", delta: "done" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
           controller.close();
         },
       });
@@ -726,335 +767,79 @@ describe("ChatPanel integration — text-start clears reasoning text", () => {
     }),
   );
 
-  beforeAll(() => textStartServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => textStartServer.resetHandlers());
-  afterAll(() => textStartServer.close());
+  beforeAll(() => stallServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => stallServer.resetHandlers());
+  afterAll(() => stallServer.close());
 
-  test("after text starts streaming, reasoning text disappears", async () => {
+  test("silence past threshold degrades the streaming chip header; a delta restores it", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
-    const textarea = screen.getByTestId("composer-textarea");
-    await user.type(textarea, "go");
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
     await user.click(screen.getByTestId("composer-send-btn"));
 
     await waitFor(
       () => {
-        expect(screen.getByText(/real answer/)).toBeInTheDocument();
-      },
-      { timeout: 5000 },
-    );
-    expect(screen.queryByText(/thinking now/)).not.toBeInTheDocument();
-  }, 15000);
-});
-
-// ---------------------------------------------------------------------------
-// Synthesis-phase reasoning surfaces over the "Synthesizing" idle text
-//
-// After a tool completes, the post-tool gap normally renders the hardcoded
-// "Synthesizing" idle label. But if the synthesizing LLM call itself
-// emits real reasoning chunks, those should immediately replace the idle
-// label. Regression case: an over-aggressive auto-hide effect would
-// clobber any reasoning text that arrived while last part is still a
-// completed tool, leaving the user stuck on "Synthesizing" forever.
-// ---------------------------------------------------------------------------
-
-describe("ChatPanel integration — synthesizing reasoning replaces idle label", () => {
-  const synthServer = setupServer(
-    http.post("/api/v1/chat", () => {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "m-syn" })));
-          // Tool starts and immediately completes.
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "tool-input-available",
-                toolCallId: "tc-1",
-                toolName: "yfinance_stock_quote",
-                input: { ticker: "MSFT" },
-              }),
-            ),
-          );
-          await new Promise((r) => setTimeout(r, 30));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "tool-output-available",
-                toolCallId: "tc-1",
-                output: { price: 411.38 },
-              }),
-            ),
-          );
-          // Post-tool gap — synthesis call's reasoning starts. Must
-          // override "Synthesizing" idle text on screen.
-          await new Promise((r) => setTimeout(r, 30));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "data-reasoning-status",
-                id: "rs-syn",
-                data: { text: "Composing the final summary" },
-                transient: true,
-              }),
-            ),
-          );
-          // Hold so the test can observe reasoning text on screen.
-          await new Promise((r) => setTimeout(r, 1500));
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "MSFT $411" })),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
-          controller.close();
-        },
-      });
-      return sseResponse(stream);
-    }),
-  );
-
-  beforeAll(() => synthServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => synthServer.resetHandlers());
-  afterAll(() => synthServer.close());
-
-  test("real reasoning chunks during post-tool synthesis replace 'Synthesizing'", async () => {
-    const user = userEvent.setup();
-    render(<ChatPanel />);
-
-    await user.type(screen.getByTestId("composer-textarea"), "msft price");
-    await user.click(screen.getByTestId("composer-send-btn"));
-
-    // Real reasoning text must surface even though last part is a
-    // completed tool. The over-aggressive auto-hide regression would
-    // wipe this and leave "Synthesizing" stuck on screen.
-    await waitFor(
-      () => {
-        expect(screen.getByText(/Composing the final summary/)).toBeInTheDocument();
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Still working…");
       },
       { timeout: 5000 },
     );
 
-    // And then the final answer streams in normally.
+    // The late delta resets the stopwatch → normal copy returns (tolerance:
+    // we only assert the recovery, not frame-exact timing).
     await waitFor(
       () => {
-        expect(screen.getByText(/MSFT \$411/)).toBeInTheDocument();
+        expect(screen.getByText("done")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
   }, 15000);
 });
 
-// ---------------------------------------------------------------------------
-// S-rsn-13 — abort then resend coexistence
-//
-// Stop the first turn after an assistant bubble has emitted some text, then
-// send a second message. Both assistant bubbles must remain in the DOM, and
-// the new turn's reasoning indicator must show the fresh status — not stale
-// text from the aborted turn.
-// ---------------------------------------------------------------------------
-
-describe("ChatPanel integration — abort-then-resend coexistence (S-rsn-13)", () => {
-  let callCount = 0;
-
-  const coexistServer = setupServer(
+describe("ChatPanel integration — abort-then-resend coexistence (J-pres-01)", () => {
+  let call = 0;
+  const resendServer = setupServer(
     http.post("/api/v1/chat", ({ request }) => {
-      callCount++;
-      const turn = callCount;
+      call++;
+      const thisCall = call;
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          request.signal.addEventListener(
+            "abort",
+            () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            },
+            { once: true },
+          );
+          send({ type: "start", messageId: `m-${thisCall}` });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({
+            type: "reasoning-delta",
+            id: "reasoning-0",
+            delta: thisCall === 1 ? "first turn thinking" : "second turn thinking",
+          });
+          if (thisCall === 1) {
+            // Hold open until aborted (no reasoning-end).
+            for (let i = 0; i < 30; i++) {
+              await new Promise((r) => setTimeout(r, 100));
+              if (request.signal.aborted) return;
             }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          const messageId = `m-turn-${turn}`;
-          const reasoningText = turn === 1 ? "first reasoning" : "second reasoning";
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId })));
-          // D28 hold-and-flush ordering: reasoning is emitted BEFORE text-start
-          // so the indicator can show, then unmount when the text part arrives.
-          // The original test had reasoning AFTER text-delta which the
-          // production hook's auto-hide would suppress (text part is the
-          // visible signal once it lands).
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "data-reasoning-status",
-                id: `rs-${turn}`,
-                data: { text: reasoningText },
-                transient: true,
-              }),
-            ),
-          );
-          // Hold so the test can click Stop while only the reasoning
-          // indicator is up (mockup State 9 — pre-text abort).
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
-          }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: `t${turn}` })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({ type: "text-delta", id: `t${turn}`, delta: `turn-${turn} content` }),
-            ),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: `t${turn}` })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
-          controller.close();
-        },
-      });
-      return sseResponse(stream);
-    }),
-  );
-
-  beforeAll(() => coexistServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => {
-    callCount = 0;
-    coexistServer.resetHandlers();
-  });
-  afterAll(() => coexistServer.close());
-
-  test("stop first turn → send second → both bubbles present, second indicator shows new reasoning", async () => {
-    const user = userEvent.setup();
-    render(<ChatPanel />);
-
-    const textarea = screen.getByTestId("composer-textarea");
-    await user.type(textarea, "first");
-    await user.click(screen.getByTestId("composer-send-btn"));
-
-    // First turn streams reasoning before text — the indicator is up while
-    // the held stream blocks text-start.
-    await waitFor(
-      () => {
-        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(/first reasoning/);
-      },
-      { timeout: 5000 },
-    );
-
-    // Stop while still in reasoning phase — pre-text abort (mockup State 9).
-    // C1 fix: the panel captures the in-flight reasoning text and renders a
-    // frozen ReasoningIndicator with that text + STOPPED label below the
-    // (still empty) assistant bubble. Persists for the rest of the chat.
-    await user.click(screen.getByTestId("composer-stop-btn"));
-    await waitFor(
-      () => {
-        expect(screen.getByText(/first reasoning/)).toBeInTheDocument();
-        expect(screen.getByText("STOPPED")).toBeInTheDocument();
-      },
-      { timeout: 5000 },
-    );
-
-    // Send second message — kicks off a new turn under the same chatId.
-    await user.clear(textarea);
-    await user.type(textarea, "second");
-    await user.click(screen.getByTestId("composer-send-btn"));
-
-    // After C1 the prior bubble keeps its frozen reasoning indicator AND
-    // the new turn renders its own streaming indicator. Two indicators
-    // coexist; match the streaming one by content (getByTestId would
-    // throw on >1).
-    await waitFor(
-      () => {
-        expect(screen.getAllByTestId("assistant-message")).toHaveLength(2);
-      },
-      { timeout: 5000 },
-    );
-    await waitFor(
-      () => {
-        const indicators = screen.getAllByTestId("reasoning-indicator");
-        expect(indicators.some((el) => /second reasoning/.test(el.textContent ?? ""))).toBe(true);
-      },
-      { timeout: 5000 },
-    );
-
-    // Prior frozen reasoning + STOPPED still visible — the new turn does
-    // not erase the prior abort signal.
-    expect(screen.getByText(/first reasoning/)).toBeInTheDocument();
-    expect(screen.getByText("STOPPED")).toBeInTheDocument();
-  }, 30000);
-});
-
-// ---------------------------------------------------------------------------
-// Retry resets reasoning state
-//
-// `handleRetry` must mirror `handleSend`: call `resetForNewTurn()` and clear
-// `lastSSEEvent`. Otherwise the retried turn would inherit a latched
-// `finishedRef` / `clearedRef` (from prior `clearReasoningStatus()` or future
-// SDK changes that route `finish` / `error` through onData), short-circuiting
-// new data-reasoning-status events.
-//
-// We exercise this end-to-end: send → mid-stream error → click Retry →
-// retried turn emits a fresh `data-reasoning-status` → assert the indicator
-// surfaces it. If `resetForNewTurn` is removed and the hook's clearedRef
-// were ever set (e.g., a stop-then-retry race), the new event would be
-// dropped. Even where finishedRef/clearedRef are not set today, the test
-// pins the documented contract.
-// ---------------------------------------------------------------------------
-
-describe("ChatPanel integration — retry surfaces fresh reasoning text", () => {
-  let callCount = 0;
-
-  const retryReasoningServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) => {
-      callCount++;
-      const turn = callCount;
-      const encoder = new TextEncoder();
-
-      if (turn === 1) {
-        const stream = new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "asst-err" })));
-            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial..." })),
-            );
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "error", errorText: "rate limit exceeded" })),
-            );
             controller.close();
-          },
-        });
-        return sseResponse(stream);
-      }
-
-      const stream = new ReadableStream({
-        async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "asst-retry" })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "data-reasoning-status",
-                id: "rs-retry",
-                data: { text: "fresh retry reasoning" },
-                transient: true,
-              }),
-            ),
-          );
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
+            return;
           }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t2" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t2", delta: "recovered" })),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t2" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          await new Promise((r) => setTimeout(r, 100));
+          send({ type: "reasoning-end", id: "reasoning-0" });
+          send({ type: "text-start", id: "t1" });
+          send({ type: "text-delta", id: "t1", delta: "second answer" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
           controller.close();
         },
       });
@@ -1062,37 +847,52 @@ describe("ChatPanel integration — retry surfaces fresh reasoning text", () => 
     }),
   );
 
-  beforeAll(() => retryReasoningServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => {
-    callCount = 0;
-    retryReasoningServer.resetHandlers();
+  beforeAll(() => resendServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => resendServer.resetHandlers());
+  afterAll(() => {
+    resendServer.close();
+    call = 0;
   });
-  afterAll(() => retryReasoningServer.close());
 
-  test("Retry after mid-stream error → fresh data-reasoning-status surfaces in indicator", async () => {
+  test("stop first turn → resend → both bubbles coexist; Stopped chip persists; new chip untainted", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
-    const textarea = screen.getByTestId("composer-textarea");
-    await user.type(textarea, "go");
+    await user.type(screen.getByTestId("composer-textarea"), "first");
+    await user.click(screen.getByTestId("composer-send-btn"));
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("first turn thinking");
+      },
+      { timeout: 5000 },
+    );
+    await user.click(screen.getByTestId("composer-stop-btn"));
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Stopped/);
+      },
+      { timeout: 5000 },
+    );
+
+    await user.type(screen.getByTestId("composer-textarea"), "second");
     await user.click(screen.getByTestId("composer-send-btn"));
 
     await waitFor(
       () => {
-        expect(screen.getByTestId("error-retry-btn")).toBeInTheDocument();
+        expect(screen.getByText("second answer")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
 
-    await user.click(screen.getByTestId("error-retry-btn"));
-
-    await waitFor(
-      () => {
-        expect(screen.getByTestId("reasoning-indicator")).toHaveTextContent(
-          /fresh retry reasoning/,
-        );
-      },
-      { timeout: 5000 },
-    );
+    // Two assistant bubbles; the aborted chip's Stopped header persists on
+    // the first while the second collapsed cleanly.
+    expect(screen.getAllByTestId("assistant-message")).toHaveLength(2);
+    const headers = screen
+      .getAllByTestId("reasoning-chip-header")
+      .map((el) => el.textContent ?? "");
+    expect(headers.some((h) => /Stopped — thought for \d+s/.test(h))).toBe(true);
+    expect(headers.some((h) => /^Thought for \d+s/.test(h))).toBe(true);
+    // No degraded copy leaked into the resent turn (stopwatch reset).
+    expect(screen.queryByText("Still working…")).not.toBeInTheDocument();
   }, 20000);
 });

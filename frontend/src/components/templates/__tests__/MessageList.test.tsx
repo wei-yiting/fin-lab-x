@@ -2,34 +2,34 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MessageList } from "../MessageList";
 
-describe("MessageList — ReasoningIndicator visibility", () => {
-  test("transient data-tool-progress does not hide ReasoningIndicator", () => {
-    const { rerender } = render(
+describe("MessageList — placeholder slot", () => {
+  test("renders the placeholder node when provided", () => {
+    render(
+      <MessageList
+        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
+        status="submitted"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+        placeholder={<div data-testid="activity-placeholder">Thinking…</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("activity-placeholder")).toBeInTheDocument();
+  });
+
+  test("no placeholder node renders nothing extra", () => {
+    render(
       <MessageList
         messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
         status="streaming"
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
-        reasoningStatusText={null}
       />,
     );
 
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-
-    rerender(
-      <MessageList
-        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
-        status="streaming"
-        toolProgress={{ "tc-1": "fetching..." }}
-        abortedTools={new Set()}
-        onRegenerate={vi.fn()}
-        reasoningStatusText={null}
-      />,
-    );
-
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("activity-placeholder")).not.toBeInTheDocument();
   });
 
   test("empty messages with ready status renders empty content", () => {
@@ -40,7 +40,6 @@ describe("MessageList — ReasoningIndicator visibility", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
-        reasoningStatusText={null}
         emptyContent={<div data-testid="empty-state">Empty</div>}
       />,
     );
@@ -49,49 +48,30 @@ describe("MessageList — ReasoningIndicator visibility", () => {
   });
 });
 
-describe("MessageList — aborted message frozen indicator", () => {
-  test("aborted assistant with no text part renders frozen indicator with captured reasoning + STOPPED", () => {
+describe("MessageList — chip context threading", () => {
+  test("reasoning parts render as chips via AssistantMessage", () => {
     render(
       <MessageList
         messages={[
           { id: "u1", role: "user", parts: [{ type: "text", text: "q" }] },
-          { id: "a1", role: "assistant", parts: [] },
+          {
+            id: "a1",
+            role: "assistant",
+            parts: [{ type: "reasoning", text: "思考中", state: "streaming" }],
+          },
         ]}
-        status="ready"
+        status="streaming"
         toolProgress={{}}
         abortedTools={new Set()}
-        abortedMessages={new Map([["a1", { frozenReasoningText: "分析中" }]])}
         onRegenerate={vi.fn()}
-        reasoningStatusText={null}
+        getChipSeconds={() => 0}
+        chipOverrides={new Map()}
+        onToggleChip={vi.fn()}
       />,
     );
 
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-    expect(screen.getByText("分析中")).toBeInTheDocument();
-    expect(screen.getByText("STOPPED")).toBeInTheDocument();
-  });
-
-  test("aborted assistant WITH a text part does NOT render the sibling frozen indicator", () => {
-    // 9c: when partial text exists, AssistantMessage appends the inline STOPPED
-    // label itself, so MessageList must not also emit a frozen sibling.
-    render(
-      <MessageList
-        messages={[
-          { id: "u1", role: "user", parts: [{ type: "text", text: "q" }] },
-          { id: "a1", role: "assistant", parts: [{ type: "text", text: "partial" }] },
-        ]}
-        status="ready"
-        toolProgress={{}}
-        abortedTools={new Set()}
-        abortedMessages={new Map([["a1", { frozenReasoningText: "ignored" }]])}
-        onRegenerate={vi.fn()}
-        reasoningStatusText={null}
-      />,
-    );
-
-    expect(screen.queryByTestId("reasoning-indicator")).not.toBeInTheDocument();
-    expect(screen.getByTestId("text-stopped-label")).toHaveTextContent("STOPPED");
-    expect(screen.queryByText("ignored")).not.toBeInTheDocument();
+    expect(screen.getByTestId("reasoning-chip")).toBeInTheDocument();
+    expect(screen.getByTestId("reasoning-chip")).toHaveAttribute("data-state", "streaming");
   });
 });
 
@@ -104,7 +84,6 @@ describe("MessageList — errorContent slot", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
-        reasoningStatusText={null}
         errorContent={<div data-testid="error-slot-fixture">Oops</div>}
       />,
     );
@@ -121,7 +100,6 @@ describe("MessageList — errorContent slot", () => {
         toolProgress={{}}
         abortedTools={new Set()}
         onRegenerate={vi.fn()}
-        reasoningStatusText={null}
       />,
     );
 

@@ -24,6 +24,16 @@ These enums drive both test selectors and rendering logic. They are **not** deri
 
 `submitted | streaming | ready | error` — mirrors `useChat.status`.
 
+### `data-state` (on `ReasoningChip` root, testid `reasoning-chip`)
+
+`streaming | collapsed | expanded`
+
+- `streaming` — the chip's reasoning part is live (`part.state === "streaming"` on an active stream): full text in a pinned ~4-line window.
+- `collapsed` — the resting state: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived, not tracked).
+- `expanded` — user override opened a collapsed chip (`data-round` carries the chip's 1-based ordinal within its message).
+
+Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`), `reasoning-chip-body`, and `activity-placeholder` (the dead-air placeholder; copy `Thinking…` / `Still working…`).
+
 ### `data-error-source` (on `ErrorBlock` root)
 
 `pre-stream | mid-stream` — selects which variant of the block renders. Both variants currently render through the same `errorContent` slot inside `MessageList` (after the last message). The distinction drives the friendly-title source (pre-stream-http / network vs mid-stream-sse in `lib/error-messages.ts`) and the `data-testid` (`stream-error-block` vs `inline-error-block`).

@@ -1,9 +1,18 @@
 import { useMemo } from "react";
 import { Markdown } from "@/components/organisms/Markdown";
 import { ToolCard } from "@/components/organisms/ToolCard";
+import { ReasoningChip } from "@/components/molecules/ReasoningChip";
 import { Sources } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
 import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources";
+import {
+  chipKey,
+  chipStateOf,
+  isChipExpanded,
+  isReasoningPart,
+  isSuppressedChip,
+} from "@/lib/reasoning-chips";
+import type { ReasoningPartLike } from "@/lib/reasoning-chips";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus } from "@/models";
 
@@ -20,17 +29,23 @@ interface AssistantMessageProps {
   isLast: boolean;
   status?: ChatStatus;
   abortedTools: Set<string>;
-  /**
-   * True when the user halted this turn via Stop. Drives two visual changes:
-   *   - 9c: append an inline STOPPED label at the tail of the streamed text
-   *     (when text was already in flight at stop time).
-   *   - C2.a: hide the Regenerate button when there is no text body to keep
-   *     (an empty-parts aborted bubble has nothing useful to regenerate from
-   *     and the backend regenerate path errors on the missing AIMessage).
-   */
-  isAborted?: boolean;
   toolProgress: Record<string, string>;
   onRegenerate?: (messageId: string) => void;
+  /** Global stall stopwatch — degraded copy consumer for streaming chip headers. */
+  stalled?: boolean;
+  /** Frozen "Thought for Xs" lookup keyed by chipKey (client timing map). */
+  getChipSeconds?: (key: string) => number;
+  /** User expand/collapse overrides — beats the tail-only derivation. */
+  chipOverrides?: Map<string, boolean>;
+  onToggleChip?: (key: string, currentExpanded: boolean) => void;
+}
+
+function isToolPartType(part: MessagePart): boolean {
+  return (
+    part.type === "tool" ||
+    (typeof part.type === "string" && part.type.startsWith("tool-")) ||
+    part.type === "dynamic-tool"
+  );
 }
 
 export function AssistantMessage({
@@ -38,19 +53,17 @@ export function AssistantMessage({
   isLast,
   status,
   abortedTools,
-  isAborted = false,
   toolProgress,
   onRegenerate,
+  stalled = false,
+  getChipSeconds,
+  chipOverrides,
+  onToggleChip,
 }: AssistantMessageProps) {
-  // D39.b defense-in-depth: even if backend `transient: true` is broken and a
-  // data-reasoning-* part lands in `parts`, never render it in the transcript.
-  const parts = useMemo(
-    () =>
-      message.parts.filter(
-        (part) => typeof part.type !== "string" || !part.type.startsWith("data-reasoning-"),
-      ),
-    [message.parts],
-  );
+  const parts = message.parts;
+  // Reasoning parts are chips only while their turn lives in client state —
+  // the streaming chip is live only on the last message of an active stream.
+  const chatActive = (status === "streaming" || status === "submitted") && isLast;
 
   const concatenatedText = parts
     .filter((p) => p.type === "text")
@@ -81,14 +94,48 @@ export function AssistantMessage({
     return cleaned;
   }, [concatenatedText, extractedSources, isStreaming]);
 
+  // A turn aborted by Stop leaves parts frozen mid-flight: a reasoning part
+  // stuck in state "streaming" (no reasoning-end on the wire) or a tool part
+  // still in a running state once the chat is back to "ready". Derived — no
+  // per-message abort bookkeeping.
+  const isAbortedTurn =
+    status === "ready" &&
+    parts.some(
+      (p) =>
+        (isReasoningPart(p) && (p as ReasoningPartLike).state === "streaming") ||
+        (isToolPartType(p) && isRunningToolState(p.state as string)),
+    );
+
+  // 1-based reasoning ordinal per part index (chip `data-round`).
+  const chipRounds = useMemo(() => {
+    let round = 0;
+    return parts.map((p) => (isReasoningPart(p) ? ++round : 0));
+  }, [parts]);
+
   return (
     <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
-        if (
-          part.type === "tool" ||
-          (typeof part.type === "string" && part.type.startsWith("tool-")) ||
-          part.type === "dynamic-tool"
-        ) {
+        if (isReasoningPart(part)) {
+          const rPart = part as ReasoningPartLike;
+          if (isSuppressedChip(rPart)) return null;
+          const key = chipKey(message.id, i);
+          const chipState = chipStateOf(rPart, chatActive);
+          const expanded = isChipExpanded(chipState, chipOverrides?.get(key));
+          return (
+            <ReasoningChip
+              key={key}
+              chipState={chipState}
+              text={rPart.text ?? ""}
+              seconds={getChipSeconds?.(key) ?? 0}
+              stalled={stalled}
+              expanded={expanded}
+              onToggle={() => onToggleChip?.(key, expanded)}
+              round={chipRounds[i]}
+            />
+          );
+        }
+
+        if (isToolPartType(part)) {
           const toolCallId = part.toolCallId as string;
           const isAborted =
             abortedTools.has(toolCallId) && isRunningToolState(part.state as string);
@@ -108,17 +155,6 @@ export function AssistantMessage({
       {displayText && (
         <div className="pl-3">
           <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
-          {/*
-            C1 / mockup State 9c — inline STOPPED appended at the tail of the
-            partial response text. Sits inside the .pl-3 wrapper so the label
-            wraps naturally with the last text line rather than starting a new
-            visual row.
-          */}
-          {isAborted && (
-            <span className="reasoning-status-frozen-label" data-testid="text-stopped-label">
-              STOPPED
-            </span>
-          )}
         </div>
       )}
 
@@ -129,19 +165,17 @@ export function AssistantMessage({
       )}
 
       {/*
-        C2.a — Regenerate gating: hide when this turn has no text part to
-        meaningfully regenerate from. Two cases:
-          - empty parts (Stop-A / Stop-B mid-reasoning) — nothing rendered
-          - aborted with only tool parts (Stop-C) — same: no text to keep
+        C2.a — Regenerate gating: hide when this turn has no text body to
+        meaningfully regenerate from (mid-reasoning / mid-tool aborts).
         Backend regenerate validation requires the messageId to match a
-        finalized AIMessage in LangGraph state; mid-reasoning aborts often
-        leave the checkpoint without one, so the request would 422.
+        finalized AIMessage in LangGraph state; aborted turns without text
+        often leave the checkpoint without one, so the request would 422.
       */}
       {isLast &&
         status === "ready" &&
         onRegenerate &&
         message.parts.length > 0 &&
-        (!isAborted || displayText) && (
+        (!isAbortedTurn || displayText) && (
           <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />
         )}
     </article>

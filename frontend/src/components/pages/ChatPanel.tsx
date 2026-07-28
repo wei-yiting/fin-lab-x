@@ -1,13 +1,16 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
-import { useReasoningStatus } from "@/hooks/useReasoningStatus";
+import { useStallTimer } from "@/hooks/useStallTimer";
+import { useReasoningTimers } from "@/hooks/useReasoningTimers";
+import { useDeadAirPlaceholder } from "@/hooks/useDeadAirPlaceholder";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { ErrorBlock } from "@/components/organisms/ErrorBlock";
+import { ActivityPlaceholder } from "@/components/atoms/ActivityPlaceholder";
 import { LiveStatusAnnouncer, type AnnouncedEvent } from "@/components/atoms/LiveStatusAnnouncer";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
@@ -42,26 +45,16 @@ export function ChatPanel() {
     [],
   );
   const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
-  const {
-    reasoningStatusText,
-    stalled: reasoningStalled,
-    handleData: handleReasoningData,
-    hideReasoningStatus,
-    resetForNewTurn,
-  } = useReasoningStatus();
   const [lastSSEEvent, setLastSSEEvent] = useState<AnnouncedEvent | null>(null);
 
-  // AI SDK v6's onData only fires for data-* chunks (gated by isDataUIMessageChunk
-  // in node_modules/ai/dist/index.mjs:5765). Generic SSE events (start, tool-*,
-  // finish, error) reach onFinish / onError / status state instead — never here.
-  // We still forward every chunk to toolProgress + reasoning handlers because
-  // those care about data-tool-progress / data-reasoning-status which DO arrive.
+  // AI SDK v6's onData only fires for data-* chunks. Native parts
+  // (reasoning-*, text-*, tool-*) land in message.parts — the chips and
+  // placeholder derive everything from (status, messages).
   const onData = useCallback(
     (dataPart: { type: string; id?: string; data: unknown }) => {
       toolProgressHandleData(dataPart);
-      handleReasoningData(dataPart as Parameters<typeof handleReasoningData>[0]);
     },
-    [toolProgressHandleData, handleReasoningData],
+    [toolProgressHandleData],
   );
 
   const { messages, setMessages, sendMessage, regenerate, stop, status, error } = useChat({
@@ -69,48 +62,55 @@ export function ChatPanel() {
     transport,
     onData,
     onFinish: ({ isAbort, isDisconnect, isError }) => {
-      // AI SDK v6 routes the SSE `finish` chunk through onFinish, not onData.
-      // The payload tells us *why* the stream ended: a natural finish, a
-      // user-initiated stop() (isAbort), a network disconnect, or an error.
-      //
-      // Always latch finishedRef via handleReasoningData so any late
-      // reasoning chunks buffered behind the SSE close are dropped — that
-      // contract holds regardless of abort vs. natural completion.
-      handleReasoningData({ type: "finish" });
       // Only the natural-completion path should trigger the SR "Response
       // complete" announcement. The three non-normal paths each have their
       // own user-visible affordance:
-      //   - isAbort      → frozen STOPPED indicator on the aborted bubble
+      //   - isAbort      → aborted chip header (Stopped — thought for Xs)
       //   - isDisconnect → status === "error" in LiveStatusAnnouncer
       //   - isError      → status === "error" in LiveStatusAnnouncer
-      // Setting lastSSEEvent to "finish" on any of those would race the
-      // error precedence in formatStatusText and could leak a misleading
-      // "Response complete" if the status hasn't flipped to "error" yet.
       if (isAbort || isDisconnect || isError) return;
       setLastSSEEvent({ type: "finish" });
     },
-    onError: () => {
-      // AI SDK v6 routes the SSE `error` chunk through onError, not onData.
-      // Latch finishedRef so any late reasoning events are dropped. The
-      // status === "error" path in LiveStatusAnnouncer handles the announcement.
-      handleReasoningData({ type: "error" });
-    },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
-  // C1: per-message abort marker. The reasoning indicator hosts the STOPPED
-  // label and is ephemeral by design (not part of message.parts) — to keep
-  // the abort signal across the rest of the chat we capture the in-flight
-  // reasoning text at stop time and hold it in React state. Map by message
-  // id so prior aborted bubbles stay marked when later turns coexist.
-  // `frozenReasoningText` is null when the user stops before any reasoning
-  // text arrived (Stop-A or pure-tool aborts) — the renderer falls back to
-  // the text-less STOPPED label.
-  const [abortedMessages, setAbortedMessages] = useState<
-    Map<string, { frozenReasoningText: string | null }>
-  >(() => new Map());
   const lastTriggerRef = useRef<LastTrigger | null>(null);
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
+
+  // The three allowed non-derived stores of the chips system:
+  //   1. chip timing map (Thought-for-Xs measurement),
+  //   2. global stall stopwatch,
+  //   3. user expand/collapse overrides (cleared each turn — QA16).
+  const chatActive = status === "submitted" || status === "streaming";
+  const { stalled, notifyActivity } = useStallTimer(chatActive);
+  const { observe, getSeconds, reset: resetTimers } = useReasoningTimers();
+  const [chipOverrides, setChipOverrides] = useState<Map<string, boolean>>(() => new Map());
+
+  // Any stream part / delta arrival re-renders `messages` — that is the
+  // stopwatch's reset signal (C3: any part zeroes the global stall clock).
+  useEffect(() => {
+    if (chatActive) notifyActivity();
+  }, [messages, chatActive, notifyActivity]);
+
+  // Render-time observation: freezing happens on the very render triggered
+  // by the freezing event (next part arrival / status change), so chip
+  // durations are consistent before paint.
+  observe(messages, chatActive);
+
+  const placeholderState = useDeadAirPlaceholder(messages, status);
+
+  const handleToggleChip = useCallback((key: string, currentExpanded: boolean) => {
+    setChipOverrides((prev) => {
+      const next = new Map(prev);
+      next.set(key, !currentExpanded);
+      return next;
+    });
+  }, []);
+
+  const resetForNewTurn = useCallback(() => {
+    resetTimers();
+    setChipOverrides(new Map());
+  }, [resetTimers]);
 
   const handleSend = useCallback(
     (text: string) => {
@@ -127,9 +127,10 @@ export function ChatPanel() {
     (messageId: string) => {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
+      resetForNewTurn();
       regenerate({ messageId });
     },
-    [messages, regenerate],
+    [messages, regenerate, resetForNewTurn],
   );
 
   const handleStop = useCallback(() => {
@@ -146,21 +147,11 @@ export function ChatPanel() {
     if (runningIds.length) {
       setAbortedTools((prev) => new Set([...prev, ...runningIds]));
     }
-    // Mark this message as aborted and capture the in-flight reasoning text
-    // so MessageList can render a frozen indicator with STOPPED for it.
-    if (lastMsg && lastMsg.role === "assistant") {
-      const captured = reasoningStatusText;
-      setAbortedMessages((prev) => {
-        const next = new Map(prev);
-        next.set(lastMsg.id, { frozenReasoningText: captured });
-        return next;
-      });
-    }
-    // hide (not clear) — clearReasoningStatus would latch clearedRef and
-    // prevent the next turn from showing reasoning at all.
-    hideReasoningStatus();
+    // The aborted chip needs no capture here: the reasoning part stays in
+    // message.parts with state "streaming" (no reasoning-end on the wire),
+    // and the header derives "Stopped — thought for Xs" from that shape.
     stop();
-  }, [messages, stop, hideReasoningStatus, reasoningStatusText]);
+  }, [messages, stop]);
 
   const handleClearSession = useCallback(() => {
     stop();
@@ -169,16 +160,12 @@ export function ChatPanel() {
     resetForNewTurn();
     setLastSSEEvent(null);
     setAbortedTools(new Set());
-    setAbortedMessages(new Map());
     lastTriggerRef.current = null;
   }, [stop, clearProgress, resetForNewTurn]);
 
   const handleRetry = useCallback(() => {
     const last = lastTriggerRef.current;
     if (!last) return;
-    // Reset reasoning state so finishedRef (latched by the prior `error` /
-    // `finish`) does not block data-reasoning-status events on the retried
-    // turn, and so LiveStatusAnnouncer drops the stale finish announcement.
     resetForNewTurn();
     setLastSSEEvent(null);
     // Two failure shapes end up here:
@@ -203,43 +190,6 @@ export function ChatPanel() {
     setMessages((msgs) => msgs.slice(0, -1));
     sendMessage({ text: last.userText });
   }, [messages, regenerate, setMessages, sendMessage, resetForNewTurn]);
-
-  // Bug B / E auto-hide: AI SDK v6 does not route generic SSE events
-  // (text-start, tool-input-available) through onData, so the reasoning
-  // hook cannot clear its text on those events directly. Watch the
-  // messages array instead and clear when a new visible part lands.
-  //
-  // Trigger condition is "parts.length increased", NOT "last part is
-  // text/tool". Tool state transitions (input-streaming → output-available)
-  // and the post-tool synthesis gap leave parts.length unchanged, so they
-  // must NOT wipe — otherwise the synthesizing reasoning chunks (which
-  // arrive while last part is a completed tool) get clobbered the moment
-  // they set text and trigger a re-render.
-  //
-  // Use a ref to compare against the previous render: when assistant
-  // messageId changes, reset count to 0 so the first real part on a new
-  // turn correctly counts as "new". layoutEffect (not effect) so the
-  // clear happens before paint and the user never sees stale reasoning
-  // text alongside a freshly streamed text part.
-  const prevAssistantRef = useRef<{ id: string | null; partsCount: number }>({
-    id: null,
-    partsCount: 0,
-  });
-  useLayoutEffect(() => {
-    const lastMsg = messages.at(-1);
-    if (!lastMsg || lastMsg.role !== "assistant") {
-      prevAssistantRef.current = { id: null, partsCount: 0 };
-      return;
-    }
-    const prev = prevAssistantRef.current;
-    const sameMessage = prev.id === lastMsg.id;
-    const prevCount = sameMessage ? prev.partsCount : 0;
-    const currCount = (lastMsg.parts as PartLike[]).length;
-    prevAssistantRef.current = { id: lastMsg.id, partsCount: currCount };
-    if (currCount > prevCount) {
-      hideReasoningStatus();
-    }
-  }, [messages, hideReasoningStatus]);
 
   // When useChat enters error state, mark any running tools on the last assistant message as aborted.
   // AI SDK v6 routes SSE `error` chunks to onError/status=error, not message.parts, so we cannot
@@ -303,10 +253,14 @@ export function ChatPanel() {
         status={status as ChatStatus}
         toolProgress={toolProgress}
         abortedTools={abortedTools}
-        abortedMessages={abortedMessages}
         onRegenerate={handleRegenerate}
-        reasoningStatusText={reasoningStatusText}
-        reasoningStalled={reasoningStalled}
+        placeholder={
+          placeholderState === "waiting" ? <ActivityPlaceholder stalled={stalled} /> : undefined
+        }
+        stalled={stalled}
+        getChipSeconds={getSeconds}
+        chipOverrides={chipOverrides}
+        onToggleChip={handleToggleChip}
         emptyContent={
           !showError ? (
             <EmptyState

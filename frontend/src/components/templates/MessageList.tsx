@@ -1,11 +1,6 @@
-import { Fragment, useRef, useImperativeHandle, forwardRef, type ReactNode } from "react";
+import { useRef, useImperativeHandle, forwardRef, type ReactNode } from "react";
 import { UserMessage } from "@/components/atoms/UserMessage";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
-import { ReasoningIndicator } from "@/components/atoms/ReasoningIndicator";
-import {
-  shouldShowReasoningIndicator,
-  resolveReasoningDisplayText,
-} from "@/lib/reasoning-indicator-logic";
 import { useFollowBottom } from "@/hooks/useFollowBottom";
 import type { ChatStatus } from "@/models";
 
@@ -20,16 +15,14 @@ interface MessageListProps {
   status: ChatStatus;
   toolProgress: Record<string, string>;
   abortedTools: Set<string>;
-  /**
-   * Messages whose turn was halted by user Stop. The map carries the
-   * frozen reasoning text captured at stop time so the persistent
-   * STOPPED label can render with the last visible reasoning sentence
-   * (or just STOPPED when no reasoning had streamed yet).
-   */
-  abortedMessages?: Map<string, { frozenReasoningText: string | null }>;
   onRegenerate: (id: string) => void;
-  reasoningStatusText: string | null;
-  reasoningStalled?: boolean;
+  /** Rendered below the transcript in the dead-air windows (F6′ placeholder). */
+  placeholder?: ReactNode;
+  /** Chip context — threaded to AssistantMessage (see its prop docs). */
+  stalled?: boolean;
+  getChipSeconds?: (key: string) => number;
+  chipOverrides?: Map<string, boolean>;
+  onToggleChip?: (key: string, currentExpanded: boolean) => void;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
 }
@@ -44,10 +37,12 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     status,
     toolProgress,
     abortedTools,
-    abortedMessages,
     onRegenerate,
-    reasoningStatusText,
-    reasoningStalled = false,
+    placeholder,
+    stalled = false,
+    getChipSeconds,
+    chipOverrides,
+    onToggleChip,
     emptyContent,
     errorContent,
   },
@@ -61,16 +56,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
 
   useImperativeHandle(ref, () => ({ forceFollowBottom }), [forceFollowBottom]);
 
-  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-  const reasoningArgs = {
-    status,
-    lastMessage: lastMessage as Parameters<typeof shouldShowReasoningIndicator>[0]["lastMessage"],
-    reasoningStatusText,
-  };
-  const showReasoning = shouldShowReasoningIndicator(reasoningArgs);
-  const reasoningDisplayText = resolveReasoningDisplayText(reasoningArgs);
-
-  if (messages.length === 0 && !showReasoning) {
+  if (messages.length === 0 && !placeholder) {
     return (
       <div
         data-testid="message-list"
@@ -105,49 +91,26 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             }
             if (msg.role === "assistant") {
               const isLast = i === messages.length - 1;
-              const abortInfo = abortedMessages?.get(msg.id);
-              const isAborted = abortInfo !== undefined;
-              const hasTextPart = msg.parts.some((p) => p.type === "text");
               return (
-                // Fragment keeps the frozen indicator a sibling of AssistantMessage
-                // at the parent flex container's gap-4 level. Wrapping in a <div>
-                // would absorb the spacing and visually glue STOPPED to the
-                // preceding tool card (Stop-B regression).
-                <Fragment key={msg.id}>
-                  <AssistantMessage
-                    message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
-                    isLast={isLast}
-                    status={status}
-                    abortedTools={abortedTools}
-                    isAborted={isAborted}
-                    toolProgress={toolProgress}
-                    onRegenerate={onRegenerate}
-                  />
-                  {/*
-                    Per-message frozen indicator (C1 / mockup State 9 + 9a).
-                    Only render when there is no text part — for 9c the STOPPED
-                    label is appended inline at the end of the partial text by
-                    AssistantMessage itself (closer to where it belongs visually).
-                    `frozenReasoningText` may be null (Stop-A pre-response or
-                    pure-tool abort), in which case the indicator renders the
-                    text-less STOPPED label.
-                  */}
-                  {isAborted && !hasTextPart && (
-                    <ReasoningIndicator text={abortInfo.frozenReasoningText} state="frozen" />
-                  )}
-                </Fragment>
+                <AssistantMessage
+                  key={msg.id}
+                  message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
+                  isLast={isLast}
+                  status={status}
+                  abortedTools={abortedTools}
+                  toolProgress={toolProgress}
+                  onRegenerate={onRegenerate}
+                  stalled={stalled}
+                  getChipSeconds={getChipSeconds}
+                  chipOverrides={chipOverrides}
+                  onToggleChip={onToggleChip}
+                />
               );
             }
             return null;
           })}
           {errorContent}
-          {showReasoning && (
-            <ReasoningIndicator
-              text={reasoningDisplayText}
-              state={status === "error" ? "frozen" : "streaming"}
-              stalled={reasoningStalled}
-            />
-          )}
+          {placeholder}
         </div>
       </div>
     </div>

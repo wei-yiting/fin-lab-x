@@ -19,6 +19,7 @@ import regenerateFailThenSuccess from "./regenerate-fail-then-success";
 import xssInlineBodyLink from "./xss-inline-body-link";
 import gatewaySseError from "./gateway-sse-error";
 import threeParallelToolsOneFailure from "./three-parallel-tools-one-failure";
+import longReasoningThenText from "./long-reasoning-then-text";
 
 export const fixtures: Record<string, SSEFixture> = {
   "xss-javascript-url": xssJavascriptUrl,
@@ -33,6 +34,7 @@ export const fixtures: Record<string, SSEFixture> = {
   "long-text-stream": longTextStream,
   "mid-stream-error-tool-running": midStreamErrorToolRunning,
   "slow-start-stream": slowStartStream,
+  "long-reasoning-then-text": longReasoningThenText,
   "pre-stream-500-then-success": preStream500ThenSuccess,
   "scroll-overflow": scrollOverflow,
   "happy-citation": happyCitation,

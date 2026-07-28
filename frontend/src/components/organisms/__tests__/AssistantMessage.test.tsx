@@ -227,44 +227,29 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
   );
 });
 
-describe("AssistantMessage — aborted message (Stop states)", () => {
-  test("aborted with text body appends inline STOPPED label after the text", () => {
-    const message = {
-      id: "a1",
-      role: "assistant" as const,
-      parts: [{ type: "text" as const, text: "partial answer" }],
-    };
-    render(
-      <AssistantMessage
-        message={message}
-        isLast={true}
-        status="ready"
-        isAborted={true}
-        abortedTools={new Set()}
-        toolProgress={{}}
-      />,
-    );
-    expect(screen.getByText(/partial answer/)).toBeInTheDocument();
-    expect(screen.getByTestId("text-stopped-label")).toHaveTextContent("STOPPED");
-  });
-
+describe("AssistantMessage — aborted turn (derived from part shapes)", () => {
   test("aborted WITH text keeps Regenerate (there is something to regenerate from)", () => {
+    // Aborted turn shape: a reasoning part stuck in state "streaming" at
+    // status "ready" (no reasoning-end reached the wire).
     const message = {
       id: "a1",
       role: "assistant" as const,
-      parts: [{ type: "text" as const, text: "partial answer" }],
+      parts: [
+        { type: "reasoning" as const, text: "half a thought", state: "streaming" },
+        { type: "text" as const, text: "partial answer" },
+      ],
     };
     render(
       <AssistantMessage
         message={message}
         isLast={true}
         status="ready"
-        isAborted={true}
         abortedTools={new Set()}
         toolProgress={{}}
         onRegenerate={vi.fn()}
       />,
     );
+    expect(screen.getByText(/partial answer/)).toBeInTheDocument();
     expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
   });
 
@@ -289,7 +274,6 @@ describe("AssistantMessage — aborted message (Stop states)", () => {
         message={message}
         isLast={true}
         status="ready"
-        isAborted={true}
         abortedTools={new Set(["tc-1"])}
         toolProgress={{}}
         onRegenerate={vi.fn()}
@@ -299,51 +283,135 @@ describe("AssistantMessage — aborted message (Stop states)", () => {
   });
 });
 
-describe("AssistantMessage — D39.b data-reasoning-* filter", () => {
-  test("filters data-reasoning-status parts from rendered transcript", () => {
+describe("AssistantMessage — reasoning chips (F6′)", () => {
+  const chipProps = {
+    isLast: true,
+    abortedTools: new Set<string>(),
+    toolProgress: {},
+    getChipSeconds: () => 3,
+    chipOverrides: new Map<string, boolean>(),
+    onToggleChip: vi.fn(),
+  };
+
+  test("streaming reasoning part renders an expanded streaming chip with its text", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
-      parts: [
-        { type: "text" as const, text: "hello" },
-        {
-          type: "data-reasoning-status" as const,
-          data: { text: "should hide" },
-        },
-      ],
+      parts: [{ type: "reasoning" as const, text: "分析 10-K 中", state: "streaming" }],
     };
-    render(
-      <AssistantMessage
-        message={message}
-        isLast={false}
-        abortedTools={new Set()}
-        toolProgress={{}}
-      />,
-    );
-    expect(screen.getByText(/hello/)).toBeInTheDocument();
-    expect(screen.queryByText(/should hide/)).not.toBeInTheDocument();
+    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "streaming");
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("分析 10-K 中");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thinking…");
   });
 
-  test("filters data-reasoning-* prefixed parts (defense-in-depth)", () => {
+  test("done reasoning part collapses to Thought for Xs", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
       parts: [
-        { type: "text" as const, text: "before" },
-        { type: "data-reasoning-summary", data: { text: "leaked summary" } },
-        { type: "text" as const, text: " after" },
+        { type: "reasoning" as const, text: "done thinking", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "collapsed");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thought for 3s");
+    expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
+  });
+
+  test("aborted half-chip keeps text behind a Stopped header (S-chip-07)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "reasoning" as const, text: "half a thought", state: "streaming" }],
+    };
+    render(<AssistantMessage message={message} status="ready" {...chipProps} />);
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "collapsed");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
+      "Stopped — thought for 3s",
+    );
+  });
+
+  test("zero-delta reasoning part renders no chip (S-chip-08 ghost suppression)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
+  });
+
+  test("whitespace-streamed chip is kept, not removed after the fact (S-chip-08)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "reasoning" as const, text: "  \n ", state: "done" }],
+    };
+    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    expect(screen.getByTestId("reasoning-chip")).toBeInTheDocument();
+  });
+
+  test("chips interleave with tool cards in part order (S-chip-06)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "round 1", state: "done" },
+        {
+          type: "tool" as const,
+          state: "output-available",
+          toolCallId: "tc-1",
+          toolName: "list_sec_sections",
+          input: {},
+          output: {},
+        },
+        { type: "reasoning" as const, text: "round 2", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    const article = screen.getByTestId("assistant-message");
+    const rendered = Array.from(
+      article.querySelectorAll("[data-testid='reasoning-chip'], [data-testid='tool-card']"),
+    );
+    expect(rendered.map((el) => el.getAttribute("data-testid"))).toEqual([
+      "reasoning-chip",
+      "tool-card",
+      "reasoning-chip",
+    ]);
+    // data-round is the chip's 1-based ordinal within the message.
+    expect(rendered[0]).toHaveAttribute("data-round", "1");
+    expect(rendered[2]).toHaveAttribute("data-round", "2");
+  });
+
+  test("user override expands a collapsed chip and shows its full text (S-chip-05)", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "full reasoning text", state: "done" },
+        { type: "text" as const, text: "answer" },
       ],
     };
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
-        abortedTools={new Set()}
-        toolProgress={{}}
+        status="streaming"
+        {...chipProps}
+        chipOverrides={new Map([["a1:0", true]])}
       />,
     );
-    expect(screen.getByText(/before after/)).toBeInTheDocument();
-    expect(screen.queryByText(/leaked summary/)).not.toBeInTheDocument();
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "expanded");
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("full reasoning text");
   });
 });
 

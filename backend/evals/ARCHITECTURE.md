@@ -11,11 +11,7 @@ graph TB
     subgraph Scenarios["scenarios/"]
         CSV["dataset.csv<br/>test case data"]
         Config["eval_spec.yaml<br/>mapping + scorer refs"]
-    end
-
-    subgraph Scorers["scorers/"]
-        Lang["language_policy_scorer.py<br/>cjk_ratio, tool_match"]
-        Judge["(future) llm_judge.py<br/>generic LLM-as-judge"]
+        Scorers["scorer.py<br/>scoring functions"]
     end
 
     Runner -->|discovers| Scenarios

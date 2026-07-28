@@ -9,13 +9,13 @@ from backend.evals.eval_spec_schema import ScorerConfig
 
 def test_resolve_scorers_resolves_programmatic_dotpath() -> None:
     from backend.evals.scorer_registry import resolve_scorers
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     scorers = resolve_scorers(
         [
             ScorerConfig(
                 name="tool_arg_no_cjk",
-                function="backend.evals.scorers.language_policy_scorer.tool_arg_no_cjk",
+                function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
             )
         ]
     )
@@ -29,10 +29,12 @@ def test_resolve_scorers_raises_import_error_for_missing_module() -> None:
 
     scorer_config = ScorerConfig.model_construct(
         name="missing_module",
-        function="backend.evals.scorers.missing_module.tool_arg_no_cjk",
+        function="backend.evals.scenarios.missing_scenario.scorer.tool_arg_no_cjk",
     )
 
-    with pytest.raises(ImportError, match="backend\\.evals\\.scorers\\.missing_module"):
+    with pytest.raises(
+        ImportError, match="backend\\.evals\\.scenarios\\.missing_scenario\\.scorer"
+    ):
         resolve_scorers([scorer_config])
 
 
@@ -41,7 +43,7 @@ def test_resolve_scorers_raises_import_error_for_missing_function() -> None:
 
     scorer_config = ScorerConfig.model_construct(
         name="missing_function",
-        function="backend.evals.scorers.language_policy_scorer.missing_function",
+        function="backend.evals.scenarios.language_policy.scorer.missing_function",
     )
 
     with pytest.raises(ImportError, match="missing_function"):
@@ -110,7 +112,7 @@ def test_resolve_scorers_rejects_llm_judge_without_rubric() -> None:
 
 
 def test_tool_arg_no_cjk_passes_for_english_arguments() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -130,7 +132,7 @@ def test_tool_arg_no_cjk_passes_for_english_arguments() -> None:
 
 
 def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -150,7 +152,7 @@ def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:
 
 
 def test_tool_arg_no_cjk_ignores_non_matching_tool_outputs() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -169,7 +171,7 @@ def test_tool_arg_no_cjk_ignores_non_matching_tool_outputs() -> None:
 
 
 def test_tool_arg_no_cjk_passes_when_expected_tool_is_missing() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -198,7 +200,7 @@ def test_tool_arg_no_cjk_validates_ticker_by_regex(
     ticker: str,
     expected_score: float,
 ) -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -217,7 +219,7 @@ def test_tool_arg_no_cjk_validates_ticker_by_regex(
 
 
 def test_tool_arg_no_cjk_skips_when_expected_flag_is_missing() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -236,7 +238,7 @@ def test_tool_arg_no_cjk_skips_when_expected_flag_is_missing() -> None:
 
 
 def test_tool_arg_no_cjk_skips_when_expected_flag_is_false() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -255,7 +257,7 @@ def test_tool_arg_no_cjk_skips_when_expected_flag_is_false() -> None:
 
 
 def test_response_language_passes_when_cjk_ratio_in_range() -> None:
-    from backend.evals.scorers.language_policy_scorer import response_language
+    from backend.evals.scenarios.language_policy.scorer import response_language
 
     result = response_language(
         {"response": "微軟近期表現穩定，整體趨勢偏正向。"},
@@ -268,7 +270,7 @@ def test_response_language_passes_when_cjk_ratio_in_range() -> None:
 
 
 def test_response_language_fails_when_cjk_ratio_below_min() -> None:
-    from backend.evals.scorers.language_policy_scorer import response_language
+    from backend.evals.scenarios.language_policy.scorer import response_language
 
     result = response_language(
         {"response": "Microsoft has been doing well lately."},

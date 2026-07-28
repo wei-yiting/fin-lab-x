@@ -332,7 +332,7 @@ class TestRunScenario:
             "scorers": [
                 {
                     "name": "test_scorer",
-                    "function": "backend.evals.scorers.language_policy_scorer.tool_arg_no_cjk",
+                    "function": "backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
                 }
             ],
         }
@@ -694,7 +694,7 @@ class TestWrapScorer:
         """V-5.1 regression: real language_policy scorers must not crash when
         Braintrust passes ``metadata``."""
         from backend.evals.eval_runner import _wrap_scorer
-        from backend.evals.scorers.language_policy_scorer import (
+        from backend.evals.scenarios.language_policy.scorer import (
             response_language,
             tool_arg_no_cjk,
         )
@@ -858,7 +858,7 @@ class TestRunLocalEvalInputForwarding:
             _run_local_eval,
             _wrap_scorer,
         )
-        from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+        from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
         wrapped = _wrap_scorer(tool_arg_no_cjk, "tool_arg_no_cjk")
 

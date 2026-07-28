@@ -77,6 +77,6 @@ Exit codes:
 
 When to run:
 
-- After deploying a change touching the reasoning observability path (Langfuse callback, segmenter, abort cleanup)
+- After deploying a change touching the reasoning observability path (Langfuse callback, abort cleanup)
 - When investigating a suspect trace surfaced by manual eval or user report
 - As a one-shot verification step inside a BDD scenario script

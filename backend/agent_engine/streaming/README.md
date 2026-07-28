@@ -37,7 +37,7 @@ LangChain AIMessageChunk (with reasoning content_blocks)
 
 Part boundaries (when the open part closes):
 
-- a `text` or `tool_call_chunk` block arrives (provider moved on),
+- a `text` block arrives (provider moved on to answer text),
 - the LLM call changes (`chunk.id` transition — each round of a multi-round
   tool loop gets its own part),
 - a second `reasoning` block appears in the same chunk (OpenAI multi-summary
@@ -45,6 +45,12 @@ Part boundaries (when the open part closes):
 - `finalize()` runs (natural finish and the error path both close the open
   part, so the wire always carries a complete `start/delta*/end` — except on
   abort, which is wire-silent by design).
+
+A same-round `tool_call_chunk` block does **not** close the reasoning part
+(ratified S-chip-06): a provider may emit tool-call args before
+`reasoning-end` (e.g. Gemini), and the chip must stay open so the tool card
+renders below it, preserving arrival order. The part still closes via the
+boundaries above.
 
 Part `id`s (`reasoning-{n}`) are **unique across the whole turn**, not per
 LLM call/step: the AI SDK resets its active-reasoning map on `finish-step`

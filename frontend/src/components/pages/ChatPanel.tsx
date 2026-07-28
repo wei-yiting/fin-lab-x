@@ -121,10 +121,15 @@ export function ChatPanel() {
     });
   }, []);
 
+  // Clears only the expand/collapse override map. The chip timing map is
+  // deliberately NOT touched here: it's keyed by chipKey(messageId, partIndex),
+  // so entries for already-completed, still-rendered messages are never
+  // re-read once a new turn's message ids are in play — wiping the whole
+  // map on every send/regenerate/retry corrupted already-displayed
+  // "Thought for Xs" durations on unrelated past turns (DEV-106 review fix).
   const resetForNewTurn = useCallback(() => {
-    resetTimers();
     setChipOverrides(new Map());
-  }, [resetTimers]);
+  }, []);
 
   const handleSend = useCallback(
     (text: string) => {
@@ -171,11 +176,14 @@ export function ChatPanel() {
     stop();
     setChatId(crypto.randomUUID());
     clearProgress();
+    // The only call site where a full timing-map wipe is correct: the whole
+    // transcript disappears with the new chatId, so no stale entry can leak.
+    resetTimers();
     resetForNewTurn();
     setLastSSEEvent(null);
     setAbortedTools(new Set());
     lastTriggerRef.current = null;
-  }, [stop, clearProgress, resetForNewTurn]);
+  }, [stop, clearProgress, resetTimers, resetForNewTurn]);
 
   const handleRetry = useCallback(() => {
     const last = lastTriggerRef.current;

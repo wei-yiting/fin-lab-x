@@ -102,7 +102,7 @@ describe("useReasoningTimers — Thought-for-Xs measurement (decision 2)", () =>
     expect(result.current.getSeconds(chipKey("a1", 0))).toBe(7);
   });
 
-  test("reset clears all timings (regenerate / new turn — QA16 companion)", () => {
+  test("reset clears all timings (full-session clear only — handleClearSession)", () => {
     const { result } = renderHook(() => useReasoningTimers());
     act(() => {
       result.current.observe(
@@ -123,5 +123,37 @@ describe("useReasoningTimers — Thought-for-Xs measurement (decision 2)", () =>
       );
     });
     expect(result.current.getSeconds(chipKey("a1", 0))).toBe(0);
+  });
+
+  test("observing an unrelated new turn's messages does not disturb an already-frozen past chip (DEV-106 review fix)", () => {
+    const { result } = renderHook(() => useReasoningTimers());
+    const pastReasoning = { type: "reasoning", text: "past thought", state: "done" };
+    const pastText = { type: "text", text: "past answer" };
+
+    // Turn 1 completes and freezes at 4s.
+    act(() => {
+      result.current.observe([assistantMsg("a1", [pastReasoning])], true);
+    });
+    vi.setSystemTime(new Date("2026-07-28T10:00:04Z"));
+    act(() => {
+      result.current.observe([assistantMsg("a1", [pastReasoning, pastText])], true);
+    });
+    expect(result.current.getSeconds(chipKey("a1", 0))).toBe(4);
+
+    // Turn 2 starts (no reset() call — ChatPanel must not clear the whole
+    // map on ordinary send/regenerate/retry). The still-rendered turn-1
+    // message is observed again alongside the new turn's message.
+    vi.setSystemTime(new Date("2026-07-28T10:00:30Z"));
+    const newReasoning = { type: "reasoning", text: "new thought", state: "streaming" };
+    act(() => {
+      result.current.observe(
+        [assistantMsg("a1", [pastReasoning, pastText]), assistantMsg("a2", [newReasoning])],
+        true,
+      );
+    });
+
+    // The past chip's frozen duration must be exactly what it was — not
+    // reset to 0 by the new turn's observation pass.
+    expect(result.current.getSeconds(chipKey("a1", 0))).toBe(4);
   });
 });

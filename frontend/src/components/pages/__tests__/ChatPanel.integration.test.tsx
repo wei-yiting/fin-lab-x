@@ -866,6 +866,12 @@ describe("ChatPanel integration — abort-then-resend coexistence (J-pres-01)", 
       },
       { timeout: 5000 },
     );
+    // Real-timer test: hold a beat before stopping so the frozen duration is
+    // guaranteed to round to a non-zero number of seconds. Without this, the
+    // wiped-map regression (re-freezing at 0s) can coincidentally match a
+    // fast first turn's own near-zero duration and the assertion below would
+    // not discriminate a broken fix from a correct one.
+    await new Promise((r) => setTimeout(r, 1200));
     await user.click(screen.getByTestId("composer-stop-btn"));
     await waitFor(
       () => {
@@ -873,6 +879,14 @@ describe("ChatPanel integration — abort-then-resend coexistence (J-pres-01)", 
       },
       { timeout: 5000 },
     );
+    // Pin the exact displayed duration before the second turn starts — the
+    // regression this locks (DEV-106 review fix) is the timing map being
+    // wiped wholesale on handleSend, which re-freezes this already-completed
+    // chip at 0s. A loose /\d+s/ regex would still pass on "0s", so capture
+    // the literal text and require an exact match after the second send.
+    const firstHeaderTextBeforeSecondTurn =
+      screen.getByTestId("reasoning-chip-header").textContent ?? "";
+    expect(firstHeaderTextBeforeSecondTurn).toMatch(/Stopped — thought for [1-9]\d*s/);
 
     await user.type(screen.getByTestId("composer-textarea"), "second");
     await user.click(screen.getByTestId("composer-send-btn"));
@@ -892,6 +906,10 @@ describe("ChatPanel integration — abort-then-resend coexistence (J-pres-01)", 
       .map((el) => el.textContent ?? "");
     expect(headers.some((h) => /Stopped — thought for \d+s/.test(h))).toBe(true);
     expect(headers.some((h) => /^Thought for \d+s/.test(h))).toBe(true);
+    // The first chip's duration must be byte-for-byte unchanged by the
+    // second turn's send — this is the exact assertion the old loose regex
+    // could not catch (it also matches "Stopped — thought for 0s").
+    expect(headers).toContain(firstHeaderTextBeforeSecondTurn);
     // No degraded copy leaked into the resent turn (stopwatch reset).
     expect(screen.queryByText("Still working…")).not.toBeInTheDocument();
   }, 20000);

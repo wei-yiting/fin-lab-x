@@ -3,7 +3,7 @@
 Usage:
     python -m backend.evals.eval_runner language_policy
     python -m backend.evals.eval_runner --all
-    python -m backend.evals.eval_runner language_policy --local-only
+    python -m backend.evals.eval_runner language_policy --upload
     python -m backend.evals.eval_runner language_policy --output-dir ./results
 """
 
@@ -16,15 +16,18 @@ import json
 import logging
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from braintrust import Eval, EvalCase
 from dotenv import load_dotenv
 
 from backend.evals.dataset_loader import load_dataset, load_raw_csv_rows
 from backend.evals.eval_spec_schema import (
+    BraintrustConfig,
     load_braintrust_config,
     load_scenario_config,
 )
@@ -38,21 +41,16 @@ BRAINTRUST_CONFIG_PATH = Path(__file__).parent / "braintrust_config.yaml"
 
 _VALID_SCENARIO_DIR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 
-
-class _SuppressContextDetach(logging.Filter):
-    """Filter out 'Failed to detach context' noise from OpenTelemetry.
-
-    asyncio.run() creates a fresh ContextVar scope, so OTel tokens created
-    inside cannot be detached after the loop exits.  This is harmless — traces
-    are already flushed — but produces noisy tracebacks on stderr.
-    """
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        return "Failed to detach context" not in record.getMessage()
-
+# Braintrust's default is unbounded concurrency (every dataset row at once);
+# the official KB ("Controlling Concurrency to Prevent Resource Exhaustion")
+# recommends 10-20, starting with 10, to avoid provider rate limits.
+MAX_CONCURRENCY = 10
 
 logger = logging.getLogger(__name__)
 
+# CSV sentinels: written only at the write_result_csv layer. In memory, scores
+# and outputs stay in the SDK's own vocabulary (a number, None, or a raised
+# exception) all the way through Eval().
 _ERROR_MARKER = "ERROR"
 _SKIPPED_MARKER = "SKIPPED"
 
@@ -108,75 +106,65 @@ def _flatten_output(output: Any) -> dict[str, str]:
     return {"output": str(output)}
 
 
-_TIMEOUT_MARKER = "TIMEOUT"
+def _git_sha() -> str:
+    """Resolve the current commit for the CSV provenance column.
+
+    Appends ``-dirty`` when the working tree has uncommitted changes (the
+    ``git describe --dirty`` naming convention), so a permanent result row
+    honestly flags itself as not exactly replayable. Falls back to
+    ``"unknown"`` when git is unavailable — a failed provenance lookup must
+    never block a run.
+    """
+
+    def run_git(*args: str, cwd: Path) -> str:
+        return subprocess.run(
+            ["git", *args], capture_output=True, text=True, check=True, cwd=cwd
+        ).stdout.strip()
+
+    try:
+        cwd = Path(__file__).parent
+        sha = run_git("rev-parse", "HEAD", cwd=cwd)
+        dirty = run_git("status", "--porcelain", cwd=cwd)
+        return f"{sha}-dirty" if dirty else sha
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
 
 
 def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
-    """Wrap the task function to catch exceptions, None returns, and timeouts.
+    """Wrap the task function with a per-task timeout (async tasks only).
 
-    Preserves async task functions so Braintrust Eval() can await them
-    directly in the same event loop (avoiding thread + asyncio.run overhead).
+    Always returns an async callable so Braintrust's ``Eval()`` awaits it
+    directly; a sync ``task_fn`` runs via ``asyncio.to_thread``. Exceptions
+    and a ``None`` return propagate unchanged — Braintrust's own per-row
+    handling turns them into ``EvalResult.error``/``exc_info`` without
+    aborting the run. A per-task timeout is needed here because
+    ``Eval(timeout=...)`` bounds the whole run, not a single task.
+
+    The per-task timeout is only supported for async task functions:
+    ``asyncio.wait_for`` can cancel a coroutine, but a sync function running
+    in a thread cannot be interrupted — the timeout would fire without
+    actually stopping execution. Combining a sync ``task_fn`` with a timeout
+    therefore raises ``ValueError`` at wrap time.
     """
+    is_async = asyncio.iscoroutinefunction(task_fn)
+    if not is_async and timeout is not None:
+        raise ValueError(
+            "Per-task timeout is not supported for sync task functions — "
+            "Python threads cannot be interrupted, so the timeout could not "
+            "actually stop execution. Make the task async (async def) to use "
+            "task.timeout."
+        )
 
-    if asyncio.iscoroutinefunction(task_fn):
-
-        async def wrapped(input: Any) -> Any:
-            try:
-                if timeout is not None:
-                    result = await asyncio.wait_for(task_fn(input), timeout=timeout)
-                else:
-                    result = await task_fn(input)
-            except asyncio.TimeoutError:
-                logger.error("Task function timed out after %.1f seconds", timeout)
-                return _ERROR_MARKER
-            except Exception:
-                logger.error("Task function raised an exception", exc_info=True)
-                return _ERROR_MARKER
-            if result is None:
-                logger.error(
-                    "Task function returned None. "
-                    "Ensure the function has a return statement."
-                )
-                return _ERROR_MARKER
-            return result
-
-        return wrapped
-
-    def wrapped(input: Any) -> Any:
+    async def wrapped(input: Any) -> Any:
+        coro = task_fn(input) if is_async else asyncio.to_thread(task_fn, input)
         if timeout is not None:
-            import queue
-            import threading
-
-            result_q: queue.Queue[tuple[str, Any]] = queue.Queue()
-
-            def _run() -> None:
-                try:
-                    result_q.put(("ok", task_fn(input)))
-                except Exception as exc:
-                    result_q.put(("error", exc))
-
-            t = threading.Thread(target=_run, daemon=True)
-            t.start()
-            try:
-                status, value = result_q.get(timeout=timeout)
-            except queue.Empty:
-                logger.error("Task function timed out after %.1f seconds", timeout)
-                return _ERROR_MARKER
-            if status == "error":
-                logger.error("Task function raised an exception: %s", value)
-                return _ERROR_MARKER
-            result = value
+            result = await asyncio.wait_for(coro, timeout=timeout)
         else:
-            try:
-                result = task_fn(input)
-            except Exception:
-                logger.error("Task function raised an exception", exc_info=True)
-                return _ERROR_MARKER
+            result = await coro
         if result is None:
-            logger.error(
+            raise ValueError(
                 "Task function returned None. Ensure the function has a return statement."
             )
-            return _ERROR_MARKER
         return result
 
     return wrapped
@@ -213,43 +201,24 @@ def _filter_kwargs_for(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
 
 
 def _wrap_scorer(scorer_fn: Any, scorer_name: str) -> Any:
-    """Wrap a scorer to isolate failures from other scorers."""
+    """Wrap a scorer to filter kwargs it doesn't declare.
+
+    Exceptions propagate to Braintrust's native per-scorer error handling:
+    caught per-scorer, recorded in ``metadata["scorer_errors"]`` on the root
+    span, the run continues, and that scorer's score is simply absent (not
+    zero) for the row. A deliberate skip stays a plain ``None`` return, which
+    Braintrust already treats as its native no-score signal.
+    """
 
     def wrapped(*, output: Any, expected: Any, **kwargs: Any) -> Any:
-        if output == _ERROR_MARKER:
-            return None
-        try:
-            filtered = _filter_kwargs_for(scorer_fn, kwargs)
-            result = scorer_fn(output=output, expected=expected, **filtered)
-            if result is None:
-                return _SKIPPED_MARKER
-            if hasattr(result, "name"):
-                result.name = scorer_name
-            return result
-        except Exception:
-            logger.warning(
-                "Scorer '%s' raised an exception", scorer_name, exc_info=True
-            )
-            return None
+        filtered = _filter_kwargs_for(scorer_fn, kwargs)
+        result = scorer_fn(output=output, expected=expected, **filtered)
+        if hasattr(result, "name"):
+            result.name = scorer_name
+        return result
 
     wrapped.__name__ = scorer_name
     return wrapped
-
-
-def _to_braintrust_scorer(wrapped: Any) -> Any:
-    """Adapt a locally-wrapped scorer for Braintrust's ``Eval(scores=...)``.
-
-    Braintrust has no skip sentinel — its native "no score" signal is ``None``.
-    Passing the local ``_SKIPPED_MARKER`` string through would surface as a
-    scorer error, so we map it to ``None`` at the platform boundary.
-    """
-
-    def bt_scorer(*, output: Any, expected: Any, **kwargs: Any) -> Any:
-        result = wrapped(output=output, expected=expected, **kwargs)
-        return None if result == _SKIPPED_MARKER else result
-
-    bt_scorer.__name__ = getattr(wrapped, "__name__", "scorer")
-    return bt_scorer
 
 
 def write_result_csv(
@@ -260,10 +229,17 @@ def write_result_csv(
     *,
     original_columns: list[str] | None = None,
     original_rows: list[dict[str, str]] | None = None,
+    experiment_name: str = "",
+    git_sha: str = "",
 ) -> Path:
     """Write eval results to a timestamped CSV file.
 
-    CSV columns: original CSV columns (if provided) + output.* columns + score_{name} columns.
+    The default output directory is gitignored; a run worth keeping becomes
+    the permanent record only when the operator curates its CSV into a
+    git-tracked location.
+
+    Columns: original CSV columns (if provided) + output.* columns +
+    output_json + score_{name} columns + experiment_name + git_sha.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -295,7 +271,14 @@ def write_result_csv(
             for flat in flattened_outputs
         ]
 
-    fieldnames = [*orig_cols, *all_output_keys, *score_columns]
+    fieldnames = [
+        *orig_cols,
+        *all_output_keys,
+        "output_json",
+        *score_columns,
+        "experiment_name",
+        "git_sha",
+    ]
 
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -311,212 +294,160 @@ def write_result_csv(
 
             # Output columns
             flat_output = flattened_outputs[idx]
-            is_error_row = result.output == _ERROR_MARKER
+            is_error_row = result.error is not None
 
             if is_error_row:
                 for key in all_output_keys:
                     row[key] = _ERROR_MARKER
+                # output_json is the replay source of truth; stuffing a
+                # traceback in there would make it a union type (the same
+                # skip/crash ambiguity this schema exists to avoid). The row
+                # is reproducible from git_sha instead.
+                row["output_json"] = ""
             else:
                 for key in all_output_keys:
                     row[key] = flat_output.get(key, "")
+                row["output_json"] = json.dumps(result.output, ensure_ascii=False)
 
             # Score columns
+            scorer_errors = (result.metadata or {}).get("scorer_errors", {})
             for name in scorer_names:
                 if is_error_row:
                     row[f"score_{name}"] = _ERROR_MARKER
                     continue
                 score_val = result.scores.get(name)
                 if score_val is None:
-                    row[f"score_{name}"] = _ERROR_MARKER
-                elif score_val == _SKIPPED_MARKER:
-                    row[f"score_{name}"] = _SKIPPED_MARKER
-                elif isinstance(score_val, (int, float)):
-                    row[f"score_{name}"] = str(score_val)
-                elif isinstance(score_val, str):
-                    row[f"score_{name}"] = score_val
+                    row[f"score_{name}"] = (
+                        _ERROR_MARKER if name in scorer_errors else _SKIPPED_MARKER
+                    )
                 else:
-                    row[f"score_{name}"] = str(getattr(score_val, "score", score_val))
+                    row[f"score_{name}"] = str(score_val)
+
+            row["experiment_name"] = experiment_name
+            row["git_sha"] = git_sha
 
             writer.writerow(row)
 
     return csv_path
 
 
+def _require_upload_key(bt_config: BraintrustConfig) -> str:
+    """Return the Braintrust API key for --upload, or hard-fail if missing.
+
+    Called both up front in ``main()`` (so ``--all`` can't swallow a missing
+    key as a per-scenario skip) and again in ``run_scenario()`` (so direct
+    callers get the same guarantee without going through the CLI).
+    """
+    api_key = os.environ.get(bt_config.api_key_env)
+    if not api_key:
+        raise RuntimeError(
+            f"--upload requires the '{bt_config.api_key_env}' environment "
+            "variable. Set the key or drop --upload."
+        )
+    return api_key
+
+
 def run_scenario(
     scenario_name: str,
     *,
-    local_only: bool,
+    upload: bool,
     output_dir: Path,
     scenarios_dir: Path = SCENARIOS_DIR,
 ) -> Path:
-    """Execute a single evaluation scenario.
+    """Execute a single evaluation scenario via Braintrust ``Eval()``.
 
     Steps:
-    1. Load eval_spec.yaml -> ScenarioConfig
-    2. Validate CSV exists
-    3. load_dataset() -> data list
-    4. resolve_scorers() -> scorer callables
-    5. Dynamic import task function
-    6. If not local_only: validate API key, init tracing
-    7. Eval() call
-    8. write_result_csv() -> result CSV path
+    1. If uploading, preflight the API key and init platform tracing before
+       doing any other work (zero wasted execution on a missing key).
+    2. Load eval_spec.yaml -> ScenarioConfig
+    3. Validate CSV exists, load_dataset() -> data list
+    4. resolve_scorers() -> scorer callables, dynamic import task function
+    5. Eval() call (no_send_logs=not upload)
+    6. write_result_csv() -> result CSV path
     """
-    otel_filter = _SuppressContextDetach()
-    otel_logger = logging.getLogger("opentelemetry.context")
-    otel_logger.addFilter(otel_filter)
+    bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
 
-    try:
-        scenario_dir = scenarios_dir / scenario_name
-        config_path = scenario_dir / "eval_spec.yaml"
-        config = load_scenario_config(config_path)
+    if upload:
+        api_key = _require_upload_key(bt_config)
+        _init_platform_tracing(bt_config.project, api_key)
 
-        banner_fields: dict[str, Any] = {}
-        if config.pre_run is not None:
-            pre_run_fn = resolve_function(config.pre_run.function, label="pre_run")
-            result = pre_run_fn()
-            if result is not None:
-                banner_fields = dict(result)
+    scenario_dir = scenarios_dir / scenario_name
+    config_path = scenario_dir / "eval_spec.yaml"
+    config = load_scenario_config(config_path)
 
-        banner_line = f"Eval scenario: {config.name}"
-        for key, value in banner_fields.items():
-            banner_line += f" | {key}: {value}"
-        print(banner_line, file=sys.stderr)
+    banner_fields: dict[str, Any] = {}
+    if config.pre_run is not None:
+        pre_run_fn = resolve_function(config.pre_run.function, label="pre_run")
+        result = pre_run_fn()
+        if result is not None:
+            banner_fields = dict(result)
 
-        if config.status == "draft":
-            print(
-                f"\u26a0 Scenario '{config.name}' is draft "
-                f"\u2014 results may be unreliable. "
-                f"Curate dataset before trusting metrics.",
-                file=sys.stderr,
-            )
+    banner_line = f"Eval scenario: {config.name}"
+    for key, value in banner_fields.items():
+        banner_line += f" | {key}: {value}"
+    print(banner_line, file=sys.stderr)
 
-        csv_path = scenario_dir / config.csv
-        if not csv_path.is_file():
-            raise FileNotFoundError(f"CSV file not found: {csv_path}")
-
-        original_columns, original_rows = load_raw_csv_rows(csv_path)
-        raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
-
-        scorers = resolve_scorers(config.scorers)
-        task_fn = resolve_function(config.task.function, label="task")
-
-        scorer_names = [s.name for s in config.scorers]
-        wrapped_task = _wrap_task(task_fn, timeout=config.task.timeout)
-        wrapped_scorers = [
-            _wrap_scorer(scorer, name) for scorer, name in zip(scorers, scorer_names)
-        ]
-
-        bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
-        experiment_name = (
-            f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    if config.status == "draft":
+        print(
+            f"⚠ Scenario '{config.name}' is draft "
+            f"— results may be unreliable. "
+            f"Curate dataset before trusting metrics.",
+            file=sys.stderr,
         )
 
-        # Always run local eval first to guarantee local CSV output
-        eval_result = _run_local_eval(raw_data, wrapped_task, wrapped_scorers)
+    csv_path = scenario_dir / config.csv
+    if not csv_path.is_file():
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
-        result_path = write_result_csv(
-            eval_result,
-            scenario_name,
-            scorer_names,
-            output_dir,
-            original_columns=original_columns,
-            original_rows=original_rows,
+    original_columns, original_rows = load_raw_csv_rows(csv_path)
+    raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
+
+    scorers = resolve_scorers(config.scorers)
+    task_fn = resolve_function(config.task.function, label="task")
+
+    scorer_names = [s.name for s in config.scorers]
+    wrapped_task = _wrap_task(task_fn, timeout=config.task.timeout)
+    wrapped_scorers = [
+        _wrap_scorer(scorer, name) for scorer, name in zip(scorers, scorer_names)
+    ]
+
+    experiment_name = (
+        f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    )
+
+    eval_cases = [
+        EvalCase(
+            input=row["input"],
+            expected=row.get("expected"),
+            metadata=row.get("metadata"),
         )
+        for row in raw_data
+    ]
 
-        # Merge local_mode: CLI --local-only overrides config default
-        effective_local = local_only or bt_config.local_mode
+    eval_result = Eval(
+        bt_config.project,
+        data=eval_cases,
+        task=wrapped_task,
+        scores=wrapped_scorers,
+        experiment_name=experiment_name,
+        no_send_logs=not upload,
+        max_concurrency=MAX_CONCURRENCY,
+    )
 
-        if not effective_local:
-            try:
-                from braintrust import Eval, EvalCase
-
-                api_key = os.environ.get(bt_config.api_key_env)
-                if not api_key:
-                    raise RuntimeError(
-                        f"API key not found in environment variable "
-                        f"'{bt_config.api_key_env}'. "
-                        "Set the key or use --local-only."
-                    )
-                _init_platform_tracing(bt_config.project, api_key)
-
-                eval_cases = [
-                    EvalCase(
-                        input=row["input"],
-                        expected=row.get("expected"),
-                        metadata=row.get("metadata"),
-                    )
-                    for row in raw_data
-                ]
-
-                Eval(
-                    bt_config.project,
-                    data=eval_cases,
-                    task=wrapped_task,
-                    scores=[_to_braintrust_scorer(s) for s in wrapped_scorers],
-                    experiment_name=experiment_name,
-                    no_send_logs=False,
-                )
-
-                import braintrust
-
-                braintrust.flush()
-            except Exception:
-                logger.error("Braintrust upload failed", exc_info=True)
-
-        return result_path
-    finally:
-        otel_logger.removeFilter(otel_filter)
-
-
-def _run_local_eval(
-    raw_data: list[dict[str, Any]],
-    task_fn: Any,
-    scorers: list[Any],
-) -> Any:
-    """Run evaluation locally without braintrust dependency.
-
-    Iterates over *raw_data*, calls *task_fn* for each row, then runs every
-    scorer.  Returns a ``SimpleNamespace`` whose ``.results`` list mirrors the
-    shape produced by ``braintrust.Eval``.
-    """
-    from types import SimpleNamespace
-
-    is_async_task = asyncio.iscoroutinefunction(task_fn)
-
-    def _score_row(row: dict[str, Any], output: Any) -> SimpleNamespace:
-        expected_val = row.get("expected")
-        scores: dict[str, Any] = {}
-        for scorer in scorers:
-            name = getattr(scorer, "__name__", "unknown")
-            score = scorer(output=output, expected=expected_val, input=row["input"])
-            if score == _SKIPPED_MARKER:
-                scores[name] = _SKIPPED_MARKER
-            elif score is not None and hasattr(score, "score"):
-                scores[name] = score.score
-            else:
-                scores[name] = score
-        return SimpleNamespace(input=row["input"], output=output, scores=scores)
-
-    if is_async_task:
-
-        async def _run_all() -> list[SimpleNamespace]:
-            res: list[SimpleNamespace] = []
-            for row in raw_data:
-                output = await task_fn(row["input"])
-                res.append(_score_row(row, output))
-            return res
-
-        return SimpleNamespace(results=asyncio.run(_run_all()))
-
-    results: list[Any] = []
-    for row in raw_data:
-        output = task_fn(row["input"])
-        results.append(_score_row(row, output))
-    return SimpleNamespace(results=results)
+    return write_result_csv(
+        eval_result,
+        scenario_name,
+        scorer_names,
+        output_dir,
+        original_columns=original_columns,
+        original_rows=original_rows,
+        experiment_name=experiment_name,
+        git_sha=_git_sha(),
+    )
 
 
 def _init_platform_tracing(project: str, api_key: str) -> None:
-    """Initialize Braintrust platform tracing for non-local mode.
+    """Initialize Braintrust platform tracing for --upload runs.
 
     WARNING: set_global_handler() sets a process-level singleton. This means:
     - Eval scenarios MUST run sequentially (not in parallel).
@@ -549,7 +480,9 @@ def main(
     parser.add_argument("scenario", nargs="?", help="Scenario name to run")
     parser.add_argument("--all", action="store_true", help="Run all scenarios")
     parser.add_argument(
-        "--local-only", action="store_true", help="Skip platform logging"
+        "--upload",
+        action="store_true",
+        help="Upload the run to Braintrust as an experiment (default: local only)",
     )
     parser.add_argument(
         "--output-dir", type=Path, default=None, help="Output directory for results"
@@ -562,6 +495,11 @@ def main(
 
     if not args.all and not args.scenario:
         parser.error("Provide a scenario name or use --all")
+
+    if args.upload:
+        # Checked once, up front: --all's per-scenario try/except below must
+        # never swallow a missing key as an ordinary scenario skip.
+        _require_upload_key(load_braintrust_config(BRAINTRUST_CONFIG_PATH))
 
     available = discover_scenarios(scenarios_dir)
 
@@ -579,7 +517,7 @@ def main(
             try:
                 result_path = run_scenario(
                     name,
-                    local_only=args.local_only,
+                    upload=args.upload,
                     output_dir=output_dir,
                     scenarios_dir=scenarios_dir,
                 )
@@ -590,6 +528,13 @@ def main(
                 skipped += 1
 
         print(f"{succeeded} succeeded, {skipped} skipped")
+        if args.upload and skipped > 0:
+            print(
+                f"--upload run had {skipped} failed scenario(s) — treating as "
+                "failure (see 'SKIPPED' lines above)",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
         return
 
     if args.scenario not in available:
@@ -601,7 +546,7 @@ def main(
 
     result_path = run_scenario(
         args.scenario,
-        local_only=args.local_only,
+        upload=args.upload,
         output_dir=output_dir,
         scenarios_dir=scenarios_dir,
     )

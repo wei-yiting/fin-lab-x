@@ -106,7 +106,6 @@ class BraintrustConfig(BaseModel):
 
     project: str = "finlab-x"
     api_key_env: str = "BRAINTRUST_API_KEY"
-    local_mode: bool = False
 
 
 def _load_yaml_mapping(config_path: Path) -> dict[str, Any]:

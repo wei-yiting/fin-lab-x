@@ -8,9 +8,15 @@ Operator helper used by the BDD 6-case matrix and abort flow scenarios
 - A root span (``parentObservationId is null``) exists.
 - Every GENERATION observation's ``metadata.reasoning`` matches the
   passed expectation:
-    * ``--expect-reasoning-on``      non-empty string, not ``<unsupported>``
-    * ``--expect-reasoning-off``     empty string ``""``
-    * ``--expect-unsupported``       sentinel ``"<unsupported>"``
+    * ``--expect-reasoning-on``      every generation's value is a string
+      and never ``<unsupported>`` (always-write-key contract); this is a
+      per-trace, not per-generation, non-empty requirement — at least one
+      generation in the trace must carry non-empty reasoning text, since
+      short tool-decision turns may legitimately skip reasoning while the
+      synthesizing turn produces it
+    * ``--expect-reasoning-off``     empty string ``""`` on every generation
+    * ``--expect-unsupported``       sentinel ``"<unsupported>"`` on every
+      generation
 - When ``--expect-aborted`` is passed, the root span carries
   ``metadata.status == "aborted"`` — the only abort-trace marker
   (reasoning persistence on abort belongs to F7 / DEV-107).
@@ -155,13 +161,6 @@ def _check_reasoning_unsupported(generations: list[dict[str, Any]]) -> list[str]
                 f"generation {gen.get('id')} expected {UNSUPPORTED_SENTINEL!r}, got {value!r}"
             )
     return failures
-
-
-def _latest_generation(generations: list[dict[str, Any]]) -> dict[str, Any] | None:
-    if not generations:
-        return None
-    # startTime sorts lexicographically as ISO-8601 UTC, so string compare is fine.
-    return max(generations, key=lambda g: g.get("startTime") or "")
 
 
 def verify(

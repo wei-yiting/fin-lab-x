@@ -56,7 +56,7 @@ uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --e
 |---|---|---|
 | `trace_id` | Yes | Langfuse trace id to fetch |
 | `--expect-reasoning-on` / `--expect-reasoning-off` / `--expect-unsupported` | Yes (mutually exclusive) | Reasoning capability the trace should reflect — drives the per-GENERATION `metadata.reasoning` assertion |
-| `--expect-aborted` | No | Also assert the root span carries `metadata.status == "aborted"` AND the latest GENERATION carries the `metadata.reasoning_tail_aborted` key (the always-write-key contract on the abort path; the value may be `""` when the segmenter buffer was empty) |
+| `--expect-aborted` | No | Also assert the root span carries `metadata.status == "aborted"` — the only abort-trace marker (per-generation reasoning persistence on abort belongs to F7 / DEV-107) |
 
 What it asserts:
 
@@ -65,7 +65,7 @@ What it asserts:
 - For `--expect-reasoning-on`: every GENERATION carries `metadata.reasoning` (always-write-key contract) AND at least one carries non-empty reasoning text. Short tool-decision turns are allowed to skip reasoning — only the whole trace must produce some.
 - For `--expect-reasoning-off`: every GENERATION carries `metadata.reasoning == ""`.
 - For `--expect-unsupported`: every GENERATION carries `metadata.reasoning == "<unsupported>"`.
-- For `--expect-aborted`: root span has `metadata.status == "aborted"` AND the latest GENERATION carries the `metadata.reasoning_tail_aborted` key.
+- For `--expect-aborted`: root span has `metadata.status == "aborted"` (root-status-only — no per-generation abort marker).
 
 Authentication is via the standard Langfuse env vars: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and either `LANGFUSE_BASE_URL` or `LANGFUSE_API_BASE` (default `https://cloud.langfuse.com`). The script polls 5× with linear backoff to absorb the ingestion lag between SSE close and the trace becoming queryable.
 

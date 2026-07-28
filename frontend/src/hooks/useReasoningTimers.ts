@@ -1,15 +1,10 @@
 import { useCallback, useRef } from "react";
 import { chipKey, isReasoningPart } from "@/lib/reasoning-chips";
+import type { ChatMessageLike } from "@/lib/reasoning-chips";
 
 interface ChipTiming {
   startedAt: number;
   frozenMs: number | null;
-}
-
-interface MessageLike {
-  id: string;
-  role: string;
-  parts: Array<{ type?: unknown }>;
 }
 
 /**
@@ -32,7 +27,7 @@ interface MessageLike {
 export function useReasoningTimers() {
   const timingsRef = useRef<Map<string, ChipTiming>>(new Map());
 
-  const observe = useCallback((messages: MessageLike[], chatActive: boolean) => {
+  const observe = useCallback((messages: ChatMessageLike[], chatActive: boolean) => {
     const now = Date.now();
     const timings = timingsRef.current;
     for (const msg of messages) {

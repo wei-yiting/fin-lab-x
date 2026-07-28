@@ -12,9 +12,8 @@ Operator helper used by the BDD 6-case matrix and abort flow scenarios
     * ``--expect-reasoning-off``     empty string ``""``
     * ``--expect-unsupported``       sentinel ``"<unsupported>"``
 - When ``--expect-aborted`` is passed, the root span carries
-  ``metadata.status == "aborted"``. (The per-generation
-  ``reasoning_tail_aborted`` write moved to DEV-107 with F7's trace-level
-  reasoning; it is no longer asserted here.)
+  ``metadata.status == "aborted"`` — the only abort-trace marker
+  (reasoning persistence on abort belongs to F7 / DEV-107).
 
 Authentication: ``LANGFUSE_PUBLIC_KEY`` / ``LANGFUSE_SECRET_KEY`` env
 vars (HTTP Basic). ``LANGFUSE_API_BASE`` defaults to
@@ -188,9 +187,8 @@ def verify(
         errors.extend(_check_reasoning_unsupported(generations))
 
     if expect_aborted:
-        # Abort-path contract post-DEV-106: only the root span carries the
-        # abort marker. (The former per-generation reasoning_tail_aborted
-        # write moved to DEV-107 with F7's trace-level reasoning.)
+        # Only the root span carries the abort marker; per-generation
+        # reasoning persistence on abort belongs to F7 / DEV-107.
         if root is not None:
             root_meta = root.get("metadata") or {}
             if root_meta.get("status") != "aborted":

@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { PLACEHOLDER_GRACE_MS } from "@/lib/timing";
 import { isReasoningPart, isSuppressedChip } from "@/lib/reasoning-chips";
-import type { ReasoningPartLike } from "@/lib/reasoning-chips";
-
-interface MessageLike {
-  id: string;
-  role: string;
-  parts: Array<{ type?: unknown; state?: unknown }>;
-}
+import type { ChatMessageLike } from "@/lib/reasoning-chips";
+import type { ChatStatus } from "@/models";
 
 export type PlaceholderState = "hidden" | "waiting";
 
@@ -26,8 +21,8 @@ export type PlaceholderState = "hidden" | "waiting";
  * Never visible while a chip is streaming or a tool card is live.
  */
 export function useDeadAirPlaceholder(
-  messages: MessageLike[],
-  status: string,
+  messages: ChatMessageLike[],
+  status: ChatStatus,
   graceMs: number = PLACEHOLDER_GRACE_MS,
 ): PlaceholderState {
   // The gap that has outlived the grace delay, identified by message id +
@@ -40,9 +35,7 @@ export function useDeadAirPlaceholder(
   if (status === "streaming" && last && last.role === "assistant" && last.parts.length > 0) {
     const lastPart = last.parts.at(-1)!;
     windowB =
-      isReasoningPart(lastPart) &&
-      (lastPart as ReasoningPartLike).state !== "streaming" &&
-      !isSuppressedChip(lastPart as ReasoningPartLike);
+      isReasoningPart(lastPart) && lastPart.state !== "streaming" && !isSuppressedChip(lastPart);
   }
   const gapKey = windowB && last ? `${last.id}:${last.parts.length}` : null;
 

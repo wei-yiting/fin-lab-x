@@ -523,12 +523,11 @@ class Orchestrator:
     def _handle_abort_cleanup(self, handler: "CallbackHandler") -> None:
         """D35 abort cleanup.
 
-        Stamps the root chain as ``status="aborted"``. All Langfuse
-        interactions are best-effort — internal failures are logged but
-        never re-raised so cancellation propagation is not blocked by
-        observability outages. (The former reasoning-tail write moved with
-        F7's trace-level reasoning to DEV-107; abort stays wire-silent and
-        trace-minimal here.)
+        Stamps the root chain as ``status="aborted"`` — the only abort-trace
+        marker (reasoning persistence on abort belongs to F7 / DEV-107).
+        All Langfuse interactions are best-effort — internal failures are
+        logged but never re-raised so cancellation propagation is not
+        blocked by observability outages.
 
         Sync by design — sync code is not interruptible by ``CancelledError``,
         so cleanup runs to completion even when the parent task is being

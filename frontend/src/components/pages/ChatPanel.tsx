@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
 import { useStallTimer } from "@/hooks/useStallTimer";
 import { useReasoningTimers } from "@/hooks/useReasoningTimers";
@@ -46,6 +46,10 @@ export function ChatPanel() {
   );
   const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
   const [lastSSEEvent, setLastSSEEvent] = useState<AnnouncedEvent | null>(null);
+  // Late-bound handle to the stall stopwatch's reset — onData is wired into
+  // useChat above the stall hook in this component, so it reaches the reset
+  // through a ref kept in sync by an effect below.
+  const notifyActivityRef = useRef<(() => void) | null>(null);
 
   // AI SDK v6's onData only fires for data-* chunks. Native parts
   // (reasoning-*, text-*, tool-*) land in message.parts — the chips and
@@ -53,6 +57,10 @@ export function ChatPanel() {
   const onData = useCallback(
     (dataPart: { type: string; id?: string; data: unknown }) => {
       toolProgressHandleData(dataPart);
+      // Transient data-* chunks never enter message.parts, so the
+      // messages-keyed reset below can't see them — but they ARE stream
+      // parts and must zero the stall stopwatch (C3).
+      notifyActivityRef.current?.();
     },
     [toolProgressHandleData],
   );
@@ -83,12 +91,18 @@ export function ChatPanel() {
   //   3. user expand/collapse overrides (cleared each turn — QA16).
   const chatActive = status === "submitted" || status === "streaming";
   const { stalled, notifyActivity } = useStallTimer(chatActive);
+  useEffect(() => {
+    notifyActivityRef.current = notifyActivity;
+  }, [notifyActivity]);
   const { observe, getSeconds, reset: resetTimers } = useReasoningTimers();
   const [chipOverrides, setChipOverrides] = useState<Map<string, boolean>>(() => new Map());
 
   // Any stream part / delta arrival re-renders `messages` — that is the
   // stopwatch's reset signal (C3: any part zeroes the global stall clock).
-  useEffect(() => {
+  // Layout effect, not effect: the reset must land before paint so the
+  // render that introduces a new part never paints a stale degraded header
+  // (reset-before-derive — QA18 / S-place-05).
+  useLayoutEffect(() => {
     if (chatActive) notifyActivity();
   }, [messages, chatActive, notifyActivity]);
 

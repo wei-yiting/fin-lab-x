@@ -11,9 +11,18 @@ export interface ReasoningPartLike {
   state?: string;
 }
 
+/** Minimal structural view of a chat message shared by the chip hooks. */
+export interface ChatMessageLike {
+  id: string;
+  role: string;
+  parts: Array<{ type?: unknown; state?: unknown }>;
+}
+
 export type ChipState = "streaming" | "done" | "aborted";
 
-export function isReasoningPart(part: { type?: unknown }): boolean {
+export function isReasoningPart(part: {
+  type?: unknown;
+}): part is ReasoningPartLike & { type: "reasoning" } {
   return part.type === "reasoning";
 }
 

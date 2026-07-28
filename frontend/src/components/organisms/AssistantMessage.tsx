@@ -12,7 +12,6 @@ import {
   isReasoningPart,
   isSuppressedChip,
 } from "@/lib/reasoning-chips";
-import type { ReasoningPartLike } from "@/lib/reasoning-chips";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus } from "@/models";
 
@@ -102,7 +101,7 @@ export function AssistantMessage({
     status === "ready" &&
     parts.some(
       (p) =>
-        (isReasoningPart(p) && (p as ReasoningPartLike).state === "streaming") ||
+        (isReasoningPart(p) && p.state === "streaming") ||
         (isToolPartType(p) && isRunningToolState(p.state as string)),
     );
 
@@ -116,16 +115,15 @@ export function AssistantMessage({
     <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
         if (isReasoningPart(part)) {
-          const rPart = part as ReasoningPartLike;
-          if (isSuppressedChip(rPart)) return null;
+          if (isSuppressedChip(part)) return null;
           const key = chipKey(message.id, i);
-          const chipState = chipStateOf(rPart, chatActive);
+          const chipState = chipStateOf(part, chatActive);
           const expanded = isChipExpanded(chipState, chipOverrides?.get(key));
           return (
             <ReasoningChip
               key={key}
               chipState={chipState}
-              text={rPart.text ?? ""}
+              text={part.text ?? ""}
               seconds={getChipSeconds?.(key) ?? 0}
               stalled={stalled}
               expanded={expanded}

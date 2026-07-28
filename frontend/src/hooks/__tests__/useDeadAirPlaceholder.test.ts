@@ -121,7 +121,7 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
       userMsg,
       assistantMsg("a1", [{ type: "reasoning", text: "r", state: "done" }]),
     ];
-    for (const status of ["ready", "error"]) {
+    for (const status of ["ready", "error"] as const) {
       const { result } = renderHook(() => useDeadAirPlaceholder(messages, status));
       act(() => {
         vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);

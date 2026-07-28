@@ -3,10 +3,10 @@
 # Usage:
 #   ./scripts/manual-bdd-backend.sh <profile>           # foreground
 #   ./scripts/manual-bdd-backend.sh <profile> --bg      # background; logs to /tmp/uvicorn-bdd-<profile>.log
-#   ./scripts/manual-bdd-backend.sh restore             # restore v1_baseline.yaml (no boot)
+#   ./scripts/manual-bdd-backend.sh restore             # restore baseline yaml (no boot)
 #
 # Profiles:
-#   openai-on           default v1_baseline (OpenAI gpt-5-mini + reasoning summary)
+#   openai-on           default baseline (OpenAI gpt-5-mini + reasoning summary)
 #   openai-off          OpenAI gpt-5-mini reasoning off (yaml swap)
 #   gemini-on           Gemini 2.5 Flash + thinking_budget=1024  (yaml swap)
 #   gemini-off          Gemini reasoning off  (yaml swap)
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-YAML=backend/agent_engine/agents/versions/v1_baseline/orchestrator_config.yaml
+YAML=backend/agent_engine/agents/profiles/baseline/orchestrator_config.yaml
 BAK=${YAML}.bak
 
 profile=${1:-openai-on}
@@ -34,10 +34,13 @@ case "$profile" in
     ;;
 esac
 
-# Stop anything on :8000
+# Stop anything on :8000 and wait for the port to actually release
 if lsof -ti:8000 >/dev/null 2>&1; then
   kill "$(lsof -ti:8000)" || true
-  sleep 1
+  for _ in $(seq 1 20); do
+    lsof -ti:8000 >/dev/null 2>&1 || break
+    sleep 0.5
+  done
 fi
 
 # Backup yaml the first time we mutate it
@@ -48,12 +51,12 @@ fi
 # Always reset yaml to openai-on baseline before each run, then patch per profile
 cat > "$YAML" <<'YAML'
 version: "0.1.0"
-name: "v1_baseline"
+name: "baseline"
 description: "Naive single-chain financial analysis with basic tool access"
 
 tools:
-  - yfinance_stock_quote
-  - yfinance_get_available_fields
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
   - tavily_financial_search
   - sec_filing_list_sections
   - sec_filing_get_section
@@ -119,15 +122,15 @@ if [[ "$mode" == "--bg" || "$mode" == "bg" ]]; then
   nohup env ${env_extra[@]:-} uv run uvicorn backend.api.main:app \
       --host 127.0.0.1 --port 8000 > "$log" 2>&1 &
   pid=$!
-  # Wait up to 10s for the backend to bind
-  for _ in $(seq 1 20); do
+  # Wait up to 30s for the backend to bind (cold start can exceed 10s)
+  for _ in $(seq 1 60); do
     if curl -s -o /dev/null http://127.0.0.1:8000/health; then
       echo "backend up (pid=$pid, log=$log)"
       exit 0
     fi
     sleep 0.5
   done
-  echo "ERROR: backend did not become healthy within 10s. Log tail:" >&2
+  echo "ERROR: backend did not become healthy within 30s. Log tail:" >&2
   tail -20 "$log" >&2
   exit 1
 else

@@ -23,17 +23,17 @@ Use this rule:
 This is the primary flow for dataset-based quality evaluation.
 
 ```bash
-# Local mode (recommended for development)
-uv run python -m backend.evals.eval_runner language_policy --local-only
-
-# Platform mode (uploads to Braintrust)
+# Local mode (default — no upload, no API key needed)
 uv run python -m backend.evals.eval_runner language_policy
 
+# Upload mode (creates a Braintrust experiment)
+uv run python -m backend.evals.eval_runner language_policy --upload
+
 # Run all scenarios
-uv run python -m backend.evals.eval_runner --all --local-only
+uv run python -m backend.evals.eval_runner --all
 
 # Custom output folder
-uv run python -m backend.evals.eval_runner language_policy --local-only --output-dir ./tmp/eval-results
+uv run python -m backend.evals.eval_runner language_policy --output-dir ./tmp/eval-results
 ```
 
 ### 2) Regression Guardrail (pytest)
@@ -59,15 +59,18 @@ uv run pytest
 
 Both tracks call real LLM/tools. Configure environment variables in `backend/.env`.
 
-| Variable             | Guardrail (pytest) | Quality Improvement (`--local-only`) | Quality Improvement (Braintrust mode) | Purpose           |
-| -------------------- | ------------------ | ------------------------------------ | ------------------------------------- | ----------------- |
-| `OPENAI_API_KEY`     | Yes                | Yes                                  | Yes                                   | LLM calls         |
-| `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Search tool calls |
-| `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | SEC retrieval     |
-| `QDRANT_URL`         | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Vector store (sec_retrieval) |
-| `BRAINTRUST_API_KEY` | No                 | No                                   | Yes                                   | Braintrust upload |
+| Variable             | Guardrail (pytest) | Quality Improvement (default) | Quality Improvement (`--upload`) | Purpose           |
+| -------------------- | ------------------ | ------------------------------ | --------------------------------- | ----------------- |
+| `OPENAI_API_KEY`     | Yes                | Yes                             | Yes                                | LLM calls         |
+| `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Search tool calls |
+| `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | SEC retrieval     |
+| `QDRANT_URL`         | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Vector store (sec_retrieval) |
+| `BRAINTRUST_API_KEY` | No                 | No                              | Yes                                 | Braintrust upload |
 
-If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` fails fast.
+`eval_runner` never needs `BRAINTRUST_API_KEY` by default — it runs and scores
+locally, no upload. Passing `--upload` without the key set fails fast
+(preflight, before any scenario work runs) rather than silently falling back
+to local-only.
 
 ## File Manifest
 
@@ -81,7 +84,7 @@ If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` 
 | `scorer_registry.py` | Resolves scorer dotpaths to Python callables. Builds `LLMClassifier` instances for `llm_judge` type scorers. |
 | `eval_tasks.py` | Task functions that wrap the agent engine. Called by `Eval()` for each dataset row to produce agent output. |
 | `eval_helpers.py` | Shared utilities (CJK detection, character ratio) used by scorers and guardrail tests. |
-| `braintrust_config.yaml` | Project-level Braintrust settings (project name, API key env var, local mode flag). |
+| `braintrust_config.yaml` | Project-level Braintrust settings (project name, API key env var). |
 
 ### How they connect
 
@@ -188,8 +191,8 @@ Use this loop when tuning the agent — whether changing prompts, tool configura
 ```mermaid
 graph TD
     A["1. Make a change<br/>(prompt, tools, workflow, model params)"]
-    B["2. python -m backend.evals.eval_runner <scenario>"]
-    C["3. Open Braintrust UI — see new experiment"]
+    B["2. python -m backend.evals.eval_runner <scenario><br/>(local — inspect the result CSV)"]
+    C["3. Satisfied with the CSV?<br/>Re-run with --upload for<br/>a Braintrust experiment"]
     D["4. Click Compare — diff with previous experiment"]
     E["5. Inspect per-case regression / improvement"]
     F{"6. Satisfied?"}
@@ -208,7 +211,7 @@ graph TD
 2. Add `dataset.csv` and `eval_spec.yaml` (see [schema above](#eval-spec-yaml-schema)).
 3. Add/update task functions in `backend/evals/eval_tasks.py`.
 4. Add/update scoring functions in `backend/evals/scenarios/<scenario_name>/scorer.py`.
-5. Run `uv run python -m backend.evals.eval_runner <scenario_name> --local-only`.
+5. Run `uv run python -m backend.evals.eval_runner <scenario_name>`.
 
 ### Add a new regression guardrail
 

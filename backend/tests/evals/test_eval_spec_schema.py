@@ -251,7 +251,6 @@ def test_load_braintrust_config_applies_project_default_when_omitted(
         """
 braintrust:
   api_key_env: CUSTOM_BRAINTRUST_KEY
-  local_mode: true
 """.strip()
     )
 
@@ -260,4 +259,18 @@ braintrust:
     assert isinstance(config, BraintrustConfig)
     assert config.project == "finlab-x"
     assert config.api_key_env == "CUSTOM_BRAINTRUST_KEY"
-    assert config.local_mode is True
+
+
+def test_braintrust_config_rejects_local_mode_field(tmp_path: Path) -> None:
+    """local_mode was removed — --upload is the only mode switch now."""
+    config_path = tmp_path / "braintrust_config.yaml"
+    config_path.write_text(
+        """
+braintrust:
+  api_key_env: CUSTOM_BRAINTRUST_KEY
+  local_mode: true
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match="Invalid braintrust config"):
+        load_braintrust_config(config_path)

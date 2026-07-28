@@ -41,6 +41,11 @@ BRAINTRUST_CONFIG_PATH = Path(__file__).parent / "braintrust_config.yaml"
 
 _VALID_SCENARIO_DIR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 
+# Braintrust's default is unbounded concurrency (every dataset row at once);
+# the official KB ("Controlling Concurrency to Prevent Resource Exhaustion")
+# recommends 10-20, starting with 10, to avoid provider rate limits.
+MAX_CONCURRENCY = 10
+
 logger = logging.getLogger(__name__)
 
 # CSV sentinels: written only at the write_result_csv layer. In memory, scores
@@ -126,7 +131,7 @@ def _git_sha() -> str:
 
 
 def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
-    """Wrap the task function with a per-task timeout.
+    """Wrap the task function with a per-task timeout (async tasks only).
 
     Always returns an async callable so Braintrust's ``Eval()`` awaits it
     directly; a sync ``task_fn`` runs via ``asyncio.to_thread``. Exceptions
@@ -134,8 +139,21 @@ def _wrap_task(task_fn: Any, *, timeout: float | None = None) -> Any:
     handling turns them into ``EvalResult.error``/``exc_info`` without
     aborting the run. A per-task timeout is needed here because
     ``Eval(timeout=...)`` bounds the whole run, not a single task.
+
+    The per-task timeout is only supported for async task functions:
+    ``asyncio.wait_for`` can cancel a coroutine, but a sync function running
+    in a thread cannot be interrupted — the timeout would fire without
+    actually stopping execution. Combining a sync ``task_fn`` with a timeout
+    therefore raises ``ValueError`` at wrap time.
     """
     is_async = asyncio.iscoroutinefunction(task_fn)
+    if not is_async and timeout is not None:
+        raise ValueError(
+            "Per-task timeout is not supported for sync task functions — "
+            "Python threads cannot be interrupted, so the timeout could not "
+            "actually stop execution. Make the task async (async def) to use "
+            "task.timeout."
+        )
 
     async def wrapped(input: Any) -> Any:
         coro = task_fn(input) if is_async else asyncio.to_thread(task_fn, input)
@@ -409,6 +427,7 @@ def run_scenario(
         scores=wrapped_scorers,
         experiment_name=experiment_name,
         no_send_logs=not upload,
+        max_concurrency=MAX_CONCURRENCY,
     )
 
     return write_result_csv(
@@ -505,6 +524,13 @@ def main(
                 skipped += 1
 
         print(f"{succeeded} succeeded, {skipped} skipped")
+        if args.upload and skipped > 0:
+            print(
+                f"--upload run had {skipped} failed scenario(s) — treating as "
+                "failure (see 'SKIPPED' lines above)",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
         return
 
     if args.scenario not in available:

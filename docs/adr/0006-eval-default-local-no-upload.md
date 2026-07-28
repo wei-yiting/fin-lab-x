@@ -8,8 +8,12 @@ network call, no experiment created, zero Braintrust quota spent, no API key
 required. A new `--upload` flag flips `no_send_logs=False` to create a real
 Braintrust experiment for that run; `--local-only` is removed with no
 no-op alias. The result CSV, written directly from `Eval()`'s returned result
-object, is the one permanent record in git (see `CONTEXT.md`'s **Eval run**
-definition); an uploaded experiment is a 14-day-retention convenience layer
+object, is the one permanent record (see `CONTEXT.md`'s **Eval run**
+definition). By default it lands in the gitignored `backend/evals/results/`
+— dev-loop runs are noise and never enter git; a run worth keeping is
+curated by the operator into a tracked location (the same event-driven
+pattern as the Trace Archive: per run worth keeping, never a bulk archive).
+An uploaded experiment is a 14-day-retention convenience layer
 for diff/drill-down on top of it. If a local run ever needs retroactive
 upload, `experiment.log()` is the mechanism — already verified workable — so
 no bespoke backfill tool is built ahead of a real need.
@@ -37,8 +41,9 @@ never meant for comparison.
 
 **Why**:
 
-1. **The result CSV is already the durable artifact.** It is git-tracked with
-   no retention window; an upload buys drill-down/diff convenience on top of
+1. **The result CSV is already the durable artifact.** A curated CSV,
+   committed by the operator when a run is worth keeping, has no retention
+   window; an upload buys drill-down/diff convenience on top of
    it, not the permanent record itself. Defaulting to upload would spend
    quota for a benefit the primary artifact doesn't depend on.
 2. **The local dev loop shouldn't need an API key.** Verified against
@@ -56,9 +61,12 @@ never meant for comparison.
 - Comparing two local runs side-by-side in the Braintrust UI requires
   re-running with `--upload` (or a future `experiment.log()` backfill) —
   accepted, since routine quality-iteration already works from the CSV.
-- `--upload` with a missing/invalid key surfaces as a preflight `RuntimeError`
-  (missing key) or an exception from `Eval()`'s own `init_experiment` call
-  (invalid key) — both propagate uncaught, by design.
+- `--upload` failures are never silently downgraded. Single-scenario runs:
+  a missing key surfaces as a preflight `RuntimeError` and an invalid key as
+  an exception from `Eval()`'s own `init_experiment` call — both propagate
+  uncaught, by design. `--all` runs: each scenario failure is reported on
+  its own `SKIPPED` line, and when `--upload` was requested and any scenario
+  failed, the batch exits non-zero after the summary.
 
 **Re-evaluate if**: the quality-iteration workflow needs routine cross-run
 comparison badly enough that the extra `--upload` keystroke becomes real

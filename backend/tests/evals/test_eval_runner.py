@@ -589,7 +589,53 @@ class TestRunScenario:
         mock_init_tracing.assert_called_once()
         _, call_kwargs = mock_eval.call_args
         assert call_kwargs["no_send_logs"] is False
+        assert call_kwargs["max_concurrency"] == 10
         assert result_path.exists()
+
+    @patch("backend.evals.eval_runner.Eval")
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_run_scenario_default_passes_max_concurrency(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        mock_eval: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        """M-1.1: Eval() must bound row concurrency — braintrust's default is
+        unlimited; the official KB recommends max_concurrency=10."""
+        scenarios_dir, _ = self._setup_scenario(tmp_path)
+        output_dir = tmp_path / "results"
+
+        fake_task = MagicMock(return_value="fake response")
+        mock_resolve_task.return_value = fake_task
+        fake_scorer = MagicMock(return_value=0.9)
+        fake_scorer.__name__ = "test_scorer"
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        mock_eval.return_value = SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    input="hello world",
+                    output="fake response",
+                    scores={"test_scorer": 0.9},
+                    error=None,
+                    metadata={},
+                )
+            ]
+        )
+
+        from backend.evals.eval_runner import run_scenario
+
+        run_scenario(
+            "test_scenario",
+            upload=False,
+            output_dir=output_dir,
+            scenarios_dir=scenarios_dir,
+        )
+
+        _, call_kwargs = mock_eval.call_args
+        assert call_kwargs["max_concurrency"] == 10
 
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
@@ -805,6 +851,44 @@ class TestMainCli:
         assert "1 succeeded" in captured.out
         assert "1 skipped" in captured.out
 
+    @patch("backend.evals.eval_runner.run_scenario")
+    def test_all_flag_upload_scenario_failure_exits_nonzero(
+        self,
+        mock_run: MagicMock,
+        tmp_path: Path,
+        capsys: pytest.CaptureFixture[str],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """M-1.5/SP-1.1: a mid-run failure under --all --upload (e.g. invalid
+        key rejected by init_experiment, network drop) must not be swallowed
+        as an ordinary skip — the batch exits non-zero."""
+        monkeypatch.setenv("BRAINTRUST_API_KEY", "fake-key-for-test")
+        scenarios_dir = tmp_path / "scenarios"
+        for name in ["good_one", "bad_one"]:
+            d = scenarios_dir / name
+            d.mkdir(parents=True)
+            (d / "eval_spec.yaml").write_text(f"name: {name}\n")
+
+        mock_run.side_effect = [
+            RuntimeError("invalid api key"),
+            tmp_path / "results" / "good_one_result.csv",
+        ]
+
+        from backend.evals.eval_runner import main
+
+        with pytest.raises(SystemExit) as exc_info:
+            main(
+                ["--all", "--upload"],
+                scenarios_dir=scenarios_dir,
+                output_dir=tmp_path / "results",
+            )
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "1 succeeded" in captured.out
+        assert "1 skipped" in captured.out
+        assert "failed scenario" in captured.err
+
 
 # ---------------------------------------------------------------------------
 # _wrap_task
@@ -869,6 +953,17 @@ class TestWrapTask:
         wrapped = _wrap_task(bad_task)
         with pytest.raises(ValueError, match="returned None"):
             asyncio.run(wrapped("test"))
+
+    def test_sync_task_with_timeout_rejected_at_wrap_time(self) -> None:
+        """M-1.2: a thread running a sync task cannot be interrupted, so a
+        per-task timeout would be advertised but not enforceable."""
+        from backend.evals.eval_runner import _wrap_task
+
+        def sync_task(input: Any) -> str:
+            return "result"
+
+        with pytest.raises(ValueError, match="not supported for sync"):
+            _wrap_task(sync_task, timeout=5)
 
     def test_timeout_raises_timeout_error(self) -> None:
         from backend.evals.eval_runner import _wrap_task

@@ -85,7 +85,9 @@ export function ChatPanel() {
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
 
-  // The three allowed non-derived stores of the chips system:
+  // Three of the four allowed non-derived stores of the chips system live
+  // here (the fourth, the placeholder grace timer, lives inside
+  // useDeadAirPlaceholder — see hooks/README.md):
   //   1. chip timing map (Thought-for-Xs measurement),
   //   2. global stall stopwatch,
   //   3. user expand/collapse overrides (cleared each turn — QA16).

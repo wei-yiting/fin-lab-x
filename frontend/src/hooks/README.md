@@ -14,11 +14,12 @@ Custom React hooks scoped to the streaming chat lifecycle. All hooks are pure co
 
 ## Non-derived state budget (F6′ / ADR-0006)
 
-The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Exactly three non-derived stores are allowed, all owned by `ChatPanel`:
+The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Four non-derived stores are allowed, all owned by `ChatPanel`:
 
 1. **Chip timing map** (`useReasoningTimers`) — parts carry no timestamps, so duration is measured client-side.
 2. **Global stall stopwatch** (`useStallTimer`).
 3. **Expand/collapse override map** (`Map<chipKey, boolean>` in `ChatPanel` state) — the user's toggle beats the tail-only expansion derivation; cleared on every new turn / regenerate / retry (QA16).
+4. **Placeholder grace timer** (`useDeadAirPlaceholder`'s `elapsedGapKey` + `setTimeout`-backed `PLACEHOLDER_GRACE_MS`) — the wire gives no lookahead, so a short grace window is needed to distinguish "chip collapsed → tool card next" from "chip collapsed → reply text next" without flashing the placeholder on the chip→tool micro-gap.
 
 Abort detection needs no store: an aborted chip is simply a reasoning part whose `state` is still `"streaming"` after the chat status left the active pair (no `reasoning-end` reached the wire).
 

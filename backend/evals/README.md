@@ -40,12 +40,14 @@ uv run python -m backend.evals.eval_runner language_policy --local-only --output
 
 Use this for a compact "no serious regression" signal.
 
+> **Currently empty.** The one existing guardrail test was retired as part of the
+> scenario-first SSOT consolidation (DEV-89); this track is being rebuilt as a
+> `regression/` package in a follow-up ticket. The commands below describe the
+> intended usage once that lands — running them today collects zero tests.
+
 ```bash
 # Run guardrail eval tests
 uv run pytest backend/evals/ -m eval -v --tb=short
-
-# Run one case
-uv run pytest backend/evals/ -m eval -k "LP-01" -v
 
 # Unit tests only (CI default)
 uv run pytest
@@ -209,6 +211,9 @@ graph TD
 5. Run `uv run python -m backend.evals.eval_runner <scenario_name> --local-only`.
 
 ### Add a new regression guardrail
+
+> This track is currently being rebuilt as a `regression/` package (DEV-89
+> follow-up); the steps below describe the pre-rebuild pattern for reference only.
 
 1. Add/update `backend/evals/test_*.py` with `@pytest.mark.eval`.
 2. Keep assertions focused on severe regression signals.

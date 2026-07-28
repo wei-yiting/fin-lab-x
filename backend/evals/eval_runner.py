@@ -232,7 +232,11 @@ def write_result_csv(
     experiment_name: str = "",
     git_sha: str = "",
 ) -> Path:
-    """Write eval results to a timestamped CSV file — the permanent record.
+    """Write eval results to a timestamped CSV file.
+
+    The default output directory is gitignored; a run worth keeping becomes
+    the permanent record only when the operator curates its CSV into a
+    git-tracked location.
 
     Columns: original CSV columns (if provided) + output.* columns +
     output_json + score_{name} columns + experiment_name + git_sha.

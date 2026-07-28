@@ -17,7 +17,7 @@ graph TB
     Runner -->|discovers| Scenarios
     Runner -->|resolves scorers| Scorers
 
-    Runner -->|writes, always| ResultCSV["Result CSV<br/>(the permanent record)"]
+    Runner -->|writes, always| ResultCSV["Result CSV<br/>(curated into git when worth keeping)"]
     Runner -->|"uploads (--upload only)"| BT["Braintrust<br/>(experiment + traces)"]
 ```
 
@@ -100,7 +100,7 @@ graph LR
     LLM --> Eval
 
     Eval -.->|"if --upload"| BT["Braintrust<br/>(experiment + traces)"]
-    Eval --> ResultCSV["Result CSV<br/>(the permanent record)"]
+    Eval --> ResultCSV["Result CSV<br/>(curated into git when worth keeping)"]
 ```
 
 ## Key Decisions

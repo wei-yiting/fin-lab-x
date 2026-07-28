@@ -1,18 +1,21 @@
 """Provider-shape integration tests for StreamEventMapper reasoning dispatch.
 
 Each test feeds a sequence of AIMessageChunks shaped to mimic a real provider's
-streaming output, then asserts the resulting domain-event ordering matches the
-design contract (D12, D13, D26).
+streaming output, then asserts the resulting native reasoning part sequence
+matches the F5 contract: one provider reasoning block = one part
+(ReasoningStart / ReasoningDelta* / ReasoningEnd), deltas verbatim,
+part ids turn-unique.
 """
 
 from langchain_core.messages import AIMessage, AIMessageChunk
 
 from backend.agent_engine.streaming.domain_events_schema import (
     MessageStart,
-    ReasoningStatus,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
 )
 from backend.agent_engine.streaming.event_mapper import StreamEventMapper
-from backend.agent_engine.streaming.reasoning_segmenter import ReasoningSegmenter
 
 SESSION_ID = "sess-int"
 
@@ -22,12 +25,12 @@ def _messages_chunk(msg: AIMessageChunk) -> dict:
 
 
 class TestAnthropicInterleave:
-    """D13: Anthropic emits reasoning_A → text_1 → reasoning_B → text_2 in one LLM call."""
+    """Anthropic emits reasoning_A → text_1 → reasoning_B → text_2 in one LLM
+    call — interleaved reasoning yields one part per contiguous block."""
 
     def test_interleave_ordering(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
-        # reasoning_A — terminator-bounded sentence emits immediately
         events_a = mapper.process_chunk(
             _messages_chunk(
                 AIMessageChunk(
@@ -36,7 +39,6 @@ class TestAnthropicInterleave:
                 )
             )
         )
-        # text_1 — D28 hold-and-flush guarantees no buffered reasoning leaks past TextStart
         events_t1 = mapper.process_chunk(
             _messages_chunk(
                 AIMessageChunk(
@@ -45,7 +47,6 @@ class TestAnthropicInterleave:
                 )
             )
         )
-        # reasoning_B — re-entry, same reasoning_id (D27.2 same chunk.id)
         events_b = mapper.process_chunk(
             _messages_chunk(
                 AIMessageChunk(
@@ -54,7 +55,6 @@ class TestAnthropicInterleave:
                 )
             )
         )
-        # text_2 — same text block continues
         events_t2 = mapper.process_chunk(
             _messages_chunk(
                 AIMessageChunk(
@@ -69,34 +69,34 @@ class TestAnthropicInterleave:
         assert all_events[0] == MessageStart(
             message_id="msg-anth", session_id=SESSION_ID
         )
-        # Reasoning sentences emitted (terminator + \n strips newline)
-        reasoning_events = [e for e in all_events if isinstance(e, ReasoningStatus)]
-        assert len(reasoning_events) == 2
-        assert reasoning_events[0].text == "Thinking step A."
-        assert reasoning_events[1].text == "Thinking step B."
-        # Same reasoning_id across the same LLM call
-        assert reasoning_events[0].reasoning_id == reasoning_events[1].reasoning_id
+        # Two distinct parts with turn-unique ids, deltas verbatim (the
+        # trailing `\n` is preserved — no terminator stripping).
+        starts = [e for e in all_events if isinstance(e, ReasoningStart)]
+        deltas = [e for e in all_events if isinstance(e, ReasoningDelta)]
+        assert [s.reasoning_id for s in starts] == ["reasoning-0", "reasoning-1"]
+        assert [d.delta for d in deltas] == ["Thinking step A.\n", "Thinking step B.\n"]
 
-        # Verify ordering: ReasoningStatus(A) before TextStart, TextStart before
-        # ReasoningStatus(B), and ReasoningStatus(B) before TextDelta(2).
+        # Ordering: part A closes before text starts; part B opens after.
         types_in_order = [type(e).__name__ for e in all_events]
         assert types_in_order == [
             "MessageStart",
-            "ReasoningStatus",  # A
+            "ReasoningStart",  # A
+            "ReasoningDelta",  # A
+            "ReasoningEnd",  # A — closed by text_1
             "TextStart",
             "TextDelta",  # Answer-1
-            "ReasoningStatus",  # B
-            "TextDelta",  # Answer-2 (same text block)
+            "ReasoningStart",  # B
+            "ReasoningDelta",  # B
+            "ReasoningEnd",  # B — closed by text_2
+            "TextDelta",  # Answer-2 (same open text block)
         ]
 
 
 class TestOpenAIMultiSummary:
-    """D12: OpenAI Responses summary array → LangChain explodes into multiple reasoning blocks."""
+    """OpenAI Responses summary array → LangChain explodes into multiple
+    reasoning blocks → one part per summary block (no `\\n` join)."""
 
-    def test_two_summary_blocks_emit_two_reasoning_status(self):
-        # AIMessage carrying OpenAI summary structure. The model_provider hint
-        # routes through LangChain's OpenAI translator which explodes the
-        # `summary` list into one reasoning block per `summary_text` entry.
+    def test_two_summary_blocks_become_two_parts(self):
         msg = AIMessage(
             content=[
                 {
@@ -115,9 +115,6 @@ class TestOpenAIMultiSummary:
         assert all(b.get("type") == "reasoning" for b in blocks)
 
         mapper = StreamEventMapper(session_id=SESSION_ID)
-        # Wrap as an AIMessageChunk-shaped payload by feeding both blocks
-        # via a single chunk whose content is the exploded list. We pass the
-        # already-normalized list directly so content_blocks short-circuits.
         chunk = AIMessageChunk(
             content=blocks,
             id="msg-openai",
@@ -126,21 +123,27 @@ class TestOpenAIMultiSummary:
         events = mapper.process_chunk(_messages_chunk(chunk))
         events += mapper.finalize()
 
-        reasoning = [e for e in events if isinstance(e, ReasoningStatus)]
-        # D12: 2 summary blocks joined by `\n` → segmenter sees `Summary one.\nSummary two.`
-        # and emits two ReasoningStatus events (newline strips, terminator preserved)
-        assert len(reasoning) == 2
-        assert reasoning[0].text == "Summary one."
-        assert reasoning[1].text == "Summary two."
+        reasoning_events = [
+            e
+            for e in events
+            if isinstance(e, ReasoningStart | ReasoningDelta | ReasoningEnd)
+        ]
+        assert reasoning_events == [
+            ReasoningStart(reasoning_id="reasoning-0"),
+            ReasoningDelta(reasoning_id="reasoning-0", delta="Summary one."),
+            ReasoningEnd(reasoning_id="reasoning-0"),
+            ReasoningStart(reasoning_id="reasoning-1"),
+            ReasoningDelta(reasoning_id="reasoning-1", delta="Summary two."),
+            ReasoningEnd(reasoning_id="reasoning-1"),  # closed by finalize()
+        ]
 
 
-class TestGeminiSoftEmit:
-    """D26: Gemini CJK reasoning without 。 should soft-emit at 80-char threshold."""
+class TestGeminiRawPassthrough:
+    """Gemini CJK reasoning without terminators streams through verbatim —
+    no 80-char soft-emit re-chunking (segmenter removed by F5)."""
 
-    def test_gemini_cjk_no_terminator_soft_emit(self):
-        # 110 CJK chars without any terminator (single contiguous reasoning chunk)
+    def test_gemini_cjk_no_terminator_passthrough(self):
         long_cjk = "繁" * 110
-        assert len(long_cjk) > ReasoningSegmenter.SOFT_EMIT_CHAR_THRESHOLD
 
         mapper = StreamEventMapper(session_id=SESSION_ID)
         events = mapper.process_chunk(
@@ -152,8 +155,5 @@ class TestGeminiSoftEmit:
             )
         )
 
-        reasoning = [e for e in events if isinstance(e, ReasoningStatus)]
-        # 80-char soft-emit fires once during feed(); the entire 110-char buffer
-        # is yielded as a single soft-emitted segment.
-        assert len(reasoning) == 1
-        assert reasoning[0].text == long_cjk
+        deltas = [e for e in events if isinstance(e, ReasoningDelta)]
+        assert deltas == [ReasoningDelta(reasoning_id="reasoning-0", delta=long_cjk)]

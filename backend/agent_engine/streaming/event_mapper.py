@@ -1,13 +1,11 @@
 """StreamEventMapper — stateful translator from LangGraph astream(version='v2') chunks to domain events.
 
 Handles TextStart/TextEnd pairing, MessageStart/Finish framing,
-tool call lifecycle assembly, and reasoning sentence dispatch
+tool call lifecycle assembly, and native reasoning part dispatch
 across stream modes.
 """
 
 from __future__ import annotations
-
-import os
 
 from langchain_core.messages import AIMessage, ToolMessage
 
@@ -15,7 +13,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
     MessageStart,
-    ReasoningStatus,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     TextDelta,
     TextEnd,
     TextStart,
@@ -25,7 +25,6 @@ from backend.agent_engine.streaming.domain_events_schema import (
     ToolResult,
     Usage,
 )
-from backend.agent_engine.streaming.reasoning_segmenter import ReasoningSegmenter
 
 
 class StreamEventMapper:
@@ -33,9 +32,17 @@ class StreamEventMapper:
 
     One instance per chat HTTP request — never share across requests or
     sessions. Multi-tab concurrent streaming relies on this isolation;
-    request-scoped state (segmenter buffer, reasoning_id counter, text_id
-    counter, pending tool calls) would corrupt across concurrent streams
-    if the mapper were per-session.
+    request-scoped state (reasoning part id counter, text_id counter,
+    pending tool calls) would corrupt across concurrent streams if the
+    mapper were per-session.
+
+    Reasoning contract (F5): one provider reasoning block = one native
+    reasoning part (ReasoningStart / ReasoningDelta* / ReasoningEnd).
+    Provider deltas pass through verbatim — no buffering, no sentence
+    segmentation, no separator joining. Part ids are unique across the
+    whole turn (not per LLM call/step): the AI SDK resets its active
+    reasoning map on finish-step and allows id reuse across steps, which
+    would collide React keys / timer refs on the frontend.
     """
 
     def __init__(self, session_id: str) -> None:
@@ -47,18 +54,13 @@ class StreamEventMapper:
         self._text_id_counter = 0
         self._total_input_tokens = 0
         self._total_output_tokens = 0
-        # Reasoning state — D26/D27/D28/D34
-        self._segmenter = ReasoningSegmenter()
+        # Reasoning part state — turn-unique id counter + currently open part.
         self._current_llm_call_id: str | None = None
-        self._current_reasoning_id: str | None = None
+        self._open_reasoning_id: str | None = None
         self._reasoning_id_counter = 0
-        # Idempotent finalize — Task 6's ReasoningTraceCallback may invoke
-        # finalize() from multiple cleanup paths (natural / abort / error).
+        # Idempotent finalize — invoked from both the natural-end and the
+        # error cleanup paths.
         self._finalized = False
-        # DEV-ONLY: tracks whether the EMIT_DELAYED_REASONING flag has already
-        # released its single allowed reasoning chunk for this mapper instance.
-        # Production must NOT set EMIT_DELAYED_REASONING.
-        self._delayed_reasoning_emitted = False
 
     def _next_text_id(self) -> str:
         # Within a single assistant turn we can emit multiple text blocks
@@ -88,16 +90,13 @@ class StreamEventMapper:
         if isinstance(msg_chunk, ToolMessage):
             return events
 
-        # D27.1: chunk.id transitions are LLM-call boundaries — flush any
-        # buffered reasoning tail under the prior reasoning_id, reset
-        # segmenter, and arm a new reasoning_id for the next reasoning
-        # block. id=None is treated as continuation (some providers emit
+        # chunk.id transitions are LLM-call boundaries — close any open
+        # reasoning part so each round of a multi-round tool loop gets its
+        # own part. id=None is treated as continuation (some providers emit
         # None on intermediate chunks).
         if msg_chunk.id is not None and msg_chunk.id != self._current_llm_call_id:
-            self._flush_segmenter_into(events)
-            self._segmenter.reset()
+            self._close_reasoning_part(events)
             self._current_llm_call_id = msg_chunk.id
-            self._current_reasoning_id = None
 
         if not self._message_started:
             events.append(
@@ -108,13 +107,15 @@ class StreamEventMapper:
         # Iterate the LangChain v1 normalized content_blocks (D1). The lazy
         # property handles all three providers' raw shapes (string content,
         # list of blocks with text/reasoning/tool_call_chunk types).
-        blocks = self._apply_dev_flag_block_filters(msg_chunk.content_blocks)
         prev_block_type: str | None = None
-        for block in blocks:
+        for block in msg_chunk.content_blocks:
             block_type = block.get("type")
             if block_type == "reasoning":
+                # A reasoning block directly following another reasoning
+                # block in the same chunk is a distinct provider block
+                # (OpenAI multi-summary explode) → its own part.
                 self._handle_reasoning_block(
-                    block, events, prepend_separator=(prev_block_type == "reasoning")
+                    block, events, force_new_part=(prev_block_type == "reasoning")
                 )
             elif block_type == "text":
                 self._handle_text_block(block, events)
@@ -156,71 +157,29 @@ class StreamEventMapper:
         self,
         block: dict,
         events: list[DomainEvent],
-        prepend_separator: bool = False,
+        force_new_part: bool = False,
     ) -> None:
-        # DEV-ONLY: EMIT_DELAYED_REASONING releases ONE reasoning chunk total
-        # then drops the rest. The natural stream's silence between that lone
-        # emission and finish exceeds the frontend STALLED_THRESHOLD_MS and
-        # flips ``stalled=true`` — the Playwright spec asserts that visual
-        # state. A real per-chunk sleep is impossible here (sync path) and
-        # anyway not needed: the observable contract is a single reasoning
-        # chunk followed by silence, which this branch produces directly.
-        # Production must NOT set EMIT_DELAYED_REASONING.
-        if os.environ.get("EMIT_DELAYED_REASONING"):
-            if self._delayed_reasoning_emitted:
-                return
-            self._delayed_reasoning_emitted = True
-
-        # Lazy-mount reasoning_id at the first reasoning block of an LLM
-        # call; same id is reused for every reasoning block within the
-        # same chunk.id (D27.2 — frontend setText updates a single
-        # reasoning indicator).
-        if self._current_reasoning_id is None:
-            self._current_reasoning_id = f"reasoning-{self._reasoning_id_counter}"
+        if force_new_part:
+            self._close_reasoning_part(events)
+        if self._open_reasoning_id is None:
+            self._open_reasoning_id = f"reasoning-{self._reasoning_id_counter}"
             self._reasoning_id_counter += 1
-        # D12: consecutive reasoning blocks within one chunk get a `\n`
-        # separator so different summaries (e.g. OpenAI multi-summary
-        # explode) don't fuse. `\n` is itself an immediate terminator,
-        # so the prior block's buffered content emits as a complete
-        # ReasoningStatus before this block's text feeds.
-        delta = ("\n" if prepend_separator else "") + block.get("reasoning", "")
-        for sentence in self._segmenter.feed(delta):
+            events.append(ReasoningStart(reasoning_id=self._open_reasoning_id))
+        delta = block.get("reasoning", "")
+        if delta:
             events.append(
-                ReasoningStatus(reasoning_id=self._current_reasoning_id, text=sentence)
+                ReasoningDelta(reasoning_id=self._open_reasoning_id, delta=delta)
             )
 
-    @staticmethod
-    def _apply_dev_flag_block_filters(blocks: list[dict]) -> list[dict]:
-        """DEV-ONLY filters that mutate the per-chunk block stream.
-
-        Two flags are honored:
-
-        - ``STUB_REASONING_ONLY`` — drop ``text`` and ``tool_call_chunk``
-          blocks so the resulting stream is reasoning-only. Drives
-          S-trace-05 (trace tail emits reasoning even when no text/tool
-          blocks reach the wire).
-        - ``STUB_CONTENT_BLOCKS_NO_REASONING=<provider>`` — drop
-          ``reasoning`` blocks to simulate a regression where the
-          LangChain v1 content_blocks normalizer stops surfacing
-          reasoning for that provider. Drives S-trace-09. The value is
-          treated as a non-empty truthy switch; the per-provider scope
-          is documented but not enforced here because the mapper has no
-          provider context — Playwright sets the flag only when the
-          backend is configured for the matching provider.
-
-        Production must NOT set either flag.
-        """
-        if os.environ.get("STUB_REASONING_ONLY"):
-            return [b for b in blocks if b.get("type") == "reasoning"]
-        if os.environ.get("STUB_CONTENT_BLOCKS_NO_REASONING"):
-            return [b for b in blocks if b.get("type") != "reasoning"]
-        return list(blocks)
+    def _close_reasoning_part(self, events: list[DomainEvent]) -> None:
+        if self._open_reasoning_id is not None:
+            events.append(ReasoningEnd(reasoning_id=self._open_reasoning_id))
+            self._open_reasoning_id = None
 
     def _handle_text_block(self, block: dict, events: list[DomainEvent]) -> None:
-        # D28 hold-and-flush: any buffered reasoning tail must reach the
-        # wire BEFORE TextStart so the frontend can clear the reasoning
-        # indicator on text-start without losing the last visible sentence.
-        self._flush_segmenter_into(events)
+        # The provider moved on to answer text — the current reasoning
+        # part (if any) is complete.
+        self._close_reasoning_part(events)
         text = block.get("text", "")
         if not text:
             return
@@ -233,8 +192,7 @@ class StreamEventMapper:
     def _handle_tool_call_chunk_block(
         self, block: dict, events: list[DomainEvent]
     ) -> None:
-        # D28 hold-and-flush — same rationale as _handle_text_block.
-        self._flush_segmenter_into(events)
+        self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))
             self._text_block_open = False
@@ -242,13 +200,6 @@ class StreamEventMapper:
         tc_name = block.get("name")
         if tc_id and tc_name and tc_id not in self._pending_tool_calls:
             self._pending_tool_calls[tc_id] = tc_name
-
-    def _flush_segmenter_into(self, events: list[DomainEvent]) -> None:
-        tail = self._segmenter.flush()
-        if tail and self._current_reasoning_id is not None:
-            events.append(
-                ReasoningStatus(reasoning_id=self._current_reasoning_id, text=tail)
-            )
 
     def _handle_updates(self, chunk: dict) -> list[DomainEvent]:
         events: list[DomainEvent] = []
@@ -298,10 +249,12 @@ class StreamEventMapper:
             return []
         self._finalized = True
         events: list[DomainEvent] = []
-        # D34: reasoning may be the last block of the last LLM call with no
-        # terminator and no following text/tool. flush() here closes that
-        # gap so the buffer is never lost.
-        self._flush_segmenter_into(events)
+        # Reasoning may be the last content of the last LLM call — close the
+        # open part so the wire always carries a complete start/delta*/end
+        # sequence on natural finish and on the error path (the error path
+        # replays finalize() minus Finish, giving reasoning-end → error →
+        # finish per S-parts-04).
+        self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))
             self._text_block_open = False
@@ -314,16 +267,4 @@ class StreamEventMapper:
                 ),
             )
         )
-        # DEV-ONLY: EMIT_LATE_REASONING injects a synthetic ReasoningStatus
-        # AFTER Finish. The frontend's ``finishedRef`` (latched on the
-        # ``finish`` SSE event) MUST drop this, leaving the indicator
-        # cleared. Drives S-rsn-12 (post-finish reasoning event leakage).
-        # Production must NOT set EMIT_LATE_REASONING.
-        if os.environ.get("EMIT_LATE_REASONING"):
-            events.append(
-                ReasoningStatus(
-                    reasoning_id="reasoning-late",
-                    text="late thought after finish",
-                )
-            )
         return events

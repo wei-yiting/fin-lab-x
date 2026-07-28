@@ -12,10 +12,9 @@ Operator helper used by the BDD 6-case matrix and abort flow scenarios
     * ``--expect-reasoning-off``     empty string ``""``
     * ``--expect-unsupported``       sentinel ``"<unsupported>"``
 - When ``--expect-aborted`` is passed, the root span carries
-  ``metadata.status == "aborted"`` AND the latest GENERATION's
-  ``metadata.reasoning_tail_aborted`` key is present (D29 always-write-key
-  on the abort path). The value may be the empty string ``""`` when the
-  segmenter buffer was empty at abort — but the key must exist.
+  ``metadata.status == "aborted"``. (The per-generation
+  ``reasoning_tail_aborted`` write moved to DEV-107 with F7's trace-level
+  reasoning; it is no longer asserted here.)
 
 Authentication: ``LANGFUSE_PUBLIC_KEY`` / ``LANGFUSE_SECRET_KEY`` env
 vars (HTTP Basic). ``LANGFUSE_API_BASE`` defaults to
@@ -189,29 +188,15 @@ def verify(
         errors.extend(_check_reasoning_unsupported(generations))
 
     if expect_aborted:
+        # Abort-path contract post-DEV-106: only the root span carries the
+        # abort marker. (The former per-generation reasoning_tail_aborted
+        # write moved to DEV-107 with F7's trace-level reasoning.)
         if root is not None:
             root_meta = root.get("metadata") or {}
             if root_meta.get("status") != "aborted":
                 errors.append(
                     f"root span metadata.status expected 'aborted', got {root_meta.get('status')!r}"
                 )
-        # D29 always-write-key on the abort path: every aborted-trace
-        # GENERATION must carry metadata.reasoning_tail_aborted. The value
-        # is allowed to be the empty string "" (segmenter buffer was empty
-        # at abort), but the *key* must be present — its absence means the
-        # writer never executed, which is a contract violation.
-        latest = _latest_generation(generations)
-        if latest is not None:
-            latest_meta = latest.get("metadata") or {}
-            if "reasoning_tail_aborted" not in latest_meta:
-                errors.append(
-                    f"latest generation {latest.get('id')} missing "
-                    "metadata.reasoning_tail_aborted (required on every aborted trace)"
-                )
-            tail = latest_meta.get("reasoning_tail_aborted")
-            # Recorded for the JSON summary so consumers can tell whether
-            # the buffered tail was non-empty without re-parsing metadata.
-            trace.setdefault("_verifier", {})["tail_aborted_present"] = bool(tail)
 
     return (not errors, errors)
 

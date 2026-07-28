@@ -11,7 +11,7 @@ Unit tests for `backend.agent_engine.agents` — `Orchestrator`, `_init_model` p
 | `test_config_loader.py` | `ProfileConfigLoader` strict schema, `ModelConfig.reasoning` field, registry lookup |
 | `test_orchestrator_prompt_rendering.py` | `_render_prompt()` placeholder substitution; EDGAR identity fast-fail |
 | `test_orchestrator_langfuse.py` | `CallbackHandler` injection, `ReasoningTraceCallback` wiring, abort cleanup writes the always-write `reasoning_tail_aborted` key |
-| `test_orchestrator_dev_flags.py` | `BYPASS_TOOL_LIMIT` / `FORCE_REASONING_NON_TRANSIENT` and other dev env flags |
+| `test_orchestrator_dev_flags.py` | `FORCE_LLM_FAIL` and other dev env flags |
 | `test_utils_model_context.py` | `compute_section_soft_cap_chars` for the prompt template variable |
 
 ## Run

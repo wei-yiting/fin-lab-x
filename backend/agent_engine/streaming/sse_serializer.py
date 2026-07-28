@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import functools
 import json
-import logging
-import os
 
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
-    ReasoningStatus,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     StreamError,
     TextDelta,
     TextEnd,
@@ -25,24 +25,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
     ToolResult,
 )
 
-logger = logging.getLogger(__name__)
-
 
 def _sse(payload: dict) -> str:
     return f"data: {json.dumps(payload)}\n\n"
-
-
-# D39.c: reasoning events must always carry transient=True. ToolProgress predates this contract and is intentionally not guarded.
-def _assert_reasoning_transient(payload: dict) -> None:
-    if not (
-        payload.get("type", "").startswith("data-reasoning-")
-        and payload.get("transient") is True
-    ):
-        msg = "reasoning SSE event missing transient=True flag"
-        if os.environ.get("APP_ENV", "").lower() == "production":
-            logger.warning(msg, extra={"payload_type": payload.get("type")})
-        else:
-            raise AssertionError(msg)
 
 
 @functools.singledispatch
@@ -123,23 +108,20 @@ def _(event: ToolProgress) -> str:
 
 
 @serialize_event.register
-def _(event: ReasoningStatus) -> str:
-    payload = {
-        "type": "data-reasoning-status",
-        "id": event.reasoning_id,
-        "data": {"text": event.text},
-        "transient": True,
-    }
-    # DEV-ONLY: FORCE_REASONING_NON_TRANSIENT strips the transient flag so
-    # the wire emits a malformed payload. In APP_ENV=production the helper
-    # downgrades to a warning, letting Playwright assert that the frontend
-    # filter discards non-transient data-reasoning-status events
-    # (S-chan-03). In dev/CI the helper raises so accidental flag-on
-    # tests fail loudly. Production must NOT set FORCE_REASONING_NON_TRANSIENT.
-    if os.environ.get("FORCE_REASONING_NON_TRANSIENT"):
-        payload.pop("transient", None)
-    _assert_reasoning_transient(payload)
-    return _sse(payload)
+def _(event: ReasoningStart) -> str:
+    return _sse({"type": "reasoning-start", "id": event.reasoning_id})
+
+
+@serialize_event.register
+def _(event: ReasoningDelta) -> str:
+    return _sse(
+        {"type": "reasoning-delta", "id": event.reasoning_id, "delta": event.delta}
+    )
+
+
+@serialize_event.register
+def _(event: ReasoningEnd) -> str:
+    return _sse({"type": "reasoning-end", "id": event.reasoning_id})
 
 
 @serialize_event.register

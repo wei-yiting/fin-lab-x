@@ -43,7 +43,6 @@ from backend.agent_engine.agents.config_loader import (
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
-    ReasoningStatus,
     StreamError,
 )
 from backend.agent_engine.streaming.event_mapper import StreamEventMapper
@@ -512,7 +511,7 @@ class Orchestrator:
                 # D35 abort cleanup. CancelledError is BaseException (not
                 # Exception); list it before the generic except so it doesn't
                 # collapse into the StreamError path.
-                self._handle_abort_cleanup(mapper, handler)
+                self._handle_abort_cleanup(handler)
                 raise
             except Exception as e:
                 for event in mapper.finalize():
@@ -521,92 +520,45 @@ class Orchestrator:
                 yield StreamError(error_text=sanitize_tool_error(str(e)))
                 yield Finish(finish_reason="error")
 
-    def _handle_abort_cleanup(
-        self, mapper: StreamEventMapper, handler: "CallbackHandler"
-    ) -> None:
+    def _handle_abort_cleanup(self, handler: "CallbackHandler") -> None:
         """D35 abort cleanup.
 
-        Drains the segmenter, writes any tail reasoning text to the in-flight
-        chat_model generation under ``metadata.reasoning_tail_aborted`` (a
-        distinct key from the completed-path ``metadata.reasoning`` so the
-        schema stays consistent), and stamps the root chain as
-        ``status="aborted"``. All Langfuse interactions are best-effort —
-        internal failures are logged but never re-raised so cancellation
-        propagation is not blocked by observability outages.
+        Stamps the root chain as ``status="aborted"``. All Langfuse
+        interactions are best-effort — internal failures are logged but
+        never re-raised so cancellation propagation is not blocked by
+        observability outages. (The former reasoning-tail write moved with
+        F7's trace-level reasoning to DEV-107; abort stays wire-silent and
+        trace-minimal here.)
 
         Sync by design — sync code is not interruptible by ``CancelledError``,
         so cleanup runs to completion even when the parent task is being
         cancelled.
 
-        Lookup-by-run_id (not contextvars): like ``ReasoningTraceCallback``,
-        this method previously used ``client.update_current_generation`` /
-        ``update_current_span``, both of which silently no-op when the OTel
-        current span isn't the expected GENERATION/CHAIN. At abort time the
-        call stack is already unwinding, so the OTel context is even less
-        reliable. Instead we read the in-flight observations out of
+        Lookup-by-run_id (not contextvars): ``update_current_span`` silently
+        no-ops when the OTel current span isn't the expected CHAIN. At abort
+        time the call stack is already unwinding, so the OTel context is even
+        less reliable. Instead we read the in-flight observations out of
         ``handler._runs`` (Langfuse 4.x's run_id → observation dict). Entries
         for ended runs have already been popped via ``_detach_observation``,
         so whatever is still there at abort is by definition still in flight.
+        We enumerate ``.values()`` (not key-lookup), so the dict's key
+        shape — UUID, str(UUID), or hex — doesn't matter; only
+        observation-type drift would break the isinstance() narrowing, and
+        that's caught by the contract test in test_langfuse_runs_contract.py.
         """
-        from langfuse import LangfuseChain, LangfuseGeneration  # local: optional dep
+        from langfuse import LangfuseChain  # local: optional dep
 
-        tail_segments: list[str] = []
-        try:
-            for event in mapper.finalize():
-                if isinstance(event, ReasoningStatus):
-                    tail_segments.append(event.text)
-        except Exception:
-            logger.exception("mapper.finalize raised during abort cleanup")
-
-        # Find the most recent in-flight chat_model GENERATION (Python dicts
-        # preserve insertion order, so the last LangfuseGeneration is the
-        # most recently started but not-yet-ended one).
-        #
-        # Why this path doesn't need the _lookup_generation_by_run_id helper
-        # used in reasoning_trace_callback.on_llm_end: we enumerate
-        # ``.values()`` (not key-lookup), so the dict's key shape — UUID,
-        # str(UUID), or hex — doesn't matter. We're immune to key-shape
-        # drift; only observation-type drift (a new wrapper class around
-        # LangfuseChain / LangfuseGeneration) would break the isinstance()
-        # narrowing, and that's caught by the contract test in
-        # test_langfuse_runs_contract.py.
-        in_flight_generation: LangfuseGeneration | None = None
         root_chain: LangfuseChain | None = None
         try:
             for observation in handler._runs.values():
-                if isinstance(observation, LangfuseGeneration):
-                    in_flight_generation = observation
-                elif isinstance(observation, LangfuseChain) and root_chain is None:
+                if isinstance(observation, LangfuseChain):
                     # The chat-turn root LangfuseChain is the first chain
                     # registered (parent_run_id is None at the start of the
                     # request).
                     root_chain = observation
+                    break
         except Exception:
             logger.exception("failed to iterate handler._runs during abort cleanup")
-
-        # D29 always-write-key contract on the abort path: when an in-flight
-        # GENERATION is present, write metadata.reasoning_tail_aborted on
-        # every abort regardless of whether the segmenter buffered any
-        # segments. An empty buffer becomes the empty string "", which is
-        # the documented "no buffered tail at abort" value — distinct from
-        # the key being absent (which would mean we never tried to write).
-        # Pair with metadata.status="aborted" on the root chain so the
-        # verifier sees a uniform abort-trace shape.
-        if in_flight_generation is not None:
-            try:
-                in_flight_generation.update(
-                    metadata={"reasoning_tail_aborted": "\n".join(tail_segments)},
-                )
-            except Exception:
-                logger.exception(
-                    "failed to write reasoning_tail_aborted to in-flight generation"
-                )
-        elif tail_segments:
-            logger.warning(
-                "abort cleanup: %d tail segments collected but no in-flight "
-                "LangfuseGeneration found in handler._runs; reasoning tail dropped",
-                len(tail_segments),
-            )
 
         if root_chain is not None:
             try:

@@ -23,7 +23,6 @@ def _gen(
     obs_id: str,
     *,
     reasoning: str | None = None,
-    reasoning_tail_aborted: str | None = None,
     parent: str | None = "root",
     start: str = "2026-05-05T00:00:00Z",
     extra_metadata: dict[str, Any] | None = None,
@@ -33,8 +32,6 @@ def _gen(
     metadata: dict[str, Any] = dict(extra_metadata or {})
     if reasoning is not None:
         metadata["reasoning"] = reasoning
-    if reasoning_tail_aborted is not None:
-        metadata["reasoning_tail_aborted"] = reasoning_tail_aborted
     return {
         "id": obs_id,
         "type": "GENERATION",
@@ -206,11 +203,12 @@ def test_expect_unsupported_fails_when_generation_has_real_reasoning(
     assert code != 0
 
 
-def test_expect_aborted_passes_when_root_span_status_aborted_and_tail_present(
+def test_expect_aborted_passes_when_root_span_status_aborted(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Root chat-turn span has status=aborted; latest GENERATION carries the
-    segmenter tail under ``reasoning_tail_aborted``."""
+    """Root chat-turn span has status=aborted. (Post-DEV-106 the abort
+    contract is root-span-only; the per-generation tail write moved to
+    DEV-107.)"""
     _install_fake_fetch(
         monkeypatch,
         _trace(
@@ -220,7 +218,6 @@ def test_expect_aborted_passes_when_root_span_status_aborted_and_tail_present(
                 _gen(
                     "g2",
                     reasoning="thought 2 partial",
-                    reasoning_tail_aborted="tail segment",
                     start="2026-05-05T00:00:02Z",
                 ),
             ]
@@ -240,60 +237,6 @@ def test_expect_aborted_fails_when_root_span_missing_status(
         _trace(
             [
                 _root_span(status=None),
-                _gen(
-                    "g1",
-                    reasoning="thought 1",
-                    reasoning_tail_aborted="tail",
-                ),
-            ]
-        ),
-    )
-
-    code = vlt.main(["trace-abc", "--expect-reasoning-on", "--expect-aborted"])
-
-    assert code != 0
-
-
-def test_expect_aborted_accepts_empty_string_tail_when_segmenter_buffer_empty(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """D29 always-write-key on the abort path: the segmenter buffer being
-    empty at abort is acceptable, but only when the writer recorded an
-    empty string ``""`` value. The key must be present so the verifier can
-    distinguish "no buffered tail" (key="") from "writer never ran"
-    (key absent)."""
-    _install_fake_fetch(
-        monkeypatch,
-        _trace(
-            [
-                _root_span(status="aborted"),
-                _gen(
-                    "g1",
-                    reasoning="thought 1",
-                    reasoning_tail_aborted="",
-                ),
-            ]
-        ),
-    )
-
-    code = vlt.main(["trace-abc", "--expect-reasoning-on", "--expect-aborted"])
-
-    assert code == 0
-
-
-def test_expect_aborted_fails_when_reasoning_tail_aborted_key_missing(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """D29 always-write-key on the abort path: when the verifier sees an
-    aborted trace whose latest GENERATION has no ``reasoning_tail_aborted``
-    key at all, the abort-cleanup writer never ran — that's a contract
-    violation and must fail the trace even when ``status="aborted"`` is set.
-    """
-    _install_fake_fetch(
-        monkeypatch,
-        _trace(
-            [
-                _root_span(status="aborted"),
                 _gen("g1", reasoning="thought 1"),
             ]
         ),

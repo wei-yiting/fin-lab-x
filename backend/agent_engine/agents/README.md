@@ -43,13 +43,10 @@ Ordering is documented but not load-bearing for correctness: lookup-by-run_id ma
 
 `astream_run()` adds two D34 / D35 hooks around `agent.astream()`:
 
-- **Natural termination** — after `agent.astream()` exhausts, `mapper.finalize()` drains any segmenter tail (last reasoning sentence without a terminator) and emits a `Finish` event.
-- **User abort (`asyncio.CancelledError`)** — `_handle_abort_cleanup()` runs synchronously by design; sync code is not interruptible by `CancelledError` so cleanup completes even while the parent task is being cancelled. It:
-  - Iterates `handler._runs.values()` (immune to key-shape drift — UUID / str / hex; only observation-type drift breaks `isinstance`, which is caught by `test_langfuse_runs_contract.py`) to locate the in-flight `LangfuseGeneration` and the root `LangfuseChain`.
-  - Writes `metadata.reasoning_tail_aborted` — a **distinct key** from the completed-path `metadata.reasoning`. Value may be `""` when the segmenter buffer was empty; the key is always written (the always-write-key contract on the abort path).
-  - Stamps the root chain with `metadata.status="aborted"`.
+- **Natural termination** — after `agent.astream()` exhausts, `mapper.finalize()` closes any open reasoning part / text block and emits a `Finish` event.
+- **User abort (`asyncio.CancelledError`)** — `_handle_abort_cleanup()` runs synchronously by design; sync code is not interruptible by `CancelledError` so cleanup completes even while the parent task is being cancelled. It iterates `handler._runs.values()` (immune to key-shape drift — UUID / str / hex; only observation-type drift breaks `isinstance`, which is caught by `test_langfuse_runs_contract.py`) to locate the root `LangfuseChain` and stamps it with `metadata.status="aborted"`. The wire stays silent (no final SSE frame). The former per-generation `reasoning_tail_aborted` write moves to DEV-107 with F7's trace-level reasoning.
 
-Operator queries on aborted traces must read `metadata.reasoning_tail_aborted` + `metadata.status` rather than expecting `metadata.reasoning` on the in-flight GENERATION (`on_llm_end` never fires for cancelled LLM calls). `backend/scripts/validation/verify_langfuse_trace.py --expect-aborted` enforces this shape in CI and post-deploy.
+Operator queries on aborted traces must read root `metadata.status` rather than expecting `metadata.reasoning` on the in-flight GENERATION (`on_llm_end` never fires for cancelled LLM calls). `backend/scripts/validation/verify_langfuse_trace.py --expect-aborted` enforces this shape in CI and post-deploy.
 
 ## Startup Validation
 

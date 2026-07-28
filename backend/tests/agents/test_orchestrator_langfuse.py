@@ -896,14 +896,15 @@ class TestReasoningTraceCallbackInjection:
 
 
 class TestAstreamAbortCleanup:
-    """Task 6 / D35 — on asyncio.CancelledError mid-stream, drain segmenter,
-    write reasoning_tail_aborted to current generation, mark root span
-    aborted, and re-raise CancelledError to the caller."""
+    """D35 — on asyncio.CancelledError mid-stream, mark the root span
+    aborted and re-raise CancelledError to the caller. (The former
+    reasoning-tail write moved to DEV-107 with F7's trace-level reasoning;
+    abort is wire-silent and trace-minimal.)"""
 
     def _astream_with_reasoning_then_cancel(self, agent: Any) -> None:
         async def mock_astream(*args, **kwargs):
-            # Emit a reasoning chunk (no terminator → segmenter buffers it)
-            # then raise CancelledError to simulate client disconnect.
+            # Emit a reasoning chunk mid-part, then raise CancelledError to
+            # simulate client disconnect.
             yield {
                 "type": "messages",
                 "data": (
@@ -921,7 +922,7 @@ class TestAstreamAbortCleanup:
         agent.astream = mock_astream
 
     @pytest.mark.asyncio
-    async def test_cancel_writes_reasoning_tail_and_aborted_status(self):
+    async def test_cancel_marks_root_chain_aborted(self):
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
@@ -948,88 +949,30 @@ class TestAstreamAbortCleanup:
                 ):
                     pass
 
-        # In-flight generation receives metadata.reasoning_tail_aborted
-        gen_calls = gen_mock.update.call_args_list
-        assert len(gen_calls) == 1
-        gen_metadata = gen_calls[0].kwargs["metadata"]
-        assert "reasoning_tail_aborted" in gen_metadata
-        assert "partial thought" in gen_metadata["reasoning_tail_aborted"]
-
         # Root chain receives metadata.status="aborted"
         chain_calls = chain_mock.update.call_args_list
         assert any(
             c.kwargs.get("metadata", {}).get("status") == "aborted" for c in chain_calls
         )
-
-    @pytest.mark.asyncio
-    async def test_cancel_with_empty_segmenter_writes_empty_reasoning_tail(self):
-        """D29 always-write-key contract on the abort path: even when the
-        segmenter buffered nothing at abort (no in-flight reasoning text),
-        the in-flight GENERATION must still receive
-        ``metadata.reasoning_tail_aborted = ""``. The verifier requires the
-        key to be present on every aborted-trace generation, so skipping
-        the write when the buffer is empty produces a contract violation."""
-        config = _make_config()
-        orch = _create_orchestrator(config)
-        agent = cast(Any, orch.agent)
-
-        async def mock_astream(*args, **kwargs):
-            raise asyncio.CancelledError()
-            yield  # noqa: RET503
-
-        agent.astream = mock_astream
-
-        handler_mock, chain_mock, gen_mock = _make_handler_with_inflight_runs()
-        with (
-            patch(
-                "backend.agent_engine.agents.base.CallbackHandler",
-                return_value=handler_mock,
-            ),
-            patch(
-                "backend.agent_engine.streaming.reasoning_trace_callback.get_client",
-                return_value=MagicMock(),
-            ),
-            patch(
-                "backend.agent_engine.agents.base.propagate_attributes",
-                return_value=nullcontext(),
-            ),
-        ):
-            with pytest.raises(asyncio.CancelledError):
-                async for _ in orch.astream_run(
-                    message="test", session_id="sess-empty-cancel"
-                ):
-                    pass
-
-        # Empty segmenter buffer -> still write the key, with value "".
-        gen_calls = gen_mock.update.call_args_list
-        assert len(gen_calls) == 1
-        gen_metadata = gen_calls[0].kwargs["metadata"]
-        assert "reasoning_tail_aborted" in gen_metadata
-        assert gen_metadata["reasoning_tail_aborted"] == ""
-        # Root chain status still recorded.
-        chain_calls = chain_mock.update.call_args_list
-        assert any(
-            c.kwargs.get("metadata", {}).get("status") == "aborted" for c in chain_calls
-        )
+        # No per-generation writes on abort (tail write moved to DEV-107).
+        assert gen_mock.update.call_count == 0
 
     @pytest.mark.asyncio
     async def test_cancel_with_empty_runs_propagates_and_warns(
         self, caplog: pytest.LogCaptureFixture
     ):
-        """D35 robustness: if ``handler._runs`` holds neither an in-flight
-        GENERATION nor a root CHAIN at abort time (e.g. cancel before Langfuse
-        registered any observation), cleanup must not raise — it logs a warning
-        and still re-raises CancelledError to the caller. Without this the
-        abort path could mask the cancellation behind an AttributeError."""
+        """D35 robustness: if ``handler._runs`` holds no root CHAIN at abort
+        time (e.g. cancel before Langfuse registered any observation),
+        cleanup must not raise — it logs a warning and still re-raises
+        CancelledError to the caller. Without this the abort path could mask
+        the cancellation behind an AttributeError."""
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
-        # Buffer a reasoning tail so the "no in-flight generation" warning path
-        # (tail collected but nowhere to write it) is exercised.
         self._astream_with_reasoning_then_cancel(agent)
 
         handler_mock = MagicMock()
-        handler_mock._runs = OrderedDict()  # empty: no generation, no chain
+        handler_mock._runs = OrderedDict()  # empty: no chain
         with (
             patch(
                 "backend.agent_engine.agents.base.CallbackHandler",
@@ -1052,7 +995,6 @@ class TestAstreamAbortCleanup:
                     pass
 
         messages = " ".join(rec.message for rec in caplog.records)
-        assert "no in-flight LangfuseGeneration found" in messages
         assert "no LangfuseChain root found" in messages
 
     @pytest.mark.asyncio
@@ -1125,7 +1067,7 @@ class TestAstreamAbortCleanup:
                 events.append(event)
 
         # Natural finish must NOT touch the abort cleanup path (the path that
-        # writes status="aborted" and reasoning_tail_aborted via run_id lookup).
+        # writes status="aborted" via run_id lookup).
         assert chain_mock.update.call_count == 0
         assert gen_mock.update.call_count == 0
         # Stream should have produced a Finish(stop) event.

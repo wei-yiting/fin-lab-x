@@ -5,7 +5,9 @@ from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
-    ReasoningStatus,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     TextDelta,
     TextEnd,
     TextStart,
@@ -304,10 +306,21 @@ def make_messages_chunk_reasoning_then_text(
     return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
 
 
-class TestReasoningHappyPath:
-    """A reasoning block with a terminator emits ReasoningStatus immediately."""
+def make_messages_chunk_multi_reasoning(
+    texts: list[str],
+    msg_id: str = "msg-1",
+) -> dict:
+    msg = AIMessageChunk(
+        content=[{"type": "reasoning", "reasoning": t} for t in texts],
+        id=msg_id,
+    )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
 
-    def test_single_reasoning_sentence(self):
+
+class TestReasoningNativeParts:
+    """F5: one provider reasoning block = one native part (start/delta*/end)."""
+
+    def test_single_reasoning_chunk_opens_part_and_streams_delta(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(
@@ -316,19 +329,45 @@ class TestReasoningHappyPath:
 
         assert events == [
             MessageStart(message_id="msg-A", session_id=SESSION_ID),
-            ReasoningStatus(reasoning_id="reasoning-0", text="理解問題。"),
+            ReasoningStart(reasoning_id="reasoning-0"),
+            ReasoningDelta(reasoning_id="reasoning-0", delta="理解問題。"),
         ]
 
+    def test_raw_passthrough_no_buffering(self):
+        """S-parts-02: mid-word fragments and `\\n\\n` pass through verbatim,
+        one ReasoningDelta per provider delta — no sentence buffering."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
 
-class TestReasoningHoldAndFlushOrdering:
-    """D28: reasoning sentences must emit BEFORE TextStart in the same chunk."""
+        mapper.process_chunk(make_messages_chunk_reasoning("10-K li", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("sts\n\nrisks", msg_id="msg-A")
+        )
 
-    def test_reasoning_then_text_in_same_chunk(self):
+        deltas = [e for e in events if isinstance(e, ReasoningDelta)]
+        assert deltas == [
+            ReasoningDelta(reasoning_id="reasoning-0", delta="sts\n\nrisks")
+        ]
+
+    def test_empty_delta_not_emitted(self):
+        """A zero-length reasoning block opens the part but emits no delta —
+        the frontend suppresses zero-delta chips (S-chip-08)."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(make_messages_chunk_reasoning("", msg_id="msg-A"))
+
+        assert ReasoningStart(reasoning_id="reasoning-0") in events
+        assert not [e for e in events if isinstance(e, ReasoningDelta)]
+
+
+class TestReasoningPartBoundaries:
+    """Part closes when the provider moves on: text, tool, new LLM call."""
+
+    def test_text_block_closes_open_reasoning_part(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(
             make_messages_chunk_reasoning_then_text(
-                reasoning="分析中。",
+                reasoning="分析中",
                 text="answer",
                 msg_id="msg-A",
             )
@@ -337,17 +376,14 @@ class TestReasoningHoldAndFlushOrdering:
         types_in_order = [type(e).__name__ for e in events]
         assert types_in_order == [
             "MessageStart",
-            "ReasoningStatus",
+            "ReasoningStart",
+            "ReasoningDelta",
+            "ReasoningEnd",
             "TextStart",
             "TextDelta",
         ]
-        rs = next(e for e in events if isinstance(e, ReasoningStatus))
-        assert rs.text == "分析中。"
 
-    def test_reasoning_tail_flushed_before_tool_call(self):
-        # Buffer a reasoning fragment with no terminator, then receive a
-        # tool_call_chunk in the next chunk — the buffered fragment must
-        # be flushed as ReasoningStatus before the text block closes.
+    def test_tool_call_chunk_closes_open_reasoning_part(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
         mapper.process_chunk(
             make_messages_chunk_reasoning("partial-thought", msg_id="msg-A")
@@ -357,102 +393,87 @@ class TestReasoningHoldAndFlushOrdering:
             make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
         )
 
-        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
-        assert len(rs_events) == 1
-        assert rs_events[0].text == "partial-thought"
+        assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
 
-
-class TestChunkIdBoundary:
-    """D27.1: chunk.id transitions trigger segmenter flush + reset."""
-
-    def test_same_id_continuation_no_flush(self):
+    def test_new_llm_call_closes_part_and_opens_new_id(self):
+        """S-parts-01: multi-round loop → one part per round, ids turn-unique."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
-        # Buffer "step 1" (no terminator) under msg-A
+        mapper.process_chunk(make_messages_chunk_reasoning("round-1", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("round-2", msg_id="msg-B")
+        )
+
+        assert events == [
+            ReasoningEnd(reasoning_id="reasoning-0"),
+            ReasoningStart(reasoning_id="reasoning-1"),
+            ReasoningDelta(reasoning_id="reasoning-1", delta="round-2"),
+        ]
+
+    def test_same_id_continuation_keeps_part_open(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
         mapper.process_chunk(make_messages_chunk_reasoning("step 1", msg_id="msg-A"))
-        # Same chunk.id arrives — must NOT trigger flush
         events = mapper.process_chunk(
             make_messages_chunk_reasoning(" continues", msg_id="msg-A")
         )
 
-        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
-        assert rs_events == []
+        assert events == [
+            ReasoningDelta(reasoning_id="reasoning-0", delta=" continues")
+        ]
 
     def test_none_id_treated_as_continuation(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         mapper.process_chunk(make_messages_chunk_reasoning("partial", msg_id="msg-A"))
-        # id=None is continuation per D27.1, no boundary flush
         events = mapper.process_chunk(
             make_messages_chunk_reasoning(" more", msg_id=None)
         )
 
-        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
-        assert rs_events == []
+        assert events == [ReasoningDelta(reasoning_id="reasoning-0", delta=" more")]
 
-    def test_different_id_triggers_flush_and_new_reasoning_id(self):
+    def test_consecutive_reasoning_blocks_in_one_chunk_become_separate_parts(self):
+        """D12 removal: multi-summary explode → one part per provider block,
+        no `\\n` join."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
-        # Buffer "tail-A" with no terminator under msg-A
-        mapper.process_chunk(make_messages_chunk_reasoning("tail-A", msg_id="msg-A"))
-        # New chunk.id msg-B → boundary: flush buffered tail. The new reasoning
-        # ends with `\n` (immediate terminator) so it emits in the same call.
         events = mapper.process_chunk(
-            make_messages_chunk_reasoning("new B.\n", msg_id="msg-B")
+            make_messages_chunk_multi_reasoning(
+                ["Summary one.", "Summary two."], msg_id="msg-A"
+            )
         )
 
-        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
-        assert len(rs_events) == 2
-        # First emit is the flushed tail under the OLD reasoning_id
-        assert rs_events[0].text == "tail-A"
-        assert rs_events[0].reasoning_id == "reasoning-0"
-        # Second emit is the new sentence under the NEW reasoning_id
-        assert rs_events[1].text == "new B."
-        assert rs_events[1].reasoning_id == "reasoning-1"
+        assert events == [
+            MessageStart(message_id="msg-A", session_id=SESSION_ID),
+            ReasoningStart(reasoning_id="reasoning-0"),
+            ReasoningDelta(reasoning_id="reasoning-0", delta="Summary one."),
+            ReasoningEnd(reasoning_id="reasoning-0"),
+            ReasoningStart(reasoning_id="reasoning-1"),
+            ReasoningDelta(reasoning_id="reasoning-1", delta="Summary two."),
+        ]
 
-
-class TestReasoningIdLifecycle:
-    """D27.2: same chunk.id → same reasoning_id; new chunk.id → new reasoning_id."""
-
-    def test_three_reasoning_blocks_same_call_share_id(self):
+    def test_reasoning_after_text_same_call_opens_new_part(self):
+        """Anthropic interleave: reasoning → text → reasoning within one LLM
+        call yields two distinct parts (turn-unique ids)."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = []
         events += mapper.process_chunk(
-            make_messages_chunk_reasoning("first.\n", msg_id="msg-A")
+            make_messages_chunk_reasoning("step A", msg_id="msg-A")
         )
+        events += mapper.process_chunk(make_messages_chunk_text("t1", msg_id="msg-A"))
         events += mapper.process_chunk(
-            make_messages_chunk_reasoning("second.\n", msg_id="msg-A")
-        )
-        events += mapper.process_chunk(
-            make_messages_chunk_reasoning("third.\n", msg_id="msg-A")
+            make_messages_chunk_reasoning("step B", msg_id="msg-A")
         )
 
-        rs_events = [e for e in events if isinstance(e, ReasoningStatus)]
-        assert len(rs_events) == 3
-        ids = {e.reasoning_id for e in rs_events}
-        assert ids == {"reasoning-0"}
-
-    def test_new_llm_call_gets_new_reasoning_id(self):
-        mapper = StreamEventMapper(session_id=SESSION_ID)
-
-        events_a = mapper.process_chunk(
-            make_messages_chunk_reasoning("call-A.\n", msg_id="msg-A")
-        )
-        events_b = mapper.process_chunk(
-            make_messages_chunk_reasoning("call-B.\n", msg_id="msg-B")
-        )
-
-        rs_a = [e for e in events_a if isinstance(e, ReasoningStatus)]
-        rs_b = [e for e in events_b if isinstance(e, ReasoningStatus)]
-        assert rs_a[0].reasoning_id == "reasoning-0"
-        assert rs_b[0].reasoning_id == "reasoning-1"
+        starts = [e for e in events if isinstance(e, ReasoningStart)]
+        assert [s.reasoning_id for s in starts] == ["reasoning-0", "reasoning-1"]
 
 
-class TestFinalizeReasoningTail:
-    """D34: finalize() emits any buffered segmenter tail before Finish."""
+class TestFinalizeReasoning:
+    """finalize() closes any open reasoning part before Finish."""
 
-    def test_finalize_flushes_reasoning_tail(self):
+    def test_finalize_closes_open_reasoning_part(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         mapper.process_chunk(
@@ -461,12 +482,9 @@ class TestFinalizeReasoningTail:
         events = mapper.finalize()
 
         types_in_order = [type(e).__name__ for e in events]
-        # Tail flushed first, then Finish (no TextEnd because no text block opened)
-        assert types_in_order == ["ReasoningStatus", "Finish"]
-        rs = next(e for e in events if isinstance(e, ReasoningStatus))
-        assert rs.text == "no terminator here"
+        assert types_in_order == ["ReasoningEnd", "Finish"]
 
-    def test_finalize_no_segmenter_content_emits_only_finish(self):
+    def test_finalize_no_open_part_emits_only_finish(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
         mapper.process_chunk(make_messages_chunk_text("done.", msg_id="msg-A"))
         mapper.process_chunk(
@@ -475,7 +493,7 @@ class TestFinalizeReasoningTail:
 
         events = mapper.finalize()
 
-        # Text block already closed by tool call; no buffered reasoning;
+        # Text block already closed by tool call; no open reasoning part;
         # only Finish should remain.
         assert len(events) == 1
         assert isinstance(events[0], Finish)

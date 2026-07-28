@@ -12,10 +12,7 @@
 #   gemini-off          Gemini reasoning off  (yaml swap)
 #   anthropic-on        Anthropic Sonnet 4.5 + extended thinking (yaml swap, temp=1.0)
 #   anthropic-off       Anthropic Sonnet 4.5 reasoning off (yaml swap)
-#   delayed-reasoning   default + EMIT_DELAYED_REASONING=1  (S-rsn-06 stalled)
-#   late-reasoning      default + EMIT_LATE_REASONING=1     (S-rsn-12)
 #   force-llm-fail      default + FORCE_LLM_FAIL=1          (S-stream-04)
-#   non-transient-prod  default + FORCE_REASONING_NON_TRANSIENT=1 APP_ENV=production
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -104,11 +101,7 @@ case "$profile" in
       -e 's/reasoning: "on"/reasoning: "off"/' \
       "$YAML"
     ;;
-  delayed-reasoning) env_extra+=("EMIT_DELAYED_REASONING=1") ;;
-  late-reasoning)    env_extra+=("EMIT_LATE_REASONING=1") ;;
   force-llm-fail)    env_extra+=("FORCE_LLM_FAIL=1") ;;
-  non-transient-prod)
-    env_extra+=("FORCE_REASONING_NON_TRANSIENT=1" "APP_ENV=production") ;;
   *)
     echo "unknown profile: $profile" >&2
     exit 2

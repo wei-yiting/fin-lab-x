@@ -1,0 +1,671 @@
+{
+  "started_at": "2026-07-29T07:56:17.223301+00:00",
+  "base_url": "http://127.0.0.1:8010",
+  "args": {
+    "base_url": "http://127.0.0.1:8010",
+    "runs": 8,
+    "warmup": 2,
+    "invoke_runs": 3,
+    "mode": "both",
+    "queries": [
+      "quote",
+      "financials",
+      "sec"
+    ],
+    "out": "backend/scripts/ttft_results/full-run-1.json"
+  },
+  "queries": {
+    "quote": "What is NVIDIA's current stock price, and how has it moved today?",
+    "financials": "How has Apple's gross margin trended recently? Use its basic financials and interpret the trend.",
+    "sec": "Summarize the main risk factors in Tesla's latest 10-K filing."
+  },
+  "per_query": {
+    "quote": {
+      "stream_runs": [
+        {
+          "first_seen": {
+            "start": 3.213243999518454,
+            "reasoning-start": 3.3195063322782516,
+            "tool-input-available": 4.768079165369272,
+            "data-tool-progress": 4.794546124525368,
+            "tool-output-available": 5.651505374349654,
+            "reasoning-end": 6.723736832849681,
+            "reasoning-delta": 9.23829854093492,
+            "text-start": 15.482509790919721,
+            "text-delta": 15.48265029117465,
+            "text-end": 15.864337207749486,
+            "finish": 15.864697207696736
+          },
+          "first_visible": 4.768079165369272,
+          "finish": 15.864697207696736,
+          "n_events": 544
+        },
+        {
+          "first_seen": {
+            "start": 0.8651302503421903,
+            "reasoning-start": 0.8687989171594381,
+            "reasoning-delta": 2.19066375028342,
+            "tool-input-available": 3.3472253754734993,
+            "data-tool-progress": 3.363650375045836,
+            "tool-output-available": 4.087909166701138,
+            "reasoning-end": 5.356518625281751,
+            "text-start": 19.042019249871373,
+            "text-delta": 19.043673957698047,
+            "text-end": 21.293502000160515,
+            "finish": 21.31356029212475
+          },
+          "first_visible": 2.19066375028342,
+          "finish": 21.31356029212475,
+          "n_events": 624
+        },
+        {
+          "first_seen": {
+            "start": 1.8579251244664192,
+            "reasoning-start": 1.8770121652632952,
+            "tool-input-available": 7.291786957532167,
+            "data-tool-progress": 7.330060875043273,
+            "tool-output-available": 8.978415832854807,
+            "reasoning-end": 11.540503500029445,
+            "reasoning-delta": 13.9342474155128,
+            "text-start": 18.41108829062432,
+            "text-delta": 18.411756082437932,
+            "text-end": 20.840246208012104,
+            "finish": 20.840877125039697
+          },
+          "first_visible": 7.291786957532167,
+          "finish": 20.840877125039697,
+          "n_events": 502
+        },
+        {
+          "first_seen": {
+            "start": 0.7359306253492832,
+            "reasoning-start": 1.403028542175889,
+            "tool-input-available": 2.4880519174039364,
+            "data-tool-progress": 2.6491468753665686,
+            "tool-output-available": 3.524719792418182,
+            "reasoning-end": 5.021820291876793,
+            "reasoning-delta": 16.65019075013697,
+            "text-start": 22.59771745838225,
+            "text-delta": 22.59777112491429,
+            "text-end": 23.843152541667223,
+            "finish": 23.850502542220056
+          },
+          "first_visible": 2.4880519174039364,
+          "finish": 23.850502542220056,
+          "n_events": 614
+        },
+        {
+          "first_seen": {
+            "start": 0.7746522501111031,
+            "reasoning-start": 0.7979860417544842,
+            "tool-input-available": 7.252337291836739,
+            "data-tool-progress": 7.32284174952656,
+            "tool-output-available": 8.114696834236383,
+            "reasoning-end": 8.858722999691963,
+            "reasoning-delta": 12.308689874596894,
+            "text-start": 22.811433209106326,
+            "text-delta": 22.812687542289495,
+            "text-end": 25.03254491649568,
+            "finish": 25.038287124596536
+          },
+          "first_visible": 7.252337291836739,
+          "finish": 25.038287124596536,
+          "n_events": 632
+        },
+        {
+          "first_seen": {
+            "start": 0.4479816658422351,
+            "reasoning-start": 0.6287799580022693,
+            "tool-input-available": 8.022243750281632,
+            "data-tool-progress": 8.053255500271916,
+            "tool-output-available": 8.900860000401735,
+            "reasoning-end": 9.431982041336596,
+            "reasoning-delta": 14.315671625547111,
+            "text-start": 19.321584416553378,
+            "text-delta": 19.321890666149557,
+            "text-end": 20.502747458405793,
+            "finish": 20.503444583155215
+          },
+          "first_visible": 8.022243750281632,
+          "finish": 20.503444583155215,
+          "n_events": 451
+        },
+        {
+          "first_seen": {
+            "start": 0.8367124581709504,
+            "reasoning-start": 0.8472291668877006,
+            "tool-input-available": 6.532912124879658,
+            "data-tool-progress": 6.635596875101328,
+            "tool-output-available": 7.4058086248114705,
+            "reasoning-end": 8.119904874823987,
+            "reasoning-delta": 11.249531958252192,
+            "text-start": 16.20616616681218,
+            "text-delta": 16.207048792392015,
+            "text-end": 18.497772292234004,
+            "finish": 18.507159917615354
+          },
+          "first_visible": 6.532912124879658,
+          "finish": 18.507159917615354,
+          "n_events": 584
+        },
+        {
+          "first_seen": {
+            "start": 0.8139247922226787,
+            "reasoning-start": 0.8748058751225471,
+            "reasoning-delta": 3.6767690842971206,
+            "tool-input-available": 6.58831537514925,
+            "data-tool-progress": 6.661411750130355,
+            "tool-output-available": 7.394487875513732,
+            "reasoning-end": 8.878753084689379,
+            "text-start": 19.27647766750306,
+            "text-delta": 19.27699250075966,
+            "text-end": 21.85789612494409,
+            "finish": 21.85832333471626
+          },
+          "first_visible": 3.6767690842971206,
+          "finish": 21.85832333471626,
+          "n_events": 706
+        }
+      ],
+      "invoke_runs": [
+        {
+          "total": 20.73601762484759,
+          "response_chars": 6799
+        },
+        {
+          "total": 23.09662637487054,
+          "response_chars": 8790
+        },
+        {
+          "total": 19.559593959711492,
+          "response_chars": 6973
+        }
+      ],
+      "stream_summary": {
+        "ttfb_any_event": {
+          "n": 8,
+          "median": 0.8253186251968145,
+          "mean": 1.1931876457529142,
+          "min": 0.4479816658422351,
+          "max": 3.213243999518454
+        },
+        "first_reasoning": {
+          "n": 8,
+          "median": 11.779110916424543,
+          "mean": 10.445507874945179,
+          "min": 2.19066375028342,
+          "max": 16.65019075013697
+        },
+        "first_tool": {
+          "n": 8,
+          "median": 6.560613750014454,
+          "mean": 5.786368994740769,
+          "min": 2.4880519174039364,
+          "max": 8.022243750281632
+        },
+        "first_text": {
+          "n": 8,
+          "median": 19.160333229228854,
+          "mean": 19.144308869726956,
+          "min": 15.48265029117465,
+          "max": 22.812687542289495
+        },
+        "first_visible": {
+          "n": 8,
+          "median": 5.650495645124465,
+          "mean": 5.277855505235493,
+          "min": 2.19066375028342,
+          "max": 8.022243750281632
+        },
+        "finish": {
+          "n": 8,
+          "median": 21.077218708582222,
+          "mean": 20.972106515895575,
+          "min": 15.864697207696736,
+          "max": 25.038287124596536
+        }
+      },
+      "invoke_summary": {
+        "n": 3,
+        "median": 20.73601762484759,
+        "mean": 21.13074598647654,
+        "min": 19.559593959711492,
+        "max": 23.09662637487054
+      }
+    },
+    "financials": {
+      "stream_runs": [
+        {
+          "first_seen": {
+            "start": 3.2808919167146087,
+            "reasoning-start": 3.391865042038262,
+            "reasoning-delta": 4.6557738753035665,
+            "tool-input-available": 6.269258292391896,
+            "data-tool-progress": 6.486002707853913,
+            "tool-output-available": 7.762862667441368,
+            "reasoning-end": 8.657356167212129,
+            "text-start": 28.052554042078555,
+            "text-delta": 28.05302004236728,
+            "text-end": 30.06509479228407,
+            "finish": 30.06551504228264
+          },
+          "first_visible": 4.6557738753035665,
+          "finish": 30.06551504228264,
+          "n_events": 1058
+        },
+        {
+          "first_seen": {
+            "start": 0.7904646676033735,
+            "reasoning-start": 0.8413631254807115,
+            "reasoning-delta": 5.631669042631984,
+            "tool-input-available": 16.9521174589172,
+            "data-tool-progress": 16.98869812581688,
+            "tool-output-available": 18.57689829263836,
+            "reasoning-end": 19.402630417607725,
+            "text-start": 32.33698841743171,
+            "text-delta": 32.33743291720748,
+            "text-end": 39.271166667342186,
+            "finish": 39.27606191765517
+          },
+          "first_visible": 5.631669042631984,
+          "finish": 39.27606191765517,
+          "n_events": 1067
+        },
+        {
+          "first_seen": {
+            "start": 0.8428157083690166,
+            "reasoning-start": 0.9095318745821714,
+            "reasoning-delta": 5.159120250493288,
+            "tool-input-available": 10.785292667336762,
+            "data-tool-progress": 11.277189667336643,
+            "tool-output-available": 17.172914291732013,
+            "reasoning-end": 22.969633082859218,
+            "text-start": 40.23399770818651,
+            "text-delta": 40.23431441746652,
+            "text-end": 59.3064562920481,
+            "finish": 59.32293466664851
+          },
+          "first_visible": 5.159120250493288,
+          "finish": 59.32293466664851,
+          "n_events": 1188
+        },
+        {
+          "first_seen": {
+            "start": 1.7094807904213667,
+            "reasoning-start": 1.7363131251186132,
+            "reasoning-delta": 2.5904256654903293,
+            "tool-input-available": 4.207991625182331,
+            "data-tool-progress": 4.541826540604234,
+            "tool-output-available": 6.401767540723085,
+            "reasoning-end": 8.72462216578424,
+            "text-start": 32.994381125085056,
+            "text-delta": 32.99501600023359,
+            "text-end": 35.62028304114938,
+            "finish": 35.621197749860585
+          },
+          "first_visible": 2.5904256654903293,
+          "finish": 35.621197749860585,
+          "n_events": 1052
+        },
+        {
+          "first_seen": {
+            "start": 0.9416816243901849,
+            "reasoning-start": 0.9531233748421073,
+            "tool-input-available": 6.529322332702577,
+            "data-tool-progress": 7.4195534167811275,
+            "tool-output-available": 9.15471487492323,
+            "reasoning-end": 9.972546249628067,
+            "reasoning-delta": 15.197880582883954,
+            "text-start": 40.41397695802152,
+            "text-delta": 40.41412599943578,
+            "text-end": 79.83881391678005,
+            "finish": 79.90126845799387
+          },
+          "first_visible": 6.529322332702577,
+          "finish": 79.90126845799387,
+          "n_events": 990
+        },
+        {
+          "first_seen": {
+            "start": 11.292729750275612,
+            "reasoning-start": 11.337494709528983,
+            "reasoning-delta": 11.340868667699397,
+            "tool-input-available": 16.104596042074263,
+            "data-tool-progress": 16.433160834014416,
+            "tool-output-available": 18.039796833880246,
+            "reasoning-end": 19.436718584038317,
+            "text-start": 102.5059085842222,
+            "text-delta": 102.50760470889509,
+            "text-end": 121.165642417036,
+            "finish": 121.17204179242253
+          },
+          "first_visible": 11.340868667699397,
+          "finish": 121.17204179242253,
+          "n_events": 2441
+        },
+        {
+          "first_seen": {
+            "start": 1.5754985408857465,
+            "reasoning-start": 1.6127457907423377,
+            "tool-input-available": 3.800826416350901,
+            "data-tool-progress": 3.924285041168332,
+            "tool-output-available": 5.518882540985942,
+            "reasoning-end": 6.985431999899447,
+            "reasoning-delta": 8.678758958354592,
+            "text-start": 20.501003375276923,
+            "text-delta": 20.501148874871433,
+            "text-end": 28.45910883322358,
+            "finish": 28.46012470778078
+          },
+          "first_visible": 3.800826416350901,
+          "finish": 28.46012470778078,
+          "n_events": 1123
+        },
+        {
+          "first_seen": {
+            "start": 0.8366625839844346,
+            "reasoning-start": 0.8418841250240803,
+            "reasoning-delta": 3.1139514166861773,
+            "tool-input-available": 5.979445166885853,
+            "data-tool-progress": 6.004340167157352,
+            "tool-output-available": 7.277750208973885,
+            "reasoning-end": 8.00960583332926,
+            "text-start": 21.541013916954398,
+            "text-delta": 21.54206124972552,
+            "text-end": 25.659963416866958,
+            "finish": 25.666416416876018
+          },
+          "first_visible": 3.1139514166861773,
+          "finish": 25.666416416876018,
+          "n_events": 1336
+        }
+      ],
+      "invoke_runs": [
+        {
+          "total": 27.154661833308637,
+          "response_chars": 11952
+        },
+        {
+          "total": 93.76643295772374,
+          "response_chars": 23510
+        },
+        {
+          "total": 36.27450399938971,
+          "response_chars": 13747
+        }
+      ],
+      "stream_summary": {
+        "ttfb_any_event": {
+          "n": 8,
+          "median": 1.2585900826379657,
+          "mean": 2.658778197830543,
+          "min": 0.7904646676033735,
+          "max": 11.292729750275612
+        },
+        "first_reasoning": {
+          "n": 8,
+          "median": 5.395394646562636,
+          "mean": 7.046056057442911,
+          "min": 2.5904256654903293,
+          "max": 15.197880582883954
+        },
+        "first_tool": {
+          "n": 8,
+          "median": 6.399290312547237,
+          "mean": 8.828606250230223,
+          "min": 3.800826416350901,
+          "max": 16.9521174589172
+        },
+        "first_text": {
+          "n": 8,
+          "median": 32.666224458720535,
+          "mean": 39.82309052627534,
+          "min": 20.501148874871433,
+          "max": 102.50760470889509
+        },
+        "first_visible": {
+          "n": 8,
+          "median": 4.907447062898427,
+          "mean": 5.3527447084197775,
+          "min": 2.5904256654903293,
+          "max": 11.340868667699397
+        },
+        "finish": {
+          "n": 8,
+          "median": 37.44862983375788,
+          "mean": 52.43569509394001,
+          "min": 25.666416416876018,
+          "max": 121.17204179242253
+        }
+      },
+      "invoke_summary": {
+        "n": 3,
+        "median": 36.27450399938971,
+        "mean": 52.398532930140696,
+        "min": 27.154661833308637,
+        "max": 93.76643295772374
+      }
+    },
+    "sec": {
+      "stream_runs": [
+        {
+          "first_seen": {
+            "start": 0.8144401255995035,
+            "reasoning-start": 0.8787055425345898,
+            "tool-input-available": 2.8766762921586633,
+            "data-tool-progress": 2.9476755829527974,
+            "tool-output-available": 6.194574458524585,
+            "reasoning-end": 9.591117667034268,
+            "reasoning-delta": 10.400225500576198,
+            "tool-output-error": 12.291971082799137,
+            "text-start": 42.86498050019145,
+            "text-delta": 42.8651650827378,
+            "text-end": 48.7207599170506,
+            "finish": 48.72339995857328
+          },
+          "first_visible": 2.8766762921586633,
+          "finish": 48.72339995857328,
+          "n_events": 1198
+        },
+        {
+          "first_seen": {
+            "start": 1.3847030829638243,
+            "reasoning-start": 1.5882666669785976,
+            "reasoning-delta": 3.9011406674981117,
+            "tool-input-available": 7.7233180003240705,
+            "data-tool-progress": 7.91487433295697,
+            "tool-output-available": 11.60076937545091,
+            "reasoning-end": 17.139646291732788,
+            "tool-output-error": 19.84824062511325,
+            "text-start": 79.68706187512726,
+            "text-delta": 79.68733424972743,
+            "text-end": 80.2186802085489,
+            "finish": 80.21935462485999
+          },
+          "first_visible": 3.9011406674981117,
+          "finish": 80.21935462485999,
+          "n_events": 2065
+        },
+        {
+          "first_seen": {
+            "start": 0.5641030417755246,
+            "reasoning-start": 0.6809792499989271,
+            "reasoning-delta": 2.839618624188006,
+            "tool-input-available": 5.953429707325995,
+            "data-tool-progress": 6.036316999234259,
+            "tool-output-available": 9.793467541225255,
+            "reasoning-end": 14.560728792101145,
+            "tool-output-error": 20.622905707918108,
+            "text-start": 58.246098624542356,
+            "text-delta": 58.246452832594514,
+            "text-end": 61.65021774917841,
+            "finish": 61.650996666401625
+          },
+          "first_visible": 2.839618624188006,
+          "finish": 61.650996666401625,
+          "n_events": 1490
+        },
+        {
+          "first_seen": {
+            "start": 0.7008714582771063,
+            "reasoning-start": 0.856351999565959,
+            "tool-input-available": 3.634011249989271,
+            "data-tool-progress": 3.6808607075363398,
+            "tool-output-available": 4.370419749990106,
+            "reasoning-end": 5.068602874875069,
+            "reasoning-delta": 6.502245541661978,
+            "tool-output-error": 7.988287249580026,
+            "text-start": 34.79615491721779,
+            "text-delta": 34.800536999478936,
+            "text-end": 38.61515870783478,
+            "finish": 38.64023333322257
+          },
+          "first_visible": 3.634011249989271,
+          "finish": 38.64023333322257,
+          "n_events": 1205
+        },
+        {
+          "first_seen": {
+            "start": 0.7830264586955309,
+            "reasoning-start": 0.9055733336135745,
+            "reasoning-delta": 3.1663412088528275,
+            "tool-input-available": 4.656907458789647,
+            "data-tool-progress": 4.759048708714545,
+            "tool-output-available": 5.862683166749775,
+            "reasoning-end": 6.50012974999845,
+            "tool-output-error": 10.216622208245099,
+            "text-start": 59.89665812533349,
+            "text-delta": 59.89741525053978,
+            "text-end": 63.85097987577319,
+            "finish": 63.85243650060147
+          },
+          "first_visible": 3.1663412088528275,
+          "finish": 63.85243650060147,
+          "n_events": 1505
+        },
+        {
+          "first_seen": {
+            "start": 0.640361207537353,
+            "reasoning-start": 0.6961752083152533,
+            "tool-input-available": 2.821649916470051,
+            "data-tool-progress": 3.0032894173637033,
+            "tool-output-available": 3.897052667103708,
+            "reasoning-end": 4.862919417209923,
+            "reasoning-delta": 6.303378375247121,
+            "tool-output-error": 8.04215837456286,
+            "text-start": 56.750848417170346,
+            "text-delta": 56.76313841715455,
+            "text-end": 60.14855762477964,
+            "finish": 60.149502207525074
+          },
+          "first_visible": 2.821649916470051,
+          "finish": 60.149502207525074,
+          "n_events": 1548
+        },
+        {
+          "first_seen": {
+            "start": 0.993385249748826,
+            "reasoning-start": 1.2466294998303056,
+            "reasoning-delta": 3.6859387503936887,
+            "tool-input-available": 5.429695917293429,
+            "data-tool-progress": 5.477523333393037,
+            "tool-output-available": 6.142405667342246,
+            "reasoning-end": 6.656769749708474,
+            "tool-output-error": 11.898978125303984,
+            "text-start": 54.29792470857501,
+            "text-delta": 54.29846829175949,
+            "text-end": 60.21045754197985,
+            "finish": 60.23315479233861
+          },
+          "first_visible": 3.6859387503936887,
+          "finish": 60.23315479233861,
+          "n_events": 1408
+        },
+        {
+          "first_seen": {
+            "start": 1.3891306249424815,
+            "reasoning-start": 1.3925370825454593,
+            "reasoning-delta": 6.101526457816362,
+            "tool-input-available": 10.389928666874766,
+            "data-tool-progress": 10.745975458063185,
+            "tool-output-available": 12.315057042054832,
+            "reasoning-end": 13.421443792060018,
+            "tool-output-error": 14.909255458042026,
+            "text-start": 51.03264329209924,
+            "text-delta": 51.032683291472495,
+            "text-end": 67.55078329145908,
+            "finish": 67.55512387491763
+          },
+          "first_visible": 6.101526457816362,
+          "finish": 67.55512387491763,
+          "n_events": 1553
+        }
+      ],
+      "invoke_runs": [
+        {
+          "total": 67.12920312490314,
+          "response_chars": 16114
+        },
+        {
+          "total": 170.13958191685379,
+          "response_chars": 19302
+        },
+        {
+          "total": 98.08727533277124,
+          "response_chars": 19832
+        }
+      ],
+      "stream_summary": {
+        "ttfb_any_event": {
+          "n": 8,
+          "median": 0.7987332921475172,
+          "mean": 0.9087526561925188,
+          "min": 0.5641030417755246,
+          "max": 1.3891306249424815
+        },
+        "first_reasoning": {
+          "n": 8,
+          "median": 5.001333562657237,
+          "mean": 5.362551890779287,
+          "min": 2.839618624188006,
+          "max": 10.400225500576198
+        },
+        "first_tool": {
+          "n": 8,
+          "median": 5.043301688041538,
+          "mean": 5.435702151153237,
+          "min": 2.821649916470051,
+          "max": 10.389928666874766
+        },
+        "first_text": {
+          "n": 8,
+          "median": 55.53080335445702,
+          "mean": 54.698899301933125,
+          "min": 34.800536999478936,
+          "max": 79.68733424972743
+        },
+        "first_visible": {
+          "n": 8,
+          "median": 3.4001762294210494,
+          "mean": 3.6283628959208727,
+          "min": 2.821649916470051,
+          "max": 6.101526457816362
+        },
+        "finish": {
+          "n": 8,
+          "median": 60.94207572937012,
+          "mean": 60.12802524480503,
+          "min": 38.64023333322257,
+          "max": 80.21935462485999
+        }
+      },
+      "invoke_summary": {
+        "n": 3,
+        "median": 98.08727533277124,
+        "mean": 111.78535345817606,
+        "min": 67.12920312490314,
+        "max": 170.13958191685379
+      }
+    }
+  }
+}

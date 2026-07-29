@@ -251,13 +251,13 @@ def test_load_scenario_config_parses_diagnostic_block_with_defaults(
     config_path = tmp_path / "eval_spec.yaml"
     config_path.write_text(
         """
-name: near_v1_diagnostic
+name: baseline_behavior_diagnostic
 csv: dataset.csv
 diagnostic:
-  dataset_name: near_v1_diagnostic
+  dataset_name: baseline_behavior_diagnostic
   dataset_version: "2026-04-24"
 task:
-  function: backend.evals.eval_tasks.run_near_v1_diagnostic
+  function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic
 column_mapping:
   question: input.question
 scorers:
@@ -269,11 +269,11 @@ scorers:
     config = load_scenario_config(config_path)
 
     assert isinstance(config.diagnostic, DiagnosticScenarioConfig)
-    assert config.diagnostic.dataset_name == "near_v1_diagnostic"
+    assert config.diagnostic.dataset_name == "baseline_behavior_diagnostic"
     assert config.diagnostic.dataset_version == "2026-04-24"
     assert config.diagnostic.row_id_column == "id"
     assert config.diagnostic.question_column == "question"
-    assert config.diagnostic.agent_version == "v1_baseline"
+    assert config.diagnostic.agent_version == "baseline"
 
 
 def test_load_scenario_config_rejects_unknown_diagnostic_field(
@@ -282,13 +282,13 @@ def test_load_scenario_config_rejects_unknown_diagnostic_field(
     config_path = tmp_path / "eval_spec.yaml"
     config_path.write_text(
         """
-name: near_v1_diagnostic
+name: baseline_behavior_diagnostic
 diagnostic:
-  dataset_name: near_v1_diagnostic
+  dataset_name: baseline_behavior_diagnostic
   dataset_version: "2026-04-24"
   unknown_field: nope
 task:
-  function: backend.evals.eval_tasks.run_near_v1_diagnostic
+  function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic
 column_mapping:
   question: input.question
 scorers:
@@ -316,11 +316,11 @@ def test_diagnostic_config_rejects_empty_identity_fields(
     field_value: str,
 ) -> None:
     payload = {
-        "dataset_name": "near_v1_diagnostic",
+        "dataset_name": "baseline_behavior_diagnostic",
         "dataset_version": "2026-04-24",
         "row_id_column": "id",
         "question_column": "question",
-        "agent_version": "v1_baseline",
+        "agent_version": "baseline",
     }
     payload[field_name] = field_value
 
@@ -328,14 +328,16 @@ def test_diagnostic_config_rejects_empty_identity_fields(
         DiagnosticScenarioConfig.model_validate(payload)
 
 
-def test_checked_in_near_v1_diagnostic_spec_loads_and_resolves_contract() -> None:
+def test_checked_in_baseline_behavior_diagnostic_spec_loads_and_resolves_contract() -> (
+    None
+):
     from backend.evals.scorer_registry import resolve_function
 
     config_path = (
         Path(__file__).resolve().parents[2]
         / "evals"
         / "scenarios"
-        / "near_v1_diagnostic"
+        / "baseline_behavior_diagnostic"
         / "eval_spec.yaml"
     )
 
@@ -343,7 +345,7 @@ def test_checked_in_near_v1_diagnostic_spec_loads_and_resolves_contract() -> Non
     task_fn = resolve_function(config.task.function, label="task")
     scorer_fn = resolve_function(config.scorers[0].function or "", label="scorer")
 
-    assert config.name == "near_v1_diagnostic"
+    assert config.name == "baseline_behavior_diagnostic"
     assert config.diagnostic is not None
     assert callable(task_fn)
     assert callable(scorer_fn)

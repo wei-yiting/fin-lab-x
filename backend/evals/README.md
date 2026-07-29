@@ -18,7 +18,7 @@ Use this rule:
 
 ## Diagnostic Human Review
 
-`near_v1_diagnostic` 是一條獨立的人工診斷軌，不是 golden-answer scoring，也不是 LLM judge。
+`baseline_behavior_diagnostic` 是一條獨立的人工診斷軌，不是 golden-answer scoring，也不是 LLM judge。
 
 - Braintrust: 看 execution、experiment compare、trace drill-down
 - Langfuse: 看 trace metadata、人工 annotation、scores export
@@ -28,24 +28,24 @@ Use this rule:
 
 ```bash
 # Full local diagnostic run
-uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only
+uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --local-only
 
 # Row-id subset (quick rerun after a fix)
-uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --row-ids 1 --run-label smoke-local
+uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --local-only --row-ids 1 --run-label smoke-local
 
 # Braintrust platform mode
-uv run python -m backend.evals.eval_runner near_v1_diagnostic --run-label smoke-platform --output-dir /tmp/near-v1-diagnostic-platform
+uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --run-label smoke-platform --output-dir /tmp/baseline-behavior-diagnostic-platform
 
 # Provision one Langfuse annotation queue with triage + diagnostic score configs
 uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
 
 # Join Langfuse scores export back to dataset rows
 uv run python -m backend.evals.diagnostic.annotation_export_joiner \
-  --dataset backend/evals/scenarios/near_v1_diagnostic/dataset.csv \
+  --dataset backend/evals/scenarios/baseline_behavior_diagnostic/dataset.csv \
   --scores-export /path/to/langfuse_scores.csv \
-  --dataset-name near_v1_diagnostic \
+  --dataset-name baseline_behavior_diagnostic \
   --run-label smoke-local \
-  --output /tmp/near-v1-diagnostic-discussion.csv
+  --output /tmp/baseline-behavior-diagnostic-discussion.csv
 ```
 
 Braintrust Project Settings 應設定穩定的 diagnostic comparison key，例如 `row_id`。這樣 compare UI 才會對齊同一筆 dataset row，而不是只靠 trace 順序或 experiment 內部索引。
@@ -56,7 +56,7 @@ Langfuse Human Annotation 需要先建立 Score Config。setup script 建立單�
 uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
 ```
 
-它會建立一個 queue：`near-v1-diagnostic-review-v1`，並綁定同一組 score configs：
+它會建立一個 queue：`baseline-behavior-diagnostic-review-v1`，並綁定同一組 score configs：
 
 - `triage_outcome`: 第一輪只標 `good` / `bad`，用來篩出需要後續追蹤的 traces
 - `observed_*` / `review_*`: 第二輪深入診斷使用

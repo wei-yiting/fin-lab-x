@@ -740,12 +740,12 @@ class TestLangfuseTraceMetadata:
 
         diagnostic_langfuse_metadata: dict[str, Any] = {
             "row_id": "17",
-            "dataset_name": "near_v1_diagnostic",
+            "dataset_name": "baseline_behavior_diagnostic",
             "dataset_version": "2026-04-24",
             "run_label": "baseline",
-            "run_group": "near-v1",
+            "run_group": "baseline-behavior",
             "agent_version": "baseline",
-            "experiment_name": "near_v1_diagnostic_20260424_120000",
+            "experiment_name": "baseline_behavior_diagnostic_20260424_120000",
             "slice_label": "rows-17",
             "slice_type": "row_ids",
             "slice_selector": "17",

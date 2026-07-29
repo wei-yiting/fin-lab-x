@@ -77,7 +77,7 @@ Key rules:
 
 ### Diagnostic review split
 
-`near_v1_diagnostic` 另外建立一個 dual-surface review flow：
+`baseline_behavior_diagnostic` 另外建立一個 dual-surface review flow：
 
 - **Braintrust**: execution run、slice compare、trace drill-down、operator-facing experiment summaries
 - **Langfuse**: trace metadata、human annotation、scores export

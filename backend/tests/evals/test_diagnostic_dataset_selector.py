@@ -12,7 +12,7 @@ from backend.evals.diagnostic.dataset_selector import (
     select_diagnostic_slice,
 )
 
-DATASET_PATH = Path("backend/evals/scenarios/near_v1_diagnostic/dataset.csv")
+DATASET_PATH = Path("backend/evals/scenarios/baseline_behavior_diagnostic/dataset.csv")
 
 
 def load_fixture_rows() -> tuple[list[str], list[dict[str, str]]]:

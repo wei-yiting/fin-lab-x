@@ -95,7 +95,7 @@ def _existing_configs_for(profile: AnnotationProfile) -> list[SimpleNamespace]:
 def test_diagnostic_triage_v1_profile_flattens_triage_and_diagnostic_fields() -> None:
     assert DIAGNOSTIC_TRIAGE_V1_PROFILE.key == "diagnostic_triage_v1"
     assert DIAGNOSTIC_TRIAGE_V1_PROFILE.default_queue_name == (
-        "near-v1-diagnostic-review-v1"
+        "baseline-behavior-diagnostic-review-v1"
     )
     assert [spec.name for spec in DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs] == [
         "triage_outcome",
@@ -128,7 +128,7 @@ def test_provision_annotation_setup_creates_configs_and_queue() -> None:
         spec.name for spec in DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs
     ]
     assert result.annotation_queue is not None
-    assert result.annotation_queue.name == "near-v1-diagnostic-review-v1"
+    assert result.annotation_queue.name == "baseline-behavior-diagnostic-review-v1"
     assert api.annotation_queues.created[0]["score_config_ids"] == [
         f"score-config-{index}"
         for index in range(1, len(DIAGNOSTIC_TRIAGE_V1_PROFILE.score_configs) + 1)
@@ -157,7 +157,7 @@ def test_provision_annotation_setup_reuses_existing_configs_and_queue() -> None:
     existing_configs = _existing_configs_for(DIAGNOSTIC_TRIAGE_V1_PROFILE)
     existing_queue = SimpleNamespace(
         id="existing-queue",
-        name="near-v1-diagnostic-review-v1",
+        name="baseline-behavior-diagnostic-review-v1",
         score_config_ids=[config.id for config in existing_configs],
     )
     api = _FakeLangfuseApi(score_configs=existing_configs, queues=[existing_queue])

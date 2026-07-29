@@ -26,7 +26,7 @@ def _write_dataset_csv(path: Path) -> None:
 def _score_row(**overrides: str) -> dict[str, str]:
     row = {
         "trace_id": "trace-1",
-        "session_id": "near_v1_diagnostic::smoke-local::1",
+        "session_id": "baseline_behavior_diagnostic::smoke-local::1",
         "name": "observed_outcome",
         "source": "ANNOTATION",
         "observation_id": "",
@@ -69,7 +69,7 @@ def _join(tmp_path: Path, rows: list[dict[str, str]]) -> list[dict[str, str]]:
     return join_annotation_export(
         dataset_path=dataset_path,
         scores_export_path=scores_path,
-        dataset_name="near_v1_diagnostic",
+        dataset_name="baseline_behavior_diagnostic",
         run_label="smoke-local",
     )
 
@@ -89,7 +89,10 @@ def test_join_pivots_trace_level_annotations_and_preserves_order(
     assert joined[0]["observed_outcome"] == "acceptable_answer"
     assert joined[0]["review_comment"] == "good enough"
     assert joined[0]["langfuse_trace_id"] == "trace-1"
-    assert joined[0]["langfuse_session_id"] == "near_v1_diagnostic::smoke-local::1"
+    assert (
+        joined[0]["langfuse_session_id"]
+        == "baseline_behavior_diagnostic::smoke-local::1"
+    )
     # Rows without any annotation keep empty reviewer columns.
     assert joined[1]["observed_outcome"] == ""
     assert joined[1]["langfuse_trace_id"] == ""
@@ -198,7 +201,7 @@ def test_join_cli_writes_discussion_csv(tmp_path: Path) -> None:
             "--scores-export",
             str(scores_path),
             "--dataset-name",
-            "near_v1_diagnostic",
+            "baseline_behavior_diagnostic",
             "--run-label",
             "smoke-local",
             "--output",

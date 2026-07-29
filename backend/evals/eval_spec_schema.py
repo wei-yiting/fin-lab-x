@@ -93,7 +93,7 @@ class DiagnosticScenarioConfig(BaseModel):
     dataset_version: str
     row_id_column: str = "id"
     question_column: str = "question"
-    agent_version: str = "v1_baseline"
+    agent_version: str = "baseline"
 
     @field_validator(
         "dataset_name",

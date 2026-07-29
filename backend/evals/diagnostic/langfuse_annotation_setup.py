@@ -78,9 +78,9 @@ _FAILURE_MECHANISM_LABELS = (
 
 DIAGNOSTIC_TRIAGE_V1_PROFILE = AnnotationProfile(
     key="diagnostic_triage_v1",
-    default_queue_name="near-v1-diagnostic-review-v1",
+    default_queue_name="baseline-behavior-diagnostic-review-v1",
     description=(
-        "Single-queue near-v1 diagnostic review schema. Start with "
+        "Single-queue baseline behavior diagnostic review schema. Start with "
         "triage_outcome=good/bad, then fill the full diagnostic fields only for "
         "traces that need deeper review."
     ),

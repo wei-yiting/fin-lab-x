@@ -493,7 +493,7 @@ class TestRunScenario:
         return scenarios_dir, scenario_dir
 
     def _setup_diagnostic_scenario_contract_csv(
-        self, tmp_path: Path, scenario_name: str = "near_v1_diagnostic"
+        self, tmp_path: Path, scenario_name: str = "baseline_behavior_diagnostic"
     ) -> tuple[Path, Path]:
         scenarios_dir = tmp_path / "scenarios"
         scenario_dir = scenarios_dir / scenario_name
@@ -503,13 +503,15 @@ class TestRunScenario:
             "name": scenario_name,
             "csv": "dataset.csv",
             "diagnostic": {
-                "dataset_name": "near_v1_diagnostic",
+                "dataset_name": "baseline_behavior_diagnostic",
                 "dataset_version": "2026-04-24",
                 "row_id_column": "id",
                 "question_column": "question",
                 "agent_version": "baseline",
             },
-            "task": {"function": "backend.evals.eval_tasks.run_near_v1_diagnostic"},
+            "task": {
+                "function": "backend.evals.eval_tasks.run_baseline_behavior_diagnostic"
+            },
             "column_mapping": {"question": "input.question"},
             "scorers": [
                 {
@@ -799,7 +801,7 @@ class TestRunScenario:
         from backend.evals.eval_runner import run_scenario
 
         result_path = run_scenario(
-            "near_v1_diagnostic",
+            "baseline_behavior_diagnostic",
             upload=False,
             output_dir=output_dir,
             scenarios_dir=scenarios_dir,
@@ -866,7 +868,7 @@ class TestRunScenario:
 
         with patch("backend.evals.eval_runner.Eval", side_effect=fake_eval):
             result_path = run_scenario(
-                "near_v1_diagnostic",
+                "baseline_behavior_diagnostic",
                 upload=True,
                 output_dir=output_dir,
                 scenarios_dir=scenarios_dir,
@@ -883,8 +885,8 @@ class TestRunScenario:
 
         eval_call = eval_calls[0]
         assert eval_call["project"] == "finlab-x"
-        assert eval_call["experiment_name"].startswith("near_v1_diagnostic_")
-        assert eval_call["metadata"]["dataset_name"] == "near_v1_diagnostic"
+        assert eval_call["experiment_name"].startswith("baseline_behavior_diagnostic_")
+        assert eval_call["metadata"]["dataset_name"] == "baseline_behavior_diagnostic"
         assert eval_call["metadata"]["dataset_version"] == "2026-04-24"
         assert eval_call["metadata"]["run_label"] == "slice-run"
         assert eval_call["metadata"]["run_group"] == "nightly"
@@ -920,7 +922,7 @@ class TestRunScenario:
         assert rows[0]["output.response"] == "ok"
 
     def _setup_diagnostic_scenario(
-        self, tmp_path: Path, scenario_name: str = "near_v1_diagnostic"
+        self, tmp_path: Path, scenario_name: str = "baseline_behavior_diagnostic"
     ) -> tuple[Path, Path]:
         scenarios_dir = tmp_path / "scenarios"
         scenario_dir = scenarios_dir / scenario_name
@@ -936,7 +938,9 @@ class TestRunScenario:
                 "question_column": "question",
                 "agent_version": "baseline",
             },
-            "task": {"function": "backend.evals.eval_tasks.run_near_v1_diagnostic"},
+            "task": {
+                "function": "backend.evals.eval_tasks.run_baseline_behavior_diagnostic"
+            },
             "column_mapping": {"question": "input.question"},
             "scorers": [{"name": "diagnostic_execution_health", "function": "x.y"}],
         }
@@ -998,12 +1002,12 @@ class TestRunScenario:
         from backend.evals.eval_runner import run_scenario
 
         result_path = run_scenario(
-            "near_v1_diagnostic",
+            "baseline_behavior_diagnostic",
             upload=False,
             output_dir=tmp_path / "results",
             scenarios_dir=scenarios_dir,
             run_label="baseline",
-            run_group="near-v1",
+            run_group="baseline-behavior",
             row_ids="2",
         )
 
@@ -1014,7 +1018,9 @@ class TestRunScenario:
         assert rows[0]["id"] == "2"
         assert len(task_calls) == 1
         assert task_calls[0]["question"] == "Second question"
-        assert task_calls[0]["session_id"] == "near_v1_diagnostic::baseline::2"
+        assert (
+            task_calls[0]["session_id"] == "baseline_behavior_diagnostic::baseline::2"
+        )
         trace_metadata = task_calls[0]["trace_metadata"]
         assert trace_metadata["row_id"] == "2"
         assert trace_metadata["slice_label"] == "rows-2"
@@ -1033,7 +1039,9 @@ class TestRunScenario:
         assert trace_metadata["reference_best_source"] == "mixed"
         assert trace_metadata["reference_likely_tuning_lever"] == "max_tool_calls"
         assert trace_metadata["reference_pass_signals"] == ["b"]
-        assert trace_metadata["experiment_name"].startswith("near_v1_diagnostic_")
+        assert trace_metadata["experiment_name"].startswith(
+            "baseline_behavior_diagnostic_"
+        )
         # Identity separation: raw dataset columns are not projected into the
         # Langfuse trace metadata (only reference_* prefixed copies).
         assert "expected_near_v1_behavior" not in trace_metadata
@@ -1054,16 +1062,18 @@ class TestMainCli:
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         scenarios_dir = tmp_path / "scenarios"
-        scenario_dir = scenarios_dir / "near_v1_diagnostic"
+        scenario_dir = scenarios_dir / "baseline_behavior_diagnostic"
         scenario_dir.mkdir(parents=True)
-        (scenario_dir / "eval_spec.yaml").write_text("name: near_v1_diagnostic\n")
+        (scenario_dir / "eval_spec.yaml").write_text(
+            "name: baseline_behavior_diagnostic\n"
+        )
         mock_run_scenario.return_value = tmp_path / "results" / "manifest.csv"
 
         from backend.evals.eval_runner import main
 
         main(
             [
-                "near_v1_diagnostic",
+                "baseline_behavior_diagnostic",
                 "--run-label",
                 "slice-run",
                 "--run-group",

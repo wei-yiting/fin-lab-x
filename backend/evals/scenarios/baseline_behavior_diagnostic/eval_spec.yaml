@@ -1,13 +1,13 @@
-name: near_v1_diagnostic
+name: baseline_behavior_diagnostic
 csv: dataset.csv
 diagnostic:
-  dataset_name: near_v1_diagnostic
+  dataset_name: baseline_behavior_diagnostic
   dataset_version: "2026-04-24"
   row_id_column: id
   question_column: question
-  agent_version: v1_baseline
+  agent_version: baseline
 task:
-  function: backend.evals.eval_tasks.run_near_v1_diagnostic
+  function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic
 column_mapping:
   question: input.question
 scorers:

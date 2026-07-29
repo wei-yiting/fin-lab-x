@@ -190,13 +190,15 @@ def test_astream_collect_records_tool_errors_in_tool_outputs(
     ]
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_near_v1_diagnostic
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
 
-    result = asyncio.run(run_near_v1_diagnostic({"question": "UNH 發生什麼事？"}))
+    result = asyncio.run(
+        run_baseline_behavior_diagnostic({"question": "UNH 發生什麼事？"})
+    )
 
     assert result["tool_outputs"] == [
         {
@@ -208,44 +210,44 @@ def test_astream_collect_records_tool_errors_in_tool_outputs(
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_near_v1_diagnostic_extracts_question_field(
+def test_run_baseline_behavior_diagnostic_extracts_question_field(
     mock_get_orch: MagicMock,
 ) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_near_v1_diagnostic
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
 
-    asyncio.run(run_near_v1_diagnostic({"question": "Disney 最近怎麼了？"}))
+    asyncio.run(run_baseline_behavior_diagnostic({"question": "Disney 最近怎麼了？"}))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "Disney 最近怎麼了？"
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_near_v1_diagnostic_forwards_session_and_trace_metadata(
+def test_run_baseline_behavior_diagnostic_forwards_session_and_trace_metadata(
     mock_get_orch: MagicMock,
 ) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_near_v1_diagnostic
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
 
     asyncio.run(
-        run_near_v1_diagnostic(
+        run_baseline_behavior_diagnostic(
             {
                 "question": "AMD 最近怎麼了？",
-                "session_id": "near_v1_diagnostic::baseline::17",
+                "session_id": "baseline_behavior_diagnostic::baseline::17",
                 "trace_metadata": {
                     "row_id": "17",
                     "reference_expected_behavior": "may_pass_with_tuning",
@@ -256,7 +258,7 @@ def test_run_near_v1_diagnostic_forwards_session_and_trace_metadata(
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "AMD 最近怎麼了？"
-    assert call_kwargs["session_id"] == "near_v1_diagnostic::baseline::17"
+    assert call_kwargs["session_id"] == "baseline_behavior_diagnostic::baseline::17"
     assert call_kwargs["trace_metadata"] == {
         "row_id": "17",
         "reference_expected_behavior": "may_pass_with_tuning",
@@ -266,7 +268,7 @@ def test_run_near_v1_diagnostic_forwards_session_and_trace_metadata(
 def test_astream_collect_uses_default_session_id_when_none_provided() -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
@@ -289,19 +291,19 @@ def test_astream_collect_uses_default_session_id_when_none_provided() -> None:
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_near_v1_diagnostic_forwards_trace_metadata_and_session_id(
+def test_run_baseline_behavior_diagnostic_forwards_trace_metadata_and_session_id(
     mock_get_orch: MagicMock,
 ) -> None:
     mock_orchestrator = MagicMock()
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_near_v1_diagnostic
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
 
     expected_result = {
         "response": "ok",
         "tool_outputs": [],
         "model": "gpt-4o-mini",
-        "version": "v1_baseline",
+        "version": "baseline",
     }
 
     with patch(
@@ -309,10 +311,10 @@ def test_run_near_v1_diagnostic_forwards_trace_metadata_and_session_id(
         new=AsyncMock(return_value=expected_result),
     ) as mock_collect:
         result = asyncio.run(
-            run_near_v1_diagnostic(
+            run_baseline_behavior_diagnostic(
                 {
                     "question": "UNH 發生什麼事？",
-                    "session_id": "near_v1_diagnostic::baseline::1",
+                    "session_id": "baseline_behavior_diagnostic::baseline::1",
                     "trace_metadata": {"reference_best_source": "mixed"},
                 }
             )
@@ -322,7 +324,7 @@ def test_run_near_v1_diagnostic_forwards_trace_metadata_and_session_id(
     mock_collect.assert_awaited_once_with(
         mock_orchestrator,
         "UNH 發生什麼事？",
-        session_id="near_v1_diagnostic::baseline::1",
+        session_id="baseline_behavior_diagnostic::baseline::1",
         trace_metadata={"reference_best_source": "mixed"},
     )
     assert result == expected_result
@@ -331,7 +333,7 @@ def test_run_near_v1_diagnostic_forwards_trace_metadata_and_session_id(
 def test_astream_collect_omits_trace_metadata_when_none() -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
@@ -350,7 +352,7 @@ def test_astream_collect_omits_trace_metadata_when_none() -> None:
 def test_astream_collect_forwards_explicit_session_id_and_trace_metadata() -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
-    mock_orchestrator.config.version = "v1_baseline"
+    mock_orchestrator.config.version = "baseline"
     mock_orchestrator.astream_run = MagicMock(
         return_value=_async_gen(_mock_astream_events())
     )
@@ -361,13 +363,13 @@ def test_astream_collect_forwards_explicit_session_id_and_trace_metadata() -> No
         _astream_collect(
             mock_orchestrator,
             "hello",
-            session_id="near_v1_diagnostic::baseline::1",
+            session_id="baseline_behavior_diagnostic::baseline::1",
             trace_metadata={"reference_best_source": "mixed"},
         )
     )
 
     mock_orchestrator.astream_run.assert_called_once_with(
         message="hello",
-        session_id="near_v1_diagnostic::baseline::1",
+        session_id="baseline_behavior_diagnostic::baseline::1",
         trace_metadata={"reference_best_source": "mixed"},
     )

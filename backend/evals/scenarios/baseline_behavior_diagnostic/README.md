@@ -1,6 +1,6 @@
-# near_v1_diagnostic
+# baseline_behavior_diagnostic
 
-`near_v1_diagnostic` 是給 near-v1 人工診斷流程用的 eval scenario。它固定 dataset identity，並用 deterministic scorer 只記錄 execution / tool-call health，不評斷答案品質。
+`baseline_behavior_diagnostic` 是 baseline behavior diagnostic（對接近 baseline 規格的 agent 做執行行為健康檢查）的人工診斷 eval scenario。它固定 dataset identity，並用 deterministic scorer 只記錄 execution / tool-call health，不評斷答案品質。
 
 ## Scenario Contract
 
@@ -66,11 +66,11 @@ Langfuse scores export 需要先匯出成 CSV，再用本地 joiner 回接原始
 
 ```bash
 uv run python -m backend.evals.diagnostic.annotation_export_joiner \
-  --dataset backend/evals/scenarios/near_v1_diagnostic/dataset.csv \
+  --dataset backend/evals/scenarios/baseline_behavior_diagnostic/dataset.csv \
   --scores-export /path/to/langfuse_scores.csv \
-  --dataset-name near_v1_diagnostic \
+  --dataset-name baseline_behavior_diagnostic \
   --run-label smoke-local \
-  --output /tmp/near-v1-diagnostic-discussion.csv
+  --output /tmp/baseline-behavior-diagnostic-discussion.csv
 ```
 
 join key 不是直接拼字串比對而已；joiner 會先 parse `session_id`，確認：

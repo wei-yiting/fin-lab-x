@@ -167,15 +167,15 @@ async def run_baseline(input: Any) -> OrchestratorResult:
     return await _astream_collect(orchestrator, prompt)
 
 
-async def run_near_v1_diagnostic(input: Any) -> OrchestratorResult:
-    """Diagnostic task wrapper for near-v1 scenario rows.
+async def run_baseline_behavior_diagnostic(input: Any) -> OrchestratorResult:
+    """Task wrapper for baseline behavior diagnostic scenario rows.
 
     Keeps the current contract deliberately small: use the baseline
     orchestrator and extract the eval prompt from ``question``.
     """
     orchestrator = _get_orchestrator("baseline")
     if not isinstance(input, Mapping):
-        raise TypeError("near_v1_diagnostic input must be a mapping")
+        raise TypeError("baseline_behavior_diagnostic input must be a mapping")
 
     prompt = str(input["question"])
     session_id_value = input.get("session_id")

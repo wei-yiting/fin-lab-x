@@ -99,7 +99,10 @@ def parse_item_number(section_key: str) -> str:
     raw = section_key if isinstance(section_key, str) else ""
     candidate = _ITEM_PREFIX_RE.sub("", raw.strip()).rstrip(".").strip()
     candidate = candidate.lower()
-    if not _NORMALIZED_ITEM_RE.match(candidate) or candidate not in TENK_STANDARD_TITLES:
+    if (
+        not _NORMALIZED_ITEM_RE.match(candidate)
+        or candidate not in TENK_STANDARD_TITLES
+    ):
         raise SectionNotFoundError(
             f"Section key {section_key!r} is not a valid 10-K item number. "
             "Call sec_filing_list_sections first to see available section keys."
@@ -217,9 +220,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
         from edgar.httprequests import TooManyRequestsError
 
         if isinstance(exc, TooManyRequestsError):
-            return RateLimitError(
-                ticker, retry_after=getattr(exc, "retry_after", None)
-            )
+            return RateLimitError(ticker, retry_after=getattr(exc, "retry_after", None))
     except ImportError:
         pass
 
@@ -234,9 +235,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
                     retry_after=_parse_retry_after_seconds_header(exc.response),
                 )
             if status is not None and 500 <= status < 600:
-                return TransientError(
-                    f"SEC EDGAR returned {status} for {ticker}."
-                )
+                return TransientError(f"SEC EDGAR returned {status} for {ticker}.")
     except ImportError:
         pass
 
@@ -251,17 +250,13 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
                     retry_after=_parse_retry_after_seconds_header(exc.response),
                 )
             if status is not None and 500 <= status < 600:
-                return TransientError(
-                    f"SEC EDGAR returned {status} for {ticker}."
-                )
+                return TransientError(f"SEC EDGAR returned {status} for {ticker}.")
     except ImportError:
         pass
 
     if isinstance(exc, SECError):
         return exc
-    return TickerNotFoundError(
-        f"Ticker {ticker!r} not found on SEC EDGAR."
-    )
+    return TickerNotFoundError(f"Ticker {ticker!r} not found on SEC EDGAR.")
 
 
 def _parse_retry_after_seconds_header(response) -> int | None:
@@ -294,9 +289,7 @@ def _parse_retry_after_seconds_header(response) -> int | None:
 def _resolve_latest_fiscal_year_cached(ticker_upper: str) -> int:
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
-        raise ConfigurationError(
-            "EDGAR_IDENTITY environment variable is not set."
-        )
+        raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     from edgar import Company, set_identity
 
@@ -349,9 +342,7 @@ def _fetch_filing_obj_cached(
 ) -> "TenK":
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
-        raise ConfigurationError(
-            "EDGAR_IDENTITY environment variable is not set."
-        )
+        raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     from edgar import Company, set_identity
     from edgar.company_reports import TenK

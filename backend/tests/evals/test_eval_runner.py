@@ -692,9 +692,7 @@ class TestRunScenario:
         # category/capability_band, never the reference_* projection.
         assert braintrust_metadata["category"] == "regulatory_or_legal_risk"
         assert braintrust_metadata["capability_band"] == "boundary"
-        assert not any(
-            key.startswith("reference_") for key in braintrust_metadata
-        )
+        assert not any(key.startswith("reference_") for key in braintrust_metadata)
 
         with result_path.open("r", encoding="utf-8") as file:
             reader = csv.DictReader(file)

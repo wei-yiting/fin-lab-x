@@ -38,7 +38,9 @@ from backend.tests.agents.test_orchestrator_langfuse import (
 def _assert_complete_stream(events):
     """Every stream must open with MessageStart and close with Finish."""
     assert events, "stream yielded no events"
-    assert isinstance(events[0], MessageStart), f"first event was {type(events[0]).__name__}"
+    assert isinstance(events[0], MessageStart), (
+        f"first event was {type(events[0]).__name__}"
+    )
     assert isinstance(events[-1], Finish), f"last event was {type(events[-1]).__name__}"
 
 
@@ -205,7 +207,9 @@ class TestDualHandlerResilience:
             return cfg, prop
 
         with (
-            patch.object(orch, "_build_langfuse_config", side_effect=_build_with_sibling),
+            patch.object(
+                orch, "_build_langfuse_config", side_effect=_build_with_sibling
+            ),
             patch(
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),

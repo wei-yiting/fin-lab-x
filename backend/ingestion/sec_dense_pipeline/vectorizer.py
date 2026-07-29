@@ -133,21 +133,17 @@ async def ingest_filing(
             section_nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
             splitter = LangchainNodeParser(create_text_splitter())
             chunk_nodes = splitter.get_nodes_from_documents(section_nodes)
-            chunking_span.update(output={
-                "num_sections": len(section_nodes),
-                "num_chunks": len(chunk_nodes),
-            })
+            chunking_span.update(
+                output={
+                    "num_sections": len(section_nodes),
+                    "num_chunks": len(chunk_nodes),
+                }
+            )
 
         ingested_at = datetime.now(timezone.utc).isoformat()
-        filing_date = (
-            filing_metadata.filing_date if filing_metadata else "unknown"
-        )
-        filing_type = (
-            str(filing_metadata.filing_type) if filing_metadata else "10-K"
-        )
-        accession_number = (
-            filing_metadata.accession_number if filing_metadata else None
-        )
+        filing_date = filing_metadata.filing_date if filing_metadata else "unknown"
+        filing_type = str(filing_metadata.filing_type) if filing_metadata else "10-K"
+        accession_number = filing_metadata.accession_number if filing_metadata else None
 
         points = []
         for idx, node in enumerate(chunk_nodes):
@@ -203,10 +199,12 @@ async def ingest_filing(
             input={"num_chunks": len(texts), "model": _EMBED_MODEL},
         ) as embed_span:
             embeddings = await _embed_texts(texts)
-            embed_span.update(output={
-                "num_embedded": len(embeddings),
-                "dimensions": len(embeddings[0]) if embeddings else 0,
-            })
+            embed_span.update(
+                output={
+                    "num_embedded": len(embeddings),
+                    "dimensions": len(embeddings[0]) if embeddings else 0,
+                }
+            )
 
         qdrant_points = []
         for (point_id, payload), embedding in zip(points, embeddings):
@@ -224,7 +222,9 @@ async def ingest_filing(
         ) as upsert_span:
             BATCH_SIZE = 100
             for i in range(0, len(qdrant_points), BATCH_SIZE):
-                await client.upsert(collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE])
+                await client.upsert(
+                    collection_name=collection, points=qdrant_points[i : i + BATCH_SIZE]
+                )
 
             await client.upsert(
                 collection_name=collection,
@@ -241,9 +241,11 @@ async def ingest_filing(
                 ],
             )
             num_batches = (len(qdrant_points) + BATCH_SIZE - 1) // BATCH_SIZE
-            upsert_span.update(output={
-                "num_batches": num_batches,
-                "status": "complete",
-            })
+            upsert_span.update(
+                output={
+                    "num_batches": num_batches,
+                    "status": "complete",
+                }
+            )
     finally:
         await client.close()

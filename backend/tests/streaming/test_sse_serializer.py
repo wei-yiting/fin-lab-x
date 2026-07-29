@@ -61,7 +61,9 @@ class TestTextEnd:
 
 class TestToolCall:
     def test_wire_format(self):
-        evt = ToolCall(tool_call_id="tc-1", tool_name="yfinance", args={"ticker": "AAPL"})
+        evt = ToolCall(
+            tool_call_id="tc-1", tool_name="yfinance", args={"ticker": "AAPL"}
+        )
         payload = _parse_sse(serialize_event(evt))
         assert payload == {
             "type": "tool-input-available",
@@ -138,7 +140,9 @@ class TestFinish:
         }
 
     def test_wire_format_with_explicit_usage(self):
-        evt = Finish(finish_reason="stop", usage=Usage(input_tokens=100, output_tokens=50))
+        evt = Finish(
+            finish_reason="stop", usage=Usage(input_tokens=100, output_tokens=50)
+        )
         payload = _parse_sse(serialize_event(evt))
         assert payload["messageMetadata"]["usage"] == {"totalTokens": 150}
 

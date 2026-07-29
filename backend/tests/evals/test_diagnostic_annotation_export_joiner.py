@@ -117,7 +117,9 @@ def test_join_normalizes_boolean_and_filters_non_annotation_rows(
         tmp_path,
         [
             _score_row(name="needs_followup", data_type="BOOLEAN", value="1"),
-            _score_row(name="observed_outcome", source="MODEL", string_value="failed_cleanly"),
+            _score_row(
+                name="observed_outcome", source="MODEL", string_value="failed_cleanly"
+            ),
         ],
     )
 

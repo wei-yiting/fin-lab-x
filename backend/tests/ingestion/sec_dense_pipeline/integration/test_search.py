@@ -14,9 +14,7 @@ async def test_search_returns_full_chunk_schema(clean_collection, mock_openai_em
     from backend.ingestion.sec_dense_pipeline.retriever import Chunk, search
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
 
-    await ingest_filing(
-        ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A
-    )
+    await ingest_filing(ticker="NVDA", year=2025, markdown=FIXTURE_MARKDOWN_CLASS_A)
 
     results = await search(query="GPU revenue", top_k=5)
 
@@ -59,9 +57,7 @@ async def test_nonexistent_ticker_raises_invalid_ticker(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_future_year_raises_filing_not_found(
-    clean_collection, mock_openai_embed
-):
+async def test_future_year_raises_filing_not_found(clean_collection, mock_openai_embed):
     """Valid ticker but a year with no 10-K surfaces as JITFilingNotFoundError."""
     from backend.ingestion.sec_dense_pipeline.retriever import (
         JITFilingNotFoundError,
@@ -77,12 +73,15 @@ async def test_future_year_raises_filing_not_found(
     )
     mock_store = MagicMock()
     mock_store.exists.return_value = False
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.SECFilingPipeline.create",
-        return_value=mock_pipeline,
-    ), patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore",
-        return_value=mock_store,
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.SECFilingPipeline.create",
+            return_value=mock_pipeline,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore",
+            return_value=mock_store,
+        ),
     ):
         with pytest.raises(JITFilingNotFoundError):
             await search(
@@ -107,7 +106,9 @@ async def test_qdrant_down_raises_corpus_unavailable(mock_openai_embed, monkeypa
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_ticker_filter_excludes_other_tickers(clean_collection, mock_openai_embed):
+async def test_ticker_filter_excludes_other_tickers(
+    clean_collection, mock_openai_embed
+):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from backend.ingestion.sec_dense_pipeline.retriever import search
 
@@ -123,9 +124,7 @@ async def test_ticker_filter_excludes_other_tickers(clean_collection, mock_opena
     assert all(c.ticker == "NVDA" for c in filtered)
     assert all(c.year == 2025 for c in filtered)
 
-    unfiltered = await search(
-        query="semiconductor business", filters=None, top_k=10
-    )
+    unfiltered = await search(query="semiconductor business", filters=None, top_k=10)
     unfiltered_tickers = {c.ticker for c in unfiltered}
     assert unfiltered_tickers >= {"NVDA", "INTC"}
 
@@ -163,12 +162,15 @@ async def test_resolved_latest_year_scopes_results(clean_collection, mock_openai
     mock_pipeline.resolve_latest_year.return_value = 2024
     mock_store = MagicMock()
     mock_store.exists.return_value = False
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.SECFilingPipeline.create",
-        return_value=mock_pipeline,
-    ), patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore",
-        return_value=mock_store,
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.SECFilingPipeline.create",
+            return_value=mock_pipeline,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.LocalFilingStore",
+            return_value=mock_store,
+        ),
     ):
         results = await search(
             query="semiconductor business",
@@ -183,7 +185,9 @@ async def test_resolved_latest_year_scopes_results(clean_collection, mock_openai
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_search_succeeds_with_langfuse_down(clean_collection, mock_openai_embed, monkeypatch):
+async def test_search_succeeds_with_langfuse_down(
+    clean_collection, mock_openai_embed, monkeypatch
+):
     from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing
     from backend.ingestion.sec_dense_pipeline.retriever import search
 

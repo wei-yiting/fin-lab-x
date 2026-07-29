@@ -44,9 +44,7 @@ def test_resolve_scorers_raises_import_error_for_missing_function() -> None:
         function="backend.evals.scorers.language_policy_scorer.missing_function",
     )
 
-    with pytest.raises(
-        ImportError, match="missing_function"
-    ):
+    with pytest.raises(ImportError, match="missing_function"):
         resolve_scorers([scorer_config])
 
 

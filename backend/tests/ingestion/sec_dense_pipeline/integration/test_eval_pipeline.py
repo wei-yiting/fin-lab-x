@@ -26,8 +26,7 @@ def _preflight_check() -> int:
     result = client.count(collection_name=collection)
     if result.count == 0:
         raise RuntimeError(
-            f"Collection '{collection}' has 0 points. "
-            "Run ingest before eval."
+            f"Collection '{collection}' has 0 points. Run ingest before eval."
         )
     return result.count
 
@@ -51,9 +50,7 @@ async def test_eval_runner_prints_collection_banner(
     count = _preflight_check()
     collection = os.environ.get("SEC_QDRANT_COLLECTION", TEST_COLLECTION)
     banner = (
-        f"Eval scenario: sec_retrieval | "
-        f"Collection: {collection} | "
-        f"Points: {count}"
+        f"Eval scenario: sec_retrieval | Collection: {collection} | Points: {count}"
     )
     print(banner)
 

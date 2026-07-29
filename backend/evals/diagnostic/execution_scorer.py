@@ -31,7 +31,9 @@ def _tool_error_name(tool_output: Any) -> str | None:
     return None
 
 
-def execution_health(output: Any, expected: Any, *, input: Any = None) -> dict[str, Any]:
+def execution_health(
+    output: Any, expected: Any, *, input: Any = None
+) -> dict[str, Any]:
     """Record whether the run completed and whether tool calls all succeeded."""
     output_mapping = _as_mapping(output)
     response = output_mapping.get("response")

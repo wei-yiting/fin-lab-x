@@ -59,9 +59,7 @@ def _validate_target_path(target_path: str) -> None:
 
     bucket_name = target_parts[0]
     if bucket_name not in ALLOWED_BUCKETS:
-        raise ValueError(
-            f"Unsupported column_mapping target bucket: {bucket_name}"
-        )
+        raise ValueError(f"Unsupported column_mapping target bucket: {bucket_name}")
 
 
 def _validate_column_mapping(column_mapping: dict[str, str]) -> None:
@@ -78,7 +76,9 @@ def load_raw_csv_rows(csv_path: Path) -> tuple[list[str], list[dict[str, str]]]:
         return header_columns, [dict(row) for row in reader]
 
 
-def load_dataset(csv_path: Path, column_mapping: dict[str, str]) -> list[dict[str, Any]]:
+def load_dataset(
+    csv_path: Path, column_mapping: dict[str, str]
+) -> list[dict[str, Any]]:
     """Read CSV and transform it into Braintrust Eval() data format."""
     _validate_column_mapping(column_mapping)
 

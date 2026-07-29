@@ -13,15 +13,12 @@ from autoevals import Score  # pyright: ignore[reportMissingImports]
 
 def _is_hit(chunk: dict, expected_entry: dict) -> bool:
     path_match = any(
-        chunk["header_path"].startswith(p)
-        for p in expected_entry["header_paths"]
+        chunk["header_path"].startswith(p) for p in expected_entry["header_paths"]
     )
     snippets = expected_entry.get("answer_snippets")
     if not snippets:
         return path_match
-    snippet_match = any(
-        s.lower() in chunk["text"].lower() for s in snippets
-    )
+    snippet_match = any(s.lower() in chunk["text"].lower() for s in snippets)
     return path_match and snippet_match
 
 
@@ -37,9 +34,7 @@ def _chunk_key(chunk: dict) -> tuple:
     return ("by_payload", chunk.get("header_path"), chunk.get("text"))
 
 
-def _compute_recall_at_k(
-    chunks: list[dict], expected: dict, k: int
-) -> float:
+def _compute_recall_at_k(chunks: list[dict], expected: dict, k: int) -> float:
     """Compute recall@k. A single chunk can satisfy at most one expected entry."""
     top_k = chunks[:k]
     expected_paths = expected["header_paths"]
@@ -50,9 +45,7 @@ def _compute_recall_at_k(
     for path_idx, exp_path in enumerate(expected_paths):
         exp_entry = {
             "header_paths": [exp_path],
-            "answer_snippets": [snippets[path_idx]]
-            if path_idx < len(snippets)
-            else [],
+            "answer_snippets": [snippets[path_idx]] if path_idx < len(snippets) else [],
         }
         for c in top_k:
             key = _chunk_key(c)
@@ -78,9 +71,7 @@ def _compute_mrr(chunks: list[dict], expected: dict) -> float:
     for path_idx, exp_path in enumerate(expected_paths):
         exp_entry = {
             "header_paths": [exp_path],
-            "answer_snippets": [snippets[path_idx]]
-            if path_idx < len(snippets)
-            else [],
+            "answer_snippets": [snippets[path_idx]] if path_idx < len(snippets) else [],
         }
         for rank, c in enumerate(chunks, start=1):
             if _is_hit(c, exp_entry):
@@ -139,33 +130,25 @@ def _compute_map(chunks: list[dict], expected: dict) -> float:
     return ap / total_expected
 
 
-def header_path_recall_at_5(
-    output: Any, expected: Any, *, input: Any
-) -> Score:
+def header_path_recall_at_5(output: Any, expected: Any, *, input: Any) -> Score:
     chunks = output.get("retrieved_chunks", []) if isinstance(output, dict) else []
     recall = _compute_recall_at_k(chunks, expected, k=5)
     return Score(name="header_path_recall_at_5", score=recall)
 
 
-def header_path_recall_at_10(
-    output: Any, expected: Any, *, input: Any
-) -> Score:
+def header_path_recall_at_10(output: Any, expected: Any, *, input: Any) -> Score:
     chunks = output.get("retrieved_chunks", []) if isinstance(output, dict) else []
     recall = _compute_recall_at_k(chunks, expected, k=10)
     return Score(name="header_path_recall_at_10", score=recall)
 
 
-def mean_reciprocal_rank(
-    output: Any, expected: Any, *, input: Any
-) -> Score:
+def mean_reciprocal_rank(output: Any, expected: Any, *, input: Any) -> Score:
     chunks = output.get("retrieved_chunks", []) if isinstance(output, dict) else []
     mrr = _compute_mrr(chunks, expected)
     return Score(name="mrr", score=mrr)
 
 
-def mean_average_precision(
-    output: Any, expected: Any, *, input: Any
-) -> Score:
+def mean_average_precision(output: Any, expected: Any, *, input: Any) -> Score:
     chunks = output.get("retrieved_chunks", []) if isinstance(output, dict) else []
     map_score = _compute_map(chunks, expected)
     return Score(name="map", score=map_score)

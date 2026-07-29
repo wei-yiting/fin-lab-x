@@ -34,9 +34,6 @@ def check_sentinel_complete(client, collection: str, ticker: str, year: int) -> 
             ids=[sentinel_id(ticker, year)],
             with_payload=True,
         )
-        return (
-            len(points) > 0
-            and points[0].payload.get("status") == "complete"
-        )
+        return len(points) > 0 and points[0].payload.get("status") == "complete"
     except Exception:
         return False

@@ -144,7 +144,9 @@ class SECFilingPipeline:
         :meth:`process` for the cached + retried convenience path.
         """
         self._validate_filing_type(filing_type)
-        return self._downloader.download(ticker.strip().upper(), filing_type, fiscal_year)
+        return self._downloader.download(
+            ticker.strip().upper(), filing_type, fiscal_year
+        )
 
     def parse_raw(self, raw: RawFiling, filing_type: str) -> ParsedFiling:
         """Convert raw filing HTML to cleaned Markdown and persist to the store.
@@ -289,9 +291,7 @@ class SECFilingPipeline:
                 status="success", filing=filing, error=None, from_cache=from_cache
             )
         except SECError as exc:
-            return BatchResult(
-                status="error", filing=None, error=exc, from_cache=False
-            )
+            return BatchResult(status="error", filing=None, error=exc, from_cache=False)
 
     @staticmethod
     def _validate_filing_type(filing_type: str) -> None:

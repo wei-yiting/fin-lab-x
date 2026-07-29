@@ -119,7 +119,9 @@ class TestToolCallHappyPath:
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         # Text before tool call
-        events = mapper.process_chunk(make_messages_chunk_text("Let me check", msg_id="msg-1"))
+        events = mapper.process_chunk(
+            make_messages_chunk_text("Let me check", msg_id="msg-1")
+        )
         assert MessageStart(message_id="msg-1", session_id=SESSION_ID) in events
         assert TextStart(text_id="text-0") in events
         assert TextDelta(text_id="text-0", delta="Let me check") in events
@@ -133,9 +135,14 @@ class TestToolCallHappyPath:
 
         # Agent update — ToolCall emitted with complete name + args
         events = mapper.process_chunk(
-            make_updates_agent([{"id": "tc-1", "name": "poc_add", "args": {"a": 1, "b": 2}}])
+            make_updates_agent(
+                [{"id": "tc-1", "name": "poc_add", "args": {"a": 1, "b": 2}}]
+            )
         )
-        assert ToolCall(tool_call_id="tc-1", tool_name="poc_add", args={"a": 1, "b": 2}) in events
+        assert (
+            ToolCall(tool_call_id="tc-1", tool_name="poc_add", args={"a": 1, "b": 2})
+            in events
+        )
 
         # Tool result
         events = mapper.process_chunk(make_updates_tool_result("tc-1", "3"))

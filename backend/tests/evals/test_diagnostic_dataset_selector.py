@@ -13,9 +13,7 @@ from backend.evals.diagnostic.dataset_selector import (
 )
 from backend.evals.diagnostic.models import resolve_git_commit
 
-DATASET_PATH = Path(
-    "backend/evals/scenarios/near_v1_diagnostic/dataset.csv"
-)
+DATASET_PATH = Path("backend/evals/scenarios/near_v1_diagnostic/dataset.csv")
 
 
 def load_fixture_rows() -> tuple[list[str], list[dict[str, str]]]:

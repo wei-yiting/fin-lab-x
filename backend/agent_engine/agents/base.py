@@ -278,9 +278,7 @@ class Orchestrator:
             raise ValueError(
                 f"Prompt references undefined variables: {sorted(missing)}"
             )
-        return _PROMPT_PLACEHOLDER_RE.sub(
-            lambda m: str(provided[m.group(1)]), raw
-        )
+        return _PROMPT_PLACEHOLDER_RE.sub(lambda m: str(provided[m.group(1)]), raw)
 
     @staticmethod
     def _validate_edgar_identity(config: VersionConfig) -> None:
@@ -288,13 +286,9 @@ class Orchestrator:
         ``EDGAR_IDENTITY`` set. Versions without SEC tools skip the check so
         non-SEC deployments stay unaffected.
         """
-        needs_sec = any(
-            t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools
-        )
+        needs_sec = any(t in _SEC_TOOLS_REQUIRING_IDENTITY for t in config.tools)
         if needs_sec and not os.getenv("EDGAR_IDENTITY"):
-            raise ConfigurationError(
-                "EDGAR_IDENTITY environment variable is not set."
-            )
+            raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     def run(
         self,

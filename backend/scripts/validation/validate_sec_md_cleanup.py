@@ -331,9 +331,7 @@ def render_report(stats_list: list[FilingStats]) -> str:
     )
     for s in sorted(stats_list, key=lambda x: (x.ticker, x.fiscal_year)):
         anchor_cell = (
-            s.cover_page_anchor_type
-            if s.cover_page_anchor_found
-            else "**none**"
+            s.cover_page_anchor_type if s.cover_page_anchor_found else "**none**"
         )
         lines.append(
             f"| {s.ticker} | {s.fiscal_year} | {s.converter} "

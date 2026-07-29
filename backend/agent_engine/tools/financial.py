@@ -28,7 +28,14 @@ def yfinance_stock_quote(
 
     normalized_ticker = ticker.strip().upper()
     if writer:
-        writer({"status": "querying_stock", "message": f"Querying {normalized_ticker}...", "toolName": "yfinance_stock_quote", "toolCallId": tool_call_id})
+        writer(
+            {
+                "status": "querying_stock",
+                "message": f"Querying {normalized_ticker}...",
+                "toolName": "yfinance_stock_quote",
+                "toolCallId": tool_call_id,
+            }
+        )
 
     info = yf.Ticker(normalized_ticker).info
     if not info or (
@@ -76,7 +83,14 @@ def yfinance_get_available_fields(
 
     normalized_ticker = ticker.strip().upper()
     if writer:
-        writer({"status": "querying_fields", "message": f"Discovering fields for {normalized_ticker}...", "toolName": "yfinance_get_available_fields", "toolCallId": tool_call_id})
+        writer(
+            {
+                "status": "querying_fields",
+                "message": f"Discovering fields for {normalized_ticker}...",
+                "toolName": "yfinance_get_available_fields",
+                "toolCallId": tool_call_id,
+            }
+        )
 
     info = yf.Ticker(normalized_ticker).info
     if not info or not info.get("symbol"):
@@ -139,7 +153,9 @@ TRUSTED_NEWS_DOMAINS = [
 class TavilyFinancialSearchInput(BaseModel):
     """Input schema for Tavily financial search tool."""
 
-    query: str = Field(..., description="Financial news search query (MUST be in English)")
+    query: str = Field(
+        ..., description="Financial news search query (MUST be in English)"
+    )
     ticker: str = Field(..., description="Stock ticker to focus search on")
 
 
@@ -165,7 +181,14 @@ def tavily_financial_search(
 
     normalized_ticker = ticker.strip().upper()
     if writer:
-        writer({"status": "searching_news", "message": f"Searching news for {normalized_ticker}...", "toolName": "tavily_financial_search", "toolCallId": tool_call_id})
+        writer(
+            {
+                "status": "searching_news",
+                "message": f"Searching news for {normalized_ticker}...",
+                "toolName": "tavily_financial_search",
+                "toolCallId": tool_call_id,
+            }
+        )
 
     client = TavilyClient(api_key=api_key)
     full_query = f"{normalized_ticker} {query}".strip()

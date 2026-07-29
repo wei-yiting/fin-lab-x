@@ -109,9 +109,7 @@ class SECDownloader:
             filings = company.get_filings(form=filing_type)
             filing = filings.latest()
             if filing is None:
-                raise FilingNotFoundError(
-                    f"No {filing_type} filing found for {ticker}"
-                )
+                raise FilingNotFoundError(f"No {filing_type} filing found for {ticker}")
 
             return int(str(filing.period_of_report)[:4])
         except (

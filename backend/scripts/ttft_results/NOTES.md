@@ -18,14 +18,24 @@ streaming) shorten user-perceived time-to-first-token vs the blocking
   `min(tool-input-available, text-delta)` — i.e. what the user would first see
   without reasoning forwarding (main drops reasoning chunks entirely).
 
+## Metric definitions
+
+- **First visible token**: first arrival of any user-visible SSE event —
+  `min(reasoning-delta, tool-input-available, text-delta)`. This is the
+  headline TTFT: when the user first sees the agent doing something.
+- **First answer token**: first `text-delta` — when the final answer prose
+  starts. On an agentic run this lands near the end (after all tool calls),
+  so streaming barely moves it; the win there is the visible activity
+  (reasoning, tool chips) in between.
+
 ## Results (medians, full-run-1.json, 2026-07-29)
 
-| query      | blocking `/chat/invoke` (X) | stream `finish` | main 1st-visible | DEV-106 1st-visible (Y) |
-|------------|----------------------------:|----------------:|-----------------:|------------------------:|
-| quote      | 20.7s | 21.1s | 6.6s | 5.7s |
-| financials | 36.3s | 37.4s | 6.4s | 4.9s |
-| sec        | 98.1s | 60.9s | 5.0s | 3.4s |
-| **pooled** | **36.3s** | **37.1s** | **6.1s** | **3.9s** |
+| query      | blocking `/chat/invoke` (X) | stream `finish` | main 1st-visible | DEV-106 1st-visible (Y) | first answer token |
+|------------|----------------------------:|----------------:|-----------------:|------------------------:|-------------------:|
+| quote      | 20.7s | 21.1s | 6.6s | 5.7s | 19.2s |
+| financials | 36.3s | 37.4s | 6.4s | 4.9s | 32.7s |
+| sec        | 98.1s | 60.9s | 5.0s | 3.4s | 55.5s |
+| **pooled** | **36.3s** | **37.1s** | **6.1s** | **3.9s** | **32.7s** |
 
 ## Verdict
 

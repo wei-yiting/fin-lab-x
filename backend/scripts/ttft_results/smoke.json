@@ -1,0 +1,99 @@
+{
+  "started_at": "2026-07-29T07:52:55.759801+00:00",
+  "base_url": "http://127.0.0.1:8010",
+  "args": {
+    "base_url": "http://127.0.0.1:8010",
+    "runs": 1,
+    "warmup": 0,
+    "invoke_runs": 1,
+    "mode": "both",
+    "queries": [
+      "quote"
+    ],
+    "out": "backend/scripts/ttft_results/smoke.json"
+  },
+  "queries": {
+    "quote": "What is NVIDIA's current stock price, and how has it moved today?"
+  },
+  "per_query": {
+    "quote": {
+      "stream_runs": [
+        {
+          "first_seen": {
+            "start": 8.50976016651839,
+            "reasoning-start": 8.51474079117179,
+            "reasoning-delta": 8.517097125761211,
+            "tool-input-available": 12.882689000107348,
+            "data-tool-progress": 12.949826083146036,
+            "tool-output-available": 13.813242957927287,
+            "reasoning-end": 14.886306250467896,
+            "text-start": 22.355321791023016,
+            "text-delta": 22.357512958347797,
+            "text-end": 23.927826625294983,
+            "finish": 23.92845566663891
+          },
+          "first_visible": 8.517097125761211,
+          "finish": 23.92845566663891,
+          "n_events": 661
+        }
+      ],
+      "invoke_runs": [
+        {
+          "total": 21.297346000559628,
+          "response_chars": 8475
+        }
+      ],
+      "stream_summary": {
+        "ttfb_any_event": {
+          "n": 1,
+          "median": 8.50976016651839,
+          "mean": 8.50976016651839,
+          "min": 8.50976016651839,
+          "max": 8.50976016651839
+        },
+        "first_reasoning": {
+          "n": 1,
+          "median": 8.517097125761211,
+          "mean": 8.517097125761211,
+          "min": 8.517097125761211,
+          "max": 8.517097125761211
+        },
+        "first_tool": {
+          "n": 1,
+          "median": 12.882689000107348,
+          "mean": 12.882689000107348,
+          "min": 12.882689000107348,
+          "max": 12.882689000107348
+        },
+        "first_text": {
+          "n": 1,
+          "median": 22.357512958347797,
+          "mean": 22.357512958347797,
+          "min": 22.357512958347797,
+          "max": 22.357512958347797
+        },
+        "first_visible": {
+          "n": 1,
+          "median": 8.517097125761211,
+          "mean": 8.517097125761211,
+          "min": 8.517097125761211,
+          "max": 8.517097125761211
+        },
+        "finish": {
+          "n": 1,
+          "median": 23.92845566663891,
+          "mean": 23.92845566663891,
+          "min": 23.92845566663891,
+          "max": 23.92845566663891
+        }
+      },
+      "invoke_summary": {
+        "n": 1,
+        "median": 21.297346000559628,
+        "mean": 21.297346000559628,
+        "min": 21.297346000559628,
+        "max": 21.297346000559628
+      }
+    }
+  }
+}

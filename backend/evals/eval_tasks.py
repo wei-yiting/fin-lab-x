@@ -11,7 +11,11 @@ import uuid
 from collections.abc import Mapping
 from typing import Any
 
-from backend.agent_engine.agents.base import Orchestrator, OrchestratorResult
+from backend.agent_engine.agents.base import (
+    Orchestrator,
+    OrchestratorResult,
+    ToolOutput,
+)
 from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
@@ -31,21 +35,34 @@ def _get_orchestrator(profile: str) -> Orchestrator:
 
 
 async def _astream_collect(
-    orchestrator: Orchestrator, prompt: str
+    orchestrator: Orchestrator,
+    prompt: str,
+    *,
+    session_id: str | None = None,
+    trace_metadata: Mapping[str, object] | None = None,
 ) -> OrchestratorResult:
     """Run astream_run and collect domain events into OrchestratorResult."""
-    session_id = f"eval-{uuid.uuid4()}"
+    effective_session_id = session_id or f"eval-{uuid.uuid4()}"
 
     text_parts: list[str] = []
-    tool_outputs: list[dict[str, Any]] = []
+    tool_outputs: list[ToolOutput] = []
     tool_names: dict[str, str] = {}
     tool_args: dict[str, dict] = {}
     errors: list[str] = []
 
-    async for event in orchestrator.astream_run(
-        message=prompt,
-        session_id=session_id,
-    ):
+    if trace_metadata is None:
+        stream = orchestrator.astream_run(
+            message=prompt,
+            session_id=effective_session_id,
+        )
+    else:
+        stream = orchestrator.astream_run(
+            message=prompt,
+            session_id=effective_session_id,
+            trace_metadata=trace_metadata,
+        )
+
+    async for event in stream:
         if isinstance(event, TextDelta):
             text_parts.append(event.delta)
         elif isinstance(event, ToolCall):
@@ -53,13 +70,20 @@ async def _astream_collect(
             tool_args[event.tool_call_id] = event.args
         elif isinstance(event, ToolResult):
             tool_outputs.append(
-                {
-                    "tool": tool_names.get(event.tool_call_id, "unknown"),
-                    "args": tool_args.get(event.tool_call_id, {}),
-                    "result": event.result,
-                }
+                ToolOutput(
+                    tool=tool_names.get(event.tool_call_id, "unknown"),
+                    args=tool_args.get(event.tool_call_id, {}),
+                    result=event.result,
+                )
             )
         elif isinstance(event, ToolError):
+            tool_outputs.append(
+                ToolOutput(
+                    tool=tool_names.get(event.tool_call_id, "unknown"),
+                    args=tool_args.get(event.tool_call_id, {}),
+                    error=event.error,
+                )
+            )
             errors.append(event.error)
         elif isinstance(event, StreamError):
             errors.append(event.error_text)
@@ -141,3 +165,32 @@ async def run_baseline(input: Any) -> OrchestratorResult:
     else:
         prompt = str(input)
     return await _astream_collect(orchestrator, prompt)
+
+
+async def run_near_v1_diagnostic(input: Any) -> OrchestratorResult:
+    """Diagnostic task wrapper for near-v1 scenario rows.
+
+    Keeps the current contract deliberately small: use the baseline
+    orchestrator and extract the eval prompt from ``question``.
+    """
+    orchestrator = _get_orchestrator("baseline")
+    if not isinstance(input, Mapping):
+        raise TypeError("near_v1_diagnostic input must be a mapping")
+
+    prompt = str(input["question"])
+    session_id_value = input.get("session_id")
+    session_id = str(session_id_value) if session_id_value is not None else None
+    trace_metadata_value = input.get("trace_metadata")
+    if trace_metadata_value is not None and not isinstance(
+        trace_metadata_value, Mapping
+    ):
+        raise TypeError("trace_metadata must be a mapping")
+
+    return await _astream_collect(
+        orchestrator,
+        prompt,
+        session_id=session_id,
+        trace_metadata=(
+            dict(trace_metadata_value) if trace_metadata_value is not None else None
+        ),
+    )

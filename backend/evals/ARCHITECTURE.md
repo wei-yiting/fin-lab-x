@@ -75,6 +75,16 @@ Key rules:
 - Production environments only have Langfuse; Braintrust is not imported.
 - Coexistence uses LangChain callback paths (not OpenTelemetry) to avoid global `TracerProvider` conflicts.
 
+### Diagnostic review split
+
+`near_v1_diagnostic` 另外建立一個 dual-surface review flow：
+
+- **Braintrust**: execution run、slice compare、trace drill-down、operator-facing experiment summaries
+- **Langfuse**: trace metadata、human annotation、scores export
+- **Local post-processing**: `annotation_export_joiner` 把 Langfuse export 回接 dataset
+
+這條 diagnostic track 不會把人工 annotation 混進 execution scorer，也不會把 Langfuse reviewer fields 回寫到 Braintrust score contract。
+
 ### Eval runner assembly flow
 
 All computation runs locally via `braintrust.Eval()` — dataset iteration, task function calls, and scorer evaluation happen on the local machine, and Braintrust never re-executes anything. By default the run is local-only (`no_send_logs=True`: scored, written to the result CSV, zero quota, no API key). Passing `--upload` additionally uploads the run to Braintrust as an experiment for storage and visualization.
@@ -115,6 +125,8 @@ graph LR
 | Result CSV default path | `results/` (relative to evals dir), overridable with `--output-dir` | Sensible default, reduces required arguments |
 | Task function return type | Full `OrchestratorResult` dict (not plain string) | Scorers like `tool_arg_no_cjk` need `output["tool_outputs"]` for inspection |
 | Config filename | `eval_spec.yaml` (not `config.yaml`) | More descriptive, avoids confusion with other config files |
+| Diagnostic compare identity | Stable `row_id`-based comparison key in Braintrust Project Settings | Cross-run compare must align the same dataset row across sliced diagnostic experiments |
+| Diagnostic annotation join | Langfuse export is joined locally, not synced platform-to-platform | Keeps review workflow explicit and deterministic in v1 |
 
 ## Constraints & Tradeoffs
 
@@ -142,4 +154,3 @@ graph LR
 - CI-triggered eval (manual execution first)
 - Langfuse ↔ Braintrust bidirectional sync
 - Production online evaluation (offline evaluation first)
-

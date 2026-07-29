@@ -16,6 +16,53 @@ Use this rule:
 - If the question is "did we break critical behavior?" -> **Regression Suite** (`pytest`)
 - If the question is "did quality improve across scenarios?" -> **Quality Track** (`eval_runner`)
 
+## Diagnostic Human Review
+
+`near_v1_diagnostic` 是一條獨立的人工診斷軌，不是 golden-answer scoring，也不是 LLM judge。
+
+- Braintrust: 看 execution、experiment compare、trace drill-down
+- Langfuse: 看 trace metadata、人工 annotation、scores export
+- 本地工具: `annotation_export_joiner` 把 Langfuse export 回接 dataset
+
+常用指令：
+
+```bash
+# Full local diagnostic run
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only
+
+# Row-id subset (quick rerun after a fix)
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --local-only --row-ids 1 --run-label smoke-local
+
+# Braintrust platform mode
+uv run python -m backend.evals.eval_runner near_v1_diagnostic --run-label smoke-platform --output-dir /tmp/near-v1-diagnostic-platform
+
+# Provision one Langfuse annotation queue with triage + diagnostic score configs
+uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
+
+# Join Langfuse scores export back to dataset rows
+uv run python -m backend.evals.diagnostic.annotation_export_joiner \
+  --dataset backend/evals/scenarios/near_v1_diagnostic/dataset.csv \
+  --scores-export /path/to/langfuse_scores.csv \
+  --dataset-name near_v1_diagnostic \
+  --run-label smoke-local \
+  --output /tmp/near-v1-diagnostic-discussion.csv
+```
+
+Braintrust Project Settings 應設定穩定的 diagnostic comparison key，例如 `row_id`。這樣 compare UI 才會對齊同一筆 dataset row，而不是只靠 trace 順序或 experiment 內部索引。
+
+Langfuse Human Annotation 需要先建立 Score Config。setup script 建立單一 combined queue（triage + diagnostic 欄位）：
+
+```bash
+uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
+```
+
+它會建立一個 queue：`near-v1-diagnostic-review-v1`，並綁定同一組 score configs：
+
+- `triage_outcome`: 第一輪只標 `good` / `bad`，用來篩出需要後續追蹤的 traces
+- `observed_*` / `review_*`: 第二輪深入診斷使用
+
+若只想建立 Score Config，不建立 Annotation Queue，可加 `--score-configs-only`。
+
 ## Running Evaluations
 
 ### 1) Quality Track (Scenario Runner)
@@ -66,6 +113,9 @@ Both tracks call real LLM/tools. Configure environment variables in `backend/.en
 | `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | SEC retrieval     |
 | `QDRANT_URL`         | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Vector store (sec_retrieval) |
 | `BRAINTRUST_API_KEY` | No                 | No                              | Yes                                 | Braintrust upload |
+| `LANGFUSE_PUBLIC_KEY`| No                 | Diagnostic export review only   | Diagnostic export review only      | Langfuse read/write |
+| `LANGFUSE_SECRET_KEY`| No                 | Diagnostic export review only   | Diagnostic export review only      | Langfuse read/write |
+| `LANGFUSE_BASE_URL`  | No                 | Diagnostic export review only   | Diagnostic export review only      | Langfuse host      |
 
 `eval_runner` never needs `BRAINTRUST_API_KEY` by default — it runs and scores
 locally, no upload. Passing `--upload` without the key set fails fast

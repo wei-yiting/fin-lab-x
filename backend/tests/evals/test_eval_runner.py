@@ -474,7 +474,7 @@ class TestRunScenario:
         spec = {
             "name": scenario_name,
             "csv": "dataset.csv",
-            "task": {"function": "backend.evals.eval_tasks.run_v1"},
+            "task": {"function": "backend.evals.eval_tasks.run_baseline"},
             "column_mapping": {"prompt": "input"},
             "scorers": [
                 {
@@ -489,6 +489,47 @@ class TestRunScenario:
 
         csv_content = "prompt\nhello world\ngoodbye world\n"
         (scenario_dir / "dataset.csv").write_text(csv_content)
+
+        return scenarios_dir, scenario_dir
+
+    def _setup_diagnostic_scenario_contract_csv(
+        self, tmp_path: Path, scenario_name: str = "near_v1_diagnostic"
+    ) -> tuple[Path, Path]:
+        scenarios_dir = tmp_path / "scenarios"
+        scenario_dir = scenarios_dir / scenario_name
+        scenario_dir.mkdir(parents=True)
+
+        spec = {
+            "name": scenario_name,
+            "csv": "dataset.csv",
+            "diagnostic": {
+                "dataset_name": "near_v1_diagnostic",
+                "dataset_version": "2026-04-24",
+                "row_id_column": "id",
+                "question_column": "question",
+                "agent_version": "baseline",
+            },
+            "task": {"function": "backend.evals.eval_tasks.run_near_v1_diagnostic"},
+            "column_mapping": {"question": "input.question"},
+            "scorers": [
+                {
+                    "name": "diagnostic_execution_health",
+                    "function": "backend.evals.diagnostic.execution_scorer.execution_health",
+                }
+            ],
+        }
+        import yaml
+
+        (scenario_dir / "eval_spec.yaml").write_text(yaml.dump(spec))
+        (scenario_dir / "dataset.csv").write_text(
+            "id,question,capability_band,category,expected_near_v1_behavior,"
+            "primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,"
+            "likely_tuning_lever,draft_pass_signals\n"
+            "1,First question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,"
+            'tool_routing_error,evidence_synthesis_limit,mixed,tool_description,"[""signal1""]"\n'
+            "2,Second question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,"
+            'tool_routing_error,,mixed,tool_description,"[""signal2""]"\n'
+        )
 
         return scenarios_dir, scenario_dir
 
@@ -531,6 +572,7 @@ class TestRunScenario:
             rows = list(reader)
 
         assert len(rows) == 2
+        assert reader.fieldnames is not None
         assert "prompt" in reader.fieldnames
         assert "output" in reader.fieldnames
         assert "output_json" in reader.fieldnames
@@ -706,6 +748,297 @@ class TestRunScenario:
                 scenarios_dir=scenarios_dir,
             )
 
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_run_scenario_rejects_diagnostic_flags_for_non_diagnostic_scenario_contract_csv(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        scenarios_dir, _ = self._setup_scenario(tmp_path)
+        mock_resolve_task.return_value = MagicMock(return_value="ok")
+        fake_scorer = MagicMock(return_value=1.0)
+        fake_scorer.__name__ = "test_scorer"
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        from backend.evals.eval_runner import run_scenario
+
+        with pytest.raises(ValueError, match="Diagnostic flags"):
+            run_scenario(
+                "test_scenario",
+                upload=False,
+                output_dir=tmp_path / "results",
+                scenarios_dir=scenarios_dir,
+                row_ids="1,2",
+            )
+
+    @patch("backend.evals.eval_runner._git_sha", return_value="12f85db")
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_run_scenario_diagnostic_default_runs_selected_rows_and_aligns_csv_contract_csv(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        mock_git_sha: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        scenarios_dir, _ = self._setup_diagnostic_scenario_contract_csv(tmp_path)
+        output_dir = tmp_path / "results"
+
+        def fake_task(input: Any) -> dict[str, Any]:
+            assert isinstance(input, dict)
+            return {"response": input["question"].upper()}
+
+        mock_resolve_task.return_value = fake_task
+
+        fake_scorer = MagicMock(return_value=1.0)
+        fake_scorer.__name__ = "diagnostic_execution_health"
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        from backend.evals.eval_runner import run_scenario
+
+        result_path = run_scenario(
+            "near_v1_diagnostic",
+            upload=False,
+            output_dir=output_dir,
+            scenarios_dir=scenarios_dir,
+            run_label="slice-run",
+            run_group="nightly",
+            agent_version="v1_override",
+            row_ids="2,1",
+        )
+
+        with result_path.open("r", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            rows = list(reader)
+
+        assert [row["id"] for row in rows] == ["2", "1"]
+        assert [row["question"] for row in rows] == [
+            "Second question",
+            "First question",
+        ]
+        assert [row["output.response"] for row in rows] == [
+            "SECOND QUESTION",
+            "FIRST QUESTION",
+        ]
+
+    @patch("backend.evals.eval_runner._git_sha", return_value="12f85db")
+    @patch("backend.evals.eval_runner._init_platform_tracing")
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_run_scenario_diagnostic_upload_uses_eval_once_and_writes_result_csv(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        mock_init_platform_tracing: MagicMock,
+        mock_git_sha: MagicMock,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        scenarios_dir, _ = self._setup_diagnostic_scenario_contract_csv(tmp_path)
+        output_dir = tmp_path / "results"
+        monkeypatch.setenv("BRAINTRUST_API_KEY", "test-key")
+
+        fake_task = MagicMock(return_value={"response": "ok"})
+        mock_resolve_task.return_value = fake_task
+        fake_scorer = MagicMock(return_value=1.0)
+        fake_scorer.__name__ = "diagnostic_execution_health"
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        eval_calls: list[dict[str, Any]] = []
+
+        def fake_eval(project: str, **kwargs: Any) -> SimpleNamespace:
+            eval_calls.append({"project": project, **kwargs})
+            results = [
+                SimpleNamespace(
+                    input=case.input,
+                    output={"response": "ok"},
+                    scores={"diagnostic_execution_health": 1.0},
+                    error=None,
+                    metadata={},
+                )
+                for case in kwargs["data"]
+            ]
+            return SimpleNamespace(results=results, summary=SimpleNamespace())
+
+        from backend.evals.eval_runner import run_scenario
+
+        with patch("backend.evals.eval_runner.Eval", side_effect=fake_eval):
+            result_path = run_scenario(
+                "near_v1_diagnostic",
+                upload=True,
+                output_dir=output_dir,
+                scenarios_dir=scenarios_dir,
+                run_label="slice-run",
+                run_group="nightly",
+                agent_version="v1_override",
+                slice_label="focused-boundary",
+                row_ids="2",
+            )
+
+        assert result_path.exists()
+        assert len(eval_calls) == 1
+        mock_init_platform_tracing.assert_called_once()
+
+        eval_call = eval_calls[0]
+        assert eval_call["project"] == "finlab-x"
+        assert eval_call["experiment_name"].startswith("near_v1_diagnostic_")
+        assert eval_call["metadata"]["dataset_name"] == "near_v1_diagnostic"
+        assert eval_call["metadata"]["dataset_version"] == "2026-04-24"
+        assert eval_call["metadata"]["run_label"] == "slice-run"
+        assert eval_call["metadata"]["run_group"] == "nightly"
+        assert eval_call["metadata"]["slice_label"] == "focused-boundary"
+        assert eval_call["metadata"]["slice_type"] == "row_ids"
+        assert eval_call["metadata"]["selected_row_count"] == 1
+        assert eval_call["metadata"]["agent_version"] == "v1_override"
+        assert eval_call["metadata"]["git_commit"] == "12f85db"
+        assert "slice_hash" not in eval_call["metadata"]
+
+        eval_cases = eval_call["data"]
+        assert len(eval_cases) == 1
+        assert eval_cases[0].id == "2"
+        braintrust_metadata = eval_cases[0].metadata
+        assert braintrust_metadata["row_id"] == "2"
+        assert braintrust_metadata["run_label"] == "slice-run"
+        assert braintrust_metadata["slice_label"] == "focused-boundary"
+        # Identity separation: Braintrust metadata carries observed identity +
+        # category/capability_band, never the reference_* projection.
+        assert braintrust_metadata["category"] == "regulatory_or_legal_risk"
+        assert braintrust_metadata["capability_band"] == "boundary"
+        assert not any(key.startswith("reference_") for key in braintrust_metadata)
+
+        with result_path.open("r", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            rows = list(reader)
+
+        assert reader.fieldnames is not None
+        assert "output.response" in reader.fieldnames
+        assert "score_diagnostic_execution_health" in reader.fieldnames
+        assert len(rows) == 1
+        assert rows[0]["id"] == "2"
+        assert rows[0]["output.response"] == "ok"
+
+    def _setup_diagnostic_scenario(
+        self, tmp_path: Path, scenario_name: str = "near_v1_diagnostic"
+    ) -> tuple[Path, Path]:
+        scenarios_dir = tmp_path / "scenarios"
+        scenario_dir = scenarios_dir / scenario_name
+        scenario_dir.mkdir(parents=True)
+
+        spec = {
+            "name": scenario_name,
+            "csv": "dataset.csv",
+            "diagnostic": {
+                "dataset_name": scenario_name,
+                "dataset_version": "2026-04-24",
+                "row_id_column": "id",
+                "question_column": "question",
+                "agent_version": "baseline",
+            },
+            "task": {"function": "backend.evals.eval_tasks.run_near_v1_diagnostic"},
+            "column_mapping": {"question": "input.question"},
+            "scorers": [{"name": "diagnostic_execution_health", "function": "x.y"}],
+        }
+        import yaml
+
+        (scenario_dir / "eval_spec.yaml").write_text(yaml.dump(spec))
+        (scenario_dir / "dataset.csv").write_text(
+            "\n".join(
+                [
+                    "id,question,category,capability_band,expected_near_v1_behavior,primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,likely_tuning_lever,draft_pass_signals",
+                    '1,"First question",news,core,should_pass,tool_routing_error,,SEC,none,"[""a""]"',
+                    '2,"Second question",news,boundary,may_pass_with_tuning,tool_routing_error,evidence_synthesis_limit,mixed,max_tool_calls,"[""b""]"',
+                ]
+            )
+            + "\n"
+        )
+        return scenarios_dir, scenario_dir
+
+    def test_run_scenario_rejects_diagnostic_flags_for_non_diagnostic_scenario(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        scenarios_dir, _ = self._setup_scenario(tmp_path)
+
+        from backend.evals.eval_runner import run_scenario
+
+        with pytest.raises(ValueError, match="Diagnostic flags are only supported"):
+            run_scenario(
+                "test_scenario",
+                upload=False,
+                output_dir=tmp_path / "results",
+                scenarios_dir=scenarios_dir,
+                row_ids="1,2",
+            )
+
+    @patch("backend.evals.eval_runner._git_sha", return_value="abc1234")
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_run_scenario_diagnostic_default_runs_selected_rows_and_writes_result_csv(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        mock_git_sha: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        scenarios_dir, _ = self._setup_diagnostic_scenario(tmp_path)
+
+        task_calls: list[dict[str, Any]] = []
+
+        def fake_task(input: Any) -> Any:
+            task_calls.append(input)
+            return {"response": f"handled {input['question']}"}
+
+        fake_scorer = MagicMock(return_value=1.0)
+        fake_scorer.__name__ = "diagnostic_execution_health"
+        mock_resolve_task.return_value = fake_task
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        from backend.evals.eval_runner import run_scenario
+
+        result_path = run_scenario(
+            "near_v1_diagnostic",
+            upload=False,
+            output_dir=tmp_path / "results",
+            scenarios_dir=scenarios_dir,
+            run_label="baseline",
+            run_group="near-v1",
+            row_ids="2",
+        )
+
+        with result_path.open("r", encoding="utf-8") as file:
+            rows = list(csv.DictReader(file))
+
+        assert len(rows) == 1
+        assert rows[0]["id"] == "2"
+        assert len(task_calls) == 1
+        assert task_calls[0]["question"] == "Second question"
+        assert task_calls[0]["session_id"] == "near_v1_diagnostic::baseline::2"
+        trace_metadata = task_calls[0]["trace_metadata"]
+        assert trace_metadata["row_id"] == "2"
+        assert trace_metadata["slice_label"] == "rows-2"
+        assert trace_metadata["slice_type"] == "row_ids"
+        assert trace_metadata["slice_selector"] == "2"
+        assert trace_metadata["reference_capability_band"] == "boundary"
+        assert trace_metadata["reference_expected_behavior"] == "may_pass_with_tuning"
+        assert (
+            trace_metadata["reference_primary_failure_mechanism"]
+            == "tool_routing_error"
+        )
+        assert (
+            trace_metadata["reference_secondary_failure_mechanism"]
+            == "evidence_synthesis_limit"
+        )
+        assert trace_metadata["reference_best_source"] == "mixed"
+        assert trace_metadata["reference_likely_tuning_lever"] == "max_tool_calls"
+        assert trace_metadata["reference_pass_signals"] == ["b"]
+        assert trace_metadata["experiment_name"].startswith("near_v1_diagnostic_")
+        # Identity separation: raw dataset columns are not projected into the
+        # Langfuse trace metadata (only reference_* prefixed copies).
+        assert "expected_near_v1_behavior" not in trace_metadata
+        assert "category" not in trace_metadata
+
 
 # ---------------------------------------------------------------------------
 # main CLI
@@ -713,6 +1046,46 @@ class TestRunScenario:
 
 
 class TestMainCli:
+    @patch("backend.evals.eval_runner.run_scenario")
+    def test_main_forwards_diagnostic_cli_flags(
+        self,
+        mock_run_scenario: MagicMock,
+        tmp_path: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        scenarios_dir = tmp_path / "scenarios"
+        scenario_dir = scenarios_dir / "near_v1_diagnostic"
+        scenario_dir.mkdir(parents=True)
+        (scenario_dir / "eval_spec.yaml").write_text("name: near_v1_diagnostic\n")
+        mock_run_scenario.return_value = tmp_path / "results" / "manifest.csv"
+
+        from backend.evals.eval_runner import main
+
+        main(
+            [
+                "near_v1_diagnostic",
+                "--run-label",
+                "slice-run",
+                "--run-group",
+                "nightly",
+                "--agent-version",
+                "v1_override",
+                "--slice-label",
+                "focused-boundary",
+                "--row-ids",
+                "2,1",
+            ],
+            scenarios_dir=scenarios_dir,
+            output_dir=tmp_path / "results",
+        )
+
+        kwargs = mock_run_scenario.call_args.kwargs
+        assert kwargs["run_label"] == "slice-run"
+        assert kwargs["run_group"] == "nightly"
+        assert kwargs["agent_version"] == "v1_override"
+        assert kwargs["slice_label"] == "focused-boundary"
+        assert kwargs["row_ids"] == "2,1"
+
     def test_nonexistent_scenario_exits_nonzero(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
@@ -797,7 +1170,7 @@ class TestMainCli:
             spec = {
                 "name": "response_quality",
                 "csv": "dataset.csv",
-                "task": {"function": "backend.evals.eval_tasks.run_v1"},
+                "task": {"function": "backend.evals.eval_tasks.run_baseline"},
                 "column_mapping": {"prompt": "input"},
                 "scorers": [{"name": "s", "function": "some.func"}],
             }
@@ -1030,6 +1403,17 @@ class TestWrapScorer:
 
         wrapped = _wrap_scorer(skipping_scorer, "skip")
         assert wrapped(output="a", expected="b") is None
+
+    def test_diagnostic_scorer_runs_on_error_row(self) -> None:
+        from backend.evals.diagnostic.execution_scorer import execution_health
+        from backend.evals.eval_runner import _ERROR_MARKER, _wrap_scorer
+
+        wrapped = _wrap_scorer(execution_health, "diagnostic_execution_health")
+        result = wrapped(output=_ERROR_MARKER, expected={})
+
+        assert result is not None
+        assert result["score"] == 0.0
+        assert result["metadata"]["execution_complete"] is False
 
     def test_extra_kwargs_filtered_for_strict_scorer(self) -> None:
         """V-5.1 regression: scorers without **kwargs must not receive extra

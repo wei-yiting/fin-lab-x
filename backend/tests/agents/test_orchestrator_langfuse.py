@@ -142,7 +142,7 @@ class TestRunInjectsLangfuseCallback:
             orch.run("test prompt", request_id="req-abc")
 
         metadata = agent.invoke.call_args[1]["config"]["metadata"]
-        assert metadata["process_start_ts"] == _PROCESS_START_TS
+        assert metadata["process_start_ts"] == str(_PROCESS_START_TS)
 
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
@@ -681,6 +681,157 @@ class TestLangfuseTraceMetadata:
 
         metadata = captured_kwargs["config"]["metadata"]
         assert metadata["trigger"] == "regenerate"
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_merges_into_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={
+                    "reference_expected_behavior": "may_pass_with_tuning",
+                    "reference_best_source": "mixed",
+                },
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["langfuse_trace_name"] == "baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert metadata["reference_expected_behavior"] == "may_pass_with_tuning"
+        assert metadata["reference_best_source"] == "mixed"
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_accepts_projected_diagnostic_langfuse_metadata(
+        self,
+    ):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        diagnostic_langfuse_metadata: dict[str, Any] = {
+            "row_id": "17",
+            "dataset_name": "near_v1_diagnostic",
+            "dataset_version": "2026-04-24",
+            "run_label": "baseline",
+            "run_group": "near-v1",
+            "agent_version": "baseline",
+            "experiment_name": "near_v1_diagnostic_20260424_120000",
+            "slice_label": "rows-17",
+            "slice_type": "row_ids",
+            "slice_selector": "17",
+            "reference_capability_band": "boundary",
+            "reference_expected_behavior": "may_pass_with_tuning",
+            "reference_primary_failure_mechanism": "tool_routing_error",
+            "reference_secondary_failure_mechanism": None,
+            "reference_best_source": "mixed",
+            "reference_likely_tuning_lever": "tool_description",
+            "reference_pass_signals": [
+                "區分已發生行動與潛在壓力",
+                "不要把媒體推測當成已落地結果",
+            ],
+        }
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata=diagnostic_langfuse_metadata,
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["langfuse_trace_name"] == "baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert metadata["reference_secondary_failure_mechanism"] is None
+        assert metadata["reference_pass_signals"] == (
+            '["區分已發生行動與潛在壓力", "不要把媒體推測當成已落地結果"]'
+        )
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_rejects_reserved_key_collision(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+
+        with pytest.raises(
+            ValueError, match="trace_metadata key collides with reserved metadata"
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={"request_id": "req-2"},
+            ):
+                pass
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_allows_identical_reserved_value(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={"request_id": "req-1"},
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["request_id"] == "req-1"
 
     @pytest.mark.asyncio
     async def test_trace_name_follows_config_name_dynamically(self):

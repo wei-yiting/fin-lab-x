@@ -18,6 +18,8 @@ import os
 import re
 import subprocess
 import sys
+from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -25,7 +27,16 @@ from typing import Any
 from braintrust import Eval, EvalCase
 from dotenv import load_dotenv
 
-from backend.evals.dataset_loader import load_dataset, load_raw_csv_rows
+from backend.evals.dataset_loader import (
+    apply_column_mapping,
+    load_dataset,
+    load_raw_csv_rows,
+)
+from backend.evals.diagnostic.dataset_selector import (
+    parse_diagnostic_slice_args,
+    select_diagnostic_slice,
+)
+from backend.evals.diagnostic.models import DiagnosticSliceIdentity
 from backend.evals.eval_spec_schema import (
     BraintrustConfig,
     load_braintrust_config,
@@ -45,6 +56,7 @@ _VALID_SCENARIO_DIR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 # the official KB ("Controlling Concurrency to Prevent Resource Exhaustion")
 # recommends 10-20, starting with 10, to avoid provider rate limits.
 MAX_CONCURRENCY = 10
+
 
 logger = logging.getLogger(__name__)
 
@@ -353,6 +365,11 @@ def run_scenario(
     upload: bool,
     output_dir: Path,
     scenarios_dir: Path = SCENARIOS_DIR,
+    run_label: str | None = None,
+    run_group: str | None = None,
+    agent_version: str | None = None,
+    slice_label: str | None = None,
+    row_ids: str | None = None,
 ) -> Path:
     """Execute a single evaluation scenario via Braintrust ``Eval()``.
 
@@ -375,6 +392,12 @@ def run_scenario(
     config_path = scenario_dir / "eval_spec.yaml"
     config = load_scenario_config(config_path)
 
+    diagnostic_flags = [run_label, run_group, agent_version, slice_label, row_ids]
+    if config.diagnostic is None and any(
+        value is not None for value in diagnostic_flags
+    ):
+        raise ValueError("Diagnostic flags are only supported for diagnostic scenarios")
+
     banner_fields: dict[str, Any] = {}
     if config.pre_run is not None:
         pre_run_fn = resolve_function(config.pre_run.function, label="pre_run")
@@ -385,7 +408,6 @@ def run_scenario(
     banner_line = f"Eval scenario: {config.name}"
     for key, value in banner_fields.items():
         banner_line += f" | {key}: {value}"
-    print(banner_line, file=sys.stderr)
 
     if config.status == "draft":
         print(
@@ -400,7 +422,6 @@ def run_scenario(
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
     original_columns, original_rows = load_raw_csv_rows(csv_path)
-    raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
 
     scorers = resolve_scorers(config.scorers)
     task_fn = resolve_function(config.task.function, label="task")
@@ -414,15 +435,81 @@ def run_scenario(
     experiment_name = (
         f"{config.name}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     )
+    git_sha = _git_sha()
 
-    eval_cases = [
-        EvalCase(
-            input=row["input"],
-            expected=row.get("expected"),
-            metadata=row.get("metadata"),
+    if config.diagnostic is None:
+        print(banner_line, file=sys.stderr)
+
+        raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
+        eval_cases = [
+            EvalCase(
+                input=row["input"],
+                expected=row.get("expected"),
+                metadata=row.get("metadata"),
+            )
+            for row in raw_data
+        ]
+        eval_metadata: dict[str, Any] | None = None
+        csv_rows = original_rows
+    else:
+        diagnostic_config = config.diagnostic
+        effective_run_label = run_label or _build_default_run_label()
+        effective_run_group = run_group or "manual"
+        effective_agent_version = agent_version or diagnostic_config.agent_version
+
+        slice_args = parse_diagnostic_slice_args(
+            row_ids=row_ids,
+            slice_label=slice_label,
         )
-        for row in raw_data
-    ]
+        selected_rows, slice_identity = select_diagnostic_slice(
+            original_columns,
+            original_rows,
+            slice_args,
+            row_id_column=diagnostic_config.row_id_column,
+        )
+        diagnostic_data = _build_diagnostic_eval_rows(
+            selected_rows=selected_rows,
+            column_mapping=config.column_mapping,
+            column_types=config.column_types,
+            dataset_name=diagnostic_config.dataset_name,
+            dataset_version=diagnostic_config.dataset_version,
+            run_label=effective_run_label,
+            run_group=effective_run_group,
+            agent_version=effective_agent_version,
+            experiment_name=experiment_name,
+            slice_identity=slice_identity,
+        )
+        banner_line += (
+            f" | Run label: {effective_run_label}"
+            f" | Run group: {effective_run_group}"
+            f" | Git commit: {git_sha}"
+            f" | Slice label: {slice_identity.slice_label}"
+            f" | Slice type: {slice_identity.slice_type}"
+            f" | Rows: {len(selected_rows)}"
+        )
+        print(banner_line, file=sys.stderr)
+
+        eval_cases = [
+            EvalCase(
+                id=row["id"],
+                input=row["input"],
+                expected={},
+                metadata=row.get("metadata"),
+            )
+            for row in diagnostic_data
+        ]
+        eval_metadata = {
+            "dataset_name": diagnostic_config.dataset_name,
+            "dataset_version": diagnostic_config.dataset_version,
+            "run_label": effective_run_label,
+            "run_group": effective_run_group,
+            "slice_label": slice_identity.slice_label,
+            "slice_type": slice_identity.slice_type,
+            "selected_row_count": len(selected_rows),
+            "agent_version": effective_agent_version,
+            "git_commit": git_sha,
+        }
+        csv_rows = selected_rows
 
     eval_result = Eval(
         bt_config.project,
@@ -430,6 +517,7 @@ def run_scenario(
         task=wrapped_task,
         scores=wrapped_scorers,
         experiment_name=experiment_name,
+        metadata=eval_metadata,
         no_send_logs=not upload,
         max_concurrency=MAX_CONCURRENCY,
     )
@@ -440,10 +528,176 @@ def run_scenario(
         scorer_names,
         output_dir,
         original_columns=original_columns,
-        original_rows=original_rows,
+        original_rows=csv_rows,
         experiment_name=experiment_name,
-        git_sha=_git_sha(),
+        git_sha=git_sha,
     )
+
+
+@dataclass(frozen=True)
+class _DiagnosticMetadataProjection:
+    """Projected metadata shared across execution and tracing systems."""
+
+    session_id: str
+    braintrust_metadata: dict[str, object]
+    langfuse_metadata: dict[str, object]
+
+
+def _build_diagnostic_session_id(
+    *, dataset_name: str, run_label: str, row_id: str
+) -> str:
+    """Build a deterministic session id for one diagnostic row execution."""
+    for field_name, value in (
+        ("dataset_name", dataset_name),
+        ("run_label", run_label),
+        ("row_id", row_id),
+    ):
+        if "::" in value:
+            raise ValueError(f"{field_name} must not contain '::'")
+    return f"{dataset_name}::{run_label}::{row_id}"
+
+
+def _project_diagnostic_metadata(
+    *,
+    row: dict[str, object],
+    dataset_name: str,
+    dataset_version: str,
+    run_label: str,
+    run_group: str,
+    agent_version: str,
+    experiment_name: str,
+    slice_identity: DiagnosticSliceIdentity,
+) -> _DiagnosticMetadataProjection:
+    """Project one canonical metadata bundle for diagnostic execution."""
+    row_id = _require_diagnostic_str(row, "id")
+    capability_band = _require_diagnostic_str(row, "capability_band")
+
+    identity_metadata: dict[str, object] = {
+        "row_id": row_id,
+        "dataset_name": dataset_name,
+        "dataset_version": dataset_version,
+        "run_label": run_label,
+        "run_group": run_group,
+        "agent_version": agent_version,
+        "slice_label": slice_identity.slice_label,
+        "slice_type": slice_identity.slice_type,
+    }
+
+    braintrust_metadata = {
+        **identity_metadata,
+        "category": _require_diagnostic_str(row, "category"),
+        "capability_band": capability_band,
+    }
+    langfuse_metadata = {
+        **identity_metadata,
+        "experiment_name": experiment_name,
+        "slice_selector": slice_identity.slice_selector,
+        "reference_capability_band": capability_band,
+        "reference_expected_behavior": _require_diagnostic_str(
+            row, "expected_near_v1_behavior"
+        ),
+        "reference_primary_failure_mechanism": _require_diagnostic_str(
+            row, "primary_failure_mechanism"
+        ),
+        "reference_secondary_failure_mechanism": _optional_diagnostic_str(
+            row, "secondary_failure_mechanism"
+        ),
+        "reference_best_source": _require_diagnostic_str(row, "expected_best_source"),
+        "reference_likely_tuning_lever": _require_diagnostic_str(
+            row, "likely_tuning_lever"
+        ),
+        "reference_pass_signals": deepcopy(row["draft_pass_signals"]),
+    }
+
+    return _DiagnosticMetadataProjection(
+        session_id=_build_diagnostic_session_id(
+            dataset_name=dataset_name,
+            run_label=run_label,
+            row_id=row_id,
+        ),
+        braintrust_metadata=braintrust_metadata,
+        langfuse_metadata=langfuse_metadata,
+    )
+
+
+def _require_diagnostic_str(row: dict[str, object], key: str) -> str:
+    value = row[key]
+    if not isinstance(value, str):
+        raise TypeError(f"{key} must be a string")
+    return value
+
+
+def _optional_diagnostic_str(row: dict[str, object], key: str) -> str | None:
+    value = row.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{key} must be a string when provided")
+    return value
+
+
+def _build_diagnostic_eval_rows(
+    *,
+    selected_rows: list[dict[str, str]],
+    column_mapping: dict[str, str],
+    column_types: dict[str, str] | None,
+    dataset_name: str,
+    dataset_version: str,
+    run_label: str,
+    run_group: str,
+    agent_version: str,
+    experiment_name: str,
+    slice_identity: DiagnosticSliceIdentity,
+) -> list[dict[str, Any]]:
+    """Build Eval rows for a diagnostic scenario.
+
+    Column mapping goes through the shared ``apply_column_mapping`` helper —
+    the same path ``load_dataset`` uses — then each row is enriched with the
+    projected diagnostic identity (deterministic session id, Braintrust row
+    metadata, Langfuse trace metadata).
+    """
+    rows: list[dict[str, Any]] = []
+    for raw_row in selected_rows:
+        normalized_row = _normalize_diagnostic_row(raw_row)
+        projection = _project_diagnostic_metadata(
+            row=normalized_row,
+            dataset_name=dataset_name,
+            dataset_version=dataset_version,
+            run_label=run_label,
+            run_group=run_group,
+            agent_version=agent_version,
+            experiment_name=experiment_name,
+            slice_identity=slice_identity,
+        )
+        row_data = apply_column_mapping(raw_row, column_mapping, column_types)
+        if not isinstance(row_data.get("input"), dict):
+            raise TypeError("Diagnostic task input must be a mapping")
+        row_data["input"]["session_id"] = projection.session_id
+        row_data["input"]["trace_metadata"] = projection.langfuse_metadata
+        row_data["expected"] = {}
+        row_data["metadata"] = projection.braintrust_metadata
+        row_data["id"] = projection.braintrust_metadata["row_id"]
+        rows.append(row_data)
+
+    return rows
+
+
+def _normalize_diagnostic_row(raw_row: dict[str, str]) -> dict[str, object]:
+    normalized: dict[str, object] = {}
+    for key, value in raw_row.items():
+        if value == "":
+            normalized[key] = None
+            continue
+        if key == "draft_pass_signals":
+            normalized[key] = json.loads(value)
+            continue
+        normalized[key] = value
+    return normalized
+
+
+def _build_default_run_label() -> str:
+    """Build the default manual diagnostic run label in UTC."""
+    return f"manual-{datetime.now(tz=timezone.utc).strftime('%Y%m%d-%H%M%S')}"
 
 
 def _init_platform_tracing(project: str, api_key: str) -> None:
@@ -487,6 +741,11 @@ def main(
     parser.add_argument(
         "--output-dir", type=Path, default=None, help="Output directory for results"
     )
+    parser.add_argument("--run-label", help="Diagnostic run label")
+    parser.add_argument("--run-group", help="Diagnostic run group")
+    parser.add_argument("--agent-version", help="Diagnostic agent version")
+    parser.add_argument("--slice-label", help="Diagnostic slice label override")
+    parser.add_argument("--row-ids", help="Diagnostic comma-separated row ids")
 
     args = parser.parse_args(argv)
 
@@ -520,6 +779,11 @@ def main(
                     upload=args.upload,
                     output_dir=output_dir,
                     scenarios_dir=scenarios_dir,
+                    run_label=args.run_label,
+                    run_group=args.run_group,
+                    agent_version=args.agent_version,
+                    slice_label=args.slice_label,
+                    row_ids=args.row_ids,
                 )
                 print(f"  {name}: {result_path}")
                 succeeded += 1
@@ -549,6 +813,11 @@ def main(
         upload=args.upload,
         output_dir=output_dir,
         scenarios_dir=scenarios_dir,
+        run_label=args.run_label,
+        run_group=args.run_group,
+        agent_version=args.agent_version,
+        slice_label=args.slice_label,
+        row_ids=args.row_ids,
     )
     print(f"Result: {result_path}")
 

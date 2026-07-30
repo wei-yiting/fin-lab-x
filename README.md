@@ -21,41 +21,55 @@ measured, and evaluated.
 ## System architecture
 
 ```mermaid
-flowchart LR
-    subgraph Frontend["Frontend · React 19 + Vite"]
-        UI["Chat UI<br/>AI SDK useChat"]
+flowchart TB
+    subgraph FE["Frontend · React 19 + Vite"]
+        direction LR
+        UI["Chat UI · AI SDK useChat"]
     end
 
     subgraph API["API Layer · FastAPI"]
-        SSE["POST /api/v1/chat (SSE)"]
-        INV["POST /api/v1/chat/invoke (JSON)"]
+        direction LR
+        SSE["POST /api/v1/chat · SSE"]
+        INV["POST /api/v1/chat/invoke · JSON"]
     end
 
     subgraph Engine["Agent Engine"]
+        direction LR
+        STREAM["Streaming pipeline<br/>domain events → SSE"]
         ORCH["Single Orchestrator<br/>LangGraph ReAct + middleware"]
-        STREAM["Streaming pipeline<br/>domain events → SSE serializer"]
         TOOLS["Tool registry"]
     end
 
     subgraph Data["Data & Ingestion"]
-        FINN["Finnhub<br/>quotes + fundamentals"]
-        TAV["Tavily<br/>financial news search"]
-        SECP["SEC pipeline<br/>EDGAR → Markdown → Qdrant"]
-        DUCK["DuckDB<br/>fundamentals (foundation)"]
+        direction LR
+        FINN["Finnhub<br/>quotes"]
+        TAV["Tavily<br/>news search"]
+        SECP["SEC pipeline<br/>EDGAR → Qdrant"]
+        DUCK["DuckDB<br/>(foundation)"]
     end
 
-    UI -- "AI SDK UIMessage Stream v1" --> SSE
+    UI <-- "UIMessage Stream v1" --> SSE
     SSE --> ORCH
     INV --> ORCH
     ORCH --> STREAM --> SSE
     ORCH --> TOOLS
-    TOOLS --> FINN
-    TOOLS --> TAV
-    TOOLS --> SECP
+    TOOLS --> FINN & TAV & SECP
     TOOLS -.->|planned| DUCK
 
-    QD[("Qdrant<br/>dense vectors")]
-    SECP --> QD
+    classDef fe fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+    classDef api fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef engine fill:#ede9fe,stroke:#7c3aed,color:#3b2764
+    classDef data fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef planned fill:#f1f5f9,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
+    class UI fe
+    class SSE,INV api
+    class ORCH,STREAM,TOOLS engine
+    class FINN,TAV,SECP data
+    class DUCK planned
+    style FE fill:transparent,stroke:#2563eb
+    style API fill:transparent,stroke:#d97706
+    style Engine fill:transparent,stroke:#7c3aed
+    style Data fill:transparent,stroke:#16a34a
 ```
 
 The repo is split into decoupled environments with enforced dependency rules
@@ -129,14 +143,23 @@ common core (`backend/common/sec_core.py` — shared filing types and error taxo
 Any ticker outside the pre-ingested universe is ingested on demand at question time:
 
 ```mermaid
-flowchart TD
-    Q["Agent query: ticker X"] --> Y["Resolve latest fiscal year<br/>(EDGAR metadata is the only source of truth)"]
-    Y --> M{"Commit marker<br/>complete in Qdrant?"}
-    M -- yes --> S["Vector search"]
-    M -- no --> L{"Markdown in<br/>local filing store?"}
-    L -- yes --> E["Embed + upsert chunks"]
-    L -- no --> D["Download + parse from EDGAR"] --> E
-    E --> C["Write commit marker: complete<br/>(always the LAST step)"] --> S
+flowchart LR
+    Q["Agent query:<br/>ticker X"] --> Y["Resolve latest<br/>fiscal year<br/>(EDGAR only)"]
+    Y --> M{"Commit marker<br/>complete?"}
+    M -- yes --> S["Vector<br/>search"]
+    M -- no --> L{"Markdown in<br/>local store?"}
+    L -- no --> D["Download + parse<br/>from EDGAR"] --> E
+    L -- yes --> E["Embed + upsert<br/>chunks"]
+    E --> C["Commit marker:<br/>complete<br/>(always LAST)"] --> S
+
+    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+    classDef decision fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef commit fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class Q,Y,E,D step
+    class M,L decision
+    class C commit
+    class S done
 ```
 
 A per-(ticker, year) **commit marker** is written `pending` first and flipped to `complete`
@@ -150,15 +173,19 @@ speaking the Vercel AI SDK's UIMessage Stream Protocol v1 natively.
 
 ```mermaid
 sequenceDiagram
-    participant LG as LangGraph astream
-    participant EM as StreamEventMapper
-    participant SER as SSE serializer
-    participant UI as React useChat
+    box rgb(237, 233, 254) Agent Engine
+        participant LG as LangGraph<br/>astream
+        participant EM as StreamEvent<br/>Mapper
+        participant SER as SSE<br/>serializer
+    end
+    box rgb(219, 234, 254) Frontend
+        participant UI as React<br/>useChat
+    end
 
-    LG->>EM: content_blocks (reasoning / text / tool_call_chunk)
+    LG->>EM: content_blocks<br/>(reasoning / text / tool_call_chunk)
     EM->>SER: frozen domain events<br/>(ReasoningDelta, ToolCall, TextDelta, ...)
-    SER->>UI: reasoning-start/delta/end · tool-input-available · text-delta
-    Note over UI: reasoning chips → tool cards → markdown answer
+    SER->>UI: reasoning-start/delta/end ·<br/>tool-input-available · text-delta
+    Note over UI: reasoning chips → tool cards<br/>→ markdown answer
 ```
 
 The backend pipeline is three strictly separated layers

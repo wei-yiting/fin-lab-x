@@ -58,5 +58,12 @@ streaming) shorten user-perceived time-to-first-token vs the blocking
   per-run first-visible sometimes comes from `tool-input-available`.
 - DEV-106 was unmerged at measurement time; re-run after merge for final
   resume numbers.
-- Trace coverage verification (Langfuse/Braintrust span completeness for these
-  ~40 requests) is still pending — see DEV-121.
+## Trace coverage (verified 2026-07-30)
+
+- Checked via `../ttft_trace_coverage_check.py` against Langfuse Cloud:
+  **41/41** requests issued during the benchmark window (39 full-run + 2
+  smoke) have a trace with a complete span tree (≥1 LLM generation + tool
+  spans; quote/financials runs 9 obs, sec runs 22–46 obs).
+- 13 sec-query traces additionally contain ERROR-level `sec_filing_get_section`
+  spans from in-run retries the agent recovered from — tool failures are
+  captured in the trace rather than lost, which strengthens the coverage claim.

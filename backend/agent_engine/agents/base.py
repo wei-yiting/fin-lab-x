@@ -18,7 +18,7 @@ import re
 import time
 import uuid
 from collections.abc import AsyncGenerator
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
@@ -31,7 +31,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.runtime import Runtime
 from langgraph.typing import ContextT
 from typing_extensions import override
-from langfuse import propagate_attributes
+from langfuse import get_client, propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import TypedDict
@@ -46,14 +46,17 @@ from backend.agent_engine.streaming.domain_events_schema import (
     StreamError,
 )
 from backend.agent_engine.streaming.event_mapper import StreamEventMapper
-from backend.agent_engine.streaming.reasoning_trace_callback import (
-    ReasoningTraceCallback,
+from backend.agent_engine.streaming.reasoning_transcript_accumulator import (
+    ReasoningTranscriptAccumulator,
 )
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
 from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
 from backend.common.sec_core import ConfigurationError
+
+if TYPE_CHECKING:
+    from langfuse import LangfuseSpan
 
 
 logger = logging.getLogger(__name__)
@@ -409,7 +412,7 @@ class Orchestrator:
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> OrchestratorResult:
-        config, propagation, _handler = self._build_langfuse_config(
+        config, propagation = self._build_langfuse_config(
             mode="invoke",
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
@@ -438,7 +441,7 @@ class Orchestrator:
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
         """
-        config, propagation, _handler = self._build_langfuse_config(
+        config, propagation = self._build_langfuse_config(
             mode="invoke",
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
@@ -465,7 +468,7 @@ class Orchestrator:
         message_id: str | None = None,
         request_id: str | None = None,
     ) -> AsyncGenerator[DomainEvent, None]:
-        config, propagation, handler = self._build_langfuse_config(
+        config, propagation = self._build_langfuse_config(
             mode="stream",
             session_id=session_id,
             request_id=request_id or uuid.uuid4().hex,
@@ -474,8 +477,21 @@ class Orchestrator:
         )
         config["configurable"] = {"thread_id": session_id}
         mapper = StreamEventMapper(session_id=session_id)
+        accumulator = ReasoningTranscriptAccumulator(
+            agent_reasoning_capability=self.config.model.reasoning
+        )
 
-        with propagate_attributes(**propagation):
+        # Self-owned root span (ADR-0007): the CallbackHandler's chain tree
+        # nests under it via OTel context, and holding the reference makes
+        # the end-of-conversation metadata write deterministic — Langfuse v4
+        # has no public post-hoc trace update, and current-span lookup is
+        # unreliable on async dispatch paths.
+        with (
+            propagate_attributes(**propagation),
+            get_client().start_as_current_observation(
+                as_type="span", name="chat_turn"
+            ) as root_span,
+        ):
             try:
                 # DEV-ONLY: FORCE_LLM_FAIL short-circuits before agent.astream
                 # to simulate a deterministic provider failure. The existing
@@ -503,72 +519,71 @@ class Orchestrator:
                     else:
                         chunk = raw_chunk
                     for event in mapper.process_chunk(chunk):
+                        accumulator.observe(event)
                         yield event
 
+                # Write before yielding the closing events: a yield suspends
+                # the generator indefinitely, and finalize() never emits
+                # reasoning events (ratified F5 spec), so the transcript is
+                # already complete here.
+                root_span.update(
+                    metadata={accumulator.METADATA_KEY: accumulator.value()}
+                )
                 for event in mapper.finalize():
                     yield event
             except asyncio.CancelledError:
                 # D35 abort cleanup. CancelledError is BaseException (not
                 # Exception); list it before the generic except so it doesn't
                 # collapse into the StreamError path.
-                self._handle_abort_cleanup(handler)
+                self._handle_abort_cleanup(root_span, accumulator)
                 raise
             except Exception as e:
+                # Always-write-key contract holds on the error path too;
+                # best-effort so observability failures can't mask the
+                # original error.
+                try:
+                    root_span.update(
+                        metadata={accumulator.METADATA_KEY: accumulator.value()}
+                    )
+                except Exception:
+                    logger.exception(
+                        "failed to write reasoning transcript on error path"
+                    )
                 for event in mapper.finalize():
                     if not isinstance(event, Finish):
                         yield event
                 yield StreamError(error_text=sanitize_tool_error(str(e)))
                 yield Finish(finish_reason="error")
 
-    def _handle_abort_cleanup(self, handler: "CallbackHandler") -> None:
-        """D35 abort cleanup.
+    def _handle_abort_cleanup(
+        self,
+        root_span: "LangfuseSpan",
+        accumulator: ReasoningTranscriptAccumulator,
+    ) -> None:
+        """D35 abort cleanup + F7 reasoning tail persistence (ADR-0007).
 
-        Stamps the root chain as ``status="aborted"`` — the only abort-trace
-        marker (reasoning persistence on abort belongs to F7 / DEV-107).
-        All Langfuse interactions are best-effort — internal failures are
-        logged but never re-raised so cancellation propagation is not
-        blocked by observability outages.
+        One ``update()`` on the self-owned root span writes both keys: the
+        reasoning tail (with the aborted marker when a segment was cut
+        mid-flight) and the conversation-level ``status: "aborted"`` flag.
+        A single write maximizes the chance of landing while the process is
+        tearing down.
 
         Sync by design — sync code is not interruptible by ``CancelledError``,
         so cleanup runs to completion even when the parent task is being
-        cancelled.
-
-        Lookup-by-run_id (not contextvars): ``update_current_span`` silently
-        no-ops when the OTel current span isn't the expected CHAIN. At abort
-        time the call stack is already unwinding, so the OTel context is even
-        less reliable. Instead we read the in-flight observations out of
-        ``handler._runs`` (Langfuse 4.x's run_id → observation dict). Entries
-        for ended runs have already been popped via ``_detach_observation``,
-        so whatever is still there at abort is by definition still in flight.
-        We enumerate ``.values()`` (not key-lookup), so the dict's key
-        shape — UUID, str(UUID), or hex — doesn't matter; only
-        observation-type drift would break the isinstance() narrowing, and
-        that's caught by the contract test in test_langfuse_runs_contract.py.
+        cancelled. Best-effort: failures are logged but never re-raised so
+        cancellation propagation is not blocked by observability outages.
         """
-        from langfuse import LangfuseChain  # local: optional dep
-
-        root_chain: LangfuseChain | None = None
         try:
-            for observation in handler._runs.values():
-                if isinstance(observation, LangfuseChain):
-                    # The chat-turn root LangfuseChain is the first chain
-                    # registered (parent_run_id is None at the start of the
-                    # request).
-                    root_chain = observation
-                    break
-        except Exception:
-            logger.exception("failed to iterate handler._runs during abort cleanup")
-
-        if root_chain is not None:
-            try:
-                root_chain.update(metadata={"status": "aborted"})
-            except Exception:
-                logger.exception("failed to mark root chain aborted")
-        else:
-            logger.warning(
-                "abort cleanup: no LangfuseChain root found in handler._runs; "
-                "trace status not marked aborted"
+            root_span.update(
+                metadata={
+                    ReasoningTranscriptAccumulator.METADATA_KEY: accumulator.value(
+                        aborted=True
+                    ),
+                    "status": "aborted",
+                }
             )
+        except Exception:
+            logger.exception("abort cleanup: failed to update root span")
 
     @staticmethod
     def _find_regenerate_target(
@@ -646,28 +661,15 @@ class Orchestrator:
         request_id: str,
         session_id: str | None = None,
         **extra_metadata: object,
-    ) -> tuple[RunnableConfig, _LangfusePropagationAttributes, "CallbackHandler"]:
+    ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
 
         trace_name is derived from the profile name + endpoint mode, e.g.
         ``baseline_stream``. request_id + extras (trigger, message_id, ...)
         go into LangChain config metadata so CallbackHandler (Langfuse ≥4.3.1)
         attaches them to the root trace via the ``langfuse_trace_name`` path.
-
-        Callback ordering: ``ReasoningTraceCallback`` is registered ahead of
-        ``langfuse.langchain.CallbackHandler``. With lookup-by-run_id the
-        ordering is no longer load-bearing for correctness (the GENERATION is
-        addressable as soon as the Langfuse handler registers it in its
-        internal ``_runs`` dict during ``on_chat_model_start``), but keeping
-        the order matches the docstring on ``ReasoningTraceCallback`` and
-        means the metadata write happens before any other downstream handler
-        observes the GENERATION.
         """
         handler = CallbackHandler()
-        reasoning_callback = ReasoningTraceCallback(
-            agent_reasoning_capability=self.config.model.reasoning,
-            langfuse_handler=handler,
-        )
         trace_name = f"{self.config.name}_{mode}"
 
         metadata: dict[str, object] = {
@@ -684,14 +686,11 @@ class Orchestrator:
             propagation["session_id"] = session_id
 
         config: RunnableConfig = {
-            "callbacks": [reasoning_callback, handler],
+            "callbacks": [handler],
             "run_name": "chat-turn",
             "metadata": metadata,
         }
-        # Caller (astream_run / arun / invoke) needs a handle on the Langfuse
-        # handler to look up in-flight observations by run_id during abort
-        # cleanup — see _handle_abort_cleanup.
-        return config, propagation, handler
+        return config, propagation
 
     def _extract_result(self, agent_output: dict[str, Any]) -> OrchestratorResult:
         messages: list[BaseMessage] = agent_output.get("messages", [])

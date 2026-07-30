@@ -3,14 +3,17 @@
 Covers BDD scenarios:
 - S-obs-07: Langfuse outage during a stream does not stall the user
 - S-obs-15: Exception in the Langfuse handler does not kill the stream
-- J-obs-03: Dual-handler eval run survives Langfuse degradation (architectural
-  invariant shared with S-obs-07 — verified here at the Orchestrator layer)
+- J-obs-03: the reasoning-transcript write survives Langfuse handler
+  degradation (architectural invariant shared with S-obs-07 — verified here
+  at the Orchestrator layer)
 
 The architectural guarantee under test: Orchestrator.astream_run passes the
 Langfuse CallbackHandler through to LangChain's callback manager but does not
 `await` on it. LangChain's callback manager catches handler exceptions. The
 Langfuse SDK ingests spans on a background schedule so endpoint failures surface
 only as SDK-level warnings, never as user-facing errors or request latency.
+The trace-level reasoning transcript (ADR-0007) is written on a root span the
+Orchestrator owns, so handler breakage cannot gate it out.
 """
 
 from contextlib import nullcontext
@@ -26,9 +29,6 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextDelta,
     TextEnd,
     TextStart,
-)
-from backend.agent_engine.streaming.reasoning_trace_callback import (
-    ReasoningTraceCallback,
 )
 
 # Reuse orchestrator builders from the existing langfuse test module
@@ -49,6 +49,13 @@ def _assert_complete_stream(events):
 
 async def _drain(astream_gen):
     return [event async for event in astream_gen]
+
+
+def _mock_langfuse_client() -> tuple[MagicMock, MagicMock]:
+    """Client stub for the self-owned root span; returns (client, span)."""
+    client = MagicMock()
+    span = client.start_as_current_observation.return_value.__enter__.return_value
+    return client, span
 
 
 class BrokenHandler:
@@ -89,6 +96,7 @@ class TestLangfuseHandlerExceptionIsolation:
 
         agent.astream = mock_astream
 
+        client, _span = _mock_langfuse_client()
         with (
             patch(
                 "backend.agent_engine.agents.base.CallbackHandler",
@@ -98,6 +106,7 @@ class TestLangfuseHandlerExceptionIsolation:
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
             ),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
         ):
             events = await _drain(orch.astream_run(message="hi", session_id="s-h1"))
 
@@ -144,6 +153,7 @@ class TestLangfuseEndpointOutageResilience:
         flushing_handler = MagicMock()
         flushing_handler.flush.side_effect = RuntimeError("Langfuse unreachable")
 
+        client, _span = _mock_langfuse_client()
         with (
             patch(
                 "backend.agent_engine.agents.base.CallbackHandler",
@@ -153,6 +163,7 @@ class TestLangfuseEndpointOutageResilience:
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
             ),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
         ):
             events = await _drain(orch.astream_run(message="hi", session_id="s-o1"))
 
@@ -165,23 +176,17 @@ class TestLangfuseEndpointOutageResilience:
 
 
 @pytest.mark.asyncio
-class TestDualHandlerResilience:
-    """J-obs-03: a broken Langfuse handler must not gate out the sibling
-    callback the Orchestrator wires alongside it (the ReasoningTraceCallback —
-    same coexistence shape an eval-time Braintrust handler would have)."""
+class TestTranscriptWriteResilience:
+    """J-obs-03: a broken Langfuse handler must not gate out the trace-level
+    reasoning transcript write (ADR-0007) — the same isolation shape an
+    eval-time Braintrust handler coexistence would need."""
 
-    async def test_real_config_keeps_sibling_callback_when_langfuse_handler_broken(
-        self,
-    ):
+    async def test_transcript_written_when_langfuse_handler_broken(self):
         """Drive the REAL ``_build_langfuse_config`` (not a patched stand-in):
-        when the Langfuse handler class produces a broken handler, the actual
-        callbacks list the Orchestrator hands to ``astream`` must still contain
-        BOTH the broken handler AND the sibling ReasoningTraceCallback, and the
-        stream must complete with full domain events. The earlier version of
-        this test patched the builder and asserted a call its own mock made —
-        it passed even if the real dual-handler wiring were broken. This drives
-        the real wiring instead, so dropping a callback on handler trouble fails
-        the test."""
+        when the Langfuse handler class produces a broken handler, the stream
+        must complete with full domain events AND the root span the
+        Orchestrator owns must still receive the always-write ``reasoning``
+        metadata key."""
         config = _make_config()
         orch = _create_orchestrator(config)
         agent = cast(Any, orch.agent)
@@ -201,6 +206,7 @@ class TestDualHandlerResilience:
         agent.astream = mock_astream
 
         broken = BrokenHandler()
+        client, span = _mock_langfuse_client()
         with (
             patch(
                 "backend.agent_engine.agents.base.CallbackHandler",
@@ -210,15 +216,15 @@ class TestDualHandlerResilience:
                 "backend.agent_engine.agents.base.propagate_attributes",
                 return_value=nullcontext(),
             ),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
         ):
             events = await _drain(orch.astream_run(message="hi", session_id="s-d1"))
 
         _assert_complete_stream(events)
         callbacks = captured_kwargs.get("config", {}).get("callbacks", [])
-        # The broken Langfuse handler is present in the real callbacks list...
         assert broken in callbacks, "Langfuse handler must still be attached"
-        # ...and it did NOT gate out the sibling reasoning callback.
-        assert any(isinstance(c, ReasoningTraceCallback) for c in callbacks), (
-            "dual-handler invariant: a broken Langfuse handler must not remove "
-            "the sibling ReasoningTraceCallback from the dispatched callbacks"
+        span.update.assert_called_once()
+        metadata = span.update.call_args.kwargs["metadata"]
+        assert "reasoning" in metadata, (
+            "broken handler must not gate out the trace-level reasoning write"
         )

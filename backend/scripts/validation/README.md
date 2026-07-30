@@ -43,7 +43,7 @@ When to run:
 
 ## `verify_langfuse_trace.py`
 
-Polls Langfuse for a single trace and asserts the D29 reasoning-metadata schema and (optionally) the abort-path contract. Used by the BDD 6-case matrix (J-stream-01, J-trace-01, J-rsn-01/02) and the abort scenario (S-trace-06) to confirm that a deployed change to the reasoning observability path still satisfies the trace-shape invariants.
+Polls Langfuse for a single trace and asserts the trace-level reasoning transcript shape (F7 / ADR-0007): the conversation's full reasoning lives in `metadata.reasoning` on the root `chat_turn` span, with `=== segment N ===` markers inside the value. Used by the BDD matrix and the abort scenario to confirm that a deployed change to the reasoning observability path still satisfies the trace-shape invariants.
 
 ```bash
 uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --expect-reasoning-on
@@ -55,17 +55,16 @@ uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --e
 | Argument | Required | Description |
 |---|---|---|
 | `trace_id` | Yes | Langfuse trace id to fetch |
-| `--expect-reasoning-on` / `--expect-reasoning-off` / `--expect-unsupported` | Yes (mutually exclusive) | Reasoning capability the trace should reflect — drives the per-GENERATION `metadata.reasoning` assertion |
-| `--expect-aborted` | No | Also assert the root span carries `metadata.status == "aborted"` — the only abort-trace marker (per-generation reasoning persistence on abort belongs to F7 / DEV-107) |
+| `--expect-reasoning-on` / `--expect-reasoning-off` / `--expect-unsupported` | Yes (mutually exclusive) | Reasoning capability the trace should reflect — drives the root-span `metadata.reasoning` assertion |
+| `--expect-aborted` | No | Also assert the root span carries `metadata.status == "aborted"`; with `--expect-reasoning-on` the transcript must additionally end with the `=== aborted ===` marker (the scripted abort scenario cancels mid-segment) |
 
 What it asserts:
 
-- A root span (`parentObservationId is null`, type ≠ GENERATION) exists.
-- At least one GENERATION observation exists.
-- For `--expect-reasoning-on`: every GENERATION carries `metadata.reasoning` (always-write-key contract) AND at least one carries non-empty reasoning text. Short tool-decision turns are allowed to skip reasoning — only the whole trace must produce some.
-- For `--expect-reasoning-off`: every GENERATION carries `metadata.reasoning == ""`.
-- For `--expect-unsupported`: every GENERATION carries `metadata.reasoning == "<unsupported>"`.
-- For `--expect-aborted`: root span has `metadata.status == "aborted"` (root-status-only — no per-generation abort marker).
+- A root span (`parentObservationId is null`, type ≠ GENERATION) exists and carries `metadata.reasoning` (always-write-key contract).
+- For `--expect-reasoning-on`: the transcript is non-empty and contains a `=== segment 1 ===` marker.
+- For `--expect-reasoning-off`: `metadata.reasoning == ""`.
+- For `--expect-unsupported`: `metadata.reasoning == "<unsupported>"`.
+- For `--expect-aborted`: root span has `metadata.status == "aborted"` (+ trailing aborted marker when combined with `--expect-reasoning-on`).
 
 Authentication is via the standard Langfuse env vars: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and either `LANGFUSE_BASE_URL` or `LANGFUSE_API_BASE` (default `https://cloud.langfuse.com`). The script polls 5× with linear backoff to absorb the ingestion lag between SSE close and the trace becoming queryable.
 

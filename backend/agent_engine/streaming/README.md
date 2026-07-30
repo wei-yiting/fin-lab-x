@@ -8,7 +8,7 @@ Three-layer architecture that transforms LangGraph agent output into SSE wire fo
 |-------|------|----------------|
 | Domain Events | `domain_events_schema.py` | Frozen dataclass value objects defining the shared contract between mapper and serializer. |
 | Event Mapper | `event_mapper.py` | Stateful translator: LangGraph `astream()` chunks → domain events. Handles text block pairing, message framing, tool call lifecycle, and native reasoning part dispatch. Per-request scope (D33) — never share across requests. |
-| Reasoning Trace Callback | `reasoning_trace_callback.py` | LangChain `BaseCallbackHandler` that writes `metadata.reasoning` to the current Langfuse generation on `on_llm_end`. Must run BEFORE `langfuse.langchain.CallbackHandler` (`run_inline = True` enforces ordering across sync + async dispatch). |
+| Reasoning Transcript Accumulator | `reasoning_transcript_accumulator.py` | Observes reasoning domain events and renders the trace-level transcript (`=== segment N ===` markers, aborted marker, size cap) that `Orchestrator.astream_run` writes once to the root span metadata at conversation end (ADR-0007). Platform-agnostic. |
 | SSE Serializer | `sse_serializer.py` | Stateless: domain events → AI SDK UIMessage Stream Protocol v1 wire format (`data: {json}\n\n`). Uses `singledispatch`. |
 
 Additional module:
@@ -57,26 +57,30 @@ LLM call/step: the AI SDK resets its active-reasoning map on `finish-step`
 and would otherwise allow id reuse across steps, colliding React keys and
 timer refs on the frontend.
 
-Persistence runs in parallel via `ReasoningTraceCallback.on_llm_end` writing the joined reasoning to `metadata.reasoning` on the current chat_model generation span.
+Persistence is trace-level (F7 / ADR-0007): `ReasoningTranscriptAccumulator`
+observes the same domain events and `Orchestrator.astream_run` writes the full
+transcript once to the metadata of the root span it owns when the conversation
+ends.
 
 ## `metadata.reasoning` Value Contract
 
-`ReasoningTraceCallback` writes `metadata.reasoning` on every chat-model GENERATION (always-write-key on the completed path). The value is one of five shapes:
+The root span's `metadata.reasoning` is written once per conversation
+(always-write-key). Single key; all structure lives inside the value:
 
-| State                              | Condition                                                            | Value                                                          |
-| ---------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Reasoning text                     | capability ∈ {`"on"`, `"off"`} AND `content_blocks` has reasoning     | `"\n".join(reasoning_block["reasoning"], ...)`                |
-| No reasoning emitted               | capability ∈ {`"on"`, `"off"`} AND no reasoning blocks                | `""`                                                          |
-| Unsupported model                  | `capability == "unsupported"`                                        | `"<unsupported>"` sentinel                                    |
-| Oversize payload                   | joined UTF-8 length > 500_000 bytes                                  | first 500KB + `... [truncated, original {N} bytes]` suffix    |
-| Extraction failure                 | `_compute_reasoning_value` raised                                    | `""` — defensive fallback so the always-write-key contract holds |
+| State                | Condition                                             | Value                                                       |
+| -------------------- | ----------------------------------------------------- | ----------------------------------------------------------- |
+| Reasoning transcript | capability ∈ {`"on"`, `"off"`} AND segments streamed  | `=== segment N ===`-delimited full text (one segment = one reasoning part = one frontend chip) |
+| No reasoning emitted | capability ∈ {`"on"`, `"off"`} AND no segments        | `""`                                                        |
+| Unsupported model    | `capability == "unsupported"`                         | `"<unsupported>"` sentinel                                  |
+| Oversize payload     | transcript UTF-8 length > 500_000 bytes               | first 500KB + `... [truncated, original {N} bytes]` suffix  |
 
 On the **abort path** (`asyncio.CancelledError` through `astream_run`),
-`on_llm_end` never fires, so `metadata.reasoning` may be absent on the
-in-flight GENERATION. `Orchestrator._handle_abort_cleanup` stamps
-`metadata.status="aborted"` on the root chain; that is the only abort-trace
-marker. (The former per-generation `reasoning_tail_aborted` write moves to
-DEV-107 with F7's trace-level reasoning.) `backend/scripts/validation/verify_langfuse_trace.py` enforces these shapes.
+`_handle_abort_cleanup` performs one update on the root span writing both the
+reasoning tail — with a trailing `=== aborted ===` marker only when a segment
+was cut mid-flight — and `metadata.status="aborted"` (the conversation-level
+abort flag; the marker owns transcript integrity, the status key owns the
+conversation outcome). `backend/scripts/validation/verify_langfuse_trace.py`
+enforces these shapes.
 
 ## Data Flow
 

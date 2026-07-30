@@ -121,6 +121,10 @@ The collapsible transcript block rendering one provider reasoning segment — li
 **Reasoning stream**:
 Provider reasoning tokens streamed live to the client, rendered as reasoning chips. The word "reasoning" belongs to this feature alone — never to the activity indicator's placeholder copy.
 
+**Reasoning transcript**:
+The observability record of one conversation's full reasoning text — every reasoning segment, delimited by per-segment markers, written once to the conversation's root trace when it ends. An aborted marker appears only when the conversation aborts mid-segment; a conversation-level abort is recorded separately by the trace status.
+_Avoid_: reasoning metadata, per-call reasoning
+
 **Tool progress**:
 A transient sidecar SSE event that updates a running tool card without entering message history.
 

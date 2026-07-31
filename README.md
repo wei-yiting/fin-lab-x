@@ -48,11 +48,15 @@ flowchart TB
         BT["Braintrust compare<br/>score Δ = effect of<br/>the capability set"]
     end
 
-    P1 & P2 & P3 & P4 --> LOADER
+    P1 -- "one arm<br/>loaded per run" --> LOADER
+    P2 ~~~ LOADER
+    P3 ~~~ LOADER
+    P4 ~~~ LOADER
     LOADER --> ORCH
     REG --> ORCH
-    ORCH -- "only the arm's<br/>granted tools" --> FINN & TAV & SECQ
-    ORCH -.->|planned| DUCK
+    ORCH -- "tool calls" --> TC(["only the arm's<br/>granted tools"])
+    TC --> FINN & TAV & SECQ
+    TC -.->|planned| DUCK
     ORCH -. "every run traced" .-> LF
     ORCH -- "eval runs: same golden dataset ·<br/>pinned model across arms" --> BT
 
@@ -72,6 +76,7 @@ flowchart TB
     class DUCK planned
     class LF,BT measure
     class UI ui
+    style TC fill:#f8fafc,stroke:#64748b,color:#334155
     style Arms fill:transparent,stroke:#d97706
     style Core fill:transparent,stroke:#7c3aed
     style Caps fill:transparent,stroke:#16a34a
@@ -141,37 +146,6 @@ provider-agnostic: one config knob (`reasoning: on | off | unsupported`) maps to
 provider's thinking parameters (OpenAI Responses, Gemini, Anthropic), rendered as collapsible
 "Thought for Xs" transcript chips.
 
-## Just-in-time SEC ingestion
-
-Any ticker outside the pre-ingested universe is ingested on demand at question time —
-EDGAR download → Markdown conversion → chunking + embedding → Qdrant:
-
-```mermaid
-flowchart LR
-    Q["Agent query:<br/>ticker X"] --> Y["Resolve latest<br/>fiscal year<br/>(EDGAR only)"]
-    Y --> M{"Commit marker<br/>complete?"}
-    M -- yes --> S["Vector<br/>search"]
-    M -- no --> L{"Markdown in<br/>local store?"}
-    L -- no --> D["Download + parse<br/>from EDGAR"] --> E
-    L -- yes --> E["Embed + upsert<br/>chunks"]
-    E --> C["Commit marker:<br/>complete<br/>(always LAST)"] --> S
-
-    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
-    classDef decision fill:#fef3c7,stroke:#d97706,color:#78350f
-    classDef commit fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
-    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
-    class Q,Y,E,D step
-    class M,L decision
-    class C commit
-    class S done
-```
-
-A per-(ticker, year) **commit marker** is written `pending` first and flipped to `complete`
-only after every chunk is upserted — a partially ingested filing can never be mistaken for a
-complete one ("committed or absent"). Ingestion is idempotent (UUID5 point IDs), and the
-filing pipeline's heading-promotion heuristics were calibrated against 23 tickers across
-clean/messy/hard document classes.
-
 ## Evaluation & Observability
 
 Evaluation is scenario-first: each scenario directory is a self-contained contract
@@ -232,6 +206,37 @@ The archive holds runtime traces only — experiments are retained long-term on 
 and need no retention-driven archival. Platform choices are ratified by ADRs with POC
 verification before each migration (see [`docs/adr/`](docs/adr/)).
 
+## Just-in-time SEC ingestion
+
+Any ticker outside the pre-ingested universe is ingested on demand at question time —
+EDGAR download → Markdown conversion → chunking + embedding → Qdrant:
+
+```mermaid
+flowchart LR
+    Q["Agent query:<br/>ticker X"] --> Y["Resolve latest<br/>fiscal year<br/>(EDGAR only)"]
+    Y --> M{"Commit marker<br/>complete?"}
+    M -- yes --> S["Vector<br/>search"]
+    M -- no --> L{"Markdown in<br/>local store?"}
+    L -- no --> D["Download + parse<br/>from EDGAR"] --> E
+    L -- yes --> E["Embed + upsert<br/>chunks"]
+    E --> C["Commit marker:<br/>complete<br/>(always LAST)"] --> S
+
+    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+    classDef decision fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef commit fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class Q,Y,E,D step
+    class M,L decision
+    class C commit
+    class S done
+```
+
+A per-(ticker, year) **commit marker** is written `pending` first and flipped to `complete`
+only after every chunk is upserted — a partially ingested filing can never be mistaken for a
+complete one ("committed or absent"). Ingestion is idempotent (UUID5 point IDs), and the
+filing pipeline's heading-promotion heuristics were calibrated against 23 tickers across
+clean/messy/hard document classes.
+
 ## Repository layout
 
 ```
@@ -288,3 +293,9 @@ python -m backend.evals.eval_runner language_policy
 framework, CI). Active branches extend it — multi-provider reasoning streaming, the golden
 dataset cross-profile eval, and a human-in-the-loop behavior diagnostic — each developed
 behind its own design doc and verification plan before merge.
+
+## Related writing & talks
+
+- **Article — [RAG Is Not Just Vector Search: Entity Mismatch in 10-K Retrieval](https://medium.com/@wytdong)** (Medium · iThome) — an 18-query controlled experiment on metadata pre-filtering and tenant-aware indexing, run on this repo's SEC corpus.
+- **Talk — Agent Observability & Evaluation** ([slides](#)) — tracing, evaluation datasets, and failure analysis for LLM agents, drawn from this project's observability and eval work.
+- **Talk — Harness Engineering** ([slides](#)) — feedforward guides, feedback sensors, and verifiable goals for agentic coding workflows.

@@ -18,28 +18,38 @@ Arms are compared on the same golden dataset under a pinned model, so a score de
 attributable to the capability set, never the model.
 
 ```mermaid
-flowchart TB
-    subgraph Arms["Workflow Profiles — experiment arms (config only, no code changes)"]
-        direction LR
-        P1["baseline<br/>quotes · news ·<br/>SEC section reads"]
-        P2["reader<br/>+ RAG over 10-Ks<br/>(Qdrant)"]
-        P3["quant<br/>+ text-to-SQL<br/>(DuckDB)"]
+flowchart LR
+    subgraph Arms["Workflow Profiles — experiment arms"]
+        direction TB
+        P1["baseline<br/>quotes · news · SEC reads"]
+        P2["reader<br/>+ RAG over 10-Ks (Qdrant)"]
+        P3["quant<br/>+ text-to-SQL (DuckDB)"]
         P4["analyst<br/>all capabilities"]
     end
 
     subgraph Core["Shared agent core — identical across arms"]
-        direction LR
+        direction TB
         LOADER["ProfileConfigLoader<br/>one arm per run:<br/>model · prompt · tools[] · budgets"]
-        ORCH["Orchestrator<br/>LangGraph ReAct<br/>+ middleware"]
-        REG["Tool registry<br/>resolves tools[]<br/>by name"]
+        ORCH["Orchestrator<br/>LangGraph ReAct + middleware"]
+        REG["Tool registry<br/>resolves tools[] by name"]
+        LOADER --> ORCH
+        REG --> ORCH
     end
 
     subgraph Caps["Capabilities — three data layers"]
-        direction LR
+        direction TB
         FINN["Finnhub<br/>quotes"]
         TAV["Tavily<br/>news search"]
         SECQ["SEC 10-K RAG<br/>Qdrant + JIT"]
         DUCK["DuckDB<br/>text-to-SQL"]
+    end
+
+    subgraph GenUI["Generative UI — streaming end to end"]
+        direction LR
+        SSE["FastAPI /chat<br/>SSE · UIMessage<br/>Stream v1"]
+        HOOK["AI SDK<br/>useChat"]
+        RENDER["reasoning chips ·<br/>tool cards · streamed<br/>markdown + sources"]
+        SSE --> HOOK --> RENDER
     end
 
     subgraph Measure["Measure the effect"]
@@ -52,16 +62,12 @@ flowchart TB
     P2 ~~~ LOADER
     P3 ~~~ LOADER
     P4 ~~~ LOADER
-    LOADER --> ORCH
-    REG --> ORCH
-    ORCH -- "tool calls" --> TC(["only the arm's<br/>granted tools"])
-    TC --> FINN & TAV & SECQ
-    TC -.->|planned| DUCK
+    ORCH -- "tool calls: only the<br/>arm's granted tools" --> FINN
+    ORCH --> TAV & SECQ
+    ORCH -.->|planned| DUCK
+    ORCH == "domain events<br/>→ SSE" ==> SSE
     ORCH -. "every run traced" .-> LF
     ORCH -- "eval runs: same golden dataset ·<br/>pinned model across arms" --> BT
-
-    UI["FastAPI · SSE → React chat UI"]
-    ORCH <--> UI
 
     classDef arm fill:#fef3c7,stroke:#d97706,color:#78350f
     classDef core fill:#ede9fe,stroke:#7c3aed,color:#3b2764
@@ -75,11 +81,11 @@ flowchart TB
     class FINN,TAV,SECQ cap
     class DUCK planned
     class LF,BT measure
-    class UI ui
-    style TC fill:#f8fafc,stroke:#64748b,color:#334155
+    class SSE,HOOK,RENDER ui
     style Arms fill:transparent,stroke:#d97706
     style Core fill:transparent,stroke:#7c3aed
     style Caps fill:transparent,stroke:#16a34a
+    style GenUI fill:transparent,stroke:#64748b
     style Measure fill:transparent,stroke:#2563eb
 ```
 

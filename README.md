@@ -9,67 +9,77 @@ and evaluated.
 
 ## System architecture
 
-One central **Orchestrator** (LangGraph ReAct loop) whose entire capability surface is
-assembled from configuration: a **Workflow Profile** declares which tools, model, prompt, and
-budgets the agent runs with, and the **tool registry** resolves the profile's tool names into
-implementations at startup. Observability is a first-class layer — every run emits a full
-trace tree.
+FinLab-X is structured as an **experiment in agent capability composition**. The agent core
+(Orchestrator, streaming, tracing) stays fixed; each **Workflow Profile** is an experiment
+arm that grants a different capability set — which tools, model, prompt, and budgets the
+agent runs with. The profile's `tools[]` names are resolved by the **tool registry** at
+startup, and the capabilities reach into three progressively more structured data layers.
+Arms are compared on the same golden dataset under a pinned model, so a score delta is
+attributable to the capability set, never the model.
 
 ```mermaid
 flowchart TB
-    subgraph Config["Profile configuration"]
+    subgraph Arms["Workflow Profiles — experiment arms (config only, no code changes)"]
         direction LR
-        PROF["profiles/&lt;name&gt;/<br/>orchestrator_config.yaml<br/>+ system_prompt.md"]
-        LOADER["ProfileConfigLoader<br/>(pydantic, fail-fast)"]
+        P1["baseline<br/>quotes · news ·<br/>SEC section reads"]
+        P2["reader<br/>+ RAG over 10-Ks<br/>(Qdrant)"]
+        P3["quant<br/>+ text-to-SQL<br/>(DuckDB)"]
+        P4["analyst<br/>all capabilities"]
     end
 
-    subgraph Runtime["Runtime"]
+    subgraph Core["Shared agent core — identical across arms"]
         direction LR
-        API["FastAPI<br/>/api/v1/chat · SSE"]
-        ORCH["Orchestrator<br/>LangGraph ReAct + middleware"]
-        REG["Tool registry<br/>setup_tools() →<br/>get_tools_by_names()"]
+        LOADER["ProfileConfigLoader<br/>one arm per run:<br/>model · prompt · tools[] · budgets"]
+        ORCH["Orchestrator<br/>LangGraph ReAct<br/>+ middleware"]
+        REG["Tool registry<br/>resolves tools[]<br/>by name"]
     end
 
-    subgraph Sources["Data sources"]
+    subgraph Caps["Capabilities — three data layers"]
         direction LR
         FINN["Finnhub<br/>quotes"]
-        TAV["Tavily<br/>news"]
+        TAV["Tavily<br/>news search"]
         SECQ["SEC 10-K RAG<br/>Qdrant + JIT"]
-        DUCK["DuckDB<br/>fundamentals"]
+        DUCK["DuckDB<br/>text-to-SQL"]
     end
 
-    subgraph Obs["Observability"]
+    subgraph Measure["Measure the effect"]
         direction LR
-        LF["Langfuse<br/>runtime traces"]
-        BT["Braintrust<br/>eval experiments"]
+        LF["Tracing<br/>span tree per run"]
+        BT["Braintrust compare<br/>score Δ = effect of<br/>the capability set"]
     end
 
-    PROF --> LOADER
-    LOADER -- "model · prompt · budgets" --> ORCH
-    REG -- "tools[] resolved by name" --> ORCH
-    API <--> ORCH
-    ORCH --> FINN & TAV & SECQ
+    P1 & P2 & P3 & P4 --> LOADER
+    LOADER --> ORCH
+    REG --> ORCH
+    ORCH -- "only the arm's<br/>granted tools" --> FINN & TAV & SECQ
     ORCH -.->|planned| DUCK
-    ORCH -. "span tree per run" .-> LF
-    ORCH -. "eval runs" .-> BT
+    ORCH -. "every run traced" .-> LF
+    ORCH -- "eval runs: same golden dataset ·<br/>pinned model across arms" --> BT
 
-    classDef config fill:#fef3c7,stroke:#d97706,color:#78350f
-    classDef runtime fill:#ede9fe,stroke:#7c3aed,color:#3b2764
-    classDef data fill:#dcfce7,stroke:#16a34a,color:#14532d
+    UI["FastAPI · SSE → React chat UI"]
+    ORCH <--> UI
+
+    classDef arm fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef core fill:#ede9fe,stroke:#7c3aed,color:#3b2764
+    classDef cap fill:#dcfce7,stroke:#16a34a,color:#14532d
     classDef planned fill:#f1f5f9,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
-    classDef obs fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
-    class PROF,LOADER config
-    class API,ORCH,REG runtime
-    class FINN,TAV,SECQ data
+    classDef measure fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+    classDef ui fill:#f8fafc,stroke:#64748b,color:#334155
+    class P1,P2,P3 arm
+    class P4 planned
+    class LOADER,ORCH,REG core
+    class FINN,TAV,SECQ cap
     class DUCK planned
-    class LF,BT obs
-    style Config fill:transparent,stroke:#d97706
-    style Runtime fill:transparent,stroke:#7c3aed
-    style Sources fill:transparent,stroke:#16a34a
-    style Obs fill:transparent,stroke:#2563eb
+    class LF,BT measure
+    class UI ui
+    style Arms fill:transparent,stroke:#d97706
+    style Core fill:transparent,stroke:#7c3aed
+    style Caps fill:transparent,stroke:#16a34a
+    style Measure fill:transparent,stroke:#2563eb
 ```
 
-Each profile is one architecture stage of the same agent — swapping a profile swaps the
+**The experiment arms** — a profile is a config directory
+(`profiles/<name>/orchestrator_config.yaml` + `system_prompt.md`); swapping it swaps the
 capability surface without code changes:
 
 | Profile | Approach | Status |
@@ -79,6 +89,14 @@ capability surface without code changes:
 | `quant` | Text-to-SQL over structured fundamentals (DuckDB) | In development |
 | `graph` | Knowledge-graph analysis | Planned |
 | `analyst` | Combined research assistant (all capabilities) | Planned |
+
+**The three data layers** the capabilities draw from:
+
+| Layer | Source → Store | Agent entry point |
+|---|---|---|
+| News search | Tavily (trusted-domain allowlist) | `tavily_financial_search` |
+| Unstructured RAG | SEC EDGAR 10-K → Markdown → Qdrant dense vectors | `search_sec_filings` (JIT) |
+| Structured quant | SEC XBRL / market data → DuckDB (8-table schema) | text-to-SQL (`quant` profile, in development) |
 
 The Single Orchestrator + capabilities pattern keeps every decision in one trace tree; the
 architecture leaves room for additional agents later (e.g. a reviewer agent in front of the
@@ -154,7 +172,7 @@ complete one ("committed or absent"). Ingestion is idempotent (UUID5 point IDs),
 filing pipeline's heading-promotion heuristics were calibrated against 23 tickers across
 clean/messy/hard document classes.
 
-## Evaluation
+## Evaluation & Observability
 
 Evaluation is scenario-first: each scenario directory is a self-contained contract
 (spec + dataset + scorers), executed by Braintrust `Eval()` — local-first by default,
@@ -184,24 +202,35 @@ flowchart LR
 Principles: anything decidable programmatically never spends a judge call; LLM judges use
 0/1 rubrics (no 1–5 scales) with one call per criterion; eval tasks drive the same streaming
 code path the API serves. In development on feature branches: a hand-curated **30-question
-golden dataset** for cross-profile comparison under a pinned model (score deltas attributable
-to architecture, never model upgrades), with LLM judges accepted only after reaching
-Cohen's κ ≥ 0.7 against human annotations.
+golden dataset** for cross-profile comparison under a pinned model, with LLM judges accepted
+only after reaching Cohen's κ ≥ 0.7 against human annotations.
 
-## Three data layers
+**Observability** follows *if it isn't logged, it didn't happen*: every LLM call, tool
+execution, and retrieval step emits spans, so each run uploads a full trace tree to the
+tracing platform (Braintrust, POC-verified and ADR-ratified). Because platform retention is
+finite, notable traces don't stay only on the platform — they are pulled down, manually
+curated, and committed to git as permanent evidence:
 
-| Layer | Source → Store | Agent entry point |
-|---|---|---|
-| News search | Tavily (trusted-domain allowlist) | `tavily_financial_search` |
-| Unstructured RAG | SEC EDGAR 10-K → Markdown → Qdrant dense vectors | `search_sec_filings` (JIT) |
-| Structured quant | SEC XBRL / market data → DuckDB (8-table schema) | text-to-SQL (`quant` profile, in development) |
+```mermaid
+flowchart LR
+    RUNT["Agent run<br/>span tree"] --> PLAT["Tracing platform<br/>trace drill-down UI"]
+    PLAT -- "within retention window:<br/>bt sync pull (NDJSON)" --> CURATE["Manual curation<br/>notable failures +<br/>their fixed counterparts"]
+    CURATE --> GIT["data/trace-archives/<br/>git-tracked<br/>permanent evidence"]
+    GIT -. "re-upload when needed<br/>for side-by-side compare" .-> PLAT
 
-## Observability
+    classDef runtime fill:#ede9fe,stroke:#7c3aed,color:#3b2764
+    classDef plat fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+    classDef curate fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef git fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class RUNT runtime
+    class PLAT plat
+    class CURATE curate
+    class GIT git
+```
 
-Principle: *if it isn't logged, it didn't happen.* Every LLM call, tool execution, and
-retrieval step emits spans; the JIT path produces a full trace tree per request. Runtime
-tracing runs on Langfuse and evaluation on Braintrust; platform choices are ratified by ADRs
-(with POC verification before each migration) in [`docs/adr/`](docs/adr/).
+The archive holds runtime traces only — experiments are retained long-term on the platform
+and need no retention-driven archival. Platform choices are ratified by ADRs with POC
+verification before each migration (see [`docs/adr/`](docs/adr/)).
 
 ## Repository layout
 
@@ -219,6 +248,7 @@ backend/
     sec_dense_pipeline/    Markdown → Qdrant (JIT, commit markers)
     fundamentals_pipeline/ DuckDB 8-table foundation
   tests/                ~755 tests mirroring source layout
+data/trace-archives/    Curated trace bundles (permanent evidence)
 frontend/               React 19 + Vite + AI SDK chat UI (atomic component tree)
 docs/                   design-envelope.md · adr/ · agent_architecture.md · observability.md
 ```

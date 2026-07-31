@@ -296,6 +296,6 @@ behind its own design doc and verification plan before merge.
 
 ## Related writing & talks
 
-- **Article — [RAG Is Not Just Vector Search: Entity Mismatch in 10-K Retrieval](https://medium.com/@wytdong)** (Medium · iThome) — an 18-query controlled experiment on metadata pre-filtering and tenant-aware indexing, run on this repo's SEC corpus.
-- **Talk — Agent Observability & Evaluation** ([slides](#)) — tracing, evaluation datasets, and failure analysis for LLM agents, drawn from this project's observability and eval work.
-- **Talk — Harness Engineering** ([slides](#)) — feedforward guides, feedback sensors, and verifiable goals for agentic coding workflows.
+- **Article — [RAG Is Not Just Vector Search: Entity Mismatch in 10-K Retrieval](https://medium.com/@wytdong/rag-%E4%B8%8D%E5%8F%AA%E6%98%AF-vector-search-%E5%BE%9E-10-k-%E6%AA%A2%E7%B4%A2%E7%9A%84%E5%AF%A6%E9%AB%94%E9%8C%AF%E8%AA%A4-%E8%AB%87-metadata-filtering-%E7%9A%84%E4%B8%89%E5%B1%A4%E5%A5%91%E7%B4%84-30db7e644a5c)** (Medium) — an 18-query controlled experiment on metadata pre-filtering and tenant-aware indexing, run on this repo's SEC corpus.
+- **Talk — [Agent Observability & Evaluation](https://docs.google.com/presentation/d/103yxXhcqoV-vw3QB00NKDVfVbI41nchdMlZ3a702l6E/present)** — tracing, evaluation datasets, and failure analysis for LLM agents, drawn from this project's observability and eval work.
+- **Talk — Harness Engineering** — feedforward guides, feedback sensors, and verifiable goals for agentic coding workflows.

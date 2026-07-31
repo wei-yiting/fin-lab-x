@@ -80,10 +80,9 @@ Key rules:
 `baseline_behavior_diagnostic` 另外建立一個 dual-surface review flow：
 
 - **Braintrust**: execution run、slice compare、trace drill-down、operator-facing experiment summaries
-- **Langfuse**: trace metadata、human annotation、scores export
-- **Local post-processing**: `annotation_export_joiner` 把 Langfuse export 回接 dataset
+- **Human annotation**: 依 ADR-0005 統一於 Braintrust 重建（DEV-115）——score configs 走 `project_scores` API、export join 走 BTQL；reviewer score schema 為 platform-neutral 契約（見 scenario README）
 
-這條 diagnostic track 不會把人工 annotation 混進 execution scorer，也不會把 Langfuse reviewer fields 回寫到 Braintrust score contract。
+這條 diagnostic track 不會把人工 annotation 混進 execution scorer——reviewer observation 與 deterministic score 是分離的 contract。
 
 ### Eval runner assembly flow
 
@@ -126,7 +125,7 @@ graph LR
 | Task function return type | Full `OrchestratorResult` dict (not plain string) | Scorers like `tool_arg_no_cjk` need `output["tool_outputs"]` for inspection |
 | Config filename | `eval_spec.yaml` (not `config.yaml`) | More descriptive, avoids confusion with other config files |
 | Diagnostic compare identity | Stable `row_id`-based comparison key in Braintrust Project Settings | Cross-run compare must align the same dataset row across sliced diagnostic experiments |
-| Diagnostic annotation join | Langfuse export is joined locally, not synced platform-to-platform | Keeps review workflow explicit and deterministic in v1 |
+| Diagnostic annotation join | Deterministic session id (`dataset::run_label::row_id`) parsed by the joiner (Braintrust BTQL, DEV-115) | Keeps review workflow explicit and deterministic; no platform-to-platform sync |
 
 ## Constraints & Tradeoffs
 

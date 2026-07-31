@@ -16,21 +16,18 @@
 - `question_column`
 - `agent_version`
 
-## Langfuse Annotation Schema v1
+## Human Review Schema（platform-neutral contract）
 
-Langfuse Human Annotation / Annotation Queue 需要先建立 Score Config。Free plan 若只能使用一個 Annotation Queue，可用本地 setup script 建立單一 combined queue：
+人工半場的 annotation loop 依 ADR-0005 統一於 Braintrust 重建（DEV-115）；本目錄不再包含
+annotation 佈建與 export join 工具。以下 reviewer score schema 是 platform-neutral 的契約，
+DEV-115 重建 score configs 時沿用：
 
-```bash
-uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
-```
+第一輪 triage：
 
-這個 queue 會同時包含第一輪 triage 欄位與完整 diagnostic 欄位。第一輪先填：
+- `triage_outcome`: `good` / `bad`——先把明顯 good 的 traces filter 掉，只有 `bad` 或需要
+  追蹤的 traces 再補完整診斷欄位，降低 annotation noise。
 
-- `triage_outcome`: `good` / `bad`
-
-這一輪用來降低後續 annotation noise：先把明顯 good 的 traces filter 掉，只有 `bad` 或需要追蹤的 traces 再補完整診斷欄位。
-
-人工標註匯出預期至少包含以下欄位：
+第二輪完整診斷（人工標註至少包含）：
 
 - `observed_outcome`
 - `observed_alignment_to_prompt`
@@ -39,11 +36,12 @@ uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
 
 可選欄位：
 
-- 其他 `observed_*` 欄位
+- 其他 `observed_*` 欄位（`observed_primary_failure_mechanism`、`obs_secondary_failure_mechanism`、`observed_tuning_lever`）
 - `needs_followup`
 - `followup_note`
 
-這些欄位是 reviewer observation contract，不應由 execution scorer 預填，也不應混進 dataset reference hints。
+這些欄位是 reviewer observation contract，不應由 execution scorer 預填，也不應混進 dataset
+reference hints。
 
 ## Execution Health Scorer
 
@@ -60,44 +58,15 @@ uv run python -m backend.evals.diagnostic.langfuse_annotation_setup
 - 這個 scenario 不使用 LLM judge
 - 這個 scenario 的 scorer 不讀 reference answer hints，也不評斷回答內容好壞
 
-## Annotation Export Join
+## Annotation Join Contract
 
-Langfuse scores export 需要先匯出成 CSV，再用本地 joiner 回接原始 dataset：
+人工標註要能 join 回 dataset 原始列，靠的是 deterministic session id：
 
-```bash
-uv run python -m backend.evals.diagnostic.annotation_export_joiner \
-  --dataset backend/evals/scenarios/baseline_behavior_diagnostic/dataset.csv \
-  --scores-export /path/to/langfuse_scores.csv \
-  --dataset-name baseline_behavior_diagnostic \
-  --run-label smoke-local \
-  --output /tmp/baseline-behavior-diagnostic-discussion.csv
+```
+{dataset_name}::{run_label}::{row_id}
 ```
 
-join key 不是直接拼字串比對而已；joiner 會先 parse `session_id`，確認：
-
-- `dataset_name`
-- `run_label`
-- `row_id`
-
-只有符合 diagnostic session contract、`source=ANNOTATION`、而且是 trace-level annotation 的 score row 會被接受。
-
-輸出會保留原始 dataset 欄位，並另外附上：
-
-- `observed_outcome`
-- `observed_alignment_to_prompt`
-- `review_confidence`
-- `review_comment`
-- `observed_primary_failure_mechanism`
-- `obs_secondary_failure_mechanism`
-- `observed_tuning_lever`
-- `needs_followup`
-- `followup_note`
-- `langfuse_trace_id`
-- `langfuse_session_id`
-
-沒有 trace-level annotation 的列，reviewer 欄位留空。
-
-Langfuse Score Config name 最長 35 字元，因此 `obs_secondary_failure_mechanism`
-在 UI 與 export 輸出裡都維持這個縮短名稱。
+join 端（DEV-115 的 BTQL joiner）必須 parse 這個字串並驗證三段皆吻合，而不是拼字串比對。
+沒有 annotation 的列，reviewer 欄位留空。
 
 Braintrust Project Settings 應設定穩定的 comparison key（例如 `row_id`），compare UI 才會對齊同一筆 dataset row。

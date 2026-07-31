@@ -59,7 +59,7 @@ uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --e
 What it asserts:
 
 - A root span (`parentObservationId is null`, type ≠ GENERATION) exists and carries `metadata.reasoning` (always-write-key contract).
-- For `--expect-reasoning-on`: the transcript is non-empty, is not the `"<unsupported>"` sentinel, and contains a `=== segment 1 ===` marker.
+- For `--expect-reasoning-on`: the transcript is non-empty, is not the `"<unsupported>"` sentinel, contains a `=== segment 1 ===` marker, and its segments carry non-whitespace text beyond the marker lines (a marker-only transcript fails).
 - For `--expect-aborted`: root span has `metadata.status == "aborted"` and the transcript ends with the `=== aborted ===` marker.
 
 The trace is fetched via the Langfuse Python SDK API client (`get_client().api.trace.get`). Authentication is via the standard Langfuse SDK env vars: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_BASE_URL` (or the legacy `LANGFUSE_HOST`; default `https://cloud.langfuse.com`). The script polls 5× with linear backoff to absorb the ingestion lag between SSE close and the trace becoming queryable.

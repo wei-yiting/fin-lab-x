@@ -1,188 +1,169 @@
 # Code Review Improvement Report
 
-> **Task:** DEV-106 — native reasoning parts + reasoning chips + placeholder ActivityIndicator（review-fix loop，2026-07-28 manual-test fixes 之後）
-> **Date:** 2026-07-28
-> **Rounds:** 3（quality 軸 3 輪、spec 軸 3 輪；Round 3 剩餘 2 個一行文件修正由 orchestrator 直接處理，未另開 Round 4）
-> **Reviewer model:** Codex `gpt-5.5`（quality 軸與 spec 軸皆為 Codex，per user 指定;cross-model isolation vs. Claude fixer）
-> **Fixer model:** Claude Sonnet 5（general-purpose subagent，read/write，兩輪 fixer dispatch + orchestrator 直接處理 Round 3 尾項）
+> **Task:** DEV-107 — F7: Langfuse trace-level reasoning 寫入（trace-level reasoning transcript on self-owned root span, ADR-0007）
+> **Date:** 2026-07-30
+> **Rounds:** 3（review 3 輪、fix 2 輪）
+> **Reviewer model:** gpt-5.5（Codex CLI，`--read-only --effort high`，Quality 與 Spec 兩軸皆是）
+> **Fixer model:** Claude Fable 5（general-purpose subagent）
 
 ## 架構影響摘要
 
-本次 review 無架構層面的變更，所有修正皆為 correctness / stability / documentation。範圍限定在 DEV-106 refactor 已實作完成之後的品質收斂，不涉及新設計決策（唯一例外：window(a) 的文件更正屬於既有裁決的事後承認，非新決策，且已明確標記完整裁決收斂留給 DEV-108）。
+- **Trace 樹形狀改變**：每個 streamed request 的 root observation 從 LangChain 自動建立的 chain 變成 Orchestrator 自有的 `chat_turn` span，LangChain 整棵樹降一層掛在底下。reasoning 全文只存在 root span 的 `metadata.reasoning`（單一 key + `=== segment N ===` 值內 marker），generation span 上不再有 per-call reasoning metadata。
+- **私有 API 依賴歸零**：`CallbackHandler._runs` 讀取、三層 drift 防禦、283 行 contract test、`langfuse_internal_contract` pytest marker 全數刪除。所有 Langfuse 互動走公開 API（`start_as_current_observation` / 持有 reference 的 `span.update` / `get_client().api.trace.get`）。
+- **Transcript 語意收斂**（review 過程中 sharpen）：只渲染有文字的 segment（零文字 provider reasoning block 被過濾、剩餘 segment 重新編號 1..K，與前端 chips 一一對應）；`=== aborted ===` 只在 mid-segment abort 時出現；含截斷後綴與 marker 的最終值嚴格 ≤ 500KB。
+- **LangChain root chain 命名改為 `chat_turn`**（原 `chat-turn`），全 observability 命名收斂為 snake_case。
 
 ## Summary
 
 | 指標 | 數值 |
 | --- | --- |
-| 總輪數 | 3（+ orchestrator 直接修正的收尾） |
-| 發現 issues 總數（去重後，含 Quality + Spec） | 16 個真實 issue（另有 3 個經查證為 false positive / 已知接受，見「未處理項目」） |
-| Blocking | 2/2 fixed |
-| Major | 5/5 fixed |
-| Minor | 7/7 fixed |
+| 總輪數 | 3 |
+| 發現 issues 總數 | 9（Quality 5 + Spec 4；其中 M-1.2 與 SP-1.3 同根因） |
+| Blocking | 2/2 fixed（SP-1.1、SP-1.2） |
+| Major | 5/5 fixed（M-1.1、M-1.2、M-1.3、M-2.1、SP-1.3、SP-1.4 中的 Major 級）|
+| Minor | 1/1 fixed（m-2.2） |
 | Suggestion | 0/0 |
-| Spec findings（SP-，扣除重複與 false positive） | 3/3 fixed（1 Blocking 程式碼修正、1 Blocking 文件刪除、1 Major 文件修正） |
-| 文件修正 | 9 處（跨 8 個檔案） |
+| Spec findings (SP-) | 4/4 fixed |
+| 文件修正 | 6 處（3 個 README、guardrails 範例、docs/observability.md、value-contract 表） |
 
 ## Spec Conformance（Spec 軸）
 
-> 與 Quality 軸並列呈現，不合併排序。Spec 軸全程由 Codex 執行（user 指定，取代原先 Claude 執行的第一輪）。
-
 | ID | 類型 | Spec 依據 | 結果 |
 | --- | --- | --- | --- |
-| tool-call-chunk 強制關閉 reasoning part | Misimplemented | "Chip/tool-card time overlap ... 不強制立即收合"（2026-07-26 comment §B；`bdd-scenarios.md` S-chip-06） | ✅ fixed（Round 1，Round 2/3 重新確認） |
-| `backend/tests/scripts/README.md` 未依 envelope §6 刪除 | Missing | "backend 測試資料夾 README 依 design-envelope §6 刪除（named precedent）"（DEV-106 AC5） | ✅ fixed（Round 2，Round 3 重新確認無殘留引用） |
-| window(a) 文件與 shipped code 不符 | Misimplemented（文件面） | "`useChat.status`...placeholder 空窗 (a) 應 key 在 `status === 'submitted'`"（2026-07-26 comment §C） | ✅ fixed（文件更正為現況，Round 2/3 確認準確；code 本身的工程判斷已由兩輪獨立 review 認可，完整裁決收斂明確留給 DEV-108） |
-| Reload 會清掉 user prompt | Missing | "Reload during an in-flight stream...user prompt 留著"（2026-07-26 comment §B） | ⏸ accepted — user 明確確認這是預期中未實作的功能，非本 slice 缺陷 |
-| Zero-delta reasoning 仍送 wire start/end | Misimplemented（誤判） | 誤引 `verification-plan.md` S-parts-05 | ❌ 已查證為 false positive（實際跑 `test_empty_delta_not_emitted`，確認對應的是 S-chip-08，非 S-parts-05） |
-| `LiveStatusAnnouncer` 留在 production | Scope creep（誤判） | 誤引「被刪的 LiveStatusAnnouncer」措辭 | ❌ 已查證為 false positive（DEV-60 2026-07-23 comment 明文裁決保留，早於且優先於後續措辭不精準的 comment） |
+| SP-1.1 | Misimplemented (Blocking) | "observability span 命名遵循 snake_case 慣例"（AC-5） | Fixed — `run_name` `chat-turn` → `chat_turn` 全 repo 7 處 |
+| SP-1.2 | Misimplemented (Blocking) | "以 Langfuse SDK 讀回"（AC-1/AC-2） | Fixed — verify script 改用 `get_client().api.trace.get(trace_id)` |
+| SP-1.3 | Misimplemented (Major) | "`=== aborted ===` appears only when the conversation aborts mid-segment"（ADR-0007） | Fixed — 與 M-1.2 同根因，finalize 事件先餵 accumulator |
+| SP-1.4 | Scope creep (Major) | "verify script 大幅簡化,驗證項只剩「root trace 有全文」" | Fixed — 移除 `--expect-reasoning-off`/`--expect-unsupported`；`--expect-aborted` 依使用者裁決保留（AC-2 明文要求 abort 驗證） |
+
+Round 2 Spec 軸複查：4/4 confirmed fixed、0 新 findings — 需求覆蓋完整、無殘餘 scope creep。
 
 ## Reading Guide
 
-> 給人類 reviewer 的建議閱讀順序，依 review loop 這 15 個觸及檔案的依賴順序排列，不是整份 DEV-106 diff（那份已在此 loop 開始前完成並經過 two-axis-review）。
-
 | 順序 | 檔案 | 在本次變更中的角色 | 風險 |
 | --- | --- | --- | --- |
-| 1 | `backend/agent_engine/streaming/event_mapper.py` | 移除 tool-call-chunk 強制關閉 reasoning part 的錯誤 boundary，改用既有的 chunk-id-transition/text/finalize 邊界 | ⚠️ wire-format 相關 core logic |
-| 2 | `backend/tests/streaming/test_event_mapper.py` | 對應第 1 項的測試重寫 + docstring 更正 | |
-| 3 | `frontend/src/components/pages/ChatPanel.tsx` | `resetForNewTurn()` 不再清空整個 chip 計時 map，只有 `handleClearSession` 保留全清 | ⚠️ 影響 transcript 歷史顯示正確性 |
-| 4 | `frontend/src/hooks/__tests__/useReasoningTimers.test.ts` | 新增測試鎖住第 3 項的 regression | |
-| 5 | `frontend/src/components/pages/__tests__/ChatPanel.integration.test.tsx` | 加強既有測試斷言，從寬鬆 regex 改為精確文字比對 | |
-| 6 | `frontend/tests/e2e/smoke/slow-start-stream.spec.ts` | E2E 斷言更正（`toHaveText` 對應實際 DOM textContent，非 CSS 生成內容） | |
-| 7 | `frontend/src/lib/reasoning-chips.ts` | 檔案註解更正非 derived store 數量（3→4） | |
-| 8 | `frontend/src/hooks/README.md`、`frontend/src/components/pages/README.md`、`backend/agent_engine/streaming/README.md`、`backend/agent_engine/agents/README.md`、`backend/scripts/validation/README.md` | 文件與現況同步（5 個檔案，見「文件修正」表） | |
-| 9 | `backend/scripts/validation/verify_langfuse_trace.py` | docstring 更正 + 刪除死碼 `_latest_generation()` | |
-| 10 | `backend/tests/scripts/README.md` | 依 envelope §6 precedent 刪除 | |
-| 11 | `artifacts/current/bdd-scenarios.md` | window(a) 設計註記更正為現況，標記舊框架 superseded | |
+| 1 | `docs/adr/0007-trace-level-reasoning-transcript-on-self-owned-root-span.md` | 設計決策全景（為何 trace-level、為何自有 root span、兩平台形狀共通性） | |
+| 2 | `backend/agent_engine/streaming/reasoning_transcript_accumulator.py` | 新核心：domain events → transcript 值語意（marker、過濾、cap、abort） | |
+| 3 | `backend/agent_engine/agents/base.py` | Wiring：自有 root span、finalize→observe→write→yield 順序、三路寫入、abort cleanup 改寫 | ⚠️ |
+| 4 | `backend/agent_engine/streaming/reasoning_trace_callback.py`（刪除） | 舊 per-call 路徑退場——確認沒有殘留引用 | |
+| 5 | `backend/scripts/validation/verify_langfuse_trace.py` | SDK 讀回 + 收斂後的斷言面 | |
+| 6 | `backend/tests/streaming/test_reasoning_transcript_accumulator.py` | 值語意的完整測試面（21 tests） | |
+| 7 | `backend/tests/agents/test_orchestrator_langfuse.py` | 寫入時序 / abort / resilience 行為測試 | |
+| 8 | `backend/tests/integration/test_langfuse_resilience.py` + `backend/tests/scripts/test_verify_langfuse_trace.py` | Resilience 契約與 verifier 單元測試 | |
+| 9 | 三個 README + `docs/observability.md` + `CONTEXT.md` | 文件同步（含 `Reasoning transcript` 新術語） | |
+
+⚠️ 說明：`base.py` 觸及 streaming 取消路徑（`CancelledError` 傳播）與 trace 對外形狀——這是本 diff 唯一有不可逆語意的整合點，建議對照 `TestAstreamAbortCleanup` / `TestFinalizeFeedsAccumulator` 閱讀。
 
 ## 所有修正問題詳解
 
-### M-1.1（Major，Quality）— chip 計時 map 在每次新一輪對話時被整批清空
-- **問題：** `resetForNewTurn()` 呼叫 `useReasoningTimers().reset()` 清空整個計時 `Map`；`observe()` 每次 render 都會對**全部** messages（含已完成的舊 turn）重新推導計時，舊 chip 因為 `hasLaterPart` 已為 true 而立即凍結在 `0s`，導致 transcript 上先前顯示的 `Thought for 3s` 在下一輪 send/regenerate/retry 時瞬間變成 `0s`。
-- **修法：** `resetForNewTurn()` 不再呼叫 `resetTimers()`；全清邏輯只保留在 `handleClearSession()`（整個 chat 重置，畫面上沒有任何殘留內容可污染）。`chipKey(msg.id, i)` 本身已依 message id 隔離，不需要 turn 級別清空；另確認 `regenerate()` 不會重用舊 assistant message id（查證 AI SDK 原始碼），因此不需要額外的 per-message pruning API。
-- **影響：** transcript 上已完成 turn 的 `Thought for Xs` 標籤在後續對話中維持穩定，不再被新一輪送出干擾。
-- **驗證：** 新增 `useReasoningTimers.test.ts` 測試（觀察不相關新 turn 的 messages 不影響已凍結的舊 chip 計時）；`ChatPanel.integration.test.tsx` 加強為精確文字比對(`Stopped — thought for Ns` 送出前後逐字不變)，並手動用 `git stash` 驗證此測試在修復前的程式碼上會 fail。
+### M-1.1（Major）
+- **問題：** 自然結束路徑的 `root_span.update(metadata=...)` 位於大 `try` 內——Langfuse 在此刻拋錯會把已成功的 stream 轉成 `StreamError + Finish(error)` 給使用者，違反 observability 失敗不得影響 user stream 的 resilience 契約。
+- **修法：** 該寫入包進獨立 try/except（`logger.exception` 後繼續），與 error/abort 路徑的 guard 對齊。
+- **影響：** Langfuse outage 時使用者體驗不受影響，只損失該筆 transcript。
+- **驗證：** 新測試 `span.update` side_effect 拋錯 → stream 仍以 `Finish("stop")` 收尾、無 `StreamError`。
 
-### tool-call-chunk 強制關閉 reasoning part（Blocking，Spec）
-- **問題：** `_handle_tool_call_chunk_block()` 無條件呼叫 `_close_reasoning_part()`，在 tool 參數還沒完全組好前就送出 `reasoning-end`，牴觸 S-chip-06 裁決（Gemini 提前送 tool 參數時，tool card 應排在還開著的 chip 下方，不強制提前收合）。連鎖 test 也把錯誤行為鎖進去當作預期。
-- **修法：** 移除該行強制關閉呼叫。reasoning part 改為只在既有、已測試過的邊界關閉：text block 到達、下一輪 LLM call id 轉換（`_handle_messages` 既有的 chunk-id-transition guard）、同一 chunk 內連續兩個 reasoning block、或 `finalize()`。重寫對應測試 `test_tool_call_chunk_does_not_close_open_reasoning_part`，新增 `test_tool_call_chunk_then_new_llm_call_closes_part_exactly_once` 驗證 terminal case 仍正確關閉恰好一次。
-- **影響：** 前端現在能真正實現 S-chip-06 的視覺行為（tool card 顯示在還開著的 reasoning chip 下方），先前這個裁決在後端從未被正確實作過。
-- **驗證：** `backend/tests/streaming/` + `backend/tests/agents/` 221/221 通過；Round 2、Round 3 兩輪 Spec review 各自獨立重新檢視程式碼，確認修正正確且無遺漏 edge case。
+### M-1.2 / SP-1.3（Major，同根因）
+- **問題：** `mapper.finalize()` 實際上會對 open reasoning part 補發 `ReasoningEnd`（實作時的註解斷言相反，屬誤讀），且 finalize 事件未餵給 accumulator、寫入又發生在 finalize 之前——對話以 reasoning 結尾時 in-flight 狀態殘留，若 client 在 closing events yield 期間斷線，abort cleanup 會錯標 `=== aborted ===`。
+- **修法：** 改為 `closing_events = mapper.finalize()` → 逐一 `accumulator.observe()` → `root_span.update()` → yield；錯誤路徑同步套用；錯誤註解改正。
+- **影響：** `=== aborted ===` marker 嚴格遵守 D6 語意（只標 mid-segment abort），transcript 完整性訊號可信。
+- **驗證：** 新增 `TestFinalizeFeedsAccumulator`（3 tests），含「reasoning 結尾 + closing yield 期間 cancel → 不帶 marker」的 regression case。
 
-### m-1.1 ~ m-1.4（Minor ×4，Quality）— backend F5 重構遺留的文件/死碼漂移
-- **問題：** `verify_langfuse_trace.py` docstring 誤述為 per-generation 而非實際的 per-trace 契約；`scripts/validation/README.md` 仍描述已刪除的 `reasoning_tail_aborted` per-generation marker；`agent_engine/agents/README.md` 仍說 abort cleanup 會撈取已刪除的 segmenter tail；`_latest_generation()` 是刪除 per-generation 斷言後留下的死 helper。
-- **修法：** 逐一改寫為對應現況的正確描述；確認 `_latest_generation()` 全 repo 零引用後刪除。
-- **影響：** 消除 4 處會誤導未來維護者的文件/死碼殘留。
-- **驗證：** `uv run ruff check backend/` 全綠；相關檔案的既有測試無回歸。
+### M-1.3（Major）
+- **問題：** `_cap()` 先切到 500KB 再附加截斷後綴，最終值超標約 40 bytes；abort marker 在 cap 前附加，超長 aborted transcript 的 marker 會被截尾砍掉，與 verifier 斷言矛盾。
+- **修法：** cap 約束最終渲染值——預留截斷後綴與 `\n=== aborted ===` 的空間，超長 aborted transcript 仍以 marker 結尾。
+- **影響：** 保險絲路徑（envelope 內實際碰不到）的行為與文件、verifier 完全一致。
+- **驗證：** 測試斷言 `len(value.encode()) <= SIZE_CAP_BYTES`（一般與 aborted 兩情境）+ aborted 超長值仍以 marker 結尾。
 
-### M-2.1（Major，Quality）— E2E 測試斷言與實際 DOM 文字不符
-- **問題：** `slow-start-stream.spec.ts` 斷言 `toHaveText("Thinking…")`，但 `ActivityPlaceholder` 的實際 DOM 文字是 `"Thinking"`（點點動畫是另一個 `aria-hidden` span 的 CSS `::after` 生成內容，不算進 `textContent`）。此為這個 session 稍早 dots 動畫修正（`5ddb0f6`）遺留的 regression，當時只跑了 vitest + tsc/eslint，沒人跑過 Playwright e2e。
-- **修法：** 改為 `.toHaveText("Thinking")`，與元件、既有 unit test、docs 一致。
-- **影響：** 修復一個原本會在 CI 或任何實際 Playwright 執行時失敗的測試。
-- **驗證：** orchestrator 實際安裝 Playwright chromium 並執行此測試——修復前重現失敗（`Expected: "Thinking…" ... unexpected value "Thinking"`），修復後通過；Final Verification 階段整個 `@smoke` 套組（5 個測試）全數通過。
+### M-2.1（Major）
+- **問題：** 零文字 reasoning block（mapper 只發 Start/End、無 Delta）會渲染成 `=== segment 1 ===\n` 假非空 transcript，且 verifier 只驗「非空 + 有 marker」會誤判通過——違反「全文」契約與 chips 一一對應的說法。
+- **修法：** `value()` 渲染時過濾純空 segment（whitespace-only 保留）、保留者重新編號 1..K；空 open segment 在 abort 時不產生幽靈 header 但 marker 照 D6 出現；verifier 新增 `_has_segment_text()` 拒絕 marker-only transcript。
+- **影響：** transcript 與使用者實際看到的 chips 嚴格一致；verifier 不再有 false positive。
+- **驗證：** 新增 `TestEmptySegmentFiltering`（5 tests）+ verifier marker-only 失敗測試。
 
-### 非 derived state「恰好三個」措辭漂移（Major，Quality + Spec 共同發現）
-- **問題：** `useDeadAirPlaceholder.ts` 實際擁有第 4 個非 derived store（`elapsedGapKey` + `PLACEHOLDER_GRACE_MS` timeout，用來區分「chip 收合→tool」與「chip 收合→reply text」），但 `hooks/README.md`、`ChatPanel.tsx` 註解、`pages/README.md`、`reasoning-chips.ts` 檔案註解都還宣稱「恰好三個」。此問題被 Round 1（Claude spec run）、Round 2（Quality + Spec 兩軸）、Round 3（Quality 軸）分別獨立抓到，`reasoning-chips.ts` 那處在 Round 2 fixer dispatch 中刻意留到 Round 3 才處理。
-- **修法：** Round 2 修正 `hooks/README.md`、`ChatPanel.tsx`、`pages/README.md` 為「四個」並明確列出 placeholder grace timer；Round 3 由 orchestrator 直接修正 `reasoning-chips.ts` 的檔案註解，使四處說法一致。機制本身（grace timer 的必要性）已由兩輪獨立 spec review 判斷為合理的必要 plumbing，未變更任何行為邏輯，純文件更正。
-- **影響：** 消除同一系統內互相矛盾的文件描述。
-- **驗證：** `npx prettier --check` / `npx eslint` 乾淨；後續全套 vitest 196/196 無回歸。
+### SP-1.1（Blocking）
+- **問題：** LangChain `run_name="chat-turn"`（kebab-case）成為 Langfuse chain span 名稱，違反 AC-5 的 snake_case 慣例（屬既有命名，AC 文字將其拉入本 slice 範圍）。
+- **修法：** 全 repo 7 處改為 `chat_turn`（source 1、測試 2、文件 4）；`grep -rn "chat-turn"` 歸零。
+- **影響：** observability 命名全面 snake_case。
+- **驗證：** 測試 asserts 更新後全綠；grep 驗證無殘留。
 
-### m-2.1（Minor，Quality）— streaming README 描述已移除的 tool_call_chunk 關閉邊界
-- **問題：** README 仍列 `tool_call_chunk` 到達為 reasoning part 關閉邊界之一，與「tool-call-chunk 強制關閉」修正後的實際行為矛盾。
-- **修法：** 從關閉邊界清單移除 `tool_call_chunk`，補充說明同輪 tool-call chunk 會讓 reasoning part 保持開啟,實際關閉點為 text block / 下輪 LLM call id 轉換 / 同 chunk 第二個 reasoning block / `finalize()`。
-- **影響：** README 與實際 `event_mapper.py` 行為一致。
-- **驗證：** 人工比對現行程式碼確認描述準確。
+### SP-1.2（Blocking）
+- **問題：** verify script 用 `urllib` 打 REST endpoint，AC 字面要求「以 Langfuse SDK 讀回」。
+- **修法：** 改用 `get_client().api.trace.get(trace_id)`（Context7 查證的 v4 公開讀回路徑，回傳 `TraceWithFullDetails`，`.dict()` camelCase 序列化使 `verify()` 零改動）；保留 5 次線性退避輪詢；改捕 `ApiError`/`httpx.HTTPError`；棄用手工 Basic auth。
+- **影響：** 驗收與 AC 字面一致；認證/端點組態統一交給 SDK。
+- **驗證：** 單元測試改配新簽名（10 passed）；對兩條真實 trace live 重跑 `ok:true`。
 
-### `backend/tests/scripts/README.md` 未依 envelope §6 刪除（Blocking，Spec）+ validation README segmenter 殘留（Minor，Quality）
-- **問題：** 這是 DEV-106 refactor 已刪除的兩份 per-test-folder README（`tests/agents/`、`tests/streaming/`）的同類遺漏——`backend/tests/scripts/` 資料夾也被本次改動觸及（`test_verify_langfuse_trace.py`），且該 README 仍描述已刪除的 `reasoning_tail_aborted` 契約,牴觸 design-envelope §6 named precedent。另外 `backend/scripts/validation/README.md` 仍在 operator 指引裡提到已刪除的 segmenter。
-- **修法：** 依前例直接刪除 `backend/tests/scripts/README.md`（確認 repo 內無任何檔案引用其路徑）；從 `validation/README.md` 的部署指引句子移除 "segmenter" 字樣。
-- **影響：** 消除文件與 envelope 規則的矛盾，統一三份 test-folder README 皆依規則刪除。
-- **驗證：** `uv run pytest backend/tests/scripts/ backend/tests/streaming/` 136 通過（確認只刪 README、測試檔案仍在）;Round 3 spec review 重新 grep 全 repo 確認無殘留引用。
+### SP-1.4（Major, scope creep）
+- **問題：** 簡化後的 verifier 仍保留 off/unsupported capability matrix，超出「驗證項只剩 root trace 有全文」的達標即止範圍。
+- **修法：** 移除 `--expect-reasoning-off` / `--expect-unsupported` 與其分支、測試；`--expect-aborted` 依使用者裁決保留（AC-2 明文要求）；accumulator 的 `"<unsupported>"`/`""` 值語意不動（D4 契約）。
+- **影響：** verifier 表面積與 spec 一致；短命 Langfuse 腳手架最小化。
+- **驗證：** verifier 測試重寫後全綠。
 
-### M-3.1 + m-3.1（Major + Minor，Quality）— Round 2 fixer 刻意留下的最後兩處文件漂移
-- **問題：** `reasoning-chips.ts` 檔案註解仍稱「恰好三個 store」（見上方合併說明）；`test_event_mapper.py` 的 `TestReasoningPartBoundaries` class docstring 仍稱「tool 會關閉 reasoning part」，與 SP-1.2 修正後的實際測試內容矛盾（底下的測試名稱/斷言本身已是正確的，只有 class docstring 沒跟上）。
-- **修法：** 兩處皆為一行註解/docstring 更正,風險為零、無需完整 fixer+reviewer round,orchestrator 直接動手修正。
-- **影響：** Round 3 兩軸 review 收斂為 quality 軸 0 Blocking/0 Major/0 Minor 待辦、spec 軸 0 findings。
-- **驗證：** `uv run ruff check` + `ruff format --check`（backend）、`eslint` + `prettier --check`（frontend）皆乾淨;修正後未再開 Round 4，直接進 Final Verification。
+### m-2.2（Minor）+ 文件 gap
+- **問題：** `agents/README.md` 記載修正前的寫入順序；`streaming/README.md` 的 oversize 行與 cap 新語意不符；round 3 再指出兩處 README 未提及空 segment 過濾與 verifier 新斷言。
+- **修法：** 四處 README 描述全部對齊現行為（最後兩處由 orchestrator 直接補上）。
+- **影響：** 文件與 code 零漂移。
+- **驗證：** round 3 Codex 確認前兩處；後兩處為本 report 前的最終編修。
 
 ## 文件修正
 
-| 目錄 / 檔案 | 修正內容 |
+| 目錄 | 修正內容 |
 | --- | --- |
-| `backend/scripts/validation/verify_langfuse_trace.py` | docstring 改為 per-trace 契約；刪除死碼 `_latest_generation()` |
-| `backend/scripts/validation/README.md` | `--expect-aborted` 改為 root-status-only；移除 segmenter 殘留字樣 |
-| `backend/agent_engine/agents/README.md` | abort cleanup 描述改為 root Langfuse status stamp only |
-| `backend/agent_engine/streaming/README.md` | 移除 tool_call_chunk 關閉邊界，補充正確的 4 個關閉條件 |
-| `backend/tests/scripts/README.md` | 依 envelope §6 precedent 刪除 |
-| `frontend/src/hooks/README.md` | 非 derived store 數量 3→4，列出 placeholder grace timer |
-| `frontend/src/components/pages/README.md` | 同上 + prettier 表格寬度 reflow |
-| `frontend/src/lib/reasoning-chips.ts` | 檔案註解非 derived store 數量 3→4 |
-| `artifacts/current/bdd-scenarios.md` | window(a) 設計註記更正為現況，標記舊框架 superseded，完整裁決收斂留給 DEV-108 |
-| `backend/tests/streaming/test_event_mapper.py` | class docstring 更正 tool-call-chunk 邊界描述 |
+| `backend/agent_engine/agents/README.md` | 自然結束順序改為 finalize → observe → write → yield；`chat_turn` 命名 |
+| `backend/agent_engine/streaming/README.md` | oversize cap 語意（最終值含後綴 ≤ 500KB）；只渲染有文字 segment 的過濾規則 |
+| `backend/scripts/validation/README.md` | SDK 讀回與 env vars；收斂後的 flag 表；`--expect-reasoning-on` 的非空白文字要求 |
+| `backend/agent_engine/docs/streaming_observability_guardrails.md` | config 範例 `run_name` 改 `chat_turn` |
+| `docs/observability.md` | `run_name` 行改 `chat_turn` |
+| `backend/agent_engine/README.md` | `run_name` 行改 `chat_turn` |
 
 ## 未處理項目
 
-| 類型 | 內容 | 原因 | 建議後續 |
-| --- | --- | --- | --- |
-| 已知缺口（user 確認接受） | Reload 中的 assistant turn 不會保留 user 自己的 prompt（無 history hydration） | user 明確確認：這是本 slice 尚未實作的功能，非缺陷 | 若未來要做 reload persistence，開新 issue；不影響本 loop 收斂 |
-| False positive（已查證推翻） | Codex 聲稱 zero-delta reasoning 違反 S-parts-05「0 parts」要求 | 實際執行 `test_empty_delta_not_emitted` 確認通過，且其 docstring 明確對應 S-chip-08（不同情境：reasoning 開啟但零內容，wire 仍送 start+end，前端才抑制 chip），S-parts-05 講的是 reasoning 整個關閉的不同情境 | 無需動作 |
-| False positive（已查證推翻） | Codex 聲稱 `LiveStatusAnnouncer` 留在 production 是 scope creep | 查證 DEV-60 2026-07-23 comment 明文裁決保留（「保留不動，非 F5 專屬，ARIA 公告無 reasoning 專屬邏輯」），早於且優先於後續一則 comment 用詞不精準的「被刪的 LiveStatusAnnouncer」措辭 | 無需動作 |
+無。
 
 ## Final Verification Results
 
 ### Code Level
 
-- [x] Unit Tests: backend `uv run pytest backend/tests/` 910/910 passed（含 restore 手動測試遺留的 `orchestrator_config.yaml` 後重跑,排除該筆非本 diff 的干擾）；frontend `npm run test -- --run` 196/196 passed（24 files）
-- [x] Lint: `uv run ruff check backend/` all checks passed；`npx eslint .`（frontend）0 errors（僅 1 個 `public/mockServiceWorker.js` 的既有無關 warning）
-- [x] Type Check: `npx tsc -b` clean，無輸出
+- [x] Unit Tests: `.venv/bin/python -m pytest backend/tests/ -q` → **888 passed, 48 deselected**
+- [x] Lint: `ruff check backend/` → All checks passed
+- [x] Format: `ruff format --check backend/` → 165 files already formatted
 
 ### Behavior Level
 
-- [x] S-chip-06（tool card 排在還開著的 chip 下方，不強制提前收合）: `test_tool_call_chunk_does_not_close_open_reasoning_part` + `test_tool_call_chunk_then_new_llm_call_closes_part_exactly_once` 通過
-- [x] chip 計時在跨 turn 時維持穩定（本輪新增行為驗證）: `useReasoningTimers.test.ts` + `ChatPanel.integration.test.tsx` 通過
+- [x] 真實對話（gpt-5-mini, reasoning on）SDK 讀回：trace `bc372f8400b12e08f245ace2d6431420` → `verify --expect-reasoning-on` `ok:true`（round 2 verifier 收緊後重跑）
+- [x] Abort case（SSE 讀 5 個 reasoning-delta 後斷線）：trace `01bb929d1bd4115ad6beb58b9d0e3e45` → `verify --expect-reasoning-on --expect-aborted` `ok:true`，tail 以 `=== aborted ===` 結尾 + `status: aborted`
 
 ### Runtime / Observable Level
 
-- [x] `npm run build`（frontend）: clean build
-- [x] Playwright `@smoke` 套組（chromium，5 tests）: 全數通過，含修正後的 `slow-start-stream.spec.ts`（實際安裝瀏覽器並執行，非僅靜態推論）
-- [x] `npx prettier --check`（frontend）+ `uv run ruff format --check`（backend）: 皆乾淨
+- [x] Langfuse UI 可讀性：root `chat_turn` span 的 `metadata.reasoning` 人眼可讀（`=== segment 1 ===` 開頭全文，實測目視確認）
+- [x] BDD 全量 loop（Step 5.5）**跳過**：`bdd-scenarios.md`/`verification-plan.md` 屬 DEV-106（F5/F6）scope 且已在該 issue 驗畢；本 slice 的行為驗證即上方兩條真實 trace 讀回，已執行
 
 ## All Changed Files
 
-> 僅列本次 review-fix loop 自身觸及的 15 個檔案（不含 loop 開始前已完成並經過 two-axis-review 的 DEV-106 原始 diff）。
-
 | 檔案 | Review 修正摘要 |
 | --- | --- |
-| `backend/agent_engine/streaming/event_mapper.py` | 移除 tool-call-chunk 強制關閉 reasoning part 的錯誤邏輯 |
-| `backend/tests/streaming/test_event_mapper.py` | 對應測試重寫 + docstring 更正 |
-| `backend/agent_engine/agents/README.md` | abort cleanup 描述更正 |
-| `backend/agent_engine/streaming/README.md` | 關閉邊界清單更正 |
-| `backend/scripts/validation/verify_langfuse_trace.py` | docstring 更正 + 刪死碼 |
-| `backend/scripts/validation/README.md` | `--expect-aborted` 描述更正 + segmenter 殘留移除 |
-| `backend/tests/scripts/README.md` | 刪除（envelope §6 precedent） |
-| `frontend/src/components/pages/ChatPanel.tsx` | chip 計時 reset 邏輯修正 |
-| `frontend/src/hooks/__tests__/useReasoningTimers.test.ts` | 新增回歸測試 |
-| `frontend/src/components/pages/__tests__/ChatPanel.integration.test.tsx` | 斷言精確化 |
-| `frontend/tests/e2e/smoke/slow-start-stream.spec.ts` | 斷言更正 |
-| `frontend/src/lib/reasoning-chips.ts` | 檔案註解更正 |
-| `frontend/src/hooks/README.md` | 非 derived store 數量更正 |
-| `frontend/src/components/pages/README.md` | 同上 + prettier reflow |
-| `artifacts/current/bdd-scenarios.md` | window(a) 設計註記更正 |
+| `backend/agent_engine/streaming/reasoning_transcript_accumulator.py` | M-1.3 cap 邊界、M-2.1 空 segment 過濾 |
+| `backend/agent_engine/agents/base.py` | M-1.1 best-effort 寫入、M-1.2/SP-1.3 finalize 順序、SP-1.1 `chat_turn` |
+| `backend/scripts/validation/verify_langfuse_trace.py` | SP-1.2 SDK 讀回、SP-1.4 flag 收斂、M-2.1 `_has_segment_text` |
+| `backend/tests/streaming/test_reasoning_transcript_accumulator.py` | cap/過濾測試（+7 tests） |
+| `backend/tests/agents/test_orchestrator_langfuse.py` | `TestFinalizeFeedsAccumulator`（+3 tests）、命名 asserts |
+| `backend/tests/scripts/test_verify_langfuse_trace.py` | SDK 簽名、marker-only 失敗、sentinel 拒絕 |
+| 6 個文件檔 | 見「文件修正」表 |
+
+（實作本體的 changed files manifest 見 DEV-107 sync comment @ `e52bc08`；本表只列 review loop 修正觸及的檔案。）
 
 ## Learning Notes
 
 ### 採用的工程策略
 
-- Cross-model isolation 在這個 loop 中發揮實際作用：Codex 在 Round 1 spec 軸抓到 Claude 那輪完全沒看到的兩個 Blocking 發現（tool-call-chunk 強制關閉、zero-delta 誤判），也各自對同一個 window(a)/reload 問題獨立收斂到一致結論——不同模型的 blind spot 確實不同。
-- Round 1 起就堅持「reviewer 說的不直接採信,要親自查證」：對 Codex 的 4 個 spec 發現，2 個透過實際執行既有測試（`test_empty_delta_not_emitted`、`test_tool_call_chunk_closes_open_reasoning_part`）與翻查 Linear 歷史（DEV-60 2026-07-23 comment）確認為 false positive，避免了在不存在的問題上浪費 fixer 資源。
-- M-2.1（E2E 斷言）的驗證方式：沒有停在「讀 Playwright 文件、推論應該會 fail」，而是實際 `npx playwright install chromium` 裝瀏覽器跑一次，拿到真實的 failure 訊息再動手修——這個 loop 裡凡是能實際執行驗證的，都優先用執行結果取代推論。
+- **Stream 側收集 + 自有 root span 的形狀在三輪 review 中原樣存活**——兩軸 reviewer 都未挑戰 ADR-0007 的核心結構，challenge 全部落在邊界條件（finalize 時序、cap 邊界、空 segment）。設計期用 POC 證據（Braintrust Finding 1）鎖定的形狀，實作期就不再被翻案。
+- **Cross-model review 的價值實證**：M-1.2 的根因是作者對自己寫的註解過度自信（「finalize 不發 reasoning events」）——同 session 的自查不可能抓到，因為作者「知道自己的意思」；Codex 以零上下文讀 code 直接對照 `event_mapper.finalize()` 戳破。
 
 ### 權衡取捨
 
-- Round 2 fixer 被要求「window(a) 只修文件、不動 code」——因為該行為已由兩輪獨立 spec review 判斷工程方向正確，真正的問題只在文件/裁決紀錄沒跟上。這個取捨避免了在已經驗證過的正確行為上做不必要的回退,同時誠實記錄了「完整裁決收斂仍留給 DEV-108」，沒有假裝這個 loop 已經把治理流程補完。
-- Round 2 fixer dispatch 明確排除了 `reasoning-chips.ts` 的同一處文件漂移（當時判斷風險夠低、可以留到下一輪），Round 3 quality review 準確地把它抓回來——這證明「先窄後寬」的漸進式 fixer 範圍劃分沒有讓問題真的漏掉，只是延後一輪處理。
+- **達標即止 vs 字面達標**（SP-1.2、SP-1.4）：預期中「繼承舊 script 的 fetch plumbing」是最小改動，實際上 AC 字面（"SDK 讀回"）與繼承實作（urllib）衝突——短命腳手架也要對齊 AC 字面，因為 AC 是驗收契約不是意向描述。反向地，SP-1.4 證明 reviewer 的嚴格解讀也可能與另一條 AC 自相矛盾（`--expect-aborted` 不可刪），仲裁權在人。
+- **保險絲路徑的修 vs defer**（M-1.3）：envelope 內碰不到的路徑，修的理由不是「會發生」而是「行為與文件/verifier 斷言矛盾」——一致性成本低於解釋成本時就修。
 
 ### 關鍵收穫
 
-- **同一個底層事實會被兩個不同 severity 框架描述**：`backend/tests/scripts/README.md` 這個問題，Quality 軸標成 Minor（「文件過期」）、Spec 軸標成 Blocking（「違反 acceptance criterion」）——兩者都對，只是視角不同。這印證了「兩軸不合併排序」的設計:如果只看其中一軸的嚴重度，會低估或誤判這類「文件同時是品質問題也是規格違反」的項目。
-- **`toHaveText` 與 CSS 生成內容的落差是一種容易被忽略的測試脆弱性**：M-2.1 的根因不是邏輯 bug，而是「DOM textContent 不包含 `::after` 的生成內容」這個瀏覽器行為冷知識。任何把「動畫效果」實作成 CSS pseudo-element、卻沒有同步檢查既有 E2E 斷言的改動，都有這個風險——這類跨層（CSS ↔ E2E 斷言）的一致性,不會被 unit test（jsdom 不算 pseudo-element）攔到，只有真的跑瀏覽器才會現形。
-- **裁決文件與程式碼的漂移會像滾雪球一樣在多輪 review 中反覆現身**（「非 derived state 恰好三個」這句話，從 Round 1 Claude spec review、到 Round 2 兩軸、到 Round 3 quality 軸,總共被抓到 4 次，分散在 4 個不同檔案）：這代表當一個系統層級的不變量（invariant）描述散落在多份文件/註解裡，任何一次變更都容易漏掉某一處——比起逐一補救，更值得注意的是這類「同一句話出現在 N 個地方」的模式本身，未來若再遇到類似情況，一次搜尋全部出現位置會比等 review 逐輪抓出更有效率。
+- **「寫入時序」是 streaming observability 的第一風險點**（M-1.1、M-1.2）：在 async generator 裡，「什麼時候寫」比「寫什麼」更容易錯——寫入必須在 yield 之前（yield 後生成器可能永不恢復）、在 finalize 之後（狀態才完整）、且自帶 best-effort 保護（不能污染 user stream）。三個約束缺一即是 bug。
+- **Verifier 的斷言強度要跟著資料語意走**（M-2.1）：「非空 + 有 marker」驗的是格式不是內容；當上游可能產生格式正確但語意為空的值（marker-only transcript），verifier 就有 false positive。斷言應對準契約的語意底線（「有 reasoning 文字」），不是表面形狀。
+- **註解裡的事實主張需要和被引用的 code 同步驗證**（M-1.2）：引用其他模組行為的註解（"finalize() never emits X"）是最容易腐爛的一類——它斷言的事實住在別的檔案。寫這種註解時應當場重讀被引用處，或乾脆引用測試名而非重述行為。

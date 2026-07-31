@@ -69,7 +69,7 @@ The root span's `metadata.reasoning` is written once per conversation
 
 | State                | Condition                                             | Value                                                       |
 | -------------------- | ----------------------------------------------------- | ----------------------------------------------------------- |
-| Reasoning transcript | capability ∈ {`"on"`, `"off"`} AND segments streamed  | `=== segment N ===`-delimited full text (one segment = one reasoning part = one frontend chip) |
+| Reasoning transcript | capability ∈ {`"on"`, `"off"`} AND segments streamed  | `=== segment N ===`-delimited full text (one segment = one reasoning part = one frontend chip). Only text-bearing segments are rendered — zero-delta provider reasoning blocks are dropped and the kept segments are renumbered 1..K |
 | No reasoning emitted | capability ∈ {`"on"`, `"off"`} AND no segments        | `""`                                                        |
 | Unsupported model    | `capability == "unsupported"`                         | `"<unsupported>"` sentinel                                  |
 | Oversize payload     | rendered value UTF-8 length > 500_000 bytes           | head kept, tail truncated so the FINAL value — including the `... [truncated, original {N} bytes]` note and the aborted marker when present — fits in 500KB |

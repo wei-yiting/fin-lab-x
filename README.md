@@ -121,14 +121,14 @@ sequenceDiagram
 **Measured impact** — benchmarked against the blocking JSON endpoint on the same queries
 (`gpt-5-mini` with reasoning on, warmups discarded):
 
-| Pipeline | Pooled median time-to-first-visible-token | n |
-|---|---|---|
-| Blocking `POST /chat/invoke` | **36.3 s** | 9 |
-| SSE without reasoning forwarding | 6.1 s | 24 (derived) |
-| SSE with reasoning streaming | **3.9 s** | 24 |
+| Pipeline | Median time-to-first-visible-token |
+|---|---|
+| Blocking `POST /chat/invoke` | **36.3 s** |
+| SSE without reasoning forwarding | 6.1 s |
+| SSE with reasoning streaming | **3.9 s** |
 
 *First visible token* = first of `reasoning-delta` / `tool-input-available` / `text-delta`.
-On the heaviest SEC query the gap is ~29× (98 s → 3.4 s). Reasoning streaming is
+Reasoning streaming is
 provider-agnostic: one config knob (`reasoning: on | off | unsupported`) maps to each
 provider's thinking parameters (OpenAI Responses, Gemini, Anthropic), rendered as collapsible
 "Thought for Xs" transcript chips.

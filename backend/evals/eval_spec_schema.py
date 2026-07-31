@@ -91,17 +91,9 @@ class DiagnosticScenarioConfig(BaseModel):
 
     dataset_name: str
     dataset_version: str
-    row_id_column: str = "id"
-    question_column: str = "question"
     agent_version: str = "baseline"
 
-    @field_validator(
-        "dataset_name",
-        "dataset_version",
-        "row_id_column",
-        "question_column",
-        "agent_version",
-    )
+    @field_validator("dataset_name", "dataset_version", "agent_version")
     @classmethod
     def validate_non_empty_string(cls, value: str) -> str:
         """Reject empty identity fields."""

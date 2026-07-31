@@ -3,8 +3,6 @@ csv: dataset.csv
 diagnostic:
   dataset_name: baseline_behavior_diagnostic
   dataset_version: "2026-04-24"
-  row_id_column: id
-  question_column: question
   agent_version: baseline
 task:
   function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic

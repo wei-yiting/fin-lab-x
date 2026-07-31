@@ -373,3 +373,38 @@ def test_astream_collect_forwards_explicit_session_id_and_trace_metadata() -> No
         session_id="baseline_behavior_diagnostic::baseline::1",
         trace_metadata={"reference_best_source": "mixed"},
     )
+
+
+def test_astream_collect_sets_finished_normally_on_normal_finish() -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    result = asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    assert result["finished_normally"] is True
+
+
+def test_astream_collect_finished_normally_false_without_finish_event() -> None:
+    """A stream that dies before emitting Finish must not count as complete."""
+    events = [
+        MessageStart(message_id="msg-1", session_id="sess-1"),
+        TextStart(text_id="t-1"),
+        TextDelta(text_id="t-1", delta="partial text"),
+    ]
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    result = asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    assert result["response"] == "partial text"
+    assert result.get("finished_normally") is False

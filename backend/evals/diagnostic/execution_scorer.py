@@ -5,8 +5,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-RUNNER_ERROR_MARKERS = {"ERROR", "__ERROR__"}
-
 
 def _as_mapping(value: Any) -> Mapping[str, Any]:
     if isinstance(value, Mapping):
@@ -24,10 +22,6 @@ def _tool_error_name(tool_output: Any) -> str | None:
     if error_value not in (None, ""):
         return tool_name
 
-    result_value = tool_output_mapping.get("result")
-    if isinstance(result_value, str) and result_value in RUNNER_ERROR_MARKERS:
-        return tool_name
-
     return None
 
 
@@ -36,8 +30,10 @@ def execution_health(
 ) -> dict[str, Any]:
     """Record whether the run completed and whether tool calls all succeeded."""
     output_mapping = _as_mapping(output)
-    response = output_mapping.get("response")
-    execution_complete = bool(response) and response not in RUNNER_ERROR_MARKERS
+    # Completion is measured by the explicit finished_normally flag derived
+    # from the stream's Finish event — response truthiness is not a signal
+    # (a legitimately empty response can still be a completed run).
+    execution_complete = output_mapping.get("finished_normally") is True
 
     tool_outputs = output_mapping.get("tool_outputs", [])
     if not isinstance(tool_outputs, list):

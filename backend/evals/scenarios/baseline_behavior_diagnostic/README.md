@@ -12,9 +12,11 @@
 
 - `dataset_name`
 - `dataset_version`
-- `row_id_column`
-- `question_column`
 - `agent_version`
+
+Diagnostic dataset 採固定欄位命名慣例：dataset MUST 具備 `id`（row identity）與
+`question`（prompt）兩個欄位。未來的 diagnostic dataset 一律沿用此命名——欄位名稱的
+configurability（`row_id_column` / `question_column`）是刻意移除的。
 
 ## Human Review Schema（platform-neutral contract）
 
@@ -47,8 +49,8 @@ reference hints。
 
 `diagnostic_execution_health` 只看 execution 是否完成、以及所有 tool call 是否成功：
 
-- `execution_complete`: task 有產生 final response，且不是 runner error marker
-- `tool_call_all_successful`: 所有 recorded tool call 都沒有 error marker
+- `execution_complete`: stream 有發出非 error 的 `Finish` event（`finished_normally` flag）
+- `tool_call_all_successful`: 所有 recorded tool call 的 `error` 欄位皆為空
 - `tool_error_names`: 失敗 tool 的名稱列表
 
 只有當 `execution_complete=true` 且 `tool_call_all_successful=true` 時，score 才會是 `1`；否則為 `0`。

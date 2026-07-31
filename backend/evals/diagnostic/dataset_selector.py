@@ -46,10 +46,13 @@ def select_diagnostic_slice(
     header_columns: list[str],
     raw_rows: list[dict[str, str]],
     slice_args: DiagnosticSliceArgs,
-    *,
-    row_id_column: str,
 ) -> tuple[list[dict[str, str]], DiagnosticSliceIdentity]:
-    """Select deterministic raw CSV rows and emit a stable slice identity."""
+    """Select deterministic raw CSV rows and emit a stable slice identity.
+
+    Diagnostic datasets follow a fixed convention: row identity always lives
+    in the ``id`` column (configurability was deliberately removed).
+    """
+    row_id_column = "id"
     if row_id_column not in header_columns:
         raise ValueError(f"Unknown row id column: {row_id_column}")
 

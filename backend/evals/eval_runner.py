@@ -367,7 +367,6 @@ def run_scenario(
     scenarios_dir: Path = SCENARIOS_DIR,
     run_label: str | None = None,
     run_group: str | None = None,
-    agent_version: str | None = None,
     slice_label: str | None = None,
     row_ids: str | None = None,
 ) -> Path:
@@ -392,7 +391,7 @@ def run_scenario(
     config_path = scenario_dir / "eval_spec.yaml"
     config = load_scenario_config(config_path)
 
-    diagnostic_flags = [run_label, run_group, agent_version, slice_label, row_ids]
+    diagnostic_flags = [run_label, run_group, slice_label, row_ids]
     if config.diagnostic is None and any(
         value is not None for value in diagnostic_flags
     ):
@@ -455,7 +454,7 @@ def run_scenario(
         diagnostic_config = config.diagnostic
         effective_run_label = run_label or _build_default_run_label()
         effective_run_group = run_group or "manual"
-        effective_agent_version = agent_version or diagnostic_config.agent_version
+        effective_agent_version = diagnostic_config.agent_version
 
         slice_args = parse_diagnostic_slice_args(
             row_ids=row_ids,
@@ -465,7 +464,6 @@ def run_scenario(
             original_columns,
             original_rows,
             slice_args,
-            row_id_column=diagnostic_config.row_id_column,
         )
         diagnostic_data = _build_diagnostic_eval_rows(
             selected_rows=selected_rows,
@@ -505,6 +503,8 @@ def run_scenario(
             "run_group": effective_run_group,
             "slice_label": slice_identity.slice_label,
             "slice_type": slice_identity.slice_type,
+            "slice_selector": slice_identity.slice_selector,
+            "selected_row_ids": list(slice_identity.selected_row_ids),
             "selected_row_count": len(selected_rows),
             "agent_version": effective_agent_version,
             "git_commit": git_sha,
@@ -743,7 +743,6 @@ def main(
     )
     parser.add_argument("--run-label", help="Diagnostic run label")
     parser.add_argument("--run-group", help="Diagnostic run group")
-    parser.add_argument("--agent-version", help="Diagnostic agent version")
     parser.add_argument("--slice-label", help="Diagnostic slice label override")
     parser.add_argument("--row-ids", help="Diagnostic comma-separated row ids")
 
@@ -754,6 +753,17 @@ def main(
 
     if not args.all and not args.scenario:
         parser.error("Provide a scenario name or use --all")
+
+    diagnostic_only_flags = [
+        args.run_label,
+        args.run_group,
+        args.slice_label,
+        args.row_ids,
+    ]
+    if args.all and any(value is not None for value in diagnostic_only_flags):
+        # Without this guard the --all loop would swallow the per-scenario
+        # ValueError as SKIPPED and exit 0.
+        parser.error("Diagnostic flags cannot be combined with --all")
 
     if args.upload:
         # Checked once, up front: --all's per-scenario try/except below must
@@ -781,7 +791,6 @@ def main(
                     scenarios_dir=scenarios_dir,
                     run_label=args.run_label,
                     run_group=args.run_group,
-                    agent_version=args.agent_version,
                     slice_label=args.slice_label,
                     row_ids=args.row_ids,
                 )
@@ -815,7 +824,6 @@ def main(
         scenarios_dir=scenarios_dir,
         run_label=args.run_label,
         run_group=args.run_group,
-        agent_version=args.agent_version,
         slice_label=args.slice_label,
         row_ids=args.row_ids,
     )

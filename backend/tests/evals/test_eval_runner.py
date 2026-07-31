@@ -505,8 +505,6 @@ class TestRunScenario:
             "diagnostic": {
                 "dataset_name": "baseline_behavior_diagnostic",
                 "dataset_version": "2026-04-24",
-                "row_id_column": "id",
-                "question_column": "question",
                 "agent_version": "baseline",
             },
             "task": {
@@ -807,7 +805,6 @@ class TestRunScenario:
             scenarios_dir=scenarios_dir,
             run_label="slice-run",
             run_group="nightly",
-            agent_version="v1_override",
             row_ids="2,1",
         )
 
@@ -874,7 +871,6 @@ class TestRunScenario:
                 scenarios_dir=scenarios_dir,
                 run_label="slice-run",
                 run_group="nightly",
-                agent_version="v1_override",
                 slice_label="focused-boundary",
                 row_ids="2",
             )
@@ -892,8 +888,10 @@ class TestRunScenario:
         assert eval_call["metadata"]["run_group"] == "nightly"
         assert eval_call["metadata"]["slice_label"] == "focused-boundary"
         assert eval_call["metadata"]["slice_type"] == "row_ids"
+        assert eval_call["metadata"]["slice_selector"] == "2"
+        assert eval_call["metadata"]["selected_row_ids"] == ["2"]
         assert eval_call["metadata"]["selected_row_count"] == 1
-        assert eval_call["metadata"]["agent_version"] == "v1_override"
+        assert eval_call["metadata"]["agent_version"] == "baseline"
         assert eval_call["metadata"]["git_commit"] == "12f85db"
         assert "slice_hash" not in eval_call["metadata"]
 
@@ -934,8 +932,6 @@ class TestRunScenario:
             "diagnostic": {
                 "dataset_name": scenario_name,
                 "dataset_version": "2026-04-24",
-                "row_id_column": "id",
-                "question_column": "question",
                 "agent_version": "baseline",
             },
             "task": {
@@ -1078,8 +1074,6 @@ class TestMainCli:
                 "slice-run",
                 "--run-group",
                 "nightly",
-                "--agent-version",
-                "v1_override",
                 "--slice-label",
                 "focused-boundary",
                 "--row-ids",
@@ -1092,9 +1086,38 @@ class TestMainCli:
         kwargs = mock_run_scenario.call_args.kwargs
         assert kwargs["run_label"] == "slice-run"
         assert kwargs["run_group"] == "nightly"
-        assert kwargs["agent_version"] == "v1_override"
         assert kwargs["slice_label"] == "focused-boundary"
         assert kwargs["row_ids"] == "2,1"
+
+    @patch("backend.evals.eval_runner.run_scenario")
+    def test_main_rejects_all_combined_with_diagnostic_flags(
+        self,
+        mock_run_scenario: MagicMock,
+        tmp_path: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """M-1.2: --all with diagnostic-only flags must fail at argparse
+        instead of silently skipping non-diagnostic scenarios with exit 0."""
+        scenarios_dir = tmp_path / "scenarios"
+        scenario_dir = scenarios_dir / "baseline_behavior_diagnostic"
+        scenario_dir.mkdir(parents=True)
+        (scenario_dir / "eval_spec.yaml").write_text(
+            "name: baseline_behavior_diagnostic\n"
+        )
+
+        from backend.evals.eval_runner import main
+
+        with pytest.raises(SystemExit) as exc_info:
+            main(
+                ["--all", "--row-ids", "2"],
+                scenarios_dir=scenarios_dir,
+                output_dir=tmp_path / "results",
+            )
+
+        assert exc_info.value.code == 2
+        mock_run_scenario.assert_not_called()
+        captured = capsys.readouterr()
+        assert "Diagnostic flags cannot be combined with --all" in captured.err
 
     def test_nonexistent_scenario_exits_nonzero(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]

@@ -258,6 +258,7 @@ def test_execution_health_passes_when_execution_completes_and_tools_succeed() ->
     result = execution_health(
         {
             "response": "done",
+            "finished_normally": True,
             "tool_outputs": [
                 {"tool": "search_news", "result": "ok"},
                 {"tool": "fetch_quote", "result": {"price": 123}},
@@ -279,11 +280,12 @@ def test_execution_health_passes_when_execution_completes_and_tools_succeed() ->
     }
 
 
-def test_execution_health_fails_when_execution_hits_error_marker() -> None:
+def test_execution_health_fails_when_finished_normally_absent() -> None:
+    """Response text alone is not a completion signal — the flag decides."""
     from backend.evals.diagnostic.execution_scorer import execution_health
 
     result = execution_health(
-        {"response": "__ERROR__", "tool_outputs": []},
+        {"response": "Partial answer text", "tool_outputs": []},
         {"draft_pass_signals": ["still ignored"]},
         input="Any question",
     )
@@ -296,16 +298,44 @@ def test_execution_health_fails_when_execution_hits_error_marker() -> None:
     }
 
 
+def test_execution_health_fails_when_finished_normally_false() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {"response": "text", "finished_normally": False, "tool_outputs": []},
+        {},
+        input="Any question",
+    )
+
+    assert result["score"] == 0.0
+    assert result["metadata"]["execution_complete"] is False
+
+
+def test_execution_health_passes_for_empty_response_when_finished_normally() -> None:
+    """A legitimately empty (or whitespace-only) response can still complete."""
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    for response in ("", "   \n"):
+        result = execution_health(
+            {"response": response, "finished_normally": True, "tool_outputs": []},
+            {},
+            input="Any question",
+        )
+
+        assert result["score"] == 1.0
+        assert result["metadata"]["execution_complete"] is True
+
+
 def test_execution_health_fails_and_emits_tool_error_names() -> None:
     from backend.evals.diagnostic.execution_scorer import execution_health
 
     result = execution_health(
         {
             "response": "Partial answer",
+            "finished_normally": True,
             "tool_outputs": [
                 {"tool": "search_news", "result": "ok"},
                 {"tool": "fetch_quote", "error": "timeout"},
-                {"tool": "sec_lookup", "result": "__ERROR__"},
                 {"tool": "tool_without_name", "error": None},
             ],
         },
@@ -317,7 +347,7 @@ def test_execution_health_fails_and_emits_tool_error_names() -> None:
     assert result["metadata"] == {
         "execution_complete": True,
         "tool_call_all_successful": False,
-        "tool_error_names": ["fetch_quote", "sec_lookup"],
+        "tool_error_names": ["fetch_quote"],
     }
 
 

@@ -27,7 +27,6 @@ def test_select_diagnostic_slice_defaults_to_full_dataset() -> None:
         header_columns,
         raw_rows,
         parse_diagnostic_slice_args(),
-        row_id_column="id",
     )
 
     assert selected_rows == raw_rows
@@ -44,7 +43,6 @@ def test_select_diagnostic_slice_supports_row_ids_in_requested_order() -> None:
         header_columns,
         raw_rows,
         parse_diagnostic_slice_args(row_ids="3,1,7"),
-        row_id_column="id",
     )
 
     assert [row["id"] for row in selected_rows] == ["3", "1", "7"]
@@ -61,7 +59,6 @@ def test_select_diagnostic_slice_honors_slice_label_override() -> None:
         header_columns,
         raw_rows,
         parse_diagnostic_slice_args(row_ids="3,1", slice_label="focused"),
-        row_id_column="id",
     )
 
     assert identity.slice_label == "focused"
@@ -75,7 +72,6 @@ def test_select_diagnostic_slice_rejects_duplicate_row_ids() -> None:
             header_columns,
             raw_rows,
             parse_diagnostic_slice_args(row_ids="3,1,3"),
-            row_id_column="id",
         )
 
 
@@ -87,7 +83,6 @@ def test_select_diagnostic_slice_rejects_missing_row_ids() -> None:
             header_columns,
             raw_rows,
             parse_diagnostic_slice_args(row_ids="1,999"),
-            row_id_column="id",
         )
 
 
@@ -96,34 +91,16 @@ def test_parse_diagnostic_slice_args_rejects_empty_row_ids() -> None:
         parse_diagnostic_slice_args(row_ids="   ")
 
 
-def test_select_diagnostic_slice_supports_custom_row_id_column() -> None:
+def test_select_diagnostic_slice_rejects_dataset_without_id_column() -> None:
+    """Fixed convention: diagnostic datasets must carry an ``id`` column."""
     header_columns = ["row_key", "capability_band"]
-    raw_rows = [
-        {"row_key": "alpha", "capability_band": "core"},
-        {"row_key": "beta", "capability_band": "boundary"},
-        {"row_key": "gamma", "capability_band": "core"},
-    ]
+    raw_rows = [{"row_key": "alpha", "capability_band": "core"}]
 
-    selected_rows, identity = select_diagnostic_slice(
-        header_columns,
-        raw_rows,
-        parse_diagnostic_slice_args(row_ids="gamma,alpha"),
-        row_id_column="row_key",
-    )
-
-    assert [row["row_key"] for row in selected_rows] == ["gamma", "alpha"]
-    assert identity.selected_row_ids == ("gamma", "alpha")
-
-
-def test_select_diagnostic_slice_rejects_unknown_row_id_column() -> None:
-    header_columns, raw_rows = load_fixture_rows()
-
-    with pytest.raises(ValueError, match="Unknown row id column: missing"):
+    with pytest.raises(ValueError, match="Unknown row id column: id"):
         select_diagnostic_slice(
             header_columns,
             raw_rows,
             parse_diagnostic_slice_args(),
-            row_id_column="missing",
         )
 
 
@@ -139,7 +116,6 @@ def test_select_diagnostic_slice_rejects_duplicate_dataset_row_ids() -> None:
             header_columns,
             raw_rows,
             parse_diagnostic_slice_args(),
-            row_id_column="id",
         )
 
 
@@ -155,5 +131,4 @@ def test_select_diagnostic_slice_rejects_missing_dataset_row_id() -> None:
             header_columns,
             raw_rows,
             parse_diagnostic_slice_args(),
-            row_id_column="id",
         )

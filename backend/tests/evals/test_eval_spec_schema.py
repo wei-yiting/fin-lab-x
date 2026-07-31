@@ -271,9 +271,21 @@ scorers:
     assert isinstance(config.diagnostic, DiagnosticScenarioConfig)
     assert config.diagnostic.dataset_name == "baseline_behavior_diagnostic"
     assert config.diagnostic.dataset_version == "2026-04-24"
-    assert config.diagnostic.row_id_column == "id"
-    assert config.diagnostic.question_column == "question"
     assert config.diagnostic.agent_version == "baseline"
+
+
+@pytest.mark.parametrize("removed_field", ["row_id_column", "question_column"])
+def test_diagnostic_config_rejects_removed_column_fields(removed_field: str) -> None:
+    """id/question are a fixed dataset convention — no longer configurable."""
+    payload = {
+        "dataset_name": "baseline_behavior_diagnostic",
+        "dataset_version": "2026-04-24",
+        "agent_version": "baseline",
+        removed_field: "custom",
+    }
+
+    with pytest.raises(ValidationError):
+        DiagnosticScenarioConfig.model_validate(payload)
 
 
 def test_load_scenario_config_rejects_unknown_diagnostic_field(
@@ -306,8 +318,6 @@ scorers:
     [
         ("dataset_name", ""),
         ("dataset_version", ""),
-        ("row_id_column", ""),
-        ("question_column", ""),
         ("agent_version", ""),
     ],
 )
@@ -318,8 +328,6 @@ def test_diagnostic_config_rejects_empty_identity_fields(
     payload = {
         "dataset_name": "baseline_behavior_diagnostic",
         "dataset_version": "2026-04-24",
-        "row_id_column": "id",
-        "question_column": "question",
         "agent_version": "baseline",
     }
     payload[field_name] = field_value

@@ -202,6 +202,9 @@ class OrchestratorResult(TypedDict):
     tool_outputs: list[ToolOutput]
     model: str
     version: str
+    # Set by streaming collectors: True when the stream emitted a non-error
+    # Finish event. NotRequired keeps the invoke path unchanged.
+    finished_normally: NotRequired[bool]
 
 
 class _LangfusePropagationAttributes(TypedDict, total=False):

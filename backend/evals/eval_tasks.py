@@ -49,6 +49,7 @@ async def _astream_collect(
     tool_names: dict[str, str] = {}
     tool_args: dict[str, dict] = {}
     errors: list[str] = []
+    finished_normally = False
 
     if trace_metadata is None:
         stream = orchestrator.astream_run(
@@ -87,15 +88,19 @@ async def _astream_collect(
             errors.append(event.error)
         elif isinstance(event, StreamError):
             errors.append(event.error_text)
-        elif isinstance(event, Finish) and event.finish_reason == "error":
-            if errors:
-                raise RuntimeError(f"Stream error: {errors[-1]}")
+        elif isinstance(event, Finish):
+            if event.finish_reason == "error":
+                if errors:
+                    raise RuntimeError(f"Stream error: {errors[-1]}")
+            else:
+                finished_normally = True
 
     return OrchestratorResult(
         response="".join(text_parts),
         tool_outputs=tool_outputs,
         model=orchestrator.config.model.name,
         version=orchestrator.config.version,
+        finished_normally=finished_normally,
     )
 
 

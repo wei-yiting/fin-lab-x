@@ -47,26 +47,22 @@ Polls Langfuse for a single trace and asserts the trace-level reasoning transcri
 
 ```bash
 uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --expect-reasoning-on
-uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --expect-reasoning-off
-uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --expect-unsupported
 uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --expect-reasoning-on --expect-aborted
 ```
 
 | Argument | Required | Description |
 |---|---|---|
 | `trace_id` | Yes | Langfuse trace id to fetch |
-| `--expect-reasoning-on` / `--expect-reasoning-off` / `--expect-unsupported` | Yes (mutually exclusive) | Reasoning capability the trace should reflect — drives the root-span `metadata.reasoning` assertion |
-| `--expect-aborted` | No | Also assert the root span carries `metadata.status == "aborted"`; with `--expect-reasoning-on` the transcript must additionally end with the `=== aborted ===` marker (the scripted abort scenario cancels mid-segment) |
+| `--expect-reasoning-on` | Yes | Assert the root-span `metadata.reasoning` transcript is non-empty and segment-marked |
+| `--expect-aborted` | No | Also assert the root span carries `metadata.status == "aborted"` and that the transcript ends with the `=== aborted ===` marker (the scripted abort scenario cancels mid-segment) |
 
 What it asserts:
 
 - A root span (`parentObservationId is null`, type ≠ GENERATION) exists and carries `metadata.reasoning` (always-write-key contract).
-- For `--expect-reasoning-on`: the transcript is non-empty and contains a `=== segment 1 ===` marker.
-- For `--expect-reasoning-off`: `metadata.reasoning == ""`.
-- For `--expect-unsupported`: `metadata.reasoning == "<unsupported>"`.
-- For `--expect-aborted`: root span has `metadata.status == "aborted"` (+ trailing aborted marker when combined with `--expect-reasoning-on`).
+- For `--expect-reasoning-on`: the transcript is non-empty, is not the `"<unsupported>"` sentinel, and contains a `=== segment 1 ===` marker.
+- For `--expect-aborted`: root span has `metadata.status == "aborted"` and the transcript ends with the `=== aborted ===` marker.
 
-Authentication is via the standard Langfuse env vars: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and either `LANGFUSE_BASE_URL` or `LANGFUSE_API_BASE` (default `https://cloud.langfuse.com`). The script polls 5× with linear backoff to absorb the ingestion lag between SSE close and the trace becoming queryable.
+The trace is fetched via the Langfuse Python SDK API client (`get_client().api.trace.get`). Authentication is via the standard Langfuse SDK env vars: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_BASE_URL` (or the legacy `LANGFUSE_HOST`; default `https://cloud.langfuse.com`). The script polls 5× with linear backoff to absorb the ingestion lag between SSE close and the trace becoming queryable.
 
 Exit codes:
 

@@ -14,7 +14,7 @@ Both domains share one Langfuse project and emit `snake_case` spans (`sec_` pref
 | Config key | Value | Effect in Langfuse |
 |---|---|---|
 | `metadata.langfuse_trace_name` | `f"{WorkflowProfileConfig.name}_{mode}"` (e.g., `baseline_stream`, `baseline_invoke`) | Renames the root trace so product/version/endpoint are visible |
-| `run_name` | `"chat-turn"` | Renames the LangChain root chain span (otherwise defaults to the Runnable class name `LangGraph`) |
+| `run_name` | `"chat_turn"` | Renames the LangChain root chain span (otherwise defaults to the Runnable class name `LangGraph`) |
 | `metadata.request_id` | `uuid.uuid4().hex` minted by each FastAPI handler | Per-request correlation attribute |
 
 `propagate_attributes(trace_name=..., session_id=...)` is still wrapped around the agent invocation to cover the session correlation path and to also set `trace_name` defensively on the active OTel context.

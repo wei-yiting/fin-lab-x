@@ -120,7 +120,21 @@ class TestSizeCap:
         _feed_segment(acc, "reasoning-0", ["a" * (cap + 100)])
         value = acc.value()
         assert value.startswith("=== segment 1 ===\naaa")
+        # header "=== segment 1 ===\n" is 18 bytes
         assert value.endswith(f"... [truncated, original {cap + 100 + 18} bytes]")
+        # The cap bounds the FINAL value, truncation note included.
+        assert len(value.encode("utf-8")) <= cap
+
+    def test_over_cap_aborted_still_ends_with_marker_within_cap(self):
+        acc = _accumulator()
+        cap = ReasoningTranscriptAccumulator.SIZE_CAP_BYTES
+        acc.observe(ReasoningStart(reasoning_id="reasoning-0"))
+        acc.observe(ReasoningDelta(reasoning_id="reasoning-0", delta="a" * (cap + 100)))
+        value = acc.value(aborted=True)
+        assert value.startswith("=== segment 1 ===\naaa")
+        assert "[truncated, original" in value
+        assert value.endswith("=== aborted ===")
+        assert len(value.encode("utf-8")) <= cap
 
     def test_truncation_respects_utf8_boundaries(self):
         acc = _accumulator()

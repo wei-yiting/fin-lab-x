@@ -77,18 +77,32 @@ class ReasoningTranscriptAccumulator:
         if self._capability == "unsupported":
             return self.UNSUPPORTED_SENTINEL
 
-        parts = [
+        body = "\n".join(
             f"=== segment {i} ===\n{text}"
             for i, text in enumerate(self._segments, start=1)
-        ]
-        if aborted and self._open:
-            parts.append(self.ABORTED_MARKER)
-        return self._cap(("\n".join(parts)))
+        )
+        # An abort mid-segment always has at least one segment, so the marker
+        # can unconditionally join with "\n".
+        marker_suffix = f"\n{self.ABORTED_MARKER}" if (aborted and self._open) else ""
+        return self._cap(body, marker_suffix)
 
     @classmethod
-    def _cap(cls, transcript: str) -> str:
-        encoded = transcript.encode("utf-8")
-        if len(encoded) <= cls.SIZE_CAP_BYTES:
-            return transcript
-        truncated = encoded[: cls.SIZE_CAP_BYTES].decode("utf-8", errors="ignore")
-        return f"{truncated}... [truncated, original {len(encoded)} bytes]"
+    def _cap(cls, body: str, marker_suffix: str) -> str:
+        """Bound the FINAL rendered value to ``SIZE_CAP_BYTES``.
+
+        Truncates the tail and keeps the head, reserving room for the
+        truncation note and the aborted-marker suffix so an oversized aborted
+        transcript still ends with ``=== aborted ===``.
+        """
+        full = f"{body}{marker_suffix}"
+        original_bytes = len(full.encode("utf-8"))
+        if original_bytes <= cls.SIZE_CAP_BYTES:
+            return full
+        truncation_note = f"... [truncated, original {original_bytes} bytes]"
+        reserved = len(truncation_note.encode("utf-8")) + len(
+            marker_suffix.encode("utf-8")
+        )
+        head = body.encode("utf-8")[: cls.SIZE_CAP_BYTES - reserved].decode(
+            "utf-8", errors="ignore"
+        )
+        return f"{head}{truncation_note}{marker_suffix}"

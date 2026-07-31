@@ -55,7 +55,7 @@ Langfuse integration traces all AI agent execution in FinLab-X. Requires `langfu
 |---|---|---|
 | `CallbackHandler` | Per-request instance built in `_build_langfuse_config()` | Auto-traces LLM calls, tool dispatch, chain steps (including tool I/O) |
 | `config["metadata"]["langfuse_trace_name"]` | `f"{WorkflowProfileConfig.name}_{mode}"` in `_build_langfuse_config()` | Renames root trace (`baseline_stream` / `baseline_invoke`) via Langfuse ≥4.3.1 PR #1626 |
-| `config["run_name"]` | `"chat-turn"` in `_build_langfuse_config()` | Renames the LangChain root chain span so it's not called `LangGraph` |
+| `config["run_name"]` | `"chat_turn"` in `_build_langfuse_config()` | Renames the LangChain root chain span so it's not called `LangGraph` |
 | `config["metadata"]["request_id"]` | `uuid.uuid4().hex` minted per FastAPI request | Per-request correlation attribute |
 | `propagate_attributes(trace_name=..., session_id=...)` | Wraps `invoke`/`ainvoke`/`astream` in `Orchestrator` | Sets `trace_name` on OTel context + propagates session_id to children (incl. any `@observe` tools) |
 | `@observe()` | Applied selectively on deterministic helpers and on a tool when it needs sub-spans / custom metadata | Traces a function as a single observation |

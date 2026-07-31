@@ -3,24 +3,23 @@
 
 Operator helper for the F7 / ADR-0007 shape: the conversation's full
 reasoning transcript lives in ONE place — ``metadata.reasoning`` on the root
-span (the ``chat_turn`` span the Orchestrator owns). Polls
-``GET /api/public/traces/{trace_id}`` and asserts:
+span (the ``chat_turn`` span the Orchestrator owns). Polls the trace via the
+Langfuse SDK API client (``get_client().api.trace.get``) and asserts:
 
 - A root span (``parentObservationId is null``) exists and carries the
   ``reasoning`` metadata key (always-write-key contract).
-- The value matches the passed expectation:
-    * ``--expect-reasoning-on``      non-empty transcript containing at
-      least one ``=== segment N ===`` marker
-    * ``--expect-reasoning-off``     empty string ``""``
-    * ``--expect-unsupported``       sentinel ``"<unsupported>"``
+- With ``--expect-reasoning-on`` (required): the transcript is non-empty,
+  is not the ``"<unsupported>"`` sentinel, and contains at least one
+  ``=== segment N ===`` marker.
 - When ``--expect-aborted`` is passed, the root span additionally carries
-  ``metadata.status == "aborted"``; combined with ``--expect-reasoning-on``
-  (the scripted abort scenario cancels mid-segment) the transcript must end
-  with the ``=== aborted ===`` marker.
+  ``metadata.status == "aborted"`` and the transcript must end with the
+  ``=== aborted ===`` marker (the scripted abort scenario cancels
+  mid-segment).
 
-Authentication: ``LANGFUSE_PUBLIC_KEY`` / ``LANGFUSE_SECRET_KEY`` env
-vars (HTTP Basic). ``LANGFUSE_API_BASE`` defaults to
-``https://cloud.langfuse.com``.
+Authentication: the Langfuse SDK reads ``LANGFUSE_PUBLIC_KEY`` /
+``LANGFUSE_SECRET_KEY`` and ``LANGFUSE_BASE_URL`` (or the legacy
+``LANGFUSE_HOST``; default ``https://cloud.langfuse.com``) from the
+environment.
 
 Usage:
     uv run python -m backend.scripts.validation.verify_langfuse_trace \\
@@ -30,16 +29,15 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import base64
 import json
-import os
 import sys
 import time
-import urllib.error
-import urllib.request
 from typing import Any, Iterable
 
-DEFAULT_BASE_URL = "https://cloud.langfuse.com"
+import httpx
+from langfuse import get_client
+from langfuse.api.core import ApiError
+
 UNSUPPORTED_SENTINEL = "<unsupported>"
 SEGMENT_MARKER = "=== segment 1 ==="
 ABORTED_MARKER = "=== aborted ==="
@@ -47,30 +45,22 @@ POLL_ATTEMPTS = 5
 POLL_INITIAL_DELAY_SECONDS = 1.0
 
 
-def fetch_trace(
-    trace_id: str,
-    *,
-    base_url: str,
-    public_key: str,
-    secret_key: str,
-) -> dict[str, Any]:
-    """Fetch a single trace JSON from Langfuse with linear-backoff polling.
+def fetch_trace(trace_id: str) -> dict[str, Any]:
+    """Fetch a single trace from Langfuse with linear-backoff polling.
 
-    Polls 5× with linearly increasing delay (1s, 2s, …) so a freshly-emitted
-    trace has time to land in Langfuse storage before the verifier asserts.
-    Network/HTTP errors surface as ``RuntimeError`` after the final attempt.
+    Uses the SDK's public API client. Polls 5× with linearly increasing
+    delay (1s, 2s, …) so a freshly-emitted trace has time to land in
+    Langfuse storage before the verifier asserts. API/network errors
+    surface as ``RuntimeError`` after the final attempt. The typed SDK
+    response is converted to a plain dict (camelCase keys, matching the
+    public API JSON shape) for ``verify()``.
     """
-    url = f"{base_url.rstrip('/')}/api/public/traces/{trace_id}"
-    auth = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
-    headers = {"Authorization": f"Basic {auth}"}
-
+    client = get_client()
     last_error: Exception | None = None
     for attempt in range(POLL_ATTEMPTS):
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                return json.loads(resp.read().decode())
-        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as exc:
+            return client.api.trace.get(trace_id).dict()
+        except (ApiError, httpx.HTTPError) as exc:
             last_error = exc
             if attempt < POLL_ATTEMPTS - 1:
                 time.sleep(POLL_INITIAL_DELAY_SECONDS * (attempt + 1))
@@ -120,12 +110,6 @@ def verify(
             errors.append("expected non-empty reasoning transcript, got ''")
         elif SEGMENT_MARKER not in value:
             errors.append(f"transcript carries no {SEGMENT_MARKER!r} segment marker")
-    elif expectation == "reasoning-off":
-        if value != "":
-            errors.append(f"expected empty reasoning, got {value!r}")
-    elif expectation == "unsupported":
-        if value != UNSUPPORTED_SENTINEL:
-            errors.append(f"expected {UNSUPPORTED_SENTINEL!r}, got {value!r}")
 
     if expect_aborted:
         if meta.get("status") != "aborted":
@@ -145,30 +129,20 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Verify a Langfuse trace carries the trace-level reasoning transcript.",
     )
     parser.add_argument("trace_id", help="Langfuse trace id to verify")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
+    parser.add_argument(
         "--expect-reasoning-on",
         dest="expectation",
         action="store_const",
         const="reasoning-on",
-    )
-    group.add_argument(
-        "--expect-reasoning-off",
-        dest="expectation",
-        action="store_const",
-        const="reasoning-off",
-    )
-    group.add_argument(
-        "--expect-unsupported",
-        dest="expectation",
-        action="store_const",
-        const="unsupported",
+        required=True,
+        help="Assert the root span carries a non-empty, segment-marked "
+        "reasoning transcript",
     )
     parser.add_argument(
         "--expect-aborted",
         action="store_true",
-        help="Also assert root span metadata.status == 'aborted' and (with "
-        "--expect-reasoning-on) that the transcript ends with the aborted marker",
+        help="Also assert root span metadata.status == 'aborted' and that "
+        "the transcript ends with the aborted marker",
     )
     return parser
 
@@ -176,23 +150,8 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
-    # LANGFUSE_BASE_URL is the env var the Langfuse SDK / .env conventionally
-    # uses; LANGFUSE_API_BASE is kept as a back-compat alias.
-    base_url = (
-        os.environ.get("LANGFUSE_BASE_URL")
-        or os.environ.get("LANGFUSE_API_BASE")
-        or DEFAULT_BASE_URL
-    )
-    public_key = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
-    secret_key = os.environ.get("LANGFUSE_SECRET_KEY", "")
-
     try:
-        trace = fetch_trace(
-            args.trace_id,
-            base_url=base_url,
-            public_key=public_key,
-            secret_key=secret_key,
-        )
+        trace = fetch_trace(args.trace_id)
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

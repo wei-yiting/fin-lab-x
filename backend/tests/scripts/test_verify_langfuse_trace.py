@@ -1,13 +1,14 @@
 """Unit tests for the Langfuse trace verifier CLI (F7 / ADR-0007 shape).
 
 These tests cover argument parsing and Langfuse JSON parsing logic only —
-no live Langfuse calls. The HTTP client is mocked via ``monkeypatch`` so
-the CLI's polling/auth wiring exists but never reaches the network.
+no live Langfuse calls. The SDK fetch is mocked via ``monkeypatch`` so the
+CLI's polling wiring exists but never reaches the network.
 
-Trace JSON shape mirrors Langfuse 4.x ``GET /api/public/traces/{id}``:
-``{id, name, metadata, observations: [{id, type, name, metadata,
-parentObservationId, startTime}]}``. The transcript lives on the root
-``chat_turn`` span's ``metadata.reasoning``.
+Trace dict shape mirrors the SDK's ``api.trace.get(...).dict()`` output
+(camelCase keys, matching the public API JSON): ``{id, name, metadata,
+observations: [{id, type, name, metadata, parentObservationId,
+startTime}]}``. The transcript lives on the root ``chat_turn`` span's
+``metadata.reasoning``.
 """
 
 from __future__ import annotations
@@ -54,16 +55,12 @@ def _trace(observations: list[dict[str, Any]]) -> dict[str, Any]:
 def _install_fake_fetch(
     monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]
 ) -> None:
-    """Replace the module's network call with a function that returns ``payload``."""
+    """Replace the module's SDK fetch with a function that returns ``payload``."""
 
-    def _fake(
-        trace_id: str, *, base_url: str, public_key: str, secret_key: str
-    ) -> dict[str, Any]:
+    def _fake(trace_id: str) -> dict[str, Any]:
         return payload
 
     monkeypatch.setattr(vlt, "fetch_trace", _fake)
-    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk")
-    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk")
 
 
 TRANSCRIPT = "=== segment 1 ===\nstep 1\nstep 2\n=== segment 2 ===\nstep 3"
@@ -92,6 +89,16 @@ def test_expect_reasoning_on_fails_when_transcript_empty(
     assert code != 0
 
 
+def test_expect_reasoning_on_fails_with_unsupported_sentinel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_fake_fetch(monkeypatch, _trace([_root_span(reasoning="<unsupported>")]))
+
+    code = vlt.main(["trace-abc", "--expect-reasoning-on"])
+
+    assert code != 0
+
+
 def test_expect_reasoning_on_fails_when_no_segment_marker(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -109,49 +116,10 @@ def test_expect_reasoning_on_fails_when_no_segment_marker(
 def test_expect_reasoning_on_fails_when_metadata_reasoning_key_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Always-write-key contract: the root span must carry the reasoning key."""
     _install_fake_fetch(monkeypatch, _trace([_root_span(reasoning=None)]))
 
     code = vlt.main(["trace-abc", "--expect-reasoning-on"])
-
-    assert code != 0
-
-
-def test_expect_reasoning_off_passes_when_empty(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _install_fake_fetch(monkeypatch, _trace([_root_span(reasoning="")]))
-
-    code = vlt.main(["trace-abc", "--expect-reasoning-off"])
-
-    assert code == 0
-
-
-def test_expect_reasoning_off_fails_when_transcript_present(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _install_fake_fetch(monkeypatch, _trace([_root_span(reasoning="leaked")]))
-
-    code = vlt.main(["trace-abc", "--expect-reasoning-off"])
-
-    assert code != 0
-
-
-def test_expect_unsupported_passes_with_sentinel(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _install_fake_fetch(monkeypatch, _trace([_root_span(reasoning="<unsupported>")]))
-
-    code = vlt.main(["trace-abc", "--expect-unsupported"])
-
-    assert code == 0
-
-
-def test_expect_unsupported_fails_with_real_transcript(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _install_fake_fetch(monkeypatch, _trace([_root_span(reasoning=TRANSCRIPT)]))
-
-    code = vlt.main(["trace-abc", "--expect-unsupported"])
 
     assert code != 0
 
@@ -192,11 +160,6 @@ def test_expect_aborted_fails_when_transcript_lacks_aborted_marker(
     code = vlt.main(["trace-abc", "--expect-reasoning-on", "--expect-aborted"])
 
     assert code != 0
-
-
-def test_mutually_exclusive_expectations_rejected() -> None:
-    with pytest.raises(SystemExit):
-        vlt.main(["trace-abc", "--expect-reasoning-on", "--expect-reasoning-off"])
 
 
 def test_missing_expectation_rejected() -> None:

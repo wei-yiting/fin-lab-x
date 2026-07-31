@@ -522,14 +522,27 @@ class Orchestrator:
                         accumulator.observe(event)
                         yield event
 
-                # Write before yielding the closing events: a yield suspends
-                # the generator indefinitely, and finalize() never emits
-                # reasoning events (ratified F5 spec), so the transcript is
-                # already complete here.
-                root_span.update(
-                    metadata={accumulator.METADATA_KEY: accumulator.value()}
-                )
-                for event in mapper.finalize():
+                # finalize() closes a still-open reasoning part (emits
+                # ReasoningEnd), so feed the closing events through the
+                # accumulator BEFORE the metadata write — otherwise a
+                # cancellation landing during the closing-events yield would
+                # wrongly append the aborted marker to a segment that already
+                # completed. The write happens before yielding because a
+                # yield suspends the generator indefinitely.
+                closing_events = mapper.finalize()
+                for event in closing_events:
+                    accumulator.observe(event)
+                # Best-effort: an observability failure must never convert a
+                # successful stream into a StreamError (resilience contract).
+                try:
+                    root_span.update(
+                        metadata={accumulator.METADATA_KEY: accumulator.value()}
+                    )
+                except Exception:
+                    logger.exception(
+                        "failed to write reasoning transcript on natural completion"
+                    )
+                for event in closing_events:
                     yield event
             except asyncio.CancelledError:
                 # D35 abort cleanup. CancelledError is BaseException (not
@@ -541,6 +554,9 @@ class Orchestrator:
                 # Always-write-key contract holds on the error path too;
                 # best-effort so observability failures can't mask the
                 # original error.
+                closing_events = mapper.finalize()
+                for event in closing_events:
+                    accumulator.observe(event)
                 try:
                     root_span.update(
                         metadata={accumulator.METADATA_KEY: accumulator.value()}
@@ -549,7 +565,7 @@ class Orchestrator:
                     logger.exception(
                         "failed to write reasoning transcript on error path"
                     )
-                for event in mapper.finalize():
+                for event in closing_events:
                     if not isinstance(event, Finish):
                         yield event
                 yield StreamError(error_text=sanitize_tool_error(str(e)))
@@ -687,7 +703,7 @@ class Orchestrator:
 
         config: RunnableConfig = {
             "callbacks": [handler],
-            "run_name": "chat-turn",
+            "run_name": "chat_turn",
             "metadata": metadata,
         }
         return config, propagation

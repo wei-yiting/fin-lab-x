@@ -17,6 +17,7 @@ from backend.agent_engine.agents.config_loader import WorkflowProfileConfig, Mod
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningEnd,
     StreamError,
     TextDelta,
     TextEnd,
@@ -608,7 +609,7 @@ class TestLangfuseTraceMetadata:
             await orch.arun("test", session_id="sess-1", request_id="req-1")
 
             config_arg = agent.ainvoke.call_args[1]["config"]
-            assert config_arg["run_name"] == "chat-turn"
+            assert config_arg["run_name"] == "chat_turn"
             metadata = config_arg["metadata"]
             assert metadata["langfuse_trace_name"] == "baseline_invoke"
             assert metadata["request_id"] == "req-1"
@@ -646,7 +647,7 @@ class TestLangfuseTraceMetadata:
                 pass
 
         config_arg = captured_kwargs["config"]
-        assert config_arg["run_name"] == "chat-turn"
+        assert config_arg["run_name"] == "chat_turn"
         metadata = config_arg["metadata"]
         assert metadata["langfuse_trace_name"] == "baseline_stream"
         assert metadata["request_id"] == "req-1"
@@ -845,6 +846,136 @@ class TestTraceLevelReasoningWrite:
         assert any(isinstance(e, StreamError) for e in events)
         metadata = span.update.call_args.kwargs["metadata"]
         assert metadata == {"reasoning": ""}
+
+
+class TestFinalizeFeedsAccumulator:
+    """Round-1 review regressions — finalize() DOES emit ReasoningEnd for a
+    still-open reasoning part, so its events must feed the accumulator before
+    the natural-completion metadata write, and that write must be
+    best-effort."""
+
+    def _reasoning_config(self) -> WorkflowProfileConfig:
+        return WorkflowProfileConfig(
+            version="0.1.0",
+            name="baseline",
+            description="Test version",
+            tools=[],
+            model=ModelConfig(name="gpt-4o-mini", reasoning="on"),
+        )
+
+    def _reasoning_only_astream(self, agent: Any) -> None:
+        """Last (and only) content is reasoning — no trailing text, so the
+        reasoning part is still open when the stream ends and only
+        finalize() closes it."""
+
+        async def mock_astream(*args, **kwargs):
+            yield {
+                "type": "messages",
+                "data": (
+                    AIMessageChunk(
+                        content=[{"type": "reasoning", "reasoning": "let me think"}],
+                        id="msg-1",
+                    ),
+                    {"langgraph_node": "agent"},
+                ),
+            }
+
+        agent.astream = mock_astream
+
+    @pytest.mark.asyncio
+    async def test_reasoning_only_stream_writes_transcript_without_aborted_marker(
+        self,
+    ):
+        orch = _create_orchestrator(self._reasoning_config())
+        agent = cast(Any, orch.agent)
+        self._reasoning_only_astream(agent)
+
+        client, span = _mock_langfuse_client()
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            events = []
+            async for event in orch.astream_run(
+                message="test", session_id="sess-final"
+            ):
+                events.append(event)
+
+        # Write happens exactly once, and the finalize()-closed segment
+        # carries no aborted marker.
+        span.update.assert_called_once()
+        metadata = span.update.call_args.kwargs["metadata"]
+        assert metadata == {"reasoning": "=== segment 1 ===\nlet me think"}
+        assert any(isinstance(e, ReasoningEnd) for e in events)
+
+    @pytest.mark.asyncio
+    async def test_cancel_during_closing_events_does_not_mark_aborted(self):
+        """Cancellation raised while the closing events are being yielded:
+        finalize() already closed the segment (and the accumulator observed
+        the ReasoningEnd), so the abort write must NOT append the aborted
+        marker."""
+        orch = _create_orchestrator(self._reasoning_config())
+        agent = cast(Any, orch.agent)
+        self._reasoning_only_astream(agent)
+
+        client, span = _mock_langfuse_client()
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            gen = orch.astream_run(message="test", session_id="sess-late-cancel")
+            event = await gen.__anext__()
+            while not isinstance(event, ReasoningEnd):
+                event = await gen.__anext__()
+            # Generator is suspended at a closing-events yield after the
+            # natural-completion write already happened.
+            with pytest.raises(asyncio.CancelledError):
+                await gen.athrow(asyncio.CancelledError())
+
+        # Natural write + abort write.
+        assert span.update.call_count == 2
+        abort_metadata = span.update.call_args.kwargs["metadata"]
+        assert abort_metadata["status"] == "aborted"
+        assert abort_metadata["reasoning"] == "=== segment 1 ===\nlet me think"
+        assert "=== aborted ===" not in abort_metadata["reasoning"]
+
+    @pytest.mark.asyncio
+    async def test_natural_completion_update_failure_does_not_break_stream(self):
+        """M-1.1 — the natural-completion root_span.update is best-effort: a
+        Langfuse failure must not convert a successful stream into
+        StreamError + Finish(error)."""
+        orch = _create_orchestrator(self._reasoning_config())
+        agent = cast(Any, orch.agent)
+        self._reasoning_only_astream(agent)
+
+        client, span = _mock_langfuse_client()
+        span.update.side_effect = RuntimeError("langfuse down")
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            events = []
+            async for event in orch.astream_run(
+                message="test", session_id="sess-lf-down"
+            ):
+                events.append(event)
+
+        assert not any(isinstance(e, StreamError) for e in events)
+        assert isinstance(events[-1], Finish)
+        assert events[-1].finish_reason == "stop"
 
 
 class TestAstreamAbortCleanup:

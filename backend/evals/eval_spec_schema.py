@@ -18,6 +18,7 @@ class ScorerConfig(BaseModel):
     rubric: str | None = None
     model: str | None = None
     use_cot: bool = False
+    temperature: float = 0.0
     choice_scores: dict[str, float] | None = None
 
     @model_validator(mode="after")
@@ -46,6 +47,8 @@ class ScorerConfig(BaseModel):
                 )
             if self.use_cot:
                 raise ValueError("Programmatic ScorerConfig must not set use_cot")
+            if self.temperature != 0.0:
+                raise ValueError("Programmatic ScorerConfig must not set temperature")
             return self
 
         if self.type != "llm_judge":

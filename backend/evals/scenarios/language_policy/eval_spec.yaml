@@ -22,6 +22,7 @@ scorers:
     type: llm_judge
     model: gpt-4o
     use_cot: true
+    temperature: 0
     rubric: |
       The user asked about the company with ticker {{expected.ticker}}.
 

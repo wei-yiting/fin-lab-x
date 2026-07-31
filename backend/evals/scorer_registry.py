@@ -4,15 +4,21 @@ from __future__ import annotations
 
 import importlib
 import logging
+import os
 import re
 from collections.abc import Callable
 from typing import Any
 
 from autoevals import LLMClassifier  # pyright: ignore[reportMissingImports]
+from openai import OpenAI
 
 from backend.evals.eval_spec_schema import ScorerConfig
 
 logger = logging.getLogger(__name__)
+
+# LLM-judge calls go straight to OpenAI, deliberately bypassing the Braintrust
+# gateway and any OPENAI_BASE_URL override — see ADR-0007 before changing this.
+_JUDGE_BASE_URL = "https://api.openai.com/v1"
 
 _TEMPLATE_VAR_RE = re.compile(r"\{\{(expected\.\w+|input)\}\}")
 
@@ -43,6 +49,18 @@ def resolve_function(dotpath: str, *, label: str = "scorer") -> Callable[..., An
     return func
 
 
+def _build_judge_client() -> OpenAI:
+    """Build the OpenAI client injected into every LLM-judge scorer."""
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "OPENAI_API_KEY is not set. The eval LLM-judge client calls "
+            f"{_JUDGE_BASE_URL} directly; set OPENAI_API_KEY to run "
+            "llm_judge scorers."
+        )
+    return OpenAI(api_key=api_key, base_url=_JUDGE_BASE_URL)
+
+
 def _build_llm_judge(scorer_config: ScorerConfig) -> Callable[..., Any]:
     """Construct an autoevals LLM classifier from scenario config.
 
@@ -62,6 +80,8 @@ def _build_llm_judge(scorer_config: ScorerConfig) -> Callable[..., Any]:
         choice_scores=choice_scores,
         use_cot=scorer_config.use_cot,
         model=scorer_config.model,
+        temperature=scorer_config.temperature,
+        client=_build_judge_client(),
     )
 
     template_vars = _TEMPLATE_VAR_RE.findall(scorer_config.rubric)

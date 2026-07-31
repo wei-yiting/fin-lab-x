@@ -50,7 +50,10 @@ def test_resolve_scorers_raises_import_error_for_missing_function() -> None:
         resolve_scorers([scorer_config])
 
 
-def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) -> None:
+def _capture_llm_classifier(
+    monkeypatch: pytest.MonkeyPatch,
+) -> dict[str, Any]:
+    """Monkeypatch scorer_registry.LLMClassifier and capture its kwargs."""
     from backend.evals import scorer_registry
 
     captured: dict[str, Any] = {}
@@ -64,16 +67,23 @@ def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) 
             choice_scores: dict[str, float],
             use_cot: bool,
             model: str | None = None,
+            temperature: float,
+            client: Any,
         ) -> None:
             captured["name"] = name
             captured["prompt_template"] = prompt_template
             captured["choice_scores"] = choice_scores
             captured["use_cot"] = use_cot
             captured["model"] = model
+            captured["temperature"] = temperature
+            captured["client"] = client
 
     monkeypatch.setattr(scorer_registry, "LLMClassifier", FakeLLMClassifier)
+    return captured
 
-    scorer_config = ScorerConfig(
+
+def _judge_config() -> ScorerConfig:
+    return ScorerConfig(
         name="judge_score",
         type="llm_judge",
         rubric="Judge whether the answer follows the policy.",
@@ -82,17 +92,82 @@ def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) 
         choice_scores={"Y": 1.0, "N": 0.0},
     )
 
-    scorers = scorer_registry.resolve_scorers([scorer_config])
+
+def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    captured = _capture_llm_classifier(monkeypatch)
+
+    scorers = scorer_registry.resolve_scorers([_judge_config()])
 
     assert len(scorers) == 1
     assert callable(scorers[0])
+    client = captured.pop("client")
+    assert client.api_key == "sk-test-openai"
+    assert str(client.base_url) == "https://api.openai.com/v1/"
     assert captured == {
         "name": "judge_score",
         "prompt_template": "Judge whether the answer follows the policy.",
         "choice_scores": {"Y": 1.0, "N": 0.0},
         "use_cot": True,
         "model": "gpt-4.1",
+        "temperature": 0.0,
     }
+
+
+def test_llm_judge_uses_openai_key_when_braintrust_key_is_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    monkeypatch.setenv("BRAINTRUST_API_KEY", "sk-test-braintrust")
+    captured = _capture_llm_classifier(monkeypatch)
+
+    scorer_registry.resolve_scorers([_judge_config()])
+
+    client = captured["client"]
+    assert client.api_key == "sk-test-openai"
+    assert str(client.base_url) == "https://api.openai.com/v1/"
+
+
+def test_llm_judge_ignores_openai_base_url_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://api.braintrust.dev/v1/proxy")
+    captured = _capture_llm_classifier(monkeypatch)
+
+    scorer_registry.resolve_scorers([_judge_config()])
+
+    assert str(captured["client"].base_url) == "https://api.openai.com/v1/"
+
+
+def test_llm_judge_fails_fast_without_openai_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    _capture_llm_classifier(monkeypatch)
+
+    with pytest.raises(ValueError, match="OPENAI_API_KEY") as exc_info:
+        scorer_registry.resolve_scorers([_judge_config()])
+
+    assert "judge" in str(exc_info.value)
+    assert "https://api.openai.com/v1" in str(exc_info.value)
+
+
+def test_scorer_config_rejects_temperature_on_programmatic_scorer() -> None:
+    with pytest.raises(ValueError, match="temperature"):
+        ScorerConfig(
+            name="tool_arg_no_cjk",
+            function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
+            temperature=0.5,
+        )
 
 
 def test_resolve_scorers_rejects_llm_judge_without_rubric() -> None:

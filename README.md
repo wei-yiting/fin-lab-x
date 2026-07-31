@@ -18,9 +18,8 @@ Arms are compared on the same golden dataset under a pinned model, so a score de
 attributable to the capability set, never the model.
 
 ```mermaid
-flowchart LR
-    subgraph Arms["Workflow Profiles — experiment arms"]
-        direction TB
+flowchart TB
+    subgraph Arms["Workflow Profiles — experiment arms (config only)"]
         P1["baseline<br/>quotes · news · SEC reads"]
         P2["reader<br/>+ RAG over 10-Ks (Qdrant)"]
         P3["quant<br/>+ text-to-SQL (DuckDB)"]
@@ -28,65 +27,47 @@ flowchart LR
     end
 
     subgraph Core["Shared agent core — identical across arms"]
-        direction TB
-        LOADER["ProfileConfigLoader<br/>one arm per run:<br/>model · prompt · tools[] · budgets"]
-        ORCH["Orchestrator<br/>LangGraph ReAct + middleware"]
+        LOADER["ProfileConfigLoader<br/>one arm per run: model ·<br/>prompt · tools[] · budgets"]
         REG["Tool registry<br/>resolves tools[] by name"]
-        LOADER --> ORCH
-        REG --> ORCH
+        ORCH["Orchestrator<br/>LangGraph ReAct + middleware"]
     end
 
     subgraph Caps["Capabilities — three data layers"]
-        direction TB
         FINN["Finnhub<br/>quotes"]
         TAV["Tavily<br/>news search"]
         SECQ["SEC 10-K RAG<br/>Qdrant + JIT"]
         DUCK["DuckDB<br/>text-to-SQL"]
     end
 
-    subgraph GenUI["Generative UI — streaming end to end"]
-        direction LR
-        SSE["FastAPI /chat<br/>SSE · UIMessage<br/>Stream v1"]
-        HOOK["AI SDK<br/>useChat"]
-        RENDER["reasoning chips ·<br/>tool cards · streamed<br/>markdown + sources"]
-        SSE --> HOOK --> RENDER
-    end
-
-    subgraph Measure["Measure the effect"]
-        direction LR
-        LF["Tracing<br/>span tree per run"]
-        BT["Braintrust compare<br/>score Δ = effect of<br/>the capability set"]
-    end
+    GENUI["Generative UI — streaming end to end<br/>FastAPI SSE · UIMessage Stream v1 → AI SDK useChat<br/>→ reasoning chips · tool cards · streamed markdown + sources"]
+    MEASURE["Measure the effect<br/>tracing span tree per run · Braintrust compare:<br/>score Δ = effect of the capability set (same golden dataset · pinned model)"]
 
     P1 -- "one arm<br/>loaded per run" --> LOADER
     P2 ~~~ LOADER
-    P3 ~~~ LOADER
-    P4 ~~~ LOADER
+    P3 ~~~ REG
+    P4 ~~~ REG
+    LOADER --> ORCH
+    REG --> ORCH
     ORCH -- "tool calls: only the<br/>arm's granted tools" --> FINN
     ORCH --> TAV & SECQ
     ORCH -.->|planned| DUCK
-    ORCH == "domain events<br/>→ SSE" ==> SSE
-    ORCH -. "every run traced" .-> LF
-    ORCH -- "eval runs: same golden dataset ·<br/>pinned model across arms" --> BT
+    ORCH == "domain events → SSE" ==> GENUI
+    ORCH -- "every run traced ·<br/>eval runs" --> MEASURE
 
     classDef arm fill:#fef3c7,stroke:#d97706,color:#78350f
     classDef core fill:#ede9fe,stroke:#7c3aed,color:#3b2764
     classDef cap fill:#dcfce7,stroke:#16a34a,color:#14532d
     classDef planned fill:#f1f5f9,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
-    classDef measure fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
-    classDef ui fill:#f8fafc,stroke:#64748b,color:#334155
+    classDef plain fill:#f8fafc,stroke:#64748b,color:#334155
     class P1,P2,P3 arm
     class P4 planned
     class LOADER,ORCH,REG core
     class FINN,TAV,SECQ cap
     class DUCK planned
-    class LF,BT measure
-    class SSE,HOOK,RENDER ui
+    class GENUI,MEASURE plain
     style Arms fill:transparent,stroke:#d97706
     style Core fill:transparent,stroke:#7c3aed
     style Caps fill:transparent,stroke:#16a34a
-    style GenUI fill:transparent,stroke:#64748b
-    style Measure fill:transparent,stroke:#2563eb
 ```
 
 **The experiment arms** — a profile is a config directory
@@ -304,4 +285,3 @@ behind its own design doc and verification plan before merge.
 
 - **Article — [RAG Is Not Just Vector Search: Entity Mismatch in 10-K Retrieval](https://medium.com/@wytdong/rag-%E4%B8%8D%E5%8F%AA%E6%98%AF-vector-search-%E5%BE%9E-10-k-%E6%AA%A2%E7%B4%A2%E7%9A%84%E5%AF%A6%E9%AB%94%E9%8C%AF%E8%AA%A4-%E8%AB%87-metadata-filtering-%E7%9A%84%E4%B8%89%E5%B1%A4%E5%A5%91%E7%B4%84-30db7e644a5c)** (Medium) — an 18-query controlled experiment on metadata pre-filtering and tenant-aware indexing, run on this repo's SEC corpus.
 - **Talk — [Agent Observability & Evaluation](https://docs.google.com/presentation/d/103yxXhcqoV-vw3QB00NKDVfVbI41nchdMlZ3a702l6E/present)** — tracing, evaluation datasets, and failure analysis for LLM agents, drawn from this project's observability and eval work.
-- **Talk — Harness Engineering** — feedforward guides, feedback sensors, and verifiable goals for agentic coding workflows.

@@ -703,7 +703,7 @@ class Orchestrator:
 
         config: RunnableConfig = {
             "callbacks": [handler],
-            "run_name": "chat_turn",
+            "run_name": "langgraph_turn",
             "metadata": metadata,
         }
         return config, propagation

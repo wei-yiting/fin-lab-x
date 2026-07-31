@@ -609,7 +609,7 @@ class TestLangfuseTraceMetadata:
             await orch.arun("test", session_id="sess-1", request_id="req-1")
 
             config_arg = agent.ainvoke.call_args[1]["config"]
-            assert config_arg["run_name"] == "chat_turn"
+            assert config_arg["run_name"] == "langgraph_turn"
             metadata = config_arg["metadata"]
             assert metadata["langfuse_trace_name"] == "baseline_invoke"
             assert metadata["request_id"] == "req-1"
@@ -647,7 +647,7 @@ class TestLangfuseTraceMetadata:
                 pass
 
         config_arg = captured_kwargs["config"]
-        assert config_arg["run_name"] == "chat_turn"
+        assert config_arg["run_name"] == "langgraph_turn"
         metadata = config_arg["metadata"]
         assert metadata["langfuse_trace_name"] == "baseline_stream"
         assert metadata["request_id"] == "req-1"

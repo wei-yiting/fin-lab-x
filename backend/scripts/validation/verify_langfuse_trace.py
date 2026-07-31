@@ -9,8 +9,9 @@ Langfuse SDK API client (``get_client().api.trace.get``) and asserts:
 - A root span (``parentObservationId is null``) exists and carries the
   ``reasoning`` metadata key (always-write-key contract).
 - With ``--expect-reasoning-on`` (required): the transcript is non-empty,
-  is not the ``"<unsupported>"`` sentinel, and contains at least one
-  ``=== segment N ===`` marker.
+  is not the ``"<unsupported>"`` sentinel, contains at least one
+  ``=== segment N ===`` marker, and carries non-whitespace text outside the
+  marker lines (a marker-only transcript is a regression).
 - When ``--expect-aborted`` is passed, the root span additionally carries
   ``metadata.status == "aborted"`` and the transcript must end with the
   ``=== aborted ===`` marker (the scripted abort scenario cancels
@@ -30,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from typing import Any, Iterable
@@ -43,6 +45,18 @@ SEGMENT_MARKER = "=== segment 1 ==="
 ABORTED_MARKER = "=== aborted ==="
 POLL_ATTEMPTS = 5
 POLL_INITIAL_DELAY_SECONDS = 1.0
+
+_MARKER_LINE_RE = re.compile(r"^=== (segment \d+|aborted) ===$")
+
+
+def _has_segment_text(value: str) -> bool:
+    """True when at least one non-marker line carries non-whitespace text.
+
+    Guards against marker-only transcripts (e.g. ``"=== segment 1 ===\\n"``)
+    that are non-empty and marker-bearing but contain no actual reasoning."""
+    return any(
+        line.strip() and not _MARKER_LINE_RE.match(line) for line in value.splitlines()
+    )
 
 
 def fetch_trace(trace_id: str) -> dict[str, Any]:
@@ -110,6 +124,8 @@ def verify(
             errors.append("expected non-empty reasoning transcript, got ''")
         elif SEGMENT_MARKER not in value:
             errors.append(f"transcript carries no {SEGMENT_MARKER!r} segment marker")
+        elif not _has_segment_text(value):
+            errors.append("transcript segments carry no non-whitespace text")
 
     if expect_aborted:
         if meta.get("status") != "aborted":

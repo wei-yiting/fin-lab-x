@@ -43,10 +43,12 @@ are yielded; the transcript value contract is documented in
 
 Two termination hooks around `agent.astream()`:
 
-- **Natural termination** — the transcript is written once to the root span's
-  `metadata.reasoning` (holding the span reference makes the write
-  deterministic — no OTel current-span lookup), then `mapper.finalize()`
-  closes any open reasoning part / text block and emits a `Finish` event.
+- **Natural termination** — `mapper.finalize()` first closes any pending
+  reasoning part / text block and emits a `Finish` event; those closing
+  events are observed by the accumulator, then the transcript is written
+  once (best-effort) to the root span's `metadata.reasoning` (holding the
+  span reference makes the write deterministic — no OTel current-span
+  lookup), and finally the closing frames are yielded to the client.
 - **User abort (`asyncio.CancelledError`)** — `_handle_abort_cleanup()` runs
   synchronously by design; sync code is not interruptible by `CancelledError`
   so cleanup completes even while the parent task is being cancelled. One

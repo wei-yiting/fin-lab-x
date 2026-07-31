@@ -73,17 +73,27 @@ class ReasoningTranscriptAccumulator:
         ``aborted=True`` appends the aborted marker only when a segment is
         still open — a conversation aborted between segments has a complete
         transcript and carries no marker.
+
+        Only segments that carried text are rendered (numbered 1..K over the
+        kept list): a provider reasoning block that emitted zero delta text
+        must not fabricate a non-empty transcript. Whitespace-only deltas
+        still count as text. An abort while an *empty* segment is open still
+        carries the marker — the marker signals "a segment was in flight",
+        independent of whether that segment ever produced text.
         """
         if self._capability == "unsupported":
             return self.UNSUPPORTED_SENTINEL
 
+        kept = [text for text in self._segments if text != ""]
         body = "\n".join(
-            f"=== segment {i} ===\n{text}"
-            for i, text in enumerate(self._segments, start=1)
+            f"=== segment {i} ===\n{text}" for i, text in enumerate(kept, start=1)
         )
-        # An abort mid-segment always has at least one segment, so the marker
-        # can unconditionally join with "\n".
-        marker_suffix = f"\n{self.ABORTED_MARKER}" if (aborted and self._open) else ""
+        if aborted and self._open:
+            # An empty open segment renders no body of its own, so the
+            # marker may stand alone (no leading newline on an empty body).
+            marker_suffix = f"\n{self.ABORTED_MARKER}" if body else self.ABORTED_MARKER
+        else:
+            marker_suffix = ""
         return self._cap(body, marker_suffix)
 
     @classmethod

@@ -113,6 +113,20 @@ def test_expect_reasoning_on_fails_when_no_segment_marker(
     assert code != 0
 
 
+def test_expect_reasoning_on_fails_with_marker_only_transcript(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A transcript that is only a segment header with no reasoning text
+    (zero-delta reasoning block) must not pass as a real transcript."""
+    _install_fake_fetch(
+        monkeypatch, _trace([_root_span(reasoning="=== segment 1 ===\n")])
+    )
+
+    code = vlt.main(["trace-abc", "--expect-reasoning-on"])
+
+    assert code != 0
+
+
 def test_expect_reasoning_on_fails_when_metadata_reasoning_key_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

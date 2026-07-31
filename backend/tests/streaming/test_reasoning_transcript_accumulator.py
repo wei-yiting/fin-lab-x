@@ -61,6 +61,42 @@ class TestTranscriptShape:
         assert acc.value() == "=== segment 1 ===\norphan"
 
 
+class TestEmptySegmentFiltering:
+    def test_start_end_with_no_delta_renders_empty_transcript(self):
+        acc = _accumulator()
+        acc.observe(ReasoningStart(reasoning_id="reasoning-0"))
+        acc.observe(ReasoningEnd(reasoning_id="reasoning-0"))
+        assert acc.value() == ""
+
+    def test_empty_segment_between_text_segments_is_dropped_and_renumbered(self):
+        acc = _accumulator()
+        _feed_segment(acc, "reasoning-0", ["first"])
+        _feed_segment(acc, "reasoning-1", [])
+        _feed_segment(acc, "reasoning-2", ["third"])
+        assert acc.value() == "=== segment 1 ===\nfirst\n=== segment 2 ===\nthird"
+
+    def test_whitespace_only_delta_segment_is_kept(self):
+        acc = _accumulator()
+        _feed_segment(acc, "reasoning-0", ["  \n"])
+        assert acc.value() == "=== segment 1 ===\n  \n"
+
+    def test_abort_while_empty_segment_open_keeps_marker_without_phantom_segment(
+        self,
+    ):
+        # D6 nuance: the marker signals "a segment was in flight at abort",
+        # independent of whether it carried text — but an empty open segment
+        # must not render a phantom header.
+        acc = _accumulator()
+        _feed_segment(acc, "reasoning-0", ["done"])
+        acc.observe(ReasoningStart(reasoning_id="reasoning-1"))
+        assert acc.value(aborted=True) == "=== segment 1 ===\ndone\n=== aborted ==="
+
+    def test_abort_while_only_segment_is_empty_and_open_yields_bare_marker(self):
+        acc = _accumulator()
+        acc.observe(ReasoningStart(reasoning_id="reasoning-0"))
+        assert acc.value(aborted=True) == "=== aborted ==="
+
+
 class TestCapabilityValues:
     def test_unsupported_returns_sentinel(self):
         acc = _accumulator("unsupported")

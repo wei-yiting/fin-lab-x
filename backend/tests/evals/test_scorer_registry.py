@@ -170,6 +170,36 @@ def test_scorer_config_rejects_temperature_on_programmatic_scorer() -> None:
         )
 
 
+def test_scorer_config_rejects_explicit_zero_temperature_on_programmatic_scorer() -> (
+    None
+):
+    with pytest.raises(ValueError, match="temperature"):
+        ScorerConfig(
+            name="tool_arg_no_cjk",
+            function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
+            temperature=0.0,
+        )
+
+
+def test_scorer_config_rejects_out_of_range_temperature_on_llm_judge() -> None:
+    with pytest.raises(ValueError, match="less than or equal to 2"):
+        ScorerConfig(
+            name="judge_score",
+            type="llm_judge",
+            rubric="Rate the answer.",
+            temperature=2.5,
+        )
+
+
+def test_scorer_config_allows_programmatic_scorer_without_temperature() -> None:
+    scorer_config = ScorerConfig(
+        name="tool_arg_no_cjk",
+        function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
+    )
+
+    assert scorer_config.temperature == 0.0
+
+
 def test_resolve_scorers_rejects_llm_judge_without_rubric() -> None:
     from backend.evals.scorer_registry import resolve_scorers
 

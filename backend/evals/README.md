@@ -23,7 +23,7 @@ Use this rule:
 This is the primary flow for dataset-based quality evaluation.
 
 ```bash
-# Local mode (default — no upload, no API key needed)
+# Local mode (default — needs OPENAI_API_KEY, but no BRAINTRUST_API_KEY)
 uv run python -m backend.evals.eval_runner language_policy
 
 # Upload mode (creates a Braintrust experiment)
@@ -165,6 +165,7 @@ scorers:
     rubric: string              # Mustache template, can use {{input}}, {{expected.field}}
     model: string               # (optional) LLM model, e.g. "gpt-4o"
     use_cot: bool               # (optional) Chain-of-thought before scoring, default false
+    temperature: float          # (optional) Judge sampling temperature, default 0.0; llm_judge only
     choice_scores:              # (optional) LLM choice → score mapping, default {"Y": 1.0, "N": 0.0}
       Y: 1.0
       N: 0.0

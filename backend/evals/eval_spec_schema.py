@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 
 class ScorerConfig(BaseModel):
@@ -18,7 +18,7 @@ class ScorerConfig(BaseModel):
     rubric: str | None = None
     model: str | None = None
     use_cot: bool = False
-    temperature: float = 0.0
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0, allow_inf_nan=False)
     choice_scores: dict[str, float] | None = None
 
     @model_validator(mode="after")
@@ -47,7 +47,7 @@ class ScorerConfig(BaseModel):
                 )
             if self.use_cot:
                 raise ValueError("Programmatic ScorerConfig must not set use_cot")
-            if self.temperature != 0.0:
+            if "temperature" in self.model_fields_set:
                 raise ValueError("Programmatic ScorerConfig must not set temperature")
             return self
 

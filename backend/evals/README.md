@@ -18,26 +18,25 @@ Use this rule:
 
 ## Diagnostic Human Review
 
-`baseline_behavior_diagnostic` 是一條獨立的人工診斷軌，不是 golden-answer scoring，也不是 LLM judge。
+`baseline_behavior_diagnostic` is a standalone human-diagnostic track — not golden-answer scoring, not an LLM judge.
 
-- 自動半場：deterministic execution scorer，隨一般 Quality Track 指令執行
-- 人工半場：annotation loop 依 ADR-0005 統一於 Braintrust 重建（DEV-115）；reviewer score
-  schema 與 session-id join 契約見 scenario README
+- Automatic half: a deterministic execution scorer, run via the normal Quality Track command
+- Human half: the annotation loop is being rebuilt on Braintrust per ADR-0005 (DEV-115); the reviewer score schema and session-id join contract are documented in the scenario README
 
-常用指令：
+Common commands:
 
 ```bash
-# Full local diagnostic run（預設不上傳）
+# Full local diagnostic run (no upload by default)
 uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic
 
-# Row-id subset（修完 bug 快速重跑）
+# Row-id subset (fast rerun after a fix)
 uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --row-ids 1 --run-label smoke-local
 
-# 上傳 Braintrust 成為 experiment
+# Upload to Braintrust as an experiment
 uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --upload --run-label smoke-platform
 ```
 
-Braintrust Project Settings 應設定穩定的 diagnostic comparison key，例如 `row_id`。這樣 compare UI 才會對齊同一筆 dataset row，而不是只靠 trace 順序或 experiment 內部索引。
+Braintrust Project Settings should set a stable diagnostic comparison key, e.g. `row_id`, so the compare UI aligns the same dataset row instead of relying on trace order or an experiment's internal index.
 
 ## Running Evaluations
 

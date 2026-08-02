@@ -77,12 +77,12 @@ Key rules:
 
 ### Diagnostic review split
 
-`baseline_behavior_diagnostic` 另外建立一個 dual-surface review flow：
+`baseline_behavior_diagnostic` additionally establishes a dual-surface review flow:
 
-- **Braintrust**: execution run、slice compare、trace drill-down、operator-facing experiment summaries
-- **Human annotation**: 依 ADR-0005 統一於 Braintrust 重建（DEV-115）——score configs 走 `project_scores` API、export join 走 BTQL；reviewer score schema 為 platform-neutral 契約（見 scenario README）
+- **Braintrust**: execution run, slice compare, trace drill-down, operator-facing experiment summaries
+- **Human annotation**: being rebuilt on Braintrust per ADR-0005 (DEV-115) — score configs via the `project_scores` API, export join via BTQL; the reviewer score schema is a platform-neutral contract (see scenario README)
 
-這條 diagnostic track 不會把人工 annotation 混進 execution scorer——reviewer observation 與 deterministic score 是分離的 contract。
+This diagnostic track never mixes human annotation into the execution scorer — reviewer observation and deterministic score are separate contracts.
 
 ### Eval runner assembly flow
 

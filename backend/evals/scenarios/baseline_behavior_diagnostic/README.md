@@ -1,74 +1,79 @@
 # baseline_behavior_diagnostic
 
-`baseline_behavior_diagnostic` 是 baseline behavior diagnostic（對接近 baseline 規格的 agent 做執行行為健康檢查）的人工診斷 eval scenario。它固定 dataset identity，並用 deterministic scorer 只記錄 execution / tool-call health，不評斷答案品質。
+`baseline_behavior_diagnostic` is the human-diagnostic eval scenario for baseline behavior diagnostic — an execution-behavior health check on an agent close to the baseline spec. It pins dataset identity and uses a deterministic scorer to record only execution / tool-call health, not answer quality.
 
 ## Scenario Contract
 
-- `dataset.csv`: scenario-local dataset copy；內容必須與來源 dataset row 完全一致
-- `eval_spec.yaml`: scenario config，包含 `diagnostic` identity block
+- `dataset.csv`: scenario-local dataset copy; content must match the source dataset row exactly
+- `eval_spec.yaml`: scenario config, including the `diagnostic` identity block
 - scorer: `diagnostic_execution_health`
 
-`diagnostic` block 目前固定以下欄位：
+The `diagnostic` block currently fixes these fields:
 
 - `dataset_name`
 - `dataset_version`
 - `agent_version`
 
-Diagnostic dataset 採固定欄位命名慣例：dataset MUST 具備 `id`（row identity）與
-`question`（prompt）兩個欄位。未來的 diagnostic dataset 一律沿用此命名——欄位名稱的
-configurability（`row_id_column` / `question_column`）是刻意移除的。
+Diagnostic datasets follow a fixed column-naming convention: a dataset MUST have an
+`id` (row identity) and a `question` (prompt) column. Future diagnostic datasets always
+follow this naming — column-name configurability (`row_id_column` / `question_column`)
+was deliberately removed.
 
-## Human Review Schema（platform-neutral contract）
+## Human Review Schema (platform-neutral contract)
 
-人工半場的 annotation loop 依 ADR-0005 統一於 Braintrust 重建（DEV-115）；本目錄不再包含
-annotation 佈建與 export join 工具。以下 reviewer score schema 是 platform-neutral 的契約，
-DEV-115 重建 score configs 時沿用：
+The human-review half of the annotation loop is being rebuilt on Braintrust per
+ADR-0005 (DEV-115); this directory no longer includes annotation-provisioning or
+export-join tooling. The reviewer score schema below is a platform-neutral contract
+that DEV-115 will reuse when rebuilding the score configs:
 
-第一輪 triage：
+First-pass triage:
 
-- `triage_outcome`: `good` / `bad`——先把明顯 good 的 traces filter 掉，只有 `bad` 或需要
-  追蹤的 traces 再補完整診斷欄位，降低 annotation noise。
+- `triage_outcome`: `good` / `bad` — filter out obviously-good traces first; only
+  `bad` or traces needing follow-up get the full diagnostic fields, reducing
+  annotation noise.
 
-第二輪完整診斷（人工標註至少包含）：
+Second-pass full diagnosis (human annotation includes at least):
 
 - `observed_outcome`
 - `observed_alignment_to_prompt`
 - `review_confidence`
 - `review_comment`
 
-可選欄位：
+Optional fields:
 
-- 其他 `observed_*` 欄位（`observed_primary_failure_mechanism`、`obs_secondary_failure_mechanism`、`observed_tuning_lever`）
+- other `observed_*` fields (`observed_primary_failure_mechanism`, `obs_secondary_failure_mechanism`, `observed_tuning_lever`)
 - `needs_followup`
 - `followup_note`
 
-這些欄位是 reviewer observation contract，不應由 execution scorer 預填，也不應混進 dataset
-reference hints。
+These fields are the reviewer observation contract — they must not be pre-filled by
+the execution scorer, and must not be mixed into dataset reference hints.
 
 ## Execution Health Scorer
 
-`diagnostic_execution_health` 只看 execution 是否完成、以及所有 tool call 是否成功：
+`diagnostic_execution_health` only looks at whether execution completed and whether all tool calls succeeded:
 
-- `execution_complete`: stream 有發出非 error 的 `Finish` event（`finished_normally` flag）
-- `tool_call_all_successful`: 所有 recorded tool call 的 `error` 欄位皆為空
-- `tool_error_names`: 失敗 tool 的名稱列表
+- `execution_complete`: the stream emitted a non-error `Finish` event (`finished_normally` flag)
+- `tool_call_all_successful`: every recorded tool call's `error` field is empty
+- `tool_error_names`: names of the tools that failed
 
-只有當 `execution_complete=true` 且 `tool_call_all_successful=true` 時，score 才會是 `1`；否則為 `0`。
+The score is `1` only when both `execution_complete=true` and `tool_call_all_successful=true`; otherwise `0`.
 
 ## Notes
 
-- 這個 scenario 不使用 LLM judge
-- 這個 scenario 的 scorer 不讀 reference answer hints，也不評斷回答內容好壞
+- This scenario does not use an LLM judge
+- This scenario's scorer does not read reference answer hints, and does not judge answer content
 
 ## Annotation Join Contract
 
-人工標註要能 join 回 dataset 原始列，靠的是 deterministic session id：
+Human annotations join back to the original dataset row via a deterministic session id:
 
 ```
 {dataset_name}::{run_label}::{row_id}
 ```
 
-join 端（DEV-115 的 BTQL joiner）必須 parse 這個字串並驗證三段皆吻合，而不是拼字串比對。
-沒有 annotation 的列，reviewer 欄位留空。
+The join side (DEV-115's BTQL joiner) must parse this string and verify all three
+segments match, not just compare it as a raw string. Rows with no annotation leave
+the reviewer fields blank.
 
-Braintrust Project Settings 應設定穩定的 comparison key（例如 `row_id`），compare UI 才會對齊同一筆 dataset row。
+Braintrust Project Settings should set a stable comparison key (e.g. `row_id`) so the
+compare UI aligns the same dataset row.

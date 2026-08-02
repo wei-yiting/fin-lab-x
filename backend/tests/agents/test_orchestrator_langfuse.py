@@ -756,8 +756,8 @@ class TestLangfuseTraceMetadata:
             "reference_best_source": "mixed",
             "reference_likely_tuning_lever": "tool_description",
             "reference_pass_signals": [
-                "區分已發生行動與潛在壓力",
-                "不要把媒體推測當成已落地結果",
+                "Distinguish actions already taken from potential pressure",
+                "Do not treat media speculation as a confirmed outcome",
             ],
         }
 
@@ -781,7 +781,7 @@ class TestLangfuseTraceMetadata:
         assert metadata["request_id"] == "req-1"
         assert metadata["reference_secondary_failure_mechanism"] is None
         assert metadata["reference_pass_signals"] == (
-            '["區分已發生行動與潛在壓力", "不要把媒體推測當成已落地結果"]'
+            '["Distinguish actions already taken from potential pressure", "Do not treat media speculation as a confirmed outcome"]'
         )
 
     @pytest.mark.asyncio

@@ -197,7 +197,7 @@ def test_astream_collect_records_tool_errors_in_tool_outputs(
     from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
 
     result = asyncio.run(
-        run_baseline_behavior_diagnostic({"question": "UNH 發生什麼事？"})
+        run_baseline_behavior_diagnostic({"question": "What happened with UNH?"})
     )
 
     assert result["tool_outputs"] == [
@@ -223,10 +223,14 @@ def test_run_baseline_behavior_diagnostic_extracts_question_field(
 
     from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
 
-    asyncio.run(run_baseline_behavior_diagnostic({"question": "Disney 最近怎麼了？"}))
+    asyncio.run(
+        run_baseline_behavior_diagnostic(
+            {"question": "What's going on with Disney lately?"}
+        )
+    )
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
-    assert call_kwargs["message"] == "Disney 最近怎麼了？"
+    assert call_kwargs["message"] == "What's going on with Disney lately?"
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
@@ -246,7 +250,7 @@ def test_run_baseline_behavior_diagnostic_forwards_session_and_trace_metadata(
     asyncio.run(
         run_baseline_behavior_diagnostic(
             {
-                "question": "AMD 最近怎麼了？",
+                "question": "What's going on with AMD lately?",
                 "session_id": "baseline_behavior_diagnostic::baseline::17",
                 "trace_metadata": {
                     "row_id": "17",
@@ -257,7 +261,7 @@ def test_run_baseline_behavior_diagnostic_forwards_session_and_trace_metadata(
     )
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
-    assert call_kwargs["message"] == "AMD 最近怎麼了？"
+    assert call_kwargs["message"] == "What's going on with AMD lately?"
     assert call_kwargs["session_id"] == "baseline_behavior_diagnostic::baseline::17"
     assert call_kwargs["trace_metadata"] == {
         "row_id": "17",
@@ -278,14 +282,14 @@ def test_astream_collect_uses_default_session_id_when_none_provided() -> None:
     asyncio.run(
         _astream_collect(
             mock_orchestrator,
-            "NVDA 最近怎麼了？",
+            "What's going on with NVDA lately?",
             session_id="sess-123",
             trace_metadata=None,
         )
     )
 
     assert mock_orchestrator.astream_run.call_args.kwargs == {
-        "message": "NVDA 最近怎麼了？",
+        "message": "What's going on with NVDA lately?",
         "session_id": "sess-123",
     }
 
@@ -313,7 +317,7 @@ def test_run_baseline_behavior_diagnostic_forwards_trace_metadata_and_session_id
         result = asyncio.run(
             run_baseline_behavior_diagnostic(
                 {
-                    "question": "UNH 發生什麼事？",
+                    "question": "What happened with UNH?",
                     "session_id": "baseline_behavior_diagnostic::baseline::1",
                     "trace_metadata": {"reference_best_source": "mixed"},
                 }
@@ -323,7 +327,7 @@ def test_run_baseline_behavior_diagnostic_forwards_trace_metadata_and_session_id
     mock_get_orch.assert_called_once_with("baseline")
     mock_collect.assert_awaited_once_with(
         mock_orchestrator,
-        "UNH 發生什麼事？",
+        "What happened with UNH?",
         session_id="baseline_behavior_diagnostic::baseline::1",
         trace_metadata={"reference_best_source": "mixed"},
     )

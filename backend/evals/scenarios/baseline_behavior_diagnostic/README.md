@@ -5,6 +5,11 @@
 ## Scenario Contract
 
 - `dataset.csv`: scenario-local dataset copy; content must match the source dataset row exactly
+- `dataset_zh.csv`: Traditional Chinese language mirror of `dataset.csv` — same 30 rows, ids,
+  and schema; only the free-text columns (`question`, `company_universe`,
+  `expected_answer_type`, `draft_pass_signals`, `why_baseline_might_fail_or_pass`) are
+  translated. Not wired into `eval_spec.yaml`; running the diagnostic against the Chinese
+  set requires pointing a spec at it explicitly. Keep the two files row-aligned when editing.
 - `eval_spec.yaml`: scenario config, including the `diagnostic` identity block
 - scorer: `diagnostic_execution_health`
 

@@ -1,22 +1,8 @@
 """Unit tests for language_policy programmatic scorers."""
 
-import pytest
 from autoevals import Score  # pyright: ignore[reportMissingImports]
 
-from backend.evals.eval_spec_schema import ScorerConfig
 from backend.evals.scenarios.language_policy.scorer import expected_tool_called
-
-
-def test_scorer_config_rejects_rubric_and_rubric_file_together() -> None:
-    """Python-level guard: the loader fills rubric FROM rubric_file, so a
-    directly constructed judge must not carry both."""
-    with pytest.raises(ValueError, match="both rubric and rubric_file"):
-        ScorerConfig(
-            name="judge",
-            type="llm_judge",
-            rubric="inline text",
-            rubric_file="rubric.md",
-        )
 
 
 class TestExpectedToolCalled:

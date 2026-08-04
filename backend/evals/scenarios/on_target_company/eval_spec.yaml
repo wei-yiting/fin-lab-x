@@ -2,6 +2,8 @@ name: on_target_company
 csv: dataset.csv
 
 regression:
+  # The judge has NOT been validated against human-labeled ground truth
+  # (no TPR/TNR measured). Calibration labels are owned by DEV-96.
   enabled: true
 
 task:

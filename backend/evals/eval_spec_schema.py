@@ -79,10 +79,6 @@ class ScorerConfig(BaseModel):
             raise ValueError("ScorerConfig type must be 'llm_judge'")
         if self.rubric is None and self.rubric_file is None:
             raise ValueError("llm_judge ScorerConfig must include rubric_file")
-        if self.rubric is not None and self.rubric_file is not None:
-            raise ValueError(
-                "llm_judge ScorerConfig must not set both rubric and rubric_file"
-            )
         if self.choice_scores is None:
             self.choice_scores = {"Y": 1.0, "N": 0.0}
         return self
@@ -211,12 +207,22 @@ def _resolve_rubric_files(config: ScenarioConfig, config_path: Path) -> Scenario
         if scorer.rubric_file is None:
             resolved.append(scorer)
             continue
+        if Path(scorer.rubric_file).is_absolute():
+            raise ValueError(
+                f"Invalid scenario config in {config_path}: rubric_file "
+                f"'{scorer.rubric_file}' must be a path relative to the "
+                "scenario directory, not absolute"
+            )
         rubric_path = config_path.parent / scorer.rubric_file
         if not rubric_path.is_file():
             raise ValueError(
                 f"Invalid scenario config in {config_path}: rubric_file "
                 f"'{scorer.rubric_file}' not found at {rubric_path}"
             )
+        # model_copy(update=...) intentionally bypasses validation: rubric is
+        # the engine-facing string populated post-validation, while exclusivity
+        # (no inline rubric in spec files) is enforced at the YAML boundary by
+        # _reject_inline_rubrics.
         resolved.append(
             scorer.model_copy(update={"rubric": rubric_path.read_text("utf-8")})
         )

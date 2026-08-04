@@ -79,7 +79,7 @@ Key rules:
 
 `baseline_behavior_diagnostic` additionally establishes a dual-surface review flow:
 
-- **Braintrust**: execution run, slice compare, trace drill-down, operator-facing experiment summaries
+- **Braintrust**: execution run, cross-run compare, trace drill-down, operator-facing experiment summaries
 - **Human annotation**: being rebuilt on Braintrust per ADR-0005 (DEV-115) — score configs via the `project_scores` API, export join via BTQL; the reviewer score schema is a platform-neutral contract (see scenario README)
 
 This diagnostic track never mixes human annotation into the execution scorer — reviewer observation and deterministic score are separate contracts.
@@ -124,7 +124,7 @@ graph LR
 | Result CSV default path | `results/` (relative to evals dir), overridable with `--output-dir` | Sensible default, reduces required arguments |
 | Task function return type | Full `OrchestratorResult` dict (not plain string) | Scorers like `tool_arg_no_cjk` need `output["tool_outputs"]` for inspection |
 | Config filename | `eval_spec.yaml` (not `config.yaml`) | More descriptive, avoids confusion with other config files |
-| Diagnostic compare identity | Stable `row_id`-based comparison key in Braintrust Project Settings | Cross-run compare must align the same dataset row across sliced diagnostic experiments |
+| Diagnostic compare identity | Stable `row_id`-based comparison key in Braintrust Project Settings | Cross-run compare must align the same dataset row across diagnostic experiments |
 | Diagnostic annotation join | Deterministic session id (`dataset::run_label::row_id`) parsed by the joiner (Braintrust BTQL, DEV-115) | Keeps review workflow explicit and deterministic; no platform-to-platform sync |
 
 ## Constraints & Tradeoffs

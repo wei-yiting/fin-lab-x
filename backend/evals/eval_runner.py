@@ -32,11 +32,7 @@ from backend.evals.dataset_loader import (
     load_dataset,
     load_raw_csv_rows,
 )
-from backend.evals.diagnostic.dataset_selector import (
-    parse_diagnostic_slice_args,
-    select_diagnostic_slice,
-)
-from backend.evals.diagnostic.models import DiagnosticSliceIdentity
+from backend.evals.diagnostic.row_selection import select_diagnostic_rows
 from backend.evals.eval_spec_schema import (
     BraintrustConfig,
     load_braintrust_config,
@@ -366,8 +362,6 @@ def run_scenario(
     output_dir: Path,
     scenarios_dir: Path = SCENARIOS_DIR,
     run_label: str | None = None,
-    run_group: str | None = None,
-    slice_label: str | None = None,
     row_ids: str | None = None,
 ) -> Path:
     """Execute a single evaluation scenario via Braintrust ``Eval()``.
@@ -391,7 +385,7 @@ def run_scenario(
     config_path = scenario_dir / "eval_spec.yaml"
     config = load_scenario_config(config_path)
 
-    diagnostic_flags = [run_label, run_group, slice_label, row_ids]
+    diagnostic_flags = [run_label, row_ids]
     if config.diagnostic is None and any(
         value is not None for value in diagnostic_flags
     ):
@@ -453,18 +447,14 @@ def run_scenario(
     else:
         diagnostic_config = config.diagnostic
         effective_run_label = run_label or _build_default_run_label()
-        effective_run_group = run_group or "manual"
         effective_agent_version = diagnostic_config.agent_version
 
-        slice_args = parse_diagnostic_slice_args(
-            row_ids=row_ids,
-            slice_label=slice_label,
-        )
-        selected_rows, slice_identity = select_diagnostic_slice(
+        selected_rows = select_diagnostic_rows(
             original_columns,
             original_rows,
-            slice_args,
+            row_ids,
         )
+        selected_row_ids = [row["id"] for row in selected_rows]
         diagnostic_data = _build_diagnostic_eval_rows(
             selected_rows=selected_rows,
             column_mapping=config.column_mapping,
@@ -472,18 +462,13 @@ def run_scenario(
             dataset_name=diagnostic_config.dataset_name,
             dataset_version=diagnostic_config.dataset_version,
             run_label=effective_run_label,
-            run_group=effective_run_group,
             agent_version=effective_agent_version,
             experiment_name=experiment_name,
-            slice_identity=slice_identity,
         )
         banner_line += (
             f" | Run label: {effective_run_label}"
-            f" | Run group: {effective_run_group}"
             f" | Git commit: {git_sha}"
-            f" | Slice label: {slice_identity.slice_label}"
-            f" | Slice type: {slice_identity.slice_type}"
-            f" | Rows: {len(selected_rows)}"
+            f" | Rows: {len(selected_rows)}/{len(original_rows)}"
         )
         print(banner_line, file=sys.stderr)
 
@@ -500,12 +485,10 @@ def run_scenario(
             "dataset_name": diagnostic_config.dataset_name,
             "dataset_version": diagnostic_config.dataset_version,
             "run_label": effective_run_label,
-            "run_group": effective_run_group,
-            "slice_label": slice_identity.slice_label,
-            "slice_type": slice_identity.slice_type,
-            "slice_selector": slice_identity.slice_selector,
-            "selected_row_ids": list(slice_identity.selected_row_ids),
-            "selected_row_count": len(selected_rows),
+            # A subset run must never be mistaken for an authoritative one:
+            # record exactly which rows ran and whether that was all of them.
+            "selected_row_ids": selected_row_ids,
+            "is_full_dataset": len(selected_rows) == len(original_rows),
             "agent_version": effective_agent_version,
             "git_commit": git_sha,
         }
@@ -563,10 +546,8 @@ def _project_diagnostic_metadata(
     dataset_name: str,
     dataset_version: str,
     run_label: str,
-    run_group: str,
     agent_version: str,
     experiment_name: str,
-    slice_identity: DiagnosticSliceIdentity,
 ) -> _DiagnosticMetadataProjection:
     """Project one canonical metadata bundle for diagnostic execution."""
     row_id = _require_diagnostic_str(row, "id")
@@ -577,10 +558,7 @@ def _project_diagnostic_metadata(
         "dataset_name": dataset_name,
         "dataset_version": dataset_version,
         "run_label": run_label,
-        "run_group": run_group,
         "agent_version": agent_version,
-        "slice_label": slice_identity.slice_label,
-        "slice_type": slice_identity.slice_type,
     }
 
     braintrust_metadata = {
@@ -591,7 +569,6 @@ def _project_diagnostic_metadata(
     langfuse_metadata = {
         **identity_metadata,
         "experiment_name": experiment_name,
-        "slice_selector": slice_identity.slice_selector,
         "reference_capability_band": capability_band,
         "reference_expected_behavior": _require_diagnostic_str(
             row, "expected_near_v1_behavior"
@@ -644,10 +621,8 @@ def _build_diagnostic_eval_rows(
     dataset_name: str,
     dataset_version: str,
     run_label: str,
-    run_group: str,
     agent_version: str,
     experiment_name: str,
-    slice_identity: DiagnosticSliceIdentity,
 ) -> list[dict[str, Any]]:
     """Build Eval rows for a diagnostic scenario.
 
@@ -664,10 +639,8 @@ def _build_diagnostic_eval_rows(
             dataset_name=dataset_name,
             dataset_version=dataset_version,
             run_label=run_label,
-            run_group=run_group,
             agent_version=agent_version,
             experiment_name=experiment_name,
-            slice_identity=slice_identity,
         )
         row_data = apply_column_mapping(raw_row, column_mapping, column_types)
         if not isinstance(row_data.get("input"), dict):
@@ -742,9 +715,13 @@ def main(
         "--output-dir", type=Path, default=None, help="Output directory for results"
     )
     parser.add_argument("--run-label", help="Diagnostic run label")
-    parser.add_argument("--run-group", help="Diagnostic run group")
-    parser.add_argument("--slice-label", help="Diagnostic slice label override")
-    parser.add_argument("--row-ids", help="Diagnostic comma-separated row ids")
+    parser.add_argument(
+        "--row-ids",
+        help=(
+            "Diagnostic comma-separated row ids — for smoke runs, debugging, and "
+            "failed-row reruns only. Authoritative runs use the full dataset."
+        ),
+    )
 
     args = parser.parse_args(argv)
 
@@ -754,12 +731,7 @@ def main(
     if not args.all and not args.scenario:
         parser.error("Provide a scenario name or use --all")
 
-    diagnostic_only_flags = [
-        args.run_label,
-        args.run_group,
-        args.slice_label,
-        args.row_ids,
-    ]
+    diagnostic_only_flags = [args.run_label, args.row_ids]
     if args.all and any(value is not None for value in diagnostic_only_flags):
         # Without this guard the --all loop would swallow the per-scenario
         # ValueError as SKIPPED and exit 0.
@@ -790,8 +762,6 @@ def main(
                     output_dir=output_dir,
                     scenarios_dir=scenarios_dir,
                     run_label=args.run_label,
-                    run_group=args.run_group,
-                    slice_label=args.slice_label,
                     row_ids=args.row_ids,
                 )
                 print(f"  {name}: {result_path}")
@@ -823,8 +793,6 @@ def main(
         output_dir=output_dir,
         scenarios_dir=scenarios_dir,
         run_label=args.run_label,
-        run_group=args.run_group,
-        slice_label=args.slice_label,
         row_ids=args.row_ids,
     )
     print(f"Result: {result_path}")

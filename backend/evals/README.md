@@ -29,7 +29,10 @@ Common commands:
 # Full local diagnostic run (no upload by default)
 uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic
 
-# Row-id subset (fast rerun after a fix)
+# Row-id subset — smoke runs, debugging, and failed-row reruns only.
+# Authoritative runs and cross-version comparisons use the full dataset. A subset
+# run records `selected_row_ids` and `is_full_dataset: false` in its experiment
+# metadata, so its numbers can never be read as representing the whole dataset.
 uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --row-ids 1 --run-label smoke-local
 
 # Upload to Braintrust as an experiment

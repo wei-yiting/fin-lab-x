@@ -804,7 +804,6 @@ class TestRunScenario:
             output_dir=output_dir,
             scenarios_dir=scenarios_dir,
             run_label="slice-run",
-            run_group="nightly",
             row_ids="2,1",
         )
 
@@ -870,8 +869,6 @@ class TestRunScenario:
                 output_dir=output_dir,
                 scenarios_dir=scenarios_dir,
                 run_label="slice-run",
-                run_group="nightly",
-                slice_label="focused-boundary",
                 row_ids="2",
             )
 
@@ -885,12 +882,9 @@ class TestRunScenario:
         assert eval_call["metadata"]["dataset_name"] == "baseline_behavior_diagnostic"
         assert eval_call["metadata"]["dataset_version"] == "2026-04-24"
         assert eval_call["metadata"]["run_label"] == "slice-run"
-        assert eval_call["metadata"]["run_group"] == "nightly"
-        assert eval_call["metadata"]["slice_label"] == "focused-boundary"
-        assert eval_call["metadata"]["slice_type"] == "row_ids"
-        assert eval_call["metadata"]["slice_selector"] == "2"
+        # A subset run must be self-identifying in the experiment record.
         assert eval_call["metadata"]["selected_row_ids"] == ["2"]
-        assert eval_call["metadata"]["selected_row_count"] == 1
+        assert eval_call["metadata"]["is_full_dataset"] is False
         assert eval_call["metadata"]["agent_version"] == "baseline"
         assert eval_call["metadata"]["git_commit"] == "12f85db"
         assert "slice_hash" not in eval_call["metadata"]
@@ -901,7 +895,6 @@ class TestRunScenario:
         braintrust_metadata = eval_cases[0].metadata
         assert braintrust_metadata["row_id"] == "2"
         assert braintrust_metadata["run_label"] == "slice-run"
-        assert braintrust_metadata["slice_label"] == "focused-boundary"
         # Identity separation: Braintrust metadata carries observed identity +
         # category/capability_band, never the reference_* projection.
         assert braintrust_metadata["category"] == "regulatory_or_legal_risk"
@@ -1003,7 +996,6 @@ class TestRunScenario:
             output_dir=tmp_path / "results",
             scenarios_dir=scenarios_dir,
             run_label="baseline",
-            run_group="baseline-behavior",
             row_ids="2",
         )
 
@@ -1019,9 +1011,6 @@ class TestRunScenario:
         )
         trace_metadata = task_calls[0]["trace_metadata"]
         assert trace_metadata["row_id"] == "2"
-        assert trace_metadata["slice_label"] == "rows-2"
-        assert trace_metadata["slice_type"] == "row_ids"
-        assert trace_metadata["slice_selector"] == "2"
         assert trace_metadata["reference_capability_band"] == "boundary"
         assert trace_metadata["reference_expected_behavior"] == "may_pass_with_tuning"
         assert (
@@ -1072,10 +1061,6 @@ class TestMainCli:
                 "baseline_behavior_diagnostic",
                 "--run-label",
                 "slice-run",
-                "--run-group",
-                "nightly",
-                "--slice-label",
-                "focused-boundary",
                 "--row-ids",
                 "2,1",
             ],
@@ -1085,8 +1070,6 @@ class TestMainCli:
 
         kwargs = mock_run_scenario.call_args.kwargs
         assert kwargs["run_label"] == "slice-run"
-        assert kwargs["run_group"] == "nightly"
-        assert kwargs["slice_label"] == "focused-boundary"
         assert kwargs["row_ids"] == "2,1"
 
     @patch("backend.evals.eval_runner.run_scenario")

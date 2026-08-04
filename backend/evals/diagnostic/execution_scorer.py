@@ -52,6 +52,11 @@ def execution_health(
         "metadata": {
             "execution_complete": execution_complete,
             "tool_call_all_successful": tool_call_all_successful,
+            # tool_call_all_successful is vacuously true when no tool ran at
+            # all — an agent answering from model memory is indistinguishable
+            # from a clean run without this count. Recorded, not scored:
+            # whether a question warranted a tool is a human-review judgement.
+            "tool_call_count": len(tool_outputs),
             "tool_error_names": tool_error_names,
         },
     }

@@ -276,8 +276,26 @@ def test_execution_health_passes_when_execution_completes_and_tools_succeed() ->
     assert result["metadata"] == {
         "execution_complete": True,
         "tool_call_all_successful": True,
+        "tool_call_count": 2,
         "tool_error_names": [],
     }
+
+
+def test_execution_health_records_zero_tool_calls() -> None:
+    """An agent answering from model memory still scores 1.0 — tool_call_count
+    is the only thing separating it from a clean tool-backed run. Whether a
+    question warranted a tool at all is a human-review judgement."""
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {"response": "Answered without tools", "finished_normally": True},
+        {},
+        input="Any question",
+    )
+
+    assert result["score"] == 1.0
+    assert result["metadata"]["tool_call_all_successful"] is True
+    assert result["metadata"]["tool_call_count"] == 0
 
 
 def test_execution_health_fails_when_finished_normally_absent() -> None:
@@ -294,6 +312,7 @@ def test_execution_health_fails_when_finished_normally_absent() -> None:
     assert result["metadata"] == {
         "execution_complete": False,
         "tool_call_all_successful": True,
+        "tool_call_count": 0,
         "tool_error_names": [],
     }
 
@@ -347,6 +366,7 @@ def test_execution_health_fails_and_emits_tool_error_names() -> None:
     assert result["metadata"] == {
         "execution_complete": True,
         "tool_call_all_successful": False,
+        "tool_call_count": 3,
         "tool_error_names": ["fetch_quote"],
     }
 

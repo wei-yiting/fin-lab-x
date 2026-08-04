@@ -54,9 +54,28 @@ the execution scorer, and must not be mixed into dataset reference hints.
 
 - `execution_complete`: the stream emitted a non-error `Finish` event (`finished_normally` flag)
 - `tool_call_all_successful`: every recorded tool call's `error` field is empty
+- `tool_call_count`: how many tool calls were recorded
 - `tool_error_names`: names of the tools that failed
 
 The score is `1` only when both `execution_complete=true` and `tool_call_all_successful=true`; otherwise `0`.
+
+### What this scorer deliberately does NOT measure
+
+**Tool appropriateness.** The scorer never asks whether the agent reached for a tool
+suited to the question — it does not read the dataset's `expected_best_source` or any
+other reference hint. An agent that answers question 6 (J&J litigation risk, expected
+to go to SEC filings) from a single web search still scores `1` as long as the search
+succeeded and the run finished.
+
+`tool_call_all_successful` is also vacuously true at zero tool calls, so an agent
+answering purely from model memory scores `1` too. `tool_call_count` exists to make
+that case visible when filtering an experiment — it is recorded, never scored.
+
+Judging tool appropriateness is the human reviewer's job, which is why
+`reference_best_source` is projected into the trace metadata (the expectation side)
+and deliberately withheld from the scorer's Braintrust bundle (the observation side).
+Promoting it to a deterministic check would first require reconciling the dataset's
+source expectations, which still contain `mixed` and the retired `yfinance`.
 
 ## Notes
 

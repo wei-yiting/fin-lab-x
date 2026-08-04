@@ -6,8 +6,8 @@
 - Discovery Method: Three Amigos（condensed single-session；覆蓋範圍為 human ratified 之 DEV-108 裁決，discovery 聚焦規則抽取與矛盾/缺口偵測）
 - Normative sources（唯一行為規格來源，clean-room）:
   - DEV-108 normative-sources 包（DEV-105 issue body + 🔧 裁決 comments、DEV-106 issue body + 裁決、DEV-107 issue body 摘要）
-  - `docs/adr/0006-reasoning-as-collapsed-transcript-chips.md`
-  - `docs/adr/0007-trace-level-reasoning-transcript-on-self-owned-root-span.md`
+  - `docs/adr/0008-reasoning-as-collapsed-transcript-chips.md`
+  - `docs/adr/0009-trace-level-reasoning-transcript-on-self-owned-root-span.md`
   - `CONTEXT.md`（glossary SSOT）、`docs/design-envelope.md`
   - AI SDK v6 UIMessage Stream Protocol wire 格式（Context7 `/vercel/ai` 查證）
 - Clean-room 原則：本文件所有 scenario 僅派生自上列 normative sources，未讀任何 implementation code——規格驗 code，而非 code 驗 code。
@@ -89,7 +89,7 @@ Origin: PO
 
 ### Context
 
-每個 reasoning segment 渲染為一顆可收合的 Reasoning chip：streaming 時展開即時滾動，結束後收合為 `Thought for Xs` header，永久留在 transcript 內可點開回看；與 tool cards 依 part 到達順序交錯（ADR-0006）。
+每個 reasoning segment 渲染為一顆可收合的 Reasoning chip：streaming 時展開即時滾動，結束後收合為 `Thought for Xs` header，永久留在 transcript 內可點開回看；與 tool cards 依 part 到達順序交錯（ADR-0008）。
 
 ### Rule: streaming 中的 Reasoning chip 即時顯示全文（釘底自動捲、`pre-wrap`）
 
@@ -282,7 +282,7 @@ Origin: QA
 
 ### Context
 
-Chat turn 結束時，累積的全部 reasoning 段落一次寫入該 turn 的 root trace（self-owned root span，ADR-0007）：單一 `reasoning` key、值內 `=== segment N ===` per-segment 分隔（segment = reasoning part = 前端一顆 chip）。斷言語意平台無關（DEV-114 將遷 Braintrust）；平台特定的讀回呼叫僅存在於 verification plan 的 Steps。
+Chat turn 結束時，累積的全部 reasoning 段落一次寫入該 turn 的 root trace（self-owned root span，ADR-0009）：單一 `reasoning` key、值內 `=== segment N ===` per-segment 分隔（segment = reasoning part = 前端一顆 chip）。斷言語意平台無關（DEV-114 將遷 Braintrust）；平台特定的讀回呼叫僅存在於 verification plan 的 Steps。
 
 ### Rule: Chat turn 結束時 Reasoning transcript 以單一 key + in-value segment markers 寫入 root trace
 

@@ -17,7 +17,7 @@ Single-concern visual elements. No business state, no `useChat`, no streaming-li
 | `StatusDot.tsx`           | Status indicator dot used in `ChatHeader`.                                                                                                                                                                                                                                                |
 | `UserMessage.tsx`         | User-side message bubble.                                                                                                                                                                                                                                                                 |
 
-The reasoning surface itself lives one layer up: `molecules/ReasoningChip.tsx` renders each native `reasoning` message part as a collapsible transcript chip (ADR-0006). The former `ReasoningIndicator` 19-state system was removed with DEV-106.
+The reasoning surface itself lives one layer up: `molecules/ReasoningChip.tsx` renders each native `reasoning` message part as a collapsible transcript chip (ADR-0008). The former `ReasoningIndicator` 19-state system was removed with DEV-106.
 
 ## ARIA surfaces (decision 8 — minimal `aria-live`)
 

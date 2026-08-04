@@ -10,7 +10,7 @@ Stateful orchestrator layer — the top of the atomic-design tree. Pages own str
 
 ## State rule
 
-Streaming lifecycle state lives here only. Atoms / molecules / organisms never import from `@ai-sdk/react`. Organisms may accept `status` / `messages` as props but must not subscribe to chat state themselves. Reasoning renders from native `reasoning` message parts (chips — ADR-0006); everything derives from `(status, messages)` except the four stores listed in `src/hooks/README.md`.
+Streaming lifecycle state lives here only. Atoms / molecules / organisms never import from `@ai-sdk/react`. Organisms may accept `status` / `messages` as props but must not subscribe to chat state themselves. Reasoning renders from native `reasoning` message parts (chips — ADR-0008); everything derives from `(status, messages)` except the four stores listed in `src/hooks/README.md`.
 
 ## `onFinish` contract
 

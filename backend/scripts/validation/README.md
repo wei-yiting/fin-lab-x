@@ -43,7 +43,7 @@ When to run:
 
 ## `verify_langfuse_trace.py`
 
-Polls Langfuse for a single trace and asserts the trace-level reasoning transcript shape (F7 / ADR-0007): the conversation's full reasoning lives in `metadata.reasoning` on the root `chat_turn` span, with `=== segment N ===` markers inside the value. Used by the BDD matrix and the abort scenario to confirm that a deployed change to the reasoning observability path still satisfies the trace-shape invariants.
+Polls Langfuse for a single trace and asserts the trace-level reasoning transcript shape (F7 / ADR-0009): the conversation's full reasoning lives in `metadata.reasoning` on the root `chat_turn` span, with `=== segment N ===` markers inside the value. Used by the BDD matrix and the abort scenario to confirm that a deployed change to the reasoning observability path still satisfies the trace-shape invariants.
 
 ```bash
 uv run python -m backend.scripts.validation.verify_langfuse_trace <trace_id> --expect-reasoning-on

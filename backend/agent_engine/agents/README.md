@@ -34,7 +34,7 @@ Profile-agnostic Orchestrator and configuration loading. This module provides th
 
 ## Streaming Reasoning Trace & Abort Protocol
 
-`astream_run()` owns the request's root Langfuse span (ADR-0007): it opens
+`astream_run()` owns the request's root Langfuse span (ADR-0009): it opens
 `start_as_current_observation(as_type="span", name="chat_turn")` around the
 whole stream, so the `CallbackHandler` chain tree nests under it. A
 `ReasoningTranscriptAccumulator` observes the reasoning domain events as they

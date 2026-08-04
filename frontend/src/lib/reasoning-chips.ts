@@ -1,5 +1,5 @@
 /**
- * Pure derivation helpers for reasoning chips (F6′ / ADR-0006).
+ * Pure derivation helpers for reasoning chips (F6′ / ADR-0008).
  * Everything here derives from `useChat`'s `(status, messages)` — the four
  * allowed non-derived stores live in ChatPanel and useDeadAirPlaceholder
  * (chip timing map, global stall stopwatch, expand/collapse override map,

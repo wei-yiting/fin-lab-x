@@ -4,7 +4,7 @@
 
 - Scenarios Reference: `artifacts/current/bdd-scenarios.md`
 - Generated: 2026-08-04 (DEV-108)
-- Normative sources：同 `bdd-scenarios.md` Meta（DEV-108 normative-sources 包、ADR-0006、ADR-0007、`CONTEXT.md`、`docs/design-envelope.md`、AI SDK v6 UIMessage Stream Protocol）
+- Normative sources：同 `bdd-scenarios.md` Meta（DEV-108 normative-sources 包、ADR-0008、ADR-0009、`CONTEXT.md`、`docs/design-envelope.md`、AI SDK v6 UIMessage Stream Protocol）
 - Clean-room 原則：本計畫未讀任何 implementation code；所有需要 code/DOM 事實的位置以 `[BIND-AT-RUN: …]` 標記，由 DEV-109 執行時對照綁定——**綁不上本身就是 finding**。
 - Known coverage gap：不驗 Anthropic → 單次 LLM call 內 interleaved reasoning 的多 chip 路徑無真實驗證（多 chip 僅由 tool loop 驅動）。
 - 工具分流（human ratified）：時序敏感條目 → **Playwright**（semantic anchor + `[BIND-AT-RUN]` selector）；其餘 browser 行為 → **Browser-Use CLI**（自然語言任務 + 明確斷言點）；wire/API → **curl/jq script**；Reasoning transcript → **Langfuse SDK 讀回 script**（Expected 為平台無關語意，僅 Steps 綁 Langfuse——DEV-114 遷 Braintrust 時只換 Steps）。

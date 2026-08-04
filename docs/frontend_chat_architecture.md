@@ -163,7 +163,7 @@ The backend emits AI SDK v6 `uiMessageChunkSchema`-compatible chunks. The fronte
 | `tool-output-available` | `output-available` | 🟢 StatusDot success + generic label `Completed` + expandable INPUT/OUTPUT JSON |
 | `tool-output-error` | `output-error` | 🔴 StatusDot error + friendly translated title (via `lib/error-messages.ts`) + expandable raw detail |
 | `text-start` / `text-delta` / `text-end` | text part | Markdown incremental re-render + trailing `Cursor` while streaming |
-| `reasoning-start` / `reasoning-delta` / `reasoning-end` | reasoning part (`state: streaming → done`) | `ReasoningChip` (ADR-0006): streaming = pinned ~4-line window with live text; `done` = collapsed `Thought for Xs`; part stuck `streaming` after abort = collapsed `Stopped — thought for Xs` |
+| `reasoning-start` / `reasoning-delta` / `reasoning-end` | reasoning part (`state: streaming → done`) | `ReasoningChip` (ADR-0008): streaming = pinned ~4-line window with live text; `done` = collapsed `Thought for Xs`; part stuck `streaming` after abort = collapsed `Stopped — thought for Xs` |
 | `error` | — (stream-level) | `useChat.error` set; `status → 'error'`. Does **not** append an `error` part to `messages` (see §6). |
 | `finish` | — | `status → 'ready'` |
 | _(no SSE — frontend-only)_ | `aborted` | ⚫ StatusDot gray + label `Aborted` + expandable INPUT |

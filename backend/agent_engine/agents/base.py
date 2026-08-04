@@ -481,7 +481,7 @@ class Orchestrator:
             agent_reasoning_capability=self.config.model.reasoning
         )
 
-        # Self-owned root span (ADR-0007): the CallbackHandler's chain tree
+        # Self-owned root span (ADR-0009): the CallbackHandler's chain tree
         # nests under it via OTel context, and holding the reference makes
         # the end-of-conversation metadata write deterministic — Langfuse v4
         # has no public post-hoc trace update, and current-span lookup is
@@ -576,7 +576,7 @@ class Orchestrator:
         root_span: "LangfuseSpan",
         accumulator: ReasoningTranscriptAccumulator,
     ) -> None:
-        """D35 abort cleanup + F7 reasoning tail persistence (ADR-0007).
+        """D35 abort cleanup + F7 reasoning tail persistence (ADR-0009).
 
         One ``update()`` on the self-owned root span writes both keys: the
         reasoning tail (with the aborted marker when a segment was cut

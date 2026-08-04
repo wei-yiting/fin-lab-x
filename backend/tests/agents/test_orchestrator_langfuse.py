@@ -26,7 +26,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 
 def _mock_langfuse_client() -> tuple[MagicMock, MagicMock]:
-    """Client stub for the self-owned root span (ADR-0007).
+    """Client stub for the self-owned root span (ADR-0009).
 
     Returns ``(client_mock, root_span_mock)`` where the span is what
     ``start_as_current_observation(...)`` yields as context manager.
@@ -724,7 +724,7 @@ class TestLangfuseTraceMetadata:
 
 
 class TestTraceLevelReasoningWrite:
-    """F7 / ADR-0007 — the conversation's reasoning transcript is written
+    """F7 / ADR-0009 — the conversation's reasoning transcript is written
     once, onto the self-owned root span, when the stream completes."""
 
     @pytest.mark.asyncio

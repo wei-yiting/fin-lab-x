@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Verify a Langfuse trace carries the trace-level reasoning transcript.
 
-Operator helper for the F7 / ADR-0007 shape: the conversation's full
+Operator helper for the F7 / ADR-0009 shape: the conversation's full
 reasoning transcript lives in ONE place — ``metadata.reasoning`` on the root
 span (the ``chat_turn`` span the Orchestrator owns). Polls the trace via the
 Langfuse SDK API client (``get_client().api.trace.get``) and asserts:

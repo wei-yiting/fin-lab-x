@@ -18,7 +18,7 @@ interface ReasoningChipProps {
 }
 
 /**
- * One reasoning part = one chip (ADR-0006). While streaming: full text in a
+ * One reasoning part = one chip (ADR-0008). While streaming: full text in a
  * ~4-line pinned-bottom window (newest text visible, older scrolled away).
  * Collapsed: "Thought for Xs" header; aborted half-chips keep their text
  * behind a "Stopped — thought for Xs" header. Body is raw

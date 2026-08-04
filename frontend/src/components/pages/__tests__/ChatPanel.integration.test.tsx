@@ -596,7 +596,7 @@ describe("ChatPanel integration — stop + clear", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Reasoning chips (F6′ / ADR-0006) — native reasoning-* parts render as
+// Reasoning chips (F6′ / ADR-0008) — native reasoning-* parts render as
 // collapsible transcript chips; everything derives from (status, messages).
 // ---------------------------------------------------------------------------
 

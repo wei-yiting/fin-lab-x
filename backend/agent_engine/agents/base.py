@@ -10,12 +10,13 @@ steps. session_id is propagated from the API layer using
 propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
+import json
 import os
 import re
 import time
 import uuid
-from collections.abc import AsyncGenerator
-from typing import Any, Literal
+from collections.abc import AsyncGenerator, Mapping
+from typing import Any, Literal, cast
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
@@ -30,7 +31,7 @@ from typing_extensions import override
 from langfuse import propagate_attributes
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 from backend.agent_engine.agents.config_loader import WorkflowProfileConfig
 from backend.agent_engine.streaming.domain_events_schema import (
@@ -192,7 +193,8 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
 class ToolOutput(TypedDict):
     tool: str
     args: dict[str, object]
-    result: str
+    result: NotRequired[object]
+    error: NotRequired[str]
 
 
 class OrchestratorResult(TypedDict):
@@ -200,6 +202,9 @@ class OrchestratorResult(TypedDict):
     tool_outputs: list[ToolOutput]
     model: str
     version: str
+    # Set by streaming collectors: True when the stream emitted a non-error
+    # Finish event. NotRequired keeps the invoke path unchanged.
+    finished_normally: NotRequired[bool]
 
 
 class _LangfusePropagationAttributes(TypedDict, total=False):
@@ -231,11 +236,15 @@ class Orchestrator:
         tool_call_limit = RunBudgetMiddleware(
             run_limit=config.constraints.max_tool_calls_per_run,
         )
+        middleware = cast(
+            list[AgentMiddleware[Any, Any, Any]],
+            [tool_call_limit, handle_tool_errors],
+        )
         self.agent = create_agent(
             model=model,
             tools=self.tools,
             system_prompt=self.system_prompt,
-            middleware=[tool_call_limit, handle_tool_errors],
+            middleware=middleware,
             checkpointer=checkpointer,
         )
 
@@ -349,6 +358,7 @@ class Orchestrator:
         trigger: str | None = None,
         message_id: str | None = None,
         request_id: str | None = None,
+        trace_metadata: Mapping[str, object] | None = None,
     ) -> AsyncGenerator[DomainEvent, None]:
         config, propagation = self._build_langfuse_config(
             mode="stream",
@@ -356,6 +366,7 @@ class Orchestrator:
             request_id=request_id or uuid.uuid4().hex,
             trigger=trigger,
             message_id=message_id,
+            trace_metadata=trace_metadata,
         )
         config["configurable"] = {"thread_id": session_id}
         mapper = StreamEventMapper(session_id=session_id)
@@ -368,7 +379,8 @@ class Orchestrator:
                 else:
                     input_data = {"messages": [{"role": "user", "content": message}]}
 
-                async for raw_chunk in self.agent.astream(
+                agent = cast(Any, self.agent)
+                async for raw_chunk in agent.astream(
                     input_data,
                     config=config,
                     stream_mode=["messages", "updates", "custom"],
@@ -420,7 +432,9 @@ class Orchestrator:
         for i in range(last_ai_idx, -1, -1):
             if isinstance(messages[i], AIMessage):
                 turn_start = i
-                turn_ids.add(messages[i].id)
+                message_id_value = messages[i].id
+                if message_id_value is not None:
+                    turn_ids.add(message_id_value)
             elif isinstance(messages[i], ToolMessage):
                 continue
             else:
@@ -439,7 +453,7 @@ class Orchestrator:
 
         Raises ValueError with descriptive message on failure.
         """
-        config: dict = {"configurable": {"thread_id": session_id}}
+        config: RunnableConfig = {"configurable": {"thread_id": session_id}}
         state = await self.agent.aget_state(config)
         messages = state.values.get("messages", [])
 
@@ -448,7 +462,9 @@ class Orchestrator:
 
         self._find_regenerate_target(messages, message_id)
 
-    async def _prepare_regenerate(self, config: dict, message_id: str | None) -> None:
+    async def _prepare_regenerate(
+        self, config: RunnableConfig, message_id: str | None
+    ) -> None:
         state = await self.agent.aget_state(config)
         messages = state.values.get("messages", [])
 
@@ -465,6 +481,7 @@ class Orchestrator:
         mode: Literal["invoke", "stream"],
         request_id: str,
         session_id: str | None = None,
+        trace_metadata: Mapping[str, object] | None = None,
         **extra_metadata: object,
     ) -> tuple[RunnableConfig, _LangfusePropagationAttributes]:
         """Build the LangChain RunnableConfig + propagate_attributes kwargs.
@@ -485,6 +502,14 @@ class Orchestrator:
         for key, value in extra_metadata.items():
             if value is not None:
                 metadata[key] = value
+        if trace_metadata is not None:
+            for key, value in trace_metadata.items():
+                normalized_value = _normalize_langfuse_metadata_value(value)
+                if key in metadata and metadata[key] != normalized_value:
+                    raise ValueError(
+                        f"trace_metadata key collides with reserved metadata: {key}"
+                    )
+                metadata[key] = normalized_value
 
         propagation: _LangfusePropagationAttributes = {"trace_name": trace_name}
         if isinstance(session_id, str) and session_id:
@@ -534,3 +559,19 @@ class Orchestrator:
             model=self.config.model.name,
             version=self.config.version,
         )
+
+
+def _normalize_langfuse_metadata_value(value: object) -> object:
+    """Coerce metadata values into Langfuse-propagatable form.
+
+    Scalars (str/int/float/bool/None) pass through natively — stringifying
+    them would change the type of long-standing trace fields (e.g.
+    ``process_start_ts``) and break numeric filtering on the platform. Only
+    nested structures, which Langfuse metadata propagation cannot carry
+    directly, are JSON-serialized.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (list, dict, tuple)):
+        return json.dumps(value, ensure_ascii=False, sort_keys=True)
+    return str(value)

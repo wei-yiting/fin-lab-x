@@ -5,7 +5,7 @@ correctly collects domain events into OrchestratorResult.
 """
 
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
@@ -14,6 +14,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextEnd,
     TextStart,
     ToolCall,
+    ToolError,
     ToolResult,
     Usage,
 )
@@ -113,6 +114,7 @@ def test_run_v1_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
     assert result["response"] == "蘋果公司最新財報表現良好"
     assert len(result["tool_outputs"]) == 1
     assert result["tool_outputs"][0]["tool"] == "tavily_financial_search"
+    assert "result" in result["tool_outputs"][0]
     assert result["tool_outputs"][0]["result"] == "Earnings beat expectations..."
     assert result["model"] == "gpt-4o"
     assert result["version"] == "baseline"
@@ -170,3 +172,243 @@ def test_run_v1_list_input_converted_to_string(mock_get_orch: MagicMock) -> None
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "['a', 'b']"
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_astream_collect_records_tool_errors_in_tool_outputs(
+    mock_get_orch: MagicMock,
+) -> None:
+    events = [
+        MessageStart(message_id="msg-1", session_id="sess-1"),
+        ToolCall(
+            tool_call_id="tc-1",
+            tool_name="tavily_financial_search",
+            args={"query": "UNH news"},
+        ),
+        ToolError(tool_call_id="tc-1", error="timeout"),
+        Finish(finish_reason="stop", usage=Usage(input_tokens=1, output_tokens=1)),
+    ]
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    result = asyncio.run(
+        run_baseline_behavior_diagnostic({"question": "What happened with UNH?"})
+    )
+
+    assert result["tool_outputs"] == [
+        {
+            "tool": "tavily_financial_search",
+            "args": {"query": "UNH news"},
+            "error": "timeout",
+        }
+    ]
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_baseline_behavior_diagnostic_extracts_question_field(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    asyncio.run(
+        run_baseline_behavior_diagnostic(
+            {"question": "What's going on with Disney lately?"}
+        )
+    )
+
+    call_kwargs = mock_orchestrator.astream_run.call_args[1]
+    assert call_kwargs["message"] == "What's going on with Disney lately?"
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_baseline_behavior_diagnostic_forwards_session_and_trace_metadata(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    asyncio.run(
+        run_baseline_behavior_diagnostic(
+            {
+                "question": "What's going on with AMD lately?",
+                "session_id": "baseline_behavior_diagnostic::baseline::17",
+                "trace_metadata": {
+                    "row_id": "17",
+                    "reference_expected_behavior": "may_pass_with_tuning",
+                },
+            }
+        )
+    )
+
+    call_kwargs = mock_orchestrator.astream_run.call_args[1]
+    assert call_kwargs["message"] == "What's going on with AMD lately?"
+    assert call_kwargs["session_id"] == "baseline_behavior_diagnostic::baseline::17"
+    assert call_kwargs["trace_metadata"] == {
+        "row_id": "17",
+        "reference_expected_behavior": "may_pass_with_tuning",
+    }
+
+
+def test_astream_collect_uses_default_session_id_when_none_provided() -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    asyncio.run(
+        _astream_collect(
+            mock_orchestrator,
+            "What's going on with NVDA lately?",
+            session_id="sess-123",
+            trace_metadata=None,
+        )
+    )
+
+    assert mock_orchestrator.astream_run.call_args.kwargs == {
+        "message": "What's going on with NVDA lately?",
+        "session_id": "sess-123",
+    }
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_baseline_behavior_diagnostic_forwards_trace_metadata_and_session_id(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    expected_result = {
+        "response": "ok",
+        "tool_outputs": [],
+        "model": "gpt-4o-mini",
+        "version": "baseline",
+    }
+
+    with patch(
+        "backend.evals.eval_tasks._astream_collect",
+        new=AsyncMock(return_value=expected_result),
+    ) as mock_collect:
+        result = asyncio.run(
+            run_baseline_behavior_diagnostic(
+                {
+                    "question": "What happened with UNH?",
+                    "session_id": "baseline_behavior_diagnostic::baseline::1",
+                    "trace_metadata": {"reference_best_source": "mixed"},
+                }
+            )
+        )
+
+    mock_get_orch.assert_called_once_with("baseline")
+    mock_collect.assert_awaited_once_with(
+        mock_orchestrator,
+        "What happened with UNH?",
+        session_id="baseline_behavior_diagnostic::baseline::1",
+        trace_metadata={"reference_best_source": "mixed"},
+    )
+    assert result == expected_result
+
+
+def test_astream_collect_omits_trace_metadata_when_none() -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    with patch("backend.evals.eval_tasks.uuid.uuid4", return_value="fixed-uuid"):
+        asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    mock_orchestrator.astream_run.assert_called_once_with(
+        message="hello",
+        session_id="eval-fixed-uuid",
+    )
+
+
+def test_astream_collect_forwards_explicit_session_id_and_trace_metadata() -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    asyncio.run(
+        _astream_collect(
+            mock_orchestrator,
+            "hello",
+            session_id="baseline_behavior_diagnostic::baseline::1",
+            trace_metadata={"reference_best_source": "mixed"},
+        )
+    )
+
+    mock_orchestrator.astream_run.assert_called_once_with(
+        message="hello",
+        session_id="baseline_behavior_diagnostic::baseline::1",
+        trace_metadata={"reference_best_source": "mixed"},
+    )
+
+
+def test_astream_collect_sets_finished_normally_on_normal_finish() -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    result = asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    assert result["finished_normally"] is True
+
+
+def test_astream_collect_finished_normally_false_without_finish_event() -> None:
+    """A stream that dies before emitting Finish must not count as complete."""
+    events = [
+        MessageStart(message_id="msg-1", session_id="sess-1"),
+        TextStart(text_id="t-1"),
+        TextDelta(text_id="t-1", delta="partial text"),
+    ]
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    result = asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    assert result["response"] == "partial text"
+    assert result.get("finished_normally") is False

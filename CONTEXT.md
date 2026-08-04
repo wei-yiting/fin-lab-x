@@ -69,7 +69,7 @@ _Avoid_: "eval-driven" for postponing a decision (that is defer until evidence);
 The git-versioned, hand-curated set of ~30 open-ended financial questions with per-item curation rationale. Its flagship use is the cross-tier comparison — `baseline` / `reader` / `quant` under the same LLM model id — isolating architecture-caused capability gaps.
 
 **Baseline behavior diagnostic**:
-The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / reach) and the expected pass/fail behavior, scored by deterministic execution checks (ran to completion, right tool chosen) plus human trace review. It diagnoses behavior and names the tuning lever; it never grades answer quality.
+The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / reach) and the expected pass/fail behavior, scored by deterministic execution-health checks (ran to completion, every tool call succeeded) plus human trace review. Whether the agent reached for an appropriate tool is a human-review judgement, deliberately kept out of the deterministic scorer — the scorer never reads the dataset's reference hints. It diagnoses behavior and names the tuning lever; it never grades answer quality.
 _Avoid_: near-v1 diagnostic (legacy dataset/scenario name, to be renamed at rework)
 
 **Regression Suite**:

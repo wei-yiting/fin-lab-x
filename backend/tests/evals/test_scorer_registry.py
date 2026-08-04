@@ -50,6 +50,22 @@ def test_resolve_scorers_raises_import_error_for_missing_function() -> None:
         resolve_scorers([scorer_config])
 
 
+def test_resolve_scorers_resolves_diagnostic_execution_health() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+    from backend.evals.scorer_registry import resolve_scorers
+
+    scorers = resolve_scorers(
+        [
+            ScorerConfig(
+                name="diagnostic_execution_health",
+                function="backend.evals.diagnostic.execution_scorer.execution_health",
+            )
+        ]
+    )
+
+    assert scorers == [execution_health]
+
+
 def _capture_llm_classifier(
     monkeypatch: pytest.MonkeyPatch,
 ) -> dict[str, Any]:
@@ -234,6 +250,125 @@ def test_tool_arg_no_cjk_passes_for_english_arguments() -> None:
 
     assert result["name"] == "tool_arg_no_cjk"
     assert result["score"] == 1.0
+
+
+def test_execution_health_passes_when_execution_completes_and_tools_succeed() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {
+            "response": "done",
+            "finished_normally": True,
+            "tool_outputs": [
+                {"tool": "search_news", "result": "ok"},
+                {"tool": "fetch_quote", "result": {"price": 123}},
+            ],
+        },
+        {
+            "draft_pass_signals": ["do not read me"],
+            "expected_best_source": "ignore me",
+        },
+        input={"question": "What changed?"},
+    )
+
+    assert result["name"] == "diagnostic_execution_health"
+    assert result["score"] == 1.0
+    assert result["metadata"] == {
+        "execution_complete": True,
+        "tool_call_all_successful": True,
+        "tool_call_count": 2,
+        "tool_error_names": [],
+    }
+
+
+def test_execution_health_records_zero_tool_calls() -> None:
+    """An agent answering from model memory still scores 1.0 — tool_call_count
+    is the only thing separating it from a clean tool-backed run. Whether a
+    question warranted a tool at all is a human-review judgement."""
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {"response": "Answered without tools", "finished_normally": True},
+        {},
+        input="Any question",
+    )
+
+    assert result["score"] == 1.0
+    assert result["metadata"]["tool_call_all_successful"] is True
+    assert result["metadata"]["tool_call_count"] == 0
+
+
+def test_execution_health_fails_when_finished_normally_absent() -> None:
+    """Response text alone is not a completion signal — the flag decides."""
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {"response": "Partial answer text", "tool_outputs": []},
+        {"draft_pass_signals": ["still ignored"]},
+        input="Any question",
+    )
+
+    assert result["score"] == 0.0
+    assert result["metadata"] == {
+        "execution_complete": False,
+        "tool_call_all_successful": True,
+        "tool_call_count": 0,
+        "tool_error_names": [],
+    }
+
+
+def test_execution_health_fails_when_finished_normally_false() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {"response": "text", "finished_normally": False, "tool_outputs": []},
+        {},
+        input="Any question",
+    )
+
+    assert result["score"] == 0.0
+    assert result["metadata"]["execution_complete"] is False
+
+
+def test_execution_health_passes_for_empty_response_when_finished_normally() -> None:
+    """A legitimately empty (or whitespace-only) response can still complete."""
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    for response in ("", "   \n"):
+        result = execution_health(
+            {"response": response, "finished_normally": True, "tool_outputs": []},
+            {},
+            input="Any question",
+        )
+
+        assert result["score"] == 1.0
+        assert result["metadata"]["execution_complete"] is True
+
+
+def test_execution_health_fails_and_emits_tool_error_names() -> None:
+    from backend.evals.diagnostic.execution_scorer import execution_health
+
+    result = execution_health(
+        {
+            "response": "Partial answer",
+            "finished_normally": True,
+            "tool_outputs": [
+                {"tool": "search_news", "result": "ok"},
+                {"tool": "fetch_quote", "error": "timeout"},
+                {"tool": "tool_without_name", "error": None},
+            ],
+        },
+        {},
+        input="Question",
+    )
+
+    assert result["score"] == 0.0
+    assert result["metadata"] == {
+        "execution_complete": True,
+        "tool_call_all_successful": False,
+        "tool_call_count": 3,
+        "tool_error_names": ["fetch_quote"],
+    }
 
 
 def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:

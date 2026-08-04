@@ -16,6 +16,31 @@ Use this rule:
 - If the question is "did we break critical behavior?" -> **Regression Suite** (`pytest`)
 - If the question is "did quality improve across scenarios?" -> **Quality Track** (`eval_runner`)
 
+## Diagnostic Human Review
+
+`baseline_behavior_diagnostic` is a standalone human-diagnostic track — not golden-answer scoring, not an LLM judge.
+
+- Automatic half: a deterministic execution scorer, run via the normal Quality Track command
+- Human half: the annotation loop is being rebuilt on Braintrust per ADR-0005 (DEV-115); the reviewer score schema and session-id join contract are documented in the scenario README
+
+Common commands:
+
+```bash
+# Full local diagnostic run (no upload by default)
+uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic
+
+# Row-id subset — smoke runs, debugging, and failed-row reruns only.
+# Authoritative runs and cross-version comparisons use the full dataset. A subset
+# run records `selected_row_ids` and `is_full_dataset: false` in its experiment
+# metadata, so its numbers can never be read as representing the whole dataset.
+uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --row-ids 1 --run-label smoke-local
+
+# Upload to Braintrust as an experiment
+uv run python -m backend.evals.eval_runner baseline_behavior_diagnostic --upload --run-label smoke-platform
+```
+
+Braintrust Project Settings should set a stable diagnostic comparison key, e.g. `row_id`, so the compare UI aligns the same dataset row instead of relying on trace order or an experiment's internal index.
+
 ## Running Evaluations
 
 ### 1) Quality Track (Scenario Runner)

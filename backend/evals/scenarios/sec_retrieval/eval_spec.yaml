@@ -1,6 +1,11 @@
 name: sec_retrieval
 status: draft
 csv: dataset.csv
+regression:
+  # Metrics have no measured baseline yet (status: draft — hand-written
+  # placeholder dataset). Flipping to true and setting metric_floor values
+  # from a measured baseline belongs to DEV-103.
+  enabled: false
 task:
   function: backend.evals.eval_tasks.run_sec_retrieval
 pre_run:

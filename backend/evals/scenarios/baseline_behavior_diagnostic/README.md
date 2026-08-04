@@ -75,7 +75,8 @@ Judging tool appropriateness is the human reviewer's job, which is why
 `reference_best_source` is projected into the trace metadata (the expectation side)
 and deliberately withheld from the scorer's Braintrust bundle (the observation side).
 Promoting it to a deterministic check would first require reconciling the dataset's
-source expectations, which still contain `mixed` and the retired `yfinance`.
+source expectations — 12 of 30 rows declare `mixed`, which names no single
+acceptable tool.
 
 ## Notes
 

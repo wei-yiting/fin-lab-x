@@ -33,7 +33,7 @@ class ScorerConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_gate_fields(self) -> "ScorerConfig":
-        """Reject dead config: a metric_floor on an ungated scorer (ADR-0006)."""
+        """Reject dead config: a metric_floor on an ungated scorer (ADR-0008)."""
         if not self.gate and "metric_floor" in self.model_fields_set:
             raise ValueError(
                 "metric_floor has no effect when gate is false — remove it "
@@ -89,7 +89,7 @@ class ScorerConfig(BaseModel):
 
 
 class RegressionConfig(BaseModel):
-    """Gate membership declaration for the Regression Suite (ADR-0006).
+    """Gate membership declaration for the Regression Suite (ADR-0008).
 
     Required on every scenario, with no default for ``enabled``: a spec that
     has not decided its gate membership must fail to load rather than

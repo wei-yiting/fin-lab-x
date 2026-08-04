@@ -104,11 +104,29 @@ class StreamEventMapper:
             )
             self._message_started = True
 
-        # Iterate the LangChain v1 normalized content_blocks (D1). The lazy
-        # property handles all three providers' raw shapes (string content,
-        # list of blocks with text/reasoning/tool_call_chunk types).
+        # Normalize the two public upstream representations of a tool call
+        # into ONE ordered block list before dispatching (code-review round
+        # 6: the previous shape closed reasoning parts on two separate
+        # routes, and the post-loop fallback was an ordering hazard — a
+        # chunk shaped `tool_call_chunk → reasoning` would have had its NEW
+        # part wrongly closed after the loop). Translators differ in what
+        # they surface in content_blocks — OpenAI/Anthropic emit
+        # `tool_call_chunk`, Gemini emits normalized `tool_call`, and some
+        # shapes carry tool calls only on the legacy `tool_call_chunks`
+        # attribute — so the legacy attribute is appended as synthesized
+        # blocks ONLY when no tool block of either type is already present.
+        blocks = list(msg_chunk.content_blocks)
+        has_tool_block = any(
+            b.get("type") in ("tool_call", "tool_call_chunk") for b in blocks
+        )
+        if not has_tool_block and getattr(msg_chunk, "tool_call_chunks", None):
+            blocks.extend(
+                {"type": "tool_call_chunk", "id": tc.get("id"), "name": tc.get("name")}
+                for tc in msg_chunk.tool_call_chunks
+            )
+
         prev_block_type: str | None = None
-        for block in msg_chunk.content_blocks:
+        for block in blocks:
             block_type = block.get("type")
             if block_type == "reasoning":
                 # A reasoning block directly following another reasoning
@@ -119,30 +137,9 @@ class StreamEventMapper:
                 )
             elif block_type == "text":
                 self._handle_text_block(block, events)
-            elif block_type == "tool_call_chunk":
-                self._handle_tool_call_chunk_block(block, events)
+            elif block_type in ("tool_call", "tool_call_chunk"):
+                self._handle_tool_call_started(block, events)
             prev_block_type = block_type
-
-        # Backup path — a few providers' content_blocks may not surface
-        # tool_call_chunks (Gemini delivers tool calls ONLY via this legacy
-        # attribute); it keeps the tool path alive in that case. Safe to run
-        # unconditionally because _pending_tool_calls is a set-like dict
-        # (no duplicates).
-        if getattr(msg_chunk, "tool_call_chunks", None):
-            # Tool args ending the round's reasoning block (DEV-109 ruling 9)
-            # must close on THIS route too — Gemini never hits
-            # _handle_tool_call_chunk_block, which left its chips open
-            # through tool execution (round-5 regression). No-op when the
-            # content_blocks route already closed the part.
-            self._close_reasoning_part(events)
-            if self._text_block_open:
-                events.append(TextEnd(text_id=self._current_text_id))
-                self._text_block_open = False
-            for tc in msg_chunk.tool_call_chunks:
-                tc_id = tc.get("id")
-                tc_name = tc.get("name")
-                if tc_id and tc_name and tc_id not in self._pending_tool_calls:
-                    self._pending_tool_calls[tc_id] = tc_name
 
         # LangChain does not auto-aggregate usage_metadata across streaming
         # chunks — the official pattern is to concatenate AIMessageChunks
@@ -196,9 +193,7 @@ class StreamEventMapper:
             self._text_block_open = True
         events.append(TextDelta(text_id=self._current_text_id, delta=text))
 
-    def _handle_tool_call_chunk_block(
-        self, block: dict, events: list[DomainEvent]
-    ) -> None:
+    def _handle_tool_call_started(self, block: dict, events: list[DomainEvent]) -> None:
         # Tool args arriving means this round's reasoning block is over —
         # close the open part so the chip collapses at tool-start, matching
         # the `Thought for Xs` freeze point (DEV-109 ruling 2026-08-04,
@@ -206,7 +201,9 @@ class StreamEventMapper:
         # the mapper no other end-of-block signal, which left every chip
         # open through the whole tool execution on the default provider).
         # Arrival order is preserved — the tool card renders below the
-        # now-collapsed chip.
+        # now-collapsed chip. Handles both normalized tool block types
+        # (`tool_call_chunk`: OpenAI/Anthropic; `tool_call`: Gemini) plus
+        # blocks synthesized from the legacy attribute in _handle_messages.
         self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))

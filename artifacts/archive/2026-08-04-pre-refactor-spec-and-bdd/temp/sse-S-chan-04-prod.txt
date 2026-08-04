@@ -1,0 +1,14 @@
+data: {"type": "start", "messageId": "lc_run--019dfbbb-b25b-7cb1-a224-67710f1d0a31", "messageMetadata": {"sessionId": "9858347F-35B1-468C-9197-F375E7444D71"}}
+
+data: {"type": "text-start", "id": "text-0"}
+
+data: {"type": "text-delta", "id": "text-0", "delta": "I cannot directly compare Apple's 10-K risk factors for \"Q3 2024\" and \"Q3 2023\" as 10-K"}
+
+data: {"type": "text-delta", "id": "text-0", "delta": " filings are annual reports, not quarterly, and the 2024 10-K filing is not yet available.\n\nI can, however, compare the \"Risk Factors\" (Item 1A) section from Apple'"}
+
+data: {"type": "text-delta", "id": "text-0", "delta": "s latest available 10-K (Fiscal Year 2023) with the previous year's 10-K (Fiscal Year 2022). Would you like me to proceed with this comparison?"}
+
+data: {"type": "text-end", "id": "text-0"}
+
+data: {"type": "finish", "finishReason": "stop", "messageMetadata": {"usage": {"totalTokens": 3212}}}
+

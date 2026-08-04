@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Test Audit — 待決策項目</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --ink: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --accent-soft: #eff4ff;
+    --hi: #b91c1c;
+    --hi-soft: #fef2f2;
+    --med: #b45309;
+    --med-soft: #fffbeb;
+    --low: #047857;
+    --low-soft: #ecfdf5;
+    --code-bg: #f3f4f6;
+    --ok: #15803d;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  code, .mono {
+    font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    word-break: break-word;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 24px 200px; }
+  header h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); margin: 0 0 24px; }
+  .done-box {
+    background: var(--low-soft);
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+  .done-box b { color: var(--ok); }
+  .done-box ul { margin: 8px 0 0; padding-left: 20px; }
+  .done-box li { margin: 2px 0; }
+  .group-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 34px 0 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    scroll-margin-top: 20px;
+  }
+  .card.answered { border-color: #bfdbfe; box-shadow: 0 0 0 2px var(--accent-soft); }
+  .card-head { display: flex; align-items: flex-start; gap: 10px; }
+  .chip {
+    flex: none;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
+  }
+  .chip.hi { background: var(--hi-soft); color: var(--hi); }
+  .chip.med { background: var(--med-soft); color: var(--med); }
+  .chip.low { background: var(--low-soft); color: var(--low); }
+  .card h3 { font-size: 17px; margin: 0 0 2px; }
+  .card .loc { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .problem { font-size: 14.5px; margin: 0 0 14px; }
+  .problem .why { color: var(--muted); }
+  .opts { display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 13px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .opt:hover { background: #fafafa; }
+  .opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .opt input { margin-top: 4px; flex: none; }
+  .opt .otext { font-size: 14px; }
+  .opt .rec { color: var(--accent); font-weight: 700; font-size: 12px; margin-left: 4px; }
+  .opt .od { display:block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .notes {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 8px 11px;
+    font: inherit;
+    font-size: 13.5px;
+    resize: vertical;
+    min-height: 38px;
+    background: #fcfcfc;
+  }
+  .notes::placeholder { color: #b3b8c0; }
+
+  /* sticky conclusion bar */
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -2px 14px rgba(0,0,0,0.06);
+    z-index: 50;
+  }
+  .bar-inner { max-width: 920px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 14px; }
+  .bar .count { font-size: 14px; color: var(--muted); }
+  .bar .count b { color: var(--ink); }
+  .bar .spacer { flex: 1; }
+  button.act {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+  }
+  button.act:hover { background: #1d4ed8; }
+  button.ghost {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 13px;
+    border-radius: 9px;
+    cursor: pointer;
+  }
+  button.ghost:hover { background: #f3f4f6; }
+
+  /* export overlay */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 100; align-items: center; justify-content: center; padding: 24px; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 14px; width: min(760px, 100%); max-height: 84vh; display: flex; flex-direction: column; overflow: hidden; }
+  .modal h2 { font-size: 17px; margin: 0; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+  .modal .body { padding: 18px 22px; overflow: auto; }
+  .modal textarea { width: 100%; min-height: 320px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 12.5px; line-height: 1.6; }
+  .modal .foot { padding: 14px 22px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; }
+  .copied { color: var(--ok); font-size: 13px; align-self: center; margin-right: auto; opacity: 0; transition: opacity .2s; }
+  .copied.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Test Audit — 待決策項目</h1>
+    <p class="sub">branch <span class="mono">feat/multi-provider-streaming-reasoning</span> · 對全部 36 個 test 檔做完 TDD rubric audit 後，剩下需要你拍板的項目。逐項選擇 → 下方即時彙整 → 一鍵複製貼回給我。</p>
+  </header>
+
+  <div class="done-box">
+    <b>✓ 已完成並驗證通過（不需你決定）</b>　Backend 310 passed · Frontend 240 passed · lint 全綠
+    <ul>
+      <li>修掉 invoke-path「測錯路徑」bug-in-test（原本 production 寫入壞掉也會綠）</li>
+      <li>4 個 callback-ordering test 改測真正 wiring 契約（<span class="mono">_handler is handler</span>）而非 list 位置</li>
+      <li>刪掉 1 個 mock-the-unit 的 SSE guard test</li>
+      <li>補 6 個真實 coverage gap（init_model bare-name+on、verifier relaxed 契約、abort 空 <span class="mono">_runs</span>、ReasoningIndicator/AssistantMessage/MessageList 的 Stop 狀態）</li>
+      <li>ErrorBlock query 改用 <span class="mono">getByRole</span>（RTL 原則）</li>
+    </ul>
+  </div>
+
+  <div id="cards"></div>
+</div>
+
+<div class="bar">
+  <div class="bar-inner">
+    <span class="count" id="count">已決定 0 / 5</span>
+    <span class="spacer"></span>
+    <button class="ghost" id="resetBtn">清除全部</button>
+    <button class="act" id="exportBtn">產生結論 → 複製</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>結論（複製後貼回對話給我）</h2>
+    <div class="body">
+      <textarea id="out" readonly></textarea>
+    </div>
+    <div class="foot">
+      <span class="copied" id="copied">已複製 ✓</span>
+      <button class="ghost" id="closeBtn">關閉</button>
+      <button class="act" id="copyBtn">複製到剪貼簿</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ITEMS = [
+  {
+    id: "resilience",
+    sev: "hi", sevLabel: "高",
+    title: "重寫 / 移除「驗證自己 mock」的 resilience test",
+    loc: "backend/tests/integration/test_langfuse_resilience.py :: test_sibling_callback_in_config_alongside_broken_handler",
+    problem: `這支 test patch 掉了待測的 <code>_build_langfuse_config</code>，手動把 <code>[broken, sibling]</code> 塞進 callbacks，再由 mock 自己呼叫 <code>sibling.on_llm_start()</code>，最後斷言它被呼叫——<span class="why">等於在驗證自己 mock 裡寫死的行為，真實的雙-handler wiring 壞掉它也會綠。</span>屬 <code>integration</code> marker，不在預設 suite，所以不影響目前全綠。`,
+    options: [
+      { v: "rewrite", rec: true, text: "用真實 _build_langfuse_config 重寫", d: "斷言「Langfuse handler 壞掉時 sibling callback 仍在真實產出的 callbacks list 裡，且 TextDelta/Finish 等 domain events 照常 emit」。" },
+      { v: "delete", text: "直接刪除", d: "已有 test_broken_handler_does_not_prevent_domain_events 覆蓋使用者可見的 resilience 保證。" },
+      { v: "keep", text: "保留現狀", d: "暫不動。" },
+    ],
+  },
+  {
+    id: "e2e-timeout",
+    sev: "med", sevLabel: "中",
+    title: "處理用 waitForTimeout 證明 negative 的兩支 E2E",
+    loc: "reasoning-stalled.spec.ts (waitForTimeout 11s) · reasoning-late-events.spec.ts (waitForTimeout 1.5s)",
+    problem: `兩支都用固定 sleep 去證明「某事不發生」（stalled 11s、late-event 1.5s）——<span class="why">classic flaky anti-pattern：sleep 太短假過、CI 慢假敗。</span>而且同一套邏輯已由 <code>useReasoningStatus.test.ts</code> 用 fake timer 做 deterministic 覆蓋（9s 不 stalled / 11s stalled、finishedRef 丟棄 late event）。注意：這是刻意的 real-backend 規格（需 dev flag）。`,
+    options: [
+      { v: "delete", rec: true, text: "刪掉這兩支 E2E，保留 unit 覆蓋", d: "deterministic 的 fake-timer unit test 嚴格優於 wall-clock E2E。" },
+      { v: "annotate", text: "保留但標記 manual-only", d: "加 skip 註記、移出自動 CI，當作人工錄影驗證用。" },
+      { v: "keep", text: "保留現狀", d: "維持自動跑（含 sleep）。" },
+    ],
+  },
+  {
+    id: "matrix",
+    sev: "med", sevLabel: "中",
+    title: "multi-provider-matrix.spec.ts（5/6 row 預設 skip）",
+    loc: "frontend/tests/e2e/critical/multi-provider-matrix.spec.ts",
+    problem: `6 row matrix 中只有 <code>gemini-on</code> 沒 requiresEnv，其餘 5 row 因缺 API key 預設 skip；而 row→trace_id 的關聯靠 <code>x-langfuse-trace-id</code> header，該 header 尚未 ship 故恆輸出 <code>&lt;unavailable&gt;</code>。<span class="why">目前實際只跑 1 row 對 happy-text MSW 做「assistant message 可見」——名為 matrix 實為 manifest。</span>`,
+    options: [
+      { v: "shrink", rec: true, text: "縮成 manifest + 1 row smoke", d: "把 skip 的 row 降為文件/manifest；保留 1 row 真正的 smoke 斷言。" },
+      { v: "defer", text: "等 trace header ship 再啟用", d: "保留 6 row 但明確標 skip-reason，header 上線後再接 verifier。" },
+      { v: "keep", text: "保留現狀", d: "不動。" },
+    ],
+  },
+  {
+    id: "schema",
+    sev: "low", sevLabel: "低",
+    title: "精簡 domain_events_schema（多在測 stdlib dataclass）",
+    loc: "backend/tests/streaming/test_domain_events_schema.py",
+    problem: `frozen 不可變、equality、逐欄位 construction 這些都是 CPython <code>@dataclass</code> 產生的行為，不是我們的程式碼；<span class="why">每個欄位的 round-trip 其實已由 sse_serializer 的 wire-format test 覆蓋。</span>約 30 個 trivial 斷言。`,
+    options: [
+      { v: "trim", rec: true, text: "精簡成 ~4 個代表性 test", d: "留 1 frozen + 1 equality + union 成員守門，其餘刪。" },
+      { v: "keep", text: "保留現狀", d: "noise 留著無妨（conservative）。" },
+    ],
+  },
+  {
+    id: "dedup",
+    multi: true,
+    sev: "low", sevLabel: "低",
+    title: "其餘去重 / equivalence-class 合併（可複選）",
+    loc: "多檔，純 noise reduction，不影響覆蓋",
+    problem: `以下都是「同一 equivalence class 重複測」或「裝飾性 CSS class 斷言」，刪/合不減覆蓋。勾選你想讓我處理的；不勾＝保留。`,
+    options: [
+      { v: "yaml", text: "exact-YAML change-detector", d: "config_loader / prompt_rendering 裡 pin 死整份 tool/model 清單，改成只守關鍵 invariant。" },
+      { v: "v1tools", text: "v1_integration 三個單工具 test", d: "yfinance/tavily/sec 同一抽取路徑，併成一個 parametrized。" },
+      { v: "segmenter", text: "segmenter flush-empty 成對 test", d: "flush-on-empty 與 idempotent-on-empty 同類，併一個。" },
+      { v: "indicator-css", text: "ReasoningIndicator 裝飾性 class 斷言", d: "opacity 0.65、legacy testid 等純樣式斷言移除。" },
+      { v: "hook-merge", text: "useReasoningStatus malformed-payload 三連 + no-op 重複", d: "併成 test.each。" },
+    ],
+  },
+];
+
+const KEY = "test-audit-decisions-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { state = {}; }
+
+const cardsEl = document.getElementById("cards");
+const groups = [
+  { sev: "hi", label: "高優先 — 真正的 best-practice 違規" },
+  { sev: "med", label: "中優先 — E2E anti-pattern" },
+  { sev: "low", label: "低優先 — 去重（不減覆蓋）" },
+];
+
+function render() {
+  cardsEl.innerHTML = "";
+  groups.forEach(g => {
+    const items = ITEMS.filter(i => i.sev === g.sev);
+    if (!items.length) return;
+    const gl = document.createElement("div");
+    gl.className = "group-label";
+    gl.textContent = g.label;
+    cardsEl.appendChild(gl);
+    items.forEach(renderCard);
+  });
+  updateCount();
+}
+
+function isAnswered(it) {
+  const s = state[it.id];
+  if (it.multi) return s && s.choices && s.choices.length >= 0 && s._touched;
+  return s && s.choice;
+}
+
+function renderCard(it) {
+  const card = document.createElement("div");
+  card.className = "card" + (isAnswered(it) ? " answered" : "");
+  card.id = "card-" + it.id;
+
+  const head = document.createElement("div");
+  head.className = "card-head";
+  head.innerHTML = `<span class="chip ${it.sev}">${it.sevLabel}</span>
+    <div><h3>${it.title}</h3><p class="loc mono">${it.loc}</p></div>`;
+  card.appendChild(head);
+
+  const prob = document.createElement("p");
+  prob.className = "problem";
+  prob.innerHTML = it.problem;
+  card.appendChild(prob);
+
+  const opts = document.createElement("div");
+  opts.className = "opts";
+  const s = state[it.id] || (it.multi ? { choices: [] } : {});
+
+  it.options.forEach(o => {
+    const lab = document.createElement("label");
+    const selected = it.multi ? (s.choices || []).includes(o.v) : s.choice === o.v;
+    lab.className = "opt" + (selected ? " sel" : "");
+    const input = document.createElement("input");
+    input.type = it.multi ? "checkbox" : "radio";
+    input.name = it.id;
+    input.value = o.v;
+    input.checked = selected;
+    input.addEventListener("change", () => onChange(it, o.v, input.checked));
+    const txt = document.createElement("div");
+    txt.className = "otext";
+    txt.innerHTML = `${o.text}${o.rec ? '<span class="rec">建議</span>' : ''}${o.d ? `<span class="od">${o.d}</span>` : ''}`;
+    lab.appendChild(input);
+    lab.appendChild(txt);
+    opts.appendChild(lab);
+  });
+  card.appendChild(opts);
+
+  const notes = document.createElement("textarea");
+  notes.className = "notes";
+  notes.placeholder = "備註 / 其他做法（選填）…";
+  notes.value = (s.notes || "");
+  notes.addEventListener("input", () => {
+    const cur = state[it.id] || (it.multi ? { choices: [] } : {});
+    cur.notes = notes.value;
+    cur._touched = true;
+    state[it.id] = cur;
+    save();
+  });
+  card.appendChild(notes);
+
+  cardsEl.appendChild(card);
+}
+
+function onChange(it, v, checked) {
+  const cur = state[it.id] || (it.multi ? { choices: [] } : {});
+  cur._touched = true;
+  if (it.multi) {
+    cur.choices = cur.choices || [];
+    if (checked) { if (!cur.choices.includes(v)) cur.choices.push(v); }
+    else { cur.choices = cur.choices.filter(x => x !== v); }
+  } else {
+    cur.choice = v;
+  }
+  state[it.id] = cur;
+  save();
+  render();
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+  updateCount();
+}
+
+function updateCount() {
+  const done = ITEMS.filter(isAnswered).length;
+  document.getElementById("count").innerHTML = `已決定 <b>${done}</b> / ${ITEMS.length}`;
+}
+
+function buildOutput() {
+  let lines = ["# Test 調整決策結論", ""];
+  ITEMS.forEach((it, idx) => {
+    const s = state[it.id];
+    let pick = "（未決定）";
+    if (s) {
+      if (it.multi) {
+        const labels = (s.choices || []).map(v => (it.options.find(o => o.v === v) || {}).text).filter(Boolean);
+        pick = labels.length ? labels.join("、") : "全部保留（未勾選）";
+      } else if (s.choice) {
+        const o = it.options.find(o => o.v === s.choice);
+        pick = o ? o.text : s.choice;
+      }
+    }
+    lines.push(`[${idx + 1}] ${it.title}`);
+    lines.push(`    決定：${pick}`);
+    if (s && s.notes && s.notes.trim()) lines.push(`    備註：${s.notes.trim()}`);
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+const overlay = document.getElementById("overlay");
+const out = document.getElementById("out");
+document.getElementById("exportBtn").addEventListener("click", () => {
+  out.value = buildOutput();
+  overlay.classList.add("open");
+});
+document.getElementById("closeBtn").addEventListener("click", () => overlay.classList.remove("open"));
+overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(out.value); }
+  catch(e) { out.select(); document.execCommand("copy"); }
+  const c = document.getElementById("copied");
+  c.classList.add("show");
+  setTimeout(() => c.classList.remove("show"), 1600);
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("清除全部選擇？")) { state = {}; save(); render(); }
+});
+
+render();
+</script>
+</body>
+</html>

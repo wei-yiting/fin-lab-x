@@ -1,0 +1,4 @@
+data: {"type": "error", "errorText": "FORCE_LLM_FAIL: simulated provider failure"}
+
+data: {"type": "finish", "finishReason": "error", "messageMetadata": {"usage": {"totalTokens": 0}}}
+

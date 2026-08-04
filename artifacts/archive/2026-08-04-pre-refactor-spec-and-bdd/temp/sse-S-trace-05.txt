@@ -1,0 +1,4 @@
+data: {"type": "start", "messageId": "lc_run--019dfbb8-fcb3-7162-b591-76de0bdf8974", "messageMetadata": {"sessionId": "9D1DD83B-9BF1-48AF-9CF2-914F09BA1092"}}
+
+data: {"type": "finish", "finishReason": "stop", "messageMetadata": {"usage": {"totalTokens": 2042}}}
+

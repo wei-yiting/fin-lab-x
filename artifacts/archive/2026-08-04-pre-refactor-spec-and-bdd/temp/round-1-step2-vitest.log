@@ -1,0 +1,13 @@
+
+> finlab-x-frontend@0.0.1 test /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend
+> vitest run
+
+
+ RUN  v4.1.2 /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend
+
+
+ Test Files  23 passed (23)
+      Tests  216 passed (216)
+   Start at  11:30:30
+   Duration  81.66s (transform 12.10s, setup 51.70s, import 91.43s, tests 82.92s, environment 276.16s)
+

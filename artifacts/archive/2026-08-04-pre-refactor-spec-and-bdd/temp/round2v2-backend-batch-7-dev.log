@@ -1,0 +1,144 @@
+INFO:     Started server process [16152]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52331 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52335 - "POST /api/v1/chat HTTP/1.1" 200 OK
+Propagated attribute 'metadata.process_start_ts' value is not a string. Dropping value.
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 81, in collapse_excgroups
+  |     yield
+  |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 270, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 783, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1160, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    |     raise exc
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 130, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 117, in app
+    |     await response(scope, receive, send)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 269, in __call__
+    |     with collapse_excgroups():
+    |          ^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/dong.wyt/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    |     raise exc
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 273, in wrap
+    |     await func()
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 253, in stream_response
+    |     async for chunk in self.body_iterator:
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/backend/api/routers/chat.py", line 116, in generate
+    |     yield serialize_event(event)
+    |           ^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/dong.wyt/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/functools.py", line 912, in wrapper
+    |     return dispatch(args[0].__class__)(*args, **kw)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/backend/agent_engine/streaming/sse_serializer.py", line 129, in _
+    |     _assert_reasoning_transient(payload)
+    |   File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/backend/agent_engine/streaming/sse_serializer.py", line 43, in _assert_reasoning_transient
+    |     raise AssertionError(msg)
+    | AssertionError: reasoning SSE event missing transient=True flag
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 117, in app
+    await response(scope, receive, send)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 269, in __call__
+    with collapse_excgroups():
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dong.wyt/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 273, in wrap
+    await func()
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/.venv/lib/python3.12/site-packages/starlette/responses.py", line 253, in stream_response
+    async for chunk in self.body_iterator:
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/backend/api/routers/chat.py", line 116, in generate
+    yield serialize_event(event)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dong.wyt/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/functools.py", line 912, in wrapper
+    return dispatch(args[0].__class__)(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/backend/agent_engine/streaming/sse_serializer.py", line 129, in _
+    _assert_reasoning_transient(payload)
+  File "/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/backend/agent_engine/streaming/sse_serializer.py", line 43, in _assert_reasoning_transient
+    raise AssertionError(msg)
+AssertionError: reasoning SSE event missing transient=True flag
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16152]

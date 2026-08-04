@@ -1,0 +1,18 @@
+data: {"type": "start", "messageId": "lc_run--019dfbb6-7ce7-7ad3-9900-d90e9afeb125", "messageMetadata": {"sessionId": "BEC3F4DF-B94D-4430-966F-9DA4261216B4"}}
+
+data: {"type": "tool-input-available", "toolCallId": "320707df-ea2f-4f3c-be2e-ec23cbdccad0", "toolName": "yfinance_stock_quote", "input": {"ticker": "TSLA"}}
+
+data: {"type": "data-tool-progress", "id": "320707df-ea2f-4f3c-be2e-ec23cbdccad0", "data": {"status": "querying_stock", "message": "Querying TSLA...", "toolName": "yfinance_stock_quote", "toolCallId": "320707df-ea2f-4f3c-be2e-ec23cbdccad0"}, "transient": true}
+
+data: {"type": "tool-output-available", "toolCallId": "320707df-ea2f-4f3c-be2e-ec23cbdccad0", "output": "{\"ticker\": \"TSLA\", \"currentPrice\": 389.37, \"fiftyTwoWeekHigh\": 498.83, \"fiftyTwoWeekLow\": 271.0, \"forwardPE\": 153.57582, \"trailingPE\": 357.22015}"}
+
+data: {"type": "text-start", "id": "text-0"}
+
+data: {"type": "text-delta", "id": "text-0", "delta": "I don't have enough"}
+
+data: {"type": "text-delta", "id": "text-0", "delta": " information to provide Tesla's market cap. The available data for TSLA includes: current price, 52-week high, 52-week low, forward P/E, and trailing P/E."}
+
+data: {"type": "text-end", "id": "text-0"}
+
+data: {"type": "finish", "finishReason": "stop", "messageMetadata": {"usage": {"totalTokens": 82112}}}
+

@@ -1,0 +1,495 @@
+[2m[WebServer] [22m
+[2m[WebServer] [22m> finlab-x-frontend@0.0.1 preview:e2e /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend
+[2m[WebServer] [22m> vite build --mode e2e && vite preview
+[2m[WebServer] [22m
+[2m[WebServer] [22m[36mvite v8.0.3 [32mbuilding client environment for e2e...[36m[39m
+[2m[WebServer] [22m[2K[2m[WebServer] [22mtransforming...[2m[WebServer] [22m[32m✓[39m 2503 modules transformed.
+[2m[WebServer] [22mrendering chunks...
+[2m[WebServer] [22mcomputing gzip size...
+[2m[WebServer] [22m[2mdist/[0m[32mindex.html                                                   [39m[2m[1m  0.48 kB[0m[0m[2m │ gzip:   0.31 kB[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-87-wght-normal-Yrph325E.woff2            [39m[2m[1m  5.79 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mjetbrains-mono-vietnamese-wght-normal-Bt-aOZkq.woff2  [39m[2m[1m  7.50 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-88-wght-normal-qM37cYHV.woff2            [39m[2m[1m  7.56 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-latin-ext-wght-normal-BFabhjDY.woff2     [39m[2m[1m  8.26 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-99-wght-normal-D9WNKjpg.woff2            [39m[2m[1m  8.80 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-91-wght-normal-Dcrjozns.woff2            [39m[2m[1m  8.85 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-0-wght-normal-AlCjBspo.woff2             [39m[2m[1m  8.90 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mjetbrains-mono-greek-wght-normal-Bw9x6K1M.woff2       [39m[2m[1m  9.00 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-vietnamese-wght-normal-B77OGAeV.woff2    [39m[2m[1m  9.04 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-90-wght-normal-BLG28ssT.woff2            [39m[2m[1m  9.38 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-8-wght-normal-BHOicRI8.woff2             [39m[2m[1m  9.54 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-cyrillic-wght-normal-DHeihy9e.woff2      [39m[2m[1m  9.98 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-vietnamese-wght-normal-CBcvBZtf.woff2           [39m[2m[1m 10.25 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-89-wght-normal-DQgsOy-T.woff2            [39m[2m[1m 10.64 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-greek-ext-wght-normal-DlzME5K_.woff2            [39m[2m[1m 11.23 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mjetbrains-mono-cyrillic-wght-normal-D73BlboJ.woff2    [39m[2m[1m 12.10 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-86-wght-normal-Cq_w8Em-.woff2            [39m[2m[1m 12.19 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-7-wght-normal-foGylaCC.woff2             [39m[2m[1m 14.37 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mjetbrains-mono-latin-ext-wght-normal-DBQx-q_a.woff2   [39m[2m[1m 15.19 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-6-wght-normal-WPkr41zz.woff2             [39m[2m[1m 15.32 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-cyrillic-wght-normal-DqGufNeO.woff2             [39m[2m[1m 18.74 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-84-wght-normal-D9L0JLly.woff2            [39m[2m[1m 18.84 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-greek-wght-normal-CkhJZR-_.woff2                [39m[2m[1m 18.99 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-34-wght-normal-C1wbJ2k5.woff2            [39m[2m[1m 20.98 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-44-wght-normal-Dv8Wk8tG.woff2            [39m[2m[1m 21.05 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-26-wght-normal-CLhaJ79b.woff2            [39m[2m[1m 22.80 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-latin-wght-normal-CjMECRfU.woff2         [39m[2m[1m 25.13 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-cyrillic-ext-wght-normal-BOeWTOD4.woff2         [39m[2m[1m 25.96 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-27-wght-normal-Bsb6CrxP.woff2            [39m[2m[1m 26.58 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-80-wght-normal-B3lzDGAN.woff2            [39m[2m[1m 27.04 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-73-wght-normal-Dx6FRt8Y.woff2            [39m[2m[1m 27.59 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-79-wght-normal-BTshvStA.woff2            [39m[2m[1m 28.06 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-19-wght-normal-C8pGE9DU.woff2            [39m[2m[1m 29.14 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-41-wght-normal-CimuZG9f.woff2            [39m[2m[1m 29.33 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-83-wght-normal-BKaoQorn.woff2            [39m[2m[1m 29.52 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-33-wght-normal-BuZ7TSCr.woff2            [39m[2m[1m 30.60 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-70-wght-normal-BJCVnFr4.woff2            [39m[2m[1m 30.83 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-81-wght-normal-CdB6HoDd.woff2            [39m[2m[1m 31.32 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-59-wght-normal-02_K4Ups.woff2            [39m[2m[1m 32.76 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-64-wght-normal-CFXGj_qd.woff2            [39m[2m[1m 33.12 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-77-wght-normal-DtQ0zzNs.woff2            [39m[2m[1m 34.10 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-67-wght-normal-C7UtET7V.woff2            [39m[2m[1m 34.32 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-119-wght-normal-uK-ZmsBB.woff2           [39m[2m[1m 34.55 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-68-wght-normal-DU7AqVdX.woff2            [39m[2m[1m 34.86 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-65-wght-normal-C6nqnFQi.woff2            [39m[2m[1m 35.35 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-31-wght-normal-CUZYeSc0.woff2            [39m[2m[1m 35.55 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-50-wght-normal-C42Zjgp-.woff2            [39m[2m[1m 35.80 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-75-wght-normal-CY_syJjm.woff2            [39m[2m[1m 35.90 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-85-wght-normal-D6VRmOzr.woff2            [39m[2m[1m 36.74 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-60-wght-normal-CUXov-_V.woff2            [39m[2m[1m 37.33 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-71-wght-normal-C68sB2pX.woff2            [39m[2m[1m 37.39 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-24-wght-normal-q2nxC991.woff2            [39m[2m[1m 37.76 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-72-wght-normal-zLtu43lR.woff2            [39m[2m[1m 37.76 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-63-wght-normal-D8azYq-W.woff2            [39m[2m[1m 38.36 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-40-wght-normal-Byd_iF60.woff2            [39m[2m[1m 39.26 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-76-wght-normal-De8sopUP.woff2            [39m[2m[1m 39.68 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-43-wght-normal-xnDjStnc.woff2            [39m[2m[1m 40.19 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-53-wght-normal-DRtz34YW.woff2            [39m[2m[1m 40.32 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mjetbrains-mono-latin-wght-normal-B9CIFXIH.woff2       [39m[2m[1m 40.40 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-23-wght-normal-CpwJlAzD.woff2            [39m[2m[1m 40.55 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-49-wght-normal-CCLgFFzC.woff2            [39m[2m[1m 40.61 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-78-wght-normal-BM2ohN5p.woff2            [39m[2m[1m 41.12 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-35-wght-normal-DJnPxO40.woff2            [39m[2m[1m 41.73 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-54-wght-normal-Bctil8qQ.woff2            [39m[2m[1m 42.34 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-52-wght-normal-BdHOWR67.woff2            [39m[2m[1m 42.34 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-47-wght-normal-BeEDFoeW.woff2            [39m[2m[1m 42.44 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-22-wght-normal-BxkVDKYB.woff2            [39m[2m[1m 42.71 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-82-wght-normal-_Ir9Q2vB.woff2            [39m[2m[1m 43.04 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[[2m[WebServer] [22m32mnoto-sans-tc-58-wght-normal-DzvAN8Jo.woff2            [39m[2m[1m 43.05 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-21-wght-normal-J1OUZdIj.woff2            [39m[2m[1m 43.42 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-48-wght-normal-CKLCikII.woff2            [39m[2m[1m 43.42 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-25-wght-normal-t7uRby9D.woff2            [39m[2m[1m 43.51 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-30-wght-normal-qEGnB_nK.woff2            [39m[2m[1m 43.65 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-42-wght-normal-DT8sgwsv.woff2            [39m[2m[1m 43.70 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-32-wght-normal-B4A85CGO.woff2            [39m[2m[1m 43.94 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-38-wght-normal-CaasFSCy.woff2            [39m[2m[1m 43.96 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-51-wght-normal-AEQJR1Ln.woff2            [39m[2m[1m 44.12 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-29-wght-normal-CVD47Xgy.woff2            [39m[2m[1m 44.62 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-69-wght-normal-ChhTaUGt.woff2            [39m[2m[1m 45.12 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-62-wght-normal-DPjuIv4Z.woff2            [39m[2m[1m 45.38 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-55-wght-normal-ChI6Gtzx.woff2            [39m[2m[1m 47.81 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-latin-wght-normal-Dx4kXJAl.woff2                [39m[2m[1m 48.25 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-66-wght-normal-CABLcObE.woff2            [39m[2m[1m 48.89 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-36-wght-normal-D8HTrsxI.woff2            [39m[2m[1m 49.29 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-56-wght-normal-B7o92O3n.woff2            [39m[2m[1m 49.84 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-39-wght-normal-DNt0rKy4.woff2            [39m[2m[1m 49.90 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-74-wght-normal-Bv7R4L9_.woff2            [39m[2m[1m 50.79 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-37-wght-normal-Ci96APBt.woff2            [39m[2m[1m 50.94 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-57-wght-normal-tuc02TtS.woff2            [39m[2m[1m 51.32 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-28-wght-normal-DzIWEAg_.woff2            [39m[2m[1m 52.19 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-20-wght-normal-C3zSSq0m.woff2            [39m[2m[1m 53.10 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-61-wght-normal-CWCy7dBQ.woff2            [39m[2m[1m 54.08 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-46-wght-normal-C7pDsoZP.woff2            [39m[2m[1m 55.00 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-45-wght-normal-DdGhaj3f.woff2            [39m[2m[1m 56.88 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-118-wght-normal-CWrNe9UE.woff2           [39m[2m[1m 60.29 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-101-wght-normal-BazQQPpe.woff2           [39m[2m[1m 62.57 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-100-wght-normal-CeyvuWjh.woff2           [39m[2m[1m 63.28 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-102-wght-normal-DWn0bv9H.woff2           [39m[2m[1m 63.29 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-117-wght-normal-DxSUmn6U.woff2           [39m[2m[1m 65.44 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-105-wght-normal-C1mWK2qa.woff2           [39m[2m[1m 68.21 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-104-wght-normal-4GaPENTg.woff2           [39m[2m[1m 68.77 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-103-wght-normal-tcQ1zu-u.woff2           [39m[2m[1m 70.40 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-113-wght-normal-CRQfLReA.woff2           [39m[2m[1m 71.48 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-116-wght-normal-Df_sWUUP.woff2           [39m[2m[1m 71.71 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-109-wght-normal-CkWCzlGP.woff2           [39m[2m[1m 72.00 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-106-wght-normal-Chq-ESxo.woff2           [39m[2m[1m 72.52 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-108-wght-normal-BExvVcn7.woff2           [39m[2m[1m 72.54 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-107-wght-normal-BC2EpFaE.woff2           [39m[2m[1m 73.02 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-112-wght-normal-BWioGL2B.woff2           [39m[2m[1m 73.54 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-115-wght-normal-BzydpMOE.woff2           [39m[2m[1m 74.33 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-111-wght-normal-SqRJKajE.woff2           [39m[2m[1m 74.86 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-110-wght-normal-CuMLARLR.woff2           [39m[2m[1m 79.36 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32minter-latin-ext-wght-normal-DO1Apj_S.woff2            [39m[2m[1m 85.06 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[32mnoto-sans-tc-114-wght-normal-D5H20qUS.woff2           [39m[2m[1m 85.11 kB[0m[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[35mindex-Hm590qj8.css                                    [39m[2m[1m159.01 kB[0m[0m[2m │ gzip:  59.37 kB[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[36mbrowser-CCWu9qw2.js                                   [39m[2m[1m268.53 kB[0m[0m[2m │ gzip:  90.07 kB[0m
+[2m[WebServer] [22m[2mdist/[0m[2massets/[0m[36mindex-BK6h9wWi.js                                     [39m[33m[1m595.01 kB[0m[39m[2m │ gzip: 173.27 kB[0m
+[2m[WebServer] [22m
+[2m[WebServer] [22m[33m[plugin builtin:vite-reporter] [33m[1m
+[2m[WebServer] [22m(!) Some chunks are larger than 500 kB after minification. Consider:
+[2m[WebServer] [22m- Using dynamic import() to code-split the application
+[2m[WebServer] [22m- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[2m[WebServer] [22m- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[0m[33m[39m
+[2m[WebServer] [22m[32m✓ built in 7.43s[39m
+[2m[WebServer] [22m  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m[WebServer] [22m[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+
+Running 35 tests using 4 workers
+
+  ✓   1 [chromium] › tests/e2e/critical/gateway-sse-error.spec.ts:10:1 › gateway SSE error (200 + immediate error frame) renders ErrorBlock with Retry @critical @regression (17.3s)
+  ✓   4 [chromium] › tests/e2e/critical/error-recovery.spec.ts:8:1 › pre-stream error recovery via Retry @critical @regression (17.7s)
+  ✓   2 [chromium] › tests/e2e/critical/mid-stream-error.spec.ts:4:1 › mid-stream error preserves partial text + surfaces non-retriable inline error @critical @regression (17.7s)
+  ✓   3 [chromium] › tests/e2e/critical/clear-then-send-new-chat-id.spec.ts:8:1 › Clear followed by immediate chip-send uses the post-Clear chatId in the POST body @critical @regression (18.4s)
+  ✓   6 [chromium] › tests/e2e/critical/pre-stream-409.spec.ts:4:1 › pre-stream 409 surfaces retriable 'system busy' error @critical @regression (9.2s)
+  ✓   8 [chromium] › tests/e2e/critical/regenerate-double-click.spec.ts:8:1 › double-click on Regenerate dispatches a single regenerate POST @critical @regression (8.4s)
+  ✓   7 [chromium] › tests/e2e/critical/refresh-invariant.spec.ts:4:1 › page refresh produces new chatId and clean state @critical @regression (9.6s)
+  ✓   5 [chromium] › tests/e2e/critical/multi-tool-partial-failure.spec.ts:8:1 › three parallel tools with one failure produce three correctly-attributed cards and a completed reply @critical @regression (10.6s)
+  ✓   9 [chromium] › tests/e2e/critical/regenerate-retry.spec.ts:4:1 › regenerate failure → retry succeeds without duplicate history @critical @regression (11.0s)
+  ✓  11 [chromium] › tests/e2e/security/xss-source-link.spec.ts:31:1 › inline javascript: URL is sanitized end-to-end @security @regression (10.4s)
+  ✓  12 [chromium] › tests/e2e/security/xss-source-link.spec.ts:39:1 › source-reference javascript: URL is sanitized end-to-end @security @regression (9.9s)
+  ✓  13 [chromium] › tests/e2e/smoke/app-shell.spec.ts:3:1 › app shell loads and displays heading @smoke @regression (1.4s)
+  ✓  14 [chromium] › tests/e2e/smoke/clear-session.spec.ts:3:1 › clear session resets messages and chatId @smoke @regression (3.5s)
+  ✓  15 [chromium] › tests/e2e/smoke/scroll-behavior.spec.ts:5:1 › overflowed content is scrollable @smoke @regression (8.6s)
+  ✓  16 [chromium] › tests/e2e/smoke/scroll-behavior.spec.ts:28:1 › sending new message auto-scrolls to bottom @smoke @regression (10.2s)
+  ✓  17 [chromium] › tests/e2e/smoke/slow-start-stream.spec.ts:4:1 › reasoning indicator persists during slow stream start, clears when content arrives @smoke @regression (8.0s)
+  -  20 [chromium] › tests/e2e/critical/multi-provider-matrix.spec.ts:87:3 › matrix: Gemini reasoning OFF @critical @matrix
+  -  19 [chromium] › tests/e2e/critical/multi-provider-matrix.spec.ts:87:3 › matrix: Anthropic reasoning ON @critical @matrix
+[matrix] row=gemini-on fixture=gemini-on.yaml expectation=reasoning-on trace_id=<unavailable>
+  -  22 [chromium] › tests/e2e/critical/multi-provider-matrix.spec.ts:87:3 › matrix: OpenAI Responses reasoning ON @critical @matrix
+  -  21 [chromium] › tests/e2e/critical/multi-provider-matrix.spec.ts:87:3 › matrix: Anthropic reasoning OFF @critical @matrix
+  ✓  18 [chromium] › tests/e2e/critical/multi-provider-matrix.spec.ts:87:3 › matrix: Gemini reasoning ON @critical @matrix (4.6s)
+  -  23 [chromium] › tests/e2e/critical/multi-provider-matrix.spec.ts:87:3 › matrix: OpenAI Responses reasoning OFF @critical @matrix
+  ✘  10 [chromium] › tests/e2e/critical/stop-preserves-partial.spec.ts:4:1 › stop preserves partial text and resets Composer @critical @regression (41.0s)
+  ✘  26 [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:46:1 › S-chan-01 — data-reasoning-status SSE event carries transient: true @lifecycle @regression (20.2s)
+  ✘  24 [chromium] › tests/e2e/journeys/abort-then-resend.spec.ts:20:1 › J-rsn-02 / S-rsn-13 — abort during reasoning, then resend produces a fresh indicator @journey @regression (20.7s)
+  ✘  25 [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:26:1 › J-chan-01 / S-chan-02 — reasoning text never leaks into the assistant transcript @lifecycle @regression (20.1s)
+  ✓  30 [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:40:1 › S-rsn-03 — reasoning indicator clears when assistant text-start arrives @lifecycle @regression (9.1s)
+  ✓  31 [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:77:1 › S-rsn-08 — reasoning indicator clears when finish arrives @lifecycle @regression (3.8s)
+  ✓  32 [chromium] › tests/e2e/lifecycle/reasoning-late-events.spec.ts:16:1 › S-rsn-12 — late reasoning event after finish does not re-show the indicator @lifecycle @regression (15.4s)
+  ✘  27 [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:82:1 › S-chan-03 — frontend drops non-transient data-reasoning-status payloads (FORCE_REASONING_NON_TRANSIENT=1, APP_ENV=production) @lifecycle @regression (26.2s)
+  ✓  34 [chromium] › tests/e2e/lifecycle/trace-no-reasoning-blocks.spec.ts:19:1 › S-trace-09 — content_blocks regression suppresses indicator but stream completes with text @lifecycle @regression (3.5s)
+  ✘  33 [chromium] › tests/e2e/lifecycle/reasoning-stalled.spec.ts:20:1 › S-rsn-06 — reasoning indicator gains .stalled class after STALLED_THRESHOLD_MS of silence @lifecycle @regression (18.6s)
+  ✘  29 [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:59:1 › S-rsn-04 — reasoning indicator clears when tool-input-available arrives @lifecycle @regression (34.0s)
+  ✘  28 [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:19:1 › S-rsn-01/02 — idle dots morph into streaming text in the reasoning indicator @lifecycle @regression (34.5s)
+  ✘  35 [chromium] › tests/e2e/lifecycle/trace-tail-stream-only.spec.ts:18:1 › S-trace-05 — reasoning-only stream surfaces indicator then finishes with no assistant text @lifecycle @regression (16.2s)
+
+
+  1) [chromium] › tests/e2e/critical/stop-preserves-partial.spec.ts:4:1 › stop preserves partial text and resets Composer @critical @regression 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('composer-stop-btn')[22m
+
+
+      18 |     });
+      19 |
+    > 20 |     await page.getByTestId("composer-stop-btn").click();
+         |                                                 ^
+      21 |
+      22 |     await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+      23 |       timeout: E2E_TIMEOUTS.status,
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/critical/stop-preserves-partial.spec.ts:20:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/critical-stop-preserves-pa-b620c-al-text-and-resets-Composer-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/critical-stop-preserves-pa-b620c-al-text-and-resets-Composer-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/critical-stop-preserves-pa-b620c-al-text-and-resets-Composer-chromium/error-context.md
+
+  2) [chromium] › tests/e2e/journeys/abort-then-resend.spec.ts:20:1 › J-rsn-02 / S-rsn-13 — abort during reasoning, then resend produces a fresh indicator @journey @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('reasoning-indicator')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('reasoning-indicator')[22m
+
+
+      26 |
+      27 |     const indicator = page.getByTestId("reasoning-indicator");
+    > 28 |     await expect(indicator).toBeVisible({
+         |                             ^
+      29 |       timeout: E2E_TIMEOUTS.streamComplete,
+      30 |     });
+      31 |
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/journeys/abort-then-resend.spec.ts:28:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/journeys-abort-then-resend-59a11--produces-a-fresh-indicator-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/journeys-abort-then-resend-59a11--produces-a-fresh-indicator-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/journeys-abort-then-resend-59a11--produces-a-fresh-indicator-chromium/error-context.md
+
+  3) [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:26:1 › J-chan-01 / S-chan-02 — reasoning text never leaks into the assistant transcript @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('message-list')
+    Expected: [32m"ready"[39m
+    Received: [31m"error"[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('message-list')[22m
+    [2m    13 × locator resolved to <div data-status="error" data-testid="message-list" class="flex flex-1 flex-col overflow-hidden">…</div>[22m
+    [2m       - unexpected value "error"[22m
+
+
+       at fixtures.ts:22
+
+      20 |       },
+      21 |       waitReady: () =>
+    > 22 |         expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+         |                                                  ^
+      23 |           timeout: E2E_TIMEOUTS.streamComplete,
+      24 |         }),
+      25 |     });
+        at Object.waitReady (/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/fixtures.ts:22:50)
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:33:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-channe-3aece-to-the-assistant-transcript-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-channe-3aece-to-the-assistant-transcript-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-reasoning-channe-3aece-to-the-assistant-transcript-chromium/error-context.md
+
+  4) [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:46:1 › S-chan-01 — data-reasoning-status SSE event carries transient: true @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('message-list')
+    Expected: [32m"ready"[39m
+    Received: [31m"error"[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('message-list')[22m
+    [2m    13 × locator resolved to <div data-status="error" data-testid="message-list" class="flex flex-1 flex-col overflow-hidden">…</div>[22m
+    [2m       - unexpected value "error"[22m
+
+
+       at fixtures.ts:22
+
+      20 |       },
+      21 |       waitReady: () =>
+    > 22 |         expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+         |                                                  ^
+      23 |           timeout: E2E_TIMEOUTS.streamComplete,
+      24 |         }),
+      25 |     });
+        at Object.waitReady (/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/fixtures.ts:22:50)
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:73:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-channe-51878-vent-carries-transient-true-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-channe-51878-vent-carries-transient-true-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-reasoning-channe-51878-vent-carries-transient-true-chromium/error-context.md
+
+  5) [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:82:1 › S-chan-03 — frontend drops non-transient data-reasoning-status payloads (FORCE_REASONING_NON_TRANSIENT=1, APP_ENV=production) @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('message-list')
+    Expected: [32m"ready"[39m
+    Received: [31m"error"[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('message-list')[22m
+    [2m    13 × locator resolved to <div data-status="error" data-testid="message-list" class="flex flex-1 flex-col overflow-hidden">…</div>[22m
+    [2m       - unexpected value "error"[22m
+
+
+       at fixtures.ts:22
+
+      20 |       },
+      21 |       waitReady: () =>
+    > 22 |         expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
+         |                                                  ^
+      23 |           timeout: E2E_TIMEOUTS.streamComplete,
+      24 |         }),
+      25 |     });
+        at Object.waitReady (/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/fixtures.ts:22:50)
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:88:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-channe-34ea7-SIENT-1-APP-ENV-production--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-channe-34ea7-SIENT-1-APP-ENV-production--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-reasoning-channe-34ea7-SIENT-1-APP-ENV-production--chromium/error-context.md
+
+  6) [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:19:1 › S-rsn-01/02 — idle dots morph into streaming text in the reasoning indicator @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('reasoning-indicator')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('reasoning-indicator')[22m
+
+
+      27 |     // Initial visible state — idle dots variant has aria-hidden + no text
+      28 |     // content. Visibility is the load-bearing assertion.
+    > 29 |     await expect(indicator).toBeVisible({ timeout: E2E_TIMEOUTS.streamComplete });
+         |                             ^
+      30 |
+      31 |     // Eventually transitions to a frame containing streaming text.
+      32 |     const reasoningText = indicator.locator(".reasoning-status-text");
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:29:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-indica-f7998--in-the-reasoning-indicator-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-indica-f7998--in-the-reasoning-indicator-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-reasoning-indica-f7998--in-the-reasoning-indicator-chromium/error-context.md
+
+  7) [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:59:1 › S-rsn-04 — reasoning indicator clears when tool-input-available arrives @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('tool-card').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('tool-card').first()[22m
+
+
+      66 |     await chat.sendMessage("look up MSFT quote");
+      67 |
+    > 68 |     await expect(page.getByTestId("tool-card").first()).toBeVisible({
+         |                                                         ^
+      69 |       timeout: E2E_TIMEOUTS.streamComplete,
+      70 |     });
+      71 |     await expect(page.getByTestId("reasoning-indicator")).not.toBeVisible({
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:68:57
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-indica-8edc2-ool-input-available-arrives-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-indica-8edc2-ool-input-available-arrives-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-reasoning-indica-8edc2-ool-input-available-arrives-chromium/error-context.md
+
+  8) [chromium] › tests/e2e/lifecycle/reasoning-stalled.spec.ts:20:1 › S-rsn-06 — reasoning indicator gains .stalled class after STALLED_THRESHOLD_MS of silence @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('reasoning-indicator')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('reasoning-indicator')[22m
+
+
+      26 |
+      27 |     const indicator = page.getByTestId("reasoning-indicator");
+    > 28 |     await expect(indicator).toBeVisible({ timeout: E2E_TIMEOUTS.streamComplete });
+         |                             ^
+      29 |
+      30 |     // Wait past the stalled threshold. We deliberately use page.waitForTimeout
+      31 |     // here — there is no observable signal short of the className flip itself,
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/reasoning-stalled.spec.ts:28:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-stalle-c76f7-LED-THRESHOLD-MS-of-silence-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-reasoning-stalle-c76f7-LED-THRESHOLD-MS-of-silence-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-reasoning-stalle-c76f7-LED-THRESHOLD-MS-of-silence-chromium/error-context.md
+
+  9) [chromium] › tests/e2e/lifecycle/trace-tail-stream-only.spec.ts:18:1 › S-trace-05 — reasoning-only stream surfaces indicator then finishes with no assistant text @lifecycle @regression 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('reasoning-indicator')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('reasoning-indicator')[22m
+
+
+      24 |
+      25 |     // Reasoning indicator must surface during the stream.
+    > 26 |     await expect(page.getByTestId("reasoning-indicator")).toBeVisible({
+         |                                                           ^
+      27 |       timeout: E2E_TIMEOUTS.streamComplete,
+      28 |     });
+      29 |
+        at /Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/multi-provider-streaming-reasoning/frontend/tests/e2e/lifecycle/trace-tail-stream-only.spec.ts:26:59
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lifecycle-trace-tail-strea-1025a-shes-with-no-assistant-text-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/lifecycle-trace-tail-strea-1025a-shes-with-no-assistant-text-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lifecycle-trace-tail-strea-1025a-shes-with-no-assistant-text-chromium/error-context.md
+
+  9 failed
+    [chromium] › tests/e2e/critical/stop-preserves-partial.spec.ts:4:1 › stop preserves partial text and resets Composer @critical @regression 
+    [chromium] › tests/e2e/journeys/abort-then-resend.spec.ts:20:1 › J-rsn-02 / S-rsn-13 — abort during reasoning, then resend produces a fresh indicator @journey @regression 
+    [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:26:1 › J-chan-01 / S-chan-02 — reasoning text never leaks into the assistant transcript @lifecycle @regression 
+    [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:46:1 › S-chan-01 — data-reasoning-status SSE event carries transient: true @lifecycle @regression 
+    [chromium] › tests/e2e/lifecycle/reasoning-channel-isolation.spec.ts:82:1 › S-chan-03 — frontend drops non-transient data-reasoning-status payloads (FORCE_REASONING_NON_TRANSIENT=1, APP_ENV=production) @lifecycle @regression 
+    [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:19:1 › S-rsn-01/02 — idle dots morph into streaming text in the reasoning indicator @lifecycle @regression 
+    [chromium] › tests/e2e/lifecycle/reasoning-indicator-states.spec.ts:59:1 › S-rsn-04 — reasoning indicator clears when tool-input-available arrives @lifecycle @regression 
+    [chromium] › tests/e2e/lifecycle/reasoning-stalled.spec.ts:20:1 › S-rsn-06 — reasoning indicator gains .stalled class after STALLED_THRESHOLD_MS of silence @lifecycle @regression 
+    [chromium] › tests/e2e/lifecycle/trace-tail-stream-only.spec.ts:18:1 › S-trace-05 — reasoning-only stream surfaces indicator then finishes with no assistant text @lifecycle @regression 
+  5 skipped
+  21 passed (3.2m)

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Merge Conflict Resolution — origin/main → feat/multi-provider-streaming-reasoning</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --fg: #1f2328; --card: #ffffff; --border: #d1d9e0;
+    --cur: #0969da; --cur-bg: #ddf4ff;
+    --inc: #bc4c00; --inc-bg: #fff1e5;
+    --res: #1a7f37; --res-bg: #dafbe1;
+    --muted: #59636e; --code-bg: #f6f8fa;
+    --chip-mix: #8250df;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --card: #161b22; --border: #30363d;
+      --cur: #58a6ff; --cur-bg: #0c2d6b33;
+      --inc: #f0883e; --inc-bg: #5a1e0233;
+      --res: #3fb950; --res-bg: #04260f66;
+      --muted: #8d96a0; --code-bg: #0d1117;
+      --chip-mix: #a371f7;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang TC", "Noto Sans TC", sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: .9rem; margin-bottom: 24px; }
+  .sub code { font-size: .85rem; }
+  h2 { font-size: 1.15rem; margin: 40px 0 8px; padding-top: 16px; border-top: 2px solid var(--border); }
+  h2 .path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; }
+  h3 { font-size: .95rem; margin: 20px 0 8px; color: var(--muted); font-weight: 600; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; font-size: .84em; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: .8rem; line-height: 1.5; margin: 0; }
+  pre code { background: none; border: none; padding: 0; }
+  .chip { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; vertical-align: 2px; margin-left: 8px; }
+  .chip.mix    { color: var(--chip-mix); border: 1px solid var(--chip-mix); }
+  .chip.ours   { color: var(--cur); border: 1px solid var(--cur); }
+  .chip.theirs { color: var(--inc); border: 1px solid var(--inc); }
+  .chip.del    { color: var(--inc); border: 1px solid var(--inc); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+  .pane { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--card); }
+  .pane .hd { font-size: .74rem; font-weight: 700; letter-spacing: .04em; padding: 5px 12px; }
+  .pane.cur .hd { background: var(--cur-bg); color: var(--cur); }
+  .pane.inc .hd { background: var(--inc-bg); color: var(--inc); }
+  .pane.res .hd { background: var(--res-bg); color: var(--res); }
+  .pane pre { border: none; border-radius: 0; border-top: 1px solid var(--border); }
+  .pane.res { border-color: var(--res); margin: 10px 0; }
+  .why { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--res); border-radius: 6px; padding: 10px 14px; font-size: .88rem; margin: 10px 0 4px; }
+  .why b { color: var(--res); }
+  .warn { border-left-color: var(--inc); }
+  .warn b { color: var(--inc); }
+  table.toc { border-collapse: collapse; width: 100%; font-size: .86rem; background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  table.toc th, table.toc td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  table.toc th { background: var(--code-bg); font-size: .78rem; }
+  table.toc tr:last-child td { border-bottom: none; }
+  table.toc a { color: var(--cur); text-decoration: none; }
+  table.toc a:hover { text-decoration: underline; }
+  table.toc code { white-space: nowrap; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; font-size: .85rem; color: var(--muted); }
+  .post { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin-top: 16px; font-size: .9rem; }
+  .post ol { margin: 6px 0 0; padding-left: 22px; }
+  ul.outline { font-size: .82rem; font-family: ui-monospace, Menlo, monospace; margin: 6px 0; padding-left: 20px; color: var(--muted); }
+  .del-line { color: var(--inc); text-decoration: line-through; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Merge Conflict Resolution 提案</h1>
+<div class="sub">
+  <code>git merge origin/main</code>(<code>b480568</code>,含 DEV-90 tier 改名 <code>#19</code> + Finnhub 換血 <code>#15</code>)→
+  <code>feat/multi-provider-streaming-reasoning</code>(<code>08435ec</code>)。
+  11 個 conflict 檔。<b>Current</b> = 本 branch(HEAD)、<b>Incoming</b> = origin/main、<b>Resolution</b> = 提議解法。
+</div>
+
+<table class="toc">
+  <tr><th>#</th><th>檔案</th><th>Conflict 本質</th><th>策略</th></tr>
+  <tr><td>1</td><td><a href="#f1"><code>agents/README.md</code></a></td><td>branch 加 reasoning 描述 × main 改名詞彙</td><td><span class="chip mix">混合</span></td></tr>
+  <tr><td>2</td><td><a href="#f2"><code>agents/base.py</code></a></td><td>import 與 <code>__init__</code> 型別改名</td><td><span class="chip mix">混合</span></td></tr>
+  <tr><td>3</td><td><a href="#f3"><code>agents/config_loader.py</code></a></td><td><code>ModelConfig</code> docstring:完整版 × 改名版</td><td><span class="chip ours">取 branch+改詞</span></td></tr>
+  <tr><td>4</td><td><a href="#f4"><code>agents/versions/README.md</code></a></td><td>modify/delete:main 已搬家成 <code>profiles/README.md</code></td><td><span class="chip del">刪+移植</span></td></tr>
+  <tr><td>5</td><td><a href="#f5"><code>tests/agents/test_config_loader.py</code></a></td><td>import 兩邊各需要一半</td><td><span class="chip mix">聯集</span></td></tr>
+  <tr><td>6</td><td><a href="#f6"><code>tests/agents/test_orchestrator_langfuse.py</code></a></td><td>fixture 改名 assert × branch 新增 400 行測試</td><td><span class="chip mix">混合</span></td></tr>
+  <tr><td>7</td><td><a href="#f7"><code>tests/agents/test_orchestrator_prompt_rendering.py</code></a></td><td>branch 放寬 assert × main 改名+維持嚴格</td><td><span class="chip ours">取 branch 語意</span></td></tr>
+  <tr><td>8</td><td><a href="#f8"><code>tests/agents/test_utils_model_context.py</code></a></td><td>docstring:完整版 × 改名版</td><td><span class="chip ours">取 branch+改詞</span></td></tr>
+  <tr><td>9</td><td><a href="#f9"><code>tests/integration/test_baseline_integration.py</code></a></td><td>branch parametrize 整併 × main Yahoo→Finnhub</td><td><span class="chip mix">混合+去重</span></td></tr>
+  <tr><td>10</td><td><a href="#f10"><code>tests/streaming/test_domain_events_schema.py</code></a></td><td>branch 整併版 × main 逐 event 冗長版</td><td><span class="chip ours">取 branch</span></td></tr>
+  <tr><td>11</td><td><a href="#f11"><code>pyproject.toml</code></a></td><td>兩邊各加一個 pytest marker</td><td><span class="chip mix">聯集</span></td></tr>
+</table>
+
+<!-- ============ F1 ============ -->
+<h2 id="f1">1. <span class="path">backend/agent_engine/agents/README.md</span><span class="chip mix">混合</span></h2>
+<h3>Hunk 1/1 — 模組 bullet list</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>- `base.py`: … `_init_model()` translates `ModelConfig` into
+  provider-aware reasoning kwargs … `_build_langfuse_config()`
+  attaches a per-request `CallbackHandler` + a `ReasoningTraceCallback`
+  … `_handle_abort_cleanup()` drains the segmenter tail and stamps
+  the trace on user abort …
+- `config_loader.py`: Implements `VersionConfigLoader` and
+  `VersionConfig` … `ModelConfig` exposes `reasoning`
+  (`"on"` / `"off"` / `"unsupported"`) and `thinking_budget` …
+  see `versions/README.md` for field semantics …
+- `versions/`: Subdirectory containing versioned workflow
+  configurations (v1-v5).</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>- `base.py`: … `_build_langfuse_config()` attaches a per-request
+  `CallbackHandler` plus a `RunnableConfig` …(無 reasoning 相關描述)
+- `config_loader.py`: Implements `ProfileConfigLoader` and
+  `WorkflowProfileConfig` Pydantic models for loading … from
+  profile directories.
+- `profiles/`: Subdirectory containing the Workflow Profiles,
+  one per capability tier (`baseline` … `analyst`).</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — main 的新詞彙為底,併回 branch 的 reasoning 內容</div>
+<pre><code>- `base.py`: Defines the `Orchestrator` class, which uses LangChain to manage the ReAct
+  tool-calling loop. `_init_model()` translates `ModelConfig` into provider-aware reasoning
+  kwargs (see Multi-Provider Reasoning Configuration below). `_build_langfuse_config()`
+  attaches a per-request `CallbackHandler` + a `ReasoningTraceCallback` plus a
+  `RunnableConfig` carrying `run_name="chat-turn"` and `metadata={langfuse_trace_name:
+  f"{config.name}_{mode}", request_id: ...}`; `propagate_attributes(trace_name=...,
+  session_id=...)` wraps the invocation for OTel-context correlation.
+  `_handle_abort_cleanup()` drains the segmenter tail and stamps the trace on user abort
+  (see Streaming Reasoning Trace &amp; Abort Protocol). Extracts results via `_extract_result`.
+- `config_loader.py`: Implements `ProfileConfigLoader` and `WorkflowProfileConfig` Pydantic
+  models for loading `orchestrator_config.yaml` and `system_prompt.md` from profile
+  directories. `ModelConfig` exposes `reasoning` (`"on"` / `"off"` / `"unsupported"`) and
+  `thinking_budget` for admin-configured reasoning capability binding — see
+  `profiles/README.md` for field semantics and provider examples.
+- `profiles/`: Subdirectory containing the Workflow Profiles, one per capability tier
+  (`baseline` … `analyst`).</code></pre></div>
+<div class="why"><b>理由:</b>branch 的 <code>base.py</code> 描述是 main 版的 superset(main 只是沒有 reasoning 內容),整句保留;類別名與目錄用 main 的新詞(<code>ProfileConfigLoader</code> / <code>WorkflowProfileConfig</code> / <code>profiles/</code>);<code>versions/README.md</code> 的指向改成 <code>profiles/README.md</code>(見 #4)。註:F5/F7 refactor 後 segmenter / ReasoningTraceCallback 的描述還會再改,現階段先如實反映現有 code。</div>
+
+<!-- ============ F2 ============ -->
+<h2 id="f2">2. <span class="path">backend/agent_engine/agents/base.py</span><span class="chip mix">混合</span></h2>
+<h3>Hunk 1/2 — import(L39)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>from backend.agent_engine.agents.config_loader import ModelConfig, VersionConfig</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>from backend.agent_engine.agents.config_loader import WorkflowProfileConfig</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 聯集(branch 需要 ModelConfig,型別名用 main 的)</div>
+<pre><code>from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    WorkflowProfileConfig,
+)</code></pre></div>
+<div class="why"><b>理由:</b>branch 的 <code>_init_model()</code> 型別註記需要 <code>ModelConfig</code>,main 只是把 <code>VersionConfig</code> 改名 <code>WorkflowProfileConfig</code>。單行寫法 89 字元超過 ruff 的 88 上限,改括號多行。</div>
+
+<h3>Hunk 2/2 — <code>__init__</code> 簽名(L322)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>def __init__(
+    self, config: VersionConfig, *, checkpointer: BaseCheckpointSaver | None = None
+):</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>def __init__(self, config: WorkflowProfileConfig, *, checkpointer: BaseCheckpointSaver | None = None):</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — main 的型別名 + 多行排版</div>
+<pre><code>def __init__(
+    self,
+    config: WorkflowProfileConfig,
+    *,
+    checkpointer: BaseCheckpointSaver | None = None,
+):</code></pre></div>
+<div class="why"><b>理由:</b>語意完全取 main(改名後型別);但 main 的單行 ~95 字元超過 88 上限,branch 的兩行式改名後也超,所以展開成一參數一行(ruff format 標準輸出)。</div>
+
+<!-- ============ F3 ============ -->
+<h2 id="f3">3. <span class="path">backend/agent_engine/agents/config_loader.py</span><span class="chip ours">取 branch+改詞</span></h2>
+<h3>Hunk 1/1 — <code>ModelConfig</code> docstring(L11)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>"""Model configuration for a workflow version.
+
+Fields:
+    name: Provider-prefixed model identifier accepted by
+        ``langchain.chat_models.init_chat_model`` (e.g.
+        ``"google_genai:gemini-2.5-flash"`` or ``"anthropic:claude-..."``).
+        Bare names (``"gpt-4o-mini"``) default to OpenAI.
+    temperature: Sampling temperature passed to the chat model.
+    reasoning: Admin-configured reasoning capability for this agent.
+        ``"on"`` enables provider-specific thinking/reasoning; ``"off"``
+        forces it disabled (e.g. Gemini ``thinking_budget=0``);
+        ``"unsupported"`` documents that the bound model has no reasoning
+        mode and the orchestrator should not attempt to enable one.
+        Defaults to ``"off"`` so reasoning never silently turns on.
+    thinking_budget: Optional explicit reasoning token budget. Used as
+        Anthropic ``budget_tokens`` (required, ≥1024) and Gemini
+        ``thinking_budget``. ``None`` lets the provider pick its default
+        for Gemini and is rejected for Anthropic with reasoning="on".
+"""</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>"""Model configuration for a workflow profile."""</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — branch 完整 docstring,首行改 profile</div>
+<pre><code>"""Model configuration for a workflow profile.
+
+Fields:
+    name: Provider-prefixed model identifier accepted by
+        ``langchain.chat_models.init_chat_model`` (e.g.
+        ``"google_genai:gemini-2.5-flash"`` or ``"anthropic:claude-..."``).
+        Bare names (``"gpt-4o-mini"``) default to OpenAI.
+    temperature: Sampling temperature passed to the chat model.
+    reasoning: Admin-configured reasoning capability for this agent.
+        ``"on"`` enables provider-specific thinking/reasoning; ``"off"``
+        forces it disabled (e.g. Gemini ``thinking_budget=0``);
+        ``"unsupported"`` documents that the bound model has no reasoning
+        mode and the orchestrator should not attempt to enable one.
+        Defaults to ``"off"`` so reasoning never silently turns on.
+    thinking_budget: Optional explicit reasoning token budget. Used as
+        Anthropic ``budget_tokens`` (required, ≥1024) and Gemini
+        ``thinking_budget``. ``None`` lets the provider pick its default
+        for Gemini and is rejected for Anthropic with reasoning="on".
+"""</code></pre></div>
+<div class="why"><b>理由:</b>branch 加的欄位語意是現有 code 的正確文件(<code>reasoning</code>/<code>thinking_budget</code> 欄位 auto-merge 已保留在 class body),只把首行的 "workflow version" 改成 "workflow profile"。之後 refactor 砍 <code>"unsupported"</code> 三態時 docstring 會跟著改——那是 refactor 的事,不在 merge 裡先動。</div>
+
+<!-- ============ F4 ============ -->
+<h2 id="f4">4. <span class="path">backend/agent_engine/agents/versions/README.md</span><span class="chip del">刪+移植</span></h2>
+<h3>Modify/delete conflict — main 已把此檔搬成 <code>profiles/README.md</code></h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch,修改了舊檔)</div>
+<pre><code>(branch 在舊檔加了兩塊內容)
+
+## `ModelConfig` Fields
+| Field | Type | Purpose |
+| name  | `provider:model` string | e.g. `openai:gpt-5-mini`… |
+| temperature | float | Must be `1.0` when Anthropic reasoning="on" |
+| reasoning | `"on"`/`"off"`/`"unsupported"` | Admin-configured … |
+| thinking_budget | int / null | Anthropic `budget_tokens` (≥1024) … |
+
+### Provider examples
+(OpenAI / Gemini / Anthropic 三段 yaml 範例)
+
++ Extension Algorithm step 2/4 補註
+(model: block 怎麼填、trace 沒 reasoning 時查 provider matrix)</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>(檔案已刪除)
+
+內容已搬家並改寫為
+backend/agent_engine/agents/profiles/README.md
+— 用新詞彙(Workflow Profiles、ProfileConfigLoader、
+baseline…analyst),但沒有 branch 的 ModelConfig 章節</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 刪 versions/README.md,branch 增量移植進 profiles/README.md</div>
+<pre><code>1. git rm backend/agent_engine/agents/versions/README.md(接受 main 的刪除)
+
+2. 在 profiles/README.md 插入 branch 的兩塊內容(詞彙掃成 profile):
+   - "## `ModelConfig` Fields" 表格 + "### Provider examples"(插在 Map 之後)
+     - "Each version's `model:` block" → "Each profile's `model:` block"
+   - Key Files bullet:"model parameters" → "`model:` block (see ModelConfig Fields below)"
+   - Extension Algorithm step 2 補 model: block 指引、step 4 補 reasoning 驗證註記
+     - `VersionConfigLoader.list_available_versions()` → `ProfileConfigLoader.list_available_profiles()`</code></pre></div>
+<div class="why"><b>理由:</b>檔案身分取 main(搬家+改名是 DEV-90 的落地),但 branch 在舊檔上寫的 <code>ModelConfig</code> 欄位語意是新內容,不能隨檔案一起消失——移植到新家。</div>
+
+<!-- ============ F5 ============ -->
+<h2 id="f5">5. <span class="path">backend/tests/agents/test_config_loader.py</span><span class="chip mix">聯集</span></h2>
+<h3>Hunk 1/1 — import(L9)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    VersionConfigLoader,
+)</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>from backend.agent_engine.agents.config_loader import ProfileConfigLoader</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 聯集</div>
+<pre><code>from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    ProfileConfigLoader,
+)</code></pre></div>
+<div class="why"><b>理由:</b>branch 新增的 reasoning 測試用到 <code>ModelConfig</code>;loader 類名取 main 的新名。檔案其餘部分 auto-merge 已是 profile 詞彙(<code>_write_profile_yaml</code>)。</div>
+
+<!-- ============ F6 ============ -->
+<h2 id="f6">6. <span class="path">backend/tests/agents/test_orchestrator_langfuse.py</span><span class="chip mix">混合</span></h2>
+<h3>Hunk 1/1(L732–L1143,大 hunk)— 兩行 assert 改名 + branch 新增 ~400 行測試</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>assert config_arg["metadata"]["langfuse_trace_name"] == "v2_test_invoke"
+assert mock_propagate.call_args.kwargs["trace_name"] == "v2_test_invoke"
+
+
+class TestReasoningTraceCallbackInjection:
+    …(4 個測試)
+
+class TestAstreamAbortCleanup:
+    …(5 個測試)
+
+(合計 ~400 行,main 上不存在)</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>assert (
+    config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
+)
+assert (
+    mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"
+)
+
+(main 沒有後面那兩個測試類)</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — assert 取 main("reader_invoke"),branch 的兩個測試類全數保留</div>
+<pre><code>assert (
+    config_arg["metadata"]["langfuse_trace_name"] == "reader_invoke"
+)
+assert (
+    mock_propagate.call_args.kwargs["trace_name"] == "reader_invoke"
+)
+
+
+class TestReasoningTraceCallbackInjection:   # 保留(branch 新增)
+    …
+class TestAstreamAbortCleanup:               # 保留(branch 新增)
+    …
+    # 內部 1 處 VersionConfig( → WorkflowProfileConfig((rename-sweep)</code></pre></div>
+<div class="why"><b>理由:</b>這個 hunk 之所以巨大,是兩個獨立變更疊在一起:(a) main 把測試 fixture 從 <code>name="v2_test"</code> 改成 <code>name="reader"</code>——auto-merge 後檔案上半部已是 <code>reader</code>,所以 assert 必須跟著取 main 側,取 branch 側會直接紅;(b) branch 在同位置之後新增了 reasoning callback / abort cleanup 兩個測試類——原封保留(它們是 F7 refactor 的重寫對象,但現在要維持綠)。保留區內有 1 處 <code>VersionConfig(</code> 引用,順手掃成新名。</div>
+<details><summary>保留的 ~400 行測試類完整清單</summary>
+<ul class="outline">
+<li>TestReasoningTraceCallbackInjection
+  <ul class="outline">
+  <li>test_astream_callbacks_include_reasoning_callback_wired_to_handler</li>
+  <li>test_astream_reasoning_callback_uses_config_capability(內含 VersionConfig( → 要改名)</li>
+  <li>test_run_callbacks_include_reasoning_callback_wired_to_handler</li>
+  <li>test_arun_callbacks_include_reasoning_callback_wired_to_handler</li>
+  </ul></li>
+<li>TestAstreamAbortCleanup
+  <ul class="outline">
+  <li>test_cancel_writes_reasoning_tail_and_aborted_status</li>
+  <li>test_cancel_with_empty_segmenter_writes_empty_reasoning_tail</li>
+  <li>test_cancel_with_empty_runs_propagates_and_warns</li>
+  <li>test_cancel_propagates_even_when_langfuse_update_raises</li>
+  <li>test_natural_finish_does_not_invoke_abort_cleanup</li>
+  </ul></li>
+</ul>
+</details>
+
+<!-- ============ F7 ============ -->
+<h2 id="f7">7. <span class="path">backend/tests/agents/test_orchestrator_prompt_rendering.py</span><span class="chip ours">取 branch 語意</span></h2>
+<h3>Hunk 1/2 — parametrize + docstring(L258)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>@pytest.mark.parametrize("version", sorted(EXPECTED_TOOLS_BY_VERSION.keys()))
+def test_all_versions_use_new_tool_names(version):
+    """Every version config must replace the deprecated single SEC
+    retriever with the two-step pair. We assert that invariant, NOT
+    the exact tool list / ordering — pinning the full list
+    change-detects every intentional tool addition across all five
+    versions at once.</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>@pytest.mark.parametrize("profile", sorted(EXPECTED_TOOLS_BY_PROFILE.keys()))
+def test_all_profiles_use_new_tool_names(profile):
+    """Every profile config must replace sec_official_docs_retriever
+    with the two-step pair and preserve all other tools in their
+    original order.</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — main 的命名 + branch 的放寬語意</div>
+<pre><code>@pytest.mark.parametrize("profile", sorted(EXPECTED_TOOLS_BY_PROFILE.keys()))
+def test_all_profiles_use_new_tool_names(profile):
+    """Every profile config must replace the deprecated single SEC retriever
+    with the two-step pair. We assert that invariant, NOT the exact tool list /
+    ordering — pinning the full list change-detects every intentional tool
+    addition across all five profiles at once.</code></pre></div>
+
+<h3>Hunk 2/2 — 檔尾 assert(L280)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>(無 — branch 刪掉了這行)</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>    assert tools == EXPECTED_TOOLS_BY_PROFILE[profile]</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 取 branch(不收這行)</div>
+<pre><code>(不加回 exact-list assert)</code></pre></div>
+<div class="why"><b>理由:</b>「只驗 SEC 兩步 invariant、不 pin 完整 tool list」是 test-audit 的刻意放寬(docstring 記錄了理由:pin 完整 list 會讓每次合理的 tool 增減都紅一排)。main 側的 exact-list assert 正是被放寬掉的形式,收回來等於 revert 這個決策。命名跟 main。</div>
+
+<!-- ============ F8 ============ -->
+<h2 id="f8">8. <span class="path">backend/tests/agents/test_utils_model_context.py</span><span class="chip ours">取 branch+改詞</span></h2>
+<h3>Hunk 1/1 — docstring(L74)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>"""Sanity: committed YAML covers every model referenced in versions/*.
+
+Provider-prefixed names (e.g. ``google_genai:gemini-2.5-flash``) match
+against the bare key (``gemini-2.5-flash``) — see ``_strip_provider_prefix``.
+"""</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>"""Sanity: committed YAML covers every model referenced in profiles/*."""</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — branch 的完整 docstring,versions/* → profiles/*</div>
+<pre><code>"""Sanity: committed YAML covers every model referenced in profiles/*.
+
+Provider-prefixed names (e.g. ``google_genai:gemini-2.5-flash``) match
+against the bare key (``gemini-2.5-flash``) — see ``_strip_provider_prefix``.
+"""</code></pre></div>
+<div class="why"><b>理由:</b>provider-prefix 的比對說明是 branch 加的真行為文件(<code>_strip_provider_prefix</code> 存在且會留下——model name 仍是 <code>openai:gpt-5-mini</code> 格式),只改路徑詞彙。</div>
+
+<!-- ============ F9 ============ -->
+<h2 id="f9">9. <span class="path">backend/tests/integration/test_baseline_integration.py</span><span class="chip mix">混合+去重</span></h2>
+<div class="why warn"><b>注意:</b>此檔是 rename conflict(branch 的 <code>test_v1_integration.py</code> × main 改名後的 <code>test_baseline_integration.py</code>)。最終路徑取 main 的新名。另外 auto-merge 在 hunk 之外殘留了 main 側 3 個 per-tool 測試函式,見 hunk 之後的去重步驟。</div>
+
+<h3>Hunk 1/3 — 測試主體(L55)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>@pytest.mark.parametrize(
+    "tool_name, args",
+    [
+        ("yfinance_get_available_fields", {"ticker": "AAPL"}),
+        ("tavily_financial_search", {"query": "latest news", "ticker": "TSLA"}),
+        ("sec_filing_list_sections", {"ticker": "MSFT", "doc_type": "10-K"}),
+    ],
+    ids=["yfinance", "tavily", "sec"],
+)
+def test_single_tool_output_is_extracted(tool_name, args):
+    """A single tool call yields a single tool_output carrying the
+    tool name and the echoed args. yfinance / tavily / sec are the
+    same extraction equivalence class …"""
+    config = VersionConfig(</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>def test_finnhub_tool_integration():
+    """Test that finnhub tool output is correctly extracted."""
+    config = WorkflowProfileConfig(</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — branch 的 parametrize 結構,yfinance 案例換成 finnhub</div>
+<pre><code>@pytest.mark.parametrize(
+    "tool_name, args",
+    [
+        ("finnhub_company_basic_financials", {"ticker": "AAPL"}),
+        ("tavily_financial_search", {"query": "latest news", "ticker": "TSLA"}),
+        ("sec_filing_list_sections", {"ticker": "MSFT", "doc_type": "10-K"}),
+    ],
+    ids=["finnhub", "tavily", "sec"],
+)
+def test_single_tool_output_is_extracted(tool_name, args):
+    """A single tool call yields a single tool_output carrying the tool name
+    and the echoed args. finnhub / tavily / sec are the same extraction
+    equivalence class — only the tool name and args strings differ — so they
+    share one parametrized test. Multi-tool sequencing is covered separately by
+    test_multi_tool_integration."""
+    config = WorkflowProfileConfig(</code></pre></div>
+<div class="why"><b>理由:</b>main 的 PR #15 已把 Yahoo Finance 整個換成 Finnhub——<code>yfinance_get_available_fields</code> tool 不存在了,branch 的 parametrize 保留但該案例換成 <code>finnhub_company_basic_financials</code>。安全性:此測試把 tool 整個 mock 掉(<code>Mock()</code> + agent 回放 message history、args 只是被 echo),不碰真 API,換名即可,mock 形狀不用改。</div>
+
+<h3>Hunk 2/3 — config 與 mock(L80)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>    tools=[tool_name],
+)
+
+mock_tool = Mock()
+mock_tool.name = tool_name</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>    tools=["finnhub_company_basic_financials"],
+)
+
+mock_tool = Mock()
+mock_tool.name = "finnhub_company_basic_financials"</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 取 branch(parametrize 變數)</div>
+<pre><code>    tools=[tool_name],
+)
+
+mock_tool = Mock()
+mock_tool.name = tool_name</code></pre></div>
+
+<h3>Hunk 3/3 — assert(L155)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>output = result["tool_outputs"][0]
+assert output["tool"] == tool_name
+assert output["args"] == args</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>assert result["tool_outputs"][0]["tool"] == "tavily_financial_search"
+assert result["tool_outputs"][0]["args"]["ticker"] == "TSLA"</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 取 branch(parametrize 版 assert)</div>
+<pre><code>output = result["tool_outputs"][0]
+assert output["tool"] == tool_name
+assert output["args"] == args</code></pre></div>
+
+<h3>Hunk 外的去重 — main 側殘留的 per-tool 測試</h3>
+<div class="pane res"><div class="hd">RESOLUTION — 刪除 3 個已被 parametrize 吸收的殘留函式</div>
+<pre><code><span class="del-line">def test_finnhub_tool_integration():   # L73  — 被 parametrize 的 finnhub 案例吸收</span>
+<span class="del-line">def test_tavily_tool_integration():    # L125 — 被 parametrize 的 tavily 案例吸收</span>
+<span class="del-line">def test_sec_tool_integration():       # L164 — 被 parametrize 的 sec 案例吸收</span>
+def test_multi_tool_integration():     # 保留 — 多 tool 序列是獨立等價類</code></pre></div>
+<div class="why"><b>理由:</b>branch 的 test-audit 把三個單 tool 測試整併成一個 parametrized 測試;main 這邊 git 認不出「被整併」的關係,把改過名的舊函式留在 hunk 之外。不刪會有重複覆蓋 + 舊式寫法並存。</div>
+
+<!-- ============ F10 ============ -->
+<h2 id="f10">10. <span class="path">backend/tests/streaming/test_domain_events_schema.py</span><span class="chip ours">取 branch</span></h2>
+<h3>Hunk 1/1 — frozen 測試形式(L32)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>_ALL_EVENTS = [
+    MessageStart, TextStart, TextDelta, TextEnd,
+    ToolCall, ToolResult, ToolError, ToolProgress,
+    ReasoningStatus, StreamError, Finish,
+]
+
+def test_events_are_frozen():
+    """Representative guard that domain events are frozen=True
+    (applied uniformly by the dataclass decorator) — mutation
+    must raise."""
+    evt = TextDelta(text_id="t1", delta="hello")
+    with pytest.raises(AttributeError):
+        evt.delta = "world"</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>class TestFrozenImmutability:
+    """All domain events must be frozen dataclasses …"""
+
+    def test_message_start_is_frozen(self): …
+    def test_text_delta_is_frozen(self): …
+    def test_tool_call_is_frozen(self): …
+    (逐 event 一個測試,main 只改了 fixture 裡的
+     tool 名稱成 finnhub_stock_quote)</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 取 branch 的整併版,原封不動</div>
+<pre><code>_ALL_EVENTS = [ … ]                # branch 版
+
+def test_events_are_frozen():      # 代表性 guard,一個就夠
+    …</code></pre></div>
+<div class="why"><b>理由:</b>branch 的整併版是 test-audit 成果(frozen 由 decorator 統一施加,逐 event 驗證是重複);main 側只是在冗長版裡順手改了 fixture 的 tool 名。branch 版經查無 yfinance 字樣,無需調整。註:此檔在 F5 refactor 的刪減清單上(<code>ReasoningStatus</code> event 將被 native parts 取代),之後還會再改。</div>
+
+<!-- ============ F11 ============ -->
+<h2 id="f11">11. <span class="path">pyproject.toml</span><span class="chip mix">聯集</span></h2>
+<h3>Hunk 1/1 — pytest markers(L56)</h3>
+<div class="grid2">
+  <div class="pane cur"><div class="hd">CURRENT(branch)</div>
+<pre><code>"langfuse_internal_contract: pins assumptions about
+ langfuse.langchain.CallbackHandler private state (e.g. _runs).
+ Run after Langfuse SDK upgrades to surface contract drift.",</code></pre></div>
+  <div class="pane inc"><div class="hd">INCOMING(origin/main)</div>
+<pre><code>"finnhub_integration: Finnhub integration tests that hit
+ the real Finnhub free API",</code></pre></div>
+</div>
+<div class="pane res"><div class="hd">RESOLUTION — 聯集,兩個 marker 都留</div>
+<pre><code>"langfuse_internal_contract: pins assumptions about langfuse.langchain.CallbackHandler private state (e.g. _runs). Run after Langfuse SDK upgrades to surface contract drift.",
+"finnhub_integration: Finnhub integration tests that hit the real Finnhub free API",</code></pre></div>
+<div class="why"><b>理由:</b>互不相干的兩個新 marker。<code>addopts</code> 的排除清單 auto-merge 已含 <code>finnhub_integration</code>。<code>langfuse_internal_contract</code> 在 F7 refactor 時會連同 contract test 一起移除——現在先留著維持綠。</div>
+
+<!-- ============ POST ============ -->
+<h2 id="post">Merge commit 後的收尾步驟</h2>
+<div class="post">
+<ol>
+  <li><b>Rename-sweep</b>(branch 新增檔 git 不會自動改名):全 repo grep 並清除
+    <code>VersionConfigLoader</code> / <code>VersionConfig</code> / <code>version_name</code> /
+    <code>v1_baseline</code>…<code>v5_analyst</code> / <code>DEFAULT_WORKFLOW_VERSION</code> /
+    <code>quant_data_pipeline</code> / <code>QuantPipelineError</code> / <code>yfinance</code>,
+    目標:舊詞 grep 歸零</li>
+  <li><b>uv.lock 驗證</b>:auto-merge 過的 lockfile 跑 <code>uv sync</code> 確認一致</li>
+  <li><b>全套驗證</b>:backend pytest、frontend vitest、<code>tsc -b</code>、ruff、prettier <code>format:check</code> —— 全綠才算 rebase 步驟完成</li>
+  <li>給你看每個 conflict 的最終解法 diff,確認後才進下一個 grilling 題目(refactor 範圍)</li>
+</ol>
+</div>
+
+</div>
+</body>
+</html>

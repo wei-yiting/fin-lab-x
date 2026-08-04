@@ -1,0 +1,87 @@
+INFO:     Started server process [16732]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52340 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52344 - "POST /api/v1/chat HTTP/1.1" 200 OK
+Propagated attribute 'metadata.process_start_ts' value is not a string. Dropping value.
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+Failed to export span batch due to timeout, max retries or shutdown.
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+reasoning SSE event missing transient=True flag
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16732]

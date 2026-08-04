@@ -1,0 +1,10 @@
+data: {"type": "start", "messageId": "lc_run--019dfc01-5406-7b13-9313-23c7f632871c", "messageMetadata": {"sessionId": "2BEEC3FF-9DD8-4F7C-B274-0219269DE9D8"}}
+
+data: {"type": "text-start", "id": "text-0"}
+
+data: {"type": "text-delta", "id": "text-0", "delta": "Hello."}
+
+data: {"type": "text-end", "id": "text-0"}
+
+data: {"type": "finish", "finishReason": "stop", "messageMetadata": {"usage": {"totalTokens": 14593}}}
+

@@ -622,6 +622,61 @@ scorers:
     assert config.scorers[0].rubric == rubric_text
 
 
+def test_llm_judge_absolute_rubric_file_fails(tmp_path: Path) -> None:
+    """rubric_file is relative to the scenario dir — absolute paths escape it."""
+    rubric_path = tmp_path / "rubric.md"
+    rubric_path.write_text("Judge with a rubric")
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        f"""
+name: absolute-rubric-file-eval
+regression:
+  enabled: true
+task:
+  function: backend.evals.tasks.run_sample_task
+column_mapping:
+  prompt: input_text
+scorers:
+  - name: judge_score
+    type: llm_judge
+    rubric_file: {rubric_path}
+    model: gpt-4.1
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match="must be a path relative"):
+        load_scenario_config(config_path)
+
+
+def test_loaded_config_round_trips_through_validation(tmp_path: Path) -> None:
+    """The loader's output (rubric populated from rubric_file) stays valid
+    against the schema — both fields set is a legitimate loaded state."""
+    (tmp_path / "rubric.md").write_text("Judge with a rubric")
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: round-trip-eval
+regression:
+  enabled: true
+task:
+  function: backend.evals.tasks.run_sample_task
+column_mapping:
+  prompt: input_text
+scorers:
+  - name: judge_score
+    type: llm_judge
+    rubric_file: rubric.md
+    model: gpt-4.1
+""".strip()
+    )
+
+    config = load_scenario_config(config_path)
+    revalidated = ScenarioConfig.model_validate(config.model_dump())
+
+    assert revalidated.scorers[0].rubric == "Judge with a rubric"
+    assert revalidated.scorers[0].rubric_file == "rubric.md"
+
+
 def test_programmatic_scorer_with_rubric_file_fails(tmp_path: Path) -> None:
     config_path = tmp_path / "eval_spec.yaml"
     config_path.write_text(

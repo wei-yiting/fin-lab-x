@@ -35,11 +35,12 @@ failed.
 **Rejected — route through the Braintrust gateway**
 (`https://gateway.braintrust.dev/v1` + `BRAINTRUST_API_KEY`):
 
-1. **The cache benefit is near zero.** Braintrust auto-caches only with
-   `temperature=0`/`seed` or an explicit `x-bt-use-cache` header; autoevals
-   sends none of these (its `run_cached_request` only does rate-limit
-   retries). And the rubric embeds `{{output}}` — agent text differs every
-   run, so the cache key misses anyway.
+1. **The cache benefit is near zero.** Braintrust auto-caches only when a
+   request is eligible — `temperature=0`/`seed` present, or an explicit
+   `x-bt-use-cache` header — and this PR's own `temperature=0` (D4) would
+   satisfy that. But eligibility isn't a hit: the rubric embeds
+   `{{output}}`, agent text differs every run, so the cache key misses
+   regardless.
 2. **It contradicts ADR-0006's default semantics.** The default eval run
    would silently require `BRAINTRUST_API_KEY` and spend Braintrust quota.
 3. **One more invisible failure surface.** The gateway's provider keys live

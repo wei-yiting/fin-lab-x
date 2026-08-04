@@ -503,6 +503,7 @@ class TestRunScenario:
         spec = {
             "name": scenario_name,
             "csv": "dataset.csv",
+            "regression": {"enabled": False},
             "diagnostic": {
                 "dataset_name": "baseline_behavior_diagnostic",
                 "dataset_version": "2026-04-24",
@@ -923,6 +924,7 @@ class TestRunScenario:
         spec = {
             "name": scenario_name,
             "csv": "dataset.csv",
+            "regression": {"enabled": False},
             "diagnostic": {
                 "dataset_name": scenario_name,
                 "dataset_version": "2026-04-24",

@@ -5,11 +5,6 @@
 ## Scenario Contract
 
 - `dataset.csv`: scenario-local dataset copy; content must match the source dataset row exactly
-- `dataset_zh.csv`: Traditional Chinese language mirror of `dataset.csv` — same 30 rows, ids,
-  and schema; only the free-text columns (`question`, `company_universe`,
-  `expected_answer_type`, `draft_pass_signals`, `why_baseline_might_fail_or_pass`) are
-  translated. Not wired into `eval_spec.yaml`; running the diagnostic against the Chinese
-  set requires pointing a spec at it explicitly. Keep the two files row-aligned when editing.
 - `eval_spec.yaml`: scenario config, including the `diagnostic` identity block
 - scorer: `diagnostic_execution_health`
 
@@ -23,6 +18,10 @@ Diagnostic datasets follow a fixed column-naming convention: a dataset MUST have
 `id` (row identity) and a `question` (prompt) column. Future diagnostic datasets always
 follow this naming — column-name configurability (`row_id_column` / `question_column`)
 was deliberately removed.
+
+A Traditional Chinese mirror of this dataset runs as the sibling scenario
+`baseline_behavior_diagnostic_zh` (own diagnostic identity, same schema and row ids);
+see its README for the row-alignment maintenance rule.
 
 ## Dataset Columns (annotation guide)
 

@@ -69,6 +69,9 @@ test("repro: Stop pressed during tool-complete dead air — screen must settle",
   expect(settled.placeholderVisible).toBe(false);
   expect(settled.textareaEnabled).toBe(true);
 
+  // DEV-109 ruling 11: every user Stop leaves an explicit "Interrupted" row.
+  await expect(page.getByTestId("interrupted-marker")).toBeVisible();
+
   // Resend must work.
   await page.getByTestId("composer-textarea").fill("What does Item 1A cover?");
   await page.getByTestId("composer-send-btn").click();

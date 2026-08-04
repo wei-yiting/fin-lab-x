@@ -515,6 +515,13 @@ BDD 重跑期間由 human 手動測試發現、經 wire/code 交叉驗證後上�
     「chip 收合 → reply text」空窗因裁決 9 結構上 ≈0ms,不出現 placeholder 為正確行為
     (S-place-02 斷言同步改寫,正向驗證改用 deterministic MSW fixture `tool-deadair-then-text`)。
 
+11. **Turn-level Interrupted 標記** — ⚖️ **裁決:採 (a) 通用版**(2026-08-04 round 4)。
+    使用者 Stop 一律在被中斷的 turn 下方留下明確的 `Interrupted` 標記列(Claude Code 式),
+    不論當下是否已有 chip(`Stopped — thought for Xs`)或 tool card(`Aborted`)承載 abort 態。
+    背景:DEV-106 曾裁決刪除舊 frozen `STOPPED` indicator,abort 態改由元素承載——但 Stop 落在
+    placeholder 或 reply text streaming 時無承載元素,transcript 事後無任何 abort 痕跡,
+    被截斷的答案讀起來像完整回答(legible-failure 缺口)。regenerate 該 turn 時標記隨之清除。
+
 另,執行期發現並修復一個 implementation bug(非 spec 變更):client abort 落在 stream generator
 懸停於 `yield` 的瞬間時,abort 以 `GeneratorExit`(而非 `asyncio.CancelledError`)送達,
 原 cleanup 只掛在後者上,導致 reasoning tail + `status: "aborted"` 靜默漏寫(時序 race)。

@@ -81,6 +81,12 @@ export function ChatPanel() {
     },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
+  // Turn-level interruption record (DEV-109 ruling 11): message ids whose
+  // turn the user stopped. Companion to abortedTools — same capture point,
+  // message-granular instead of tool-granular, so the transcript always
+  // carries an explicit "Interrupted" row even when no chip or tool card
+  // exists to carry the abort state (Stop during placeholder / reply text).
+  const [interruptedMessages, setInterruptedMessages] = useState<Set<string>>(() => new Set());
   const lastTriggerRef = useRef<LastTrigger | null>(null);
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
@@ -149,6 +155,14 @@ export function ChatPanel() {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
       resetForNewTurn();
+      // Regenerating replaces the turn — its interruption record no longer
+      // describes the new answer (the SDK may reuse the message id).
+      setInterruptedMessages((prev) => {
+        if (!prev.has(messageId)) return prev;
+        const next = new Set(prev);
+        next.delete(messageId);
+        return next;
+      });
       regenerate({ messageId });
     },
     [messages, regenerate, resetForNewTurn],
@@ -171,6 +185,13 @@ export function ChatPanel() {
     // The aborted chip needs no capture here: the reasoning part stays in
     // message.parts with state "streaming" (no reasoning-end on the wire),
     // and the header derives "Stopped — thought for Xs" from that shape.
+    // The turn-level marker anchors on the last message regardless of role:
+    // a Stop before the assistant message exists (placeholder window) still
+    // leaves an "Interrupted" row under the user bubble.
+    const anchor = messages.at(-1);
+    if (anchor) {
+      setInterruptedMessages((prev) => new Set(prev).add(anchor.id));
+    }
     stop();
   }, [messages, stop]);
 
@@ -184,6 +205,7 @@ export function ChatPanel() {
     resetForNewTurn();
     setLastSSEEvent(null);
     setAbortedTools(new Set());
+    setInterruptedMessages(new Set());
     lastTriggerRef.current = null;
   }, [stop, clearProgress, resetTimers, resetForNewTurn]);
 
@@ -277,6 +299,7 @@ export function ChatPanel() {
         status={status as ChatStatus}
         toolProgress={toolProgress}
         abortedTools={abortedTools}
+        interruptedMessages={interruptedMessages}
         onRegenerate={handleRegenerate}
         placeholder={
           placeholderState === "waiting" ? <ActivityPlaceholder stalled={stalled} /> : undefined

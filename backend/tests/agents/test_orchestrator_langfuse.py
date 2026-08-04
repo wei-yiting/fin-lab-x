@@ -144,6 +144,44 @@ class TestRunInjectsLangfuseCallback:
         metadata = agent.invoke.call_args[1]["config"]["metadata"]
         assert metadata["process_start_ts"] == _PROCESS_START_TS
 
+    def test_langfuse_logger_drops_only_process_start_ts_propagation_warning(self):
+        """Langfuse warns on every request that the float process_start_ts is
+        dropped from the string-only propagated channel. That warning is
+        expected noise (the float lands on observation metadata intact) and is
+        filtered; warnings about any other propagated key must survive."""
+        import logging
+
+        langfuse_logger = logging.getLogger("langfuse")
+
+        noise = logging.LogRecord(
+            name="langfuse",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=0,
+            msg=(
+                "Propagated attribute 'metadata.process_start_ts' value is "
+                "not a string. Dropping value."
+            ),
+            args=None,
+            exc_info=None,
+        )
+        other = logging.LogRecord(
+            name="langfuse",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=0,
+            msg=(
+                "Propagated attribute 'metadata.request_id' value is "
+                "not a string. Dropping value."
+            ),
+            args=None,
+            exc_info=None,
+        )
+
+        # Python 3.12 Logger.filter returns the record (truthy) on pass.
+        assert not langfuse_logger.filter(noise)
+        assert langfuse_logger.filter(other)
+
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
         orch = _create_orchestrator(config)

@@ -11,6 +11,7 @@ propagate_attributes() so @observe()-decorated tool observations inherit it.
 """
 
 import json
+import logging
 import os
 import re
 import time
@@ -50,6 +51,28 @@ from backend.common.sec_core import ConfigurationError
 # Captured once per Python process. Lets engineers distinguish pre/post-restart
 # traces sharing the same session_id (DD-06 silent post-restart amnesia).
 _PROCESS_START_TS = time.time()
+
+
+class _ProcessStartTsPropagationNoiseFilter(logging.Filter):
+    """Drop Langfuse's per-request warning about ``metadata.process_start_ts``.
+
+    Langfuse's CallbackHandler forwards ALL LangChain config metadata into the
+    string-only propagated-attributes channel, so the float
+    ``process_start_ts`` is dropped there with a warning on every request.
+    The value is not lost — it lands on the root span's observation metadata
+    with its float type intact, which is the channel we query. The float must
+    stay a float for numeric filtering (S-obs-04), and the SDK offers no way
+    to scope metadata keys per channel, so this expected warning is silenced.
+    Warnings about any other propagated key still pass through.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not record.getMessage().startswith(
+            "Propagated attribute 'metadata.process_start_ts'"
+        )
+
+
+logging.getLogger("langfuse").addFilter(_ProcessStartTsPropagationNoiseFilter())
 
 
 _SEC_TOOLS_REQUIRING_IDENTITY = {

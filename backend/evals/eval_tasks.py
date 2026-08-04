@@ -243,26 +243,30 @@ async def _eval_search(
                 with_payload=True,
                 query_filter=query_filter,
             )
-            search_span.update(output={
-                "num_results": len(results.points),
-                "top_scores": [round(p.score, 4) for p in results.points[:3]],
-                "top_tickers": [
-                    (p.payload or {}).get("ticker") for p in results.points[:5]
-                ],
-            })
+            search_span.update(
+                output={
+                    "num_results": len(results.points),
+                    "top_scores": [round(p.score, 4) for p in results.points[:3]],
+                    "top_tickers": [
+                        (p.payload or {}).get("ticker") for p in results.points[:5]
+                    ],
+                }
+            )
 
         chunks: list[dict] = []
         for point in results.points:
             payload = point.payload or {}
-            chunks.append({
-                "ticker": payload.get("ticker"),
-                "year": payload.get("year"),
-                "item": payload.get("item", "_unknown"),
-                "header_path": payload.get("header_path", ""),
-                "chunk_index": payload.get("chunk_index", 0),
-                "text": payload.get("text", ""),
-                "score": point.score,
-            })
+            chunks.append(
+                {
+                    "ticker": payload.get("ticker"),
+                    "year": payload.get("year"),
+                    "item": payload.get("item", "_unknown"),
+                    "header_path": payload.get("header_path", ""),
+                    "chunk_index": payload.get("chunk_index", 0),
+                    "text": payload.get("text", ""),
+                    "score": point.score,
+                }
+            )
 
         # Mode is captured on the outer span so Langfuse UI can filter
         # naive vs three_layer runs without parsing collection name.
@@ -300,6 +304,7 @@ async def run_rag_filter_three_layer(input: Any) -> dict:
     query carrying oracle ticker filter.
     """
     import os
+
     collection = os.environ.get(
         "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
     )

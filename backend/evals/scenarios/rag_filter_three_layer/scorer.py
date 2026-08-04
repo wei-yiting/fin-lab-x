@@ -42,8 +42,9 @@ def ticker_precision_at_5(output: Any, expected: Any, *, input: Any) -> Score | 
     if target is None:
         return None
     chunks = _extract_chunks(output)
-    return Score(name="ticker_precision_at_5",
-                 score=_precision_at_k(chunks, target, k=5))
+    return Score(
+        name="ticker_precision_at_5", score=_precision_at_k(chunks, target, k=5)
+    )
 
 
 def ticker_precision_at_10(output: Any, expected: Any, *, input: Any) -> Score | None:
@@ -52,5 +53,6 @@ def ticker_precision_at_10(output: Any, expected: Any, *, input: Any) -> Score |
     if target is None:
         return None
     chunks = _extract_chunks(output)
-    return Score(name="ticker_precision_at_10",
-                 score=_precision_at_k(chunks, target, k=10))
+    return Score(
+        name="ticker_precision_at_10", score=_precision_at_k(chunks, target, k=10)
+    )

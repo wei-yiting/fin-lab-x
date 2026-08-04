@@ -190,11 +190,11 @@ async def _eval_search(
 
     from qdrant_client import AsyncQdrantClient, models
 
-    from backend.utils.span_tracing import traced_span
     from backend.ingestion.sec_dense_pipeline.vectorizer import (
         _EMBED_MODEL,
         embed_query,
     )
+    from backend.utils.span_tracing import traced_span
 
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
     client = AsyncQdrantClient(url=qdrant_url)

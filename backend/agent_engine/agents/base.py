@@ -497,11 +497,11 @@ class Orchestrator:
         metadata: dict[str, object] = {
             "langfuse_trace_name": trace_name,
             "request_id": request_id,
-            "process_start_ts": _normalize_langfuse_metadata_value(_PROCESS_START_TS),
+            "process_start_ts": _PROCESS_START_TS,
         }
         for key, value in extra_metadata.items():
             if value is not None:
-                metadata[key] = _normalize_langfuse_metadata_value(value)
+                metadata[key] = value
         if trace_metadata is not None:
             for key, value in trace_metadata.items():
                 normalized_value = _normalize_langfuse_metadata_value(value)
@@ -562,9 +562,16 @@ class Orchestrator:
 
 
 def _normalize_langfuse_metadata_value(value: object) -> object:
-    """Coerce metadata values into Langfuse-propagatable scalars."""
-    if value is None or isinstance(value, str):
+    """Coerce metadata values into Langfuse-propagatable form.
+
+    Scalars (str/int/float/bool/None) pass through natively — stringifying
+    them would change the type of long-standing trace fields (e.g.
+    ``process_start_ts``) and break numeric filtering on the platform. Only
+    nested structures, which Langfuse metadata propagation cannot carry
+    directly, are JSON-serialized.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
         return value
-    if isinstance(value, (int, float, bool, list, dict, tuple)):
+    if isinstance(value, (list, dict, tuple)):
         return json.dumps(value, ensure_ascii=False, sort_keys=True)
     return str(value)

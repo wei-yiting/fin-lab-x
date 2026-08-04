@@ -142,7 +142,7 @@ class TestRunInjectsLangfuseCallback:
             orch.run("test prompt", request_id="req-abc")
 
         metadata = agent.invoke.call_args[1]["config"]["metadata"]
-        assert metadata["process_start_ts"] == str(_PROCESS_START_TS)
+        assert metadata["process_start_ts"] == _PROCESS_START_TS
 
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()

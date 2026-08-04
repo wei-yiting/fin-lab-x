@@ -41,7 +41,7 @@ Second-pass full diagnosis (human annotation includes at least):
 
 Optional fields:
 
-- other `observed_*` fields (`observed_primary_failure_mechanism`, `obs_secondary_failure_mechanism`, `observed_tuning_lever`)
+- other `observed_*` fields (`observed_primary_failure_mechanism`, `observed_secondary_failure_mechanism`, `observed_tuning_lever`)
 - `needs_followup`
 - `followup_note`
 

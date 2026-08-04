@@ -15,10 +15,23 @@ export type PlaceholderState = "hidden" | "waiting";
 const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
 
 /**
+ * Whether a part currently paints anything the user can see. Mirrors
+ * `turnHasRenderableContent`'s per-part logic: a reasoning part with no text
+ * yet (pre-first-delta or zero-delta suppressed) renders no chip, an empty
+ * text part paints nothing.
+ */
+function isRenderablePart(part: { type?: unknown; state?: unknown }): boolean {
+  if (isReasoningPart(part)) return !isSuppressedChip(part);
+  if (isToolPart(part)) return true;
+  if (part.type === "text") return ((part as { text?: string }).text ?? "") !== "";
+  return false;
+}
+
+/**
  * Placeholder visibility (F6′, 3 states — Hidden / Waiting / Waiting+degraded;
  * the degraded copy swap is the caller's concern via the stall stopwatch).
  *
- * Covers three dead-air windows (decision C1 + DEV-109 ruling 2026-08-04):
+ * Covers three dead-air windows (decision C1 + DEV-109 rulings 2026-08-04):
  *   (a) submit → first *renderable* content. `status === "submitted"` alone
  *       ends at the stream's first wire frame (`start`), which arrives
  *       seconds before anything paints — reasoning deltas can lag
@@ -27,15 +40,21 @@ const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
  *       "streaming but nothing renderable yet". Monotonic per turn: once
  *       any content renders, parts never un-render, so this can't flash
  *       back on mid-turn (no grace delay needed).
- *   (b) chip collapse → reply text — last part of the streaming assistant
- *       message is a completed reasoning part with nothing after it, held
+ *   (b) chip collapse → reply text — the last *renderable* part of the
+ *       streaming assistant message is a completed reasoning part, held
  *       behind a grace delay so the chip→tool micro-gap (decision 5: tool
  *       card owns that feedback) never flashes the placeholder.
  *   (c) tool round complete → next content (DEV-109 ruling): every tool
- *       part has its result and the next round's first part hasn't arrived
- *       — completed tool cards are not live elements, so the wait for the
- *       next LLM call is dead air. Same grace delay as (b) so the
- *       tool-output → next-part micro-gap never flashes.
+ *       part has its result and nothing renderable has arrived after —
+ *       completed tool cards are not live elements, so the wait for the
+ *       next LLM call is dead air. Same grace delay as (b).
+ *
+ * Windows (b)/(c) look at the last *renderable* part, not the raw last
+ * part: a mid-turn `reasoning-start` whose first delta is still seconds
+ * away appends an invisible part, and ending the window there would drop
+ * the placeholder while the screen still shows nothing new (observed in
+ * DEV-109 round-3 manual testing). Invisible trailing parts neither close
+ * the window nor restart its grace timer.
  *
  * Never visible while a chip is streaming or a tool card is live.
  */
@@ -45,8 +64,9 @@ export function useDeadAirPlaceholder(
   graceMs: number = PLACEHOLDER_GRACE_MS,
 ): PlaceholderState {
   // The gap that has outlived the grace delay, identified by message id +
-  // part count. Stale values are harmless: they only match while the exact
-  // same gap is still open.
+  // index of the last renderable part (stable while invisible parts append,
+  // so an arriving `reasoning-start` doesn't blink the placeholder off).
+  // Stale values are harmless: they only match while the same gap is open.
   const [elapsedGapKey, setElapsedGapKey] = useState<string | null>(null);
 
   const last = messages.at(-1);
@@ -57,15 +77,20 @@ export function useDeadAirPlaceholder(
 
   let windowB = false;
   let windowC = false;
+  let lastRenderableIndex = -1;
   if (status === "streaming" && last && last.role === "assistant" && last.parts.length > 0) {
-    const lastPart = last.parts.at(-1)!;
-    windowB =
-      isReasoningPart(lastPart) && lastPart.state !== "streaming" && !isSuppressedChip(lastPart);
-    windowC =
-      isToolPart(lastPart) &&
-      last.parts.every((part) => !isToolPart(part) || TERMINAL_TOOL_STATES.has(String(part.state)));
+    lastRenderableIndex = last.parts.findLastIndex(isRenderablePart);
+    const anchor = lastRenderableIndex >= 0 ? last.parts[lastRenderableIndex] : undefined;
+    if (anchor) {
+      windowB = isReasoningPart(anchor) && anchor.state !== "streaming";
+      windowC =
+        isToolPart(anchor) &&
+        last.parts.every(
+          (part) => !isToolPart(part) || TERMINAL_TOOL_STATES.has(String(part.state)),
+        );
+    }
   }
-  const gapKey = (windowB || windowC) && last ? `${last.id}:${last.parts.length}` : null;
+  const gapKey = (windowB || windowC) && last ? `${last.id}:${lastRenderableIndex}` : null;
 
   useEffect(() => {
     if (gapKey === null || graceMs <= 0) return;

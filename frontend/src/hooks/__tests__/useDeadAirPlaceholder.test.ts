@@ -178,6 +178,65 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("hidden");
   });
 
+  test("window (c) stays covering when a not-yet-painting reasoning part appends (round-3 fix)", () => {
+    // Next round's reasoning-start arrives but its first delta is seconds
+    // away — the appended part paints nothing, so the placeholder must
+    // neither hide nor restart its grace timer (no blink).
+    const toolDone = [
+      userMsg,
+      assistantMsg("a1", [{ type: "tool-x", toolCallId: "tc-1", state: "output-available" }]),
+    ];
+    const { result, rerender } = renderHook(
+      ({ messages }) => useDeadAirPlaceholder(messages, "streaming"),
+      { initialProps: { messages: toolDone } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
+    });
+    expect(result.current).toBe("waiting");
+
+    rerender({
+      messages: [
+        userMsg,
+        assistantMsg("a1", [
+          { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
+          { type: "reasoning", text: "", state: "streaming" },
+        ]),
+      ],
+    });
+    // Immediately after the invisible part appends — still covering.
+    expect(result.current).toBe("waiting");
+
+    // Once the chip actually paints (first delta), the placeholder yields.
+    rerender({
+      messages: [
+        userMsg,
+        assistantMsg("a1", [
+          { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
+          { type: "reasoning", text: "now thinking", state: "streaming" },
+        ]),
+      ],
+    });
+    expect(result.current).toBe("hidden");
+  });
+
+  test("window (c) survives a zero-delta suppressed round between tool rounds", () => {
+    // tool done → zero-delta reasoning (never paints) appended: dead air
+    // continues until the next renderable part.
+    const messages = [
+      userMsg,
+      assistantMsg("a1", [
+        { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
+        { type: "reasoning", text: "", state: "done" },
+      ]),
+    ];
+    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
+    });
+    expect(result.current).toBe("waiting");
+  });
+
   test("hidden once reply text starts (placeholder yields to the answer)", () => {
     const messages = [
       userMsg,

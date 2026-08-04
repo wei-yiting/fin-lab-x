@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: __dirname,
-  testMatch: "bdd-dev109.spec.ts",
+  testMatch: ["bdd-dev109.spec.ts", "repro-stop-deadair.spec.ts"],
   fullyParallel: false,
   workers: 1,
   reporter: [["list"]],

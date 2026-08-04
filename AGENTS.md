@@ -4,12 +4,15 @@ Welcome, AI Agent! You are operating within the **FinLab-X** repository. This do
 
 ## 1. Project Overview
 
-FinLab-X is a modular, multi-agent AI system designed to provide Just-in-Time (JIT) intelligence for US growth stocks.
+FinLab-X is a modular AI agent system designed to provide Just-in-Time (JIT) intelligence for US growth stocks. It follows a **single Orchestrator** pattern — one central reasoning engine with tools as capabilities, not a multi-agent architecture.
 The codebase is split into two primary environments:
 
-- **Backend (`/backend`)**: Python-based AI Agent Engine and FastAPI Web Server.
-- **Frontend (`/frontend`)**: TypeScript-based Next.js Generative UI.
-- **Evaluation (`backend/evaluation`)**: Independent LLMOps and evaluation framework.
+- **Backend (`backend/`)**: Python-based AI Agent Engine and FastAPI Web Server.
+- **Frontend (`frontend/`)**: TypeScript-based Vite + React 19 chat UI (Vercel AI SDK UIMessage Stream Protocol).
+- **Evaluation (`backend/evals/`)**: Scenario-first LLMOps evaluation framework (Braintrust).
+
+For the accurate directory-by-directory layout and responsibilities, see
+[`docs/file_structure.md`](docs/file_structure.md).
 
 ### Design Envelope (read before designing, implementing, or reviewing)
 
@@ -27,7 +30,7 @@ assuming production-scale requirements.
 
 ### Backend (Python / FastAPI / LangGraph)
 
-The backend uses **Ruff** for fast linting and formatting, and **Pytest** for testing. Dependency management is intended to be handled by modern tools like `uv` or `poetry`.
+The backend uses **Ruff** for fast linting and formatting, and **Pytest** for testing. Dependency management uses `uv`.
 
 **Linting & Formatting:**
 
@@ -43,27 +46,27 @@ The backend uses **Ruff** for fast linting and formatting, and **Pytest** for te
 - Run a specific test function: `pytest backend/tests/path/to/test_file.py::test_function_name`
 - Run tests with printed output (useful for debugging): `pytest -s backend/tests/...`
 
-### Frontend (Next.js / React / TypeScript)
+### Frontend (Vite / React 19 / TypeScript)
 
-The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
+The frontend uses **pnpm** (there is a `pnpm-lock.yaml`; do not introduce `package-lock.json` or `yarn.lock`). Run all commands from the `frontend/` directory.
 
 **Build & Run:**
 
-- Install dependencies: `npm install` (or `pnpm install`)
-- Run development server: `npm run dev`
-- Build for production: `npm run build`
+- Install dependencies: `pnpm install`
+- Run development server: `pnpm dev`
+- Build for production: `pnpm build` (runs `tsc -b` then `vite build` — type errors fail the build)
 
 **Linting & Formatting:**
 
-- Run ESLint: `npm run lint`
-- Fix ESLint issues: `npm run lint --fix`
-- Format with Prettier: `npx prettier --write "frontend/src/**/*.{ts,tsx,css,md}"`
+- Run ESLint: `pnpm lint`
+- Format with Prettier: `pnpm format`
+- Check formatting (what CI runs): `pnpm format:check`
 
-**Testing (Jest/Vitest/Playwright):**
+**Testing (Vitest / Playwright):**
 
-- Run unit tests: `npm run test`
-- **Run a single test:** `npm run test -- path/to/test.file.test.ts`
-- Run E2E tests: `npm run test:e2e` (if configured)
+- Run unit tests: `pnpm test`
+- **Run a single test:** `pnpm test path/to/test.file.test.ts`
+- Run E2E tests (Playwright): `pnpm test:e2e`
 
 ## 3. Code Style Guidelines
 
@@ -73,7 +76,7 @@ The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
 - **Formatting:** Adhere to **Ruff** defaults (typically equivalent to Black, max line length 88).
 - **Imports:**
   - Group imports correctly: Standard library first, third-party libraries second, internal project imports last.
-  - Use absolute imports within the project (e.g., `from backend.agent_engine.core.state import State`).
+  - Use absolute imports within the project (e.g., `from backend.agent_engine.agents.base import Orchestrator`).
 - **Naming Conventions:**
   - Variables, functions, methods: `snake_case`
   - Classes, Exceptions: `PascalCase`
@@ -98,18 +101,18 @@ The frontend uses standard Node.js package managers (`npm`, `pnpm`, or `yarn`).
 When modifying or generating code, strictly follow the project's **Clean Architecture** and decoupling guidelines:
 
 - **Decoupled API & Agent Engine:** The `backend/api/` directory (FastAPI) handles HTTP/SSE routing only. It MUST NOT contain core AI logic. The `backend/agent_engine/` handles all LLM interactions, tool calls, and LangGraph state management. The API calls the engine, not vice-versa.
-- **Agent Modularity:** In `backend/agent_engine/agents/`, inherit from `BaseAgent`. Keep single-responsibility principles in mind. Agents should rely on configuration files (`config/agents/`) rather than hardcoding prompts.
-- **Hybrid Memory Layer:** Database logic goes in `backend/agent_engine/infrastructure/db/`. Do not bleed DB operations into the API routers or Agent logic directly; use abstract service interfaces.
-- **JIT Data Pipelines:** ETL or data retrieval logic invoked by agents must reside in `backend/agent_engine/services/jit_pipelines/`.
-- **Evaluations vs Tests:** Place purely programmatic tests in `backend/tests/`. Place LLM outputs, relevancy, and accuracy tests in the `backend/evaluation/` directory.
+- **Single Orchestrator, Not Agent Subclasses:** There is no `BaseAgent` hierarchy. `backend/agent_engine/agents/base.py` defines the one `Orchestrator` class (central reasoning engine); behavior variants are **Workflow Profiles** under `backend/agent_engine/agents/profiles/<name>/` (`orchestrator_config.yaml` + optional `system_prompt.md`), validated by `config_loader.py`. To change agent behavior, edit or add a profile config — do not hardcode prompts or introduce new agent classes.
+- **Conversation Memory:** Session memory is LangGraph's `AsyncSqliteSaver` checkpointer, wired in the FastAPI lifespan (`backend/api/main.py`). `backend/agent_engine/infrastructure/` is an empty placeholder reserved for future capabilities — do not add database logic there (or anywhere) without an explicit design decision.
+- **Data Ingestion & JIT Retrieval:** Ingestion pipelines live in `backend/ingestion/` (one directory per pipeline: `sec_filing_pipeline/`, `sec_dense_pipeline/`, `fundamentals_pipeline/`). JIT retrieval at question time goes through `backend/ingestion/sec_dense_pipeline/retriever.py` (`retriever.search()` is the single trace root for RAG queries). There is no `services/jit_pipelines/` directory; `backend/agent_engine/services/` is an empty placeholder.
+- **Evaluations vs Tests:** Place purely programmatic tests in `backend/tests/`. Place LLM outputs, relevancy, and accuracy evaluations in `backend/evals/` (scenario-first layout: each `scenarios/<name>/` directory is self-contained with `eval_spec.yaml`, dataset, and scorers).
 
 ## 5. Agent Operational Directives
 
 - **Understand First:** Before writing any code, heavily utilize `glob`, `read`, and `grep` to understand the existing conventions in the file or module you are modifying.
 - **Verify Assumptions:** Do not assume standard configurations. If a command (like `pytest` or `npm test`) fails, inspect the configuration files (e.g., `pyproject.toml`, `package.json`) to deduce the correct execution path.
-- **Atomic Changes:** Ensure your implementations don't introduce breaking changes to adjacent modules, especially within `backend/agent_engine/workflows/`.
+- **Atomic Changes:** Ensure your implementations don't introduce breaking changes to adjacent modules, especially the streaming contract in `backend/agent_engine/streaming/` and the tool registry in `backend/agent_engine/tools/`.
 - **Placeholder Replacement:** When developing a scaffolded feature, proactively replace placeholder content with robust, idiomatic code, but stick to the bounds of the assigned task.
-- **Security Check:** Avoid committing secrets. If working with API keys (e.g., OpenAI, LangSmith), ensure they are loaded via environment variables and NEVER hardcoded in source files.
+- **Security Check:** Avoid committing secrets. If working with API keys (e.g., OpenAI, Finnhub, Tavily, Braintrust, Langfuse), ensure they are loaded via environment variables and NEVER hardcoded in source files.
 
 (Remember: Always write tests to verify your code before completing a task!)
 

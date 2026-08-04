@@ -6,46 +6,48 @@ This folder has two different evaluation tracks. They serve different goals and 
 
 ## Two Evaluation Tracks
 
-| Track                | Goal                                                 | Entry Point                                               | Typical Frequency               | Output                                      |
-| -------------------- | ---------------------------------------------------- | --------------------------------------------------------- | ------------------------------- | ------------------------------------------- |
-| Regression Guardrail | Catch severe regressions on critical behavior        | `pytest` (`backend/evals/test_*.py`)                      | Before merge / release gate     | pytest pass/fail                            |
-| Quality Improvement  | Measure agent quality changes over scenario datasets | `eval_runner` (`python -m backend.evals.eval_runner ...`) | Prompt iteration / model tuning | Result CSV + optional Braintrust experiment |
+| Track                   | Goal                                                 | Entry Point                                               | Typical Frequency               | Output                                      |
+| ----------------------- | ---------------------------------------------------- | --------------------------------------------------------- | ------------------------------- | ------------------------------------------- |
+| Regression Suite        | Catch severe regressions on critical behavior        | `pytest` (`backend/evals/test_*.py`)                      | Before merge / release gate     | pytest pass/fail                            |
+| Quality Track           | Measure agent quality changes over scenario datasets | `eval_runner` (`python -m backend.evals.eval_runner ...`) | Prompt iteration / model tuning | Result CSV + optional Braintrust experiment |
 
 Use this rule:
 
-- If the question is "did we break critical behavior?" -> **Regression Guardrail** (`pytest`)
-- If the question is "did quality improve across scenarios?" -> **Quality Improvement** (`eval_runner`)
+- If the question is "did we break critical behavior?" -> **Regression Suite** (`pytest`)
+- If the question is "did quality improve across scenarios?" -> **Quality Track** (`eval_runner`)
 
 ## Running Evaluations
 
-### 1) Quality Improvement (Scenario Runner)
+### 1) Quality Track (Scenario Runner)
 
 This is the primary flow for dataset-based quality evaluation.
 
 ```bash
-# Local mode (recommended for development)
-uv run python -m backend.evals.eval_runner language_policy --local-only
-
-# Platform mode (uploads to Braintrust)
+# Local mode (default — needs OPENAI_API_KEY, but no BRAINTRUST_API_KEY)
 uv run python -m backend.evals.eval_runner language_policy
 
+# Upload mode (creates a Braintrust experiment)
+uv run python -m backend.evals.eval_runner language_policy --upload
+
 # Run all scenarios
-uv run python -m backend.evals.eval_runner --all --local-only
+uv run python -m backend.evals.eval_runner --all
 
 # Custom output folder
-uv run python -m backend.evals.eval_runner language_policy --local-only --output-dir ./tmp/eval-results
+uv run python -m backend.evals.eval_runner language_policy --output-dir ./tmp/eval-results
 ```
 
-### 2) Regression Guardrail (pytest)
+### 2) Regression Suite (pytest)
 
 Use this for a compact "no serious regression" signal.
 
-```bash
-# Run guardrail eval tests
-uv run pytest backend/evals/ -m eval -v --tb=short
+> **Currently empty.** The one existing guardrail test was retired as part of the
+> scenario-first SSOT consolidation (DEV-89); this track is being rebuilt as a
+> `regression/` package in a follow-up ticket. The commands below describe the
+> intended usage once that lands — running them today collects zero tests.
 
-# Run one case
-uv run pytest backend/evals/ -m eval -k "LP-01" -v
+```bash
+# Run regression-suite eval tests
+uv run pytest backend/evals/ -m eval -v --tb=short
 
 # Unit tests only (CI default)
 uv run pytest
@@ -57,15 +59,18 @@ uv run pytest
 
 Both tracks call real LLM/tools. Configure environment variables in `backend/.env`.
 
-| Variable             | Guardrail (pytest) | Quality Improvement (`--local-only`) | Quality Improvement (Braintrust mode) | Purpose           |
-| -------------------- | ------------------ | ------------------------------------ | ------------------------------------- | ----------------- |
-| `OPENAI_API_KEY`     | Yes                | Yes                                  | Yes                                   | LLM calls         |
-| `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Search tool calls |
-| `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | SEC retrieval     |
-| `QDRANT_URL`         | Scenario-dependent | Scenario-dependent                   | Scenario-dependent                    | Vector store (sec_retrieval) |
-| `BRAINTRUST_API_KEY` | No                 | No                                   | Yes                                   | Braintrust upload |
+| Variable             | Regression Suite (pytest) | Quality Track (default) | Quality Track (`--upload`) | Purpose           |
+| -------------------- | ------------------ | ------------------------------ | --------------------------------- | ----------------- |
+| `OPENAI_API_KEY`     | Yes                | Yes                             | Yes                                | LLM calls         |
+| `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Search tool calls |
+| `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | SEC retrieval     |
+| `QDRANT_URL`         | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Vector store (sec_retrieval) |
+| `BRAINTRUST_API_KEY` | No                 | No                              | Yes                                 | Braintrust upload |
 
-If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` fails fast.
+`eval_runner` never needs `BRAINTRUST_API_KEY` by default — it runs and scores
+locally, no upload. Passing `--upload` without the key set fails fast
+(preflight, before any scenario work runs) rather than silently falling back
+to local-only.
 
 ## File Manifest
 
@@ -78,8 +83,8 @@ If `BRAINTRUST_API_KEY` is missing and `--local-only` is not set, `eval_runner` 
 | `dataset_loader.py` | Reads CSV files and applies `column_mapping` to produce `{input, expected, metadata}` dicts for each row. |
 | `scorer_registry.py` | Resolves scorer dotpaths to Python callables. Builds `LLMClassifier` instances for `llm_judge` type scorers. |
 | `eval_tasks.py` | Task functions that wrap the agent engine. Called by `Eval()` for each dataset row to produce agent output. |
-| `eval_helpers.py` | Shared utilities (CJK detection, character ratio) used by scorers and guardrail tests. |
-| `braintrust_config.yaml` | Project-level Braintrust settings (project name, API key env var, local mode flag). |
+| `eval_helpers.py` | Shared utilities (CJK detection, character ratio) used by scorers and regression-suite tests. |
+| `braintrust_config.yaml` | Project-level Braintrust settings (project name, API key env var). |
 
 ### How they connect
 
@@ -90,7 +95,7 @@ graph TD
     Loader["dataset_loader.py<br/>(CSV → {input, expected, metadata})"]
     Registry["scorer_registry.py<br/>(dotpath → callable)"]
     Tasks["eval_tasks.py<br/>(call agent engine)"]
-    Scorers["scorers/<br/>(scoring functions)"]
+    Scorers["scenarios/*/scorer.py<br/>(scoring functions)"]
     Helpers["eval_helpers.py<br/>(shared utils)"]
 
     CLI -->|loads config| Config
@@ -109,25 +114,26 @@ Each subdirectory under `scenarios/` with an `eval_spec.yaml` is auto-discovered
 scenarios/
 ├── language_policy/
 │   ├── eval_spec.yaml     # Task function, column mapping, scorer list
-│   └── dataset.csv        # Test cases (one row = one eval case)
+│   ├── dataset.csv        # Test cases (one row = one eval case)
+│   └── scorer.py          # Scoring functions (tool_arg_no_cjk, response_language)
 └── sec_retrieval/
     ├── eval_spec.yaml     # Retrieval scorers (recall, MRR, MAP), status: draft
-    └── dataset.csv        # 10 queries across 3 query types (see scenario README)
+    ├── dataset.csv        # 10 queries across 3 query types (see scenario README)
+    └── scorer.py          # Retrieval scoring functions (recall@k, MRR, MAP)
 ```
 
 ### Other files
 
 | File | Role |
 |------|------|
-| `conftest.py` | pytest fixtures for guardrail eval tests. |
-| `test_language_policy.py` | Regression guardrail tests (pytest). |
+| `conftest.py` | pytest fixtures for eval-path tests. |
 | `results/` | Output directory for result CSVs (git-ignored). |
 
 ### Design guidelines
 
 - Prefer programmatic scorers when checks are structurally decidable.
 - Use LLM-as-judge only when semantic judgment is required.
-- Keep guardrail tests (`test_*.py`) compact and stable — they are not the vehicle for broad quality analysis.
+- Keep regression-suite tests (`test_*.py`) compact and stable — they are not the vehicle for broad quality analysis.
 
 ## Eval Spec YAML Schema
 
@@ -147,19 +153,37 @@ column_mapping:
   <csv_column>: expected.<field>
   <csv_column>: metadata.<field>
 
+column_types:                   # (optional) pin how specific CSV columns are parsed
+  <csv_column>: json            # one of: json | str | float | bool
+
 scorers:
   - name: string
-    function: string            # Python dotpath, e.g. "backend.evals.scorers.language_policy_scorer.response_language"
+    function: string            # Python dotpath, e.g. "backend.evals.scenarios.language_policy.scorer.response_language"
 
   - name: string
     type: llm_judge
     rubric: string              # Mustache template, can use {{input}}, {{expected.field}}
     model: string               # (optional) LLM model, e.g. "gpt-4o"
     use_cot: bool               # (optional) Chain-of-thought before scoring, default false
+    temperature: float          # (optional) Judge sampling temperature, default 0.0; llm_judge only
     choice_scores:              # (optional) LLM choice → score mapping, default {"Y": 1.0, "N": 0.0}
       Y: 1.0
       N: 0.0
 ```
+
+### `column_types` (optional)
+
+`column_types` maps a CSV column name to one of `json` | `str` | `float` | `bool`,
+pinning how that column's cell is parsed. It is optional; a column not listed
+falls back to auto-detection (`_convert_cell`: empty → `None`, `true`/`false` →
+bool, float-parseable → float, otherwise str). Two real uses:
+
+- `json` — for list/dict columns stored as JSON strings (the `sec_retrieval`
+  case). Without it, a cell like `["NVDA / 2026 / Part I / Item 1A"]` stays a raw
+  string and downstream scorers iterate it character-by-character, turning
+  recall/MRR/MAP into noise.
+- `str` — to keep an identifier column (e.g. a ticker `"TRUE"`) from being
+  coerced to bool or float by auto-detection.
 
 ## Quality Iteration Workflow
 
@@ -168,8 +192,8 @@ Use this loop when tuning the agent — whether changing prompts, tool configura
 ```mermaid
 graph TD
     A["1. Make a change<br/>(prompt, tools, workflow, model params)"]
-    B["2. python -m backend.evals.eval_runner <scenario>"]
-    C["3. Open Braintrust UI — see new experiment"]
+    B["2. python -m backend.evals.eval_runner <scenario><br/>(local — inspect the result CSV)"]
+    C["3. Satisfied with the CSV?<br/>Re-run with --upload for<br/>a Braintrust experiment"]
     D["4. Click Compare — diff with previous experiment"]
     E["5. Inspect per-case regression / improvement"]
     F{"6. Satisfied?"}
@@ -187,10 +211,13 @@ graph TD
 1. Create `backend/evals/scenarios/<scenario_name>/`.
 2. Add `dataset.csv` and `eval_spec.yaml` (see [schema above](#eval-spec-yaml-schema)).
 3. Add/update task functions in `backend/evals/eval_tasks.py`.
-4. Add/update scorers under `backend/evals/scorers/`.
-5. Run `uv run python -m backend.evals.eval_runner <scenario_name> --local-only`.
+4. Add/update scoring functions in `backend/evals/scenarios/<scenario_name>/scorer.py`.
+5. Run `uv run python -m backend.evals.eval_runner <scenario_name>`.
 
-### Add a new regression guardrail
+### Add a new regression-suite case
+
+> This track is currently being rebuilt as a `regression/` package (DEV-89
+> follow-up); the steps below describe the pre-rebuild pattern for reference only.
 
 1. Add/update `backend/evals/test_*.py` with `@pytest.mark.eval`.
 2. Keep assertions focused on severe regression signals.
@@ -199,7 +226,7 @@ graph TD
 ### Separation rule (important)
 
 - Do not force broad quality-improvement evaluations into pytest.
-- Do not overload guardrail tests with large exploratory datasets.
+- Do not overload regression-suite tests with large exploratory datasets.
 - Keep `pytest` for **regression gate** and `eval_runner` for **quality iteration**.
 
 ## Future Implementation

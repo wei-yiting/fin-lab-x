@@ -11,18 +11,14 @@ graph TB
     subgraph Scenarios["scenarios/"]
         CSV["dataset.csv<br/>test case data"]
         Config["eval_spec.yaml<br/>mapping + scorer refs"]
-    end
-
-    subgraph Scorers["scorers/"]
-        Lang["language_policy_scorer.py<br/>cjk_ratio, tool_match"]
-        Judge["(future) llm_judge.py<br/>generic LLM-as-judge"]
+        Scorers["scorer.py<br/>scoring functions"]
     end
 
     Runner -->|discovers| Scenarios
     Runner -->|resolves scorers| Scorers
 
-    Runner -->|writes| ResultCSV["Result CSV<br/>(local annotation)"]
-    Runner -->|uploads| BT["Braintrust<br/>(experiment + traces)"]
+    Runner -->|writes, always| ResultCSV["Result CSV<br/>(curated into git when worth keeping)"]
+    Runner -->|"uploads (--upload only)"| BT["Braintrust<br/>(experiment + traces)"]
 ```
 
 **Discovery mechanism (convention-based):** The runner scans `scenarios/`. Any subdirectory containing an `eval_spec.yaml` is treated as a scenario — no registry file needed.
@@ -48,13 +44,13 @@ graph TD
     end
 
     subgraph Output["3. OUTPUT"]
-        CSV2["Write result CSV<br/>results/{name}_{timestamp}.csv"]
-        BT["Upload to Braintrust<br/>experiment + traces + scores"]
+        CSV2["Write result CSV, always<br/>results/{name}_{timestamp}.csv"]
+        BT["Upload to Braintrust, --upload only<br/>experiment + traces + scores"]
     end
 
     Transform --> Task
     Score --> CSV2
-    Score --> BT
+    Score -.->|"if --upload"| BT
 ```
 
 ## Platform Integration Model
@@ -81,7 +77,7 @@ Key rules:
 
 ### Eval runner assembly flow
 
-All computation runs locally. The runner executes dataset iteration, task function calls, and scorer evaluation on the local machine, then **uploads** results to Braintrust for storage and visualization. Braintrust does not re-execute anything.
+All computation runs locally via `braintrust.Eval()` — dataset iteration, task function calls, and scorer evaluation happen on the local machine, and Braintrust never re-executes anything. By default the run is local-only (`no_send_logs=True`: scored, written to the result CSV, zero quota, no API key). Passing `--upload` additionally uploads the run to Braintrust as an experiment for storage and visualization.
 
 ```mermaid
 graph LR
@@ -103,8 +99,8 @@ graph LR
     Prog --> Eval
     LLM --> Eval
 
-    Eval --> BT["Braintrust<br/>(experiment + traces)"]
-    Eval --> ResultCSV["Result CSV<br/>(local annotation)"]
+    Eval -.->|"if --upload"| BT["Braintrust<br/>(experiment + traces)"]
+    Eval --> ResultCSV["Result CSV<br/>(curated into git when worth keeping)"]
 ```
 
 ## Key Decisions
@@ -114,7 +110,7 @@ graph LR
 | Task function source | `eval_spec.yaml` specifies a Python dotpath | Different scenarios may test different agents or prompts |
 | LLM-judge implementation | `autoevals.LLMClassifier` with Mustache rubric | Native integration with Braintrust `Eval()`, unified scorer interface |
 | Result CSV naming | `{scenario}_{timestamp}.csv` | Each run is preserved (no overwrite), convenient for annotation review |
-| Braintrust toggle | `--local-only` flag | Pure local during development, upload to Braintrust for formal comparison |
+| Braintrust toggle | `--upload` flag (opt-in; default is local-only) | Pure local during development at zero quota cost, upload to Braintrust for formal comparison |
 | Trace destination | Eval runner sends to both Braintrust + Langfuse; production sends only to Langfuse | Both dashboards available during eval; production uses only Langfuse |
 | Result CSV default path | `results/` (relative to evals dir), overridable with `--output-dir` | Sensible default, reduces required arguments |
 | Task function return type | Full `OrchestratorResult` dict (not plain string) | Scorers like `tool_arg_no_cjk` need `output["tool_outputs"]` for inspection |
@@ -126,7 +122,7 @@ graph LR
 
 | Constraint | Impact |
 |------------|--------|
-| CSV must be editable in Google Sheets | Column values are flat string/number — no nested JSON |
+| CSV must be editable in Google Sheets | Cells stay flat, hand-editable values; a cell may hold a JSON-encoded value (e.g. `expected_header_paths`) when its column is pinned via `column_types` |
 | Braintrust `Eval()` expects `{input, expected, metadata}` | `column_mapping` must assemble CSV into these three buckets |
 | Scorer signature: `(output, expected, *, input) → Score` | Aligns with autoevals convention; all scorers (including LLM-judge) follow this interface |
 | Dual-platform via LangChain callbacks, not OTel | Avoids global `TracerProvider` conflicts between Langfuse and Braintrust |

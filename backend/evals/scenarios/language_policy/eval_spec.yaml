@@ -15,13 +15,14 @@ column_mapping:
 
 scorers:
   - name: tool_arg_no_cjk
-    function: backend.evals.scorers.language_policy_scorer.tool_arg_no_cjk
+    function: backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk
   - name: response_language
-    function: backend.evals.scorers.language_policy_scorer.response_language
+    function: backend.evals.scenarios.language_policy.scorer.response_language
   - name: response_relevance
     type: llm_judge
     model: gpt-4o
     use_cot: true
+    temperature: 0
     rubric: |
       The user asked about the company with ticker {{expected.ticker}}.
 

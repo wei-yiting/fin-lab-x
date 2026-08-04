@@ -9,13 +9,13 @@ from backend.evals.eval_spec_schema import ScorerConfig
 
 def test_resolve_scorers_resolves_programmatic_dotpath() -> None:
     from backend.evals.scorer_registry import resolve_scorers
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     scorers = resolve_scorers(
         [
             ScorerConfig(
                 name="tool_arg_no_cjk",
-                function="backend.evals.scorers.language_policy_scorer.tool_arg_no_cjk",
+                function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
             )
         ]
     )
@@ -29,10 +29,12 @@ def test_resolve_scorers_raises_import_error_for_missing_module() -> None:
 
     scorer_config = ScorerConfig.model_construct(
         name="missing_module",
-        function="backend.evals.scorers.missing_module.tool_arg_no_cjk",
+        function="backend.evals.scenarios.missing_scenario.scorer.tool_arg_no_cjk",
     )
 
-    with pytest.raises(ImportError, match="backend\\.evals\\.scorers\\.missing_module"):
+    with pytest.raises(
+        ImportError, match="backend\\.evals\\.scenarios\\.missing_scenario\\.scorer"
+    ):
         resolve_scorers([scorer_config])
 
 
@@ -41,14 +43,17 @@ def test_resolve_scorers_raises_import_error_for_missing_function() -> None:
 
     scorer_config = ScorerConfig.model_construct(
         name="missing_function",
-        function="backend.evals.scorers.language_policy_scorer.missing_function",
+        function="backend.evals.scenarios.language_policy.scorer.missing_function",
     )
 
     with pytest.raises(ImportError, match="missing_function"):
         resolve_scorers([scorer_config])
 
 
-def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) -> None:
+def _capture_llm_classifier(
+    monkeypatch: pytest.MonkeyPatch,
+) -> dict[str, Any]:
+    """Monkeypatch scorer_registry.LLMClassifier and capture its kwargs."""
     from backend.evals import scorer_registry
 
     captured: dict[str, Any] = {}
@@ -62,16 +67,23 @@ def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) 
             choice_scores: dict[str, float],
             use_cot: bool,
             model: str | None = None,
+            temperature: float,
+            client: Any,
         ) -> None:
             captured["name"] = name
             captured["prompt_template"] = prompt_template
             captured["choice_scores"] = choice_scores
             captured["use_cot"] = use_cot
             captured["model"] = model
+            captured["temperature"] = temperature
+            captured["client"] = client
 
     monkeypatch.setattr(scorer_registry, "LLMClassifier", FakeLLMClassifier)
+    return captured
 
-    scorer_config = ScorerConfig(
+
+def _judge_config() -> ScorerConfig:
+    return ScorerConfig(
         name="judge_score",
         type="llm_judge",
         rubric="Judge whether the answer follows the policy.",
@@ -80,17 +92,112 @@ def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) 
         choice_scores={"Y": 1.0, "N": 0.0},
     )
 
-    scorers = scorer_registry.resolve_scorers([scorer_config])
+
+def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    captured = _capture_llm_classifier(monkeypatch)
+
+    scorers = scorer_registry.resolve_scorers([_judge_config()])
 
     assert len(scorers) == 1
     assert callable(scorers[0])
+    client = captured.pop("client")
+    assert client.api_key == "sk-test-openai"
+    assert str(client.base_url) == "https://api.openai.com/v1/"
     assert captured == {
         "name": "judge_score",
         "prompt_template": "Judge whether the answer follows the policy.",
         "choice_scores": {"Y": 1.0, "N": 0.0},
         "use_cot": True,
         "model": "gpt-4.1",
+        "temperature": 0.0,
     }
+
+
+def test_llm_judge_uses_openai_key_when_braintrust_key_is_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    monkeypatch.setenv("BRAINTRUST_API_KEY", "sk-test-braintrust")
+    captured = _capture_llm_classifier(monkeypatch)
+
+    scorer_registry.resolve_scorers([_judge_config()])
+
+    client = captured["client"]
+    assert client.api_key == "sk-test-openai"
+    assert str(client.base_url) == "https://api.openai.com/v1/"
+
+
+def test_llm_judge_ignores_openai_base_url_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://api.braintrust.dev/v1/proxy")
+    captured = _capture_llm_classifier(monkeypatch)
+
+    scorer_registry.resolve_scorers([_judge_config()])
+
+    assert str(captured["client"].base_url) == "https://api.openai.com/v1/"
+
+
+def test_llm_judge_fails_fast_without_openai_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.evals import scorer_registry
+
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    _capture_llm_classifier(monkeypatch)
+
+    with pytest.raises(ValueError, match="OPENAI_API_KEY") as exc_info:
+        scorer_registry.resolve_scorers([_judge_config()])
+
+    assert "judge" in str(exc_info.value)
+    assert "https://api.openai.com/v1" in str(exc_info.value)
+
+
+def test_scorer_config_rejects_temperature_on_programmatic_scorer() -> None:
+    with pytest.raises(ValueError, match="temperature"):
+        ScorerConfig(
+            name="tool_arg_no_cjk",
+            function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
+            temperature=0.5,
+        )
+
+
+def test_scorer_config_rejects_explicit_zero_temperature_on_programmatic_scorer() -> (
+    None
+):
+    with pytest.raises(ValueError, match="temperature"):
+        ScorerConfig(
+            name="tool_arg_no_cjk",
+            function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
+            temperature=0.0,
+        )
+
+
+def test_scorer_config_rejects_out_of_range_temperature_on_llm_judge() -> None:
+    with pytest.raises(ValueError, match="less than or equal to 2"):
+        ScorerConfig(
+            name="judge_score",
+            type="llm_judge",
+            rubric="Rate the answer.",
+            temperature=2.5,
+        )
+
+
+def test_scorer_config_allows_programmatic_scorer_without_temperature() -> None:
+    scorer_config = ScorerConfig(
+        name="tool_arg_no_cjk",
+        function="backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk",
+    )
+
+    assert scorer_config.temperature == 0.0
 
 
 def test_resolve_scorers_rejects_llm_judge_without_rubric() -> None:
@@ -110,7 +217,7 @@ def test_resolve_scorers_rejects_llm_judge_without_rubric() -> None:
 
 
 def test_tool_arg_no_cjk_passes_for_english_arguments() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -130,7 +237,7 @@ def test_tool_arg_no_cjk_passes_for_english_arguments() -> None:
 
 
 def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -150,7 +257,7 @@ def test_tool_arg_no_cjk_fails_for_cjk_arguments() -> None:
 
 
 def test_tool_arg_no_cjk_ignores_non_matching_tool_outputs() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -169,7 +276,7 @@ def test_tool_arg_no_cjk_ignores_non_matching_tool_outputs() -> None:
 
 
 def test_tool_arg_no_cjk_passes_when_expected_tool_is_missing() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -198,7 +305,7 @@ def test_tool_arg_no_cjk_validates_ticker_by_regex(
     ticker: str,
     expected_score: float,
 ) -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -217,7 +324,7 @@ def test_tool_arg_no_cjk_validates_ticker_by_regex(
 
 
 def test_tool_arg_no_cjk_skips_when_expected_flag_is_missing() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -236,7 +343,7 @@ def test_tool_arg_no_cjk_skips_when_expected_flag_is_missing() -> None:
 
 
 def test_tool_arg_no_cjk_skips_when_expected_flag_is_false() -> None:
-    from backend.evals.scorers.language_policy_scorer import tool_arg_no_cjk
+    from backend.evals.scenarios.language_policy.scorer import tool_arg_no_cjk
 
     result = tool_arg_no_cjk(
         {
@@ -255,7 +362,7 @@ def test_tool_arg_no_cjk_skips_when_expected_flag_is_false() -> None:
 
 
 def test_response_language_passes_when_cjk_ratio_in_range() -> None:
-    from backend.evals.scorers.language_policy_scorer import response_language
+    from backend.evals.scenarios.language_policy.scorer import response_language
 
     result = response_language(
         {"response": "微軟近期表現穩定，整體趨勢偏正向。"},
@@ -268,7 +375,7 @@ def test_response_language_passes_when_cjk_ratio_in_range() -> None:
 
 
 def test_response_language_fails_when_cjk_ratio_below_min() -> None:
-    from backend.evals.scorers.language_policy_scorer import response_language
+    from backend.evals.scenarios.language_policy.scorer import response_language
 
     result = response_language(
         {"response": "Microsoft has been doing well lately."},

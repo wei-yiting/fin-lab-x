@@ -15,6 +15,8 @@ Use `Langfuse` as the default observability backend for all new work in `backend
 Reason:
 The main requirement is unified tracing across `LangChain`, `LangGraph`, and future `LlamaIndex` flows. Reintroducing `LangSmith` as the default backend would improve one part of the stack while fragmenting the whole system.
 
+> **Migration decided** ([ADR-0005](../../../docs/adr/0005-runtime-tracing-unified-on-braintrust.md), 2026-07-24): runtime tracing moves to Braintrust. This rule flips to `Braintrust` in the migration slice PR, when the code actually changes — until then Langfuse remains the default for new work.
+
 ### Rule 2: Use Framework-Native Tracing at the Streaming Boundary
 
 Trace `LangChain` / `LangGraph` orchestration through framework-native integration such as request-scoped `CallbackHandler`.

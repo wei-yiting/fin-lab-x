@@ -72,12 +72,12 @@ The git-versioned, hand-curated set of ~30 open-ended financial questions with p
 The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / reach) and the expected pass/fail behavior, scored by deterministic execution checks (ran to completion, right tool chosen) plus human trace review. It diagnoses behavior and names the tuning lever; it never grades answer quality.
 _Avoid_: near-v1 diagnostic (legacy dataset/scenario name, to be renamed at rework)
 
-**Prompt Regression Suite**:
-The stable set of test cases rerun manually before merging any system-prompt or model change, answering "did existing behavior get worse" with an objective pass/fail. A development-stage gate, deliberately kept out of CI.
-_Avoid_: Regression Guardrail (a guardrail is a runtime concept — see Guardrail)
+**Regression Suite**:
+The stable set of test cases rerun manually before merging any change to a scenario's behavior determinants — system prompt, model, or retrieval pipeline — answering "did existing behavior get worse" with a binary red/green verdict. Scorers may be programmatic or binary-rubric LLM judges; each gated scorer's mean score must clear its declared floor. A development-stage gate, deliberately kept out of CI.
+_Avoid_: Prompt Regression Suite (superseded — the suite also gates non-prompt subsystems such as retrieval); Regression Guardrail (a guardrail is a runtime concept — see Guardrail)
 
 **Quality Track**:
-The Braintrust experiment track that measures quality movement while iterating on prompts or models — answers "did it get better". Complements the Prompt Regression Suite; the two are never mixed.
+The Braintrust experiment track that measures quality movement while iterating on prompts or models — answers "did it get better". Complements the Regression Suite; the two are never mixed.
 _Avoid_: Quality Improvement (superseded README wording)
 
 **Guardrail**:
@@ -87,7 +87,7 @@ A runtime mechanism that checks each production request's input and output in re
 The convention-based unit of evaluation: a directory with an `eval_spec.yaml` (task, column mapping, scorers), auto-discovered without a registry.
 
 **Eval run**:
-One execution of a scenario against a single agent configuration, persisted as one Braintrust experiment (Quality Track) and optionally compared against a pinned base experiment. Compose freely: "a golden-dataset run of `reader`".
+One execution of a scenario against a single agent configuration, persisted as one result CSV — the permanent record. By default the CSV lands in the gitignored results directory (dev-loop runs are noise); a run worth keeping is curated by the operator into a git-tracked location, the same event-driven pattern as the Trace Archive. Uploading a run as a Braintrust experiment (Quality Track) is opt-in per run; an uploaded run can be compared against a pinned base experiment. Compose freely: "a golden-dataset run of `reader`".
 
 **Scorer**:
 A scoring function `(output, expected, input) → Score` — programmatic when the criterion is structurally decidable, LLM-judge when semantic.
@@ -97,6 +97,9 @@ All LLM-judge dimensions score 0/1, one LLM call per criterion — never free-fo
 
 **sec_retrieval**:
 Names two things: the root trace span on retrieval, and the eval scenario measuring retrieval quality. Qualify which one you mean ("sec_retrieval span" / "sec_retrieval scenario").
+
+**Trace Archive**:
+A curated bundle of traces pulled from the tracing platform within its retention window and kept in the repo (`data/trace-archives/`) as the permanent record — typically a notable failure and its later successful counterpart. Re-uploadable to the platform for side-by-side analysis. Event-driven, per trace worth keeping; never a bulk backup of all traces.
 
 ## Verification
 

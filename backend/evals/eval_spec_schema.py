@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 
 class ScorerConfig(BaseModel):
@@ -18,6 +18,7 @@ class ScorerConfig(BaseModel):
     rubric: str | None = None
     model: str | None = None
     use_cot: bool = False
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0, allow_inf_nan=False)
     choice_scores: dict[str, float] | None = None
 
     @model_validator(mode="after")
@@ -46,6 +47,8 @@ class ScorerConfig(BaseModel):
                 )
             if self.use_cot:
                 raise ValueError("Programmatic ScorerConfig must not set use_cot")
+            if "temperature" in self.model_fields_set:
+                raise ValueError("Programmatic ScorerConfig must not set temperature")
             return self
 
         if self.type != "llm_judge":
@@ -85,6 +88,7 @@ class ScenarioConfig(BaseModel):
     task: TaskConfig
     pre_run: PreRunConfig | None = None
     column_mapping: dict[str, str]
+    column_types: dict[str, str] = {}
     scorers: list[ScorerConfig]
 
     @model_validator(mode="after")
@@ -105,7 +109,6 @@ class BraintrustConfig(BaseModel):
 
     project: str = "finlab-x"
     api_key_env: str = "BRAINTRUST_API_KEY"
-    local_mode: bool = False
 
 
 def _load_yaml_mapping(config_path: Path) -> dict[str, Any]:

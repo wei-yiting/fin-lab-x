@@ -36,19 +36,28 @@ export function isToolPart(part: { type?: unknown }): boolean {
 }
 
 /**
- * Whether the turn has painted anything the user can see: a non-suppressed
- * reasoning chip, a tool card, or reply text. Wire frames that create parts
- * without visible content (`reasoning-start` before its first delta,
- * `text-start`, step boundaries) don't count — the dead-air placeholder
- * must keep covering until one of these actually renders.
+ * Whether a part currently paints anything the user can see: a
+ * non-suppressed reasoning chip, a tool card, or non-empty reply text.
+ * Wire frames that create parts without visible content
+ * (`reasoning-start` before its first delta, `text-start`, step
+ * boundaries) don't count. Single source of truth for the dead-air
+ * placeholder's windows — window A uses it via
+ * `turnHasRenderableContent`, windows B/C anchor on the last part
+ * satisfying it.
+ */
+export function isRenderablePart(part: { type?: unknown; state?: unknown }): boolean {
+  if (isReasoningPart(part)) return !isSuppressedChip(part);
+  if (isToolPart(part)) return true;
+  if (part.type === "text") return ((part as { text?: string }).text ?? "") !== "";
+  return false;
+}
+
+/**
+ * Whether the turn has painted anything the user can see — the dead-air
+ * placeholder must keep covering until something actually renders.
  */
 export function turnHasRenderableContent(msg: ChatMessageLike): boolean {
-  return msg.parts.some((part) => {
-    if (isReasoningPart(part)) return !isSuppressedChip(part);
-    if (isToolPart(part)) return true;
-    if (part.type === "text") return ((part as { text?: string }).text ?? "") !== "";
-    return false;
-  });
+  return msg.parts.some(isRenderablePart);
 }
 
 /**

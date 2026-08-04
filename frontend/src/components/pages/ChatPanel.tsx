@@ -91,12 +91,13 @@ export function ChatPanel() {
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
 
-  // Three of the four allowed non-derived stores of the chips system live
-  // here (the fourth, the placeholder grace timer, lives inside
-  // useDeadAirPlaceholder — see hooks/README.md):
+  // Four of the five allowed non-derived stores of the chips system live
+  // here (the fifth, the placeholder grace timer, lives inside
+  // useDeadAirPlaceholder — see hooks/README.md for the full budget):
   //   1. chip timing map (Thought-for-Xs measurement),
   //   2. global stall stopwatch,
-  //   3. user expand/collapse overrides (cleared each turn — QA16).
+  //   3. user expand/collapse overrides (cleared each turn — QA16),
+  //   4. turn interruption record (interruptedMessages — DEV-109 ruling 11).
   const chatActive = status === "submitted" || status === "streaming";
   const { stalled, notifyActivity } = useStallTimer(chatActive);
   useEffect(() => {

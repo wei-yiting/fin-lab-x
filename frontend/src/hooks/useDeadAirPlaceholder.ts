@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PLACEHOLDER_GRACE_MS } from "@/lib/timing";
 import {
   isReasoningPart,
-  isSuppressedChip,
+  isRenderablePart,
   isToolPart,
   turnHasRenderableContent,
 } from "@/lib/reasoning-chips";
@@ -13,19 +13,6 @@ export type PlaceholderState = "hidden" | "waiting";
 
 /** Tool part states with nothing left in flight (result or error landed). */
 const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
-
-/**
- * Whether a part currently paints anything the user can see. Mirrors
- * `turnHasRenderableContent`'s per-part logic: a reasoning part with no text
- * yet (pre-first-delta or zero-delta suppressed) renders no chip, an empty
- * text part paints nothing.
- */
-function isRenderablePart(part: { type?: unknown; state?: unknown }): boolean {
-  if (isReasoningPart(part)) return !isSuppressedChip(part);
-  if (isToolPart(part)) return true;
-  if (part.type === "text") return ((part as { text?: string }).text ?? "") !== "";
-  return false;
-}
 
 /**
  * Placeholder visibility (F6′, 3 states — Hidden / Waiting / Waiting+degraded;

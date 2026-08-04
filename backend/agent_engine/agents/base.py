@@ -544,22 +544,17 @@ class Orchestrator:
                     )
                 for event in closing_events:
                     yield event
-            except asyncio.CancelledError:
-                # D35 abort cleanup. CancelledError is BaseException (not
-                # Exception); list it before the generic except so it doesn't
-                # collapse into the StreamError path.
-                self._handle_abort_cleanup(root_span, accumulator)
-                raise
-            except GeneratorExit:
-                # Same client-disconnect abort, different delivery: when the
-                # cancellation lands while this generator is suspended at a
-                # `yield` (instead of awaiting the next upstream chunk), the
-                # ASGI server's aclose() raises GeneratorExit here rather
-                # than CancelledError — which path fires is a timing race
+            except (asyncio.CancelledError, GeneratorExit):
+                # D35 abort cleanup. Both are BaseException (not Exception) —
+                # listed before the generic except so a client abort never
+                # collapses into the StreamError path. Which one is delivered
+                # is a timing race on the same client disconnect: awaiting
+                # the next upstream chunk → CancelledError; suspended at a
+                # `yield` → the ASGI server's aclose() raises GeneratorExit
                 # (observed in DEV-109 round 2: J-03's Stop landed mid-yield
                 # and the tail/status write was silently skipped). Cleanup is
-                # sync/no-yield, so it is safe under GeneratorExit; re-raise
-                # immediately per generator protocol.
+                # sync/no-yield, so it is safe on both; re-raise immediately
+                # per generator protocol.
                 self._handle_abort_cleanup(root_span, accumulator)
                 raise
             except Exception as e:

@@ -8,20 +8,21 @@ Custom React hooks scoped to the streaming chat lifecycle. All hooks are pure co
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `useStallTimer.ts`         | Global single stall stopwatch (F6). Wall-clock based; any stream part arrival resets it via `notifyActivity()`; flips `stalled=true` after `STALL_THRESHOLD_MS` (10s, from `lib/timing.ts`) of silence. Degraded copy consumers: the activity placeholder and the streaming chip header.                                                         |
 | `useReasoningTimers.ts`    | Client-side "Thought for Xs" measurement per chip (decision 2): clock starts when the reasoning part first appears, freezes at the arrival of the round's next part (first tool-start — tool execution excluded), abort samples at Stop. Wall-clock delta, keyed by `chipKey(messageId, partIndex)`.                                             |
-| `useDeadAirPlaceholder.ts` | Placeholder visibility for the two dead-air windows: submit → first renderable content (`submitted`, plus `streaming` while the turn has painted nothing — reasoning deltas can lag `reasoning-start` by seconds), and chip collapse → reply text (held behind `PLACEHOLDER_GRACE_MS` so the chip→tool micro-gap never flashes it — decision 5). |
+| `useDeadAirPlaceholder.ts` | Placeholder visibility for the three dead-air windows (decision C1 + DEV-109 ruling 10): submit → first renderable content (`submitted`, plus `streaming` while the turn has painted nothing — reasoning deltas can lag `reasoning-start` by seconds); chip collapse → reply text; and tool round complete → next content. The latter two anchor on the last *renderable* part and are held behind `PLACEHOLDER_GRACE_MS` so micro-gaps never flash it. |
 | `useToolProgress.ts`       | Accumulates `data-tool-progress` SSE events into a `{ toolCallId: message }` map for `ToolCard` display.                                                                                                                                                                                                                                         |
 | `useFollowBottom.ts`       | Auto-scrolls a scrollable element while the user is within 100px of the bottom. `forceFollowBottom()` re-latches after a new user submit.                                                                                                                                                                                                        |
 
-## Non-derived state budget (F6′ / ADR-0008)
+## Non-derived state budget (F6′ / ADR-0008 + DEV-109 ruling 11)
 
-The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Four non-derived stores are allowed, all owned by `ChatPanel`:
+The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Five non-derived stores are allowed, all owned by `ChatPanel`:
 
 1. **Chip timing map** (`useReasoningTimers`) — parts carry no timestamps, so duration is measured client-side.
 2. **Global stall stopwatch** (`useStallTimer`).
 3. **Expand/collapse override map** (`Map<chipKey, boolean>` in `ChatPanel` state) — the user's toggle beats the tail-only expansion derivation; cleared on every new turn / regenerate / retry (QA16).
 4. **Placeholder grace timer** (`useDeadAirPlaceholder`'s `elapsedGapKey` + `setTimeout`-backed `PLACEHOLDER_GRACE_MS`) — the wire gives no lookahead, so a short grace window is needed to distinguish "chip collapsed → tool card next" from "chip collapsed → reply text next" without flashing the placeholder on the chip→tool micro-gap.
+5. **Turn interruption record** (`interruptedMessages: Set<messageId>` in `ChatPanel` state — DEV-109 ruling 11) — once a Stop completes and status returns to `ready`, the fact that the user interrupted the turn is no longer derivable from `(status, messages)` (a Stop during the placeholder or reply text leaves no part-shape trace), so the "Interrupted" row needs its own record. Cleared on session clear; the entry is dropped when its turn is regenerated.
 
-Abort detection needs no store: an aborted chip is simply a reasoning part whose `state` is still `"streaming"` after the chat status left the active pair (no `reasoning-end` reached the wire).
+Aborted-**chip** detection needs no store: an aborted chip is simply a reasoning part whose `state` is still `"streaming"` after the chat status left the active pair (no `reasoning-end` reached the wire).
 
 ## Testing
 

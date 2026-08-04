@@ -26,7 +26,7 @@ FinLab-X is a **portfolio demonstration project** for AI-engineering roles. Its 
 | Operators | 1 (the author) | No cross-operator coordination anywhere: no reconciliation, no comparability guards, no run registries. Git + Braintrust experiment metadata ARE the registry. |
 | Company universe | **Hybrid**: a curated batch universe (config-defined, ~10–20 tickers) + **JIT ingestion** for any other ticker a user asks about | Batch path is an operator convenience, not a production ETL (see §4 observability scope). JIT must handle the happy path robustly and fail *legibly* on the rest (§2). Working set: tens of companies, corpus < 50k chunks, single Qdrant collection, payload indexing only. |
 | Concurrent JIT of same ticker | May happen | Concurrent attempts must resolve *legibly* (coalesce, or a clear "ingestion in progress" response); the mechanism is the implementing slice's design. No distributed locks, no job queues. |
-| Eval workload | Golden Dataset ≈ 30–100 items; a full run takes minutes; runs are sequential, single-operator | Always run the full dataset. No slicing, no scheduling, no eval cost management. |
+| Eval workload | Golden Dataset ≈ 30–100 items; a full run takes minutes; runs are sequential, single-operator | Authoritative runs and cross-version comparisons use the full dataset. An explicit row-id list may be run for smoke, debug, or failed-row rerun, provided the run records which ids it selected and never reports an aggregate as representing the whole dataset. Nothing richer than an id list (see §3). No scheduling, no eval cost management. |
 | Request rate | < 1 QPS sustained | No load balancing, no pool tuning, no cache layers beyond what JIT itself requires. |
 | Data freshness | Batch universe on manual/scheduled refresh; JIT tickers on a single staleness rule (re-fetch if older than N days, or user-triggered) | No streaming ingestion, no incremental sync, no invalidation machinery beyond the one rule. |
 
@@ -48,7 +48,7 @@ Reviewers MUST NOT request these; implementations MUST NOT add them. **If code i
 
 **Infrastructure**: horizontal scaling; multi-region/DR; accounts/RBAC/OAuth; per-user quotas or abuse detection (the §1 cost cap is the whole story); encryption beyond managed-service defaults; migration frameworks (manual scripts fine); adversarial input *hardening* — abuse detection, WAF-style rules, fuzzing (basic type/shape/size validation at any boundary belongs to §4 and is never excluded by this line); exhaustive SEC filing-variant coverage; distributed locks / ingestion queues; concurrency hardening beyond avoiding global mutable state; LLM cost optimization beyond obvious waste.
 
-**Eval platform machinery** (single operator, minutes-long full runs — the pressures these serve don't exist): dataset slicing / subset selectors; cross-run comparability guards; run manifests / registries; multi-annotator reconciliation or latest-wins merging; eval-gated CI (see §8 for the minimal narrative exception).
+**Eval platform machinery** (single operator, minutes-long full runs — the pressures these serve don't exist): dataset selection frameworks — field filters, saved manifests, slice hashing, or a selection vocabulary layered over §1's explicit row-id list; cross-run comparability guards; run manifests / registries; multi-annotator reconciliation or latest-wins merging; eval-gated CI (see §8 for the minimal narrative exception).
 
 **Speculative generality**: enum states, config options, or schema fields with no in-repo consumer (Reachability rule, §0). Multi-provider model support is *not* this — swapping the configured model to compare quality across providers is a deliberate, sanctioned design.
 
@@ -137,12 +137,13 @@ This preserves the interview narrative ("I know the production version; here's w
 
 ## 10. Case Law
 
-Canonical precedents from the July 2026 audit — reviewers pattern-match against these:
+Canonical precedents from the July–August 2026 audits — reviewers pattern-match against these:
 
 | Precedent | Rule it anchors |
 |---|---|
 | `compare_guard.py` — 166-line CLI + 6 verdicts to tell one operator two full runs are comparable | §3 eval platform; §0 scale-pressure |
 | 4-mode `dataset_selector` + SHA-256 slice hashing for a 31-row CSV | §3 eval platform |
+| The same selector trimmed to 2 modes — one meaning "do not select" — keeping the mode enum, two dataclasses, and five metadata fields for a list of row ids. Fewer modes, same machinery: re-test the residue against §0, not the mode count | §0 scale-pressure; §3 eval platform |
 | Prelude payload field vs its own 8%-success research memo | §0 evidence gate |
 | pytest `-m eval` language-policy regression gate that no CI job or script ever invokes | §0 reachability |
 | `STUB_*`/`EMIT_*`/`FORCE_*` env flags in streaming prod code | §5 rule 4 |

@@ -51,3 +51,21 @@ root cause(deferred reasoning-end),詳見 `finding-deferred-reasoning-end.md`。
 - S-place-03 的 Browser-Use 回報語意模糊——post-ruling 的 S-place-02 invariants 取樣
   (placeholder 不與執行中 tool card 並存,兩輪 0 違規)已實質覆蓋同一斷言。
 - Manual Behavior Test M-01~05 + UAT-01 尚未執行(bdd-e2e-loop 的 Manual Phase)。
+
+---
+
+## Round 4 追記(2026-08-04 傍晚)
+
+- **Interrupted 標記**(裁決 11)實作 + 驗證完成(`931f32b`)。
+- **S-chip-03 斷言改寫**:timer 起點是 reasoning-start(ratified decision 2),DOM 只能看到首個
+  delta(GPT start→delta lag 0~8s 高變異)→ 對稱 tolerance 必然 flaky(實測 2.0/2.1/5.1s)。
+  改為夾擠斷言:X ∈ [t_tool−t_chip−2, t_tool−t_submit+2],兩端皆不含 tool 執行時間(scenario
+  真正的主張)。Code 正確,測試錨點修正。
+- **OpenAI credits 耗盡**:最後兩輪 regression 的 S-chip-02 / repro 失敗均為
+  `You have no credits remaining`(直接 wire probe 確認)——upstream 額度問題,非 code 回歸。
+  GPT 相關 scenarios(J-02 等)在加值前無法重跑;已通知 human。
+- **S-chip-07 補驗 PASS**(Gemini reasoning-off,browser-use 以 Gemini 為 driver):
+  全程零 reasoning 區塊、placeholder 出現/消失正常、tool cards 正常、答案正常、終態僅
+  tool cards + 答案。最後一個 automated 缺口關閉。
+- Backend 暫留 **Gemini reasoning-on**(非預設 config,未 commit)供 human 在 OpenAI 加值前
+  繼續手動測試;恢復預設 = `git checkout` 該 YAML + 重啟。

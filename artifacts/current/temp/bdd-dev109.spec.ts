@@ -41,25 +41,32 @@ test("S-chip-02: segment ends -> chip collapses to Thought for Xs, content reada
   });
 });
 
-test("S-chip-03: Thought for Xs excludes tool execution time (+/-2s tolerance)", async ({ page }) => {
+test("S-chip-03: Thought for Xs excludes tool execution time (bracket assertion)", async ({ page }) => {
   test.setTimeout(180_000);
   await page.goto("/");
-  const t0Nav = Date.now();
   await page.getByTestId("composer-textarea").fill(CANONICAL_PROMPT);
+
+  // Timer semantics (ratified decision 2): the clock starts when the
+  // reasoning PART appears (reasoning-start) and freezes at the round's
+  // first tool-start. The DOM can only see the chip at its first delta,
+  // which on GPT can lag reasoning-start by several seconds — so a
+  // symmetric tolerance against (tool-card − chip-visible) flaps with
+  // provider lag (observed diffs: 2.0 / 2.1 / 5.1s). Bracket instead:
+  //   lower = t_tool − t_chip  (excludes the pre-delta lag)
+  //   upper = t_tool − t_submit (includes it fully)
+  // X must land in [lower − 2, upper + 2]; both bounds exclude tool
+  // execution time, which is the scenario's actual claim.
+  const tSubmit = Date.now();
   await page.getByTestId("composer-send-btn").click();
 
   const chip = page.getByTestId("reasoning-chip").first();
   await expect(chip).toHaveAttribute("data-state", "streaming", { timeout: 30_000 });
-  const t0 = Date.now();
+  const tChip = Date.now();
 
   const toolCard = page.getByTestId("tool-card").first();
   await expect(toolCard).toBeVisible({ timeout: 90_000 });
-  const t1 = Date.now();
-  const measuredToolGapSec = (t1 - t0) / 1000;
+  const tTool = Date.now();
 
-  // X freezes at the turn's first tool-start (decision 2) — chip1 must already
-  // be collapsed shortly after the first tool card appears; no need to wait
-  // for full turn completion (which can run several more tool round-trips).
   await expect(chip).toHaveAttribute("data-state", "collapsed", { timeout: 15_000 });
 
   const header = chip.getByTestId("reasoning-chip-header");
@@ -68,20 +75,20 @@ test("S-chip-03: Thought for Xs excludes tool execution time (+/-2s tolerance)",
   expect(match).not.toBeNull();
   const x = Number(match![1]);
 
-  const totalSoFarSec = (Date.now() - t0Nav) / 1000;
+  const lowerSec = (tTool - tChip) / 1000;
+  const upperSec = (tTool - tSubmit) / 1000;
 
   console.log(
     JSON.stringify({
       scenario: "S-chip-03",
-      t0_chip_appear: t0,
-      t1_first_tool_card: t1,
-      measured_gap_sec: measuredToolGapSec,
+      lower_sec: lowerSec,
+      upper_sec: upperSec,
       reported_X_sec: x,
-      total_elapsed_at_collapse_sec: totalSoFarSec,
     }),
   );
 
-  expect(Math.abs(x - measuredToolGapSec)).toBeLessThanOrEqual(2);
+  expect(x).toBeGreaterThanOrEqual(lowerSec - 2);
+  expect(x).toBeLessThanOrEqual(upperSec + 2);
 });
 
 test("S-chip-04: second reasoning segment start collapses previous chip (tail-only)", async ({ page }) => {

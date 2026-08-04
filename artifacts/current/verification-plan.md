@@ -41,13 +41,13 @@
 - **Steps**:
   1. Gemini reasoning-on，以 script 開啟 stream（canonical prompt），偵測到第一個 `reasoning-delta` 後立即關閉連線，保留已收 capture
   2. 檢查 capture 中該開啟 part 的事件序列
-- **Expected**: capture 含 `reasoning-start` 與部分 `reasoning-delta`，**無**對應 `reasoning-end`、無 error/finish 補償事件（wire 靜默關閉）。（斷言力道有限——見 bdd-scenarios Open Question 3。）
+- **Expected**: capture 含 `reasoning-start` 與部分 `reasoning-delta`，**無**對應 `reasoning-end`、無 error/finish 補償事件（wire 靜默關閉）。（弱斷言已裁決保留——反向可抓「abort 前錯誤提早關閉 part」；見 bdd-scenarios 裁決 3。）
 
 #### S-wire-04: reasoning 進行中發生 LLM error 的事件順序
 
 - **Method**: curl + jq（error 注入）
 - **Steps**:
-  1. 以 `FORCE_LLM_FAIL` 啟動 backend `[BIND-AT-RUN: 觸發方式與失敗時點——若無法於 reasoning part 開啟期間失敗，本條依 Open Question 6 處理]`
+  1. 以 `FORCE_LLM_FAIL` 啟動 backend `[BIND-AT-RUN: 觸發方式與失敗時點——若無法於 reasoning part 開啟期間失敗，依 bdd-scenarios 裁決 6 由 DEV-109 判定（route-level mock 或記 finding）]`
   2. 送出提問並 capture 全串流
   3. 萃取事件型別序列
 - **Expected**: 若 error 時有開啟中的 reasoning part，序列為 `reasoning-end` → `error` → `finish`（順序嚴格）；stream 正常終止而非斷線。

@@ -480,13 +480,15 @@ Origin: Multiple
 
 ---
 
-## Open Questions（human 裁決待決，不自行判定）
+## Open Questions — 已全數裁決（2026-08-04 human 裁決）
 
-1. **F7 scenario 數 vs unsupported deterministic 條目**：裁決「unsupported 三態降為 backend deterministic script 一條」與「F7 僅 3 條 scenario（其中 (3) 為 off/unsupported 值語意）」疑似指同一條。本文件將兩者合併為 S-trace-03（單條 deterministic，涵蓋 off `""`、unsupported `"<unsupported>"`、unsupported wire 無 parts）。若意圖為兩條分列，請指示。
-2. **unsupported 態的觸發方式**：normative sources 未指明哪個 provider/model 組合會落入 `unsupported`；S-trace-03 的 Steps 標 `[BIND-AT-RUN]`。若現行 admin 設定無法產生 unsupported 組合，該條無法執行本身即為 DEV-109 finding。
-3. **S-wire-03 的可觀察性**：abort 為 client 端關閉連線，deterministic capture 只能斷言「已收資料中無補發 `reasoning-end`」，斷言力道有限（近乎 vacuous）。是否保留此 deterministic 條、或僅由 J-03 的 browser abort 覆蓋，請裁決。
-4. **chip 與 tool card 時間重疊**（S-chip-05 的 And 句）：依 provider timing 無法穩定重現，clean-room 亦禁止 code seam 強制觸發。本文件寫為條件式斷言（若發生則順序維持 part 序）。是否接受 opportunistic 驗證，請裁決。
-5. **非主線 browser scenarios 的預設 provider**：3 案 browser 主線之外的 per-rule browser scenarios（S-chip-01～04、S-place-01～03 等）sources 未指定 provider；假設使用 repo 現行 admin 預設的 reasoning-on 設定，執行時 bind。若須固定某 provider，請指示。
-6. **`FORCE_LLM_FAIL` 能否於 mid-Reasoning-stream 觸發**：S-wire-04 的「先補 `reasoning-end`」順序斷言需要 error 發生在 reasoning part 開啟期間；sources 未指明 `FORCE_LLM_FAIL` 的失敗時點。若只能於 call 前失敗，該順序斷言需改以 route-level mock 或由 DEV-109 判定。
-7. **500KB cap（截尾留頭 + `[truncated…]`）**：屬 F7 契約但不在 ratified 的 3 條 F7 scenario 內，且無自然觸發方式——本文件未寫 scenario（視為 DEV-107 單元層已鎖）。若希望有合成 deterministic 驗證，請指示。
-8. **同一 Session 並發的 busy-guard（HTTP 409）**：`CONTEXT.md` 將其列為 Session 既有行為，但 ratified 的 B（preserved）與 D（周邊）清單皆未含此項——本文件未寫 scenario，列為已知未覆蓋，請確認是否補入。
+> 起草時發現的 8 個規格縫隙，已由 human 逐條裁決如下；保留全文供 DEV-109 執行時參照。
+
+1. **F7 scenario 數 vs unsupported deterministic 條目** — ⚖️ **裁決：維持合併**。S-trace-03 單條 deterministic 同時涵蓋 off `""`、unsupported `"<unsupported>"`、unsupported wire 無 parts（unsupported 環境切換成本高，切一次驗兩面）。
+2. **unsupported 態的觸發方式** — ⚖️ **裁決：維持 `[BIND-AT-RUN]`**。DEV-109 執行時查 config 綁定；若現行 admin 設定配不出 unsupported 組合，該事實本身記為 finding（「三態保留」裁決缺乏可執行驗證路徑）。
+3. **S-wire-03 的可觀察性**（abort capture 斷言力道有限）— ⚖️ **裁決：保留**。接受弱斷言；其反向價值是能抓到「backend 在 abort 前錯誤提早關閉 part」（capture 中出現不該有的 `reasoning-end`），成本趨近零。
+4. **chip 與 tool card 時間重疊**（S-chip-05 的 And 句）— ⚖️ **裁決：接受 opportunistic 條件式斷言**。重疊發生時驗順序維持 part 序；未發生記 not-exercised 不算 fail。若 DEV-109 全程 not-exercised，屆時再議是否補 route mock（defer until evidence）。
+5. **非主線 browser scenarios 的預設 provider** — ⚖️ **裁決：照假設**。用 repo 現行 admin 預設的 reasoning-on 設定，執行時 bind。
+6. **`FORCE_LLM_FAIL` 能否於 mid-Reasoning-stream 觸發** — ⚖️ **裁決：維持 `[BIND-AT-RUN]`**。若失敗時點無法落在 reasoning part 開啟期間，S-wire-04 的順序斷言由 DEV-109 判定（改 route-level mock 或記 finding）。
+7. **500KB cap（截尾留頭 + `[truncated…]`）** — ⚖️ **裁決：不寫**（先前 F7 收斂裁決已明文排除 500KB truncation 斷言；視為 DEV-107 單元層已鎖）。
+8. **同一 Session 並發的 busy-guard（HTTP 409）** — ⚖️ **裁決：不補**。尊重 ratified 的 B/D 清單邊界；409 錯誤面屬 DEV-71 範圍。列為已知未覆蓋（known non-coverage），非遺漏。

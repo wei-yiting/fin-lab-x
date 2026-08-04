@@ -1319,7 +1319,7 @@ mark.annot.resolved:hover {
 <li><a href="#s7"><span class="toc-num">7.</span><span class="toc-label">Feature: 周邊隔離（D — deterministic 邊界）</span></a></li>
 <li><a href="#s8"><span class="toc-num">8.</span><span class="toc-label">Journey Scenarios</span></a></li>
 <li><a href="#s9"><span class="toc-num">9.</span><span class="toc-label">Manual Verification（人工驗證，收斂後 5 + 1 條）</span></a></li>
-<li><a href="#s10"><span class="toc-num">10.</span><span class="toc-label">Open Questions（human 裁決待決，不自行判定）</span></a></li>
+<li><a href="#s10"><span class="toc-num">10.</span><span class="toc-label">Open Questions — 已全數裁決（2026-08-04 human 裁決）</span></a></li>
       <!-- one <li> per top-level section, e.g.:
       <li><a href="#s1"><span class="toc-num">1.</span><span class="toc-label">背景與動機</span></a></li>
       -->
@@ -1356,15 +1356,15 @@ mark.annot.resolved:hover {
 <!-- HERO — status-badge / stats-grid / prereq / research-links are all OPTIONAL.
      Omit any block that the source doc doesn't justify (see references/styling-guide.md). -->
 <header class="hero">
-  <span class="status-badge">awaiting review</span>
+  <span class="status-badge">rulings applied</span>
   <h1>DEV-108 Review — BDD Scenarios × Verification Plan</h1>
-  <p class="subtitle">Clean-room 重擬的 BDD 兩件套合成檢閱版 — 每條 scenario 直接附驗證方法；意見請選字留言，回改落在兩份 SSOT</p>
+  <p class="subtitle">Clean-room 重擬的 BDD 兩件套合成檢閱版 — 8 個 open questions 已裁決回改；意見請選字留言，回改落在兩份 SSOT</p>
 
   <div class="stats-grid">
   <div class="stat"><div class="stat-num">33</div><div class="stat-label">Scenarios（30+3 journeys）</div></div>
   <div class="stat"><div class="stat-num">3</div><div class="stat-label">Browser 主線案</div></div>
   <div class="stat"><div class="stat-num">5+1</div><div class="stat-label">Manual + UAT</div></div>
-  <div class="stat"><div class="stat-num">8</div><div class="stat-label">Open Questions</div></div>
+  <div class="stat"><div class="stat-num">8/8</div><div class="stat-label">Questions 已裁決</div></div>
 </div>
 
   <div class="prereq"><strong>拋棄式 review 文件</strong> · SSOT 為 <code>artifacts/current/bdd-scenarios.md</code> + <code>verification-plan.md</code>；本頁僅為 human gate 檢閱面。Clean-room：規格僅派生自 DEV-105/106/107 spec + ADR-0006/0007 + CONTEXT.md，未讀 implementation code。</div>
@@ -1470,7 +1470,7 @@ mark.annot.resolved:hover {
 <li>Gemini reasoning-on，以 script 開啟 stream（canonical prompt），偵測到第一個 <code>reasoning-delta</code> 後立即關閉連線，保留已收 capture</li>
 <li>檢查 capture 中該開啟 part 的事件序列</li>
 </ol>
-<li><strong>Expected</strong>: capture 含 <code>reasoning-start</code> 與部分 <code>reasoning-delta</code>，<strong>無</strong>對應 <code>reasoning-end</code>、無 error/finish 補償事件（wire 靜默關閉）。（斷言力道有限——見 bdd-scenarios Open Question 3。）</li>
+<li><strong>Expected</strong>: capture 含 <code>reasoning-start</code> 與部分 <code>reasoning-delta</code>，<strong>無</strong>對應 <code>reasoning-end</code>、無 error/finish 補償事件（wire 靜默關閉）。（弱斷言已裁決保留——反向可抓「abort 前錯誤提早關閉 part」；見 bdd-scenarios 裁決 3。）</li>
 </ul></div>
 
 <h3>Rule: stream error 時先補 <code>reasoning-end</code>，再送 <code>error</code> 與 <code>finish</code></h3>
@@ -1488,7 +1488,7 @@ mark.annot.resolved:hover {
 <li><strong>Method</strong>: curl + jq（error 注入）</li>
 <li><strong>Steps</strong>:</li>
 <ol>
-<li>以 <code>FORCE_LLM_FAIL</code> 啟動 backend <code>[BIND-AT-RUN: 觸發方式與失敗時點——若無法於 reasoning part 開啟期間失敗，本條依 Open Question 6 處理]</code></li>
+<li>以 <code>FORCE_LLM_FAIL</code> 啟動 backend <code>[BIND-AT-RUN: 觸發方式與失敗時點——若無法於 reasoning part 開啟期間失敗，依 bdd-scenarios 裁決 6 由 DEV-109 判定（route-level mock 或記 finding）]</code></li>
 <li>送出提問並 capture 全串流</li>
 <li>萃取事件型別序列</li>
 </ol>
@@ -2292,18 +2292,20 @@ mark.annot.resolved:hover {
 <section id="s10" class="doc-section">
   <div class="section-head">
     <span class="section-num">§10</span>
-    <h2>Open Questions（human 裁決待決，不自行判定）</h2>
+    <h2>Open Questions — 已全數裁決（2026-08-04 human 裁決）</h2>
     <span class="section-tag tag-open">Open</span>
   </div>
+
+<p><em>起草時發現的 8 個規格縫隙，已由 human 逐條裁決如下；保留全文供 DEV-109 執行時參照。</em></p>
 <ol>
-<li><strong>F7 scenario 數 vs unsupported deterministic 條目</strong>：裁決「unsupported 三態降為 backend deterministic script 一條」與「F7 僅 3 條 scenario（其中 (3) 為 off/unsupported 值語意）」疑似指同一條。本文件將兩者合併為 S-trace-03（單條 deterministic，涵蓋 off <code>""</code>、unsupported <code>"&lt;unsupported&gt;"</code>、unsupported wire 無 parts）。若意圖為兩條分列，請指示。</li>
-<li><strong>unsupported 態的觸發方式</strong>：normative sources 未指明哪個 provider/model 組合會落入 <code>unsupported</code>；S-trace-03 的 Steps 標 <code>[BIND-AT-RUN]</code>。若現行 admin 設定無法產生 unsupported 組合，該條無法執行本身即為 DEV-109 finding。</li>
-<li><strong>S-wire-03 的可觀察性</strong>：abort 為 client 端關閉連線，deterministic capture 只能斷言「已收資料中無補發 <code>reasoning-end</code>」，斷言力道有限（近乎 vacuous）。是否保留此 deterministic 條、或僅由 J-03 的 browser abort 覆蓋，請裁決。</li>
-<li><strong>chip 與 tool card 時間重疊</strong>（S-chip-05 的 And 句）：依 provider timing 無法穩定重現，clean-room 亦禁止 code seam 強制觸發。本文件寫為條件式斷言（若發生則順序維持 part 序）。是否接受 opportunistic 驗證，請裁決。</li>
-<li><strong>非主線 browser scenarios 的預設 provider</strong>：3 案 browser 主線之外的 per-rule browser scenarios（S-chip-01～04、S-place-01～03 等）sources 未指定 provider；假設使用 repo 現行 admin 預設的 reasoning-on 設定，執行時 bind。若須固定某 provider，請指示。</li>
-<li><strong><code>FORCE_LLM_FAIL</code> 能否於 mid-Reasoning-stream 觸發</strong>：S-wire-04 的「先補 <code>reasoning-end</code>」順序斷言需要 error 發生在 reasoning part 開啟期間；sources 未指明 <code>FORCE_LLM_FAIL</code> 的失敗時點。若只能於 call 前失敗，該順序斷言需改以 route-level mock 或由 DEV-109 判定。</li>
-<li><strong>500KB cap（截尾留頭 + <code>[truncated…]</code>）</strong>：屬 F7 契約但不在 ratified 的 3 條 F7 scenario 內，且無自然觸發方式——本文件未寫 scenario（視為 DEV-107 單元層已鎖）。若希望有合成 deterministic 驗證，請指示。</li>
-<li><strong>同一 Session 並發的 busy-guard（HTTP 409）</strong>：<code>CONTEXT.md</code> 將其列為 Session 既有行為，但 ratified 的 B（preserved）與 D（周邊）清單皆未含此項——本文件未寫 scenario，列為已知未覆蓋，請確認是否補入。</li>
+<li><strong>F7 scenario 數 vs unsupported deterministic 條目</strong> — ⚖️ <strong>裁決：維持合併</strong>。S-trace-03 單條 deterministic 同時涵蓋 off <code>""</code>、unsupported <code>"&lt;unsupported&gt;"</code>、unsupported wire 無 parts（unsupported 環境切換成本高，切一次驗兩面）。</li>
+<li><strong>unsupported 態的觸發方式</strong> — ⚖️ <strong>裁決：維持 <code>[BIND-AT-RUN]</code></strong>。DEV-109 執行時查 config 綁定；若現行 admin 設定配不出 unsupported 組合，該事實本身記為 finding（「三態保留」裁決缺乏可執行驗證路徑）。</li>
+<li><strong>S-wire-03 的可觀察性</strong>（abort capture 斷言力道有限）— ⚖️ <strong>裁決：保留</strong>。接受弱斷言；其反向價值是能抓到「backend 在 abort 前錯誤提早關閉 part」（capture 中出現不該有的 <code>reasoning-end</code>），成本趨近零。</li>
+<li><strong>chip 與 tool card 時間重疊</strong>（S-chip-05 的 And 句）— ⚖️ <strong>裁決：接受 opportunistic 條件式斷言</strong>。重疊發生時驗順序維持 part 序；未發生記 not-exercised 不算 fail。若 DEV-109 全程 not-exercised，屆時再議是否補 route mock（defer until evidence）。</li>
+<li><strong>非主線 browser scenarios 的預設 provider</strong> — ⚖️ <strong>裁決：照假設</strong>。用 repo 現行 admin 預設的 reasoning-on 設定，執行時 bind。</li>
+<li><strong><code>FORCE_LLM_FAIL</code> 能否於 mid-Reasoning-stream 觸發</strong> — ⚖️ <strong>裁決：維持 <code>[BIND-AT-RUN]</code></strong>。若失敗時點無法落在 reasoning part 開啟期間，S-wire-04 的順序斷言由 DEV-109 判定（改 route-level mock 或記 finding）。</li>
+<li><strong>500KB cap（截尾留頭 + <code>[truncated…]</code>）</strong> — ⚖️ <strong>裁決：不寫</strong>（先前 F7 收斂裁決已明文排除 500KB truncation 斷言；視為 DEV-107 單元層已鎖）。</li>
+<li><strong>同一 Session 並發的 busy-guard（HTTP 409）</strong> — ⚖️ <strong>裁決：不補</strong>。尊重 ratified 的 B/D 清單邊界；409 錯誤面屬 DEV-71 範圍。列為已知未覆蓋（known non-coverage），非遺漏。</li>
 </ol>
 </section>
 <!-- Replace this marker with the rendered <section class="doc-section"> blocks,
@@ -2311,7 +2313,7 @@ mark.annot.resolved:hover {
      section / callout / table / mermaid / code patterns. -->
 
 <footer>
-  Rendered from dev108-review-merged.md（bdd-scenarios.md × verification-plan.md 合成）· 2026-08-04
+  Rendered from dev108-review-merged.md（bdd-scenarios.md × verification-plan.md 合成）· 2026-08-04 · rulings applied
 </footer>
 
 </main>

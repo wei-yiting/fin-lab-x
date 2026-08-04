@@ -571,7 +571,7 @@ def _project_diagnostic_metadata(
         "experiment_name": experiment_name,
         "reference_capability_band": capability_band,
         "reference_expected_behavior": _require_diagnostic_str(
-            row, "expected_near_v1_behavior"
+            row, "expected_baseline_behavior"
         ),
         "reference_primary_failure_mechanism": _require_diagnostic_str(
             row, "primary_failure_mechanism"

@@ -522,7 +522,7 @@ class TestRunScenario:
 
         (scenario_dir / "eval_spec.yaml").write_text(yaml.dump(spec))
         (scenario_dir / "dataset.csv").write_text(
-            "id,question,capability_band,category,expected_near_v1_behavior,"
+            "id,question,capability_band,category,expected_baseline_behavior,"
             "primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,"
             "likely_tuning_lever,draft_pass_signals\n"
             "1,First question,boundary,regulatory_or_legal_risk,may_pass_with_tuning,"
@@ -939,7 +939,7 @@ class TestRunScenario:
         (scenario_dir / "dataset.csv").write_text(
             "\n".join(
                 [
-                    "id,question,category,capability_band,expected_near_v1_behavior,primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,likely_tuning_lever,draft_pass_signals",
+                    "id,question,category,capability_band,expected_baseline_behavior,primary_failure_mechanism,secondary_failure_mechanism,expected_best_source,likely_tuning_lever,draft_pass_signals",
                     '1,"First question",news,core,should_pass,tool_routing_error,,SEC,none,"[""a""]"',
                     '2,"Second question",news,boundary,may_pass_with_tuning,tool_routing_error,evidence_synthesis_limit,mixed,max_tool_calls,"[""b""]"',
                 ]
@@ -1029,7 +1029,7 @@ class TestRunScenario:
         )
         # Identity separation: raw dataset columns are not projected into the
         # Langfuse trace metadata (only reference_* prefixed copies).
-        assert "expected_near_v1_behavior" not in trace_metadata
+        assert "expected_baseline_behavior" not in trace_metadata
         assert "category" not in trace_metadata
 
 

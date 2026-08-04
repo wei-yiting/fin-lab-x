@@ -550,6 +550,18 @@ class Orchestrator:
                 # collapse into the StreamError path.
                 self._handle_abort_cleanup(root_span, accumulator)
                 raise
+            except GeneratorExit:
+                # Same client-disconnect abort, different delivery: when the
+                # cancellation lands while this generator is suspended at a
+                # `yield` (instead of awaiting the next upstream chunk), the
+                # ASGI server's aclose() raises GeneratorExit here rather
+                # than CancelledError — which path fires is a timing race
+                # (observed in DEV-109 round 2: J-03's Stop landed mid-yield
+                # and the tail/status write was silently skipped). Cleanup is
+                # sync/no-yield, so it is safe under GeneratorExit; re-raise
+                # immediately per generator protocol.
+                self._handle_abort_cleanup(root_span, accumulator)
+                raise
             except Exception as e:
                 # Always-write-key contract holds on the error path too;
                 # best-effort so observability failures can't mask the

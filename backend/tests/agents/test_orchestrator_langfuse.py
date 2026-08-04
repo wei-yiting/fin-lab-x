@@ -1041,6 +1041,74 @@ class TestAstreamAbortCleanup:
         }
 
     @pytest.mark.asyncio
+    async def test_generator_exit_mid_yield_also_writes_abort_tail(self):
+        """DEV-109 round-2 fix: a client disconnect landing while the stream
+        generator is suspended at a yield arrives as GeneratorExit (via
+        aclose()), not CancelledError — the abort tail + status write must
+        run on that path too."""
+        config = WorkflowProfileConfig(
+            version="0.1.0",
+            name="baseline",
+            description="Test version",
+            tools=[],
+            model=ModelConfig(name="gpt-4o-mini", reasoning="on"),
+        )
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        async def mock_astream(*args, **kwargs):
+            yield {
+                "type": "messages",
+                "data": (
+                    AIMessageChunk(
+                        content=[
+                            {"type": "reasoning", "reasoning": "partial thought"},
+                        ],
+                        id="msg-abort",
+                    ),
+                    {"langgraph_node": "agent"},
+                ),
+            }
+            yield {
+                "type": "messages",
+                "data": (
+                    AIMessageChunk(
+                        content=[{"type": "reasoning", "reasoning": " more"}],
+                        id="msg-abort",
+                    ),
+                    {"langgraph_node": "agent"},
+                ),
+            }
+
+        agent.astream = mock_astream
+
+        client, span = _mock_langfuse_client()
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch("backend.agent_engine.agents.base.get_client", return_value=client),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            gen = orch.astream_run(message="test", session_id="sess-genexit")
+            # Consume MessageStart + ReasoningStart + ReasoningDelta so the
+            # delta has been observed and the generator is suspended at a
+            # yield, then close it — aclose() delivers GeneratorExit at the
+            # yield point.
+            await gen.__anext__()
+            await gen.__anext__()
+            await gen.__anext__()
+            await gen.aclose()
+
+        span.update.assert_called_once()
+        metadata = span.update.call_args.kwargs["metadata"]
+        assert metadata == {
+            "reasoning": "=== segment 1 ===\npartial thought\n=== aborted ===",
+            "status": "aborted",
+        }
+
+    @pytest.mark.asyncio
     async def test_cancel_propagates_even_when_langfuse_update_raises(self):
         config = _make_config()
         orch = _create_orchestrator(config)

@@ -1,0 +1,54 @@
+{
+  "rounds": [
+    {
+      "round": 2,
+      "date": "2026-08-04",
+      "trigger": "human manual test findings (round-1 report review) + human rulings",
+      "fixes": [
+        {
+          "id": "fix-1-close-reasoning-on-tool-chunk",
+          "ruling": "DEV-109 ruling 9 (Option A): mapper closes open reasoning part when a tool_call_chunk block arrives, superseding the DEV-106 §B keep-open allowance",
+          "root_cause": "deferred reasoning-end: mapper only closed parts at next-LLM-call-id transition / text block / finalize, so on the default provider every chip stayed open through the entire tool execution (spec had assumed overlap was an occasional edge case)",
+          "files": [
+            "backend/agent_engine/streaming/event_mapper.py (_handle_tool_call_chunk_block: added _close_reasoning_part)",
+            "backend/tests/streaming/test_event_mapper.py (2 tests updated to the new contract)"
+          ],
+          "verified_by": "unit: backend 923 green; wire: fix1-wire-check.sse shows reasoning-end before tool-input every round; Playwright: S-chip-02/03/04 pass (S-chip-04 previously inconclusive, now verified)"
+        },
+        {
+          "id": "fix-2-placeholder-window-c",
+          "ruling": "DEV-109 ruling 10: tool-complete → next content dead air gets the placeholder (window C), same 300ms grace",
+          "root_cause": "dead air after a completed tool round was outside both ratified placeholder windows; with fix-1 the chip no longer masks it visually, leaving a real uncovered gap",
+          "files": [
+            "frontend/src/hooks/useDeadAirPlaceholder.ts (window C: last part is a tool part and all tool parts terminal)",
+            "frontend/src/hooks/__tests__/useDeadAirPlaceholder.test.ts (4 new tests)",
+            "frontend/src/__tests__/msw/fixtures/tool-deadair-then-text.ts (new fixture)",
+            "frontend/src/__tests__/msw/fixtures/index.ts (registration)"
+          ],
+          "verified_by": "unit: frontend 200 green; Playwright: S-place-02 (post-ruling, MSW) passes — placeholder appears in the 2s dead-air gap after grace, aria-live polite, yields to text"
+        },
+        {
+          "id": "fix-3-generator-exit-abort-path",
+          "ruling": "implementation bug, no spec change (S-trace-02/J-03 semantics unchanged)",
+          "root_cause": "client abort landing while the stream generator is suspended at a yield arrives as GeneratorExit (via aclose()), not asyncio.CancelledError; abort cleanup was only attached to CancelledError, silently skipping the reasoning-tail + status:aborted write (timing race — round 1 passed because aborts happened to land while awaiting upstream)",
+          "files": [
+            "backend/agent_engine/agents/base.py (astream_run: added except GeneratorExit branch running _handle_abort_cleanup)",
+            "backend/tests/agents/test_orchestrator_langfuse.py (new test: generator exit mid-yield writes abort tail)"
+          ],
+          "verified_by": "unit: backend 924 green; integration: J-03 rerun — aborted turn's trace has tail + '=== aborted ===' + status:'aborted', resent turn clean (session b68ef4bf-71b1-494f-98c8-90f4b82fbf26)"
+        }
+      ],
+      "not_fixed": [
+        {
+          "id": "S-chip-03 borderline timing (round-1)",
+          "resolution": "resolved without code change — passed on clean-config rerun post fix-1 (diff 1.996s within ±2s); round-1 2.122s overage attributed to measurement skew + config contamination"
+        }
+      ],
+      "tests_run": [
+        "uv run pytest backend/tests → 924 passed",
+        "npm run test (frontend) → 200 passed",
+        "Playwright bdd109 suite: S-chip-02/03/04/06/08/09, S-place-02(MSW)/04/05, J-03 all passing post-fix"
+      ]
+    }
+  ]
+}

@@ -1,16 +1,24 @@
 import { useEffect, useState } from "react";
 import { PLACEHOLDER_GRACE_MS } from "@/lib/timing";
-import { isReasoningPart, isSuppressedChip, turnHasRenderableContent } from "@/lib/reasoning-chips";
+import {
+  isReasoningPart,
+  isSuppressedChip,
+  isToolPart,
+  turnHasRenderableContent,
+} from "@/lib/reasoning-chips";
 import type { ChatMessageLike } from "@/lib/reasoning-chips";
 import type { ChatStatus } from "@/models";
 
 export type PlaceholderState = "hidden" | "waiting";
 
+/** Tool part states with nothing left in flight (result or error landed). */
+const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
+
 /**
  * Placeholder visibility (F6′, 3 states — Hidden / Waiting / Waiting+degraded;
  * the degraded copy swap is the caller's concern via the stall stopwatch).
  *
- * Covers exactly the two dead-air windows (decision C1):
+ * Covers three dead-air windows (decision C1 + DEV-109 ruling 2026-08-04):
  *   (a) submit → first *renderable* content. `status === "submitted"` alone
  *       ends at the stream's first wire frame (`start`), which arrives
  *       seconds before anything paints — reasoning deltas can lag
@@ -23,6 +31,11 @@ export type PlaceholderState = "hidden" | "waiting";
  *       message is a completed reasoning part with nothing after it, held
  *       behind a grace delay so the chip→tool micro-gap (decision 5: tool
  *       card owns that feedback) never flashes the placeholder.
+ *   (c) tool round complete → next content (DEV-109 ruling): every tool
+ *       part has its result and the next round's first part hasn't arrived
+ *       — completed tool cards are not live elements, so the wait for the
+ *       next LLM call is dead air. Same grace delay as (b) so the
+ *       tool-output → next-part micro-gap never flashes.
  *
  * Never visible while a chip is streaming or a tool card is live.
  */
@@ -43,12 +56,16 @@ export function useDeadAirPlaceholder(
       (!last || last.role !== "assistant" || !turnHasRenderableContent(last)));
 
   let windowB = false;
+  let windowC = false;
   if (status === "streaming" && last && last.role === "assistant" && last.parts.length > 0) {
     const lastPart = last.parts.at(-1)!;
     windowB =
       isReasoningPart(lastPart) && lastPart.state !== "streaming" && !isSuppressedChip(lastPart);
+    windowC =
+      isToolPart(lastPart) &&
+      last.parts.every((part) => !isToolPart(part) || TERMINAL_TOOL_STATES.has(String(part.state)));
   }
-  const gapKey = windowB && last ? `${last.id}:${last.parts.length}` : null;
+  const gapKey = (windowB || windowC) && last ? `${last.id}:${last.parts.length}` : null;
 
   useEffect(() => {
     if (gapKey === null || graceMs <= 0) return;
@@ -57,6 +74,6 @@ export function useDeadAirPlaceholder(
   }, [gapKey, graceMs]);
 
   if (windowA) return "waiting";
-  if (windowB && (graceMs <= 0 || elapsedGapKey === gapKey)) return "waiting";
+  if ((windowB || windowC) && (graceMs <= 0 || elapsedGapKey === gapKey)) return "waiting";
   return "hidden";
 }

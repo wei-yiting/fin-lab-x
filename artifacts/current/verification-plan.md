@@ -171,13 +171,13 @@
   3. 斷言頁面狀態
 - **Expected**: reload 後無 partial text、無 chips、無 error 面；現況（無 history hydration）下為全新空白 chat。
 
-#### S-place-02: 收合後空窗的 placeholder 分流（300ms grace）
+#### S-place-02: 空窗的 placeholder 分流（300ms grace；⚖️ 2026-08-04 DEV-109 追加裁決改寫）
 
-- **Method**: Browser automation (Playwright script)
+- **Method**: Browser automation (Playwright script) + deterministic MSW fixture `tool-deadair-then-text`（window C 正向驗證）
 - **Steps**:
-  1. 送出 canonical prompt；於「chip 收合 → tool card 出現」的空檔內持續輪詢 Activity indicator `[BIND-AT-RUN: placeholder 錨點]`——斷言全程不出現
-  2. 於「最後一顆 chip 收合 → reply text 開始」的空窗內斷言 placeholder 出現（允許相對收合時點 ≤300ms + 誤差 的延遲）；附帶斷言 placeholder 具 `aria-live="polite"`（承接 S-place-01 的屬性子斷言）
-- **Expected**: chip→tool 空檔 placeholder 不閃現；chip→reply text 空窗 placeholder 出現後隨 text 抵達消失。
+  1. MSW fixture：reasoning → tool round 完成 → 2s dead air → text。斷言 tool 完成後 placeholder 於 300ms grace 後出現、具 `aria-live="polite"`、text 抵達即消失
+  2. 真 backend canonical prompt 全程取樣（invariants）：placeholder 不與 streaming chip 或執行中 tool card 同時出現；「chip 收合 → tool card」空檔不閃現
+- **Expected**: tool-complete → next content 的 dead air 由 placeholder 覆蓋（window C，裁決 10）；「chip 收合 → reply text」空窗因裁決 9 結構上 ≈0ms，不出現 placeholder 為正確行為；負向 invariants 全程成立。
 
 #### S-place-04: Stream stall 降級與恢復
 
@@ -223,7 +223,7 @@
 - **Method**: Browser-Use CLI
 - **Steps**:
   1. 任務：「送出 canonical prompt（Apple 10-K FY2024 vs FY2023 Item 1A 比較），等整個回覆完成。」
-  2. 斷言點：(a) 對話中出現 ≥2 顆收合的 reasoning 區塊與多張 tool 卡片；(b) 由上而下的順序為：reasoning → tool 卡片(們) → reasoning → … → 最終答案文字；(c) 若觀察到 tool 卡片在某顆尚未收合的 reasoning 區塊下方出現，記錄之（條件式斷言：順序仍維持抵達序）
+  2. 斷言點：(a) 對話中出現 ≥2 顆收合的 reasoning 區塊與多張 tool 卡片；(b) 由上而下的順序為：reasoning → tool 卡片(們) → reasoning → … → 最終答案文字；(c) tool 卡片出現時其上方的 reasoning 區塊應已收合（⚖️ 2026-08-04 DEV-109 裁決 9：chip 於 tool-start 收合，原條件式斷言作廢）
 - **Expected**: 想→查→再想→回答的節奏依 part 順序呈現於 transcript。
 
 #### S-chip-07: Gemini reasoning-off 的畫面行為（browser 主線案 2/3）

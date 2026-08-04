@@ -384,13 +384,13 @@ class TestReasoningPartBoundaries:
             "TextDelta",
         ]
 
-    def test_tool_call_chunk_does_not_close_open_reasoning_part(self):
-        """Ratified spec (DEV-106 comment §B / S-chip-06): a tool-call-chunk
+    def test_tool_call_chunk_closes_open_reasoning_part(self):
+        """DEV-109 ruling (2026-08-04, supersedes DEV-106 §B keep-open): a
 
-        arriving mid-round (same LLM call id) must NOT force-close the open
-        reasoning part — the tool card renders below the still-open chip,
-        preserving arrival order (e.g. Gemini sends tool args before
-        reasoning-end).
+        tool-call-chunk arriving mid-round means the round's reasoning block
+        is over — the mapper closes the open reasoning part so the chip
+        collapses at tool-start. Arrival order is preserved (the tool card
+        renders below the now-collapsed chip).
         """
         mapper = StreamEventMapper(session_id=SESSION_ID)
         mapper.process_chunk(
@@ -401,7 +401,7 @@ class TestReasoningPartBoundaries:
             make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
         )
 
-        assert events == []
+        assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
 
     def test_new_llm_call_closes_part_and_opens_new_id(self):
         """S-parts-01: multi-round loop → one part per round, ids turn-unique."""
@@ -419,11 +419,11 @@ class TestReasoningPartBoundaries:
         ]
 
     def test_tool_call_chunk_then_new_llm_call_closes_part_exactly_once(self):
-        """A tool-call-chunk mid-round leaves the reasoning part open (no
+        """The tool-call-chunk closes the round's reasoning part (DEV-109
 
-        premature ReasoningEnd); the part still closes exactly once, at the
-        next round's LLM-call-id transition — not immediately after the tool
-        chunk.
+        ruling); the next round's LLM-call-id transition must NOT emit a
+        second ReasoningEnd for the already-closed part — close exactly
+        once, at tool-start.
         """
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
@@ -433,14 +433,13 @@ class TestReasoningPartBoundaries:
         tool_chunk_events = mapper.process_chunk(
             make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
         )
-        assert tool_chunk_events == []
+        assert tool_chunk_events == [ReasoningEnd(reasoning_id="reasoning-0")]
 
         next_round_events = mapper.process_chunk(
             make_messages_chunk_reasoning("round-2 thought", msg_id="msg-B")
         )
 
         assert next_round_events == [
-            ReasoningEnd(reasoning_id="reasoning-0"),
             ReasoningStart(reasoning_id="reasoning-1"),
             ReasoningDelta(reasoning_id="reasoning-1", delta="round-2 thought"),
         ]

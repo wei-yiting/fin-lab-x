@@ -192,14 +192,15 @@ class StreamEventMapper:
     def _handle_tool_call_chunk_block(
         self, block: dict, events: list[DomainEvent]
     ) -> None:
-        # Do NOT force-close an open reasoning part here (ratified spec,
-        # DEV-106 comment §B / S-chip-06): a provider may emit tool-call
-        # args before reasoning-end (e.g. Gemini), and the chip must stay
-        # open so the tool card renders below it, preserving arrival order.
-        # The part still closes correctly via the existing, already-tested
-        # boundaries: the next LLM call's chunk-id transition (S-parts-01),
-        # a following text block (_handle_text_block), or finalize() at
-        # turn end.
+        # Tool args arriving means this round's reasoning block is over —
+        # close the open part so the chip collapses at tool-start, matching
+        # the `Thought for Xs` freeze point (DEV-109 ruling 2026-08-04,
+        # supersedes the DEV-106 §B keep-open allowance: content_blocks give
+        # the mapper no other end-of-block signal, which left every chip
+        # open through the whole tool execution on the default provider).
+        # Arrival order is preserved — the tool card renders below the
+        # now-collapsed chip.
+        self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))
             self._text_block_open = False

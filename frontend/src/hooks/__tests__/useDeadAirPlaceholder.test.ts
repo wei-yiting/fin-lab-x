@@ -106,6 +106,78 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("hidden");
   });
 
+  test("window (c): tool round complete with nothing after → visible after the grace delay (DEV-109 ruling)", () => {
+    const messages = [
+      userMsg,
+      assistantMsg("a1", [
+        { type: "reasoning", text: "r", state: "done" },
+        { type: "tool-get_section", toolCallId: "tc-1", state: "output-available" },
+      ]),
+    ];
+    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+    expect(result.current).toBe("hidden");
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
+    });
+    expect(result.current).toBe("waiting");
+  });
+
+  test("window (c): errored tool result is also terminal → visible after grace", () => {
+    const messages = [
+      userMsg,
+      assistantMsg("a1", [
+        { type: "tool-get_section", toolCallId: "tc-1", state: "output-error", errorText: "x" },
+      ]),
+    ];
+    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
+    });
+    expect(result.current).toBe("waiting");
+  });
+
+  test("window (c) suppressed while any sibling tool part is still in flight", () => {
+    const messages = [
+      userMsg,
+      assistantMsg("a1", [
+        { type: "tool-a", toolCallId: "tc-1", state: "input-available" },
+        { type: "tool-b", toolCallId: "tc-2", state: "output-available" },
+      ]),
+    ];
+    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);
+    });
+    expect(result.current).toBe("hidden");
+  });
+
+  test("tool-complete→next-part micro-gap inside the grace delay never flashes", () => {
+    const toolDone = [
+      userMsg,
+      assistantMsg("a1", [{ type: "tool-x", toolCallId: "tc-1", state: "output-available" }]),
+    ];
+    const { result, rerender } = renderHook(
+      ({ messages }) => useDeadAirPlaceholder(messages, "streaming"),
+      { initialProps: { messages: toolDone } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS / 3);
+    });
+    rerender({
+      messages: [
+        userMsg,
+        assistantMsg("a1", [
+          { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
+          { type: "reasoning", text: "next round", state: "streaming" },
+        ]),
+      ],
+    });
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);
+    });
+    expect(result.current).toBe("hidden");
+  });
+
   test("hidden once reply text starts (placeholder yields to the answer)", () => {
     const messages = [
       userMsg,

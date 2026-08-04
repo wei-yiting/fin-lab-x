@@ -140,7 +140,7 @@ Origin: Dev
 Category: Illustrative
 Origin: QA
 
-### Rule: chips 與 tool cards 依 part 到達順序交錯；時間重疊時 tool card 排在開著的 chip 下方
+### Rule: chips 與 tool cards 依 part 到達順序交錯；tool 參數抵達即關閉該輪 reasoning part（chip 於 tool-start 收合）
 
 #### S-chip-05: 多輪 tool loop 的 chips 與 tool cards 順序交錯
 > 驗證 agent 工作節奏（想→查→再想→回答）在 transcript 中依序可讀。
@@ -148,7 +148,7 @@ Origin: QA
 - **Given** Gemini reasoning-on，一個新 Session
 - **When** 送出 canonical multi-tool prompt 並等 Chat turn 完成
 - **Then** transcript 中 Reasoning chips 與 tool cards 依 part 到達順序交錯排列（chip → tool card(s) → chip → … → reply text）
-- **And** 若 provider 在 `reasoning-end` 前送出 tool 參數（重疊發生時），tool card 排在仍開著的 chip 下方，不強制 chip 立即收合（provider-timing dependent，條件式斷言）
+- **And** tool 參數抵達即代表該輪 reasoning block 結束——mapper 關閉 reasoning part，chip 於 tool-start 收合，tool card 排在已收合的 chip 下方（抵達序不變）。（⚖️ 2026-08-04 DEV-109 追加裁決，取代原「重疊時 tool card 排在開著的 chip 下方」條件式斷言——原裁決假設重疊為偶發，實測在預設 provider 上為每輪必然，成本假設失效）
 
 Category: Illustrative
 Origin: Multiple
@@ -211,7 +211,7 @@ Origin: Dev
 
 ### Context
 
-Activity indicator 縮為純 placeholder：只在畫面無活元素的空窗出現（submit → 首個 renderable content、chip 收合 → reply text），永不包含 reasoning 文字；Stream stall（10 秒無任何 stream part）時當前 live surface 換降級文案。文案（英文）：`Thinking…` / `Still working…`。
+Activity indicator 縮為純 placeholder：只在畫面無活元素的空窗出現（submit → 首個 renderable content、chip 收合 → reply text、tool round 全數完成 → 下一個內容 ⚖️ 2026-08-04 DEV-109 追加），永不包含 reasoning 文字；Stream stall（10 秒無任何 stream part）時當前 live surface 換降級文案。文案（英文）：`Thinking…` / `Still working…`。
 
 ### Rule: Activity indicator 由 submit 起持續顯示，直到第一個 renderable content 出現
 
@@ -226,15 +226,20 @@ Activity indicator 縮為純 placeholder：只在畫面無活元素的空窗出�
 Category: Illustrative
 Origin: Multiple
 
-### Rule: chip 收合 → reply text 空窗顯示 placeholder（300ms grace）；chip 收合 → tool card 空窗不顯示
+### Rule: 無活元素的空窗顯示 placeholder（300ms grace）；chip 收合 → tool card 空窗不顯示
 
 #### S-place-02: 收合後空窗的 placeholder 分流
-> 驗證 `PLACEHOLDER_GRACE_MS = 300ms` 的行為語意：chip→tool 空檔不閃現、chip→reply text 空窗會出現。
+> 驗證 `PLACEHOLDER_GRACE_MS = 300ms` 的行為語意：chip→tool 空檔不閃現、真正的 dead air 會被蓋住。
+> ⚖️ 2026-08-04 DEV-109 追加裁決：(1) 因 mapper 於 tool-start 關閉 reasoning part，最後一顆 chip 的
+> `reasoning-end` 與 `text-start` 同批抵達——「chip 收合 → reply text」空窗結構上 ≈0ms，
+> 該空窗不出現 placeholder 是 grace 設計下的**正確**行為；(2) 新增空窗：tool round 全數完成
+> （所有 tool parts 皆 terminal）→ 下一個內容抵達前的 dead air 由 placeholder 覆蓋（同 300ms grace）。
 
 - **Given** 一個 multi-tool Chat turn 進行中
-- **When** 最後一顆 Reasoning chip 收合、reply text 尚未開始
-- **Then** placeholder 在該空窗出現（相對收合時點可有 ≤300ms 的延遲）
+- **When** 某輪 tool round 全數完成（所有 tool cards 呈結果態）、下一個內容（下輪 reasoning / reply text）尚未抵達
+- **Then** placeholder 在該空窗出現（相對空窗起點可有 ≤300ms grace 延遲），下一個內容抵達即消失
 - **And** 在「chip 收合 → tool card」的空檔中，placeholder 不出現
+- **And** 任何時刻 placeholder 不與 streaming 中的 chip 或執行中的 tool card 同時出現
 
 Category: Illustrative
 Origin: Dev
@@ -492,3 +497,25 @@ Origin: Multiple
 6. **`FORCE_LLM_FAIL` 能否於 mid-Reasoning-stream 觸發** — ⚖️ **裁決：維持 `[BIND-AT-RUN]`**。若失敗時點無法落在 reasoning part 開啟期間，S-wire-04 的順序斷言由 DEV-109 判定（改 route-level mock 或記 finding）。
 7. **500KB cap（截尾留頭 + `[truncated…]`）** — ⚖️ **裁決：不寫**（先前 F7 收斂裁決已明文排除 500KB truncation 斷言；視為 DEV-107 單元層已鎖）。
 8. **同一 Session 並發的 busy-guard（HTTP 409）** — ⚖️ **裁決：不補**。尊重 ratified 的 B/D 清單邊界；409 錯誤面屬 DEV-71 範圍。列為已知未覆蓋（known non-coverage），非遺漏。
+
+---
+
+## DEV-109 執行期追加裁決（2026-08-04 human 裁決,round 2）
+
+BDD 重跑期間由 human 手動測試發現、經 wire/code 交叉驗證後上呈裁決:
+
+9. **Deferred reasoning-end（統一 root cause）** — ⚖️ **裁決:選 A**。mapper 收到 `tool_call_chunk`
+   即關閉該輪 reasoning part(比照 text block),取代 DEV-106 §B 的 keep-open 允許——原裁決假設
+   overlap 為偶發 edge case,實測在預設 provider(GPT-5-mini)上為每輪必然,成本假設失效。
+   效果:chip 於 tool-start 收合(與 `Thought for Xs` 凍結時點一致)、tool 執行中 stall 降級文案
+   不再落在 chip header、抵達序不變。上述裁決 4(opportunistic 條件式斷言)隨之作廢。
+   完整分析:`temp/finding-deferred-reasoning-end.md`。
+10. **tool-complete → next content 的 dead air** — ⚖️ **裁決:補 placeholder**(window C)。
+    所有 tool parts 皆 terminal 且下一個內容未抵達的空窗由 Activity indicator 覆蓋,同 300ms grace。
+    「chip 收合 → reply text」空窗因裁決 9 結構上 ≈0ms,不出現 placeholder 為正確行為
+    (S-place-02 斷言同步改寫,正向驗證改用 deterministic MSW fixture `tool-deadair-then-text`)。
+
+另,執行期發現並修復一個 implementation bug(非 spec 變更):client abort 落在 stream generator
+懸停於 `yield` 的瞬間時,abort 以 `GeneratorExit`(而非 `asyncio.CancelledError`)送達,
+原 cleanup 只掛在後者上,導致 reasoning tail + `status: "aborted"` 靜默漏寫(時序 race)。
+已補 `except GeneratorExit` 分支 + 單元測試;S-trace-02 / J-03 語意不變。

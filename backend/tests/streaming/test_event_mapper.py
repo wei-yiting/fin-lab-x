@@ -403,6 +403,27 @@ class TestReasoningPartBoundaries:
 
         assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
 
+    def test_legacy_tool_call_chunks_attr_also_closes_open_reasoning_part(self):
+        """DEV-109 round-5 regression: Gemini delivers tool calls ONLY via
+        the legacy ``tool_call_chunks`` attribute (its content_blocks never
+        surface a tool_call_chunk block), so the close-on-tool-start rule
+        must fire on the backup route too — exactly once."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("gemini thought", msg_id="msg-A")
+        )
+
+        msg = AIMessageChunk(
+            content=[],
+            id="msg-A",
+            tool_call_chunks=[{"id": "tc-g", "name": "poc_add", "args": "{}"}],
+        )
+        events = mapper.process_chunk(
+            {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+        )
+
+        assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
+
     def test_new_llm_call_closes_part_and_opens_new_id(self):
         """S-parts-01: multi-round loop → one part per round, ids turn-unique."""
         mapper = StreamEventMapper(session_id=SESSION_ID)

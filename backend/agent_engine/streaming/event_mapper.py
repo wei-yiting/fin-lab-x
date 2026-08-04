@@ -124,10 +124,17 @@ class StreamEventMapper:
             prev_block_type = block_type
 
         # Backup path — a few providers' content_blocks may not surface
-        # tool_call_chunks; the legacy attribute keeps the tool path alive
-        # in that case. Safe to run unconditionally because
-        # _pending_tool_calls is a set-like dict (no duplicates).
+        # tool_call_chunks (Gemini delivers tool calls ONLY via this legacy
+        # attribute); it keeps the tool path alive in that case. Safe to run
+        # unconditionally because _pending_tool_calls is a set-like dict
+        # (no duplicates).
         if getattr(msg_chunk, "tool_call_chunks", None):
+            # Tool args ending the round's reasoning block (DEV-109 ruling 9)
+            # must close on THIS route too — Gemini never hits
+            # _handle_tool_call_chunk_block, which left its chips open
+            # through tool execution (round-5 regression). No-op when the
+            # content_blocks route already closed the part.
+            self._close_reasoning_part(events)
             if self._text_block_open:
                 events.append(TextEnd(text_id=self._current_text_id))
                 self._text_block_open = False

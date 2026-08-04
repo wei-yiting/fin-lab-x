@@ -501,7 +501,7 @@ scorers:
 
 
 def test_scorer_explicit_metric_floor_with_gate_false_fails(tmp_path: Path) -> None:
-    """A floor on an ungated scorer is dead config — reject it (ADR-0006)."""
+    """A floor on an ungated scorer is dead config — reject it (ADR-0008)."""
     config_path = tmp_path / "eval_spec.yaml"
     config_path.write_text(
         """

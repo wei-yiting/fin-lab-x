@@ -474,6 +474,7 @@ class TestRunScenario:
         spec = {
             "name": scenario_name,
             "csv": "dataset.csv",
+            "regression": {"enabled": True},
             "task": {"function": "backend.evals.eval_tasks.run_baseline"},
             "column_mapping": {"prompt": "input"},
             "scorers": [
@@ -1186,6 +1187,7 @@ class TestMainCli:
             spec = {
                 "name": "response_quality",
                 "csv": "dataset.csv",
+                "regression": {"enabled": True},
                 "task": {"function": "backend.evals.eval_tasks.run_baseline"},
                 "column_mapping": {"prompt": "input"},
                 "scorers": [{"name": "s", "function": "some.func"}],

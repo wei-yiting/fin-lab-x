@@ -1,12 +1,11 @@
 # ADR-0009: One-page soft ceiling replaces the 100-word ADR cap (2026-08-05)
 
 **Decision**: Envelope §4's "≤100 words" clause for ADRs is replaced by: every
-ADR opens with a 1–2 sentence decision statement and stays as short as its
-decision allows, under a soft ceiling of one page (~500 words); overflow
-triggers a structural test — two fused decisions are split, design detail is
-linked out — before any compression of rationale; with reviewer judgment, a
-wicked problem (argued trade-offs across ≥2 real options) may exceed the
-ceiling.
+ADR opens with a 1–2 sentence decision statement; length follows the
+decision's complexity, up to about one page (~500 words); overflow triggers a
+structural test — two fused decisions are split, design detail is linked
+out — before any compression of rationale; with reviewer judgment, a wicked
+problem (argued trade-offs across ≥2 real options) may run longer.
 
 **Context**: the old cap was internally contradictory — it demanded Nygard-era
 length while requiring MADR-era content (rejected alternatives + why), and
@@ -44,7 +43,6 @@ under the soft ceiling.
 skimmability of the decision log and scope discipline per record — both
 survive under the soft ceiling — while the substance the cap destroyed (the
 "why not" behind each rejected alternative) is the content every surveyed
-source treats as the part still useful years later. The ceiling is an upper
-bound, not a target, so simple decisions stay short instead of inflating
-toward it. **Reopen when** ADRs routinely blow past a page without triggering
-the split/link-out test, or when the PR reviewer gate stops holding the line.
+source treats as the part still useful years later. **Reopen when** ADRs
+routinely blow past a page without triggering the split/link-out test, or
+when the PR reviewer gate stops holding the line.

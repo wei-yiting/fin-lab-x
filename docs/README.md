@@ -7,7 +7,7 @@ Central repository for architectural specifications, design plans, and project g
 ## Map
 
 - `design-envelope.md`: **Read first.** Calibration SSOT for scale assumptions, robustness targets, and depth allocation — every design, implementation, and review decision cites it by section number.
-- `adr/`: Architecture Decision Records — one file per decision (`NNNN-slug.md`: decision + rejected alternatives + why). Opens with a 1–2 sentence decision statement; as short as the decision allows, under a one-page (~500 words) soft ceiling — overflow means split or link out, not compress; a wicked problem may exceed the ceiling with reviewer judgment. A reversed decision gets a new ADR superseding the old by number; envelope-reduced robustness cites `design-envelope.md` §9.
+- `adr/`: Architecture Decision Records — one file per decision (`NNNN-slug.md`: decision + rejected alternatives + why). Opens with a 1–2 sentence decision statement; length follows the decision, up to about one page (~500 words) — overflow means split or link out, not compress; a wicked problem may run longer with reviewer judgment. A reversed decision gets a new ADR superseding the old by number; envelope-reduced robustness cites `design-envelope.md` §9.
 - `agent_architecture.md`: High-level architecture, Single Orchestrator pattern, and design principles.
 - `file_structure.md`: Comprehensive mapping of directory responsibilities and file roles.
 - `observability.md`: Langfuse tracing patterns across the agent layer and ingestion pipelines; span inventory and trace hierarchy for the SEC pipeline.

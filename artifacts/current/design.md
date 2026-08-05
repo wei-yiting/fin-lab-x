@@ -413,13 +413,17 @@ for item in parsed_filing.items:
 | Prelude 整體性 | ✅ 保留 |
 | Storage overhead | Prelude 重複存（per Item N block chunks 次），實際 100-300 MB 跨 corpus，可接受 |
 
-**Evidence gate guards（依 `research_prelude_block_relationship.md` 建議 + design envelope §0 原則 3）**：
+**Evidence gate guards — R2v2（2026-08-05 語意分析 + 72-probe 驗證後定案，取代原「cap + 截斷 + per-item gating」構想；SSOT = DEV-127）**：
 
-| Guard | 內容 | 狀態 |
+核心語意：oversized「prelude」是 detection 失敗的症狀 — 其內容是**本文**（被漏偵測的 blocks），不是前言，必須進索引而非 metadata。原「size cap 截斷」救不了 content loss（prelude 不 chunk 不 embed，誤判的 57k 字會從索引消失），且 2,000 cap 恰好誤傷旗艦真 prelude（CAT 7/1A ~2.5k chars）。
+
+| Guard | 內容 | 驗證 |
 |---|---|---|
-| Size cap | prelude 硬上限 **≤2,000 chars**；overshoot 時 fallback 只取第一段。與 detection 品質無關的 blast-radius bound，防未知 filing format 上演算法失手（實證災難案例：舊 rule 下 WMT 14k / JPM 34k chars 假 prelude） | ✅ 無條件納入 design |
-| 重跑尺寸 probe | 用新 markdown H3/H4 detection 重跑 prelude 尺寸測量（scripts 在 `backend/scripts/research/prelude_*.py`），驗 **≥70% non-stub Items 的 prelude < 3,000 chars** — 30-probe research 只驗了 heading detection，prelude 尺寸分布在新演算法下零數據 | ⏳ implementation 前執行 |
-| Per-item gating | 是否只對 Item 7 / 1A 開啟 prelude attach | ⏳ 由重跑 probe 的數據決定，不沿用舊演算法時代 24-probe 結論 |
+| Plausibility check | markdown H3/H4 anchored 結果需通過合理性檢查（錨定數 **≥2** 且第一個錨定位置 **≤ Item 前 30%**，門檻 implementation 可調）才可信，否則降級 text fallback。修 root cause：「anchored 非空」條件太弱（WMT 1A 錨定 1 個深處雜項 heading 就吞掉 57k 字） | 72 probes 中 demotion 觸發 3 次，fallback 接住 2 次 |
+| Validity threshold | 第一個 block heading 前的文字 **≤3,000 chars** 才是有效 prelude — 整段附加、**不截斷**；>3,000 = 「不是 prelude」→ 轉為無標題 leading block 正常 chunk + embed，prelude = None。**任何情況零 content loss** | 91.4%（53/58 structured）valid；5 個 reclassify 全進索引 |
+| Per-item gating | **不需要** | 各 Item valid 率 ≥87.5%（7A 100%、1 93.8%、1A/7 87.5%） |
+
+驗證數據：`prelude_probe_v3_full_algo.py`，18 tickers × 4 items = 72 probes；四個災難案例（WMT 1A/1、CAT 1、JPM 1A）全修復。詳見 `research_prelude_size_v3.md`。
 
 **LLM context preparation — retrieve-time 階段**（不是 ingest-time）：
 

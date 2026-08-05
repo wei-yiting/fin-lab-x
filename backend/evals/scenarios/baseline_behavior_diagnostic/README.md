@@ -19,6 +19,10 @@ Diagnostic datasets follow a fixed column-naming convention: a dataset MUST have
 follow this naming — column-name configurability (`row_id_column` / `question_column`)
 was deliberately removed.
 
+A Traditional Chinese mirror of this dataset runs as the sibling scenario
+`baseline_behavior_diagnostic_zh` (own diagnostic identity, same schema and row ids);
+see its README for the row-alignment maintenance rule.
+
 ## Dataset Columns (annotation guide)
 
 `dataset.csv` has 15 columns in three groups. Only `question` reaches the agent;

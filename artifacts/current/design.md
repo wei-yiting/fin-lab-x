@@ -413,6 +413,14 @@ for item in parsed_filing.items:
 | Prelude 整體性 | ✅ 保留 |
 | Storage overhead | Prelude 重複存（per Item N block chunks 次），實際 100-300 MB 跨 corpus，可接受 |
 
+**Evidence gate guards（依 `research_prelude_block_relationship.md` 建議 + design envelope §0 原則 3）**：
+
+| Guard | 內容 | 狀態 |
+|---|---|---|
+| Size cap | prelude 硬上限 **≤2,000 chars**；overshoot 時 fallback 只取第一段。與 detection 品質無關的 blast-radius bound，防未知 filing format 上演算法失手（實證災難案例：舊 rule 下 WMT 14k / JPM 34k chars 假 prelude） | ✅ 無條件納入 design |
+| 重跑尺寸 probe | 用新 markdown H3/H4 detection 重跑 prelude 尺寸測量（scripts 在 `backend/scripts/research/prelude_*.py`），驗 **≥70% non-stub Items 的 prelude < 3,000 chars** — 30-probe research 只驗了 heading detection，prelude 尺寸分布在新演算法下零數據 | ⏳ implementation 前執行 |
+| Per-item gating | 是否只對 Item 7 / 1A 開啟 prelude attach | ⏳ 由重跑 probe 的數據決定，不沿用舊演算法時代 24-probe 結論 |
+
 **LLM context preparation — retrieve-time 階段**（不是 ingest-time）：
 
 時序：使用者 query → vector match top-K chunks → load matched chunks payloads（payload 自帶 prelude）→ **此時**用以下 helper 把 payload 組成給 LLM 看的 context → 送進 LLM prompt。
@@ -817,7 +825,7 @@ Revenue increased 17%...
 | 5 | Stub filtering 時機 | parse 階段 drop | RAG 不需要 stub；下游邏輯純 |
 | 6 | Sub-heading recursive 偵測 | out of scope（YAGNI） | 30 probes 無真巢狀；Title Case 巢狀子子標題後續 PR |
 | 7 | ParsedItem schema | discriminated union (StructuredItem \| FlatItem) | structured/flat 行為完全不同；schema 表達意圖明確 |
-| 8 | Prelude 處理 | 不 chunk、不 embed、整段塞 block chunk payload metadata | SEC MD&A prelude 是 cross-cutting context；retrieve-time payload self-contains（vs 替代方案「prelude as separate chunks」需 N+1 query + ranking 稀釋）|
+| 8 | Prelude 處理 | 不 chunk、不 embed、整段塞 block chunk payload metadata，**附 evidence gate guards（§5.2）**：size cap ≤2,000 chars 無條件納入；implementation 前用新 detection 重跑尺寸 probe 驗 ≥70% < 3,000 chars；per-item gating 由重跑數據決定 | SEC MD&A prelude 是 cross-cutting context；retrieve-time payload self-contains（vs 替代方案「prelude as separate chunks」需 N+1 query + ranking 稀釋）。Guards 對齊 envelope §0 Evidence gate（其 precedent 即本決策）|
 | 9 | Block heading source priority | markdown H3 > markdown H4 > text fallback | H3/H4 不分階層；H3 prefer 保留真巢狀父子結構 |
 | 10 | Noise filter | literal blacklist + chapter divider regex + 重複次數 + registrant name | 30 probes 證實 ToC 不污染，真 noise 是 boilerplate |
 | 11 | Text fallback rule | Title-Case standalone-line + 位置 signals | ALL-CAPS rule 太弱（24 probes 8% 對）；Title-Case 是多數公司 case |
@@ -858,6 +866,7 @@ Revenue increased 17%...
 | 36 | Eval script 寫在哪 | 另開 sibling scenario `backend/evals/scenarios/sec_retrieval_html_vs_text/`（own dataset.csv + eval_spec.yaml）；sunset 後整 dir 砍 | One-shot experiment 不混 production eval data — production `sec_retrieval` scenario 不被污染；sunset cleanup 一行 `rm -rf` |
 | 37 | Annotation workflow | LLM augment（gen question + snippet 候選 → 人工 review snippet 對位）| 降 manual annotation cost，50 rows 仍可控 |
 | 38 | Sunset trigger | Deliverable-based（quantitative A/B + qualitative 4 象限 failure case manual review + retrospective doc） | 不設 timeline；trigger 對齊「歸納 error mode + 確定 improvement 方向」mental model |
+| 38a | 實驗 reproducibility 指標 | Sunset PR merge 前，對 main 上最後一個完整實驗資產的 commit 打 tag `experiment/ab-html-vs-text` 並 push；retrospective doc 以 `experiment/ab-html-vs-text @ <hash>` 格式引用（ADR-0005 引用 POC branch 的既有慣例） | `rm -rf` 不毀 reproducibility（git history 都在），tag 補的是可發現性；tag 而非 branch — 墓碑不再長 commit，語義誠實。Eval 數字（metric CSV）另依 Eval run 慣例 curate 進 git-tracked 位置，結論不靠重跑 |
 
 ### 12.4 API contract decisions
 
@@ -876,6 +885,11 @@ Revenue increased 17%...
 1. **Detection rule 的 implementation 細節**：
    - Noise filter 的 literal blacklist 維護位置（hardcoded constants vs config）
    - Anchored search 的 fuzzy tolerance（heading title 在 markdown 跟 text 中可能 whitespace 不同）
+
+2. **Prelude 尺寸 probe 重跑（implementation 前置 research task，見 §5.2 guards）**：
+   - 用新 markdown H3/H4 detection 重跑 `prelude_*.py` probes
+   - 驗 ≥70% non-stub Items prelude < 3,000 chars
+   - 依數據決定 per-item gating 開不開（只 7/1A vs 全開）
 
 > 原 Q1 (`sec_text_pipeline` API contract) — 已 close（#39 Option A 單一 `parse_filing`）。
 > 原 Q2 (Retriever JIT Langfuse span) — 已 close（#41 nested @observe 三層）。
@@ -983,7 +997,7 @@ graph TD
 2. **Qualitative 4 象限 failure case manual review** — 對「新贏 / 舊贏 / 兩邊皆失敗」case 歸納 root cause
 3. **Retrospective doc** — 寫 HTML pipeline 的 systematic 弱點 + 確認新版有 fix；如有 regression case，先 fix 新版再重跑 eval；最終確定「採取 improvement 方向」
 
-Sunset PR 內容見 §8.2。
+Sunset PR 內容見 §8.2。**Sunset PR merge 前**先打 reproducibility tag（決策 #38a）：`git tag experiment/ab-html-vs-text && git push origin experiment/ab-html-vs-text`，指向 main 上最後一個含完整實驗資產（`_html` modules + A/B scenario）的 commit。
 
 ---
 

@@ -93,6 +93,55 @@ Flat cases (5): JNJ 7A (502 chars), CAT 7A (675), XOM 1 (6,640), VZ 7A
 (6,993), GE 1A (61,747). GE 1A is the one large flat item — whole-item
 chunking applies, no content loss, just no block structure.
 
+## Failure-mode inventory & threshold sensitivity (follow-up analysis)
+
+Per-case inspection of everything that is not a clean attached prelude:
+
+**Reclassified (5/58)** — excerpts confirm all five are swallowed body text
+or mixed intro+body (JPM 1A, AAPL 1A, GE 7, PFE 1 `ABOUT PFIZER`, GS 7);
+none is a wrongly-reclassified true prelude. Cost: those items lose the
+prelude-metadata ride-along only; all text is chunked.
+
+**False-valid (1/58): DIS 7** — its 2,610-char "prelude" contains a
+consolidated-results summary table, not scope-setting prose. Judged valid →
+attached as metadata → NOT embedded. Consequence: that table cannot be
+*found* by vector search (no embedding), though it still *reaches the LLM*
+piggybacked on any retrieved DIS Item 7 chunk. This is the residual risk of
+the validity threshold: bounded content loss ≤ 3,000 chars per item.
+Note tables generally get no special handling in this design — inside
+blocks they are chunked as flattened text (searchable, weak semantics;
+structured numbers are the future fundamentals-path's job). DIS 7's table
+uniquely loses even that, because it sits in the false-valid prelude.
+
+**Large flat item (1/63): GE 1A (61,747 chars)** — no structure detected by
+any path → whole-item chunking. Zero content loss, but a quality
+degradation: chunk boundaries fall across topic transitions (mixed-topic
+chunks → diluted embeddings → worse ranking), no `block_heading` context
+for the LLM. The item degrades to naive RAG. (Contrast: MSFT 1A, same item
+type, got 14 blocks via fallback.)
+
+**Missing at source (4/72): GE 1, GE 7A, GS 1A, GS 7A** — edgartools' new
+TenK parser does not find these Items in the filing's section map
+(non-standard layouts; GE's Item 1 content likely sits under its
+"Other Items" section) and the legacy-parser fallback also returns nothing.
+Upstream boundary, not fixable in our detection. Production behavior:
+absent from ParsedFiling → legible failure. Watch: edgartools v6.0 removes
+the legacy fallback — re-run this probe on upgrade.
+
+**Threshold sensitivity** — 3,000 is inherited from the original memo
+(itself eyeballed from the ~2.5k flagships), not tuned. Post-hoc, the v3
+distribution shows true preludes cluster ≤1,500 (50/53), the largest true
+prelude is 2,532 (CAT 1A) and the smallest reclassified is 3,447 (PFE 1):
+any threshold in the (2,610, 3,447] gap classifies this sample identically,
+so the boundary is insensitive where it stands. The one contaminated case
+(DIS 7, 2,610) sits 78 chars above clean CAT 1A (2,532) — size alone cannot
+separate them; carving the threshold into that sliver would overfit two
+single samples. Cost asymmetry: too-high ⇒ bounded content loss (≤3k/item);
+too-low ⇒ metadata loss only. Decision: keep 3,000; a content-based
+validity signal (digit/table-pipe density) is the right future lever if A/B
+failure mining surfaces more DIS 7-type cases — one case is not enough to
+legislate.
+
 ## Verdict
 
 The evidence gate passes decisively under R2v2: 91.4% ≫ 70%, zero

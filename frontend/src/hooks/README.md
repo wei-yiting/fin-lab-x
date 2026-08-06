@@ -12,7 +12,7 @@ Custom React hooks scoped to the streaming chat lifecycle. All hooks are pure co
 | `useToolProgress.ts`       | Accumulates `data-tool-progress` SSE events into a `{ toolCallId: message }` map for `ToolCard` display.                                                                                                                                                                                                                                                                                                                                                |
 | `useFollowBottom.ts`       | Auto-scrolls a scrollable element while the user is within 100px of the bottom. `forceFollowBottom()` re-latches after a new user submit.                                                                                                                                                                                                                                                                                                               |
 
-## Non-derived state budget (F6′ / ADR-0008, ADR-0010 + DEV-109 ruling 11)
+## Non-derived state budget (F6′ / ADR-0008, ADR-0012 + DEV-109 ruling 11)
 
 The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Five non-derived stores are allowed, owned by `ChatPanel` or the hook that needs them:
 

@@ -4,9 +4,11 @@ from pathlib import Path
 import textwrap
 
 import pytest
+from pydantic import ValidationError
 
 from backend.evals.eval_spec_schema import (
     BraintrustConfig,
+    DiagnosticScenarioConfig,
     ScenarioConfig,
     load_braintrust_config,
     load_scenario_config,
@@ -241,6 +243,120 @@ scorers:
     assert config.scorers[1].model == "gpt-4.1"
     assert config.scorers[1].use_cot is False
     assert config.scorers[1].choice_scores == {"Y": 1.0, "N": 0.0}
+
+
+def test_load_scenario_config_parses_diagnostic_block_with_defaults(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: baseline_behavior_diagnostic
+csv: dataset.csv
+diagnostic:
+  dataset_name: baseline_behavior_diagnostic
+  dataset_version: "2026-04-24"
+task:
+  function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic
+column_mapping:
+  question: input.question
+scorers:
+  - name: diagnostic_execution_health
+    function: backend.evals.diagnostic.execution_scorer.execution_health
+""".strip()
+    )
+
+    config = load_scenario_config(config_path)
+
+    assert isinstance(config.diagnostic, DiagnosticScenarioConfig)
+    assert config.diagnostic.dataset_name == "baseline_behavior_diagnostic"
+    assert config.diagnostic.dataset_version == "2026-04-24"
+    assert config.diagnostic.agent_version == "baseline"
+
+
+@pytest.mark.parametrize("removed_field", ["row_id_column", "question_column"])
+def test_diagnostic_config_rejects_removed_column_fields(removed_field: str) -> None:
+    """id/question are a fixed dataset convention — no longer configurable."""
+    payload = {
+        "dataset_name": "baseline_behavior_diagnostic",
+        "dataset_version": "2026-04-24",
+        "agent_version": "baseline",
+        removed_field: "custom",
+    }
+
+    with pytest.raises(ValidationError):
+        DiagnosticScenarioConfig.model_validate(payload)
+
+
+def test_load_scenario_config_rejects_unknown_diagnostic_field(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "eval_spec.yaml"
+    config_path.write_text(
+        """
+name: baseline_behavior_diagnostic
+diagnostic:
+  dataset_name: baseline_behavior_diagnostic
+  dataset_version: "2026-04-24"
+  unknown_field: nope
+task:
+  function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic
+column_mapping:
+  question: input.question
+scorers:
+  - name: diagnostic_execution_health
+    function: backend.evals.diagnostic.execution_scorer.execution_health
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
+        load_scenario_config(config_path)
+
+
+@pytest.mark.parametrize(
+    ("field_name", "field_value"),
+    [
+        ("dataset_name", ""),
+        ("dataset_version", ""),
+        ("agent_version", ""),
+    ],
+)
+def test_diagnostic_config_rejects_empty_identity_fields(
+    field_name: str,
+    field_value: str,
+) -> None:
+    payload = {
+        "dataset_name": "baseline_behavior_diagnostic",
+        "dataset_version": "2026-04-24",
+        "agent_version": "baseline",
+    }
+    payload[field_name] = field_value
+
+    with pytest.raises(ValidationError):
+        DiagnosticScenarioConfig.model_validate(payload)
+
+
+def test_checked_in_baseline_behavior_diagnostic_spec_loads_and_resolves_contract() -> (
+    None
+):
+    from backend.evals.scorer_registry import resolve_function
+
+    config_path = (
+        Path(__file__).resolve().parents[2]
+        / "evals"
+        / "scenarios"
+        / "baseline_behavior_diagnostic"
+        / "eval_spec.yaml"
+    )
+
+    config = load_scenario_config(config_path)
+    task_fn = resolve_function(config.task.function, label="task")
+    scorer_fn = resolve_function(config.scorers[0].function or "", label="scorer")
+
+    assert config.name == "baseline_behavior_diagnostic"
+    assert config.diagnostic is not None
+    assert callable(task_fn)
+    assert callable(scorer_fn)
 
 
 def test_load_braintrust_config_applies_project_default_when_omitted(

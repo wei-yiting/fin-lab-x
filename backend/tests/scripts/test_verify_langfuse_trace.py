@@ -1,4 +1,4 @@
-"""Unit tests for the Langfuse trace verifier CLI (F7 / ADR-0009 shape).
+"""Unit tests for the Langfuse trace verifier CLI (F7 / ADR-0011 shape).
 
 These tests cover argument parsing and Langfuse JSON parsing logic only —
 no live Langfuse calls. The SDK fetch is mocked via ``monkeypatch`` so the

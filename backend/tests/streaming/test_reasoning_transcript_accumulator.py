@@ -1,4 +1,4 @@
-"""ReasoningTranscriptAccumulator unit tests (F7 / ADR-0009).
+"""ReasoningTranscriptAccumulator unit tests (F7 / ADR-0011).
 
 Pure-function coverage of the transcript value semantics: segment markers,
 abort marker placement, capability sentinel values, and the size cap. No

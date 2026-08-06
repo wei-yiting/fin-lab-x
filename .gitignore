@@ -20,7 +20,7 @@ test-results/
 playwright-report/
 
 # SEC filing data
-data/sec_filings/
+data/sec_filings_html/
 
 # Logs
 *.log
@@ -30,7 +30,7 @@ pnpm-debug.log*
 # data/ is tracked by default (curated assets like data/trace-archives/, see
 # ADR-0005). When adding a NEW runtime writer under data/, list its output
 # path here explicitly — reproducible runtime output never goes into git.
-# Current runtime outputs: data/sec_filings/ (above), data/*.db (below).
+# Current runtime outputs: data/sec_filings_html/ (above), data/*.db (below).
 *.db
 
 # Editor / OS

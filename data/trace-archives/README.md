@@ -8,7 +8,7 @@ files from `bt sync pull` plus a one-line README describing what the bundle reco
 (typically a notable failure and, later, its successful counterpart).
 
 This directory is git-tracked: bundles are hand-picked permanent evidence, not
-reproducible runtime output (runtime outputs under `data/` — e.g. `sec_filings/`,
+reproducible runtime output (runtime outputs under `data/` — e.g. `sec_filings_html/`,
 `*.db` — are individually gitignored). Never use it as a bulk backup of all traces.
 
 Scope: runtime **traces only**. Experiments and evaluation results are separate

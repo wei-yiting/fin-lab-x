@@ -60,8 +60,8 @@ The core, independent AI logic. Designed to run independently of the FastAPI ser
 
 Data ingestion pipelines that land source material into their respective stores. Each subdirectory is an independent pipeline; they share only the cross-pipeline utilities under `backend/utils/`.
 
-- **`sec_filing_pipeline/`**: Downloads SEC 10-K HTML from EDGAR, converts to Markdown (heading promotion, cleanup), persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)`.
-- **`sec_dense_pipeline/`**: Chunks filing Markdown, embeds via OpenAI, upserts into Qdrant. Idempotent per `(ticker, year)` commit markers ("committed or absent"). `retriever.search()` is the single trace root for RAG queries; supports JIT ingestion at question time.
+- **`sec_filing_pipeline_html/`**: Downloads SEC 10-K HTML from EDGAR, converts to Markdown (heading promotion, cleanup), persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)`.
+- **`sec_dense_pipeline_html/`**: Chunks filing Markdown, embeds via OpenAI, upserts into Qdrant. Idempotent per `(ticker, year)` commit markers ("committed or absent"). `retriever.search()` is the single trace root for RAG queries; supports JIT ingestion at question time.
 - **`fundamentals_pipeline/`**: Foundation layer for structured quant data — DuckDB connection/schema (8 tables), Pydantic row DTOs, `upsert_rows()` column-level merge, `ingestion_run()` audit context manager, retry decorator, calendar-to-fiscal-period helper, error taxonomy, ticker universe YAML + loader. See module README for the full public API.
 
 ### 2.5 Cross-Pipeline Utilities (`backend/utils/`)
@@ -86,7 +86,7 @@ Operational and validation CLIs (e.g., `embed_sec_filings.py`, `refresh_model_co
 
 ### 2.8 Testing (`backend/tests/`)
 
-Programmatic unit and integration tests with clear pass/fail criteria, mirroring the source layout: `agents/`, `api/`, `common/`, `evals/`, `ingestion/{sec_filing,sec_dense,fundamentals}_pipeline/`, `streaming/`, `tools/`, `utils/`, `integration/`. Markers deselected by default: `eval`, `integration`, `sec_integration`, `finnhub_integration` (see `pyproject.toml`).
+Programmatic unit and integration tests with clear pass/fail criteria, mirroring the source layout: `agents/`, `api/`, `common/`, `evals/`, `ingestion/{sec_filing_pipeline_html,sec_dense_pipeline_html,fundamentals_pipeline}/`, `streaming/`, `tools/`, `utils/`, `integration/`. Markers deselected by default: `eval`, `integration`, `sec_integration`, `finnhub_integration` (see `pyproject.toml`).
 
 ---
 

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from backend.agent_engine.tools.sec_filing import sec_filing_downloader
 from backend.common.sec_core import FilingType, TickerNotFoundError
-from backend.ingestion.sec_filing_pipeline.filing_models import (
+from backend.ingestion.sec_filing_pipeline_html.filing_models import (
     FilingMetadata,
     ParsedFiling,
 )
@@ -55,7 +55,7 @@ def test_successful_download(sample_filing):
     assert result["ticker"] == "AAPL"
     assert result["company_name"] == "Apple Inc."
     assert result["fiscal_year"] == 2024
-    assert result["file_path"] == "data/sec_filings/AAPL/10-K/2024.md"
+    assert result["file_path"] == "data/sec_filings_html/AAPL/10-K/2024.md"
     assert "error" not in result
 
 

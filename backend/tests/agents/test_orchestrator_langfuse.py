@@ -26,7 +26,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 
 def _mock_langfuse_client() -> tuple[MagicMock, MagicMock]:
-    """Client stub for the self-owned root span (ADR-0009).
+    """Client stub for the self-owned root span (ADR-0011).
 
     Returns ``(client_mock, root_span_mock)`` where the span is what
     ``start_as_current_observation(...)`` yields as context manager.
@@ -156,6 +156,44 @@ class TestRunInjectsLangfuseCallback:
 
         metadata = agent.invoke.call_args[1]["config"]["metadata"]
         assert metadata["process_start_ts"] == _PROCESS_START_TS
+
+    def test_langfuse_logger_drops_only_process_start_ts_propagation_warning(self):
+        """Langfuse warns on every request that the float process_start_ts is
+        dropped from the string-only propagated channel. That warning is
+        expected noise (the float lands on observation metadata intact) and is
+        filtered; warnings about any other propagated key must survive."""
+        import logging
+
+        langfuse_logger = logging.getLogger("langfuse")
+
+        noise = logging.LogRecord(
+            name="langfuse",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=0,
+            msg=(
+                "Propagated attribute 'metadata.process_start_ts' value is "
+                "not a string. Dropping value."
+            ),
+            args=None,
+            exc_info=None,
+        )
+        other = logging.LogRecord(
+            name="langfuse",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=0,
+            msg=(
+                "Propagated attribute 'metadata.request_id' value is "
+                "not a string. Dropping value."
+            ),
+            args=None,
+            exc_info=None,
+        )
+
+        # Python 3.12 Logger.filter returns the record (truthy) on pass.
+        assert not langfuse_logger.filter(noise)
+        assert langfuse_logger.filter(other)
 
     def test_run_passes_session_id_via_propagate_attributes(self):
         config = _make_config()
@@ -696,6 +734,153 @@ class TestLangfuseTraceMetadata:
         assert metadata["trigger"] == "regenerate"
 
     @pytest.mark.asyncio
+    async def test_astream_trace_metadata_merges_into_metadata(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={
+                    "reference_expected_behavior": "may_pass_with_tuning",
+                    "reference_best_source": "mixed",
+                },
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["langfuse_trace_name"] == "baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert metadata["reference_expected_behavior"] == "may_pass_with_tuning"
+        assert metadata["reference_best_source"] == "mixed"
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_accepts_projected_diagnostic_langfuse_metadata(
+        self,
+    ):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        diagnostic_langfuse_metadata: dict[str, Any] = {
+            "row_id": "17",
+            "dataset_name": "baseline_behavior_diagnostic",
+            "dataset_version": "2026-04-24",
+            "run_label": "baseline",
+            "agent_version": "baseline",
+            "experiment_name": "baseline_behavior_diagnostic_20260424_120000",
+            "reference_capability_band": "boundary",
+            "reference_expected_behavior": "may_pass_with_tuning",
+            "reference_primary_failure_mechanism": "tool_routing_error",
+            "reference_secondary_failure_mechanism": None,
+            "reference_best_source": "mixed",
+            "reference_likely_tuning_lever": "tool_description",
+            "reference_pass_signals": [
+                "Distinguish actions already taken from potential pressure",
+                "Do not treat media speculation as a confirmed outcome",
+            ],
+        }
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata=diagnostic_langfuse_metadata,
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["langfuse_trace_name"] == "baseline_stream"
+        assert metadata["request_id"] == "req-1"
+        assert metadata["reference_secondary_failure_mechanism"] is None
+        assert metadata["reference_pass_signals"] == (
+            '["Distinguish actions already taken from potential pressure", "Do not treat media speculation as a confirmed outcome"]'
+        )
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_rejects_reserved_key_collision(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+
+        with pytest.raises(
+            ValueError, match="trace_metadata key collides with reserved metadata"
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={"request_id": "req-2"},
+            ):
+                pass
+
+    @pytest.mark.asyncio
+    async def test_astream_trace_metadata_allows_identical_reserved_value(self):
+        config = _make_config()
+        orch = _create_orchestrator(config)
+        agent = cast(Any, orch.agent)
+
+        captured_kwargs: dict[str, Any] = {}
+
+        async def mock_astream(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return
+            yield
+
+        agent.astream = mock_astream
+
+        with (
+            patch("backend.agent_engine.agents.base.CallbackHandler"),
+            patch(
+                "backend.agent_engine.agents.base.propagate_attributes",
+                return_value=nullcontext(),
+            ),
+        ):
+            async for _ in orch.astream_run(
+                message="test",
+                session_id="sess-1",
+                request_id="req-1",
+                trace_metadata={"request_id": "req-1"},
+            ):
+                pass
+
+        metadata = captured_kwargs["config"]["metadata"]
+        assert metadata["request_id"] == "req-1"
+
+    @pytest.mark.asyncio
     async def test_trace_name_follows_config_name_dynamically(self):
         """Swap in a different tier's config — trace_name must track, no code change needed."""
         config = WorkflowProfileConfig(
@@ -724,7 +909,7 @@ class TestLangfuseTraceMetadata:
 
 
 class TestTraceLevelReasoningWrite:
-    """F7 / ADR-0009 — the conversation's reasoning transcript is written
+    """F7 / ADR-0011 — the conversation's reasoning transcript is written
     once, onto the self-owned root span, when the stream completes."""
 
     @pytest.mark.asyncio

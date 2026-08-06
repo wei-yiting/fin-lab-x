@@ -8,7 +8,7 @@ Three-layer architecture that transforms LangGraph agent output into SSE wire fo
 |-------|------|----------------|
 | Domain Events | `domain_events_schema.py` | Frozen dataclass value objects defining the shared contract between mapper and serializer. |
 | Event Mapper | `event_mapper.py` | Stateful translator: LangGraph `astream()` chunks → domain events. Handles text block pairing, message framing, tool call lifecycle, and native reasoning part dispatch. Per-request scope (D33) — never share across requests. |
-| Reasoning Transcript Accumulator | `reasoning_transcript_accumulator.py` | Observes reasoning domain events and renders the trace-level transcript (`=== segment N ===` markers, aborted marker, size cap) that `Orchestrator.astream_run` writes once to the root span metadata at conversation end (ADR-0009). Platform-agnostic. |
+| Reasoning Transcript Accumulator | `reasoning_transcript_accumulator.py` | Observes reasoning domain events and renders the trace-level transcript (`=== segment N ===` markers, aborted marker, size cap) that `Orchestrator.astream_run` writes once to the root span metadata at conversation end (ADR-0011). Platform-agnostic. |
 | SSE Serializer | `sse_serializer.py` | Stateless: domain events → AI SDK UIMessage Stream Protocol v1 wire format (`data: {json}\n\n`). Uses `singledispatch`. |
 
 Additional module:
@@ -40,7 +40,7 @@ Part boundaries (when the open part closes):
 - a `text` block arrives (provider moved on to answer text),
 - a same-round tool call arrives — either normalized `content_blocks` shape
   (`tool_call_chunk`: OpenAI/Anthropic; `tool_call`: Gemini) closes the part
-  the moment tool-call args appear (DEV-109 ruling 9, ADR-0010; supersedes
+  the moment tool-call args appear (DEV-109 ruling 9, ADR-0012; supersedes
   ADR-0008's "keep chip open" allowance — the overlap turned out to happen
   every round, not rarely),
 - the LLM call changes (`chunk.id` transition — each round of a multi-round
@@ -59,7 +59,7 @@ LLM call/step: the AI SDK resets its active-reasoning map on `finish-step`
 and would otherwise allow id reuse across steps, colliding React keys and
 timer refs on the frontend.
 
-Persistence is trace-level (F7 / ADR-0009): `ReasoningTranscriptAccumulator`
+Persistence is trace-level (F7 / ADR-0011): `ReasoningTranscriptAccumulator`
 observes the same domain events and `Orchestrator.astream_run` writes the full
 transcript once to the metadata of the root span it owns when the conversation
 ends.

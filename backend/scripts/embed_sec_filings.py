@@ -24,8 +24,8 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from backend.ingestion.sec_dense_pipeline.vectorizer import ingest_filing  # noqa: E402
-from backend.ingestion.sec_filing_pipeline.pipeline import SECFilingPipeline  # noqa: E402
+from backend.ingestion.sec_dense_pipeline_html.vectorizer import ingest_filing  # noqa: E402
+from backend.ingestion.sec_filing_pipeline_html.pipeline import SECFilingPipeline  # noqa: E402
 
 
 async def _embed_one(

@@ -14,9 +14,9 @@ from langchain.tools import tool
 from langfuse import observe
 from pydantic import BaseModel, Field
 
-from backend.ingestion.sec_filing_pipeline import SECFilingPipeline
+from backend.ingestion.sec_filing_pipeline_html import SECFilingPipeline
 
-_STORE_BASE_DIR = Path("data/sec_filings")
+_STORE_BASE_DIR = Path("data/sec_filings_html")
 
 
 class SecFilingDownloaderInput(BaseModel):

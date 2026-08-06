@@ -79,6 +79,7 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
     "sec_filing_list_sections",
     "sec_filing_get_section",
     "sec_filing_downloader",
+    "sec_filing_search",
 }
 
 

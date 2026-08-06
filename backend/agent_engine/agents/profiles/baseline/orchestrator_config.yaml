@@ -8,6 +8,7 @@ tools:
   - tavily_financial_search
   - sec_filing_list_sections
   - sec_filing_get_section
+  - sec_filing_search
 
 model:
   name: "gpt-4o-mini"

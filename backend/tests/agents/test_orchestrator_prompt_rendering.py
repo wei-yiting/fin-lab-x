@@ -139,7 +139,9 @@ _BASELINE_TOOLS = [
 ]
 
 EXPECTED_TOOLS_BY_PROFILE = {
-    "baseline": _BASELINE_TOOLS,
+    # baseline additionally carries the RAG search tool (ADR-0008); the
+    # placeholder profiles stay on the two-step pair until they are real.
+    "baseline": _BASELINE_TOOLS + ["sec_filing_search"],
     "reader": _BASELINE_TOOLS,
     "quant": _BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
     "graph": _BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],

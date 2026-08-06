@@ -1,3 +1,5 @@
+import { hasVisibleReplyText } from "@/lib/markdown-sources";
+
 /**
  * Pure derivation helpers for reasoning chips (F6′ / ADR-0008 + DEV-109
  * ruling 11). Everything here derives from `useChat`'s `(status, messages)`
@@ -29,10 +31,10 @@ export function isReasoningPart(part: {
 }
 
 /**
- * Single source of truth for tool-part classification (m-1.2): mirrors AI
- * SDK 6's `isToolUIPart` (static `tool-${name}` parts + `dynamic-tool`).
- * Plain `"tool"` is not a real AI SDK UI part shape and is intentionally
- * not matched here — callers that need it must import this function rather
+ * Single source of truth for tool-part classification: mirrors AI SDK 6's
+ * `isToolUIPart` (static `tool-${name}` parts + `dynamic-tool`). Plain
+ * `"tool"` is not a real AI SDK UI part shape and is intentionally not
+ * matched here — callers that need it must import this function rather
  * than hand-roll their own predicate.
  */
 export function isToolPart(part: { type?: unknown }): boolean {
@@ -54,12 +56,12 @@ export function isToolPart(part: { type?: unknown }): boolean {
 export function isRenderablePart(part: { type?: unknown; state?: unknown }): boolean {
   if (isReasoningPart(part)) return !isSuppressedChip(part);
   if (isToolPart(part)) return true;
-  // Text renders only if it has visible content: AssistantMessage trims
-  // trailing whitespace off the concatenated text and skips the render
-  // block entirely when the result is empty (M-1.2), so a whitespace-only
-  // delta must not be treated as painted content either — otherwise a
-  // dead-air window ends while the screen still shows nothing new.
-  if (part.type === "text") return ((part as { text?: string }).text ?? "").trim() !== "";
+  // Text renders only if it has visible content once run through the same
+  // stripping pipeline AssistantMessage's displayText applies (whitespace,
+  // reference-definition lines, source headers all normalize to nothing on
+  // both sides) — otherwise a dead-air window could end while the screen
+  // still shows nothing new.
+  if (part.type === "text") return hasVisibleReplyText((part as { text?: string }).text ?? "");
   return false;
 }
 

@@ -31,9 +31,12 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
       [userMsg, assistantMsg("a1", [{ type: "step-start" }])],
       [userMsg, assistantMsg("a1", [{ type: "reasoning", text: "", state: "streaming" }])],
       [userMsg, assistantMsg("a1", [{ type: "text", text: "" }])],
-      // M-1.2: a whitespace-only text delta trims to nothing in
-      // AssistantMessage, so it must not count as painted content either.
+      // A whitespace-only, reference-definition-only, or source-header-only
+      // text delta all normalize to nothing in AssistantMessage's rendered
+      // output, so none of them count as painted content either.
       [userMsg, assistantMsg("a1", [{ type: "text", text: "  \n " }])],
+      [userMsg, assistantMsg("a1", [{ type: "text", text: "[1]: https://example.com" }])],
+      [userMsg, assistantMsg("a1", [{ type: "text", text: "來源：" }])],
     ];
     for (const messages of preContentShapes) {
       const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
@@ -240,14 +243,15 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("waiting");
   });
 
-  test("window (c) survives a whitespace-only text delta between tool rounds (M-1.2)", () => {
-    // A whitespace-only delta trims to nothing in AssistantMessage, so it
-    // must not end the dead-air window either.
+  test("window (c) survives a text delta that normalizes to nothing between tool rounds", () => {
+    // Whitespace-only, reference-definition-only, and source-header-only
+    // deltas all trim to nothing in AssistantMessage, so none of them may
+    // end the dead-air window either.
     const messages = [
       userMsg,
       assistantMsg("a1", [
         { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
-        { type: "text", text: "  \n " },
+        { type: "text", text: "[1]: https://example.com" },
       ]),
     ];
     const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));

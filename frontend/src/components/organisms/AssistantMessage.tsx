@@ -4,7 +4,7 @@ import { ToolCard } from "@/components/organisms/ToolCard";
 import { ReasoningChip } from "@/components/molecules/ReasoningChip";
 import { Sources } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
-import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources";
+import { extractSources, normalizeRefDefs, REF_DEF_LINE_RE } from "@/lib/markdown-sources";
 import {
   chipKey,
   chipStateOf,
@@ -73,7 +73,7 @@ export function AssistantMessage({
     // Normalize bullet-prefixed ref defs and strip source headers,
     // then strip definition lines — always, even during streaming, to prevent flickering
     let cleaned = normalizeRefDefs(concatenatedText)
-      .replace(/^\[(\d+)\]:?\s+\S+.*$/gm, "")
+      .replace(REF_DEF_LINE_RE, "")
       .replace(/\n{3,}/g, "\n\n")
       .trimEnd();
 

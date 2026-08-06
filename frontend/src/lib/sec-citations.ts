@@ -105,7 +105,7 @@ export function resolveSecSources(
       label: source.label,
       url: info.edgarUrl ?? `#src-${source.label}`,
       title: info.title,
-      hostname: "www.sec.gov",
+      hostname: info.edgarUrl ? "www.sec.gov" : "",
       sec: info,
     });
   }

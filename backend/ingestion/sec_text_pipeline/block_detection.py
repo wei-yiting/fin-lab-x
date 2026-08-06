@@ -1,4 +1,4 @@
-"""Markdown H3/H4 block detection for the SEC text pipeline (DEV-133, R2v2).
+"""Markdown H3/H4 block detection for the SEC text pipeline.
 
 The filing-level markdown (edgartools ``filing.markdown()``) supplies H3/H4
 heading candidates; each Item's plain-text body is then searched for lines
@@ -7,7 +7,7 @@ that exactly equal a candidate after both sides pass the same
 plausibility check — otherwise this path yields nothing and the Item stays
 flat (the Title-Case text fallback is a separate, later detection path).
 
-Prelude semantics (R2v2): the text before the first anchored heading is a
+Prelude semantics: the text before the first anchored heading is a
 valid prelude only when it is short enough to plausibly be framing text
 (<= :data:`PRELUDE_VALIDITY_CHARS`); it is then attached whole, never
 truncated. Anything larger is body text swallowed by a detection miss, so
@@ -117,6 +117,11 @@ class HeadingCandidates:
     h4: tuple[str, ...]
 
 
+_NOISE_LITERALS_CANON: frozenset[str] = frozenset(
+    canonicalize(literal) for literal in NOISE_HEADING_LITERALS
+)
+
+
 def _is_noise_heading(
     heading: str,
     registrant_canon: str,
@@ -125,11 +130,13 @@ def _is_noise_heading(
     stripped = heading.strip()
     if not stripped:
         return True
-    if stripped in NOISE_HEADING_LITERALS:
+    canon = canonicalize(stripped)
+    # Literal blacklist matches on the canonical form — a curly-dash or
+    # odd-whitespace variant of a blacklisted heading must not slip past.
+    if canon in _NOISE_LITERALS_CANON:
         return True
     if any(p.match(stripped) for p in NOISE_HEADING_PATTERNS):
         return True
-    canon = canonicalize(stripped)
     if registrant_canon and canon.lower() == registrant_canon:
         return True
     return repeat_counts[canon] >= HEADING_REPEAT_NOISE_THRESHOLD
@@ -195,16 +202,18 @@ def detect_blocks(
         offsets.append(pos)
         pos += len(line) + 1
 
-    for source, level_candidates in (
+    attempts: tuple[tuple[Literal["markdown_h3", "markdown_h4"], tuple[str, ...]], ...]
+    attempts = (
         ("markdown_h3", candidates.h3),
         ("markdown_h4", candidates.h4),
-    ):
+    )
+    for source, level_candidates in attempts:
         targets = {canonicalize(c) for c in level_candidates}
         anchor_idxs = [
             i for i, canon in enumerate(lines_canon) if canon and canon in targets
         ]
         if _is_plausible(anchor_idxs, offsets, len(item_text)):
-            return _assemble(source, lines, anchor_idxs)  # type: ignore[arg-type]
+            return _assemble(source, lines, anchor_idxs)
     return None
 
 

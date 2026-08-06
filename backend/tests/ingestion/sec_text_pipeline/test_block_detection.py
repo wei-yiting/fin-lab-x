@@ -48,6 +48,13 @@ class TestCollectHeadingCandidates:
         c = collect_heading_candidates(md, "Example Corp.")
         assert c.h3 == ("Human Capital",)
 
+    def test_literal_blacklist_matches_canonical_variants(self):
+        # A curly-dash / doubled-space variant of a blacklisted literal must
+        # not slip past the filter — literals match on the canonical form.
+        md = "### FORWARD–LOOKING  STATEMENTS\n### Human Capital\n"
+        c = collect_heading_candidates(md, "Example Corp.")
+        assert c.h3 == ("Human Capital",)
+
     def test_chapter_divider_filtered(self):
         md = "### PART I\n### PART II\n### part iv\n### Competition\n"
         c = collect_heading_candidates(md, "Example Corp.")

@@ -40,6 +40,29 @@ def make_messages_chunk_tool_call(
     return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
 
 
+class _NormalizedGeminiToolCallChunk:
+    """Stand-in for an AIMessageChunk whose `content_blocks` already surface
+    a Gemini-normalized `tool_call` block (M-1.1: the mapper trusts
+    `content_blocks` alone, so this exercises that block type directly
+    rather than re-verifying langchain-core's own translator)."""
+
+    def __init__(self, tool_call_id: str, tool_name: str, msg_id: str) -> None:
+        self.id = msg_id
+        self.content_blocks = [
+            {"type": "tool_call", "id": tool_call_id, "name": tool_name}
+        ]
+        self.usage_metadata = None
+
+
+def make_messages_chunk_normalized_gemini_tool_call(
+    tool_call_id: str,
+    tool_name: str,
+    msg_id: str = "msg-1",
+) -> dict:
+    msg = _NormalizedGeminiToolCallChunk(tool_call_id, tool_name, msg_id)
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
 def make_messages_chunk_usage(
     input_tokens: int,
     output_tokens: int,
@@ -360,8 +383,9 @@ class TestReasoningNativeParts:
 
 
 class TestReasoningPartBoundaries:
-    """Part closes when the provider moves on: text, new LLM call, or
-    finalize — NOT a same-round tool-call chunk (S-chip-06 overlap)."""
+    """Part closes when the provider moves on: text, a same-round tool call
+    arriving (DEV-109 ruling, either normalized block type), a new LLM call,
+    or finalize."""
 
     def test_text_block_closes_open_reasoning_part(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
@@ -403,23 +427,19 @@ class TestReasoningPartBoundaries:
 
         assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
 
-    def test_legacy_tool_call_chunks_attr_also_closes_open_reasoning_part(self):
-        """DEV-109 round-5 regression: Gemini delivers tool calls ONLY via
-        the legacy ``tool_call_chunks`` attribute (its content_blocks never
-        surface a tool_call_chunk block), so the close-on-tool-start rule
-        must fire on the backup route too — exactly once."""
+    def test_normalized_gemini_tool_call_block_also_closes_open_reasoning_part(self):
+        """Gemini's content_blocks translator normalizes tool calls to a
+        `tool_call` block (not `tool_call_chunk`) — the close-on-tool-start
+        rule must dispatch on that block type too, exactly once."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
         mapper.process_chunk(
             make_messages_chunk_reasoning("gemini thought", msg_id="msg-A")
         )
 
-        msg = AIMessageChunk(
-            content=[],
-            id="msg-A",
-            tool_call_chunks=[{"id": "tc-g", "name": "poc_add", "args": "{}"}],
-        )
         events = mapper.process_chunk(
-            {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+            make_messages_chunk_normalized_gemini_tool_call(
+                "tc-g", "poc_add", msg_id="msg-A"
+            )
         )
 
         assert events == [ReasoningEnd(reasoning_id="reasoning-0")]

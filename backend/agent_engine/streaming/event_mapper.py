@@ -104,26 +104,16 @@ class StreamEventMapper:
             )
             self._message_started = True
 
-        # Normalize the two public upstream representations of a tool call
-        # into ONE ordered block list before dispatching (code-review round
-        # 6: the previous shape closed reasoning parts on two separate
-        # routes, and the post-loop fallback was an ordering hazard — a
-        # chunk shaped `tool_call_chunk → reasoning` would have had its NEW
-        # part wrongly closed after the loop). Translators differ in what
-        # they surface in content_blocks — OpenAI/Anthropic emit
-        # `tool_call_chunk`, Gemini emits normalized `tool_call`, and some
-        # shapes carry tool calls only on the legacy `tool_call_chunks`
-        # attribute — so the legacy attribute is appended as synthesized
-        # blocks ONLY when no tool block of either type is already present.
+        # Single ordered dispatch over the pinned langchain-core
+        # provider-normalized accessor (code-review round 6/M-1.1): every
+        # supported provider's tool call already surfaces in
+        # `content_blocks` — OpenAI/Anthropic as `tool_call_chunk`, Gemini as
+        # `tool_call` — so no separate pass over the raw `tool_call_chunks`
+        # attribute is needed. Trusting one accessor also avoids the
+        # ordering hazard the old two-route shape had (a `tool_call_chunk →
+        # reasoning` chunk could have its new part wrongly closed by a
+        # post-loop fallback).
         blocks = list(msg_chunk.content_blocks)
-        has_tool_block = any(
-            b.get("type") in ("tool_call", "tool_call_chunk") for b in blocks
-        )
-        if not has_tool_block and getattr(msg_chunk, "tool_call_chunks", None):
-            blocks.extend(
-                {"type": "tool_call_chunk", "id": tc.get("id"), "name": tc.get("name")}
-                for tc in msg_chunk.tool_call_chunks
-            )
 
         prev_block_type: str | None = None
         for block in blocks:
@@ -202,8 +192,7 @@ class StreamEventMapper:
         # open through the whole tool execution on the default provider).
         # Arrival order is preserved — the tool card renders below the
         # now-collapsed chip. Handles both normalized tool block types
-        # (`tool_call_chunk`: OpenAI/Anthropic; `tool_call`: Gemini) plus
-        # blocks synthesized from the legacy attribute in _handle_messages.
+        # (`tool_call_chunk`: OpenAI/Anthropic; `tool_call`: Gemini).
         self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))

@@ -368,3 +368,94 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.getByTestId("sources-block")).toBeInTheDocument();
   });
 });
+
+describe("AssistantMessage — SEC citation resolution", () => {
+  const SEC_OUTPUT = JSON.stringify({
+    language_directive_pre: "x",
+    fiscal_year: 2024,
+    fiscal_year_source: "latest",
+    total_chunks: 1,
+    groups: [
+      {
+        ticker: "AAPL",
+        fiscal_year: 2024,
+        item: "Item 1A",
+        prelude: "Excerpts from AAPL FY2024 10-K, Item 1A — 1 passage(s).",
+        edgar_url: "https://www.sec.gov/Archives/edgar/data/320193/x/aapl.htm",
+        chunks: [
+          {
+            n: 1,
+            source: "sec://0000320193-24-000123/1a#5",
+            title: "AAPL FY2024 10-K · Item 1A · Competition",
+            subsection: "Competition",
+            content: "Competition is intense.",
+            score: 0.83,
+          },
+        ],
+      },
+    ],
+    language_directive_post: "x",
+  });
+
+  const secToolPart = {
+    type: "tool-sec_filing_search" as const,
+    state: "output-available",
+    toolCallId: "tc-sec-1",
+    input: { query: "competition", ticker: "AAPL" },
+    output: SEC_OUTPUT,
+  };
+
+  test("resolves [N] against the same message's tool result into a SEC source entry", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        secToolPart,
+        {
+          type: "text" as const,
+          text: "Competition is fierce [1].\n\n[1]: sec://0000320193-24-000123/1a#5",
+        },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+
+    expect(screen.getByTestId("ref-sup")).toHaveAttribute("data-ref-label", "1");
+    expect(screen.getByTestId("sources-block")).toBeInTheDocument();
+    expect(screen.getByTestId("sec-source-group")).toHaveTextContent("AAPL FY2024 10-K · Item 1A");
+    expect(screen.getByText("Competition is intense.")).toBeInTheDocument();
+  });
+
+  test("drops a citation whose sec ID does not exist in any tool result", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        secToolPart,
+        {
+          type: "text" as const,
+          text: "Fabricated claim [1].\n\n[1]: sec://9999999999-99-999999/7#42",
+        },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+
+    expect(screen.queryByTestId("sources-block")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ref-sup")).not.toBeInTheDocument();
+  });
+});

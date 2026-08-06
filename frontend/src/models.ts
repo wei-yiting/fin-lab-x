@@ -26,10 +26,27 @@ export type ErrorClass =
   | "mid-stream"
   | "unknown";
 
+/**
+ * Evidence metadata for a SEC citation, taken verbatim from a
+ * sec_filing_search tool result chunk (never from model-written text).
+ */
+export interface SecSourceInfo {
+  id: string;
+  ticker: string;
+  fiscalYear: number;
+  item: string;
+  subsection?: string;
+  title: string;
+  excerpt: string;
+  edgarUrl?: string;
+}
+
 export interface SourceRef {
   label: string;
   url: string;
   title?: string;
   hostname: string;
+  /** Present only on resolved SEC citations (sec:// stable IDs). */
+  sec?: SecSourceInfo;
 }
 export type ExtractedSources = ReadonlyArray<SourceRef>;

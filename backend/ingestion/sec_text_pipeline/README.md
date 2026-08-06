@@ -36,7 +36,7 @@ parse_filing(ticker, fiscal_year)
 
 ## Two Cache Stages
 
-The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline/`) is the **embedding** cache. They invalidate under different conditions — a parser change invalidates the filing store, an embedding-model change invalidates only Qdrant — hence both exist. The filing store is machine-facing; the human-facing view is the inspect helper that derives markdown from it.
+The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline/`) is the **embedding** cache. They invalidate under different conditions — a parser change invalidates the filing store, an embedding-model change invalidates only Qdrant — hence both exist. The filing store is machine-facing; a planned inspect helper (future extension, not yet built) will derive a human-facing markdown view from it.
 
 ## Extension Guidelines
 

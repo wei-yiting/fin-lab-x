@@ -382,17 +382,22 @@ class FetchedFiling:
 
 
 @lru_cache(maxsize=64)
-def _fetch_filing_bundle_cached(
+def _locate_filing_cached(
     ticker_upper: str,
     filing_type: FilingType,
     fiscal_year: int | None,
-) -> FetchedFiling:
+):
+    """Locate the target ``Filing`` on SEC EDGAR (index metadata only).
+
+    Company lookup + filings listing + fiscal-year pick; does NOT call
+    ``filing.obj()`` and does NOT touch ``filing.document`` — callers
+    decide which (if any) of those extra fetches they need.
+    """
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
         raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     from edgar import Company, set_identity
-    from edgar.company_reports import TenK
 
     set_identity(identity)
 
@@ -424,29 +429,7 @@ def _fetch_filing_bundle_cached(
             raise FilingNotFoundError(
                 f"No {filing_type} filing for {ticker_upper} in fiscal year {fiscal_year}."
             )
-
-    # Capture citation metadata from the public Filing API before parsing.
-    # ``filing.document`` may trigger an extra SGML/homepage fetch inside
-    # edgartools — acceptable, it happens once per cached key.
-    accession_number = filing.accession_number
-    cik = str(filing.cik)
-    company_name = filing.company
-    primary_document = filing.document.document
-
-    try:
-        obj = filing.obj()
-    except Exception as exc:
-        raise _classify_edgar_error(exc, ticker_upper) from exc
-
-    if not isinstance(obj, TenK):
-        raise SECError(f"Expected TenK, got {type(obj).__name__}")
-    return FetchedFiling(
-        tenk=obj,
-        accession_number=accession_number,
-        cik=cik,
-        company_name=company_name,
-        primary_document=primary_document,
-    )
+    return filing
 
 
 @lru_cache(maxsize=64)
@@ -455,7 +438,63 @@ def _fetch_filing_obj_cached(
     filing_type: FilingType,
     fiscal_year: int | None,
 ) -> "TenK":
-    return _fetch_filing_bundle_cached(ticker_upper, filing_type, fiscal_year).tenk
+    """Locate the filing and parse it into a ``TenK``.
+
+    Deliberately does NOT read ``filing.document`` — that is an extra
+    SGML/homepage network fetch which the legacy ``fetch_filing_obj``
+    contract never performed; only the bundle path pays for it.
+    """
+    from edgar.company_reports import TenK
+
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+
+    try:
+        obj = filing.obj()
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper) from exc
+
+    if not isinstance(obj, TenK):
+        raise SECError(f"Expected TenK, got {type(obj).__name__}")
+    return obj
+
+
+@lru_cache(maxsize=64)
+def _fetch_filing_bundle_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> FetchedFiling:
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+
+    # Capture citation metadata from the public Filing API. ``filing.document``
+    # may trigger an extra SGML/homepage fetch inside edgartools — acceptable,
+    # it happens once per cached key — so its failures must map to the same
+    # SECError family as the primary fetches.
+    try:
+        accession_number = filing.accession_number
+        cik = str(filing.cik)
+        company_name = filing.company
+        document = filing.document
+        primary_document = (
+            getattr(document, "document", None) if document is not None else None
+        )
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper) from exc
+
+    if not primary_document:
+        raise SECError(
+            f"Filing {accession_number} for {ticker_upper} has no primary "
+            f"document on SEC EDGAR; cannot build citation metadata."
+        )
+
+    tenk = _fetch_filing_obj_cached(ticker_upper, filing_type, fiscal_year)
+    return FetchedFiling(
+        tenk=tenk,
+        accession_number=accession_number,
+        cik=cik,
+        company_name=company_name,
+        primary_document=primary_document,
+    )
 
 
 _inflight_lock = threading.Lock()
@@ -517,12 +556,14 @@ def fetch_filing_bundle(
     primary document alongside the parsed ``TenK``, without touching
     edgartools private attributes.
 
-    Delegates to :func:`fetch_filing_obj` first so the fetch goes through the
-    same single-flight de-dupe (which populates the underlying bundle LRU),
-    then reads the bundle back from that cache — the second call is a pure
-    in-process cache hit, so the double call costs no extra network I/O.
+    Delegates to :func:`fetch_filing_obj` first so the locate+parse fetch
+    goes through the same single-flight de-dupe (which populates the shared
+    locate/obj LRUs), then assembles the bundle from those caches plus one
+    ``filing.document`` metadata read (an extra fetch only bundle callers
+    pay for, once per cached key).
 
-    Same cache key and raised exceptions as :func:`fetch_filing_obj`.
+    Same cache key and raised exceptions as :func:`fetch_filing_obj`, plus
+    ``SECError`` when the filing has no primary document.
     """
     fetch_filing_obj(ticker, filing_type, fiscal_year)
     return _fetch_filing_bundle_cached(ticker.strip().upper(), filing_type, fiscal_year)

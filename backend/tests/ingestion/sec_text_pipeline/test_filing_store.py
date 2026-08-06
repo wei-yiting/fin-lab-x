@@ -56,10 +56,17 @@ class TestRoundTrip:
 
 
 class TestValidation:
-    @pytest.mark.parametrize("bad", ["", "  ", "A/PL", "../etc"])
+    @pytest.mark.parametrize(
+        "bad", ["", "  ", "A/PL", "../etc", ".", "..", "...", ".AAPL", "-AAPL"]
+    )
     def test_invalid_ticker_rejected(self, store, bad):
         with pytest.raises(ValueError):
             store.get(bad, FilingType.TEN_K, 2024)
+
+    @pytest.mark.parametrize("good", ["AAPL", "BRK.B"])
+    def test_valid_ticker_accepted(self, store, good):
+        # Validation must not reject real ticker shapes (dotted classes).
+        assert store.get(good, FilingType.TEN_K, 2024) is None
 
     def test_corrupt_json_raises_validation_error(self, store, filing, tmp_path):
         store.save(filing)

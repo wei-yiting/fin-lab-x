@@ -1,9 +1,10 @@
 """JSON filing store — the fetch+parse stage cache.
 
 Persists :class:`ParsedFiling` as schema-validated JSON under
-``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only:
-the human-facing view is the inspect helper, which derives markdown from
-this store. Parallel to Qdrant (the embedding-stage cache) — the two
+``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only: a
+planned inspect helper (future extension, not yet built) will derive a
+human-facing markdown view from this store. Parallel to Qdrant (the
+embedding-stage cache) — the two
 invalidate under different conditions (a parser change invalidates this
 store; an embedding-model change invalidates only Qdrant), hence both
 exist.
@@ -20,7 +21,9 @@ from typing import Protocol
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
 
-_TICKER_RE = re.compile(r"^[A-Z0-9.\-]+$")
+# First character must be alphanumeric so path-special values ("." , "..",
+# ".AAPL", "-AAPL") can never become a directory component.
+_TICKER_RE = re.compile(r"^[A-Z0-9][A-Z0-9.\-]*$")
 
 
 class FilingStore(Protocol):
@@ -45,7 +48,8 @@ class LocalFilingStore:
         normalized = ticker.strip().upper()
         if not normalized or not _TICKER_RE.match(normalized):
             raise ValueError(
-                f"Invalid ticker {ticker!r}: must contain only A-Z, 0-9, '.', or '-'"
+                f"Invalid ticker {ticker!r}: must start with A-Z or 0-9 and "
+                f"contain only A-Z, 0-9, '.', or '-'"
             )
         return normalized
 

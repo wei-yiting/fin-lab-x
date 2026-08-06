@@ -5,7 +5,11 @@ import pytest
 from backend.common.sec_core import FetchedFiling, FilingType
 from backend.ingestion.sec_text_pipeline import parser
 from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
-from backend.tests.ingestion.sec_text_pipeline.conftest import FakeTenK, make_bundle
+from backend.tests.ingestion.sec_text_pipeline.conftest import (
+    FakeTenK,
+    make_bundle,
+    make_metadata,
+)
 
 
 @pytest.fixture
@@ -44,18 +48,69 @@ class TestParsedStructure:
         # Section bleed guard: edgartools returns Item 9C with "PART IIIItem
         # 10." (and onward) glued on, and Item 11 with Items 12-15 glued on.
         # After trimming, no emitted item's text may contain another item's
-        # heading.
-        heading_re = re.compile(r"(?<![a-z])(?i:item\s+(\d{1,2}[a-c]?)\s*\.(?!\d))")
+        # STRUCTURAL heading (line-start or glued). Inline cross-references
+        # ("...under Item 1A. Risk Factors...") are legitimate prose and are
+        # deliberately not counted.
+        heading_re = re.compile(r"Item\s+(\d{1,2}[a-cA-C]?)\s*\.(?!\d)")
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         for item in result.items:
             foreign = {
                 m.group(1).lower()
                 for m in heading_re.finditer(item.text)
                 if m.group(1).lower() != item.item
+                and parser._is_structural_boundary(item.text, m.start())
             }
             assert not foreign, f"item {item.item} text bleeds into {foreign}"
         nine_c = next(item for item in result.items if item.item == "9c")
         assert "Item 10." not in nine_c.text
+
+
+class TestTrimSectionText:
+    def test_inline_cross_reference_is_preserved(self):
+        text = (
+            "Item 1C. Cybersecurity\n"
+            "We discuss cyber risk under Item 1A. Risk Factors, and then "
+            "continue with our risk management program in detail here.\n"
+            "More program details follow."
+        )
+        assert parser._trim_section_text(text, "1c") == text.rstrip()
+
+    def test_newline_anchored_foreign_heading_is_cut(self):
+        text = (
+            "Item 11. Executive Compensation\n"
+            "The information required by this Item is described above.\n"
+            "Item 12. Security Ownership\n"
+            "Foreign body that must be dropped.\n"
+        )
+        trimmed = parser._trim_section_text(text, "11")
+        assert "Item 11." in trimmed
+        assert "Item 12." not in trimmed
+        assert "Foreign body" not in trimmed
+
+    def test_glued_foreign_heading_is_cut(self):
+        text = (
+            "Item 9C. Disclosure Regarding Foreign Jurisdictions\n"
+            "None.PART IIIItem 10. Directors, Executive Officers\n"
+            "Bled next-part body.\n"
+        )
+        trimmed = parser._trim_section_text(text, "9c")
+        assert "Item 10." not in trimmed
+        assert "Bled next-part body" not in trimmed
+        # The dangling glued "PART III" label is stripped from the tail too.
+        assert not trimmed.endswith("PART III")
+
+    def test_all_caps_foreign_heading_is_cut(self):
+        # Some filings render section headings in ALL-CAPS ("ITEM 1A. RISK
+        # FACTORS") — a bleed in that style must still be cut.
+        text = (
+            "ITEM 1. BUSINESS\n"
+            "We design and sell products worldwide.\n"
+            "ITEM 1A. RISK FACTORS\n"
+            "Bled risk-factor body.\n"
+        )
+        trimmed = parser._trim_section_text(text, "1")
+        assert "ITEM 1A." not in trimmed
+        assert "Bled risk-factor body" not in trimmed
 
     def test_item_keys_normalized_and_titled(self, store, fetch_calls):
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
@@ -160,10 +215,21 @@ class TestStoreInteraction:
         assert second == first
         assert len(fetch_calls) == 1
 
-    def test_force_refetches_and_overwrites(self, store, fetch_calls):
-        parser.parse_filing("AAPL", fiscal_year=2025, store=store)
-        parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
-        assert len(fetch_calls) == 2
+    def test_force_bypasses_store_and_reparses(self, store, fetch_calls):
+        # Pre-seed the store with a DIFFERENT ParsedFiling for the same key;
+        # force=True must ignore it, hit the fetch seam, and overwrite it.
+        seeded = ParsedFiling(
+            metadata=make_metadata(fiscal_year=2025),
+            items=[FlatItem(item="2", title="Properties", text="Stale seeded body.")],
+        )
+        store.save(seeded)
+
+        result = parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
+
+        assert len(fetch_calls) == 1  # store bypassed → fetch seam hit
+        assert result != seeded
+        assert {item.item for item in result.items} != {"2"}
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == result
 
     def test_default_store_is_local_sec_text(self, monkeypatch, tmp_path, fake_bundle):
         monkeypatch.chdir(tmp_path)

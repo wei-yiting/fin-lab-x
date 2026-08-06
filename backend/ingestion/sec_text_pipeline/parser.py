@@ -18,7 +18,6 @@ from backend.common.sec_core import (
     FilingType,
     SECError,
     fetch_filing_bundle,
-    trim_text_to_item_boundary,
 )
 from backend.ingestion.sec_text_pipeline.filing_models import (
     FilingMetadata,
@@ -94,15 +93,38 @@ def parse_filing(
     return filing
 
 
-# Same shape as sec_core's shared boundary regex, but the lookbehind rejects
-# only lowercase letters: uppercase glue before "Item" ("PART IIIItem 10.",
-# "53PART IVItem 15.") is a heading artifact of the observed bleed, while a
-# real word ending right before "item" (e.g. "subitem") is lowercase.
-_ITEM_HEADING_RE = re.compile(r"(?<![a-z])(?i:item\s+(\d{1,2}[a-c]?)\s*\.(?!\d))")
+# A candidate item heading: "Item" or ALL-CAPS "ITEM" (both appear as real
+# heading forms in section text — e.g. ADSK renders "ITEM 1A. RISK FACTORS"),
+# 1-2 digit number with optional sub-letter, then a period (not the start of
+# a decimal like "5.4"). Lowercase "item" stays excluded: it only occurs in
+# prose. Whether a candidate is a *structural* boundary depends on what
+# precedes it — see _is_structural_boundary.
+_ITEM_HEADING_RE = re.compile(r"(?:Item|ITEM)\s+(\d{1,2}[a-cA-C]?)\s*\.(?!\d)")
 # A cut at a glued heading can leave the previous page's "PART <roman>"
 # label dangling at the tail — it belongs to the bled next Part, not to the
 # current Item's body.
 _TRAILING_PART_RE = re.compile(r"PART\s+[IVX]+$")
+
+
+def _is_structural_boundary(text: str, start: int) -> bool:
+    """True when the ``Item N.`` match at ``start`` is a section heading
+    rather than an inline cross-reference.
+
+    Structural forms are: start of string; start of a line (a newline,
+    optionally followed by horizontal whitespace); or glued directly onto a
+    non-whitespace character ("reference.Item 12.", "PART IIIItem 10.").
+    The discriminator: legitimate inline cross-references ("...under Item
+    1A. Risk Factors...") always have a plain space before "Item", while
+    glued bleed and line-start headings never do.
+    """
+    if start == 0:
+        return True
+    if not text[start - 1].isspace():
+        return True
+    j = start
+    while j > 0 and text[j - 1] in " \t":
+        j -= 1
+    return j == 0 or text[j - 1] == "\n"
 
 
 def _trim_section_text(text: str, current_item: str) -> str:
@@ -110,20 +132,19 @@ def _trim_section_text(text: str, current_item: str) -> str:
 
     edgartools sometimes returns a section body that runs past its own item
     into later items (observed on AAPL FY2025: Item 11 carries Items 12-15,
-    Item 9C carries PART III onward). The shared
-    :func:`backend.common.sec_core.trim_text_to_item_boundary` cuts at
-    boundaries preceded by a non-letter ("...reference.Item 12.") but its
-    lookbehind rejects the uppercase-glued forms above, so a second local
-    pass with :data:`_ITEM_HEADING_RE` finishes the cut. The section's own
-    leading heading is preserved.
+    Item 9C carries PART III onward). Cuts at the FIRST *structural*
+    foreign-item boundary (see :func:`_is_structural_boundary`); inline
+    cross-references like "See Item 1A. Risk Factors" are prose, not
+    boundaries, and must survive. Boundaries naming ``current_item`` itself
+    (the section's own heading, self-references) are skipped.
     """
-    trimmed = trim_text_to_item_boundary(text, current_item)
     target = current_item.lower()
-    matches = list(_ITEM_HEADING_RE.finditer(trimmed))
-    # The first match is the section's own header; scan from the second.
-    for m in matches[1:]:
-        if m.group(1).lower() != target:
-            trimmed = trimmed[: m.start()]
+    trimmed = text
+    for m in _ITEM_HEADING_RE.finditer(text):
+        if m.group(1).lower() == target:
+            continue
+        if _is_structural_boundary(text, m.start()):
+            trimmed = text[: m.start()]
             break
     return _TRAILING_PART_RE.sub("", trimmed.rstrip()).rstrip()
 

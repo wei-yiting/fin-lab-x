@@ -106,6 +106,13 @@ When modifying or generating code, strictly follow the project's **Clean Archite
 - **Data Ingestion & JIT Retrieval:** Ingestion pipelines live in `backend/ingestion/` (one directory per pipeline: `sec_filing_pipeline_html/`, `sec_dense_pipeline_html/`, `fundamentals_pipeline/`). JIT retrieval at question time goes through `backend/ingestion/sec_dense_pipeline_html/retriever.py` (`retriever.search()` is the single trace root for RAG queries). There is no `services/jit_pipelines/` directory; `backend/agent_engine/services/` is an empty placeholder.
 - **Evaluations vs Tests:** Place purely programmatic tests in `backend/tests/`. Place LLM outputs, relevancy, and accuracy evaluations in `backend/evals/` (scenario-first layout: each `scenarios/<name>/` directory is self-contained with `eval_spec.yaml`, dataset, and scorers).
 
+### Ingestion Rewrite Coexistence (temporary until sunset)
+
+- `backend/ingestion/sec_filing_pipeline/` (HTML pipeline) is frozen as the A/B baseline; do not modify it.
+- `backend/common/sec_core.py` is only-add while the baseline lives: existing public signatures and observable behavior must not change; new capabilities are added as new functions.
+- `backend/ingestion/sec_text_pipeline/`'s `ParsedFiling` schema (including the not-yet-produced `StructuredItem` branch) is deliberately frozen now so the follow-up detection/ingest/inspect work builds against a stable contract — a ratified exception to the design-envelope §0 reachability rule.
+- This entire subsection is deleted in the sunset PR together with the frozen pipeline.
+
 ## 5. Agent Operational Directives
 
 - **Understand First:** Before writing any code, heavily utilize `glob`, `read`, and `grep` to understand the existing conventions in the file or module you are modifying.

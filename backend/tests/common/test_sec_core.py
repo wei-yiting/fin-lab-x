@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -16,6 +17,7 @@ from backend.common.sec_core import (
     TransientError,
     UnsupportedFilingTypeError,
     _resolve_latest_fiscal_year,
+    classify_stub_section,
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
@@ -260,6 +262,71 @@ def test_is_stub_section_threshold_boundary(
         assert expected_reason_substring in reason
     else:
         assert reason is None
+
+
+_PSEUDO_STUB_RE = re.compile(r"reference\s+is\s+made\s+to", re.IGNORECASE)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "aapl_item_11.txt",
+        "aapl_item_1a.txt",
+        "item_1b_none.txt",
+        "item_6_reserved.txt",
+        "rare_part_stub.txt",
+    ],
+)
+def test_classify_stub_section_no_extras_is_bit_identical(fixture_name):
+    """With no extra patterns the parameterized helper IS is_stub_section.
+
+    This is the sec_core evolution rule (design.md §8.3): the legacy API's
+    behavior must not change while `_html` A/B baseline is alive.
+    """
+    text = (_FIXTURES / fixture_name).read_text()
+    assert classify_stub_section(text) == is_stub_section(text)
+
+
+def test_classify_stub_section_extra_pattern_gates_short_pointer():
+    text = (
+        "Item 7. Management's Discussion and Analysis. "
+        "Reference is made to the Financial Review section on pages 46-160 "
+        "of the Annual Report."
+    )
+    is_stub, reason = classify_stub_section(
+        text, extra_pointer_patterns=(_PSEUDO_STUB_RE,)
+    )
+    assert is_stub is True
+    assert reason is not None
+
+
+def test_classify_stub_section_extra_pattern_spares_substantive_body():
+    # A normal MD&A that merely *mentions* a cross-reference must survive:
+    # the remaining-content mechanism drops the matching sentence and sees
+    # plenty of real prose left over.
+    filler = (
+        "Revenue increased due to strong demand across all segments. "
+        "Operating margin expanded on cost discipline and mix. "
+    ) * 40
+    text = f"Item 7. MD&A. Reference is made to Note 12 for details. {filler}"
+    is_stub, reason = classify_stub_section(
+        text, extra_pointer_patterns=(_PSEUDO_STUB_RE,)
+    )
+    assert is_stub is False
+    assert reason is None
+
+
+def test_classify_stub_section_extras_do_not_leak_into_default():
+    # The same short pointer text WITHOUT extras must stay non-stub — the
+    # v1 classifier does not know the pseudo-stub phrasing, and must not
+    # start knowing it implicitly.
+    text = (
+        "Item 7. Management's Discussion and Analysis. "
+        "Reference is made to the Financial Review section on pages 46-160 "
+        "of the Annual Report."
+    )
+    assert classify_stub_section(text) == (False, None)
+    assert is_stub_section(text) == (False, None)
 
 
 # ---------------------------------------------------------------------------

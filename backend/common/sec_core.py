@@ -149,6 +149,56 @@ _STUB_REMAINING_THRESHOLD = 100
 _RESERVED_RE = re.compile(r"\[\s*reserved\s*\]", re.IGNORECASE)
 
 
+def classify_stub_section(
+    text: str,
+    extra_pointer_patterns: tuple[re.Pattern[str], ...] = (),
+) -> tuple[bool, str | None]:
+    """Classify an SEC 10-K item body as stub vs real, with a pluggable
+    pointer-pattern set.
+
+    Pointer-stub detection is a two-step mechanism, deliberately NOT a
+    "phrase present => stub" check: (1) any pointer pattern anywhere in the
+    body gates the check on; (2) sentences matching a pointer pattern are
+    removed and the *remaining* content is measured — only a body that is
+    essentially nothing but pointer sentences classifies as a stub. This
+    keeps a 60k-char MD&A that merely says "Reference is made to Note 12"
+    alive.
+
+    ``extra_pointer_patterns`` extends the built-in incorporated-by-reference
+    pattern (used by both steps). With no extras this function is exactly
+    :func:`is_stub_section` — callers needing the frozen v1 behavior keep
+    calling that; new callers (``sec_text_pipeline``) pass their own
+    pseudo-stub patterns.
+    """
+    if not text or not text.strip():
+        return (False, None)
+
+    # Reserved/deprecated check wins classification — must precede incorp
+    # check so "Item 6. [Reserved]" doesn't get classified as "incorporated".
+    compact = re.sub(r"\s+", " ", text).strip()
+    # Real reserved items are terse ("Item 6. [Reserved]" is 17 chars). 80 is an
+    # intentionally generous upper bound so minor whitespace/punctuation variants
+    # still match; anything longer is likely a section that happens to contain
+    # the word "Reserved" in prose rather than an actual reserved sentinel.
+    if len(compact) < 80 and _RESERVED_RE.search(compact):
+        return (True, "section marked as reserved/deprecated")
+
+    pointer_patterns = (_STUB_INCORP_RE, *extra_pointer_patterns)
+    if not any(p.search(text) for p in pointer_patterns):
+        return (False, None)
+
+    sentences = _STUB_SENTENCE_SPLIT_RE.split(text)
+    kept = [s for s in sentences if not any(p.search(s) for p in pointer_patterns)]
+    remaining = " ".join(kept)
+    remaining = _STUB_MARKDOWN_LINK_RE.sub("", remaining)
+    cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
+    if len(cleaned) < _STUB_REMAINING_THRESHOLD:
+        if _STUB_INCORP_RE.search(text):
+            return (True, "incorporated by reference from proxy statement")
+        return (True, "cross-reference pointer stub")
+    return (False, None)
+
+
 def is_stub_section(text: str) -> tuple[bool, str | None]:
     """Classify an SEC 10-K item body as stub vs real.
 
@@ -164,31 +214,13 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
 
     Non-stub returns ``(False, None)``. Empty / whitespace-only input is
     treated as non-stub to keep upstream code defensively simple.
+
+    Frozen v1 API (design.md §8.3 sec_core evolution rule): referenced by
+    ``sec_filing_tools`` and the ``_html`` A/B baseline — behavior must not
+    drift. Delegates to :func:`classify_stub_section` with no extras, which
+    is the bit-identical parameterization.
     """
-    if not text or not text.strip():
-        return (False, None)
-
-    # Reserved/deprecated check wins classification — must precede incorp
-    # check so "Item 6. [Reserved]" doesn't get classified as "incorporated".
-    compact = re.sub(r"\s+", " ", text).strip()
-    # Real reserved items are terse ("Item 6. [Reserved]" is 17 chars). 80 is an
-    # intentionally generous upper bound so minor whitespace/punctuation variants
-    # still match; anything longer is likely a section that happens to contain
-    # the word "Reserved" in prose rather than an actual reserved sentinel.
-    if len(compact) < 80 and _RESERVED_RE.search(compact):
-        return (True, "section marked as reserved/deprecated")
-
-    if not _STUB_INCORP_RE.search(text):
-        return (False, None)
-
-    sentences = _STUB_SENTENCE_SPLIT_RE.split(text)
-    kept = [s for s in sentences if not _STUB_INCORP_RE.search(s)]
-    remaining = " ".join(kept)
-    remaining = _STUB_MARKDOWN_LINK_RE.sub("", remaining)
-    cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
-    if len(cleaned) < _STUB_REMAINING_THRESHOLD:
-        return (True, "incorporated by reference from proxy statement")
-    return (False, None)
+    return classify_stub_section(text)
 
 
 def _find_by_fiscal_year(filings, fiscal_year: int):

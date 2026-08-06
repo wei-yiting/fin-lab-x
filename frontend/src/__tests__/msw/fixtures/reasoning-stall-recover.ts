@@ -8,7 +8,8 @@ import type { SSEStreamFixture } from "./types";
  * remains usable mid-stall with a clean abort (S-place-05).
  */
 const fixture: SSEStreamFixture = {
-  description: "Reasoning chip streaming, then 11s silent gap past the stall threshold, then recovery",
+  description:
+    "Reasoning chip streaming, then 11s silent gap past the stall threshold, then recovery",
   scenarios: ["S-place-04", "S-place-05"],
   chunks: [
     { data: { type: "start", messageId: "asst-stall" } },
@@ -21,7 +22,10 @@ const fixture: SSEStreamFixture = {
       },
     },
     // Silent gap past STALL_THRESHOLD_MS (10s) — stall must trigger before this arrives.
-    { delayMs: 11000, data: { type: "reasoning-delta", id: "reasoning-0", delta: " Continuing after the pause." } },
+    {
+      delayMs: 11000,
+      data: { type: "reasoning-delta", id: "reasoning-0", delta: " Continuing after the pause." },
+    },
     { data: { type: "reasoning-end", id: "reasoning-0" } },
     { data: { type: "text-start", id: "t1" } },
     { data: { type: "text-delta", id: "t1", delta: "Here is the summary." } },

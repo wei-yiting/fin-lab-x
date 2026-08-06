@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -16,6 +17,8 @@ from backend.common.sec_core import (
     TransientError,
     UnsupportedFilingTypeError,
     _resolve_latest_fiscal_year,
+    classify_stub_section,
+    fetch_filing_bundle,
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
@@ -260,6 +263,72 @@ def test_is_stub_section_threshold_boundary(
         assert expected_reason_substring in reason
     else:
         assert reason is None
+
+
+_PSEUDO_STUB_RE = re.compile(r"reference\s+is\s+made\s+to", re.IGNORECASE)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "aapl_item_11.txt",
+        "aapl_item_1a.txt",
+        "item_1b_none.txt",
+        "item_6_reserved.txt",
+        "rare_part_stub.txt",
+    ],
+)
+def test_classify_stub_section_no_extras_is_bit_identical(fixture_name):
+    """With no extra patterns the parameterized helper IS is_stub_section.
+
+    This pins the sec_core coexistence rule (AGENTS.md "Ingestion Rewrite
+    Coexistence"): while the frozen HTML A/B baseline is alive, sec_core is
+    only-add — the legacy API's behavior must not change.
+    """
+    text = (_FIXTURES / fixture_name).read_text()
+    assert classify_stub_section(text) == is_stub_section(text)
+
+
+def test_classify_stub_section_extra_pattern_gates_short_pointer():
+    text = (
+        "Item 7. Management's Discussion and Analysis. "
+        "Reference is made to the Financial Review section on pages 46-160 "
+        "of the Annual Report."
+    )
+    is_stub, reason = classify_stub_section(
+        text, extra_pointer_patterns=(_PSEUDO_STUB_RE,)
+    )
+    assert is_stub is True
+    assert reason is not None
+
+
+def test_classify_stub_section_extra_pattern_spares_substantive_body():
+    # A normal MD&A that merely *mentions* a cross-reference must survive:
+    # the remaining-content mechanism drops the matching sentence and sees
+    # plenty of real prose left over.
+    filler = (
+        "Revenue increased due to strong demand across all segments. "
+        "Operating margin expanded on cost discipline and mix. "
+    ) * 40
+    text = f"Item 7. MD&A. Reference is made to Note 12 for details. {filler}"
+    is_stub, reason = classify_stub_section(
+        text, extra_pointer_patterns=(_PSEUDO_STUB_RE,)
+    )
+    assert is_stub is False
+    assert reason is None
+
+
+def test_classify_stub_section_extras_do_not_leak_into_default():
+    # The same short pointer text WITHOUT extras must stay non-stub — the
+    # v1 classifier does not know the pseudo-stub phrasing, and must not
+    # start knowing it implicitly.
+    text = (
+        "Item 7. Management's Discussion and Analysis. "
+        "Reference is made to the Financial Review section on pages 46-160 "
+        "of the Annual Report."
+    )
+    assert classify_stub_section(text) == (False, None)
+    assert is_stub_section(text) == (False, None)
 
 
 # ---------------------------------------------------------------------------
@@ -538,6 +607,136 @@ def test_fetch_filing_obj_cache_key_normalizes_ticker(mock_edgar):
 
     # Same canonical key → only one underlying call to edgar.Company.
     assert mock_edgar["company_spy"].call_count == 1
+
+
+def test_fetch_filing_bundle_carries_metadata_and_same_tenk(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_filing("2025-09-27", tenk_cls)
+    filing.accession_number = "0000320193-25-000079"
+    filing.cik = 320193
+    filing.company = "Apple Inc."
+    filing.document.document = "aapl-20250927.htm"
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    tenk = fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    bundle = fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+
+    assert bundle.tenk is tenk
+    assert bundle.accession_number == "0000320193-25-000079"
+    assert bundle.cik == "320193"
+    assert bundle.company_name == "Apple Inc."
+    assert bundle.primary_document == "aapl-20250927.htm"
+    # Both entry points share one underlying fetch (single Company call).
+    assert mock_edgar["company_spy"].call_count == 1
+
+
+class _InstrumentedDocFiling:
+    """Filing fake whose ``document`` property records every access and
+    delegates to a configurable behavior (return a doc, return None, raise)."""
+
+    def __init__(self, tenk_cls: type, document_behavior):
+        self.period_of_report = "2025-09-27"
+        self.accession_number = "0000320193-25-000079"
+        self.cik = 320193
+        self.company = "Apple Inc."
+        self.document_accesses = 0
+        self._document_behavior = document_behavior
+        self._obj = tenk_cls()
+
+    def obj(self):
+        return self._obj
+
+    @property
+    def document(self):
+        self.document_accesses += 1
+        return self._document_behavior()
+
+
+class _PrimaryDoc:
+    def __init__(self, document: str | None):
+        self.document = document
+
+
+def test_fetch_filing_obj_does_not_access_filing_document(mock_edgar):
+    """Legacy contract: fetch_filing_obj is locate + obj() only — it must
+    never trigger the extra ``filing.document`` SGML/homepage lookup."""
+    filing = _InstrumentedDocFiling(
+        mock_edgar["tenk_cls"], lambda: _PrimaryDoc("aapl-20250927.htm")
+    )
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    assert filing.document_accesses == 0
+
+
+def test_fetch_filing_bundle_reads_document_and_shares_locate(mock_edgar):
+    """The bundle path reads the primary document exactly once and reuses
+    the same EDGAR locate as fetch_filing_obj (one Company call total)."""
+    filing = _InstrumentedDocFiling(
+        mock_edgar["tenk_cls"], lambda: _PrimaryDoc("aapl-20250927.htm")
+    )
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    tenk = fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    bundle = fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+
+    assert bundle.tenk is tenk
+    assert bundle.accession_number == "0000320193-25-000079"
+    assert bundle.cik == "320193"
+    assert bundle.company_name == "Apple Inc."
+    assert bundle.primary_document == "aapl-20250927.htm"
+    assert filing.document_accesses == 1
+    assert mock_edgar["company_spy"].call_count == 1
+
+
+def _raise(exc: Exception):
+    def _behavior():
+        raise exc
+
+    return _behavior
+
+
+def test_fetch_filing_bundle_429_from_document_maps_to_rate_limit(mock_edgar):
+    filing = _InstrumentedDocFiling(
+        mock_edgar["tenk_cls"], _raise(_make_429_httpx_error(retry_after="7"))
+    )
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(RateLimitError) as exc_info:
+        fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+    assert exc_info.value.retry_after == 7
+
+
+def test_fetch_filing_bundle_5xx_from_document_maps_to_transient(mock_edgar):
+    http_error = httpx.HTTPStatusError(
+        message="503",
+        request=httpx.Request("GET", "https://sec.gov"),
+        response=httpx.Response(503),
+    )
+    filing = _InstrumentedDocFiling(mock_edgar["tenk_cls"], _raise(http_error))
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(TransientError):
+        fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+
+
+@pytest.mark.parametrize(
+    "document_behavior",
+    [lambda: None, lambda: _PrimaryDoc(None)],
+    ids=["document_is_none", "filename_is_none"],
+)
+def test_fetch_filing_bundle_missing_primary_document_raises_sec_error(
+    mock_edgar, document_behavior
+):
+    filing = _InstrumentedDocFiling(mock_edgar["tenk_cls"], document_behavior)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "0000320193-25-000079" in msg
 
 
 def test_fetch_filing_obj_ticker_not_found_both_forms_empty(mock_edgar):

@@ -13,12 +13,12 @@ Re-run this whenever:
 
 Usage:
     uv run python -m backend.scripts.validation.validate_sec_md_cleanup \\
-        --cache-dir /path/to/data/sec_filings \\
+        --cache-dir /path/to/data/sec_filings_html \\
         --output artifacts/current/validation_cleanup_patterns.md
 
 See ``backend/scripts/validation/README.md`` for what each statistic in the report
 means and how to interpret it against the rules in
-``backend/ingestion/sec_filing_pipeline/markdown_cleaner.py``.
+``backend/ingestion/sec_filing_pipeline_html/markdown_cleaner.py``.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ from pathlib import Path
 # Re-use production regexes and helpers directly so the validator cannot
 # silently drift from ``MarkdownCleaner``. M-1.3 / M-1.4 regressions were
 # caused by locally-forked versions of these.
-from backend.ingestion.sec_filing_pipeline.markdown_cleaner import (
+from backend.ingestion.sec_filing_pipeline_html.markdown_cleaner import (
     _INCORP_BY_REF_RE as INCORP_BY_REF_RE,
     _ITEM_1_ANCHOR_RE as COVER_PAGE_FALLBACK_ANCHOR_RE,
     _PAGE_SEP_RE as PAGE_SEP_STRICT_RE,
@@ -469,7 +469,7 @@ def main() -> None:
         "--cache-dir",
         type=Path,
         required=True,
-        help="Path to LocalFilingStore base directory (e.g. data/sec_filings)",
+        help="Path to LocalFilingStore base directory (e.g. data/sec_filings_html)",
     )
     parser.add_argument(
         "--output",

@@ -7,7 +7,7 @@ Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch).
 
 Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
-:mod:`backend.ingestion.sec_filing_pipeline`. Do not add agent-layer or
+:mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
 pipeline-layer concerns here — keep this module a thin, stateless core.
 """
 

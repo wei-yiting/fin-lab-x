@@ -105,14 +105,13 @@ class StreamEventMapper:
             self._message_started = True
 
         # Single ordered dispatch over the pinned langchain-core
-        # provider-normalized accessor (code-review round 6/M-1.1): every
-        # supported provider's tool call already surfaces in
-        # `content_blocks` — OpenAI/Anthropic as `tool_call_chunk`, Gemini as
-        # `tool_call` — so no separate pass over the raw `tool_call_chunks`
-        # attribute is needed. Trusting one accessor also avoids the
-        # ordering hazard the old two-route shape had (a `tool_call_chunk →
-        # reasoning` chunk could have its new part wrongly closed by a
-        # post-loop fallback).
+        # provider-normalized accessor: every supported provider's tool call
+        # already surfaces in `content_blocks` — OpenAI/Anthropic as
+        # `tool_call_chunk`, Gemini as `tool_call` — so no separate pass over
+        # the raw `tool_call_chunks` attribute is needed. Trusting one
+        # accessor also avoids an ordering hazard a two-route shape would
+        # have (a `tool_call_chunk → reasoning` chunk could have its new
+        # part wrongly closed by a post-loop fallback).
         blocks = list(msg_chunk.content_blocks)
 
         prev_block_type: str | None = None

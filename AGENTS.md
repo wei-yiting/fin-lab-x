@@ -108,7 +108,7 @@ When modifying or generating code, strictly follow the project's **Clean Archite
 
 ### Ingestion Rewrite Coexistence (temporary until sunset)
 
-- `backend/ingestion/sec_filing_pipeline/` (HTML pipeline) is frozen as the A/B baseline; do not modify it.
+- `backend/ingestion/sec_filing_pipeline_html/` (HTML pipeline) is frozen as the A/B baseline; do not modify it.
 - `backend/common/sec_core.py` is only-add while the baseline lives: existing public signatures and observable behavior must not change; new capabilities are added as new functions.
 - `backend/ingestion/sec_text_pipeline/`'s `ParsedFiling` schema (including the not-yet-produced `StructuredItem` branch) is deliberately frozen now so the follow-up detection/ingest/inspect work builds against a stable contract — a ratified exception to the design-envelope §0 reachability rule.
 - This entire subsection is deleted in the sunset PR together with the frozen pipeline.

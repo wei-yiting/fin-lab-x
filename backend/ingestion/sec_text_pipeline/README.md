@@ -6,7 +6,7 @@ Structured 10-K parsing built on edgartools' section API. Fetches a filing from 
 
 This pipeline is the **new parse path**. It coexists with the frozen HTML baseline:
 
-- **`sec_filing_pipeline/`** — the frozen HTML pipeline (A/B baseline). Its behavior does not change while the two paths coexist.
+- **`sec_filing_pipeline_html/`** — the frozen HTML pipeline (A/B baseline). Its behavior does not change while the two paths coexist.
 - **`sec_text_pipeline/`** (this package) — Item boundaries come from edgartools sections instead of HTML heuristics; output is a typed `ParsedFiling`, with no markdown intermediate.
 - **`backend/common/sec_core.py`** — shared domain core. **Only-add during coexistence**: existing public functions (notably `is_stub_section`) keep bit-identical behavior; new needs are met by adding helpers, never by changing existing ones.
 
@@ -36,7 +36,7 @@ parse_filing(ticker, fiscal_year)
 
 ## Two Cache Stages
 
-The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline/`) is the **embedding** cache. They invalidate under different conditions — a parser change invalidates the filing store, an embedding-model change invalidates only Qdrant — hence both exist. The filing store is machine-facing; a planned inspect helper (future extension, not yet built) will derive a human-facing markdown view from it.
+The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline_html/`, and in this pipeline's own dense-ingest stage once built) is the **embedding** cache. They invalidate under different conditions — a parser change invalidates the filing store, an embedding-model change invalidates only Qdrant — hence both exist. The filing store is machine-facing; a planned inspect helper (future extension, not yet built) will derive a human-facing markdown view from it.
 
 ## Extension Guidelines
 

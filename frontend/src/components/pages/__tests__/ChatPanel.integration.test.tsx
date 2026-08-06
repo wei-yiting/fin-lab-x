@@ -44,6 +44,50 @@ function sseResponse(stream: ReadableStream) {
   });
 }
 
+// Shared shape for the three "Stop mid-stream" servers below: emit some
+// frames immediately, then poll slowly (checking the abort signal each
+// tick) so the test has time to click Stop, then — if never aborted —
+// finish normally. `pollFrame` returns null for ticks that emit nothing
+// (the placeholder-phase server just needs the delay, not more frames).
+function holdStreamUntilAbort(
+  request: Request,
+  opts: {
+    initialFrames: Array<Record<string, unknown>>;
+    pollFrame?: (tick: number) => Record<string, unknown> | null;
+    finalFrames: Array<Record<string, unknown>>;
+  },
+): ReadableStream {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    async start(controller) {
+      const onAbort = () => {
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
+      };
+      request.signal.addEventListener("abort", onAbort, { once: true });
+
+      for (const frame of opts.initialFrames) {
+        controller.enqueue(encoder.encode(sseFrame(frame)));
+      }
+
+      for (let tick = 0; tick < 30; tick++) {
+        await new Promise((r) => setTimeout(r, 100));
+        if (request.signal.aborted) return;
+        const frame = opts.pollFrame?.(tick);
+        if (frame) controller.enqueue(encoder.encode(sseFrame(frame)));
+      }
+
+      for (const frame of opts.finalFrames) {
+        controller.enqueue(encoder.encode(sseFrame(frame)));
+      }
+      controller.close();
+    },
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Smart retry
 //
@@ -228,50 +272,25 @@ describe("ChatPanel integration — mid-stream retry preserves user history", ()
 
 describe("ChatPanel integration — aborted tools via stop", () => {
   const abortedServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) => {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({
-                type: "tool-input-available",
-                toolCallId: "tc-x",
-                toolName: "yfinance_quote",
-                input: { ticker: "NVDA" },
-              }),
-            ),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
-          );
-
-          // Keep streaming slowly to give time to click stop
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
-            );
-          }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
-          controller.close();
-        },
-      });
-      return sseResponse(stream);
-    }),
+    http.post("/api/v1/chat", ({ request }) =>
+      sseResponse(
+        holdStreamUntilAbort(request, {
+          initialFrames: [
+            { type: "start", messageId: "a1" },
+            {
+              type: "tool-input-available",
+              toolCallId: "tc-x",
+              toolName: "yfinance_quote",
+              input: { ticker: "NVDA" },
+            },
+            { type: "text-start", id: "t1" },
+            { type: "text-delta", id: "t1", delta: "Looking up..." },
+          ],
+          pollFrame: () => ({ type: "text-delta", id: "t1", delta: "." }),
+          finalFrames: [{ type: "text-end", id: "t1" }, { type: "finish" }],
+        }),
+      ),
+    ),
   );
 
   beforeAll(() => abortedServer.listen({ onUnhandledRequest: "bypass" }));
@@ -321,7 +340,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Stop with no chip/tool carrier (m-1.1)
+// Stop with no chip/tool carrier
 //
 // The "aborted tools via stop" server above always has a running ToolCard
 // live by the time reply text streams (tool-input-available lands before
@@ -331,39 +350,19 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 
 describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", () => {
   const textOnlyServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) => {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
-          );
-
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
-            );
-          }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
-          controller.close();
-        },
-      });
-      return sseResponse(stream);
-    }),
+    http.post("/api/v1/chat", ({ request }) =>
+      sseResponse(
+        holdStreamUntilAbort(request, {
+          initialFrames: [
+            { type: "start", messageId: "a1" },
+            { type: "text-start", id: "t1" },
+            { type: "text-delta", id: "t1", delta: "Looking up..." },
+          ],
+          pollFrame: () => ({ type: "text-delta", id: "t1", delta: "." }),
+          finalFrames: [{ type: "text-end", id: "t1" }, { type: "finish" }],
+        }),
+      ),
+    ),
   );
 
   beforeAll(() => textOnlyServer.listen({ onUnhandledRequest: "bypass" }));
@@ -400,7 +399,7 @@ describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", 
 });
 
 // ---------------------------------------------------------------------------
-// Stop during the placeholder phase (m-1.1)
+// Stop during the placeholder phase
 //
 // Stop can also fire before any content has arrived at all — only the
 // dead-air placeholder ("submitted"/pre-content window) is showing. That has
@@ -410,36 +409,19 @@ describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", 
 
 describe("ChatPanel integration — stop during placeholder phase", () => {
   const placeholderStopServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) => {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
-
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
-          }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "late answer" })),
-          );
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
-          controller.close();
-        },
-      });
-      return sseResponse(stream);
-    }),
+    http.post("/api/v1/chat", ({ request }) =>
+      sseResponse(
+        holdStreamUntilAbort(request, {
+          initialFrames: [{ type: "start", messageId: "a1" }],
+          finalFrames: [
+            { type: "text-start", id: "t1" },
+            { type: "text-delta", id: "t1", delta: "late answer" },
+            { type: "text-end", id: "t1" },
+            { type: "finish" },
+          ],
+        }),
+      ),
+    ),
   );
 
   beforeAll(() => placeholderStopServer.listen({ onUnhandledRequest: "bypass" }));

@@ -88,7 +88,7 @@ def _build_reading_guide(fiscal_year: int) -> str:
         f"- Pass fiscal_year={fiscal_year} explicitly to sec_filing_get_section so both calls hit the same cached filing.\n"
         '- Section keys are normalized item numbers (e.g. "1", "1a", "7", "7a"). Use the Key column above.\n'
         "- Stub sections (is_stub=true) have content incorporated by reference from another filing (typically DEF 14A proxy); fetching returns a brief notice.\n"
-        "- If a section's char_count is large and you only need specific facts from it (pinpoint question), prefer sec_filing_search with a focused query instead of reading the whole section.\n"
+        "- If a section's char_count is large and you only need specific facts from it (pinpoint question), and a sec_filing_search tool is available in your toolset, prefer it with a focused query instead of reading the whole section.\n"
         "- This table of contents is stable; do NOT call sec_filing_list_sections again for the same (ticker, fiscal_year) in this conversation. Issue multiple sec_filing_get_section calls instead."
     )
 

@@ -74,3 +74,6 @@ survey `artifacts/current/research_agentic_rag_generation_citation.md`.
 - The Orchestrator system prompt gains SEC-citation rules (numbered-chunk `[N]` usage, the
   no-model-written-URLs rule for SEC sources), and the frontend Sources block gains an
   ID-resolved reference path alongside the existing URL-based one.
+- `sec_filing_search` and the SEC-citation prompt contract live in the `reader` Workflow
+  Profile (PRD Phase 2); `baseline` keeps the Phase 1 whole-section reads without
+  vectorization, preserving the cross-tier comparison basis of the golden dataset.

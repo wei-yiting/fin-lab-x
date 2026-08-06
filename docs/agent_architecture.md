@@ -35,8 +35,8 @@ Profiles allow for rapid experimentation and safe rollbacks. By switching a prof
 
 ### Capability Tiers
 
-1.  **baseline**: Standard RAG (Retrieval-Augmented Generation) with basic financial tool access.
-2.  **reader**: Optimized for long-context document analysis and multi-document synthesis.
+1.  **baseline**: Whole-section SEC filing reads (no vectorization) with basic financial tool access.
+2.  **reader**: Structured RAG over SEC 10-K filings (Qdrant dense retrieval) with chunk-level citations.
 3.  **quant**: Specialized in numerical reasoning, data visualization, and quantitative modeling.
 4.  **graph**: Leverages knowledge graphs to understand complex corporate relationships and supply chains.
 5.  **analyst**: The flagship profile, combining all previous capabilities into a comprehensive investment research assistant.
@@ -47,7 +47,7 @@ Each profile in `backend/agent_engine/agents/profiles/` currently contains:
 
 - `orchestrator_config.yaml`: Model selection (e.g., GPT-4o, Claude 3.5 Sonnet), temperature, and tool-specific limits.
 
-Profiles beyond `baseline` will additionally include:
+Profiles beyond `baseline` and `reader` will additionally include:
 
 - `system_prompt.md`: The core identity and behavioral instructions for the agent.
 - `README.md`: Documentation of the profile's specific use cases, strengths, and known limitations.
@@ -64,7 +64,7 @@ flowchart TB
     subgraph concept["Capability tier — concept layer: a rung on the capability ladder, baseline → reader → quant → graph → analyst (lives in the roadmap and docs)"]
         direction LR
         T1["1. baseline<br/>basic tools"]
-        T2["2. reader<br/>+ long-context filing reading"]
+        T2["2. reader<br/>+ structured RAG over 10-Ks"]
         T3["3. quant<br/>+ structured financials"]
         T4["4. graph<br/>+ knowledge graph"]
         T5["5. analyst<br/>+ multi-step synthesis"]
@@ -73,7 +73,7 @@ flowchart TB
     subgraph physical["Workflow Profile — physical layer: one config directory (lives on the filesystem, consumed by the runtime)"]
         direction LR
         P1["profiles/baseline/<br/>orchestrator_config.yaml<br/>+ system_prompt.md"]
-        P2["profiles/reader/<br/>(placeholder)"]
+        P2["profiles/reader/<br/>orchestrator_config.yaml<br/>+ system_prompt.md"]
         P3["profiles/quant/<br/>(placeholder)"]
         P4["profiles/graph/<br/>(placeholder)"]
         P5["profiles/analyst/<br/>(placeholder)"]

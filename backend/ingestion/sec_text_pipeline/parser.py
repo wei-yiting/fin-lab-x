@@ -111,15 +111,21 @@ def _is_structural_boundary(text: str, start: int) -> bool:
     rather than an inline cross-reference.
 
     Structural forms are: start of string; start of a line (a newline,
-    optionally followed by horizontal whitespace); or glued directly onto a
-    non-whitespace character ("reference.Item 12.", "PART IIIItem 10.").
-    The discriminator: legitimate inline cross-references ("...under Item
-    1A. Risk Factors...") always have a plain space before "Item", while
-    glued bleed and line-start headings never do.
+    optionally followed by horizontal whitespace); or glued directly onto
+    non-letter text ("reference.Item 12.", "53PART IVItem 15.") or a
+    "PART <roman>" label ("PART IIIItem 10."). The discriminator:
+    legitimate inline cross-references ("...under Item 1A. Risk
+    Factors...") always have a plain space before "Item", while glued
+    bleed and line-start headings never do. A preceding letter that is
+    NOT part of a "PART <roman>" label means the match sits inside a
+    larger word ("SubItem 1.", "LineItem 1A.") — prose, not a heading.
     """
     if start == 0:
         return True
-    if not text[start - 1].isspace():
+    prev = text[start - 1]
+    if not prev.isspace():
+        if prev.isalpha():
+            return bool(_TRAILING_PART_RE.search(text[:start]))
         return True
     j = start
     while j > 0 and text[j - 1] in " \t":

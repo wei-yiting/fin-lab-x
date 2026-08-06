@@ -99,6 +99,17 @@ class TestTrimSectionText:
         # The dangling glued "PART III" label is stripped from the tail too.
         assert not trimmed.endswith("PART III")
 
+    def test_item_inside_larger_word_is_preserved(self):
+        # "Item" embedded in a larger word ("SubItem 1.", "LineItem 1A.")
+        # is prose, not a heading — a preceding letter is a structural glue
+        # only when it closes a "PART <roman>" label.
+        text = (
+            "Item 7. MD&A discussion. Our ledger tracks each SubItem 1. "
+            "remains of the fiscal analysis, and every LineItem 1A. entry "
+            "continues here with substantive discussion of results."
+        )
+        assert parser._trim_section_text(text, "7") == text.rstrip()
+
     def test_all_caps_foreign_heading_is_cut(self):
         # Some filings render section headings in ALL-CAPS ("ITEM 1A. RISK
         # FACTORS") — a bleed in that style must still be cut.

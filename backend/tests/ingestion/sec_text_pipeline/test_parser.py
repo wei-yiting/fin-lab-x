@@ -2,24 +2,24 @@ import re
 
 import pytest
 
-from backend.common.sec_core import FilingType
+from backend.common.sec_core import FetchedFiling, FilingType
 from backend.ingestion.sec_text_pipeline import parser
 from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
-from backend.tests.ingestion.sec_text_pipeline.conftest import FakeTenK
+from backend.tests.ingestion.sec_text_pipeline.conftest import FakeTenK, make_bundle
 
 
 @pytest.fixture
-def fetch_calls(monkeypatch, fake_tenk):
+def fetch_calls(monkeypatch, fake_bundle):
     """Patch the EDGAR fetch seam; record every call's arguments."""
     calls: list[tuple[str, FilingType, int | None]] = []
 
     def fake_fetch(
         ticker: str, filing_type: FilingType, fiscal_year: int | None = None
-    ) -> FakeTenK:
+    ) -> FetchedFiling:
         calls.append((ticker, filing_type, fiscal_year))
-        return fake_tenk
+        return fake_bundle
 
-    monkeypatch.setattr(parser, "fetch_filing_obj", fake_fetch)
+    monkeypatch.setattr(parser, "fetch_filing_bundle", fake_fetch)
     return calls
 
 
@@ -79,7 +79,9 @@ class TestParsedStructure:
                 "part_i_item_2": {"item": "2", "text": "Item 2. Properties. " * 20},
             }
         )
-        monkeypatch.setattr(parser, "fetch_filing_obj", lambda *a, **k: tenk)
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         assert [item.item for item in result.items] == ["2"]
 
@@ -90,7 +92,9 @@ class TestParsedStructure:
                 "part_i_item_2": {"item": "2", "text": "Item 2. Properties. " * 20},
             }
         )
-        monkeypatch.setattr(parser, "fetch_filing_obj", lambda *a, **k: tenk)
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         assert [item.item for item in result.items] == ["2"]
 
@@ -114,7 +118,9 @@ class TestParsedStructure:
                 },
             }
         )
-        monkeypatch.setattr(parser, "fetch_filing_obj", lambda *a, **k: tenk)
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
         with pytest.raises(parser.EmptyFilingError) as excinfo:
             parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         # Actionable message: ticker, fiscal year, accession number.
@@ -132,7 +138,7 @@ class TestMetadata:
         assert meta.company_name == "Apple Inc."
         assert meta.filing_type is FilingType.TEN_K
         assert meta.filing_date == "2025-10-31"
-        assert meta.fiscal_year == 2025  # derived from period_of_report
+        assert meta.fiscal_year == 2025
         assert meta.accession_number == "0000320193-25-000079"
         assert meta.primary_document == "aapl-20250927.htm"
         assert meta.parsed_at  # timestamped
@@ -141,11 +147,6 @@ class TestMetadata:
         meta = parser.parse_filing(" aapl ", fiscal_year=2025, store=store).metadata
         assert meta.ticker == "AAPL"
         assert fetch_calls[0][0] == "AAPL"
-
-    def test_fiscal_year_derived_when_not_given(self, store, fetch_calls):
-        meta = parser.parse_filing("AAPL", store=store).metadata
-        assert meta.fiscal_year == 2025
-        assert fetch_calls == [("AAPL", FilingType.TEN_K, None)]
 
 
 class TestStoreInteraction:
@@ -159,21 +160,13 @@ class TestStoreInteraction:
         assert second == first
         assert len(fetch_calls) == 1
 
-    def test_cache_hit_after_fetch_when_year_unknown(self, store, fetch_calls):
-        first = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
-        # Without a year we must ask EDGAR what "latest" is, but the parse
-        # result comes from the store once the derived year hits the cache.
-        second = parser.parse_filing("AAPL", store=store)
-        assert second == first
-        assert len(fetch_calls) == 2
-
     def test_force_refetches_and_overwrites(self, store, fetch_calls):
         parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
         assert len(fetch_calls) == 2
 
-    def test_default_store_is_local_sec_text(self, monkeypatch, tmp_path, fake_tenk):
+    def test_default_store_is_local_sec_text(self, monkeypatch, tmp_path, fake_bundle):
         monkeypatch.chdir(tmp_path)
-        monkeypatch.setattr(parser, "fetch_filing_obj", lambda *a, **k: fake_tenk)
+        monkeypatch.setattr(parser, "fetch_filing_bundle", lambda *a, **k: fake_bundle)
         parser.parse_filing("AAPL", fiscal_year=2025)
         assert (tmp_path / "data" / "sec_text" / "AAPL" / "10-K" / "2025.json").exists()

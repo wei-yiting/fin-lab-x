@@ -14,9 +14,10 @@ from typing import TYPE_CHECKING
 
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
+    FetchedFiling,
     FilingType,
     SECError,
-    fetch_filing_obj,
+    fetch_filing_bundle,
     trim_text_to_item_boundary,
 )
 from backend.ingestion.sec_text_pipeline.filing_models import (
@@ -46,23 +47,25 @@ class EmptyFilingError(SECError):
 
 def parse_filing(
     ticker: str,
-    fiscal_year: int | None = None,
+    fiscal_year: int,
     force: bool = False,
+    *,
     store: FilingStore | None = None,
 ) -> ParsedFiling:
     """Fetch and parse one 10-K into a :class:`ParsedFiling`.
 
     Filing-store cache first (unless ``force``), EDGAR via
-    :func:`fetch_filing_obj` on miss, and the parse result is persisted
-    back to the store. ``fiscal_year=None`` resolves to the latest filing —
-    that resolution needs EDGAR, so the cache can only be consulted after
-    the fetch derives the year.
+    :func:`backend.common.sec_core.fetch_filing_bundle` on miss, and the
+    parse result is persisted back to the store.
 
     ``force=True`` bypasses the on-disk filing store: parsing re-runs and
     the stored JSON is overwritten. It does NOT invalidate the in-process
     EDGAR fetch cache — a filing for a given (ticker, fiscal year) is
     immutable on SEC's side (amendments arrive as separate filings), so
     ``force`` means "re-parse the same fetched data", not "re-download".
+
+    ``store`` is a keyword-only test/advanced seam; the default is
+    :class:`LocalFilingStore`.
 
     Raises the :class:`backend.common.sec_core.SECError` family on fetch
     failures (ticker unknown, no 10-K, rate limit, ...), and
@@ -72,24 +75,17 @@ def parse_filing(
     store = store if store is not None else LocalFilingStore()
     ticker_norm = ticker.strip().upper()
 
-    if fiscal_year is not None and not force:
+    if not force:
         cached = store.get(ticker_norm, FilingType.TEN_K, fiscal_year)
         if cached is not None:
             return cached
 
-    tenk = fetch_filing_obj(ticker_norm, FilingType.TEN_K, fiscal_year)
-    derived_fy = int(str(tenk.period_of_report)[:4])
-
-    if not force:
-        cached = store.get(ticker_norm, FilingType.TEN_K, derived_fy)
-        if cached is not None:
-            return cached
-
-    metadata = _build_metadata(tenk, ticker_norm, derived_fy)
-    items = _parse_items(tenk)
+    bundle = fetch_filing_bundle(ticker_norm, FilingType.TEN_K, fiscal_year)
+    metadata = _build_metadata(bundle, ticker_norm, fiscal_year)
+    items = _parse_items(bundle.tenk)
     if not items:
         raise EmptyFilingError(
-            f"Parsed 0 substantive items for {ticker_norm} FY{derived_fy} "
+            f"Parsed 0 substantive items for {ticker_norm} FY{fiscal_year} "
             f"(accession {metadata.accession_number}); refusing to cache "
             f"an empty filing."
         )
@@ -165,19 +161,17 @@ def _parse_items(tenk: TenK) -> list[ParsedItem]:
     return items
 
 
-def _build_metadata(tenk: TenK, ticker_norm: str, fiscal_year: int) -> FilingMetadata:
-    # CompanyReport has no public accessor for its underlying Filing, and the
-    # citation-chain fields (accession_number / cik / primary_document) only
-    # live there — this is the sole, contained private access.
-    filing = tenk._filing
+def _build_metadata(
+    bundle: FetchedFiling, ticker_norm: str, fiscal_year: int
+) -> FilingMetadata:
     return FilingMetadata(
         ticker=ticker_norm,
-        cik=str(filing.cik),
-        company_name=filing.company,
+        cik=bundle.cik,
+        company_name=bundle.company_name,
         filing_type=FilingType.TEN_K,
-        filing_date=str(tenk.filing_date),
+        filing_date=str(bundle.tenk.filing_date),
         fiscal_year=fiscal_year,
-        accession_number=filing.accession_number,
-        primary_document=filing.document.document,
+        accession_number=bundle.accession_number,
+        primary_document=bundle.primary_document,
         parsed_at=datetime.now(UTC).isoformat(),
     )

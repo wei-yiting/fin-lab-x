@@ -18,6 +18,7 @@ from backend.common.sec_core import (
     UnsupportedFilingTypeError,
     _resolve_latest_fiscal_year,
     classify_stub_section,
+    fetch_filing_bundle,
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
@@ -604,6 +605,27 @@ def test_fetch_filing_obj_cache_key_normalizes_ticker(mock_edgar):
     fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
 
     # Same canonical key → only one underlying call to edgar.Company.
+    assert mock_edgar["company_spy"].call_count == 1
+
+
+def test_fetch_filing_bundle_carries_metadata_and_same_tenk(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_filing("2025-09-27", tenk_cls)
+    filing.accession_number = "0000320193-25-000079"
+    filing.cik = 320193
+    filing.company = "Apple Inc."
+    filing.document.document = "aapl-20250927.htm"
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    tenk = fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    bundle = fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+
+    assert bundle.tenk is tenk
+    assert bundle.accession_number == "0000320193-25-000079"
+    assert bundle.cik == "320193"
+    assert bundle.company_name == "Apple Inc."
+    assert bundle.primary_document == "aapl-20250927.htm"
+    # Both entry points share one underlying fetch (single Company call).
     assert mock_edgar["company_spy"].call_count == 1
 
 

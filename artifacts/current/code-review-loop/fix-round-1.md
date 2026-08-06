@@ -45,3 +45,36 @@
 | test_parser.py | Added test_all_sections_empty_or_stub_raises_and_saves_nothing | EmptyFilingError with ticker/FY/accession; nothing saved |
 | test_filing_models.py | Added unknown-field tests (top-level + nested) | extra="forbid" enforcement |
 | test_filing_store.py | Modified corrupt-JSON test | requires pydantic.ValidationError |
+
+---
+
+# Fix Round 1b — deferred-decision rulings
+
+> Fixer: claude-fable-5 (isolated subagent) | Date: 2026-08-06
+> User rulings: M-1.2 behavior unchanged (docs-only, done in 1a); M-1.3 fix via
+> sec_core bundle; SP-1.3 remove fiscal_year=None mode + store= keyword-only;
+> SP-1.1 declined (param stays `fiscal_year`, repo convention).
+
+### Fixed
+
+| Issue ID | How Fixed | Files Changed |
+|----------|-----------|---------------|
+| M-1.3 | New frozen `FetchedFiling` dataclass + `_fetch_filing_bundle_cached` in sec_core (captures accession_number / str(cik) / company / filing.document.document from the public Filing API before `filing.obj()`; error classification unchanged). `_fetch_filing_obj_cached` becomes a thin lru delegate returning `.tenk` (same name — conftest cache_clear and inflight wholesale-patch seams intact); `fetch_filing_obj` byte-identical. New public `fetch_filing_bundle` rides the existing single-flight then reads the lru-cached bundle. Parser's `tenk._filing` private access deleted. | backend/common/sec_core.py, parser.py, backend/tests/common/conftest.py, backend/tests/common/test_sec_core.py |
+| SP-1.3a | `parse_filing(ticker, fiscal_year: int, force=False, *, store=None)` — fiscal_year required; latest-filing mode, two-phase cache check, and period_of_report derivation removed; README updated. | parser.py, README.md, test_parser.py |
+| SP-1.3b | `store=` keyword-only; docstring marks it a test/advanced seam. | parser.py |
+
+### Not Fixed (with reason)
+
+| Issue ID | Reason |
+|----------|--------|
+| SP-1.1 | Declined per user ruling — `fiscal_year` is the repo-wide convention (frozen HTML pipeline + sec_core); spec's `year` treated as shorthand. |
+| M-1.2 | Behavior intentionally unchanged per user ruling — `force` means "re-parse the immutable fetched filing, bypass the on-disk store", not "re-fetch EDGAR"; documented in 1a. |
+
+### Tests Run
+
+| Test Command | Result | Notes |
+|--------------|--------|-------|
+| `uv run pytest backend/tests/ingestion/sec_text_pipeline/ backend/tests/common/ -q` | ✅ 112 passed | |
+| `uv run ruff check backend/ --fix` + `uv run ruff format backend/` | ✅ clean | |
+| `uv run pytest backend/tests/ -q` | ✅ 961 passed, 49 deselected | |
+| Live smoke (orchestrator): AAPL FY2025 `parse_filing("AAPL", 2025, force=True)` real EDGAR | ✅ | 17 items; bundle metadata via public Filing API matches parsed metadata; round-trip green |

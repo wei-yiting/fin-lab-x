@@ -14,7 +14,7 @@ This pipeline is the **new parse path**. It coexists with the frozen HTML baseli
 
 | Module | Responsibility |
 |---|---|
-| `parser.py` | `parse_filing()` — the single public entry point. Fetch (via `sec_core.fetch_filing_obj`), per-Item boundary trimming, stub classification, store round-trip. Raises `EmptyFilingError` instead of caching a zero-item parse. |
+| `parser.py` | `parse_filing()` — the single public entry point. Fetch (via `sec_core.fetch_filing_bundle`), per-Item boundary trimming, stub classification, store round-trip. Raises `EmptyFilingError` instead of caching a zero-item parse. |
 | `filing_models.py` | The frozen `ParsedFiling` schema (`FilingMetadata`, `FlatItem`, `StructuredItem`, `Block`). All models forbid unknown fields so stored JSON cannot drift from the schema silently. |
 | `filing_store.py` | `LocalFilingStore` — schema-validated JSON cache under `data/sec_text/{TICKER}/10-K/{YEAR}.json`, written atomically. |
 | `stub_detection.py` | `is_stub_section_v2()` — v1 incorporated-by-reference detection plus pseudo-stub pointer patterns, via the shared `classify_stub_section` mechanism. |
@@ -23,10 +23,11 @@ This pipeline is the **new parse path**. It coexists with the frozen HTML baseli
 
 ```
 parse_filing(ticker, fiscal_year)
-  ├─ FilingStore.get()            cache hit → return (skipped with force=True)
-  ├─ sec_core.fetch_filing_obj()  EDGAR fetch (in-process LRU; filings are
-  │                               immutable per ticker+year, so force does
-  │                               not re-download)
+  ├─ FilingStore.get()              cache hit → return (skipped with force=True)
+  ├─ sec_core.fetch_filing_bundle() EDGAR fetch + citation metadata
+  │                                 (in-process LRU; filings are immutable
+  │                                 per ticker+year, so force does not
+  │                                 re-download)
   ├─ _parse_items()               per section:
   │     trim to own Item boundary → drop empty/stub/duplicate → FlatItem
   ├─ EmptyFilingError             if zero substantive items (nothing saved)

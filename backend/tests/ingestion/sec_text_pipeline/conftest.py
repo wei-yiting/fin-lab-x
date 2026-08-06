@@ -4,17 +4,18 @@
 edgartools (bodies truncated to 1,500 chars — plenty to classify, small
 enough to commit). The fakes mirror the exact slice of the edgartools
 surface that ``parse_filing`` consumes (``TenK.sections`` /
-``Section.item`` / ``Section.text()`` / the underlying ``Filing`` metadata
-attributes). No test in this package may hit EDGAR.
+``Section.item`` / ``Section.text()``), wrapped in the real
+:class:`FetchedFiling` bundle with recorded citation metadata. No test in
+this package may hit EDGAR.
 """
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
-from backend.common.sec_core import FilingType
+from backend.common.sec_core import FetchedFiling, FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import (
     Block,
     FilingMetadata,
@@ -64,30 +65,12 @@ class FakeSection:
         return self._text
 
 
-@dataclass
-class FakeAttachment:
-    document: str
-
-
-@dataclass
-class FakeFiling:
-    cik: int = int(RECORDED_FILING["cik"])
-    company: str = RECORDED_FILING["company"]
-    accession_number: str = RECORDED_FILING["accession_number"]
-    document: FakeAttachment = field(
-        default_factory=lambda: FakeAttachment(
-            document=RECORDED_FILING["primary_document"]
-        )
-    )
-
-
 class FakeTenK:
     def __init__(
         self,
         sections_data: dict[str, dict[str, str]] | None = None,
         period_of_report: str = RECORDED_FILING["period_of_report"],
         filing_date: str = RECORDED_FILING["filing_date"],
-        filing: FakeFiling | None = None,
     ) -> None:
         data = RECORDED_FILING["sections"] if sections_data is None else sections_data
         self.sections = {
@@ -96,13 +79,29 @@ class FakeTenK:
         }
         self.period_of_report = period_of_report
         self.filing_date = filing_date
-        self._filing = filing or FakeFiling()
+
+
+def make_bundle(tenk: FakeTenK) -> FetchedFiling:
+    """Wrap a FakeTenK in the real FetchedFiling with recorded metadata."""
+    return FetchedFiling(
+        tenk=tenk,
+        accession_number=RECORDED_FILING["accession_number"],
+        cik=str(RECORDED_FILING["cik"]),
+        company_name=RECORDED_FILING["company"],
+        primary_document=RECORDED_FILING["primary_document"],
+    )
 
 
 @pytest.fixture
 def fake_tenk() -> FakeTenK:
     """The recorded AAPL FY2025 filing, faked at the edgartools seam."""
     return FakeTenK()
+
+
+@pytest.fixture
+def fake_bundle(fake_tenk) -> FetchedFiling:
+    """The recorded AAPL FY2025 filing as a FetchedFiling bundle."""
+    return make_bundle(fake_tenk)
 
 
 @pytest.fixture

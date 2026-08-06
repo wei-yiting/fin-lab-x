@@ -4,7 +4,8 @@ Types: :class:`FilingType`, :class:`SECError` hierarchy,
 ``TENK_STANDARD_TITLES`` (SEC 17 CFR 229 canonical item map).
 Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`is_stub_section` (incorp-by-reference / reserved detection),
-:func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch).
+:func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch),
+:func:`fetch_filing_bundle` (same fetch plus citation metadata).
 
 Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
 :mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
@@ -15,6 +16,7 @@ import os
 import re
 import threading
 from concurrent.futures import Future
+from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -366,12 +368,25 @@ def _resolve_latest_fiscal_year(ticker: str) -> int:
     return _resolve_latest_fiscal_year_cached(ticker.strip().upper())
 
 
+@dataclass(frozen=True)
+class FetchedFiling:
+    """A fetched ``TenK`` plus its citation metadata, captured from the
+    public edgartools ``Filing`` API at fetch time so downstream callers
+    never need to reach into edgartools private attributes."""
+
+    tenk: "TenK"
+    accession_number: str
+    cik: str
+    company_name: str
+    primary_document: str
+
+
 @lru_cache(maxsize=64)
-def _fetch_filing_obj_cached(
+def _fetch_filing_bundle_cached(
     ticker_upper: str,
     filing_type: FilingType,
     fiscal_year: int | None,
-) -> "TenK":
+) -> FetchedFiling:
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
         raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
@@ -410,6 +425,14 @@ def _fetch_filing_obj_cached(
                 f"No {filing_type} filing for {ticker_upper} in fiscal year {fiscal_year}."
             )
 
+    # Capture citation metadata from the public Filing API before parsing.
+    # ``filing.document`` may trigger an extra SGML/homepage fetch inside
+    # edgartools — acceptable, it happens once per cached key.
+    accession_number = filing.accession_number
+    cik = str(filing.cik)
+    company_name = filing.company
+    primary_document = filing.document.document
+
     try:
         obj = filing.obj()
     except Exception as exc:
@@ -417,7 +440,22 @@ def _fetch_filing_obj_cached(
 
     if not isinstance(obj, TenK):
         raise SECError(f"Expected TenK, got {type(obj).__name__}")
-    return obj
+    return FetchedFiling(
+        tenk=obj,
+        accession_number=accession_number,
+        cik=cik,
+        company_name=company_name,
+        primary_document=primary_document,
+    )
+
+
+@lru_cache(maxsize=64)
+def _fetch_filing_obj_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> "TenK":
+    return _fetch_filing_bundle_cached(ticker_upper, filing_type, fiscal_year).tenk
 
 
 _inflight_lock = threading.Lock()
@@ -466,3 +504,25 @@ def fetch_filing_obj(
     finally:
         with _inflight_lock:
             _inflight.pop(key, None)
+
+
+def fetch_filing_bundle(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> FetchedFiling:
+    """Fetch a 10-K plus its citation metadata as a :class:`FetchedFiling`.
+
+    Entry point for callers that need accession number / CIK / company name /
+    primary document alongside the parsed ``TenK``, without touching
+    edgartools private attributes.
+
+    Delegates to :func:`fetch_filing_obj` first so the fetch goes through the
+    same single-flight de-dupe (which populates the underlying bundle LRU),
+    then reads the bundle back from that cache — the second call is a pure
+    in-process cache hit, so the double call costs no extra network I/O.
+
+    Same cache key and raised exceptions as :func:`fetch_filing_obj`.
+    """
+    fetch_filing_obj(ticker, filing_type, fiscal_year)
+    return _fetch_filing_bundle_cached(ticker.strip().upper(), filing_type, fiscal_year)

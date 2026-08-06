@@ -38,6 +38,11 @@ LangChain AIMessageChunk (with reasoning content_blocks)
 Part boundaries (when the open part closes):
 
 - a `text` block arrives (provider moved on to answer text),
+- a same-round tool call arrives — either normalized `content_blocks` shape
+  (`tool_call_chunk`: OpenAI/Anthropic; `tool_call`: Gemini) closes the part
+  the moment tool-call args appear (DEV-109 ruling 9, ADR-0010; supersedes
+  ADR-0008's "keep chip open" allowance — the overlap turned out to happen
+  every round, not rarely),
 - the LLM call changes (`chunk.id` transition — each round of a multi-round
   tool loop gets its own part),
 - a second `reasoning` block appears in the same chunk (OpenAI multi-summary
@@ -46,11 +51,8 @@ Part boundaries (when the open part closes):
   part, so the wire always carries a complete `start/delta*/end` — except on
   abort, which is wire-silent by design).
 
-A same-round `tool_call_chunk` block does **not** close the reasoning part
-(ratified S-chip-06): a provider may emit tool-call args before
-`reasoning-end` (e.g. Gemini), and the chip must stay open so the tool card
-renders below it, preserving arrival order. The part still closes via the
-boundaries above.
+Arrival order is preserved in all cases — the tool card still renders below
+the now-collapsed chip.
 
 Part `id`s (`reasoning-{n}`) are **unique across the whole turn**, not per
 LLM call/step: the AI SDK resets its active-reasoning map on `finish-step`
@@ -74,8 +76,12 @@ The root span's `metadata.reasoning` is written once per conversation
 | Unsupported model    | `capability == "unsupported"`                         | `"<unsupported>"` sentinel                                  |
 | Oversize payload     | rendered value UTF-8 length > 500_000 bytes           | head kept, tail truncated so the FINAL value — including the `... [truncated, original {N} bytes]` note and the aborted marker when present — fits in 500KB |
 
-On the **abort path** (`asyncio.CancelledError` through `astream_run`),
-`_handle_abort_cleanup` performs one update on the root span writing both the
+On the **abort path** — `asyncio.CancelledError` or `GeneratorExit` through
+`astream_run` (a client disconnect delivers one or the other depending on
+whether the generator is suspended at an `await` or a `yield`; both are
+`BaseException`, listed ahead of the generic `except` so neither collapses
+into the `StreamError` path) — `_handle_abort_cleanup` performs one update on
+the root span writing both the
 reasoning tail — with a trailing `=== aborted ===` marker only when a segment
 was cut mid-flight — and `metadata.status="aborted"` (the conversation-level
 abort flag; the marker owns transcript integrity, the status key owns the

@@ -12,18 +12,18 @@ Custom React hooks scoped to the streaming chat lifecycle. All hooks are pure co
 | `useToolProgress.ts`       | Accumulates `data-tool-progress` SSE events into a `{ toolCallId: message }` map for `ToolCard` display.                                                                                                                                                                                                                                         |
 | `useFollowBottom.ts`       | Auto-scrolls a scrollable element while the user is within 100px of the bottom. `forceFollowBottom()` re-latches after a new user submit.                                                                                                                                                                                                        |
 
-## Non-derived state budget (F6′ / ADR-0008 + DEV-109 ruling 11)
+## Non-derived state budget (F6′ / ADR-0008, ADR-0010 + DEV-109 ruling 11)
 
-The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Five non-derived stores are allowed, all owned by `ChatPanel`:
+The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Five non-derived stores are allowed, owned by `ChatPanel` or the hook that needs them:
 
-1. **Chip timing map** (`useReasoningTimers`) — parts carry no timestamps, so duration is measured client-side.
-2. **Global stall stopwatch** (`useStallTimer`).
+1. **Chip timing map** (`useReasoningTimers`, owned by the hook) — parts carry no timestamps, so duration is measured client-side.
+2. **Global stall stopwatch** (`useStallTimer`, owned by the hook).
 3. **Expand/collapse override map** (`Map<chipKey, boolean>` in `ChatPanel` state) — the user's toggle beats the tail-only expansion derivation; cleared on every new turn / regenerate / retry (QA16).
-4. **Placeholder grace timer** (`useDeadAirPlaceholder`'s `elapsedGapKey` + `setTimeout`-backed `PLACEHOLDER_GRACE_MS`) — the wire gives no lookahead, so a short grace window is needed to distinguish "chip collapsed → tool card next" from "chip collapsed → reply text next" without flashing the placeholder on the chip→tool micro-gap.
+4. **Placeholder grace timer** (`useDeadAirPlaceholder`'s `elapsedGapKey` + `setTimeout`-backed `PLACEHOLDER_GRACE_MS`, owned by the hook) — the wire gives no lookahead, so a short grace window is needed to distinguish "chip collapsed → tool card next" from "chip collapsed → reply text next" without flashing the placeholder on the chip→tool micro-gap.
 5. **Turn interruption record** (`interruptedMessages: Set<messageId>` in `ChatPanel` state — DEV-109 ruling 11) — once a Stop completes and status returns to `ready`, the fact that the user interrupted the turn is no longer derivable from `(status, messages)` (a Stop during the placeholder or reply text leaves no part-shape trace), so the "Interrupted" row needs its own record. Cleared on session clear; the entry is dropped when its turn is regenerated.
 
 Aborted-**chip** detection needs no store: an aborted chip is simply a reasoning part whose `state` is still `"streaming"` after the chat status left the active pair (no `reasoning-end` reached the wire).
 
 ## Testing
 
-`__tests__/useStallTimer.test.ts` locks the 10s default with fake timers (F6 ruling); `__tests__/useReasoningTimers.test.ts` covers freeze-at-tool-start, abort sampling, and per-turn reset; `__tests__/useDeadAirPlaceholder.test.ts` covers both windows plus the grace-delay suppression. Exactly one ChatPanel integration case (mocked small threshold + MSW real time) verifies the stall wiring in `components/pages/__tests__/ChatPanel.integration.test.tsx`.
+`__tests__/useStallTimer.test.ts` locks the 10s default with fake timers (F6 ruling); `__tests__/useReasoningTimers.test.ts` covers freeze-at-tool-start, abort sampling, and per-turn reset; `__tests__/useDeadAirPlaceholder.test.ts` covers all three windows plus the grace-delay suppression. Exactly one ChatPanel integration case (mocked small threshold + MSW real time) verifies the stall wiring in `components/pages/__tests__/ChatPanel.integration.test.tsx`.

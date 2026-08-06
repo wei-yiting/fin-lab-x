@@ -979,10 +979,12 @@ class TestFinalizeFeedsAccumulator:
 
 
 class TestAstreamAbortCleanup:
-    """D35 + F7 — on asyncio.CancelledError mid-stream, one update on the
-    self-owned root span writes the reasoning tail (with aborted marker when
-    a segment was cut mid-flight) plus status="aborted", then CancelledError
-    re-raises to the caller."""
+    """D35 + F7 — on asyncio.CancelledError OR GeneratorExit mid-stream (the
+    two BaseException shapes a client disconnect can deliver, depending on
+    whether the generator is suspended at a yield or an await), one update
+    on the self-owned root span writes the reasoning tail (with aborted
+    marker when a segment was cut mid-flight) plus status="aborted", then
+    the same exception re-raises to the caller."""
 
     def _astream_with_reasoning_then_cancel(self, agent: Any) -> None:
         async def mock_astream(*args, **kwargs):

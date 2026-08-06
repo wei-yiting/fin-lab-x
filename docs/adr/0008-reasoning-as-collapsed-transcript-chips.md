@@ -1,6 +1,6 @@
 # Reasoning rendered as collapsed transcript chips
 
-Status: accepted (2026-07-24) — supersedes the F5 sub-ruling "transcript never shows reasoning" (DEV-60 ruling table / DEV-105 spec).
+Status: accepted (2026-07-24) — supersedes the F5 sub-ruling "transcript never shows reasoning" (DEV-60 ruling table / DEV-105 spec). Partially superseded by [ADR-0010](0010-tool-call-arrival-closes-reasoning-part-and-terminal-tool-dead-air.md) (2026-08-04): the chip-close timing and dead-air window count described below no longer match the current implementation.
 
 Provider reasoning streams to the client as AI SDK native `reasoning-*` parts. The original F5 ruling hid reasoning from the transcript entirely, surfacing it only through an ephemeral activity indicator that disappeared once reply text started. We reversed the rendering half of that ruling: each reasoning segment renders as a collapsible transcript chip — live and auto-scrolling while streaming, collapsed to a "Thought for Xs" header afterwards — interleaved with tool cards in part order. The wire protocol and "one part per provider reasoning block" mapping are unchanged; one part = one chip.
 

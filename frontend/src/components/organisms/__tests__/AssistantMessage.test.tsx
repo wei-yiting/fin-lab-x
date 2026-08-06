@@ -26,7 +26,7 @@ describe("AssistantMessage — parts dispatch", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-yfinance" as const,
           state: "input-available",
           toolCallId: "tc-1",
           toolName: "yfinance",
@@ -51,7 +51,7 @@ describe("AssistantMessage — parts dispatch", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-a" as const,
           state: "output-available",
           toolCallId: "tc-A",
           toolName: "a",
@@ -59,7 +59,7 @@ describe("AssistantMessage — parts dispatch", () => {
           output: {},
         },
         {
-          type: "tool" as const,
+          type: "tool-b" as const,
           state: "input-available",
           toolCallId: "tc-B",
           toolName: "b",
@@ -89,7 +89,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-available",
           toolCallId: "tc-aborted",
           toolName: "x",
@@ -114,7 +114,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-streaming",
           toolCallId: "tc-aborted-streaming",
           toolName: "x",
@@ -139,7 +139,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "output-available",
           toolCallId: "tc-done",
           toolName: "x",
@@ -261,7 +261,7 @@ describe("AssistantMessage — aborted turn (derived from part shapes)", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-available",
           toolCallId: "tc-1",
           toolName: "x",
@@ -366,7 +366,7 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
       parts: [
         { type: "reasoning" as const, text: "round 1", state: "done" },
         {
-          type: "tool" as const,
+          type: "tool-list_sec_sections" as const,
           state: "output-available",
           toolCallId: "tc-1",
           toolName: "list_sec_sections",

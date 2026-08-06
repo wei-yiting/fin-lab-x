@@ -31,6 +31,9 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
       [userMsg, assistantMsg("a1", [{ type: "step-start" }])],
       [userMsg, assistantMsg("a1", [{ type: "reasoning", text: "", state: "streaming" }])],
       [userMsg, assistantMsg("a1", [{ type: "text", text: "" }])],
+      // M-1.2: a whitespace-only text delta trims to nothing in
+      // AssistantMessage, so it must not count as painted content either.
+      [userMsg, assistantMsg("a1", [{ type: "text", text: "  \n " }])],
     ];
     for (const messages of preContentShapes) {
       const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
@@ -228,6 +231,23 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
       assistantMsg("a1", [
         { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
         { type: "reasoning", text: "", state: "done" },
+      ]),
+    ];
+    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+    act(() => {
+      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
+    });
+    expect(result.current).toBe("waiting");
+  });
+
+  test("window (c) survives a whitespace-only text delta between tool rounds (M-1.2)", () => {
+    // A whitespace-only delta trims to nothing in AssistantMessage, so it
+    // must not end the dead-air window either.
+    const messages = [
+      userMsg,
+      assistantMsg("a1", [
+        { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
+        { type: "text", text: "  \n " },
       ]),
     ];
     const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));

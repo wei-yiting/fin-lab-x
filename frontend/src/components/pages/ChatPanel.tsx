@@ -5,6 +5,7 @@ import { useToolProgress } from "@/hooks/useToolProgress";
 import { useStallTimer } from "@/hooks/useStallTimer";
 import { useReasoningTimers } from "@/hooks/useReasoningTimers";
 import { useDeadAirPlaceholder } from "@/hooks/useDeadAirPlaceholder";
+import { isToolPart } from "@/lib/reasoning-chips";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
@@ -20,11 +21,6 @@ import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
 
 type PartLike = Record<string, unknown>;
-
-function isToolPart(p: PartLike): boolean {
-  const t = p.type;
-  return typeof t === "string" && (t.startsWith("tool-") || t === "dynamic-tool");
-}
 
 function getToolCallId(p: PartLike): string {
   return p.toolCallId as string;

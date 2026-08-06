@@ -21,6 +21,14 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
+from backend.common.errors import (
+    ConfigurationError,
+    FinLabError,
+    RateLimitError,
+    TickerNotFoundError,
+    TransientError,
+)
+
 if TYPE_CHECKING:
     from edgar.company_reports.ten_k import TenK  # noqa: F401
 
@@ -30,37 +38,14 @@ class FilingType(StrEnum):
     # TEN_Q = "10-Q"  # reserved for future PR
 
 
-class SECError(Exception):
+class SECError(FinLabError):
     """SEC domain base exception."""
-
-
-class TickerNotFoundError(SECError): ...
 
 
 class FilingNotFoundError(SECError): ...
 
 
 class UnsupportedFilingTypeError(SECError): ...
-
-
-class TransientError(SECError): ...
-
-
-class RateLimitError(SECError):
-    """SEC EDGAR returned HTTP 429. Carries ``retry_after`` when SEC provides
-    the ``Retry-After`` header; ``None`` means SEC did not tell us how long
-    to wait (typically corresponds to the default 10-minute IP block).
-    """
-
-    def __init__(self, ticker: str, retry_after: int | None):
-        self.retry_after = retry_after
-        msg = f"SEC EDGAR rate-limited {ticker}"
-        if retry_after is not None:
-            msg += f" (Retry-After={retry_after}s)"
-        super().__init__(msg)
-
-
-class ConfigurationError(SECError): ...
 
 
 class SectionNotFoundError(SECError): ...
@@ -237,8 +222,8 @@ def _find_by_fiscal_year(filings, fiscal_year: int):
     return None
 
 
-def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
-    """Map a raw edgartools / HTTP exception to a SECError subclass.
+def _classify_edgar_error(exc: Exception, ticker: str) -> FinLabError:
+    """Map a raw edgartools / HTTP exception to a FinLabError subclass.
 
     Returns the mapped exception (caller uses ``raise mapped from exc``).
 
@@ -247,14 +232,17 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
       (carries ``retry_after`` when SEC provides the header).
     - HTTP 5xx (``httpx.HTTPStatusError`` or ``requests.HTTPError``) →
       ``TransientError``.
-    - Existing ``SECError`` → pass through unchanged.
+    - Existing ``FinLabError`` (e.g. already-classified ``SECError``) →
+      pass through unchanged.
     - Anything else → ``TickerNotFoundError`` (empty-filings template).
     """
     try:
         from edgar.httprequests import TooManyRequestsError
 
         if isinstance(exc, TooManyRequestsError):
-            return RateLimitError(ticker, retry_after=getattr(exc, "retry_after", None))
+            return RateLimitError(
+                f"SEC EDGAR ({ticker})", retry_after=getattr(exc, "retry_after", None)
+            )
     except ImportError:
         pass
 
@@ -265,7 +253,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
             status = getattr(getattr(exc, "response", None), "status_code", None)
             if status == 429:
                 return RateLimitError(
-                    ticker,
+                    f"SEC EDGAR ({ticker})",
                     retry_after=_parse_retry_after_seconds_header(exc.response),
                 )
             if status is not None and 500 <= status < 600:
@@ -280,7 +268,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
             status = getattr(getattr(exc, "response", None), "status_code", None)
             if status == 429:
                 return RateLimitError(
-                    ticker,
+                    f"SEC EDGAR ({ticker})",
                     retry_after=_parse_retry_after_seconds_header(exc.response),
                 )
             if status is not None and 500 <= status < 600:
@@ -288,7 +276,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
     except ImportError:
         pass
 
-    if isinstance(exc, SECError):
+    if isinstance(exc, FinLabError):
         return exc
     return TickerNotFoundError(f"Ticker {ticker!r} not found on SEC EDGAR.")
 

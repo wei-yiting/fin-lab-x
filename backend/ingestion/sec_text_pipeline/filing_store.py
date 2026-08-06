@@ -18,6 +18,7 @@ import tempfile
 from pathlib import Path
 from typing import Protocol
 
+from backend.common.config import get_sec_text_dir
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
 
@@ -40,8 +41,8 @@ class FilingStore(Protocol):
 
 
 class LocalFilingStore:
-    def __init__(self, base_dir: str = "data/sec_text") -> None:
-        self._base_dir = Path(base_dir)
+    def __init__(self, base_dir: str | Path | None = None) -> None:
+        self._base_dir = Path(base_dir) if base_dir is not None else get_sec_text_dir()
 
     @staticmethod
     def _validate_ticker(ticker: str) -> str:

@@ -5,16 +5,19 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from backend.common.sec_core import (
-    TENK_STANDARD_TITLES,
+from backend.common.errors import (
     ConfigurationError,
-    FilingNotFoundError,
-    FilingType,
+    FinLabError,
     RateLimitError,
-    SECError,
-    SectionNotFoundError,
     TickerNotFoundError,
     TransientError,
+)
+from backend.common.sec_core import (
+    TENK_STANDARD_TITLES,
+    FilingNotFoundError,
+    FilingType,
+    SECError,
+    SectionNotFoundError,
     UnsupportedFilingTypeError,
     _resolve_latest_fiscal_year,
     classify_stub_section,
@@ -33,17 +36,28 @@ def test_filing_type_enum():
     assert FilingType("10-K") is FilingType.TEN_K
 
 
-def test_all_sec_errors_inherit_from_sec_error():
+def test_sec_specific_errors_inherit_from_sec_error():
     for exc_cls in (
         SectionNotFoundError,
-        TickerNotFoundError,
         FilingNotFoundError,
         UnsupportedFilingTypeError,
+    ):
+        assert issubclass(exc_cls, SECError)
+        assert issubclass(exc_cls, FinLabError)
+
+
+def test_shared_errors_inherit_from_finlab_error_not_sec_error():
+    """TickerNotFoundError/TransientError/RateLimitError/ConfigurationError are
+    single, cross-subsystem definitions in backend.common.errors — they
+    subclass FinLabError directly, not the SEC-specific SECError."""
+    for exc_cls in (
+        TickerNotFoundError,
         TransientError,
         RateLimitError,
         ConfigurationError,
     ):
-        assert issubclass(exc_cls, SECError)
+        assert issubclass(exc_cls, FinLabError)
+        assert not issubclass(exc_cls, SECError)
 
 
 def test_tenk_standard_titles_shape():

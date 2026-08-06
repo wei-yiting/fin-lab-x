@@ -5,7 +5,7 @@ import pytest
 from backend.ingestion.fundamentals_pipeline.ingestion_run_tracker import (
     track_ingestion_run,
 )
-from backend.ingestion.fundamentals_pipeline.errors import TickerNotFoundError
+from backend.common.errors import TickerNotFoundError
 
 
 def test_success_path(tmp_duckdb):

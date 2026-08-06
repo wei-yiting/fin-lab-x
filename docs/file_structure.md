@@ -86,7 +86,7 @@ Operational and validation CLIs (e.g., `embed_sec_filings.py`, `refresh_model_co
 
 ### 2.8 Testing (`backend/tests/`)
 
-Programmatic unit and integration tests with clear pass/fail criteria, mirroring the source layout: `agents/`, `api/`, `common/`, `evals/`, `ingestion/{sec_filing,sec_dense,fundamentals}_pipeline/`, `streaming/`, `tools/`, `utils/`, `integration/`. Markers deselected by default: `eval`, `integration`, `sec_integration`, `finnhub_integration` (see `pyproject.toml`).
+Programmatic unit and integration tests with clear pass/fail criteria, mirroring the source layout: `agents/`, `api/`, `common/`, `evals/`, `ingestion/{sec_filing_pipeline_html,sec_dense_pipeline_html,fundamentals_pipeline}/`, `streaming/`, `tools/`, `utils/`, `integration/`. Markers deselected by default: `eval`, `integration`, `sec_integration`, `finnhub_integration` (see `pyproject.toml`).
 
 ---
 

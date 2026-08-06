@@ -8,7 +8,7 @@ here; synoptic section reading stays on sec_filing_get_section (ADR-0010).
 
 import asyncio
 import re
-from typing import Annotated, Any
+from typing import Annotated, Any, NotRequired, TypedDict
 
 from langchain.tools import tool
 from langchain_core.tools import InjectedToolCallId
@@ -29,6 +29,30 @@ from backend.ingestion.sec_dense_pipeline.retriever import Chunk, search
 from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
 
 _TOP_K = 10
+
+
+class EvidenceChunk(TypedDict):
+    """One evidence chunk, field shape aligned to Anthropic search_result
+    (source / title / content) plus citation number and score. This schema
+    is the API contract consumed by the frontend citation resolver
+    (frontend/src/lib/sec-citations.ts) — change both sides together."""
+
+    n: int
+    source: str
+    title: str
+    subsection: NotRequired[str]
+    content: str
+    score: float
+
+
+class EvidenceGroup(TypedDict):
+    ticker: str
+    fiscal_year: int
+    item: str
+    prelude: str
+    edgar_url: str | None
+    chunks: list[EvidenceChunk]
+
 
 # Matches the vectorizer's item format ("Item 1A", "Item 7") and captures the
 # number for normalization into the sec_core key space ("1a", "7").
@@ -126,7 +150,7 @@ def _edgar_filing_url(ticker: str, fiscal_year: int) -> str | None:
     return filing.metadata.source_url
 
 
-def _build_groups(chunks: list[Chunk], edgar_url: str | None) -> list[dict[str, Any]]:
+def _build_groups(chunks: list[Chunk], edgar_url: str | None) -> list[EvidenceGroup]:
     """Group chunks by (ticker, year, item); groups ordered most-relevant
     first (max score), chunks within a group in document order (chunk_index).
     Citation numbers are sequential across the whole result."""
@@ -138,24 +162,24 @@ def _build_groups(chunks: list[Chunk], edgar_url: str | None) -> list[dict[str, 
         grouped, key=lambda key: max(c.score for c in grouped[key]), reverse=True
     )
 
-    groups: list[dict[str, Any]] = []
+    groups: list[EvidenceGroup] = []
     number = 0
     for key in ordered_keys:
         ticker, year, item = key
         members = sorted(grouped[key], key=lambda c: c.chunk_index)
-        out_chunks: list[dict[str, Any]] = []
+        out_chunks: list[EvidenceChunk] = []
         for chunk in members:
             number += 1
-            entry: dict[str, Any] = {
+            entry: EvidenceChunk = {
                 "n": number,
                 "source": _citation_id(chunk),
                 "title": _chunk_title(chunk),
+                "content": chunk.text,
+                "score": round(chunk.score, 4),
             }
             subsection = _subsection(chunk)
             if subsection:
                 entry["subsection"] = subsection
-            entry["content"] = chunk.text
-            entry["score"] = round(chunk.score, 4)
             out_chunks.append(entry)
         groups.append(
             {

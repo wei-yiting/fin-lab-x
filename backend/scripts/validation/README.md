@@ -8,7 +8,7 @@ Walks a `LocalFilingStore` cache directory, runs the cleanup-rule detectors (pag
 
 ```bash
 uv run python -m backend.scripts.validation.validate_sec_md_cleanup \
-  --cache-dir data/sec_filings \
+  --cache-dir data/sec_filings_html \
   --output artifacts/current/validation_cleanup_patterns.md
 ```
 

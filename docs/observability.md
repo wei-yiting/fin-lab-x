@@ -64,7 +64,7 @@ Sync helpers that run in a worker thread — `pipeline.download_raw`, `pipeline.
 
 Spans are created by the **calling layer**, not by pipeline modules themselves.
 
-`backend/ingestion/sec_filing_pipeline/` exposes pure data-transformation methods with no Langfuse calls. `backend/ingestion/sec_dense_pipeline/vectorizer.py` exposes `ingest_filing` and helpers with no `@observe` decorators. The `search()` function owns all span creation: it wraps its own steps with `traced_span` and wraps each call into `ingest_filing` likewise. `ingest_filing` internally wraps its own chunking/embedding/upsert steps with `traced_span` — those emit when called during JIT, and stay silent when called by the batch CLI.
+`backend/ingestion/sec_filing_pipeline_html/` exposes pure data-transformation methods with no Langfuse calls. `backend/ingestion/sec_dense_pipeline_html/vectorizer.py` exposes `ingest_filing` and helpers with no `@observe` decorators. The `search()` function owns all span creation: it wraps its own steps with `traced_span` and wraps each call into `ingest_filing` likewise. `ingest_filing` internally wraps its own chunking/embedding/upsert steps with `traced_span` — those emit when called during JIT, and stay silent when called by the batch CLI.
 
 ### Span Inventory
 

@@ -150,7 +150,7 @@ def pre_run_sec_retrieval() -> dict[str, Any]:
 
 async def run_sec_retrieval(input: Any) -> dict:
     """Retrieval-only eval task — calls search() directly, no agent, no filters."""
-    from backend.ingestion.sec_dense_pipeline.retriever import search
+    from backend.ingestion.sec_dense_pipeline_html.retriever import search
 
     question = input["question"]
     chunks = await search(query=question, top_k=10)

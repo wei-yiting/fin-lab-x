@@ -6,6 +6,12 @@ import type { SourceRef, ExtractedSources } from "@/models";
 
 const ALLOWED_PROTOCOLS = new Set(["http:", "https:"]);
 
+// Stable citation IDs from sec_filing_search results (ADR-0008). These are
+// opaque IDs, not clickable URLs — they are resolved against the same
+// message's tool result parts (see lib/sec-citations.ts) and dropped if
+// unknown, so they bypass the hostname gate but never reach an href raw.
+const SEC_ID_PROTOCOL = "sec:";
+
 const parser = unified().use(remarkParse);
 
 // LLM sometimes outputs "- [1]: URL" (bulleted ref def) — normalize to "[1]: URL"
@@ -30,6 +36,11 @@ function addSource(
   try {
     parsed = new URL(rawUrl);
   } catch {
+    return;
+  }
+
+  if (parsed.protocol === SEC_ID_PROTOCOL) {
+    seen.set(label, { label, url: rawUrl, title: rawTitle ?? undefined, hostname: "" });
     return;
   }
 

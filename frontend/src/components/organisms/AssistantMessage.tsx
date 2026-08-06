@@ -4,6 +4,7 @@ import { ToolCard } from "@/components/organisms/ToolCard";
 import { Sources } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
 import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources";
+import { buildSecEvidenceRegistry, resolveSecSources } from "@/lib/sec-citations";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus } from "@/models";
 
@@ -41,9 +42,13 @@ export function AssistantMessage({
 
   const isStreaming = status === "streaming" && isLast;
 
+  // SEC citation registry from this same message's tool result parts —
+  // stable IDs resolve only against evidence the model was actually given.
+  const secRegistry = useMemo(() => buildSecEvidenceRegistry(parts), [parts]);
+
   const extractedSources = useMemo(
-    () => (isStreaming ? [] : extractSources(concatenatedText)),
-    [concatenatedText, isStreaming],
+    () => (isStreaming ? [] : resolveSecSources(extractSources(concatenatedText), secRegistry)),
+    [concatenatedText, isStreaming, secRegistry],
   );
 
   const displayText = useMemo(() => {

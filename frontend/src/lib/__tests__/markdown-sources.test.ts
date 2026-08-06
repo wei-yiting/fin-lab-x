@@ -330,3 +330,48 @@ Body text [3] then [1] then [2].
 
   expect(result.map((r) => r.label)).toEqual(["1", "2", "3"]);
 });
+
+describe("sec:// stable citation IDs", () => {
+  test("extracts a sec:// reference definition (label, url, no hostname gate)", () => {
+    const md = `
+Supply chain risk is concentrated [1].
+
+[1]: sec://0000320193-24-000123/1a#12
+    `.trim();
+
+    const result = extractSources(md);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].label).toBe("1");
+    expect(result[0].url).toBe("sec://0000320193-24-000123/1a#12");
+  });
+
+  test("mixed sec:// and https definitions are both extracted", () => {
+    const md = `
+Claim A [1]. Claim B [2].
+
+[1]: sec://0000320193-24-000123/1a#5
+[2]: https://reuters.com/x "Reuters"
+    `.trim();
+
+    const result = extractSources(md);
+
+    expect(result.map((r) => r.label)).toEqual(["1", "2"]);
+    expect(result[0].url.startsWith("sec://")).toBe(true);
+    expect(result[1].hostname).toBe("reuters.com");
+  });
+
+  test("dangerous schemes stay blocked even alongside sec://", () => {
+    const md = `
+X [1]. Y [2].
+
+[1]: javascript:alert(1)
+[2]: sec://0000320193-24-000123/7#3
+    `.trim();
+
+    const result = extractSources(md);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].label).toBe("2");
+  });
+});

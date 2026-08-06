@@ -6,10 +6,13 @@ installed has been cleared before it runs.
 
 import pytest
 
-pytest.importorskip("braintrust_langchain")
+pytest.importorskip("braintrust")
 
-from braintrust_langchain import BraintrustCallbackHandler, set_global_handler
-from braintrust_langchain.context import braintrust_callback_handler_var
+from braintrust.integrations.langchain import (
+    BraintrustCallbackHandler,
+    set_global_handler,
+)
+from braintrust.integrations.langchain.context import braintrust_callback_handler_var
 
 
 def test_first_installs_handler():

@@ -18,7 +18,7 @@ def _reset_braintrust_global_handler():
 
 def _clear_if_available() -> None:
     try:
-        from braintrust_langchain.context import clear_global_handler
+        from braintrust.integrations.langchain.context import clear_global_handler
     except ImportError:
         return
     clear_global_handler()

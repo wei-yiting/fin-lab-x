@@ -3,8 +3,8 @@ import pytest
 from backend.common.sec_core import is_stub_section
 from backend.ingestion.sec_text_pipeline.stub_detection import is_stub_section_v2
 
-# Condensed from the real pseudo-stub bodies that motivated R8 (design.md
-# §4.6): items whose entire substance is a pointer to elsewhere in the
+# Condensed from the real pseudo-stub bodies that motivated the v2 pattern
+# set: items whose entire substance is a pointer to elsewhere in the
 # annual report — invisible to the v1 incorporated-by-reference pattern.
 JPM_ITEM_7_STYLE = (
     "Item 7. Management's discussion and analysis of financial condition "
@@ -52,7 +52,7 @@ def test_pseudo_stub_pointer_items_are_dropped(text):
 
 
 def test_large_mda_with_pointer_sentence_survives():
-    # R8 red line: v2 patterns must run through the remove-matching-
+    # Red line: v2 patterns must run through the remove-matching-
     # sentences-then-measure-remainder mechanism, never "phrase => stub".
     # A real MD&A casually saying "Reference is made to Note 12" keeps
     # tens of thousands of chars of substance after the pointer sentence

@@ -1,4 +1,4 @@
-"""Shared fixtures for Seam-1 tests.
+"""Shared fixtures for the SEC text pipeline tests.
 
 ``fixtures_aapl_fy2025.json`` is recorded from the real AAPL 10-K FY2025 via
 edgartools (bodies truncated to 1,500 chars — plenty to classify, small

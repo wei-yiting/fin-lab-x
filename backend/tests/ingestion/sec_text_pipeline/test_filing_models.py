@@ -41,7 +41,7 @@ class TestFlatItem:
     def test_flat_item_has_no_detection_source(self):
         # detection_source records which of the three detection paths found
         # block structure — a FlatItem by definition had none, so the field
-        # must not exist on it (spec: "FlatItem 不帶此欄位").
+        # must not exist on it at all (absent, not merely null).
         assert "detection_source" not in FlatItem.model_fields
 
 
@@ -79,6 +79,25 @@ class TestParsedFilingRoundTrip:
             "metadata": make_metadata().model_dump(mode="json"),
             "items": [{"kind": "markdown", "item": "2", "title": "x", "text": "y"}],
         }
+        with pytest.raises(ValidationError):
+            ParsedFiling.model_validate(payload)
+
+    def test_unknown_top_level_field_rejected(self):
+        # extra="forbid" round-trip guard: a payload field the schema does
+        # not know must fail validation, not be silently discarded (silent
+        # discard would hide schema drift in stored filings).
+        payload = ParsedFiling(
+            metadata=make_metadata(), items=[make_structured_item()]
+        ).model_dump(mode="json")
+        payload["schema_version"] = 2
+        with pytest.raises(ValidationError):
+            ParsedFiling.model_validate(payload)
+
+    def test_unknown_nested_field_rejected(self):
+        payload = ParsedFiling(
+            metadata=make_metadata(), items=[make_structured_item()]
+        ).model_dump(mode="json")
+        payload["items"][0]["confidence"] = 0.9
         with pytest.raises(ValidationError):
             ParsedFiling.model_validate(payload)
 

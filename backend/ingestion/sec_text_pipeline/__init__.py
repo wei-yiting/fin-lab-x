@@ -15,10 +15,11 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
     ParsedItem,
     StructuredItem,
 )
-from backend.ingestion.sec_text_pipeline.parser import parse_filing
+from backend.ingestion.sec_text_pipeline.parser import EmptyFilingError, parse_filing
 
 __all__ = [
     "Block",
+    "EmptyFilingError",
     "FilingMetadata",
     "FlatItem",
     "ParsedFiling",

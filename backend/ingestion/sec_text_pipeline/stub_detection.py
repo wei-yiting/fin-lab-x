@@ -1,12 +1,14 @@
 """Stub detection v2 — v1 patterns plus pseudo-stub pointer patterns.
 
 The v2 patterns cover items whose whole substance is a cross-reference to
-another part of the annual report (design.md §4.6: JPM Item 7/7A, XOM
-Item 7). They plug into :func:`backend.common.sec_core.classify_stub_section`
-— the shared remove-matching-sentences-then-measure-remainder mechanism —
-so a substantive item that merely *mentions* a cross-reference survives
-(spec R8 red line). The frozen v1 :func:`is_stub_section` never sees these
-patterns.
+another part of the annual report (observed on JPM Items 7/7A and XOM
+Item 7, which point at the glossy Annual Report pages instead of using
+incorporated-by-reference wording). They plug into
+:func:`backend.common.sec_core.classify_stub_section` — the shared
+remove-matching-sentences-then-measure-remainder mechanism — because
+pattern presence alone must never classify a stub: a 60k-char MD&A can
+casually contain one pointer sentence and has to survive. The frozen v1
+:func:`is_stub_section` never sees these patterns.
 """
 
 import re
@@ -19,9 +21,8 @@ PSEUDO_STUB_PATTERNS: tuple[re.Pattern[str], ...] = (
     # JPM Item 7: "...appears on pages 46-160 of the Annual Report."
     re.compile(r"appears\s+on\s+pages?\s+\d+", re.IGNORECASE),
     # JPM Item 7A: "Refer to the Market Risk Management section..."
-    # Deviation from the design.md §4.6 table (single-word \S+): the spec's
-    # own exemplar names a multi-word section, so we allow 1-6 words —
-    # bounded to keep the gate from spanning arbitrary prose.
+    # Section names are multi-word ("Market Risk Management"), so allow
+    # 1-6 words — bounded so the gate cannot span arbitrary prose.
     re.compile(r"refer\s+to\s+the\s+(?:\S+\s+){1,6}section", re.IGNORECASE),
 )
 

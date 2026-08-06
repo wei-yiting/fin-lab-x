@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from backend.common.sec_core import FilingType
@@ -29,14 +31,31 @@ class TestParsedStructure:
         assert all(isinstance(item, FlatItem) for item in result.items)
 
     def test_stub_items_are_dropped(self, store, fetch_calls):
-        # Recorded AAPL FY2025 reality: 6 is [Reserved]; 10/12/13 are
-        # incorporated-by-reference stubs. 11 contains real compensation
-        # prose beyond its pointer sentence — the remaining-content
-        # mechanism must keep it alive.
+        # Recorded AAPL FY2025 reality: 6 is [Reserved]; 10/11/12/13 are
+        # incorporated-by-reference stubs. Item 11's raw section text bleeds
+        # Items 12-15 onto its pure pointer stub — only after trimming to
+        # its own boundary does it classify (and drop) correctly.
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         emitted = {item.item for item in result.items}
-        assert {"6", "10", "12", "13"}.isdisjoint(emitted)
-        assert {"1", "1a", "7", "11"} <= emitted
+        assert {"6", "10", "11", "12", "13"}.isdisjoint(emitted)
+        assert {"1", "1a", "7"} <= emitted
+
+    def test_emitted_text_contains_no_foreign_item_heading(self, store, fetch_calls):
+        # Section bleed guard: edgartools returns Item 9C with "PART IIIItem
+        # 10." (and onward) glued on, and Item 11 with Items 12-15 glued on.
+        # After trimming, no emitted item's text may contain another item's
+        # heading.
+        heading_re = re.compile(r"(?<![a-z])(?i:item\s+(\d{1,2}[a-c]?)\s*\.(?!\d))")
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        for item in result.items:
+            foreign = {
+                m.group(1).lower()
+                for m in heading_re.finditer(item.text)
+                if m.group(1).lower() != item.item
+            }
+            assert not foreign, f"item {item.item} text bleeds into {foreign}"
+        nine_c = next(item for item in result.items if item.item == "9c")
+        assert "Item 10." not in nine_c.text
 
     def test_item_keys_normalized_and_titled(self, store, fetch_calls):
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
@@ -74,6 +93,35 @@ class TestParsedStructure:
         monkeypatch.setattr(parser, "fetch_filing_obj", lambda *a, **k: tenk)
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         assert [item.item for item in result.items] == ["2"]
+
+    def test_all_sections_empty_or_stub_raises_and_saves_nothing(
+        self, store, monkeypatch
+    ):
+        # A filing where every section is empty or a stub must fail loudly:
+        # caching/returning an empty ParsedFiling would look like a
+        # successful ingestion to every downstream consumer.
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_1": {"item": "1", "text": "   \n  "},
+                "part_ii_item_6": {"item": "6", "text": "Item 6. [Reserved]"},
+                "part_iii_item_11": {
+                    "item": "11",
+                    "text": (
+                        "Item 11. Executive Compensation. The information "
+                        "required by this Item is incorporated herein by "
+                        "reference from the Proxy Statement."
+                    ),
+                },
+            }
+        )
+        monkeypatch.setattr(parser, "fetch_filing_obj", lambda *a, **k: tenk)
+        with pytest.raises(parser.EmptyFilingError) as excinfo:
+            parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        # Actionable message: ticker, fiscal year, accession number.
+        assert "AAPL" in str(excinfo.value)
+        assert "2025" in str(excinfo.value)
+        assert "0000320193-25-000079" in str(excinfo.value)
+        assert store.get("AAPL", FilingType.TEN_K, 2025) is None
 
 
 class TestMetadata:

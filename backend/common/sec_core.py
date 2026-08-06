@@ -215,10 +215,10 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
     Non-stub returns ``(False, None)``. Empty / whitespace-only input is
     treated as non-stub to keep upstream code defensively simple.
 
-    Frozen v1 API (design.md §8.3 sec_core evolution rule): referenced by
-    ``sec_filing_tools`` and the ``_html`` A/B baseline — behavior must not
-    drift. Delegates to :func:`classify_stub_section` with no extras, which
-    is the bit-identical parameterization.
+    Frozen v1 API: referenced by ``sec_filing_tools`` and the ``_html``
+    A/B baseline, so its behavior must not drift while the two parse paths
+    coexist. Delegates to :func:`classify_stub_section` with no extras,
+    which is the bit-identical parameterization.
     """
     return classify_stub_section(text)
 

@@ -1,10 +1,12 @@
 """JSON filing store — the fetch+parse stage cache.
 
 Persists :class:`ParsedFiling` as schema-validated JSON under
-``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only
-(design.md §7): the human-facing view is the inspect helper, which derives
-markdown from this store. Parallel to Qdrant (the embedding-stage cache) —
-the two invalidate under different conditions, hence both exist.
+``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only:
+the human-facing view is the inspect helper, which derives markdown from
+this store. Parallel to Qdrant (the embedding-stage cache) — the two
+invalidate under different conditions (a parser change invalidates this
+store; an embedding-model change invalidates only Qdrant), hence both
+exist.
 """
 
 from __future__ import annotations

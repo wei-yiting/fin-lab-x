@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from pydantic import ValidationError
 
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
@@ -64,5 +65,5 @@ class TestValidation:
         store.save(filing)
         path = tmp_path / "AAPL" / "10-K" / "2024.json"
         path.write_text('{"metadata": {}}', encoding="utf-8")
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             store.get("AAPL", FilingType.TEN_K, 2024)

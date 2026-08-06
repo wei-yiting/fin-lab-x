@@ -318,6 +318,57 @@ describe("ChatPanel integration — aborted tools via stop", () => {
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
     expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
   }, 20000);
+});
+
+// ---------------------------------------------------------------------------
+// Stop with no chip/tool carrier (m-1.1)
+//
+// The "aborted tools via stop" server above always has a running ToolCard
+// live by the time reply text streams (tool-input-available lands before
+// text-start, with no tool result in between), so it can't exercise a Stop
+// with genuinely no chip/tool carrier. This uses a pure text-only stream.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", () => {
+  const textOnlyServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
+          );
+
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
+            );
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => textOnlyServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => textOnlyServer.resetHandlers());
+  afterAll(() => textOnlyServer.close());
 
   test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {
     const user = userEvent.setup();
@@ -327,13 +378,90 @@ describe("ChatPanel integration — aborted tools via stop", () => {
     await user.type(textarea, "test query");
     await user.click(screen.getByTestId("composer-send-btn"));
 
-    // Wait until reply text is visibly streaming (past the tool phase).
+    // Wait until reply text is visibly streaming.
     await waitFor(
       () => {
         expect(screen.getByTestId("assistant-message")).toHaveTextContent(/Looking up/);
       },
       { timeout: 10000 },
     );
+    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
+  }, 20000);
+});
+
+// ---------------------------------------------------------------------------
+// Stop during the placeholder phase (m-1.1)
+//
+// Stop can also fire before any content has arrived at all — only the
+// dead-air placeholder ("submitted"/pre-content window) is showing. That has
+// no integration coverage either; this delayed-start server holds the
+// stream at just the `start` frame so Stop lands there.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — stop during placeholder phase", () => {
+  const placeholderStopServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
+
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "late answer" })),
+          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => placeholderStopServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => placeholderStopServer.resetHandlers());
+  afterAll(() => placeholderStopServer.close());
+
+  test("stop while the dead-air placeholder is the only visible content → Interrupted marker renders", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "test query");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
+    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("composer-stop-btn"));
 

@@ -79,3 +79,19 @@
 | X-3.1 | `_is_structural_boundary`:前一字元為字母時,僅當前綴以 `PART <roman>` 結尾(`_TRAILING_PART_RE`)才視為 structural glue;其餘字母黏接(SubItem/LineItem)判為 prose。Regression test 加入 SubItem 1. / LineItem 1A. 保留案例;既有 PART-glue / newline / ALL-CAPS 測試全數維持。 | parser.py, test_parser.py |
 
 Verification: focused 130 passed; full suite 979 passed, 49 deselected; ruff clean.
+
+---
+
+# Code Review Round 4 (targeted: X-3.1)
+
+> Reviewer: gpt-5.6-sol | Date: 2026-08-06
+
+## Verdict
+
+| Issue ID | Status | Notes |
+|----------|--------|-------|
+| X-3.1 | ✅ Fixed | 一般 letter-glue(SubItem、LineItem、proseItem、ExhibitXIIIItem)不再觸發 trim;string/line start、PART IIIItem、53PART IVItem、period/digit/quote glue 與 ALL-CAPS headings 仍正確截斷。唯讀 assertion matrix 共 14 案例全數通過,未發現 fix 引入的新 trim-path defect。 |
+
+## New Issues
+
+(無)

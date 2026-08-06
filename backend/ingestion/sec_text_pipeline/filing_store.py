@@ -13,7 +13,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Protocol
 
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
@@ -21,19 +21,17 @@ from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
 _TICKER_RE = re.compile(r"^[A-Z0-9.\-]+$")
 
 
-@runtime_checkable
 class FilingStore(Protocol):
+    """What parse_filing needs from a store — nothing more (envelope §0
+    reachability). Downstream tickets widen this when they consume more
+    (e.g. the inspect CLI's listing needs).
+    """
+
     def save(self, filing: ParsedFiling) -> None: ...
 
     def get(
         self, ticker: str, filing_type: FilingType, fiscal_year: int
     ) -> ParsedFiling | None: ...
-
-    def exists(
-        self, ticker: str, filing_type: FilingType, fiscal_year: int
-    ) -> bool: ...
-
-    def list_filings(self, ticker: str, filing_type: FilingType) -> list[int]: ...
 
 
 class LocalFilingStore:
@@ -90,21 +88,3 @@ class LocalFilingStore:
         if not path.exists():
             return None
         return ParsedFiling.model_validate_json(path.read_text(encoding="utf-8"))
-
-    def exists(self, ticker: str, filing_type: FilingType, fiscal_year: int) -> bool:
-        return self._filing_path(ticker, filing_type, fiscal_year).exists()
-
-    def list_filings(self, ticker: str, filing_type: FilingType) -> list[int]:
-        directory = self._filing_dir(ticker, filing_type)
-        if not directory.exists():
-            return []
-
-        years: list[int] = []
-        for entry in directory.iterdir():
-            if entry.suffix != ".json":
-                continue
-            try:
-                years.append(int(entry.stem))
-            except ValueError:
-                continue
-        return sorted(years)

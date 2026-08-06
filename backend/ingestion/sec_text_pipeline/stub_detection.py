@@ -19,7 +19,10 @@ PSEUDO_STUB_PATTERNS: tuple[re.Pattern[str], ...] = (
     # JPM Item 7: "...appears on pages 46-160 of the Annual Report."
     re.compile(r"appears\s+on\s+pages?\s+\d+", re.IGNORECASE),
     # JPM Item 7A: "Refer to the Market Risk Management section..."
-    re.compile(r"refer\s+to\s+the\s+\S+(?:\s+\S+)*?\s+section", re.IGNORECASE),
+    # Deviation from the design.md §4.6 table (single-word \S+): the spec's
+    # own exemplar names a multi-word section, so we allow 1-6 words —
+    # bounded to keep the gate from spanning arbitrary prose.
+    re.compile(r"refer\s+to\s+the\s+(?:\S+\s+){1,6}section", re.IGNORECASE),
 )
 
 

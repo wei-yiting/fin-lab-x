@@ -4,16 +4,10 @@ import pytest
 
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
-from backend.ingestion.sec_text_pipeline.filing_store import LocalFilingStore
-from backend.tests.ingestion.sec_text_pipeline.test_filing_models import (
+from backend.tests.ingestion.sec_text_pipeline.conftest import (
     make_metadata,
     make_structured_item,
 )
-
-
-@pytest.fixture
-def store(tmp_path):
-    return LocalFilingStore(base_dir=str(tmp_path))
 
 
 @pytest.fixture
@@ -56,30 +50,8 @@ class TestRoundTrip:
         leftovers = [p for p in tmp_path.rglob("*") if p.suffix == ".tmp"]
         assert leftovers == []
 
-
-class TestMissAndListing:
     def test_get_missing_returns_none(self, store):
         assert store.get("MSFT", FilingType.TEN_K, 2024) is None
-
-    def test_exists(self, store, filing):
-        assert store.exists("AAPL", FilingType.TEN_K, 2024) is False
-        store.save(filing)
-        assert store.exists("AAPL", FilingType.TEN_K, 2024) is True
-
-    def test_list_filings_returns_sorted_years(self, store, filing):
-        store.save(filing)
-        older = filing.model_copy(update={"metadata": make_metadata(fiscal_year=2022)})
-        store.save(older)
-        assert store.list_filings("AAPL", FilingType.TEN_K) == [2022, 2024]
-
-    def test_list_filings_empty_for_unknown_ticker(self, store):
-        assert store.list_filings("MSFT", FilingType.TEN_K) == []
-
-    def test_list_filings_ignores_non_year_json(self, store, filing, tmp_path):
-        store.save(filing)
-        stray = tmp_path / "AAPL" / "10-K" / "notes.json"
-        stray.write_text("{}", encoding="utf-8")
-        assert store.list_filings("AAPL", FilingType.TEN_K) == [2024]
 
 
 class TestValidation:

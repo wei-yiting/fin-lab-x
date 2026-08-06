@@ -1,78 +1,58 @@
-"""Recorded-filing fakes for Seam-1 tests.
+"""Shared fixtures for Seam-1 tests.
 
-The fakes mirror the exact slice of the edgartools surface that
-``parse_filing`` consumes (``TenK.sections`` / ``Section.item`` /
-``Section.text()`` / the underlying ``Filing`` metadata attributes), loaded
-with item bodies condensed from real AAPL-shaped 10-K content. No test in
-this package may hit EDGAR.
+``fixtures_aapl_fy2025.json`` is recorded from the real AAPL 10-K FY2025 via
+edgartools (bodies truncated to 1,500 chars — plenty to classify, small
+enough to commit). The fakes mirror the exact slice of the edgartools
+surface that ``parse_filing`` consumes (``TenK.sections`` /
+``Section.item`` / ``Section.text()`` / the underlying ``Filing`` metadata
+attributes). No test in this package may hit EDGAR.
 """
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pytest
 
-_SUBSTANTIVE_FILLER = (
-    "Revenue increased year over year driven by demand across products and "
-    "services. Gross margin expanded on favorable mix. Operating expenses "
-    "reflected continued investment in research and development. "
-) * 10
+from backend.common.sec_core import FilingType
+from backend.ingestion.sec_text_pipeline.filing_models import (
+    Block,
+    FilingMetadata,
+    StructuredItem,
+)
+from backend.ingestion.sec_text_pipeline.filing_store import LocalFilingStore
+
+RECORDED_FILING = json.loads(
+    (Path(__file__).parent / "fixtures_aapl_fy2025.json").read_text(encoding="utf-8")
+)
 
 
-# Representative 10-K section bodies: substantive items, a v1 incorp stub
-# (Item 11), a reserved item (Item 6), and a v2 pseudo-stub (Item 7A).
-RECORDED_SECTIONS: dict[str, dict[str, str]] = {
-    "part_i_item_1": {
-        "item": "1",
-        "text": (
-            "Item 1. Business. The Company designs, manufactures and markets "
-            "smartphones, personal computers, tablets, wearables and "
-            "accessories, and sells a variety of related services. "
-            + _SUBSTANTIVE_FILLER
-        ),
-    },
-    "part_i_item_1a": {
-        "item": "1A",
-        "text": (
-            "Item 1A. Risk Factors. The Company's business, reputation, "
-            "results of operations and financial condition can be affected "
-            "by a number of factors. " + _SUBSTANTIVE_FILLER
-        ),
-    },
-    "part_ii_item_6": {
-        "item": "6",
-        "text": "Item 6. [Reserved]",
-    },
-    "part_ii_item_7": {
-        "item": "7",
-        "text": (
-            "Item 7. Management's Discussion and Analysis of Financial "
-            "Condition and Results of Operations. The following discussion "
-            "should be read in conjunction with the consolidated financial "
-            "statements. Reference is made to Note 12 for commitments. "
-            + _SUBSTANTIVE_FILLER
-        ),
-    },
-    "part_ii_item_7a": {
-        "item": "7A",
-        "text": (
-            "Item 7A. Quantitative and Qualitative Disclosures About Market "
-            "Risk. Refer to the Market Risk Management section on pages "
-            "124-131 of the Annual Report."
-        ),
-    },
-    "part_iii_item_11": {
-        "item": "11",
-        "text": (
-            "Item 11. Executive Compensation. The information required by "
-            "this Item is incorporated herein by reference from the Proxy "
-            "Statement."
-        ),
-    },
-    "part_iv_signatures": {
-        "item": "",
-        "text": "Signatures. Pursuant to the requirements of Section 13...",
-    },
-}
+def make_metadata(**overrides) -> FilingMetadata:
+    defaults = dict(
+        ticker="AAPL",
+        cik="320193",
+        company_name="Apple Inc.",
+        filing_type=FilingType.TEN_K,
+        filing_date="2024-11-01",
+        fiscal_year=2024,
+        accession_number="0000320193-24-000123",
+        primary_document="aapl-20240928.htm",
+        parsed_at="2026-08-06T12:00:00+00:00",
+    )
+    defaults.update(overrides)
+    return FilingMetadata(**defaults)
+
+
+def make_structured_item(**overrides) -> StructuredItem:
+    defaults = dict(
+        item="7",
+        title="Management's Discussion and Analysis of Financial Condition and Results of Operations",
+        prelude="The following discussion should be read in conjunction with...",
+        blocks=[Block(heading="OVERVIEW", text="We are a global leader in...")],
+        detection_source="markdown_h3",
+    )
+    defaults.update(overrides)
+    return StructuredItem(**defaults)
 
 
 @dataclass
@@ -91,11 +71,13 @@ class FakeAttachment:
 
 @dataclass
 class FakeFiling:
-    cik: int = 320193
-    company: str = "Apple Inc."
-    accession_number: str = "0000320193-24-000123"
+    cik: int = int(RECORDED_FILING["cik"])
+    company: str = RECORDED_FILING["company"]
+    accession_number: str = RECORDED_FILING["accession_number"]
     document: FakeAttachment = field(
-        default_factory=lambda: FakeAttachment(document="aapl-20240928.htm")
+        default_factory=lambda: FakeAttachment(
+            document=RECORDED_FILING["primary_document"]
+        )
     )
 
 
@@ -103,11 +85,11 @@ class FakeTenK:
     def __init__(
         self,
         sections_data: dict[str, dict[str, str]] | None = None,
-        period_of_report: str = "2024-09-28",
-        filing_date: str = "2024-11-01",
+        period_of_report: str = RECORDED_FILING["period_of_report"],
+        filing_date: str = RECORDED_FILING["filing_date"],
         filing: FakeFiling | None = None,
     ) -> None:
-        data = RECORDED_SECTIONS if sections_data is None else sections_data
+        data = RECORDED_FILING["sections"] if sections_data is None else sections_data
         self.sections = {
             name: FakeSection(item=entry["item"] or None, _text=entry["text"])
             for name, entry in data.items()
@@ -119,4 +101,10 @@ class FakeTenK:
 
 @pytest.fixture
 def fake_tenk() -> FakeTenK:
+    """The recorded AAPL FY2025 filing, faked at the edgartools seam."""
     return FakeTenK()
+
+
+@pytest.fixture
+def store(tmp_path) -> LocalFilingStore:
+    return LocalFilingStore(base_dir=str(tmp_path))

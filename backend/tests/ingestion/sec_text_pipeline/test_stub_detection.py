@@ -27,14 +27,22 @@ XOM_ITEM_7_STYLE = (
     "Annual Report."
 )
 
+XOM_ITEM_7A_STYLE = (
+    "Item 7A. Quantitative and Qualitative Disclosures About Market Risk. "
+    "Reference is made to the section entitled Market Risks, Inflation and "
+    "Other Uncertainties incorporated herein from pages 41 to 42 of the "
+    "Annual Report."
+)
+
 
 @pytest.mark.parametrize(
     "text",
-    [JPM_ITEM_7_STYLE, JPM_ITEM_7A_STYLE, XOM_ITEM_7_STYLE],
+    [JPM_ITEM_7_STYLE, JPM_ITEM_7A_STYLE, XOM_ITEM_7_STYLE, XOM_ITEM_7A_STYLE],
     ids=[
         "jpm_7_appears_on_pages",
         "jpm_7a_refer_to_section",
         "xom_7_reference_is_made",
+        "xom_7a_reference_is_made",
     ],
 )
 def test_pseudo_stub_pointer_items_are_dropped(text):

@@ -1,42 +1,16 @@
 import pytest
 from pydantic import ValidationError
 
-from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import (
-    Block,
     FilingMetadata,
     FlatItem,
     ParsedFiling,
     StructuredItem,
 )
-
-
-def make_metadata(**overrides) -> FilingMetadata:
-    defaults = dict(
-        ticker="AAPL",
-        cik="320193",
-        company_name="Apple Inc.",
-        filing_type=FilingType.TEN_K,
-        filing_date="2024-11-01",
-        fiscal_year=2024,
-        accession_number="0000320193-24-000123",
-        primary_document="aapl-20240928.htm",
-        parsed_at="2026-08-06T12:00:00+00:00",
-    )
-    defaults.update(overrides)
-    return FilingMetadata(**defaults)
-
-
-def make_structured_item(**overrides) -> StructuredItem:
-    defaults = dict(
-        item="7",
-        title="Management's Discussion and Analysis of Financial Condition and Results of Operations",
-        prelude="The following discussion should be read in conjunction with...",
-        blocks=[Block(heading="OVERVIEW", text="We are a global leader in...")],
-        detection_source="markdown_h3",
-    )
-    defaults.update(overrides)
-    return StructuredItem(**defaults)
+from backend.tests.ingestion.sec_text_pipeline.conftest import (
+    make_metadata,
+    make_structured_item,
+)
 
 
 class TestStructuredItemInvariants:

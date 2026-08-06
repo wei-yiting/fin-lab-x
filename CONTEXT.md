@@ -12,7 +12,7 @@ A versioned config directory that fully defines an Orchestrator's behavior; the 
 _Avoid_: hardcoded agent, agent subclass, workflow version (legacy code vocabulary for the config bundle, retired by the capability-tier rename — the profile's own semver still lives in the `version` field)
 
 **Capability tier**:
-One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. Only `baseline` is implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
+One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. `baseline` and `reader` are implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
 _Avoid_: v1–v5 / bare version numbers for agents (legacy naming; collides with pipeline generations, PRD phases, and external SDK versions)
 
 **Capability**:

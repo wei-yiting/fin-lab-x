@@ -34,7 +34,7 @@ The core, independent AI logic. Designed to run independently of the FastAPI ser
 - **`agents/`**: Central reasoning engine (profile-agnostic Orchestrator).
   - `base.py`: Orchestrator built on LangChain's `create_agent` (ReAct loop) plus middleware (tool-call budget, tool error handling), prompt templating, regenerate support, and tracing wiring.
   - `config_loader.py`: Pydantic-validated profile config loader (YAML-based, `extra="forbid"`).
-  - `profiles/<name>/`: One directory per Workflow Profile (`baseline`, `reader`, `quant`, `graph`, `analyst`), each holding `orchestrator_config.yaml` + optional `system_prompt.md`. Only `baseline` is fully implemented; the rest are placeholder tiers.
+  - `profiles/<name>/`: One directory per Workflow Profile (`baseline`, `reader`, `quant`, `graph`, `analyst`), each holding `orchestrator_config.yaml` + optional `system_prompt.md`. `baseline` and `reader` are fully implemented; the rest are placeholder tiers.
 - **`tools/`**: Atomic, stateless functions for data retrieval.
   - `registry.py`: Global tool registry (`register_tool` / `get_tools_by_names`); `setup_tools()` is idempotent.
   - `finnhub_tools.py` + `finnhub_client.py`: Stock quote and basic financials (LangChain-free client).

@@ -77,7 +77,7 @@ capability surface without code changes:
 | Profile | Approach | Status |
 |---|---|---|
 | `baseline` | Tool-calling ReAct over Finnhub quotes, Tavily news, SEC filing section reads | **Live default** |
-| `reader` | Long-context synthesis + RAG over SEC 10-Ks (Qdrant dense retrieval) | In development |
+| `reader` | Structured RAG over SEC 10-Ks (Qdrant dense retrieval) with chunk-level citations | **Implemented** |
 | `quant` | Text-to-SQL over structured fundamentals (DuckDB) | In development |
 | `graph` | Knowledge-graph analysis | Planned |
 | `analyst` | Combined research assistant (all capabilities) | Planned |

@@ -125,6 +125,8 @@ BASELINE_PROMPT_PATH = (
     / "system_prompt.md"
 )
 
+READER_PROMPT_PATH = BASELINE_PROMPT_PATH.parent.parent / "reader" / "system_prompt.md"
+
 PROFILES_DIR = (
     Path(__file__).resolve().parents[2] / "agent_engine" / "agents" / "profiles"
 )
@@ -139,10 +141,11 @@ _BASELINE_TOOLS = [
 ]
 
 EXPECTED_TOOLS_BY_PROFILE = {
-    # baseline additionally carries the RAG search tool (ADR-0008); the
-    # placeholder profiles stay on the two-step pair until they are real.
-    "baseline": _BASELINE_TOOLS + ["sec_filing_search"],
-    "reader": _BASELINE_TOOLS,
+    # reader carries the RAG search tool (ADR-0008; PRD Phase 2 — baseline
+    # stays on the Phase 1 two-step section reads, without vectorization).
+    # The remaining placeholder profiles stay on the two-step pair until real.
+    "baseline": _BASELINE_TOOLS,
+    "reader": _BASELINE_TOOLS + ["sec_filing_search"],
     "quant": _BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
     "graph": _BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
     "analyst": _BASELINE_TOOLS
@@ -164,6 +167,61 @@ def test_baseline_system_prompt_advertises_sec_tools():
     # Detailed strategy is no longer in the prompt — it lives in the tool output.
     assert "10-K STANDARD SECTION TITLES" not in text
     assert "{section_soft_cap_chars}" not in text
+
+
+def test_baseline_system_prompt_has_no_rag_contract():
+    """Profile-boundary guard: baseline is the PRD Phase 1 tier (whole-section
+    reads, without vectorization). The RAG search tool and the SEC CITATIONS
+    contract belong to the reader profile — leaking them into the baseline
+    prompt would advertise a tool baseline does not have and pollute the
+    cross-tier comparison basis of the golden dataset.
+    """
+    text = BASELINE_PROMPT_PATH.read_text()
+    assert "sec_filing_search" not in text
+    assert "SEC CITATIONS" not in text
+    assert "sec://" not in text
+
+
+def test_reader_system_prompt_advertises_search_and_citation_contract():
+    """The reader prompt must carry the RAG tool pointer plus the SEC
+    CITATIONS behavioral contract (inline [N], stable sec:// IDs instead of
+    model-written URLs, evidence gap annotations, pinpoint/synoptic routing
+    per ADR-0010).
+    """
+    text = READER_PROMPT_PATH.read_text()
+    assert "sec_filing_search" in text
+    assert "SEC CITATIONS" in text
+    assert "sec://" in text
+    # Routing guidance: pinpoint → search, synoptic → whole-section reads.
+    assert "Pinpoint" in text
+    assert "Synoptic" in text
+    # The two-step section tools remain available for synoptic questions.
+    assert "sec_filing_list_sections" in text
+    assert "sec_filing_get_section" in text
+
+
+def test_orchestrator_reader_renders_prompt_end_to_end(monkeypatch):
+    """Building the real reader Orchestrator must produce a non-empty rendered
+    system prompt with no unsubstituted placeholders (_render_prompt raises at
+    startup on undefined variables, so a green run proves the reader prompt
+    only references known template vars).
+    """
+    monkeypatch.setenv("EDGAR_IDENTITY", "test@example.com")
+    config = ProfileConfigLoader("reader").load()
+
+    with (
+        patch("backend.agent_engine.agents.base.init_chat_model") as mock_init,
+        patch("backend.agent_engine.agents.base.create_agent") as mock_create,
+        patch("backend.agent_engine.agents.base.RunBudgetMiddleware"),
+        patch("backend.agent_engine.agents.base.handle_tool_errors", new=MagicMock()),
+    ):
+        mock_init.return_value = MagicMock()
+        mock_create.return_value = MagicMock()
+        orch = Orchestrator(config)
+
+    assert orch.system_prompt
+    assert "sec_filing_search" in orch.system_prompt
+    assert "{max_tool_calls_per_run}" not in orch.system_prompt
 
 
 def test_baseline_system_prompt_has_no_yahoo_residue():

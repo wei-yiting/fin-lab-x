@@ -1,12 +1,6 @@
-# =============================================================================
-# NOTE: This configuration is illustrative / placeholder only.
-# The tools, model settings, and constraints below are preliminary and subject
-# to change once the reader workflow is fully implemented and validated.
-# =============================================================================
-
 version: "0.2.0"
 name: "reader"
-description: "Long-context document analysis and multi-document synthesis"
+description: "Structured RAG over SEC 10-K filings (Qdrant dense retrieval) with chunk-level citations"
 
 tools:
   - finnhub_stock_quote
@@ -14,10 +8,11 @@ tools:
   - tavily_financial_search
   - sec_filing_list_sections
   - sec_filing_get_section
+  - sec_filing_search
 
 model:
-  name: "gpt-4o"
+  name: "gpt-4o-mini"
   temperature: 0.0
 
 constraints:
-  max_tool_calls_per_run: 5
+  max_tool_calls_per_run: 10

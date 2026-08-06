@@ -497,6 +497,40 @@ def _fetch_filing_bundle_cached(
     )
 
 
+@lru_cache(maxsize=8)
+def _fetch_filing_markdown_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> str:
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+    try:
+        return filing.markdown() or ""
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper) from exc
+
+
+def fetch_filing_markdown(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> str:
+    """Fetch the filing-level markdown rendering of a filing (additive API).
+
+    The markdown's H3/H4 heading lines feed the text pipeline's block
+    detection; nothing downstream stores the markdown itself. Shares
+    :func:`_locate_filing_cached` with the other fetchers, so calling this
+    alongside :func:`fetch_filing_bundle` costs one extra document render,
+    not an extra EDGAR locate. Cache is smaller than the other LRUs because
+    whole-filing markdown strings are MB-scale.
+
+    Same exception family as :func:`fetch_filing_obj`.
+    """
+    return _fetch_filing_markdown_cached(
+        ticker.strip().upper(), filing_type, fiscal_year
+    )
+
+
 _inflight_lock = threading.Lock()
 _inflight: dict[tuple[str, FilingType, int | None], Future] = {}
 

@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from backend.common.sec_core import FetchedFiling, FilingType
+from backend.ingestion.sec_text_pipeline import parser
 from backend.ingestion.sec_text_pipeline.filing_models import (
     Block,
     FilingMetadata,
@@ -90,6 +91,13 @@ def make_bundle(tenk: FakeTenK) -> FetchedFiling:
         company_name=RECORDED_FILING["company"],
         primary_document=RECORDED_FILING["primary_document"],
     )
+
+
+@pytest.fixture(autouse=True)
+def _markdown_seam(monkeypatch):
+    """Default the filing-markdown fetch seam to empty so no test can hit
+    EDGAR through it; detection tests re-patch with fixture markdown."""
+    monkeypatch.setattr(parser, "fetch_filing_markdown", lambda *a, **k: "")
 
 
 @pytest.fixture

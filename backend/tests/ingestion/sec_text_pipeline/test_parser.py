@@ -4,7 +4,11 @@ import pytest
 
 from backend.common.sec_core import FetchedFiling, FilingType
 from backend.ingestion.sec_text_pipeline import parser
-from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
+from backend.ingestion.sec_text_pipeline.filing_models import (
+    FlatItem,
+    ParsedFiling,
+    StructuredItem,
+)
 from backend.tests.ingestion.sec_text_pipeline.conftest import (
     FakeTenK,
     make_bundle,
@@ -110,6 +114,19 @@ class TestTrimSectionText:
         )
         assert parser._trim_section_text(text, "7") == text.rstrip()
 
+    def test_quoted_cross_reference_is_preserved(self):
+        # WMT FY2025 Item 1A regression: a quoted cross-reference
+        # ('See "Item 1. Business" above') has a quote, not a space, before
+        # "Item" — it must read as prose, not as a glued structural
+        # boundary (which silently amputated 82k of 93k chars).
+        text = (
+            "Item 1A. Risk Factors\n"
+            'Competition could hurt us. See "Item 1. Business" above for '
+            "additional discussion of the competitive landscape.\n"
+            "Further substantive risk discussion continues here.\n"
+        )
+        assert parser._trim_section_text(text, "1a") == text.rstrip()
+
     def test_all_caps_foreign_heading_is_cut(self):
         # Some filings render section headings in ALL-CAPS ("ITEM 1A. RISK
         # FACTORS") — a bleed in that style must still be cut.
@@ -194,6 +211,62 @@ class TestTrimSectionText:
         assert "2025" in str(excinfo.value)
         assert "0000320193-25-000079" in str(excinfo.value)
         assert store.get("AAPL", FilingType.TEN_K, 2025) is None
+
+
+class TestDetectionWiring:
+    def test_plausible_markdown_headings_upgrade_item_to_structured(
+        self, store, monkeypatch, fake_bundle
+    ):
+        body = "Substantive business discussion line. " * 5
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_2": {
+                    "item": "2",
+                    "text": (
+                        f"Item 2. Properties\nOwned Facilities\n{body}\n"
+                        f"Leased Facilities\n{body}"
+                    ),
+                }
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(
+            parser,
+            "fetch_filing_markdown",
+            lambda *a, **k: "### Owned Facilities\n### Leased Facilities\n",
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        (item,) = result.items
+        assert isinstance(item, StructuredItem)
+        assert item.detection_source == "markdown_h3"
+        assert [b.heading for b in item.blocks] == [
+            "Owned Facilities",
+            "Leased Facilities",
+        ]
+        assert item.prelude == ""
+
+    def test_structured_items_round_trip_through_store(
+        self, store, monkeypatch, fake_bundle
+    ):
+        body = "Substantive business discussion line. " * 5
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_2": {
+                    "item": "2",
+                    "text": f"Item 2. Properties\nOwned\n{body}\nLeased\n{body}",
+                }
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_markdown", lambda *a, **k: "### Owned\n### Leased\n"
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == result
 
 
 class TestMetadata:

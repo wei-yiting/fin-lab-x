@@ -14,9 +14,10 @@ from langchain.tools import tool
 from langfuse import observe
 from pydantic import BaseModel, Field
 
+from backend.common.config import get_sec_filings_html_dir
 from backend.ingestion.sec_filing_pipeline_html import SECFilingPipeline
 
-_STORE_BASE_DIR = Path("data/sec_filings_html")
+_STORE_BASE_DIR = get_sec_filings_html_dir()
 
 
 class SecFilingDownloaderInput(BaseModel):

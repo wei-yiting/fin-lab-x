@@ -8,12 +8,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.ingestion.sec_filing_pipeline_html.__main__ import main
+from backend.common.config import get_sec_filings_html_dir
 from backend.common.sec_core import FilingType, TickerNotFoundError
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (
     FilingMetadata,
     ParsedFiling,
 )
 from backend.ingestion.sec_filing_pipeline_html.pipeline import BatchResult
+
+_EXPECTED_AAPL_PATH = str(get_sec_filings_html_dir() / "AAPL" / "10-K" / "2024.md")
 
 
 @pytest.fixture()
@@ -55,7 +58,7 @@ def test_single_basic(mock_pipeline, capsys):
     out = capsys.readouterr().out
     assert "AAPL" in out
     assert "FY2024" in out
-    assert "data/sec_filings_html/AAPL/10-K/2024.md" in out
+    assert _EXPECTED_AAPL_PATH in out
     mock_pipeline.process.assert_called_once_with("AAPL", "10-K", None, False)
 
 
@@ -97,7 +100,7 @@ def test_single_json(mock_pipeline, capsys):
     data = json.loads(out)
     assert data["metadata"]["ticker"] == "AAPL"
     assert data["content_length"] == len("# 10-K content")
-    assert data["file_path"] == "data/sec_filings_html/AAPL/10-K/2024.md"
+    assert data["file_path"] == _EXPECTED_AAPL_PATH
 
 
 def test_single_error(capsys):
@@ -204,7 +207,7 @@ def test_batch_json(sample_filing, capsys):
     out = capsys.readouterr().out
     data = json.loads(out)
     assert data["AAPL"]["status"] == "success"
-    assert data["AAPL"]["file_path"] == "data/sec_filings_html/AAPL/10-K/2024.md"
+    assert data["AAPL"]["file_path"] == _EXPECTED_AAPL_PATH
     assert data["ZZZZ"]["status"] == "error"
 
 

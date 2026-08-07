@@ -33,6 +33,9 @@ interface AssistantMessageProps {
   status?: ChatStatus;
   abortedTools: Set<string>;
   toolProgress: Record<string, string>;
+  /** The user stopped this turn (ruling 11) — gates Regenerate off, since
+   * the backend never finalized this turn's AIMessage. */
+  interrupted?: boolean;
   onRegenerate?: (messageId: string) => void;
   /** Global stall stopwatch — degraded copy consumer for streaming chip headers. */
   stalled?: boolean;
@@ -58,6 +61,7 @@ export const AssistantMessage = memo(function AssistantMessage({
   status,
   abortedTools,
   toolProgress,
+  interrupted = false,
   onRegenerate,
   stalled = false,
   getChipSeconds,
@@ -103,15 +107,18 @@ export const AssistantMessage = memo(function AssistantMessage({
   }, [concatenatedText, extractedSources, isStreaming]);
 
   // A turn aborted by Stop leaves parts frozen mid-flight: a reasoning part
-  // stuck in state "streaming" (no reasoning-end on the wire) or a tool part
-  // still in a running state once the chat is back to "ready". Derived — no
-  // per-message abort bookkeeping.
+  // stuck in state "streaming" (no reasoning-end on the wire), a tool part
+  // still in a running state, or — when Stop lands while the answer itself is
+  // streaming — a text part that never received its text-end. Derived from
+  // shape alone; the turn-level record is a separate signal (see the
+  // Regenerate gate).
   const isAbortedTurn =
     status === "ready" &&
     parts.some(
       (p) =>
         (isReasoningPart(p) && p.state === "streaming") ||
-        (isToolPart(p) && isRunningToolState(p.state as string)),
+        (isToolPart(p) && isRunningToolState(p.state as string)) ||
+        (p.type === "text" && p.state === "streaming"),
     );
 
   // 1-based reasoning ordinal per part index (chip `data-round`).
@@ -172,19 +179,19 @@ export const AssistantMessage = memo(function AssistantMessage({
       )}
 
       {/*
-        C2.a — Regenerate gating: hide when this turn has no text body to
-        meaningfully regenerate from (mid-reasoning / mid-tool aborts).
-        Backend regenerate validation requires the messageId to match a
-        finalized AIMessage in LangGraph state; aborted turns without text
-        often leave the checkpoint without one, so the request would 422.
+        Regenerate gating (C2.a). Regenerating replays the turn from the
+        backend's checkpoint, which only holds a finalized AIMessage for a
+        turn that ran to completion — so an interrupted turn 422s no matter
+        how much answer text reached the client. Both signals are needed:
+        the part shapes miss a Stop that lands between parts, and the
+        turn-level record misses an abort that never went through Stop.
       */}
       {isLast &&
         status === "ready" &&
         onRegenerate &&
         message.parts.length > 0 &&
-        (!isAbortedTurn || displayText) && (
-          <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />
-        )}
+        !isAbortedTurn &&
+        !interrupted && <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />}
     </article>
   );
 });

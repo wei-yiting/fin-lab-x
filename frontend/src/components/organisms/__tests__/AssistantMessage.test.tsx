@@ -227,10 +227,15 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
   );
 });
 
-describe("AssistantMessage — aborted turn (derived from part shapes)", () => {
-  test("aborted WITH text keeps Regenerate (there is something to regenerate from)", () => {
-    // Aborted turn shape: a reasoning part stuck in state "streaming" at
-    // status "ready" (no reasoning-end reached the wire).
+// Regenerate replays the turn from the backend's checkpoint, which only
+// holds a finalized AIMessage for turns that ran to completion. Partial text
+// on the client says nothing about that — an interrupted turn 422s whether
+// or not any answer text arrived, so every abort shape must hide the button.
+describe("AssistantMessage — aborted turn hides Regenerate", () => {
+  test("aborted mid-reasoning WITH partial text still hides Regenerate", () => {
+    // Previously this asserted the opposite, on the premise that partial text
+    // meant "there is something to regenerate from". The backend does not
+    // work that way: it 422s on the missing finalized AIMessage regardless.
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -250,6 +255,79 @@ describe("AssistantMessage — aborted turn (derived from part shapes)", () => {
       />,
     );
     expect(screen.getByText(/partial answer/)).toBeInTheDocument();
+    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
+
+  test("aborted mid-answer-text hides Regenerate (text part left streaming)", () => {
+    // The reported shape: Stop pressed while the answer streamed. Reasoning
+    // and tools all read complete, so only the text part's own state carries
+    // the abort.
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "done thinking", state: "done" },
+        { type: "text" as const, text: "partial answer", state: "streaming" },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
+
+  test("Stop recorded for this turn hides Regenerate even when every part reads complete", () => {
+    // Stop can land between parts — after text-end, before finish — leaving
+    // nothing in the part shapes to derive the abort from. The turn-level
+    // interruption record (ruling 11) is the only remaining signal.
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "done thinking", state: "done" },
+        { type: "text" as const, text: "a complete-looking answer", state: "done" },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        interrupted
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
+
+  test("a turn that finished normally still shows Regenerate", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "done thinking", state: "done" },
+        { type: "text" as const, text: "the full answer", state: "done" },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
     expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
   });
 

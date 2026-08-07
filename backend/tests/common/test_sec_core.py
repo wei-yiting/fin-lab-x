@@ -523,11 +523,12 @@ def test_fetch_filing_obj_429_raises_rate_limit_error_immediately(monkeypatch):
 
     edgartools 5.17.1 deliberately does NOT retry 429s (excluded from its
     retry predicate): a SEC 429 means the IP is blocked for ~10 minutes,
-    and an immediate retry extends the block. edgartools instead throttles
-    pre-emptively at 8 req/s, under SEC's 10 req/s cap. We honor the same
-    semantics — no retry wrapper here; the caller must wait out the block
-    on its own. This test pins that contract: exactly one ``get_filings``
-    call, no sleep, ``retry_after`` surfaced from the SEC-provided header.
+    and retrying before the block expires extends it. edgartools instead
+    throttles requests pre-emptively below SEC's rate cap. We honor the
+    same semantics — no retry wrapper here; the caller must wait out the
+    block on its own. This test pins that contract: exactly one
+    ``get_filings`` call, no sleep, ``retry_after`` surfaced from the
+    SEC-provided header.
     """
     monkeypatch.setenv("EDGAR_IDENTITY", "Test Reporter test@example.com")
 

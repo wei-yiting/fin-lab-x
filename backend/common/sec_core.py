@@ -504,7 +504,8 @@ def fetch_filing_obj(
     Raises ``ConfigurationError`` (no ``EDGAR_IDENTITY``),
     ``TickerNotFoundError``, ``UnsupportedFilingTypeError`` (20-F filer),
     ``FilingNotFoundError``, ``TransientError`` (5xx), or
-    ``RateLimitError`` (429; edgartools' retry already exhausted).
+    ``RateLimitError`` (429; surfaced immediately with ``retry_after`` —
+    edgartools does not retry rate limits).
     """
     key = (ticker.strip().upper(), filing_type, fiscal_year)
 

@@ -10,8 +10,9 @@ subsystem-specific errors. Rules going forward:
 - Never redefine a shared error class inside a subsystem.
 - Rate-limit failures are `RateLimitError` — never a `TransientError`
   subclass, because they must not enter the retry path (ADR-0013).
-- Handler layers that want "any expected domain failure" catch
-  `FinLabError`.
+- Handler layers that want "any expected failure in the shared
+  taxonomy" catch `FinLabError`. (Error families outside it — e.g. the
+  JIT retriever's local classes — are not covered; see Re-evaluate.)
 - A new subsystem adds its own base under `FinLabError` with only its
   own errors.
 - The `_html` baseline tree participates in the shared taxonomy but

@@ -4,7 +4,8 @@ Types: :class:`FilingType`, :class:`SECError` hierarchy,
 ``TENK_STANDARD_TITLES`` (SEC 17 CFR 229 canonical item map).
 Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`is_stub_section` (incorp-by-reference / reserved detection),
-:func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch).
+:func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch),
+:func:`fetch_filing_bundle` (same fetch plus citation metadata).
 
 Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
 :mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
@@ -15,6 +16,7 @@ import os
 import re
 import threading
 from concurrent.futures import Future
+from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -149,6 +151,56 @@ _STUB_REMAINING_THRESHOLD = 100
 _RESERVED_RE = re.compile(r"\[\s*reserved\s*\]", re.IGNORECASE)
 
 
+def classify_stub_section(
+    text: str,
+    extra_pointer_patterns: tuple[re.Pattern[str], ...] = (),
+) -> tuple[bool, str | None]:
+    """Classify an SEC 10-K item body as stub vs real, with a pluggable
+    pointer-pattern set.
+
+    Pointer-stub detection is a two-step mechanism, deliberately NOT a
+    "phrase present => stub" check: (1) any pointer pattern anywhere in the
+    body gates the check on; (2) sentences matching a pointer pattern are
+    removed and the *remaining* content is measured — only a body that is
+    essentially nothing but pointer sentences classifies as a stub. This
+    keeps a 60k-char MD&A that merely says "Reference is made to Note 12"
+    alive.
+
+    ``extra_pointer_patterns`` extends the built-in incorporated-by-reference
+    pattern (used by both steps). With no extras this function is exactly
+    :func:`is_stub_section` — callers needing the frozen v1 behavior keep
+    calling that; new callers (``sec_text_pipeline``) pass their own
+    pseudo-stub patterns.
+    """
+    if not text or not text.strip():
+        return (False, None)
+
+    # Reserved/deprecated check wins classification — must precede incorp
+    # check so "Item 6. [Reserved]" doesn't get classified as "incorporated".
+    compact = re.sub(r"\s+", " ", text).strip()
+    # Real reserved items are terse ("Item 6. [Reserved]" is 17 chars). 80 is an
+    # intentionally generous upper bound so minor whitespace/punctuation variants
+    # still match; anything longer is likely a section that happens to contain
+    # the word "Reserved" in prose rather than an actual reserved sentinel.
+    if len(compact) < 80 and _RESERVED_RE.search(compact):
+        return (True, "section marked as reserved/deprecated")
+
+    pointer_patterns = (_STUB_INCORP_RE, *extra_pointer_patterns)
+    if not any(p.search(text) for p in pointer_patterns):
+        return (False, None)
+
+    sentences = _STUB_SENTENCE_SPLIT_RE.split(text)
+    kept = [s for s in sentences if not any(p.search(s) for p in pointer_patterns)]
+    remaining = " ".join(kept)
+    remaining = _STUB_MARKDOWN_LINK_RE.sub("", remaining)
+    cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
+    if len(cleaned) < _STUB_REMAINING_THRESHOLD:
+        if _STUB_INCORP_RE.search(text):
+            return (True, "incorporated by reference from proxy statement")
+        return (True, "cross-reference pointer stub")
+    return (False, None)
+
+
 def is_stub_section(text: str) -> tuple[bool, str | None]:
     """Classify an SEC 10-K item body as stub vs real.
 
@@ -164,31 +216,13 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
 
     Non-stub returns ``(False, None)``. Empty / whitespace-only input is
     treated as non-stub to keep upstream code defensively simple.
+
+    Frozen v1 API: referenced by ``sec_filing_tools`` and the ``_html``
+    A/B baseline, so its behavior must not drift while the two parse paths
+    coexist. Delegates to :func:`classify_stub_section` with no extras,
+    which is the bit-identical parameterization.
     """
-    if not text or not text.strip():
-        return (False, None)
-
-    # Reserved/deprecated check wins classification — must precede incorp
-    # check so "Item 6. [Reserved]" doesn't get classified as "incorporated".
-    compact = re.sub(r"\s+", " ", text).strip()
-    # Real reserved items are terse ("Item 6. [Reserved]" is 17 chars). 80 is an
-    # intentionally generous upper bound so minor whitespace/punctuation variants
-    # still match; anything longer is likely a section that happens to contain
-    # the word "Reserved" in prose rather than an actual reserved sentinel.
-    if len(compact) < 80 and _RESERVED_RE.search(compact):
-        return (True, "section marked as reserved/deprecated")
-
-    if not _STUB_INCORP_RE.search(text):
-        return (False, None)
-
-    sentences = _STUB_SENTENCE_SPLIT_RE.split(text)
-    kept = [s for s in sentences if not _STUB_INCORP_RE.search(s)]
-    remaining = " ".join(kept)
-    remaining = _STUB_MARKDOWN_LINK_RE.sub("", remaining)
-    cleaned = re.sub(r"[\s\-\|\*]+", "", remaining)
-    if len(cleaned) < _STUB_REMAINING_THRESHOLD:
-        return (True, "incorporated by reference from proxy statement")
-    return (False, None)
+    return classify_stub_section(text)
 
 
 def _find_by_fiscal_year(filings, fiscal_year: int):
@@ -334,18 +368,36 @@ def _resolve_latest_fiscal_year(ticker: str) -> int:
     return _resolve_latest_fiscal_year_cached(ticker.strip().upper())
 
 
+@dataclass(frozen=True)
+class FetchedFiling:
+    """A fetched ``TenK`` plus its citation metadata, captured from the
+    public edgartools ``Filing`` API at fetch time so downstream callers
+    never need to reach into edgartools private attributes."""
+
+    tenk: "TenK"
+    accession_number: str
+    cik: str
+    company_name: str
+    primary_document: str
+
+
 @lru_cache(maxsize=64)
-def _fetch_filing_obj_cached(
+def _locate_filing_cached(
     ticker_upper: str,
     filing_type: FilingType,
     fiscal_year: int | None,
-) -> "TenK":
+):
+    """Locate the target ``Filing`` on SEC EDGAR (index metadata only).
+
+    Company lookup + filings listing + fiscal-year pick; does NOT call
+    ``filing.obj()`` and does NOT touch ``filing.document`` — callers
+    decide which (if any) of those extra fetches they need.
+    """
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
         raise ConfigurationError("EDGAR_IDENTITY environment variable is not set.")
 
     from edgar import Company, set_identity
-    from edgar.company_reports import TenK
 
     set_identity(identity)
 
@@ -377,6 +429,24 @@ def _fetch_filing_obj_cached(
             raise FilingNotFoundError(
                 f"No {filing_type} filing for {ticker_upper} in fiscal year {fiscal_year}."
             )
+    return filing
+
+
+@lru_cache(maxsize=64)
+def _fetch_filing_obj_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> "TenK":
+    """Locate the filing and parse it into a ``TenK``.
+
+    Deliberately does NOT read ``filing.document`` — that is an extra
+    SGML/homepage network fetch which the legacy ``fetch_filing_obj``
+    contract never performed; only the bundle path pays for it.
+    """
+    from edgar.company_reports import TenK
+
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
 
     try:
         obj = filing.obj()
@@ -386,6 +456,45 @@ def _fetch_filing_obj_cached(
     if not isinstance(obj, TenK):
         raise SECError(f"Expected TenK, got {type(obj).__name__}")
     return obj
+
+
+@lru_cache(maxsize=64)
+def _fetch_filing_bundle_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> FetchedFiling:
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+
+    # Capture citation metadata from the public Filing API. ``filing.document``
+    # may trigger an extra SGML/homepage fetch inside edgartools — acceptable,
+    # it happens once per cached key — so its failures must map to the same
+    # SECError family as the primary fetches.
+    try:
+        accession_number = filing.accession_number
+        cik = str(filing.cik)
+        company_name = filing.company
+        document = filing.document
+        primary_document = (
+            getattr(document, "document", None) if document is not None else None
+        )
+    except Exception as exc:
+        raise _classify_edgar_error(exc, ticker_upper) from exc
+
+    if not primary_document:
+        raise SECError(
+            f"Filing {accession_number} for {ticker_upper} has no primary "
+            f"document on SEC EDGAR; cannot build citation metadata."
+        )
+
+    tenk = _fetch_filing_obj_cached(ticker_upper, filing_type, fiscal_year)
+    return FetchedFiling(
+        tenk=tenk,
+        accession_number=accession_number,
+        cik=cik,
+        company_name=company_name,
+        primary_document=primary_document,
+    )
 
 
 _inflight_lock = threading.Lock()
@@ -434,3 +543,27 @@ def fetch_filing_obj(
     finally:
         with _inflight_lock:
             _inflight.pop(key, None)
+
+
+def fetch_filing_bundle(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> FetchedFiling:
+    """Fetch a 10-K plus its citation metadata as a :class:`FetchedFiling`.
+
+    Entry point for callers that need accession number / CIK / company name /
+    primary document alongside the parsed ``TenK``, without touching
+    edgartools private attributes.
+
+    Delegates to :func:`fetch_filing_obj` first so the locate+parse fetch
+    goes through the same single-flight de-dupe (which populates the shared
+    locate/obj LRUs), then assembles the bundle from those caches plus one
+    ``filing.document`` metadata read (an extra fetch only bundle callers
+    pay for, once per cached key).
+
+    Same cache key and raised exceptions as :func:`fetch_filing_obj`, plus
+    ``SECError`` when the filing has no primary document.
+    """
+    fetch_filing_obj(ticker, filing_type, fiscal_year)
+    return _fetch_filing_bundle_cached(ticker.strip().upper(), filing_type, fiscal_year)

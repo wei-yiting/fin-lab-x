@@ -46,27 +46,24 @@ HEADING_REPEAT_NOISE_THRESHOLD = 4
 
 # --- noise filter (literal blacklist + patterns), hardcoded by design -------
 
+#: Compared casefolded — one entry covers every casing variant of a heading.
 NOISE_HEADING_LITERALS: frozenset[str] = frozenset(
     {
         "TABLE OF CONTENTS",
         "FORM 10-K",
         "FORWARD-LOOKING STATEMENTS",
         "FORWARD-LOOKING INFORMATION",
-        "Forward-Looking Statements",
         "Cautionary Note About Forward-Looking Statements",
         "Cautionary Note on Forward-Looking Statements",
         "DOCUMENTS INCORPORATED BY REFERENCE",
         "SIGNATURES",
-        "Signatures",
         "POWER OF ATTORNEY",
         "AVAILABLE INFORMATION",
-        "Available Information",
         "UNITED STATES",
         "SECURITIES AND EXCHANGE COMMISSION",
         "Washington, D.C. 20549",
         "•",
         "or",
-        "OR",
     }
 )
 
@@ -89,8 +86,6 @@ NOISE_HEADING_PATTERNS: tuple[re.Pattern[str], ...] = (
 )
 
 _MD_HEADING_RE = re.compile(r"^(#{1,6}) (.+)$")
-#: The Item's own "Item 7." heading line — title metadata, not prelude prose.
-_ITEM_SELF_HEADING_RE = re.compile(r"^item\s+\d{1,2}[a-c]?\.?", re.IGNORECASE)
 
 
 def canonicalize(text: str) -> str:
@@ -118,7 +113,7 @@ class HeadingCandidates:
 
 
 _NOISE_LITERALS_CANON: frozenset[str] = frozenset(
-    canonicalize(literal) for literal in NOISE_HEADING_LITERALS
+    canonicalize(literal).casefold() for literal in NOISE_HEADING_LITERALS
 )
 
 
@@ -127,19 +122,22 @@ def _is_noise_heading(
     registrant_canon: str,
     repeat_counts: Counter[str],
 ) -> bool:
+    """Noise checks compare casefolded canonical forms: "Table of contents"
+    is the same running-header noise as "TABLE OF CONTENTS". Item-body
+    anchoring deliberately stays case-sensitive — the looser folding is
+    safe here because a wrongly-dropped candidate costs a miss, never a
+    false anchor."""
     stripped = heading.strip()
     if not stripped:
         return True
-    canon = canonicalize(stripped)
-    # Literal blacklist matches on the canonical form — a curly-dash or
-    # odd-whitespace variant of a blacklisted heading must not slip past.
-    if canon in _NOISE_LITERALS_CANON:
+    canon_fold = canonicalize(stripped).casefold()
+    if canon_fold in _NOISE_LITERALS_CANON:
         return True
     if any(p.match(stripped) for p in NOISE_HEADING_PATTERNS):
         return True
-    if registrant_canon and canon.lower() == registrant_canon:
+    if registrant_canon and canon_fold == registrant_canon:
         return True
-    return repeat_counts[canon] >= HEADING_REPEAT_NOISE_THRESHOLD
+    return repeat_counts[canon_fold] >= HEADING_REPEAT_NOISE_THRESHOLD
 
 
 def collect_heading_candidates(
@@ -161,9 +159,9 @@ def collect_heading_candidates(
             continue
         level, text = len(m.group(1)), m.group(2).strip()
         by_level.setdefault(level, []).append(text)
-        repeat_counts[canonicalize(text)] += 1
+        repeat_counts[canonicalize(text).casefold()] += 1
 
-    registrant_canon = canonicalize(registrant_name).lower()
+    registrant_canon = canonicalize(registrant_name).casefold()
 
     def clean(level: int) -> tuple[str, ...]:
         kept = [
@@ -238,12 +236,11 @@ def _assemble(
             )
         )
 
+    # The prelude is the verbatim text before the first anchor — no carve-outs.
+    # The Item's own heading line stays in it when present: harmless repetition
+    # of StructuredItem.title, and dropping lines is what zero-content-loss
+    # forbids (spec defines prelude with no exclusions).
     prelude_raw = "\n".join(lines[: anchor_idxs[0]]).strip()
-    # The Item's own heading line is title metadata (StructuredItem.title),
-    # not prelude prose — drop it before measuring validity.
-    prelude_lines = prelude_raw.splitlines()
-    if prelude_lines and _ITEM_SELF_HEADING_RE.match(prelude_lines[0].strip()):
-        prelude_raw = "\n".join(prelude_lines[1:]).strip()
 
     if len(prelude_raw) > PRELUDE_VALIDITY_CHARS:
         # Not a prelude — body text swallowed by a detection miss. Keep it

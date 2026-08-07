@@ -245,7 +245,7 @@ class TestDetectionWiring:
             "Owned Facilities",
             "Leased Facilities",
         ]
-        assert item.prelude == ""
+        assert item.prelude == "Item 2. Properties"  # verbatim, no carve-outs
 
     def test_structured_items_round_trip_through_store(
         self, store, monkeypatch, fake_bundle

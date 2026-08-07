@@ -91,9 +91,11 @@ class TestFlagshipTruePreludes:
     def test_cat_1a_prelude_attached_whole(self, parse_probe):
         risk = get_structured(parse_probe("CAT"), "1a")
         assert risk.detection_source == "markdown_h4"
-        # The largest true prelude in the 72-probe sample (2,532 chars).
+        # The largest true prelude in the 72-probe sample (~2.5k chars,
+        # verbatim — the Item's own heading line stays in it).
         assert 2400 <= len(risk.prelude) <= 2650
-        assert risk.prelude.startswith("The statements in this section")
+        assert risk.prelude.startswith("Item 1A.Risk Factors.")
+        assert "The statements in this section" in risk.prelude
         assert [b.heading for b in risk.blocks] == [
             "MACROECONOMIC RISKS",
             "OPERATIONAL RISKS",
@@ -106,7 +108,7 @@ class TestFlagshipTruePreludes:
         assert risk.detection_source == "markdown_h4"
         # True prelude ~800 chars (framing text, not swallowed body).
         assert 700 <= len(risk.prelude) <= 900
-        assert risk.prelude.startswith("The risks described below")
+        assert "The risks described below" in risk.prelude
         assert [b.heading for b in risk.blocks] == [
             "Strategic Risks",
             "Operational Risks",
@@ -143,17 +145,26 @@ class TestPseudoPreludeReclassification:
 
 
 class TestNoPreludeMultiBlock:
-    def test_wmt_1_h4_multi_block_no_prelude(self, parse_probe):
+    """The "prelude 0" probe cases: no framing prose before the first block.
+
+    Since the prelude is verbatim (no carve-outs), the Item's own heading
+    line — the only text before the first anchor — remains as a tiny
+    prelude; the assertions pin "heading line only, no prose".
+    """
+
+    def test_wmt_1_h4_multi_block_no_prelude_prose(self, parse_probe):
         business = get_structured(parse_probe("WMT"), "1")
         assert business.detection_source == "markdown_h4"
-        assert business.prelude == ""
+        assert business.prelude.upper().startswith("ITEM")
+        assert len(business.prelude) < 40  # the heading line, nothing else
         assert len(business.blocks) >= 5
         assert business.blocks[0].heading == "General"
 
-    def test_cat_1_h4_multi_block_no_prelude(self, parse_probe):
+    def test_cat_1_h4_multi_block_no_prelude_prose(self, parse_probe):
         business = get_structured(parse_probe("CAT"), "1")
         assert business.detection_source == "markdown_h4"
-        assert business.prelude == ""
+        assert business.prelude.startswith("Item 1.")
+        assert len(business.prelude) < 40
         assert len(business.blocks) >= 15
         assert business.blocks[0].heading == "General"
 

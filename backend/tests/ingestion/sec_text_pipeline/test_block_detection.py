@@ -55,6 +55,14 @@ class TestCollectHeadingCandidates:
         c = collect_heading_candidates(md, "Example Corp.")
         assert c.h3 == ("Human Capital",)
 
+    def test_literal_blacklist_matches_casing_variants(self):
+        # Recorded JPM reality: "Table of contents" (lowercase c) appears
+        # once — below the repeat threshold — so only casefolded literal
+        # matching keeps it out of the candidates.
+        md = "### Table of contents\n### Signatures\n### Human Capital\n"
+        c = collect_heading_candidates(md, "Example Corp.")
+        assert c.h3 == ("Human Capital",)
+
     def test_chapter_divider_filtered(self):
         md = "### PART I\n### PART II\n### part iv\n### Competition\n"
         c = collect_heading_candidates(md, "Example Corp.")
@@ -119,15 +127,20 @@ class TestDetectBlocks:
         assert d is not None
         assert d.detection_source == "markdown_h3"
         assert [b.heading for b in d.blocks] == ["Overview", "Competition"]
-        assert d.prelude == "Short framing prelude for every block below."
+        # The prelude is verbatim text before the first anchor — the Item's
+        # own heading line stays in it (harmless repetition of title; spec
+        # defines prelude with no carve-outs).
+        assert d.prelude == (
+            "Item 1. Business\nShort framing prelude for every block below."
+        )
         assert all(FILLER.strip() in b.text for b in d.blocks)
 
-    def test_item_self_heading_excluded_from_prelude(self):
+    def test_prelude_is_verbatim_including_self_heading_line(self):
         text = _item_text("Item 7A. Market Risk", "Overview", FILLER, "Rates", FILLER)
         c = HeadingCandidates(h3=("Overview", "Rates"), h4=())
         d = detect_blocks(text, c)
         assert d is not None
-        assert d.prelude == ""
+        assert d.prelude == "Item 7A. Market Risk"
 
     def test_h3_preferred_over_h4(self):
         text = _item_text("Overview", FILLER, "Competition", FILLER)
@@ -235,5 +248,5 @@ class TestPreludeValidity:
         preserved = "\n".join(
             [d.prelude] + [part for b in d.blocks for part in (b.heading, b.text)]
         )
-        for line in text.splitlines()[1:]:  # self-heading lives in title
+        for line in text.splitlines():  # every line, self-heading included
             assert line.strip() in preserved

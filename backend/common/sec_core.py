@@ -5,7 +5,8 @@ Types: :class:`FilingType`, :class:`SECError` hierarchy,
 Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`is_stub_section` (incorp-by-reference / reserved detection),
 :func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch),
-:func:`fetch_filing_bundle` (same fetch plus citation metadata).
+:func:`fetch_filing_bundle` (same fetch plus citation metadata),
+:func:`fetch_filing_markdown` (filing-level markdown for block detection).
 
 Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
 :mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
@@ -507,7 +508,17 @@ def _fetch_filing_markdown_cached(
     try:
         return filing.markdown() or ""
     except Exception as exc:
-        raise _classify_edgar_error(exc, ticker_upper) from exc
+        # The filing is already located, so _classify_edgar_error's
+        # TickerNotFoundError fallback would be a lie here — an
+        # unclassifiable render failure must say what actually broke.
+        mapped = _classify_edgar_error(exc, ticker_upper)
+        if isinstance(mapped, TickerNotFoundError):
+            raise SECError(
+                f"Failed to render markdown for {ticker_upper} {filing_type} "
+                f"(fiscal year {fiscal_year if fiscal_year is not None else 'latest'}, "
+                f"accession {filing.accession_number}): {exc}"
+            ) from exc
+        raise mapped from exc
 
 
 def fetch_filing_markdown(

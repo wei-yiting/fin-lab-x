@@ -13,7 +13,7 @@ subsystem — they must not redefine any of the four shared classes above.
 
 
 class FinLabError(Exception):
-    """Top-level base for all FinLab-X domain errors."""
+    """Base of FinLab-X's shared error taxonomy (SEC and fundamentals families)."""
 
 
 class TransientError(FinLabError):

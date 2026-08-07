@@ -48,7 +48,8 @@ with get_connection(":memory:") as conn:
 | `load_ticker_universe` | `.ticker_universe_loader` | Load the canonical ticker list from `config/ticker_universe.yaml`. |
 | `track_ingestion_run` | `.ingestion_run_tracker` | Context manager that writes one `ingestion_runs` audit row (success or error). Yields a `RunReport` dataclass (`rows_written_total: int`, `metadata: dict`) the caller mutates during the block. |
 | `FundamentalsPipelineError` | `.errors` | Base exception for all pipeline errors. |
-| `TransientError` | `backend.common.errors` | Retryable: network blip, 5xx, rate limit. |
+| `TransientError` | `backend.common.errors` | Retryable: network blip, 5xx. |
+| `RateLimitError` | `backend.common.errors` | Not retried — fail fast; carries `retry_after`. |
 | `TickerNotFoundError` | `backend.common.errors` | Non-retryable: ticker absent from data source. |
 | `DataValidationError` | `.errors` | Non-retryable: extracted data violates schema invariants. |
 | `ConfigurationError` | `backend.common.errors` | Non-retryable: missing env var or invalid universe YAML. |
@@ -75,7 +76,7 @@ Declare Pydantic fields that match the DDL column names exactly; omit `updated_a
 
 ## Extending the Error Taxonomy
 
-Subsystem code should subclass one of the four leaf error classes — `TransientError`, `TickerNotFoundError`, `DataValidationError`, or `ConfigurationError` — rather than `FundamentalsPipelineError` directly. Prefix the class name with the pipeline to avoid collision across subsystems (e.g., `YFinanceRateLimitError(TransientError)`, `SecXbrlParseError(DataValidationError)`).
+Subsystem code should subclass one of the four leaf error classes — `TransientError`, `TickerNotFoundError`, `DataValidationError`, or `ConfigurationError` — rather than `FundamentalsPipelineError` directly. Prefix the class name with the pipeline to avoid collision across subsystems (e.g., `SecXbrlParseError(DataValidationError)`). Rate-limit failures are the exception: use the shared `RateLimitError` from `backend.common.errors` directly — it takes a `source` argument (e.g., `RateLimitError("yfinance", retry_after=...)`), so no per-source subclass is needed, and it must never sit under `TransientError` (rate limits are not retried).
 
 ---
 

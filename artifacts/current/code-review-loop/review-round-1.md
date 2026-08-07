@@ -69,6 +69,11 @@
 - **Fix:** Update both docs to reflect actual current module ownership.
 - **Orchestrator verification:** CONFIRMED via grep — all three locations exist verbatim as described. Same class of miss as m-1.1: I updated `backend/common/README.md` but never checked these two other docs.
 
+### [Suggestion] S-1.1: `FinLabError` documentation claims a universality the codebase does not provide
+- **File:** `backend/common/errors.py` L3
+- **Suggestion:** Docstring 宣稱 ``FinLabError` is the top-level base every domain error ultimately inherits from``，但 `sec_dense_pipeline_html/retriever.py` 的 `JITTickerNotFoundError`、`EmbeddingServiceError`、`CorpusUnavailableError` 等仍直接繼承 `Exception`。避免為了符合文字而擴大本 slice；將說明收窄為「shared SEC/fundamentals errors 的共同 base」，不要暗示 `except FinLabError` 能捕捉所有 expected domain failures。
+- **Orchestrator note (added at restoration, round 2 m-2.4):** this finding was present in the reviewer's original output but omitted from this record during transcription; restored verbatim for audit-trail completeness.
+
 ## Documentation Gaps
 
 None beyond what's captured in m-1.1/m-1.2 above.

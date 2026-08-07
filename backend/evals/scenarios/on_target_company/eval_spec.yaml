@@ -1,0 +1,22 @@
+name: on_target_company
+csv: dataset.csv
+
+regression:
+  # The judge has NOT been validated against human-labeled ground truth
+  # (no TPR/TNR measured). Calibration labels are owned by DEV-96.
+  enabled: true
+
+task:
+  function: backend.evals.eval_tasks.run_baseline
+
+column_mapping:
+  prompt: input
+  ticker: expected.ticker
+
+scorers:
+  - name: on_target_company
+    type: llm_judge
+    model: gpt-4o
+    use_cot: true
+    temperature: 0
+    rubric_file: rubric.md

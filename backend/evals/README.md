@@ -141,6 +141,10 @@ scenarios/
 │   ├── eval_spec.yaml     # Task function, column mapping, scorer list
 │   ├── dataset.csv        # Test cases (one row = one eval case)
 │   └── scorer.py          # Scoring functions (tool_arg_no_cjk, response_language)
+├── on_target_company/
+│   ├── eval_spec.yaml     # LLM-judge scorer for on-target company focus
+│   ├── dataset.csv        # Test cases (one row = one eval case)
+│   └── rubric.md          # Judge rubric (referenced via rubric_file)
 └── sec_retrieval/
     ├── eval_spec.yaml     # Retrieval scorers (recall, MRR, MAP), status: draft
     ├── dataset.csv        # 10 queries across 3 query types (see scenario README)
@@ -169,6 +173,10 @@ name: string                    # Scenario name, also used as Braintrust experim
 status: string                  # (optional) "draft" prints a warning; omit for production scenarios
 csv: string                     # Dataset filename (default: dataset.csv)
 
+regression:
+  enabled: bool                 # Required, no default — every scenario must declare
+                                # its gate membership; a spec without it fails to load
+
 task:
   function: string              # Python dotpath, e.g. "backend.evals.eval_tasks.run_v1"
 
@@ -184,10 +192,17 @@ column_types:                   # (optional) pin how specific CSV columns are pa
 scorers:
   - name: string
     function: string            # Python dotpath, e.g. "backend.evals.scenarios.language_policy.scorer.response_language"
+    gate: bool                  # (optional) Counts toward the regression gate, default true
+    metric_floor: float         # (optional) Dataset-level metric floor for the gate,
+                                # default 1.0; only meaningful when gate is true
 
   - name: string
     type: llm_judge
-    rubric: string              # Mustache template, can use {{input}}, {{expected.field}}
+    rubric_file: string         # Rubric file path, relative to the scenario dir.
+                                # Required for llm_judge; inline `rubric:` in the
+                                # YAML is rejected at load time. The file content
+                                # is a Mustache template, can use {{input}},
+                                # {{expected.field}}
     model: string               # (optional) LLM model, e.g. "gpt-4o"
     use_cot: bool               # (optional) Chain-of-thought before scoring, default false
     temperature: float          # (optional) Judge sampling temperature, default 0.0; llm_judge only

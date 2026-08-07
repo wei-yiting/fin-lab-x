@@ -179,7 +179,7 @@ The shared foundation lives under `backend/ingestion/fundamentals_pipeline/`:
 - `duck_db/connection.py`, `duck_db/upsert.py`, `duck_db/row_models.py` — connection bootstrap, idempotent column-level merge (`updated_at` managed by the helper, not declared in DTOs), and five Pydantic row DTOs.
 - `calendar_to_fiscal_period.py` — `normalize_fiscal_period(period_end, fiscal_year_end_month)` maps a calendar `period_end` date to `(fiscal_year, fiscal_quarter)`; the only supported conversion path.
 - `ingestion_run_tracker.py` — `ingestion_run(...)` context manager writes one audit row per ETL invocation (success or error) to `ingestion_runs`; records `report.rows_written_total` on both paths so partial-write counts survive exceptions.
-- `retry.py`, `errors.py` — `with_retry` exponential-backoff decorator scoped to `TransientError`, plus a six-class flat error taxonomy (root + five leaves) that subsystems subclass for domain-specific errors.
+- `errors.py` — pipeline-specific errors only (`FundamentalsPipelineError` base, `DataValidationError`, `SchemaError`). Cross-subsystem errors (`TransientError`, `TickerNotFoundError`, `ConfigurationError`, `RateLimitError`) live in `backend/common/errors.py` under the shared `FinLabError` base, and retry behavior is the shared tenacity decorator in `backend/common/retry.py`.
 - `config/ticker_universe.yaml` + `ticker_universe_loader.py` — canonical ten-ticker cross-industry universe shared by batch CLI, `validate` subcommand, and agent-side boundary checks.
 
 Subsystem fetchers (yfinance and SEC XBRL) consume this foundation and are out of scope for the foundation PR.

@@ -1,8 +1,7 @@
 """Shared error taxonomy — single definition point for FinLab-X.
 
-:class:`FinLabError` is the top-level base every domain error ultimately
-inherits from, so a CLI or handler layer can catch one class and mean "any
-expected domain failure." :class:`TransientError`, :class:`TickerNotFoundError`,
+:class:`FinLabError` is the shared base for the SEC and fundamentals error
+families, so a CLI or handler layer can catch both with a single ``except``. :class:`TransientError`, :class:`TickerNotFoundError`,
 :class:`ConfigurationError`, and :class:`RateLimitError` are cross-subsystem
 concepts (any data source can hit a transient failure, an unknown identifier,
 missing config, or a rate limit) and are defined exactly once here.

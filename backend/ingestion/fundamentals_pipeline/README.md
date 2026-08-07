@@ -47,12 +47,11 @@ with get_connection(":memory:") as conn:
 | `normalize_fiscal_period` | `.calendar_to_fiscal_period` | Convert a calendar `period_end` date to `(fiscal_year, fiscal_quarter)` using FYE month. |
 | `load_ticker_universe` | `.ticker_universe_loader` | Load the canonical ticker list from `config/ticker_universe.yaml`. |
 | `track_ingestion_run` | `.ingestion_run_tracker` | Context manager that writes one `ingestion_runs` audit row (success or error). Yields a `RunReport` dataclass (`rows_written_total: int`, `metadata: dict`) the caller mutates during the block. |
-| `with_retry` | `.retry` | Decorator that retries `TransientError` subclasses with exponential backoff. |
 | `FundamentalsPipelineError` | `.errors` | Base exception for all pipeline errors. |
-| `TransientError` | `.errors` | Retryable: network blip, 5xx, rate limit. |
-| `TickerNotFoundError` | `.errors` | Non-retryable: ticker absent from data source. |
+| `TransientError` | `backend.common.errors` | Retryable: network blip, 5xx, rate limit. |
+| `TickerNotFoundError` | `backend.common.errors` | Non-retryable: ticker absent from data source. |
 | `DataValidationError` | `.errors` | Non-retryable: extracted data violates schema invariants. |
-| `ConfigurationError` | `.errors` | Non-retryable: missing env var or invalid universe YAML. |
+| `ConfigurationError` | `backend.common.errors` | Non-retryable: missing env var or invalid universe YAML. |
 | `SchemaError` | `.errors` | Non-retryable: `schema.sql` missing or failed to apply at connect time. |
 | `traced_span` | `backend.utils.span_tracing` | **Cross-pipeline utility** (not in this package). Yields a Langfuse span when an outer trace is active; no-op otherwise. |
 
@@ -62,7 +61,7 @@ with get_connection(":memory:") as conn:
 
 - **Single writer**: DuckDB does not support concurrent writers. Batch CLI scripts must serialize across tickers (e.g., sequential loop, not `multiprocessing`).
 - **`updated_at` is managed by `upsert_rows()`**: Do not declare `updated_at` in any row DTO. The upsert sets it to `now()` on every write.
-- **`span_tracing.py` lives in `backend/utils/`** (cross-pipeline utility shared with the SEC dense pipeline). `retry.py` lives in this package because retry behavior is pipeline-scoped.
+- **`span_tracing.py` lives in `backend/utils/`** (cross-pipeline utility shared with the SEC dense pipeline). Retry behavior is repo-wide: use `retry_transient` from `backend/common/retry.py` (see [ADR-0013](../../../docs/adr/0013-single-tenacity-retry-policy.md)).
 - **`get_connection` signature**: Pass an explicit path or `":memory:"` for tests. In production the path falls back to `$DUCKDB_PATH` env var, then `data/fundamentals.db`.
 - **Audit semantics**: `track_ingestion_run()` records `report.rows_written_total` on both success and error paths. Callers should increment only AFTER a successful write (e.g., `report.rows_written_total += upsert_rows(...)`), so partial-write counts remain accurate when an exception interrupts mid-batch.
 

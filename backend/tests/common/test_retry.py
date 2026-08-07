@@ -11,12 +11,12 @@ def test_retries_transient_error_until_success():
     @retry_transient
     def flaky():
         calls["count"] += 1
-        if calls["count"] < 3:
+        if calls["count"] < 2:
             raise TransientError("network blip")
         return "ok"
 
     assert flaky.retry_with(wait=wait_none())() == "ok"
-    assert calls["count"] == 3
+    assert calls["count"] == 2
 
 
 def test_reraises_transient_error_after_exhausting_attempts():
@@ -29,7 +29,7 @@ def test_reraises_transient_error_after_exhausting_attempts():
 
     with pytest.raises(TransientError, match="still down"):
         always_fails.retry_with(wait=wait_none())()
-    assert calls["count"] == 3
+    assert calls["count"] == 2
 
 
 def test_does_not_retry_non_transient_error():

@@ -110,25 +110,41 @@ scorers:
 
 
 @pytest.mark.parametrize(
-    "scorer_yaml",
+    ("scorer_yaml", "expected_message"),
     [
-        """
+        pytest.param(
+            """
   - name: judge_score
     type: llm_judge
     function: backend.evals.scenarios.example.scorer.score_response
-    rubric: Evaluate response quality
+    rubric_file: judge_rubric.md
 """,
-        """
+            "cannot mix programmatic and llm_judge",
+            id="mixed-mode",
+        ),
+        pytest.param(
+            """
   - name: judge_score
     type: llm_judge
     model: gpt-4.1
 """,
+            "must include rubric_file",
+            id="judge-without-rubric-file",
+        ),
     ],
 )
 def test_load_scenario_config_invalid_scorer_shape_fails(
     tmp_path: Path,
     scorer_yaml: str,
+    expected_message: str,
 ) -> None:
+    """Each invalid shape fails for its own reason, not an earlier guard's.
+
+    The mixed-mode case references a real rubric_file on purpose: an inline
+    rubric would be rejected at the YAML boundary first and leave the
+    programmatic/llm_judge conflict untested.
+    """
+    (tmp_path / "judge_rubric.md").write_text("Evaluate response quality")
     config_path = tmp_path / "eval_spec.yaml"
     scorer_block = textwrap.indent(textwrap.dedent(scorer_yaml).strip(), "  ")
     config_path.write_text(
@@ -147,7 +163,7 @@ def test_load_scenario_config_invalid_scorer_shape_fails(
         )
     )
 
-    with pytest.raises(ValueError, match=f"Invalid scenario config in {config_path}"):
+    with pytest.raises(ValueError, match=expected_message):
         load_scenario_config(config_path)
 
 
@@ -701,10 +717,19 @@ scorers:
 
 REAL_SCENARIOS_DIR = Path(__file__).parents[2] / "evals" / "scenarios"
 
-
-@pytest.mark.parametrize(
-    "scenario", ["language_policy", "on_target_company", "sec_retrieval"]
+# Discovered rather than hand-listed: a new scenario that forgets its
+# regression declaration must fail here without anyone remembering to add it.
+REAL_SCENARIOS = sorted(
+    spec.parent.name for spec in REAL_SCENARIOS_DIR.glob("*/eval_spec.yaml")
 )
+
+
+def test_real_scenario_discovery_is_not_empty() -> None:
+    """Guard the glob above: zero scenarios would silently run zero tests."""
+    assert REAL_SCENARIOS
+
+
+@pytest.mark.parametrize("scenario", REAL_SCENARIOS)
 def test_real_scenario_specs_load(scenario: str) -> None:
     """Every shipped scenario satisfies the gate contract on load."""
     config = load_scenario_config(REAL_SCENARIOS_DIR / scenario / "eval_spec.yaml")

@@ -6,6 +6,7 @@ import { useStallTimer } from "@/hooks/useStallTimer";
 import { useReasoningTimers } from "@/hooks/useReasoningTimers";
 import { useDeadAirPlaceholder } from "@/hooks/useDeadAirPlaceholder";
 import { isToolPart } from "@/lib/reasoning-chips";
+import { STREAM_THROTTLE_MS } from "@/lib/timing";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
@@ -64,6 +65,7 @@ export function ChatPanel() {
   const { messages, setMessages, sendMessage, regenerate, stop, status, error } = useChat({
     id: chatId,
     transport,
+    experimental_throttle: STREAM_THROTTLE_MS,
     onData,
     onFinish: ({ isAbort, isDisconnect, isError }) => {
       // Only the natural-completion path should trigger the SR "Response

@@ -110,7 +110,12 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
                     status={status}
                     abortedTools={abortedTools}
                     toolProgress={toolProgress}
-                    onRegenerate={onRegenerate}
+                    // Only the last message renders a Regenerate button, and
+                    // this callback closes over `messages` — so its identity
+                    // changes on every delta. Handing it to the earlier
+                    // messages too would break their memoization for a button
+                    // they never show.
+                    onRegenerate={isLast ? onRegenerate : undefined}
                     stalled={stalled}
                     getChipSeconds={getChipSeconds}
                     chipOverrides={chipOverrides}

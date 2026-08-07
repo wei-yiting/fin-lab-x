@@ -14,16 +14,14 @@ uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
 
 # Specific year
 uv run python -m backend.scripts.embed_sec_filings NVDA --year 2024
-
-# Custom retry count
-uv run python -m backend.scripts.embed_sec_filings NVDA AAPL --max-retries 5
 ```
 
 | Argument | Required | Description |
 |---|---|---|
 | `tickers` (positional) | Yes | One or more ticker symbols to ingest |
 | `--year` | No | Fiscal year to ingest (default: EDGAR's latest) |
-| `--max-retries` | No | Max retry attempts per ticker (default: 3) |
+
+Transient-failure retry lives inside `SECFilingPipeline.process` (not this script); failed tickers appear as `failed` in the summary and the script exits with code 1.
 
 The script intentionally runs without Langfuse tracing — observability lives in the `search()` JIT path only.
 

@@ -5,16 +5,19 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from backend.common.sec_core import (
-    TENK_STANDARD_TITLES,
+from backend.common.errors import (
     ConfigurationError,
-    FilingNotFoundError,
-    FilingType,
+    FinLabError,
     RateLimitError,
-    SECError,
-    SectionNotFoundError,
     TickerNotFoundError,
     TransientError,
+)
+from backend.common.sec_core import (
+    TENK_STANDARD_TITLES,
+    FilingNotFoundError,
+    FilingType,
+    SECError,
+    SectionNotFoundError,
     UnsupportedFilingTypeError,
     _resolve_latest_fiscal_year,
     classify_stub_section,
@@ -33,17 +36,28 @@ def test_filing_type_enum():
     assert FilingType("10-K") is FilingType.TEN_K
 
 
-def test_all_sec_errors_inherit_from_sec_error():
+def test_sec_specific_errors_inherit_from_sec_error():
     for exc_cls in (
         SectionNotFoundError,
-        TickerNotFoundError,
         FilingNotFoundError,
         UnsupportedFilingTypeError,
+    ):
+        assert issubclass(exc_cls, SECError)
+        assert issubclass(exc_cls, FinLabError)
+
+
+def test_shared_errors_inherit_from_finlab_error_not_sec_error():
+    """TickerNotFoundError/TransientError/RateLimitError/ConfigurationError are
+    single, cross-subsystem definitions in backend.common.errors — they
+    subclass FinLabError directly, not the SEC-specific SECError."""
+    for exc_cls in (
+        TickerNotFoundError,
         TransientError,
         RateLimitError,
         ConfigurationError,
     ):
-        assert issubclass(exc_cls, SECError)
+        assert issubclass(exc_cls, FinLabError)
+        assert not issubclass(exc_cls, SECError)
 
 
 def test_tenk_standard_titles_shape():
@@ -507,10 +521,12 @@ def _make_429_httpx_error(retry_after: str | None = None) -> httpx.HTTPStatusErr
 def test_fetch_filing_obj_429_raises_rate_limit_error_immediately(monkeypatch):
     """429 → RateLimitError with retry_after populated, no retry attempt.
 
-    edgartools already runs its own exponential-backoff retries before any
-    429 reaches this layer. We intentionally do NOT wrap an additional
-    retry here — the caller must wait (typically ~10 minutes) before
-    retrying on its own. This test pins that contract: exactly one
+    edgartools 5.17.1 deliberately does NOT retry 429s (excluded from its
+    retry predicate): a SEC 429 means the IP is blocked for ~10 minutes,
+    and retrying before the block expires extends it. edgartools instead
+    throttles requests pre-emptively below SEC's rate cap. We honor the
+    same semantics — no retry wrapper here; the caller must wait out the
+    block on its own. This test pins that contract: exactly one
     ``get_filings`` call, no sleep, ``retry_after`` surfaced from the
     SEC-provided header.
     """

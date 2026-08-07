@@ -45,7 +45,7 @@ from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_er
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
 from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
-from backend.common.sec_core import ConfigurationError
+from backend.common.errors import ConfigurationError
 
 
 # Captured once per Python process. Lets engineers distinguish pre/post-restart

@@ -55,7 +55,7 @@ The thicker dependency on the agent side is intentional: agent calls are the lat
 
 ## Design note: no app-level retry on SEC 429
 
-By the time `_classify_edgar_error` sees a `TooManyRequestsError`, edgartools' own backoff is exhausted and SEC has typically issued a ~10-minute IP block; SEC's docs warn against immediate retry. We surface `RateLimitError` with the `Retry-After` seconds populated and let the caller stop rather than spin.
+edgartools does not retry a 429 — it honors SEC's rate limit pre-emptively by throttling requests below the cap instead. When `_classify_edgar_error` sees a `TooManyRequestsError`, SEC has typically issued a ~10-minute IP block, and retrying before it expires extends the block. We surface `RateLimitError` with the `Retry-After` seconds populated and let the caller stop rather than spin.
 
 ## Extending to a new SEC filing type
 

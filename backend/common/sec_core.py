@@ -5,7 +5,8 @@ Types: :class:`FilingType`, :class:`SECError` hierarchy,
 Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`is_stub_section` (incorp-by-reference / reserved detection),
 :func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch),
-:func:`fetch_filing_bundle` (same fetch plus citation metadata).
+:func:`fetch_filing_bundle` (same fetch plus citation metadata),
+:func:`fetch_filing_markdown` (filing-level markdown for block detection).
 
 Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
 :mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
@@ -456,8 +457,8 @@ def _fetch_filing_bundle_cached(
 
     # Capture citation metadata from the public Filing API. ``filing.document``
     # may trigger an extra SGML/homepage fetch inside edgartools — acceptable,
-    # it happens once per cached key — so its failures must map to the same
-    # SECError family as the primary fetches.
+    # it happens once per cached key — so its failures must go through the
+    # same FinLabError classification as the primary fetches.
     try:
         accession_number = filing.accession_number
         cik = str(filing.cik)
@@ -482,6 +483,50 @@ def _fetch_filing_bundle_cached(
         cik=cik,
         company_name=company_name,
         primary_document=primary_document,
+    )
+
+
+@lru_cache(maxsize=8)
+def _fetch_filing_markdown_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> str:
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+    try:
+        return filing.markdown() or ""
+    except Exception as exc:
+        # The filing is already located, so _classify_edgar_error's
+        # TickerNotFoundError fallback would be a lie here — an
+        # unclassifiable render failure must say what actually broke.
+        mapped = _classify_edgar_error(exc, ticker_upper)
+        if isinstance(mapped, TickerNotFoundError):
+            raise SECError(
+                f"Failed to render markdown for {ticker_upper} {filing_type} "
+                f"(fiscal year {fiscal_year if fiscal_year is not None else 'latest'}, "
+                f"accession {filing.accession_number}): {exc}"
+            ) from exc
+        raise mapped from exc
+
+
+def fetch_filing_markdown(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> str:
+    """Fetch the filing-level markdown rendering of a filing (additive API).
+
+    The markdown's H3/H4 heading lines feed the text pipeline's block
+    detection; nothing downstream stores the markdown itself. Shares
+    :func:`_locate_filing_cached` with the other fetchers, so calling this
+    alongside :func:`fetch_filing_bundle` costs one extra document render,
+    not an extra EDGAR locate. Cache is smaller than the other LRUs because
+    whole-filing markdown strings are MB-scale.
+
+    Same exception family as :func:`fetch_filing_obj`.
+    """
+    return _fetch_filing_markdown_cached(
+        ticker.strip().upper(), filing_type, fiscal_year
     )
 
 

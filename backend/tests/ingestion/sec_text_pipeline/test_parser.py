@@ -110,6 +110,19 @@ class TestTrimSectionText:
         )
         assert parser._trim_section_text(text, "7") == text.rstrip()
 
+    def test_quoted_cross_reference_is_preserved(self):
+        # WMT FY2025 Item 1A regression: a quoted cross-reference
+        # ('See "Item 1. Business" above') has a quote, not a space, before
+        # "Item" — it must read as prose, not as a glued structural
+        # boundary (which silently amputated 82k of 93k chars).
+        text = (
+            "Item 1A. Risk Factors\n"
+            'Competition could hurt us. See "Item 1. Business" above for '
+            "additional discussion of the competitive landscape.\n"
+            "Further substantive risk discussion continues here.\n"
+        )
+        assert parser._trim_section_text(text, "1a") == text.rstrip()
+
     def test_all_caps_foreign_heading_is_cut(self):
         # Some filings render section headings in ALL-CAPS ("ITEM 1A. RISK
         # FACTORS") — a bleed in that style must still be cut.

@@ -22,6 +22,7 @@ from backend.common.sec_core import (
     _resolve_latest_fiscal_year,
     classify_stub_section,
     fetch_filing_bundle,
+    fetch_filing_markdown,
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
@@ -761,3 +762,78 @@ def test_fetch_filing_obj_ticker_not_found_both_forms_empty(mock_edgar):
     with pytest.raises(TickerNotFoundError) as exc_info:
         fetch_filing_obj("ZZZZ", FilingType.TEN_K, 2025)
     assert "ZZZZ" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# fetch_filing_markdown
+# ---------------------------------------------------------------------------
+
+
+class _MarkdownFiling:
+    """Filing mock whose markdown() behavior is injectable."""
+
+    def __init__(self, tenk_cls: type, markdown_behavior):
+        self.period_of_report = "2025-09-27"
+        self.accession_number = "0000320193-25-000079"
+        self.cik = 320193
+        self.company = "Apple Inc."
+        self._markdown_behavior = markdown_behavior
+        self._obj = tenk_cls()
+
+    def obj(self):
+        return self._obj
+
+    def markdown(self):
+        return self._markdown_behavior()
+
+
+def test_fetch_filing_markdown_returns_markdown_and_shares_locate(mock_edgar):
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], lambda: "### Overview\nbody\n")
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    md = fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)
+
+    assert md == "### Overview\nbody\n"
+    assert mock_edgar["company_spy"].call_count == 1  # locate cache shared
+
+
+def test_fetch_filing_markdown_none_result_becomes_empty_string(mock_edgar):
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], lambda: None)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    assert fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025) == ""
+
+
+def test_fetch_filing_markdown_render_failure_is_not_ticker_not_found(mock_edgar):
+    """M-1.1 regression: the filing is already located, so an arbitrary
+    render exception must surface as a truthful SECError with filing
+    context — never the false claim that the ticker does not exist."""
+
+    def _boom():
+        raise ValueError("busted table structure")
+
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], _boom)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)
+
+    assert not isinstance(exc_info.value, TickerNotFoundError)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "0000320193-25-000079" in msg
+    assert "busted table structure" in msg
+
+
+def test_fetch_filing_markdown_429_still_maps_to_rate_limit(mock_edgar):
+    from edgar.httprequests import TooManyRequestsError
+
+    def _rate_limited():
+        raise TooManyRequestsError("www.sec.gov")
+
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], _rate_limited)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(RateLimitError):
+        fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)

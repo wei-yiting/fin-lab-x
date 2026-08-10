@@ -341,7 +341,8 @@ def make_messages_chunk_multi_reasoning(
 
 
 class TestReasoningNativeParts:
-    """F5: one provider reasoning block = one native part (start/delta*/end)."""
+    """One provider reasoning block maps to one native part
+    (start/delta*/end)."""
 
     def test_single_reasoning_chunk_opens_part_and_streams_delta(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
@@ -357,8 +358,8 @@ class TestReasoningNativeParts:
         ]
 
     def test_raw_passthrough_no_buffering(self):
-        """S-parts-02: mid-word fragments and `\\n\\n` pass through verbatim,
-        one ReasoningDelta per provider delta — no sentence buffering."""
+        """Mid-word fragments and `\\n\\n` pass through verbatim, one
+        ReasoningDelta per provider delta — no sentence buffering."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         mapper.process_chunk(make_messages_chunk_reasoning("10-K li", msg_id="msg-A"))
@@ -373,7 +374,7 @@ class TestReasoningNativeParts:
 
     def test_empty_delta_not_emitted(self):
         """A zero-length reasoning block opens the part but emits no delta —
-        the frontend suppresses zero-delta chips (S-chip-08)."""
+        the frontend suppresses zero-delta chips."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(make_messages_chunk_reasoning("", msg_id="msg-A"))
@@ -384,8 +385,7 @@ class TestReasoningNativeParts:
 
 class TestReasoningPartBoundaries:
     """Part closes when the provider moves on: text, a same-round tool call
-    arriving (DEV-109 ruling, either normalized block type), a new LLM call,
-    or finalize."""
+    arriving (either normalized block type), a new LLM call, or finalize."""
 
     def test_text_block_closes_open_reasoning_part(self):
         mapper = StreamEventMapper(session_id=SESSION_ID)
@@ -409,12 +409,10 @@ class TestReasoningPartBoundaries:
         ]
 
     def test_tool_call_chunk_closes_open_reasoning_part(self):
-        """DEV-109 ruling (2026-08-04, supersedes DEV-106 §B keep-open): a
-
-        tool-call-chunk arriving mid-round means the round's reasoning block
-        is over — the mapper closes the open reasoning part so the chip
-        collapses at tool-start. Arrival order is preserved (the tool card
-        renders below the now-collapsed chip).
+        """A tool-call-chunk arriving mid-round means the round's reasoning
+        block is over — the mapper closes the open reasoning part so the
+        chip collapses at tool-start. Arrival order is preserved (the tool
+        card renders below the now-collapsed chip).
         """
         mapper = StreamEventMapper(session_id=SESSION_ID)
         mapper.process_chunk(
@@ -445,7 +443,7 @@ class TestReasoningPartBoundaries:
         assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
 
     def test_new_llm_call_closes_part_and_opens_new_id(self):
-        """S-parts-01: multi-round loop → one part per round, ids turn-unique."""
+        """Multi-round loop → one part per round, ids turn-unique."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         mapper.process_chunk(make_messages_chunk_reasoning("round-1", msg_id="msg-A"))
@@ -460,11 +458,9 @@ class TestReasoningPartBoundaries:
         ]
 
     def test_tool_call_chunk_then_new_llm_call_closes_part_exactly_once(self):
-        """The tool-call-chunk closes the round's reasoning part (DEV-109
-
-        ruling); the next round's LLM-call-id transition must NOT emit a
-        second ReasoningEnd for the already-closed part — close exactly
-        once, at tool-start.
+        """The tool-call-chunk closes the round's reasoning part; the next
+        round's LLM-call-id transition must NOT emit a second ReasoningEnd
+        for the already-closed part — close exactly once, at tool-start.
         """
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
@@ -508,8 +504,8 @@ class TestReasoningPartBoundaries:
         assert events == [ReasoningDelta(reasoning_id="reasoning-0", delta=" more")]
 
     def test_consecutive_reasoning_blocks_in_one_chunk_become_separate_parts(self):
-        """D12 removal: multi-summary explode → one part per provider block,
-        no `\\n` join."""
+        """Multi-summary explode → one part per provider block, no `\\n`
+        join (no longer joined into a single part)."""
         mapper = StreamEventMapper(session_id=SESSION_ID)
 
         events = mapper.process_chunk(

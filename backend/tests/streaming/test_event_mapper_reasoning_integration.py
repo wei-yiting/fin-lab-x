@@ -2,7 +2,7 @@
 
 Each test feeds a sequence of AIMessageChunks shaped to mimic a real provider's
 streaming output, then asserts the resulting native reasoning part sequence
-matches the F5 contract: one provider reasoning block = one part
+matches the contract: one provider reasoning block maps to one part
 (ReasoningStart / ReasoningDelta* / ReasoningEnd), deltas verbatim,
 part ids turn-unique.
 """
@@ -140,7 +140,7 @@ class TestOpenAIMultiSummary:
 
 class TestGeminiRawPassthrough:
     """Gemini CJK reasoning without terminators streams through verbatim —
-    no 80-char soft-emit re-chunking (segmenter removed by F5)."""
+    no 80-char soft-emit re-chunking (that segmenter has been removed)."""
 
     def test_gemini_cjk_no_terminator_passthrough(self):
         long_cjk = "繁" * 110

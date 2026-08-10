@@ -28,7 +28,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 
 class StreamEventMapper:
-    """Per-request stateful translator (D33).
+    """Per-request stateful translator.
 
     One instance per chat HTTP request — never share across requests or
     sessions. Multi-tab concurrent streaming relies on this isolation;
@@ -36,7 +36,7 @@ class StreamEventMapper:
     pending tool calls) would corrupt across concurrent streams if the
     mapper were per-session.
 
-    Reasoning contract (F5): one provider reasoning block = one native
+    Reasoning contract: one provider reasoning block maps to one native
     reasoning part (ReasoningStart / ReasoningDelta* / ReasoningEnd).
     Provider deltas pass through verbatim — no buffering, no sentence
     segmentation, no separator joining. Part ids are unique across the
@@ -185,13 +185,14 @@ class StreamEventMapper:
     def _handle_tool_call_started(self, block: dict, events: list[DomainEvent]) -> None:
         # Tool args arriving means this round's reasoning block is over —
         # close the open part so the chip collapses at tool-start, matching
-        # the `Thought for Xs` freeze point (DEV-109 ruling 2026-08-04,
-        # supersedes the DEV-106 §B keep-open allowance: content_blocks give
-        # the mapper no other end-of-block signal, which left every chip
-        # open through the whole tool execution on the default provider).
-        # Arrival order is preserved — the tool card renders below the
-        # now-collapsed chip. Handles both normalized tool block types
-        # (`tool_call_chunk`: OpenAI/Anthropic; `tool_call`: Gemini).
+        # the `Thought for Xs` freeze point. An earlier version left the
+        # part open until the next LLM call instead, but content_blocks
+        # gives the mapper no other end-of-block signal, so on the default
+        # provider the chip stayed open for the entire tool execution on
+        # every round, not just as a rare edge case. Arrival order is
+        # preserved — the tool card renders below the now-collapsed chip.
+        # Handles both normalized tool block types (`tool_call_chunk`:
+        # OpenAI/Anthropic; `tool_call`: Gemini).
         self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))
@@ -253,7 +254,7 @@ class StreamEventMapper:
         # open part so the wire always carries a complete start/delta*/end
         # sequence on natural finish and on the error path (the error path
         # replays finalize() minus Finish, giving reasoning-end → error →
-        # finish per S-parts-04).
+        # finish).
         self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))

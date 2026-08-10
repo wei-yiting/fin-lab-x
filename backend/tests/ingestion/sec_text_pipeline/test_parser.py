@@ -2,7 +2,13 @@ import re
 
 import pytest
 
-from backend.common.sec_core import FetchedFiling, FilingType
+from backend.common.sec_core import (
+    FetchedFiling,
+    FilingNotFoundError,
+    FilingType,
+    SECError,
+    UnsupportedFilingTypeError,
+)
 from backend.ingestion.sec_text_pipeline import parser
 from backend.ingestion.sec_text_pipeline.filing_models import (
     FlatItem,
@@ -329,3 +335,105 @@ class TestStoreInteraction:
         monkeypatch.setattr(parser, "fetch_filing_bundle", lambda *a, **k: fake_bundle)
         parser.parse_filing("AAPL", fiscal_year=2025)
         assert (target_dir / "AAPL" / "10-K" / "2025.json").exists()
+
+
+class TestErrorPropagationThroughParseFiling:
+    """Fetch-stage errors must survive parse_filing untouched.
+
+    parse_filing's docstring promises the FinLabError taxonomy propagates
+    from fetch failures; these tests pin the two SEC-specific members
+    (FilingNotFoundError, UnsupportedFilingTypeError) at the public seam —
+    exact type (distinguishable by an API layer), message intact, and the
+    failure happens before the markdown fetch (the detection-stage call
+    inserted between bundle fetch and item parsing must not reorder or
+    swallow fetch errors). EmptyFilingError's leg of the same contract is
+    covered by test_all_sections_empty_or_stub_raises_and_saves_nothing.
+    """
+
+    @pytest.mark.parametrize(
+        "exc_type,message",
+        [
+            (
+                FilingNotFoundError,
+                "No 10-K filing for AAPL in fiscal year 2025.",
+            ),
+            (
+                UnsupportedFilingTypeError,
+                "Ticker AAPL appears to be a foreign private issuer that "
+                "files 20-F; only '10-K' is supported.",
+            ),
+        ],
+    )
+    def test_fetch_errors_propagate_with_exact_type_and_message(
+        self, store, monkeypatch, exc_type, message
+    ):
+        def raising_fetch(*args, **kwargs):
+            raise exc_type(message)
+
+        monkeypatch.setattr(parser, "fetch_filing_bundle", raising_fetch)
+        markdown_calls: list[tuple] = []
+        monkeypatch.setattr(
+            parser,
+            "fetch_filing_markdown",
+            lambda *a, **k: markdown_calls.append(a) or "",
+        )
+
+        with pytest.raises(exc_type) as excinfo:
+            parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+
+        assert type(excinfo.value) is exc_type  # not a SECError sibling
+        assert str(excinfo.value) == message  # ticker/year context intact
+        assert markdown_calls == []  # failed before the markdown fetch
+
+
+class TestForceRerunFailureLeavesStoreIntact:
+    """force=True re-runs that fail must not touch the previously saved
+    parse — the new attempt aborts before its single store.save() call, so
+    the good result from the earlier run stays byte-identical on disk."""
+
+    def _seed_success(self, store, tmp_path, monkeypatch, fake_bundle):
+        monkeypatch.setattr(parser, "fetch_filing_bundle", lambda *a, **k: fake_bundle)
+        first = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        saved_file = next(tmp_path.rglob("*.json"))
+        return first, saved_file, saved_file.read_bytes()
+
+    def test_empty_filing_failure_preserves_previous_result(
+        self, store, tmp_path, monkeypatch, fake_bundle
+    ):
+        first, saved_file, bytes_before = self._seed_success(
+            store, tmp_path, monkeypatch, fake_bundle
+        )
+
+        all_stub = FakeTenK(
+            sections_data={
+                "part_ii_item_6": {"item": "6", "text": "Item 6. [Reserved]"}
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(all_stub)
+        )
+        with pytest.raises(parser.EmptyFilingError):
+            parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
+
+        assert saved_file.read_bytes() == bytes_before
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == first
+
+    def test_markdown_fetch_failure_preserves_previous_result(
+        self, store, tmp_path, monkeypatch, fake_bundle
+    ):
+        # The markdown fetch is the failure point THIS slice added to
+        # parse_filing — it sits before store.save(), so a render failure on
+        # a forced re-run must leave the earlier good parse untouched.
+        first, saved_file, bytes_before = self._seed_success(
+            store, tmp_path, monkeypatch, fake_bundle
+        )
+
+        def failing_markdown(*args, **kwargs):
+            raise SECError("Failed to render markdown for AAPL 10-K")
+
+        monkeypatch.setattr(parser, "fetch_filing_markdown", failing_markdown)
+        with pytest.raises(SECError):
+            parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
+
+        assert saved_file.read_bytes() == bytes_before
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == first

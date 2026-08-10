@@ -688,7 +688,10 @@ def _init_platform_tracing(project: str, api_key: str) -> None:
 
     init_logger(project=project, api_key=api_key)
 
-    from braintrust_langchain import BraintrustCallbackHandler, set_global_handler
+    from braintrust.integrations.langchain import (
+        BraintrustCallbackHandler,
+        set_global_handler,
+    )
 
     handler = BraintrustCallbackHandler()
     set_global_handler(handler)

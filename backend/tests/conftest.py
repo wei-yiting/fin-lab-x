@@ -34,8 +34,8 @@ def _reset_braintrust_global_handler():
     share it — causing cross-attributed trace events and hard-to-debug
     coupling.
 
-    The fixture is a no-op when `braintrust_langchain` is not installed
-    (e.g. a minimal test env without the `[dev]` extras).
+    The fixture is a no-op when `braintrust` is not installed (e.g. a minimal
+    test env without the `[dev]` extras).
     """
     _clear_if_available()
     yield
@@ -44,7 +44,7 @@ def _reset_braintrust_global_handler():
 
 def _clear_if_available() -> None:
     try:
-        from braintrust_langchain.context import clear_global_handler
+        from braintrust.integrations.langchain.context import clear_global_handler
     except ImportError:
         return
     clear_global_handler()

@@ -19,6 +19,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver  # noqa: E402
 from backend.agent_engine.agents.base import Orchestrator  # noqa: E402
 from backend.agent_engine.agents.config_loader import ProfileConfigLoader  # noqa: E402
 from backend.api.routers import chat, chat_invoke  # noqa: E402
+from backend.common.data_paths import get_checkpoint_db_path  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ async def lifespan(app: FastAPI):
     """Initialize application-level singletons on startup."""
     config = ProfileConfigLoader(DEFAULT_WORKFLOW_PROFILE).load()
 
-    db_path = os.environ.get("CHECKPOINT_DB_PATH", "data/checkpoints.db")
+    db_path = str(get_checkpoint_db_path())
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
 
     async with AsyncSqliteSaver.from_conn_string(db_path) as checkpointer:

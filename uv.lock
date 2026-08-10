@@ -254,7 +254,7 @@ wheels = [
 
 [[package]]
 name = "braintrust"
-version = "0.11.0"
+version = "0.32.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "chevron" },
@@ -262,7 +262,6 @@ dependencies = [
     { name = "gitpython" },
     { name = "jsonschema" },
     { name = "packaging" },
-    { name = "python-dotenv" },
     { name = "python-slugify" },
     { name = "requests" },
     { name = "sseclient-py" },
@@ -270,22 +269,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/58/2b/0f732092198123ecc64f284e48b9b0f99ab01e8360c18ed74ccee65d99d9/braintrust-0.11.0.tar.gz", hash = "sha256:2adc1af4d1fb64f5e7ca16d9aa37dc8e05825ba0a39743833c9070d0ec1245cf", size = 423190, upload-time = "2026-03-26T00:05:17.804Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/d8/b81fe2c26f309632ab9966bed7ee8a942acebe2da7cde4660521d3051f59/braintrust-0.32.0.tar.gz", hash = "sha256:bee0438885fa3e9019bbd9eebeb8bbeb23c4641fe56ec7addc39077b4a0bb520", size = 721720, upload-time = "2026-08-05T19:28:25.058Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/50/8d/d9025e42b043c5fcd2fb1d76b1fd68f0f329727c774afc344e04d52893fa/braintrust-0.11.0-py3-none-any.whl", hash = "sha256:e87184157c991db6c344ef5b8ecd3cc2e2bfced079d5d1b113941b474399dd2d", size = 485392, upload-time = "2026-03-26T00:05:16.27Z" },
-]
-
-[[package]]
-name = "braintrust-langchain"
-version = "0.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "braintrust" },
-    { name = "langchain" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/74/7e/86a57d495edc58d3c8ac18c02fc788eaa93e5cf362246917735e9860052d/braintrust_langchain-0.2.1.tar.gz", hash = "sha256:6cabe224126709938b57762285d5ec0ba1a286e8df48c2dd1aaf4ef15c492055", size = 18864, upload-time = "2026-01-24T02:28:35.047Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/34/0c/193cb5dd1555567f5645e662fe8eadaf46d6f01559c04ee675b13a9abaa8/braintrust_langchain-0.2.1-py3-none-any.whl", hash = "sha256:5b0113e7a56f882cf262efaa284fed1536710c6c11a37a38d0ae658814ab9551", size = 20512, upload-time = "2026-01-24T02:28:34.192Z" },
+    { url = "https://files.pythonhosted.org/packages/a4/b9/3245ce103dc683545f57e47317667197bd948cd421d37de42bc58b58b308/braintrust-0.32.0-py3-none-any.whl", hash = "sha256:ea50612cd6bdb12701e4314152b44f2a20e31271d694320cfdbe49577b2e4599", size = 841040, upload-time = "2026-08-05T19:28:23.33Z" },
 ]
 
 [[package]]
@@ -738,7 +724,6 @@ dependencies = [
 dev = [
     { name = "autoevals" },
     { name = "braintrust" },
-    { name = "braintrust-langchain" },
     { name = "httpx" },
     { name = "litellm" },
     { name = "numpy" },
@@ -757,8 +742,7 @@ dev = [
 requires-dist = [
     { name = "autoevals", marker = "extra == 'dev'", specifier = ">=0.1.0" },
     { name = "beautifulsoup4", specifier = ">=4.12.0" },
-    { name = "braintrust", marker = "extra == 'dev'", specifier = ">=0.11.0" },
-    { name = "braintrust-langchain", marker = "extra == 'dev'", specifier = ">=0.2.1" },
+    { name = "braintrust", marker = "extra == 'dev'", specifier = ">=0.30.0" },
     { name = "duckdb", specifier = ">=1.0.0" },
     { name = "edgartools", specifier = ">=5.17.1" },
     { name = "fastapi", specifier = ">=0.115.0" },
@@ -947,14 +931,14 @@ wheels = [
 
 [[package]]
 name = "gitpython"
-version = "3.1.46"
+version = "3.1.58"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "gitdb" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/df/b5/59d16470a1f0dfe8c793f9ef56fd3826093fc52b3bd96d6b9d6c26c7e27b/gitpython-3.1.46.tar.gz", hash = "sha256:400124c7d0ef4ea03f7310ac2fbf7151e09ff97f2a3288d64a440c584a29c37f", size = 215371, upload-time = "2026-01-01T15:37:32.073Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/26/d6/5f358ff283325580c2003a6d953aea18cfe10ae87b46f5ebc80fa3a386dc/gitpython-3.1.58.tar.gz", hash = "sha256:621416df10ef3fd0e19fabf9172ddeed0fa704d353d04f194eec56a625a95b22", size = 228498, upload-time = "2026-08-04T15:05:49.47Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/09/e21df6aef1e1ffc0c816f0522ddc3f6dcded766c3261813131c78a704470/gitpython-3.1.46-py3-none-any.whl", hash = "sha256:79812ed143d9d25b6d176a10bb511de0f9c67b1fa641d82097b0ab90398a2058", size = 208620, upload-time = "2026-01-01T15:37:30.574Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/0c/9d8752098bc442f0726e64aa6135940b3a96809915d1aa4206c1bb97881d/gitpython-3.1.58-py3-none-any.whl", hash = "sha256:d331e722577f0fd7fc1f857419b3ecc07af66282b933d2a4d95f84a042fdd50f", size = 220183, upload-time = "2026-08-04T15:05:48.025Z" },
 ]
 
 [[package]]

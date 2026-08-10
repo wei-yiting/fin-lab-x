@@ -8,6 +8,7 @@ from typing import Protocol, runtime_checkable
 
 import yaml
 
+from backend.common.data_paths import get_sec_filings_html_dir
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (
     FilingMetadata,
@@ -34,8 +35,10 @@ class FilingStore(Protocol):
 
 
 class LocalFilingStore:
-    def __init__(self, base_dir: str = "data/sec_filings_html") -> None:
-        self._base_dir = Path(base_dir)
+    def __init__(self, base_dir: str | Path | None = None) -> None:
+        self._base_dir = (
+            Path(base_dir) if base_dir is not None else get_sec_filings_html_dir()
+        )
 
     @staticmethod
     def _validate_ticker(ticker: str) -> str:

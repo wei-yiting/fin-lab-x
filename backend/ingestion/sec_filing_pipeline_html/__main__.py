@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
+from backend.common.data_paths import get_sec_filings_html_dir  # noqa: E402
 from backend.common.sec_core import SECError  # noqa: E402
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (  # noqa: E402
     FilingMetadata,
@@ -30,7 +31,7 @@ from backend.ingestion.sec_filing_pipeline_html.pipeline import (  # noqa: E402
     SECFilingPipeline,
 )
 
-_STORE_BASE_DIR = Path("data/sec_filings_html")
+_STORE_BASE_DIR = get_sec_filings_html_dir()
 
 _USAGE = """\
 usage: python -m backend.ingestion.sec_filing_pipeline_html TICKER FILING_TYPE [options]

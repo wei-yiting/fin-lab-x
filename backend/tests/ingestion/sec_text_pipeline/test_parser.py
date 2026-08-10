@@ -243,7 +243,16 @@ class TestStoreInteraction:
         assert store.get("AAPL", FilingType.TEN_K, 2025) == result
 
     def test_default_store_is_local_sec_text(self, monkeypatch, tmp_path, fake_bundle):
-        monkeypatch.chdir(tmp_path)
+        """Default store resolves via backend.common.data_paths — repo-root
+        anchored, not CWD-relative. Chdir to a directory distinct from the
+        SEC_TEXT_DIR override to prove CWD has no bearing on the resolved
+        location, and use the env override so the test never writes into the
+        real repo's data/ directory."""
+        other_cwd = tmp_path / "elsewhere"
+        other_cwd.mkdir()
+        monkeypatch.chdir(other_cwd)
+        target_dir = tmp_path / "sec_text_store"
+        monkeypatch.setenv("SEC_TEXT_DIR", str(target_dir))
         monkeypatch.setattr(parser, "fetch_filing_bundle", lambda *a, **k: fake_bundle)
         parser.parse_filing("AAPL", fiscal_year=2025)
-        assert (tmp_path / "data" / "sec_text" / "AAPL" / "10-K" / "2025.json").exists()
+        assert (target_dir / "AAPL" / "10-K" / "2025.json").exists()

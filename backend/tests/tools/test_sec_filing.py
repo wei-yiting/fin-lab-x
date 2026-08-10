@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from backend.agent_engine.tools.sec_filing import sec_filing_downloader
-from backend.common.config import get_sec_filings_html_dir
+from backend.common.data_paths import get_sec_filings_html_dir
 from backend.common.sec_core import FilingType, TickerNotFoundError
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (
     FilingMetadata,

@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from backend.common.config import get_sec_filings_html_dir  # noqa: E402
+from backend.common.data_paths import get_sec_filings_html_dir  # noqa: E402
 from backend.common.sec_core import SECError  # noqa: E402
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (  # noqa: E402
     FilingMetadata,

@@ -19,7 +19,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver  # noqa: E402
 from backend.agent_engine.agents.base import Orchestrator  # noqa: E402
 from backend.agent_engine.agents.config_loader import ProfileConfigLoader  # noqa: E402
 from backend.api.routers import chat, chat_invoke  # noqa: E402
-from backend.common.config import get_checkpoint_db_path  # noqa: E402
+from backend.common.data_paths import get_checkpoint_db_path  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

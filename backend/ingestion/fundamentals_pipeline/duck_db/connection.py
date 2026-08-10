@@ -3,7 +3,7 @@ from pathlib import Path
 import duckdb
 from duckdb import DuckDBPyConnection
 
-from backend.common.config import get_duckdb_path
+from backend.common.data_paths import get_duckdb_path
 from backend.ingestion.fundamentals_pipeline.errors import SchemaError
 
 _SCHEMA_SQL_PATH = Path(__file__).parent / "schema.sql"

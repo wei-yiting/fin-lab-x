@@ -1,4 +1,4 @@
-from backend.common.config import (
+from backend.common.data_paths import (
     REPO_ROOT,
     get_checkpoint_db_path,
     get_duckdb_path,

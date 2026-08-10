@@ -1,7 +1,7 @@
 # ADR-0011: Repo-anchored data path configuration (2026-08-06)
 
 **Decision**: every data path resolves through a resolver function in
-`backend/common/config.py`, anchored off that module's own file location
+`backend/common/data_paths.py`, anchored off that module's own file location
 via `Path(__file__)` — never off the process's CWD. Each resolver is
 env-overridable (e.g. `DUCKDB_PATH`, `SEC_TEXT_DIR`) and defaults under
 `<repo>/data/`, so a fresh clone works with zero setup. Rule going

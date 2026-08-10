@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.ingestion.sec_filing_pipeline_html.__main__ import main
-from backend.common.config import get_sec_filings_html_dir
+from backend.common.data_paths import get_sec_filings_html_dir
 from backend.common.sec_core import FilingType, TickerNotFoundError
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (
     FilingMetadata,

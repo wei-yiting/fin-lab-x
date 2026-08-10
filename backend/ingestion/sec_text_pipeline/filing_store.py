@@ -18,7 +18,7 @@ import tempfile
 from pathlib import Path
 from typing import Protocol
 
-from backend.common.config import get_sec_text_dir
+from backend.common.data_paths import get_sec_text_dir
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
 

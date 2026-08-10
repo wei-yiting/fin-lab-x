@@ -243,7 +243,7 @@ class TestStoreInteraction:
         assert store.get("AAPL", FilingType.TEN_K, 2025) == result
 
     def test_default_store_is_local_sec_text(self, monkeypatch, tmp_path, fake_bundle):
-        """Default store resolves via backend.common.config — repo-root
+        """Default store resolves via backend.common.data_paths — repo-root
         anchored, not CWD-relative. Chdir to a directory distinct from the
         SEC_TEXT_DIR override to prove CWD has no bearing on the resolved
         location, and use the env override so the test never writes into the

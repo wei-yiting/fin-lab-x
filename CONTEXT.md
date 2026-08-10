@@ -45,10 +45,10 @@ _Avoid_: sentinel point (legacy term)
 The ingestion invariant: a failed, concurrent, or abandoned ingest must never leave partial or stale-mixed retrievable data. Refresh is wipe-before-rerun.
 
 **Filing store**:
-The on-disk Markdown cache of parsed filings, shared by the ingestion pipelines and the JIT flow.
+The on-disk cache of parsed filings, shared by the ingestion pipelines and the JIT flow. The text pipeline stores schema-validated `ParsedFiling` JSON; the frozen HTML baseline keeps its legacy Markdown variant until sunset.
 
 **header_path**:
-The hierarchical section locator attached to each chunk (e.g. `NVDA / 2026 / Part I / Item 1A`); retrieval scoring matches on it.
+The hierarchical section locator attached to each chunk; retrieval scoring matches on it. New contract: `TICKER / fiscal year / Item N. Title / block heading`, with no Part level. The frozen HTML baseline's variant may include Part segments.
 
 **Heading promotion**:
 The preprocessing stage that promotes raw 10-K markup to semantic heading levels; tickers are bucketed Class A/B/C by markup difficulty.

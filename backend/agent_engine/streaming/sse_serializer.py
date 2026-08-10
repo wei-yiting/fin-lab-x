@@ -12,6 +12,9 @@ import json
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     StreamError,
     TextDelta,
     TextEnd,
@@ -102,6 +105,23 @@ def _(event: ToolProgress) -> str:
             "transient": True,
         }
     )
+
+
+@serialize_event.register
+def _(event: ReasoningStart) -> str:
+    return _sse({"type": "reasoning-start", "id": event.reasoning_id})
+
+
+@serialize_event.register
+def _(event: ReasoningDelta) -> str:
+    return _sse(
+        {"type": "reasoning-delta", "id": event.reasoning_id, "delta": event.delta}
+    )
+
+
+@serialize_event.register
+def _(event: ReasoningEnd) -> str:
+    return _sse({"type": "reasoning-end", "id": event.reasoning_id})
 
 
 @serialize_event.register

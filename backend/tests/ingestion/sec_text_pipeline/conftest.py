@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from backend.common.sec_core import FetchedFiling, FilingType
+from backend.ingestion.sec_text_pipeline import parser
 from backend.ingestion.sec_text_pipeline.filing_models import (
     Block,
     FilingMetadata,
@@ -90,6 +91,47 @@ def make_bundle(tenk: FakeTenK) -> FetchedFiling:
         company_name=RECORDED_FILING["company"],
         primary_document=RECORDED_FILING["primary_document"],
     )
+
+
+def assert_tiles(prelude: str, blocks, source_text: str) -> None:
+    """Assert prelude + blocks tile the source Item text with zero content loss.
+
+    Every non-empty segment (prelude, then each block's heading and text, in
+    order) must be found in ``source_text`` at or after the previous segment's
+    end — no overlap, no reordering — and everything between and after the
+    segments must be pure whitespace. Unlike a "segment appears somewhere"
+    substring check, this catches a dropped segment even when an identical
+    copy of its text exists elsewhere in the document.
+    """
+    segments: list[str] = []
+    if prelude:
+        segments.append(prelude)
+    for block in blocks:
+        if block.heading:
+            segments.append(block.heading)
+        if block.text:
+            segments.append(block.text)
+
+    pos = 0
+    for n, segment in enumerate(segments):
+        found = source_text.find(segment, pos)
+        assert found != -1, (
+            f"segment {n} not found at/after offset {pos}: {segment[:60]!r}"
+        )
+        gap = source_text[pos:found]
+        assert gap.strip() == "", (
+            f"non-whitespace content lost before segment {n}: {gap[:80]!r}"
+        )
+        pos = found + len(segment)
+    tail = source_text[pos:]
+    assert tail.strip() == "", f"non-whitespace tail lost: {tail[:80]!r}"
+
+
+@pytest.fixture(autouse=True)
+def _markdown_seam(monkeypatch):
+    """Default the filing-markdown fetch seam to empty so no test can hit
+    EDGAR through it; detection tests re-patch with fixture markdown."""
+    monkeypatch.setattr(parser, "fetch_filing_markdown", lambda *a, **k: "")
 
 
 @pytest.fixture

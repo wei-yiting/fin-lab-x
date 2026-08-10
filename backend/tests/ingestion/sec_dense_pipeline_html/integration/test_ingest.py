@@ -203,7 +203,9 @@ async def test_rerun_after_partial_failure_recovers(
 
 
 @pytest.mark.integration
-def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys):
+def test_batch_cli_failure_isolation_and_summary(
+    clean_collection, mock_openai_embed, capsys
+):
     from unittest.mock import MagicMock
 
     from backend.ingestion.sec_dense_pipeline_html.common import commit_marker_id
@@ -245,8 +247,16 @@ def test_batch_cli_retry_and_summary(clean_collection, mock_openai_embed, capsys
     assert "INTC" in captured.out
     assert "FAIL_TICKER" in captured.out
     assert "success" in captured.out.lower()
-    assert "skipped" in captured.out.lower()
+    assert "failed" in captured.out.lower()
     assert exit_code == 1
+
+    # No outer retry loop: the permanently-failing ticker is attempted exactly once.
+    fail_attempts = sum(
+        1
+        for call in fake_pipeline.process.call_args_list
+        if call.args[0] == "FAIL_TICKER"
+    )
+    assert fail_attempts == 1
 
     client = QdrantClient(url=QDRANT_URL)
     for ticker in ["NVDA", "INTC"]:

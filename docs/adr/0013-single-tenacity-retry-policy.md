@@ -5,10 +5,8 @@
 `TransientError` only (from the ADR-0012 taxonomy), 2 total attempts
 (single retry, envelope §2), exponential backoff + jitter, and re-raises
 the original exception. New fetchers and pipelines apply this
-decorator — never a hand-rolled retry loop. (Sole exception: the frozen
-`_html` tree keeps its local retry loop until the DEV-139 sunset; see
-Rejected below.) Permanent errors and `RateLimitError` never enter the
-retry list. 429 handling is per-source per envelope §2: for EDGAR the
+decorator — never a hand-rolled retry loop. Permanent errors and
+`RateLimitError` never enter the retry list. 429 handling is per-source per envelope §2: for EDGAR the
 pre-emptive throttle lives in the edgartools client (below SEC's rate
 cap), and a 429 (≈10-minute IP block; retrying before it expires extends
 it) fails fast with `retry_after` surfaced; for Finnhub, one bounded
@@ -29,9 +27,10 @@ semantics make it harmful (a SEC 429 is a block, and retrying before it
 expires extends it); a second wait would also stack on the client
 layer — the exact pattern this decision removes.
 
-**Rejected — migrating the frozen `_html` tree's own retry loop**: that
-tree dies at the DEV-139 sunset; it keeps its local 3-attempt behavior
-until then — do not migrate it.
+**Rejected — migrating the frozen `_html` tree's own retry loop**: the
+tree was already slated for removal at the DEV-139 sunset, so migrating
+its retry loop would have been dead work. (Its coexistence terms live in
+AGENTS.md, not here.)
 
-**Re-evaluate if**: DEV-139 sunsets the frozen tree; DEV-69 finds source
-semantics the per-source rule doesn't cover.
+**Re-evaluate if**: DEV-69 finds source semantics the per-source rule
+doesn't cover.

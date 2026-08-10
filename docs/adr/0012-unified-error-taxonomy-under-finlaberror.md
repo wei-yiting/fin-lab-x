@@ -15,9 +15,6 @@ subsystem-specific errors. Rules going forward:
   JIT retriever's local classes — are not covered; see Re-evaluate.)
 - A new subsystem adds its own base under `FinLabError` with only its
   own errors.
-- The `_html` baseline tree participates in the shared taxonomy but
-  keeps its own internals until the DEV-139 sunset — do not extend or
-  refactor it beyond what this taxonomy requires.
 
 **Context**: the same class names existed as two unrelated hierarchies
 in two subsystems, so an `except` written against one silently never

@@ -224,6 +224,24 @@ class TestInitModelOpenAI:
         assert "thinking_budget" not in kwargs
         assert "thinking" not in kwargs
 
+    @pytest.mark.parametrize(
+        "name",
+        ["openai:gpt-5-nano", "gpt-5-nano"],
+        ids=["explicit-prefix", "bare-name"],
+    )
+    def test_openai_branch_passes_model_provider_explicitly(self, name):
+        """``init_chat_model`` infers provider from the model name string on
+        its own when no ``model_provider`` kwarg is given — independent of
+        this function's own provider-prefix branching. A bare or otherwise
+        non-OpenAI-shaped name could silently route to the wrong LangChain
+        provider integration (e.g. ChatAnthropic) and receive OpenAI-only
+        kwargs. Guard that both explicit ``openai:`` prefixes and bare names
+        always pass ``model_provider="openai"`` so our own "bare names
+        default to OpenAI" contract actually holds at the LangChain level."""
+        cfg = ModelConfig(name=name, temperature=0.0, reasoning="off")
+        kwargs = _kwargs(cfg)
+        assert kwargs["model_provider"] == "openai"
+
 
 class TestInitModelUnrecognizedProvider:
     """Every unrecognized provider prefix used to fall into the OpenAI
@@ -308,13 +326,17 @@ class TestInitModelTemperature:
     @pytest.mark.parametrize(
         "name",
         [
-            "google_genai:gemini-2.5-flash",
-            "anthropic:claude-sonnet-4-5",
-            "openai:gpt-4o-mini",
-            "gpt-4o-mini",
+            "google_genai:gemini-3.1-flash-lite",
+            "anthropic:claude-haiku-4-5",
+            "openai:gpt-5-nano",
+            "gpt-5-nano",
         ],
     )
     def test_temperature_passed_for_all_providers(self, name):
+        """Uses reasoning-capable model names for every provider: pairing
+        classic OpenAI models (gpt-4o-mini) with reasoning="off" is a
+        documented-unsupported combination (see TestInitModelUnsupported) —
+        it only "worked" here because init_chat_model is mocked."""
         cfg = ModelConfig(name=name, temperature=0.7, reasoning="off")
         kwargs = _kwargs(cfg)
         assert kwargs["temperature"] == 0.7

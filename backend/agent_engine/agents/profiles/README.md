@@ -17,7 +17,7 @@ Each profile's `model:` block accepts the following fields. The provider kwargs 
 
 | Field             | Type                              | Purpose                                                                                                                                                                                                                                            |
 | ----------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`            | `provider:model` string           | e.g. `openai:gpt-5-mini`, `google_genai:gemini-2.5-flash`, `anthropic:claude-sonnet-4-5`. Bare names (no `:` prefix) default to OpenAI.                                                                                                            |
+| `name`            | `provider:model` string           | e.g. `openai:gpt-5-mini`, `google_genai:gemini-3.1-flash-lite`, `anthropic:claude-haiku-4-5`. Bare names (no `:` prefix) default to OpenAI.                                                                                                            |
 | `temperature`     | float                             | Sampling temperature. **Must be `1.0`** when binding Anthropic with `reasoning="on"` — extended thinking rejects any other value with HTTP 400.                                                                                                  |
 | `reasoning`       | `"on"` / `"off"` / `"unsupported"` | Admin-configured reasoning capability. `"unsupported"` short-circuits `_init_model`'s provider branch — pick it for a model with no reasoning capability at all (e.g. gpt-4o-mini), or one whose reasoning can't be controlled via these kwargs (e.g. gemini-2.5-pro, which can't have thinking disabled); provider-default reasoning may still apply and still be billed. **OpenAI caveat**: `reasoning="off"` assumes a reasoning-capable model (gpt-5 tier) — classic models (gpt-4o, gpt-4o-mini, gpt-3.5) must use `"unsupported"` instead, or the API rejects `reasoning_effort`. Defaults to `"off"`. |
 | `thinking_budget` | int / null                        | Used as Anthropic `budget_tokens` (≥1024 required) and Gemini `thinking_budget`. `null` is fine for Gemini (provider default) and OpenAI (unused). `null` with Anthropic + `reasoning="on"` raises `ValueError` at startup.                       |
@@ -32,16 +32,16 @@ model:
   reasoning: "on"
   thinking_budget: null
 
-# Gemini 2.5 Flash (reasoning on)
+# Gemini 3.1 Flash-Lite (reasoning on)
 model:
-  name: "google_genai:gemini-2.5-flash"
+  name: "google_genai:gemini-3.1-flash-lite"
   temperature: 0.0
   reasoning: "on"
   thinking_budget: 8192
 
-# Anthropic Claude Sonnet 4.x (reasoning on — temperature=1.0 + budget>=1024 mandatory)
+# Anthropic Claude Haiku 4.5 (reasoning on — temperature=1.0 + budget>=1024 mandatory)
 model:
-  name: "anthropic:claude-sonnet-4-5"
+  name: "anthropic:claude-haiku-4-5"
   temperature: 1.0
   reasoning: "on"
   thinking_budget: 4096

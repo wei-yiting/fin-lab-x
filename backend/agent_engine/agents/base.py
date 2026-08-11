@@ -115,7 +115,12 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
       budget (≥1024), so a ``None`` or sub-1024 budget with reasoning on
       is rejected here rather than letting the provider raise mid-request.
     - ``openai`` (also the default for bare names without a ``provider:``
-      prefix) — passes ``reasoning={"effort": "medium", "summary": "auto"}``
+      prefix) — passes ``model_provider="openai"`` explicitly (LangChain's
+      ``init_chat_model`` otherwise infers the provider from the model name
+      string on its own, independent of this function's kwargs-branching
+      logic — a bare non-OpenAI-shaped name would silently route to the
+      wrong provider integration and receive OpenAI-specific kwargs it
+      can't accept), and ``reasoning={"effort": "medium", "summary": "auto"}``
       and ``use_responses_api=True`` when reasoning is ``"on"`` (gpt-5
       series). When reasoning is ``"off"``, passes ``reasoning_effort=
       "minimal"``: gpt-5-tier models are reasoning-capable by default, so
@@ -209,7 +214,14 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
                 "budget_tokens": config.thinking_budget,
             }
     elif provider == "openai":
-        # openai (explicit prefix) and bare names
+        # openai (explicit prefix) and bare names. init_chat_model() does its
+        # own separate provider inference from the model name string when no
+        # model_provider is given — e.g. init_chat_model("claude-sonnet-4-5")
+        # would instantiate ChatAnthropic, not ChatOpenAI. Pass
+        # model_provider explicitly here so LangChain's actual routing is
+        # guaranteed to agree with the "bare names default to OpenAI"
+        # contract this function's kwargs-branching logic already assumes.
+        kwargs["model_provider"] = "openai"
         if config.reasoning == "on":
             # Pass both effort and summary via the unified ``reasoning`` dict
             # (langchain-openai 0.3.24+). ``summary="auto"`` lets the

@@ -8,7 +8,7 @@ This pipeline is the **new parse path**. It coexists with the frozen HTML baseli
 
 - **`sec_filing_pipeline_html/`** — the frozen HTML pipeline (A/B baseline). Its behavior does not change while the two paths coexist.
 - **`sec_text_pipeline/`** (this package) — Item boundaries come from edgartools sections instead of HTML heuristics; output is a typed `ParsedFiling`, with no markdown intermediate.
-- **`backend/common/sec_core.py`** — shared domain core. **Only-add during coexistence**: existing public functions (notably `is_stub_section`) keep bit-identical behavior; new needs are met by adding helpers, never by changing existing ones.
+- **`backend/common/sec_core.py`** — shared domain core. **The A/B data contract is frozen during coexistence**: existing public functions (notably `is_stub_section`) keep bit-identical data-path behavior; new needs are met by adding helpers. Error classification and error-message wording are outside the evaluated material and may be corrected in place.
 
 ## Module Map
 
@@ -43,4 +43,4 @@ The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline_ht
 - **Detection chain slot**: detection is currently degenerate — every non-stub Item is emitted as a `FlatItem`. The markdown H3/H4 detection chain plugs into `_parse_items()` in `parser.py` and upgrades qualifying Items to `StructuredItem` (`detection_source` records which path found the blocks).
 - **Schema is frozen**: downstream stages (block detection, dense ingest, inspect view) build against `filing_models.py` without changes. Do not add or rename fields casually — stored JSON validates against this schema on every read.
 - **New stub patterns** go into `PSEUDO_STUB_PATTERNS` in `stub_detection.py` and must run through `classify_stub_section`'s remove-then-measure mechanism — pattern presence alone must never classify a stub, because a large substantive Item can casually contain one pointer sentence.
-- **`sec_core` stays only-add** until the HTML baseline is retired.
+- **`sec_core`'s data contract stays frozen** (add-only for data-path behavior) until the HTML baseline is retired; error-handling fixes are allowed.

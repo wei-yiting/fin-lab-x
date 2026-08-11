@@ -119,11 +119,16 @@ def _is_structural_boundary(text: str, start: int) -> bool:
     bleed and line-start headings never do. A preceding letter that is
     NOT part of a "PART <roman>" label means the match sits inside a
     larger word ("SubItem 1.", "LineItem 1A.") — prose, not a heading.
+    A preceding quote or opening bracket is a quoted/parenthesized
+    cross-reference ('See "Item 1. Business" above', observed on WMT
+    FY2025 Item 1A) — prose as well.
     """
     if start == 0:
         return True
     prev = text[start - 1]
     if not prev.isspace():
+        if prev in "\"'“”‘’([":
+            return False
         if prev.isalpha():
             return bool(_TRAILING_PART_RE.search(text[:start]))
         return True

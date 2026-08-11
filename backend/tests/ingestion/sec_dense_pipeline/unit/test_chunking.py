@@ -1,6 +1,7 @@
 """Seam-2 unit tests: ParsedFiling → chunk payloads (pure, no Qdrant)."""
 
 import pytest
+import tiktoken
 
 from backend.ingestion.sec_dense_pipeline.chunking import (
     ChunkPayload,
@@ -8,8 +9,10 @@ from backend.ingestion.sec_dense_pipeline.chunking import (
     chunk_point_id,
 )
 from backend.ingestion.sec_text_pipeline.filing_models import (
+    Block,
     FlatItem,
     ParsedFiling,
+    StructuredItem,
 )
 from backend.tests.ingestion.sec_dense_pipeline.conftest import (
     PRELUDE_TEXT,
@@ -192,6 +195,82 @@ def test_ticker_is_canonicalized_into_payload_and_path(payloads) -> None:
     lowercase = build_chunk_payloads(make_toy_filing(ticker=" aapl "))
     assert lowercase[0]["ticker"] == "AAPL"
     assert lowercase[0]["header_path"].startswith("AAPL / 2024 / ")
+
+
+@pytest.mark.parametrize("empty_text", ["", "   ", "\n\n  \n"])
+def test_empty_block_text_does_not_interrupt_chunk_flow(empty_text: str) -> None:
+    """Schema allows Block(text="") — an empty block must yield zero chunks
+    while its sibling blocks chunk normally with gapless filing-wide
+    indices. The dangerous regression shape is the block loop stopping at
+    the empty block: later content would silently vanish from the index
+    while the commit marker still flips to complete (a false cache-hit no
+    rerun would ever heal)."""
+    filing = ParsedFiling(
+        metadata=make_metadata(),
+        items=[
+            StructuredItem(
+                item="7",
+                title="Management's Discussion and Analysis",
+                prelude="",
+                blocks=[
+                    Block(heading="Section A", text=numbered_text("golf", 200)),
+                    Block(heading="Section B", text=empty_text),
+                    Block(
+                        heading="Section C",
+                        text="UNIQUE_MARKER_C " + numbered_text("hotel", 100),
+                    ),
+                ],
+                detection_source="markdown_h3",
+            )
+        ],
+    )
+    payloads = build_chunk_payloads(filing)
+
+    assert any("UNIQUE_MARKER_C" in p["text"] for p in payloads), (
+        "content after the empty block was dropped"
+    )
+    assert all(p["text"].strip() for p in payloads), (
+        "an empty block must not produce empty chunk points"
+    )
+    assert [p["chunk_index"] for p in payloads] == list(range(len(payloads)))
+    headings = {p["block_heading"] for p in payloads}
+    assert "Section A" in headings and "Section C" in headings
+    assert "Section B" not in headings
+
+
+def test_block_at_exact_token_limit_yields_single_chunk() -> None:
+    """Guards the token-based splitter configuration: a block of exactly
+    512 cl100k_base tokens (far more than 512 characters) must stay one
+    chunk. A character-based misconfiguration would shred it into several
+    fragments — this boundary case is the only assertion that separates
+    the two modes; every looser count-based test passes under both."""
+    enc = tiktoken.get_encoding("cl100k_base")
+    long_text = " ".join(
+        f"financial results improved during fiscal year {i}" for i in range(200)
+    )
+    text = enc.decode(enc.encode(long_text)[:512])
+    assert len(enc.encode(text)) == 512, "fixture must be exactly 512 tokens"
+    assert len(text) > 512, "fixture must exceed 512 characters"
+
+    filing = ParsedFiling(
+        metadata=make_metadata(),
+        items=[
+            StructuredItem(
+                item="7",
+                title="Management's Discussion and Analysis",
+                prelude="",
+                blocks=[Block(heading="Only Block", text=text)],
+                detection_source="markdown_h3",
+            )
+        ],
+    )
+    payloads = build_chunk_payloads(filing)
+
+    assert len(payloads) == 1, (
+        f"expected exactly 1 chunk for a 512-token block, got {len(payloads)} — "
+        "splitter is likely counting characters instead of tokens"
+    )
+    assert payloads[0]["text"] == text
 
 
 def test_chunk_point_id_is_deterministic_and_index_scoped() -> None:

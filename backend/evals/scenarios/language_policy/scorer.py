@@ -50,6 +50,29 @@ def tool_arg_no_cjk(output: Any, expected: Any, *, input: Any) -> Score:
     return Score(name="tool_arg_no_cjk", score=1.0)
 
 
+def expected_tool_called(output: Any, expected: Any, *, input: Any) -> Score | None:
+    """Check the declared expect_tool was actually called at least once.
+
+    Validity guard for tool_arg_no_cjk: with zero tool calls that scorer
+    passes vacuously, so this one turns the scenario red instead. Rows that
+    declare no expect_tool make no claim — return None (platform no-score).
+    """
+    expected_mapping = _as_mapping(expected)
+    tool_name = expected_mapping.get("tool")
+    if not tool_name:
+        return None
+
+    tool_outputs = _as_mapping(output).get("tool_outputs", [])
+    if not isinstance(tool_outputs, list):
+        tool_outputs = []
+
+    for tool_output in tool_outputs:
+        if _as_mapping(tool_output).get("tool") == tool_name:
+            return Score(name="expected_tool_called", score=1.0)
+
+    return Score(name="expected_tool_called", score=0.0)
+
+
 def response_language(output: Any, expected: Any, *, input: Any) -> Score:
     """Check response CJK ratio is within the expected range."""
     expected_mapping = _as_mapping(expected)

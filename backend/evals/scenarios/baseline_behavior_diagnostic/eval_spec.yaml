@@ -1,5 +1,10 @@
 name: baseline_behavior_diagnostic
 csv: dataset.csv
+regression:
+  # Diagnostic track, not the Regression Suite (CONTEXT.md: diagnoses
+  # behavior and names the tuning lever, never grades quality) — gate
+  # membership left to that track's own owners, not decided here.
+  enabled: false
 diagnostic:
   dataset_name: baseline_behavior_diagnostic
   dataset_version: "2026-04-24"

@@ -23,10 +23,23 @@ class ScorerConfig(BaseModel):
     function: str | None = None
     type: str | None = None
     rubric: str | None = None
+    rubric_file: str | None = None
     model: str | None = None
     use_cot: bool = False
     temperature: float = Field(default=0.0, ge=0.0, le=2.0, allow_inf_nan=False)
     choice_scores: dict[str, float] | None = None
+    gate: bool = True
+    metric_floor: float = Field(default=1.0, ge=0.0, le=1.0, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def validate_gate_fields(self) -> "ScorerConfig":
+        """Reject dead config: a metric_floor on an ungated scorer (ADR-0008)."""
+        if not self.gate and "metric_floor" in self.model_fields_set:
+            raise ValueError(
+                "metric_floor has no effect when gate is false — remove it "
+                "or re-enable the gate"
+            )
+        return self
 
     @model_validator(mode="after")
     def validate_mode(self) -> "ScorerConfig":
@@ -44,7 +57,11 @@ class ScorerConfig(BaseModel):
             )
 
         if has_function:
-            if self.rubric is not None or self.model is not None:
+            if (
+                self.rubric is not None
+                or self.rubric_file is not None
+                or self.model is not None
+            ):
                 raise ValueError(
                     "Programmatic ScorerConfig must not include llm_judge fields"
                 )
@@ -60,11 +77,24 @@ class ScorerConfig(BaseModel):
 
         if self.type != "llm_judge":
             raise ValueError("ScorerConfig type must be 'llm_judge'")
-        if self.rubric is None:
-            raise ValueError("llm_judge ScorerConfig must include rubric")
+        if self.rubric is None and self.rubric_file is None:
+            raise ValueError("llm_judge ScorerConfig must include rubric_file")
         if self.choice_scores is None:
             self.choice_scores = {"Y": 1.0, "N": 0.0}
         return self
+
+
+class RegressionConfig(BaseModel):
+    """Gate membership declaration for the Regression Suite (ADR-0008).
+
+    Required on every scenario, with no default for ``enabled``: a spec that
+    has not decided its gate membership must fail to load rather than
+    silently sit outside the gate.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
 
 
 class TaskConfig(BaseModel):
@@ -110,6 +140,7 @@ class ScenarioConfig(BaseModel):
     name: str
     status: str | None = None
     csv: str = "dataset.csv"
+    regression: RegressionConfig
     task: TaskConfig
     pre_run: PreRunConfig | None = None
     diagnostic: DiagnosticScenarioConfig | None = None
@@ -151,13 +182,62 @@ def _load_yaml_mapping(config_path: Path) -> dict[str, Any]:
     return loaded
 
 
+def _reject_inline_rubrics(config_data: dict[str, Any], config_path: Path) -> None:
+    """Enforce the file-only rubric contract at the YAML boundary.
+
+    ``rubric`` stays a model field (the engine consumes the loaded string),
+    but spec files may only declare ``rubric_file``.
+    """
+    scorers = config_data.get("scorers")
+    if not isinstance(scorers, list):
+        return
+    for scorer in scorers:
+        if isinstance(scorer, dict) and "rubric" in scorer:
+            raise ValueError(
+                f"Invalid scenario config in {config_path}: inline rubric is "
+                "not allowed — move the rubric text to a file and reference "
+                "it with rubric_file"
+            )
+
+
+def _resolve_rubric_files(config: ScenarioConfig, config_path: Path) -> ScenarioConfig:
+    """Read each scorer's rubric_file into ``rubric`` for the engine."""
+    resolved: list[ScorerConfig] = []
+    for scorer in config.scorers:
+        if scorer.rubric_file is None:
+            resolved.append(scorer)
+            continue
+        if Path(scorer.rubric_file).is_absolute():
+            raise ValueError(
+                f"Invalid scenario config in {config_path}: rubric_file "
+                f"'{scorer.rubric_file}' must be a path relative to the "
+                "scenario directory, not absolute"
+            )
+        rubric_path = config_path.parent / scorer.rubric_file
+        if not rubric_path.is_file():
+            raise ValueError(
+                f"Invalid scenario config in {config_path}: rubric_file "
+                f"'{scorer.rubric_file}' not found at {rubric_path}"
+            )
+        # model_copy(update=...) intentionally bypasses validation: rubric is
+        # the engine-facing string populated post-validation, while exclusivity
+        # (no inline rubric in spec files) is enforced at the YAML boundary by
+        # _reject_inline_rubrics.
+        resolved.append(
+            scorer.model_copy(update={"rubric": rubric_path.read_text("utf-8")})
+        )
+    return config.model_copy(update={"scorers": resolved})
+
+
 def load_scenario_config(config_path: Path) -> ScenarioConfig:
     """Read eval_spec.yaml and return validated ScenarioConfig."""
     config_data = _load_yaml_mapping(config_path)
+    _reject_inline_rubrics(config_data, config_path)
     try:
-        return ScenarioConfig.model_validate(config_data)
+        config = ScenarioConfig.model_validate(config_data)
     except ValidationError as exc:
         raise ValueError(f"Invalid scenario config in {config_path}: {exc}") from exc
+    return _resolve_rubric_files(config, config_path)
 
 
 def load_braintrust_config(config_path: Path) -> BraintrustConfig:

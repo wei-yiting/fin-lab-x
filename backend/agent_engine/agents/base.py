@@ -24,6 +24,7 @@ from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitState
 from langchain.agents.middleware.types import ResponseT, hook_config
 from langchain.chat_models import init_chat_model
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.runtime import Runtime
@@ -34,7 +35,10 @@ from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import NotRequired, TypedDict
 
-from backend.agent_engine.agents.config_loader import WorkflowProfileConfig
+from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    WorkflowProfileConfig,
+)
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
@@ -86,6 +90,100 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
 # Literal JSON fragments like `{"role": "user"}` have `"` as the first inner
 # char and are skipped, so they survive rendering untouched.
 _PROMPT_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def _provider_prefix(name: str) -> str:
+    """Return the provider segment of a ``provider:model`` identifier.
+
+    Bare names without a colon default to ``"openai"`` to preserve
+    pre-multi-provider behavior.
+    """
+    return name.split(":", 1)[0] if ":" in name else "openai"
+
+
+def _init_model(config: ModelConfig) -> BaseChatModel:
+    """Build a chat model with provider-aware reasoning kwargs.
+
+    Maps ``ModelConfig.reasoning`` + ``thinking_budget`` to the right
+    ``init_chat_model`` keyword for each provider:
+
+    - ``google_genai`` — passes ``thinking_budget`` (``None`` lets the
+      provider use its default; ``0`` when reasoning is ``"off"`` to
+      force disable).
+    - ``anthropic`` — passes ``thinking={"type":"enabled","budget_tokens":N}``
+      only when reasoning is ``"on"``. Anthropic API requires an explicit
+      budget (≥1024), so a ``None`` or sub-1024 budget with reasoning on
+      is rejected here rather than letting the provider raise mid-request.
+    - ``openai`` — passes ``reasoning_effort="medium"`` and
+      ``use_responses_api=True`` when reasoning is ``"on"`` (gpt-5 series).
+      Bare names without a ``provider:`` prefix default to this branch.
+
+    ``reasoning="unsupported"`` short-circuits before any provider branch
+    so NO reasoning kwarg reaches ``init_chat_model``. This matters for
+    bound models that physically cannot accept the kwarg (e.g.
+    gemini-1.5 rejects ``thinking_budget`` entirely; gemini-2.5-pro
+    rejects ``thinking_budget=0`` because thinking can't be disabled).
+    Treating ``"unsupported"`` and ``"off"`` identically would break
+    those cases.
+    """
+    name = config.name
+    provider = _provider_prefix(name)
+    kwargs: dict[str, Any] = {"temperature": config.temperature}
+
+    if config.reasoning == "unsupported":
+        return init_chat_model(name, **kwargs)
+
+    if provider == "google_genai":
+        kwargs["thinking_budget"] = (
+            config.thinking_budget if config.reasoning == "on" else 0
+        )
+        # Gemini 2.5 only surfaces thinking content in the response when both
+        # thinking_budget>0 AND include_thoughts=True are passed. Without
+        # include_thoughts, the model still spends thinking tokens but
+        # AIMessage.content_blocks contains no reasoning blocks, so
+        # metadata.reasoning and the wire reasoning parts both end up empty.
+        if config.reasoning == "on":
+            kwargs["include_thoughts"] = True
+    elif provider == "anthropic":
+        if config.reasoning == "on":
+            if config.thinking_budget is None:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires explicit "
+                    "thinking_budget (Anthropic API requires budget_tokens, "
+                    "minimum 1024). Set in agent yaml."
+                )
+            if config.thinking_budget < 1024:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires "
+                    f"thinking_budget >= 1024 (got {config.thinking_budget}). "
+                    "Anthropic API rejects lower values."
+                )
+            # Anthropic extended thinking rejects any temperature other than
+            # 1.0 with HTTP 400. The default agent ModelConfig.temperature is
+            # 0.0, so this combo would fail at first request without an
+            # actionable error from the provider. Catch it at startup.
+            if config.temperature != 1.0:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires "
+                    f"temperature=1.0 (got {config.temperature}). Extended "
+                    "thinking rejects other temperatures with HTTP 400."
+                )
+            kwargs["thinking"] = {
+                "type": "enabled",
+                "budget_tokens": config.thinking_budget,
+            }
+    else:
+        # openai (explicit prefix) and bare names
+        if config.reasoning == "on":
+            # Pass both effort and summary via the unified ``reasoning`` dict
+            # (langchain-openai 0.3.24+). ``summary="auto"`` lets the
+            # Responses API decide whether to emit a reasoning summary block;
+            # without it the response carries no reasoning content_blocks
+            # even on gpt-5 / o4 models, leaving metadata.reasoning empty.
+            kwargs["reasoning"] = {"effort": "medium", "summary": "auto"}
+            kwargs["use_responses_api"] = True
+
+    return init_chat_model(name, **kwargs)
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -255,7 +353,7 @@ class Orchestrator:
             max_tool_calls_per_run=config.constraints.max_tool_calls_per_run,
         )
 
-        model = init_chat_model(config.model.name, temperature=config.model.temperature)
+        model = _init_model(config.model)
         tool_call_limit = RunBudgetMiddleware(
             run_limit=config.constraints.max_tool_calls_per_run,
         )

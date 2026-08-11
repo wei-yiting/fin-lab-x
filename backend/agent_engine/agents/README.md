@@ -2,8 +2,8 @@
 Profile-agnostic Orchestrator and configuration loading. This module provides the central reasoning engine that loads capabilities and constraints from Workflow Profile directories.
 
 ## Map
-- `base.py`: Defines the `Orchestrator` class, which uses LangChain to manage the ReAct tool-calling loop. `_build_langfuse_config()` attaches a per-request `CallbackHandler` plus a `RunnableConfig` carrying `run_name="chat-turn"` and `metadata={langfuse_trace_name: f"{config.name}_{mode}", request_id: ...}`; `propagate_attributes(trace_name=..., session_id=...)` wraps the invocation for OTel-context correlation. Extracts results via `_extract_result`.
-- `config_loader.py`: Implements `ProfileConfigLoader` and `WorkflowProfileConfig` Pydantic models for loading `orchestrator_config.yaml` and `system_prompt.md` from profile directories.
+- `base.py`: Defines the `Orchestrator` class, which uses LangChain to manage the ReAct tool-calling loop. `_init_model()` translates `ModelConfig` into provider-aware reasoning kwargs (see Multi-Provider Reasoning Configuration below). `_build_langfuse_config()` attaches a per-request `CallbackHandler` plus a `RunnableConfig` carrying `run_name="chat-turn"` and `metadata={langfuse_trace_name: f"{config.name}_{mode}", request_id: ...}`; `propagate_attributes(trace_name=..., session_id=...)` wraps the invocation for OTel-context correlation. Extracts results via `_extract_result`.
+- `config_loader.py`: Implements `ProfileConfigLoader` and `WorkflowProfileConfig` Pydantic models for loading `orchestrator_config.yaml` and `system_prompt.md` from profile directories. `ModelConfig` exposes `reasoning` (`"on"` / `"off"` / `"unsupported"`) and `thinking_budget` for admin-configured reasoning capability binding — see `profiles/README.md` for field semantics and provider examples.
 - `profiles/`: Subdirectory containing the Workflow Profiles, one per capability tier (`baseline` … `analyst`).
 
 ## Design Pattern
@@ -18,6 +18,19 @@ Profile-agnostic Orchestrator and configuration loading. This module provides th
 |-------------|--------|
 | `{section_soft_cap_chars}` | `backend.agent_engine.utils.model_context.compute_section_soft_cap_chars(model_name)` |
 | `{max_tool_calls_per_run}` | `config.constraints.max_tool_calls_per_run` (same value `RunBudgetMiddleware` enforces) |
+
+## Multi-Provider Reasoning Configuration
+
+`_init_model()` translates `ModelConfig.reasoning` + `thinking_budget` into the provider-specific kwargs `init_chat_model` expects. Each provider's reasoning API has different requirements; mis-configuration fails at first request, not at startup, so the matrix below is enforced explicitly in `_init_model`.
+
+| Provider prefix       | `reasoning="on"`                                                            | `reasoning="off"`     | Hard constraints                                                                                       |
+| --------------------- | --------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `google_genai`        | `thinking_budget=<budget>` + `include_thoughts=True`                         | `thinking_budget=0`   | `include_thoughts` is required, or the response carries no reasoning content_blocks (silent empty)     |
+| `anthropic`           | `thinking={"type":"enabled","budget_tokens":<budget>}`                       | (no `thinking` kwarg) | `thinking_budget >= 1024` AND `temperature == 1.0`; otherwise the Anthropic API returns HTTP 400      |
+| `openai` (default for bare names) | `reasoning={"effort":"medium","summary":"auto"}` + `use_responses_api=True` | (no `reasoning` kwarg) | `summary="auto"` is required, or gpt-5 / o4 emit no reasoning content_blocks                          |
+| Any                   | `reasoning="unsupported"` short-circuits before any provider branch — no reasoning kwarg passed | — | Use for bound models that physically reject reasoning kwargs (e.g. gemini-1.5, gemini-2.5-pro disabled) |
+
+`thinking_budget=None` is accepted for Gemini (provider default) and OpenAI (unused). It raises `ValueError` at startup for Anthropic with `reasoning="on"` because the API requires an explicit `budget_tokens`.
 
 ## Startup Validation
 

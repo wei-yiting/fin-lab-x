@@ -56,10 +56,29 @@ def test_every_payload_has_full_field_set_including_citation(payloads) -> None:
         assert p["primary_document"] == "aapl-20240928.htm"
 
 
-def test_prelude_attached_whole_to_every_chunk_of_its_item(payloads) -> None:
+def test_prelude_attached_whole_to_every_block_chunk_of_its_item(payloads) -> None:
+    item7_blocks = [
+        p for p in payloads if p["item"] == "7" and p["block_heading"] is not None
+    ]
+    assert item7_blocks
+    assert all(p["prelude"] == PRELUDE_TEXT for p in item7_blocks)
+
+
+def test_valid_prelude_produces_its_own_searchable_leading_chunk(payloads) -> None:
+    """The prelude enters the chunk flow itself — same path as FlatItem /
+    reclassified leading blocks — so its content is searchable, not only
+    payload metadata. Its own chunk carries prelude=None (it IS the prelude)."""
     item7 = [p for p in payloads if p["item"] == "7"]
-    assert item7
-    assert all(p["prelude"] == PRELUDE_TEXT for p in item7)
+    leading = _of_block(payloads, "7", None)
+    assert leading, "valid prelude did not produce a leading chunk"
+    assert " ".join(p["text"] for p in leading) == PRELUDE_TEXT
+    assert all(p["prelude"] is None for p in leading)
+    # Leading chunks come first within the item.
+    max_leading_index = max(p["chunk_index"] for p in leading)
+    min_block_index = min(
+        p["chunk_index"] for p in item7 if p["block_heading"] is not None
+    )
+    assert max_leading_index < min_block_index
 
 
 def test_prelude_is_none_for_flat_and_reclassified_items(payloads) -> None:
@@ -88,6 +107,7 @@ def test_block_heading_is_none_for_flat_and_reclassified_leading_block(
 def test_chunk_boundaries_never_cross_blocks(payloads) -> None:
     filing = make_toy_filing()
     block_texts = {
+        ("7", None): filing.items[0].prelude,
         ("7", "Results of Operations"): filing.items[0].blocks[0].text,
         ("7", "Liquidity and Capital Resources"): filing.items[0].blocks[1].text,
         ("1a", None): filing.items[1].blocks[0].text,
@@ -135,6 +155,11 @@ def test_header_path_format_without_part_level(payloads) -> None:
     )
     leading = _of_block(payloads, "1a", None)[0]
     assert leading["header_path"] == "AAPL / 2024 / Item 1A. Risk Factors"
+    prelude_chunk = _of_block(payloads, "7", None)[0]
+    assert prelude_chunk["header_path"] == (
+        "AAPL / 2024 / Item 7. Management's Discussion and Analysis of "
+        "Financial Condition and Results of Operations"
+    )
     for p in payloads:
         assert "Part" not in p["header_path"]
 

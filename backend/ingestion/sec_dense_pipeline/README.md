@@ -21,10 +21,15 @@ e.g. `7a`), `block_heading`, `prelude`, `header_path` (no Part level),
 fields `accession_number` / `cik` / `primary_document` (denormalized per chunk;
 EDGAR URLs are always derived, never stored).
 
-`prelude` and `block_heading` are `None` when the schema carries no such text
-(FlatItem, or a reclassified heading-less leading block — whose text is in the
-chunk flow, not the metadata). A valid prelude is attached whole to every chunk
-of its Item and is never independently chunked or embedded.
+A valid prelude (≤3,000 chars, gated upstream by the detection layer) is both
+searchable and contextual: it produces its own heading-less leading chunk —
+same path as a FlatItem body or a reclassified leading block, so financial
+content that lands in a prelude never disappears from the index — and it is
+additionally attached whole to every *block* chunk of its Item as
+retrieve-time context. The validity threshold governs only that metadata
+attachment, never search visibility. `prelude` and `block_heading` are `None`
+on every leading chunk (prelude-own, FlatItem, reclassified) and on block
+chunks of items without a valid prelude.
 
 ## Environment variables
 

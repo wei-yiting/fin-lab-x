@@ -73,13 +73,20 @@ async def test_ingest_writes_full_payload_and_completes_marker(
         assert "ingested_at" in payload
         assert isinstance(payload["chunk_index"], int)
 
-    # prelude=None expressed for FlatItem and reclassified; attached for valid.
+    # prelude=None expressed for FlatItem and reclassified; a valid prelude
+    # is attached to its item's block chunks AND searchable as its own
+    # heading-less leading chunk (which carries prelude=None itself).
     by_item = {}
     for point in points:
         by_item.setdefault(point.payload["item"], []).append(point.payload)
     assert all(p["prelude"] is None for p in by_item["1a"])
     assert all(p["prelude"] is None for p in by_item["8"])
-    assert all(isinstance(p["prelude"], str) and p["prelude"] for p in by_item["7"])
+    item7_blocks = [p for p in by_item["7"] if p["block_heading"] is not None]
+    item7_leading = [p for p in by_item["7"] if p["block_heading"] is None]
+    assert item7_blocks and all(
+        isinstance(p["prelude"], str) and p["prelude"] for p in item7_blocks
+    )
+    assert item7_leading and all(p["prelude"] is None for p in item7_leading)
 
     assert _marker_status(qdrant_client, "AAPL", 2024) == "complete"
     assert check_commit_marker_complete(qdrant_client, TEST_COLLECTION, "AAPL", 2024)

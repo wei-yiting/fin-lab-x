@@ -7,12 +7,15 @@ block. ``chunk_index`` runs over the whole filing — it is the fragment of the
 citation stable ID ``sec://{accession_number}/{item}#{chunk_index}``, so it
 must be unique per filing, not per block.
 
-A valid prelude is attached whole to every chunk payload of its Item (never
-chunked or embedded on its own — retrieve-time context comes straight from
-the payload). ``prelude`` / ``block_heading`` are ``None`` in the payload
-whenever the schema carries no such text: FlatItems have neither, and a
-reclassified leading block (schema ``prelude == ""``, ``heading == ""``) has
-its text in the chunk flow instead of the metadata.
+A valid prelude enters the chunk flow twice-over: it produces its own
+heading-less leading chunk(s) — same path and same payload shape as a
+FlatItem body or a reclassified leading block, so financial content that
+lands in a prelude stays searchable — and it is additionally attached whole
+to every *block* chunk payload of its Item as retrieve-time context. The
+DEV-133 validity threshold governs only that metadata attachment, never
+search visibility. ``prelude`` / ``block_heading`` are ``None`` on every
+leading chunk (prelude-own, FlatItem, reclassified) and on block chunks of
+items without a valid prelude.
 """
 
 from __future__ import annotations
@@ -93,7 +96,13 @@ def build_chunk_payloads(filing: ParsedFiling) -> list[ChunkPayload]:
             units = [(None, None, item.text)]
         else:
             prelude = item.prelude or None
-            units = [
+            units = []
+            if prelude:
+                # The prelude's own searchable leading chunk: handled exactly
+                # like a FlatItem body / reclassified leading block, so its
+                # own payload carries prelude=None (it IS the prelude).
+                units.append((None, None, prelude))
+            units += [
                 (block.heading or None, prelude, block.text) for block in item.blocks
             ]
 

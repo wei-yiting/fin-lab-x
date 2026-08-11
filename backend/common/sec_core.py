@@ -223,7 +223,12 @@ def _find_by_fiscal_year(filings, fiscal_year: int):
     return None
 
 
-def _classify_edgar_error(exc: Exception, ticker: str) -> FinLabError:
+def _classify_edgar_error(
+    exc: Exception,
+    ticker: str,
+    *,
+    post_locate_context: str | None = None,
+) -> FinLabError:
     """Map a raw edgartools / HTTP exception to a FinLabError subclass.
 
     Returns the mapped exception (caller uses ``raise mapped from exc``).
@@ -235,7 +240,14 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> FinLabError:
       ``TransientError``.
     - Existing ``FinLabError`` (e.g. already-classified ``SECError``) →
       pass through unchanged.
-    - Anything else → ``TickerNotFoundError`` (empty-filings template).
+    - Anything else: the fallback guess depends on the call's stage.
+      Locate-stage callers (``post_locate_context=None``) get
+      ``TickerNotFoundError`` — at that stage an unclassifiable failure
+      most plausibly means the ticker is wrong. Callers that already hold
+      a located filing pass ``post_locate_context`` (a message prefix
+      describing what they were doing); "ticker not found" is factually
+      impossible for them, so the fallback becomes a ``SECError`` built
+      from that context instead of a misleading lookup error.
     """
     try:
         from edgar.httprequests import TooManyRequestsError
@@ -279,6 +291,8 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> FinLabError:
 
     if isinstance(exc, FinLabError):
         return exc
+    if post_locate_context is not None:
+        return SECError(f"{post_locate_context}: {exc}")
     return TickerNotFoundError(f"Ticker {ticker!r} not found on SEC EDGAR.")
 
 
@@ -440,7 +454,13 @@ def _fetch_filing_obj_cached(
     try:
         obj = filing.obj()
     except Exception as exc:
-        raise _classify_edgar_error(exc, ticker_upper) from exc
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
+                f"Failed to parse the located {filing_type} filing for {ticker_upper}"
+            ),
+        ) from exc
 
     if not isinstance(obj, TenK):
         raise SECError(f"Expected TenK, got {type(obj).__name__}")
@@ -468,7 +488,14 @@ def _fetch_filing_bundle_cached(
             getattr(document, "document", None) if document is not None else None
         )
     except Exception as exc:
-        raise _classify_edgar_error(exc, ticker_upper) from exc
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
+                f"Failed to read citation metadata for the located "
+                f"{filing_type} filing of {ticker_upper}"
+            ),
+        ) from exc
 
     if not primary_document:
         raise SECError(
@@ -496,17 +523,15 @@ def _fetch_filing_markdown_cached(
     try:
         return filing.markdown() or ""
     except Exception as exc:
-        # The filing is already located, so _classify_edgar_error's
-        # TickerNotFoundError fallback would be a lie here — an
-        # unclassifiable render failure must say what actually broke.
-        mapped = _classify_edgar_error(exc, ticker_upper)
-        if isinstance(mapped, TickerNotFoundError):
-            raise SECError(
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
                 f"Failed to render markdown for {ticker_upper} {filing_type} "
                 f"(fiscal year {fiscal_year if fiscal_year is not None else 'latest'}, "
-                f"accession {filing.accession_number}): {exc}"
-            ) from exc
-        raise mapped from exc
+                f"accession {filing.accession_number})"
+            ),
+        ) from exc
 
 
 def fetch_filing_markdown(

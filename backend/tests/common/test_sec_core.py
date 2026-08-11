@@ -837,3 +837,41 @@ def test_fetch_filing_markdown_429_still_maps_to_rate_limit(mock_edgar):
 
     with pytest.raises(RateLimitError):
         fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)
+
+
+# ---------------------------------------------------------------------------
+# post-locate failures must never masquerade as "ticker not found"
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_filing_obj_parse_failure_is_not_ticker_not_found(mock_edgar):
+    """The filing is already located when ``filing.obj()`` runs — an
+    unclassifiable parse failure must surface as a truthful SECError,
+    never as the locate-stage TickerNotFoundError fallback."""
+    filing = _make_filing("2025-09-27", mock_edgar["tenk_cls"])
+    filing.obj = MagicMock(side_effect=ValueError("broken section index"))
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    assert not isinstance(exc_info.value, TickerNotFoundError)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "broken section index" in msg
+
+
+def test_fetch_filing_bundle_metadata_failure_is_not_ticker_not_found(mock_edgar):
+    """Same stage rule for the bundle path's citation-metadata read."""
+    filing = _InstrumentedDocFiling(
+        mock_edgar["tenk_cls"], _raise(ValueError("SGML index corrupted"))
+    )
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+
+    assert not isinstance(exc_info.value, TickerNotFoundError)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "SGML index corrupted" in msg

@@ -1,9 +1,11 @@
 """parse_filing — fetch + parse orchestration for the SEC text pipeline.
 
 Single public entry point; edgartools types never leak to callers.
-Detection is currently degenerate — every non-stub Item is emitted as a
-:class:`FlatItem`; the markdown H3/H4 detection chain is the planned next
-step and upgrades qualifying Items to :class:`StructuredItem`.
+Non-stub Items run through the markdown H3/H4 detection chain
+(:mod:`block_detection`): a plausibly-anchored Item becomes a
+:class:`StructuredItem` (prelude + blocks + detection_source), everything
+else stays a :class:`FlatItem`. The Title-Case text fallback path is the
+planned next step and will pick up Items the markdown path rejects.
 """
 
 from __future__ import annotations
@@ -18,12 +20,19 @@ from backend.common.sec_core import (
     FilingType,
     SECError,
     fetch_filing_bundle,
+    fetch_filing_markdown,
+)
+from backend.ingestion.sec_text_pipeline.block_detection import (
+    HeadingCandidates,
+    collect_heading_candidates,
+    detect_blocks,
 )
 from backend.ingestion.sec_text_pipeline.filing_models import (
     FilingMetadata,
     FlatItem,
     ParsedFiling,
     ParsedItem,
+    StructuredItem,
 )
 from backend.ingestion.sec_text_pipeline.filing_store import (
     FilingStore,
@@ -66,8 +75,11 @@ def parse_filing(
     ``store`` is a keyword-only test/advanced seam; the default is
     :class:`LocalFilingStore`.
 
-    Raises the :class:`backend.common.sec_core.SECError` family on fetch
-    failures (ticker unknown, no 10-K, rate limit, ...), and
+    Raises the :class:`backend.common.errors.FinLabError` taxonomy on fetch
+    failures — shared errors directly (``TickerNotFoundError``,
+    ``RateLimitError``, ``TransientError``, ``ConfigurationError``) and
+    SEC-specific ones via :class:`backend.common.sec_core.SECError`
+    (``FilingNotFoundError``, ``UnsupportedFilingTypeError``) — plus
     :class:`EmptyFilingError` when the filing parses to zero substantive
     items (nothing is saved to the store in that case).
     """
@@ -81,7 +93,9 @@ def parse_filing(
 
     bundle = fetch_filing_bundle(ticker_norm, FilingType.TEN_K, fiscal_year)
     metadata = _build_metadata(bundle, ticker_norm, fiscal_year)
-    items = _parse_items(bundle.tenk)
+    markdown = fetch_filing_markdown(ticker_norm, FilingType.TEN_K, fiscal_year)
+    candidates = collect_heading_candidates(markdown, bundle.company_name)
+    items = _parse_items(bundle.tenk, candidates)
     if not items:
         raise EmptyFilingError(
             f"Parsed 0 substantive items for {ticker_norm} FY{fiscal_year} "
@@ -160,13 +174,17 @@ def _trim_section_text(text: str, current_item: str) -> str:
     return _TRAILING_PART_RE.sub("", trimmed.rstrip()).rstrip()
 
 
-def _parse_items(tenk: TenK) -> list[ParsedItem]:
-    """Emit one FlatItem per substantive 10-K item, in filing order.
+def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
+    """Emit one parsed item per substantive 10-K item, in filing order.
 
     Each section body is trimmed to its own Item boundary before stub
     classification — a bled tail would otherwise both corrupt the emitted
     text and push a pure pointer stub (AAPL FY2025 Item 11) over the
     remaining-content threshold so it wrongly survives.
+
+    Surviving bodies run through the markdown H3/H4 detection chain: a
+    plausibly-anchored Item is emitted as a StructuredItem, the rest as
+    FlatItems.
 
     Skips: entries that are not standard items (signatures, unknown keys),
     empty bodies, stub items (v2 classifier), and duplicate item keys
@@ -189,7 +207,20 @@ def _parse_items(tenk: TenK) -> list[ParsedItem]:
         if is_stub:
             continue
         seen.add(key)
-        items.append(FlatItem(item=key, title=TENK_STANDARD_TITLES[key], text=text))
+        title = TENK_STANDARD_TITLES[key]
+        detected = detect_blocks(text, candidates)
+        if detected is not None:
+            items.append(
+                StructuredItem(
+                    item=key,
+                    title=title,
+                    prelude=detected.prelude,
+                    blocks=detected.blocks,
+                    detection_source=detected.detection_source,
+                )
+            )
+        else:
+            items.append(FlatItem(item=key, title=title, text=text))
     return items
 
 

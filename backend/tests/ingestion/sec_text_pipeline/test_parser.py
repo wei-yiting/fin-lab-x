@@ -4,7 +4,11 @@ import pytest
 
 from backend.common.sec_core import FetchedFiling, FilingType
 from backend.ingestion.sec_text_pipeline import parser
-from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
+from backend.ingestion.sec_text_pipeline.filing_models import (
+    FlatItem,
+    ParsedFiling,
+    StructuredItem,
+)
 from backend.tests.ingestion.sec_text_pipeline.conftest import (
     FakeTenK,
     make_bundle,
@@ -207,6 +211,62 @@ class TestTrimSectionText:
         assert "2025" in str(excinfo.value)
         assert "0000320193-25-000079" in str(excinfo.value)
         assert store.get("AAPL", FilingType.TEN_K, 2025) is None
+
+
+class TestDetectionWiring:
+    def test_plausible_markdown_headings_upgrade_item_to_structured(
+        self, store, monkeypatch, fake_bundle
+    ):
+        body = "Substantive business discussion line. " * 5
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_2": {
+                    "item": "2",
+                    "text": (
+                        f"Item 2. Properties\nOwned Facilities\n{body}\n"
+                        f"Leased Facilities\n{body}"
+                    ),
+                }
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(
+            parser,
+            "fetch_filing_markdown",
+            lambda *a, **k: "### Owned Facilities\n### Leased Facilities\n",
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        (item,) = result.items
+        assert isinstance(item, StructuredItem)
+        assert item.detection_source == "markdown_h3"
+        assert [b.heading for b in item.blocks] == [
+            "Owned Facilities",
+            "Leased Facilities",
+        ]
+        assert item.prelude == "Item 2. Properties"  # verbatim, no carve-outs
+
+    def test_structured_items_round_trip_through_store(
+        self, store, monkeypatch, fake_bundle
+    ):
+        body = "Substantive business discussion line. " * 5
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_2": {
+                    "item": "2",
+                    "text": f"Item 2. Properties\nOwned\n{body}\nLeased\n{body}",
+                }
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_markdown", lambda *a, **k: "### Owned\n### Leased\n"
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == result
 
 
 class TestMetadata:

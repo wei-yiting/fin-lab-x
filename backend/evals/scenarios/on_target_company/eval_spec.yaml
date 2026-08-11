@@ -2,9 +2,10 @@ name: on_target_company
 csv: dataset.csv
 
 regression:
-  # The judge has NOT been validated against human-labeled ground truth
-  # (no TPR/TNR measured). Calibration labels are owned by DEV-96.
-  enabled: true
+  # No evaluation has been run yet, so there is no measured baseline to set
+  # a metric_floor from. Flipping to true once a first run establishes one
+  # is owned by DEV-96 alongside the dedicated dataset work.
+  enabled: false
 
 task:
   function: backend.evals.eval_tasks.run_baseline

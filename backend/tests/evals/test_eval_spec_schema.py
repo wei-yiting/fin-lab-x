@@ -765,7 +765,7 @@ def test_real_on_target_company_spec_matches_gate_contract() -> None:
         REAL_SCENARIOS_DIR / "on_target_company" / "eval_spec.yaml"
     )
 
-    assert config.regression.enabled is True
+    assert config.regression.enabled is False
     assert len(config.scorers) == 1
     judge = config.scorers[0]
     assert judge.name == "on_target_company"

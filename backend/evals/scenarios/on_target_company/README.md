@@ -12,23 +12,14 @@ companies or the broader market passes only when it directly supports the
 answer (peer comparison, market context); any other-company content that
 stands on its own fails, regardless of length.
 
-History: this judge started life inside language_policy as
-`response_relevance` — a wrong name (it never measured language policy), and
-a length-based rubric that could fail legitimate brief peer comparisons. It
-was renamed, narrowed to the functional criterion, and moved here as its own
-scenario (DEV-117).
-
 Out of scope: topic drift about the *same* company (answering something the
 user did not ask about {{expected.ticker}} itself) is not judged here.
 
 ## Gate
 
-`regression.enabled: true` — the judge gates with the defaults (counted in,
-`metric_floor` 1.0: every case must score Y). If measured runs show judge
-flakiness once LLM-judge execution is repaired (DEV-120), lower the floor
-with evidence, not preemptively.
-
-Calibration debt: this judge has not been validated against human-labeled
-ground truth (design-envelope §4 eval zone). The labels belong with the
-dedicated dataset work — DEV-96 owns producing them alongside the
-replacement dataset.
+`regression.enabled: false` — no evaluation has been run yet, so there is no
+measured baseline to set a `metric_floor` from. This judge is also
+unvalidated against human-labeled ground truth (no TPR/TNR measured;
+design-envelope §4 eval zone). Both are owned by DEV-96 alongside the
+dedicated dataset work — flip to `true` once a first run establishes a
+baseline and calibration exists.

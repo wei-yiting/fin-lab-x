@@ -13,6 +13,20 @@ from backend.agent_engine.agents.base import _init_model
 from backend.agent_engine.agents.config_loader import ModelConfig
 
 
+def _call(cfg: ModelConfig) -> tuple[tuple, dict]:
+    """Run ``_init_model`` against a mocked ``init_chat_model`` and return
+    the ``(args, kwargs)`` it was called with."""
+    with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
+        _init_model(cfg)
+        mock_init.assert_called_once()
+        return mock_init.call_args.args, mock_init.call_args.kwargs
+
+
+def _kwargs(cfg: ModelConfig) -> dict:
+    """Convenience wrapper around ``_call`` for tests that only need kwargs."""
+    return _call(cfg)[1]
+
+
 class TestInitModelGemini:
     def test_gemini_reasoning_on_with_none_budget_passes_none(self):
         cfg = ModelConfig(
@@ -21,21 +35,18 @@ class TestInitModelGemini:
             reasoning="on",
             thinking_budget=None,
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            mock_init.assert_called_once()
-            args, kwargs = mock_init.call_args
-            assert args[0] == "google_genai:gemini-2.5-flash"
-            assert kwargs["temperature"] == 0.0
-            assert kwargs["thinking_budget"] is None
-            # Gemini reasoning-on requires include_thoughts=True for the
-            # response to actually carry reasoning content_blocks.
-            assert kwargs["include_thoughts"] is True
-            # Gemini path must not leak Anthropic / OpenAI kwargs
-            assert "thinking" not in kwargs
-            assert "reasoning" not in kwargs
-            assert "reasoning_effort" not in kwargs
-            assert "use_responses_api" not in kwargs
+        args, kwargs = _call(cfg)
+        assert args[0] == "google_genai:gemini-2.5-flash"
+        assert kwargs["temperature"] == 0.0
+        assert kwargs["thinking_budget"] is None
+        # Gemini reasoning-on requires include_thoughts=True for the
+        # response to actually carry reasoning content_blocks.
+        assert kwargs["include_thoughts"] is True
+        # Gemini path must not leak Anthropic / OpenAI kwargs
+        assert "thinking" not in kwargs
+        assert "reasoning" not in kwargs
+        assert "reasoning_effort" not in kwargs
+        assert "use_responses_api" not in kwargs
 
     def test_gemini_reasoning_on_with_explicit_budget(self):
         cfg = ModelConfig(
@@ -44,11 +55,9 @@ class TestInitModelGemini:
             reasoning="on",
             thinking_budget=4096,
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["thinking_budget"] == 4096
-            assert kwargs["include_thoughts"] is True
+        kwargs = _kwargs(cfg)
+        assert kwargs["thinking_budget"] == 4096
+        assert kwargs["include_thoughts"] is True
 
     def test_gemini_reasoning_off_forces_thinking_budget_zero(self):
         cfg = ModelConfig(
@@ -57,13 +66,11 @@ class TestInitModelGemini:
             reasoning="off",
             thinking_budget=None,
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["thinking_budget"] == 0
-            # reasoning-off must NOT set include_thoughts (would attempt to
-            # surface reasoning blocks the model isn't generating).
-            assert "include_thoughts" not in kwargs
+        kwargs = _kwargs(cfg)
+        assert kwargs["thinking_budget"] == 0
+        # reasoning-off must NOT set include_thoughts (would attempt to
+        # surface reasoning blocks the model isn't generating).
+        assert "include_thoughts" not in kwargs
 
     def test_gemini_reasoning_on_with_dynamic_budget_negative_one_passes(self):
         """-1 is Gemini's documented "dynamic thinking" sentinel and must be
@@ -74,11 +81,9 @@ class TestInitModelGemini:
             reasoning="on",
             thinking_budget=-1,
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["thinking_budget"] == -1
-            assert kwargs["include_thoughts"] is True
+        kwargs = _kwargs(cfg)
+        assert kwargs["thinking_budget"] == -1
+        assert kwargs["include_thoughts"] is True
 
     def test_gemini_reasoning_on_with_thinking_budget_zero_raises(self):
         """thinking_budget=0 would silently disable thinking, contradicting
@@ -136,13 +141,11 @@ class TestInitModelAnthropic:
             reasoning="on",
             thinking_budget=2048,
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["thinking"] == {
-                "type": "enabled",
-                "budget_tokens": 2048,
-            }
+        kwargs = _kwargs(cfg)
+        assert kwargs["thinking"] == {
+            "type": "enabled",
+            "budget_tokens": 2048,
+        }
 
     def test_anthropic_reasoning_on_with_non_unity_temperature_raises(self):
         """Anthropic extended thinking rejects any temperature != 1.0 with
@@ -162,39 +165,30 @@ class TestInitModelAnthropic:
             temperature=0.0,
             reasoning="off",
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert "thinking" not in kwargs
+        kwargs = _kwargs(cfg)
+        assert "thinking" not in kwargs
 
 
 class TestInitModelOpenAI:
-    def test_openai_reasoning_on_uses_responses_api(self):
-        cfg = ModelConfig(
-            name="openai:gpt-5-mini",
-            temperature=0.0,
-            reasoning="on",
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            # Unified reasoning dict (langchain-openai 0.3.24+) — both effort
-            # and summary need to be set together; summary="auto" is what
-            # actually surfaces reasoning content_blocks.
-            assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
-            assert kwargs["use_responses_api"] is True
-
-    def test_openai_reasoning_off_omits_reasoning_kwargs(self):
-        cfg = ModelConfig(
-            name="openai:gpt-4o-mini",
-            temperature=0.0,
-            reasoning="off",
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert "reasoning" not in kwargs
-            assert "use_responses_api" not in kwargs
+    @pytest.mark.parametrize(
+        "name",
+        ["openai:gpt-5-mini", "gpt-5-mini", "openai:gpt-5-nano"],
+        ids=["explicit-prefix", "bare-name", "explicit-prefix-nano"],
+    )
+    def test_reasoning_on_uses_responses_api(self, name):
+        """Bare names and explicit ``openai:`` prefixes both route into the
+        same reasoning="on" branch (responses API + unified reasoning dict).
+        Guards against (a) a default-provider regression that would silently
+        drop reasoning kwargs for prefix-less model names, and (b) the
+        elif-provider-=='openai' branch split misrouting an explicit prefix
+        into the unrecognized-provider path."""
+        cfg = ModelConfig(name=name, temperature=0.0, reasoning="on")
+        kwargs = _kwargs(cfg)
+        # Unified reasoning dict (langchain-openai 0.3.24+) — both effort
+        # and summary need to be set together; summary="auto" is what
+        # actually surfaces reasoning content_blocks.
+        assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
+        assert kwargs["use_responses_api"] is True
 
     def test_openai_reasoning_off_sets_reasoning_effort_minimal(self):
         """Empirically verified against the real OpenAI API: omitting a
@@ -208,56 +202,27 @@ class TestInitModelOpenAI:
             temperature=0.0,
             reasoning="off",
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["reasoning_effort"] == "minimal"
+        kwargs = _kwargs(cfg)
+        assert kwargs["reasoning_effort"] == "minimal"
 
     def test_bare_name_defaults_to_openai_provider(self):
-        """Names without a ``provider:`` prefix default to OpenAI semantics."""
+        """Names without a ``provider:`` prefix default to OpenAI semantics.
+
+        Uses a reasoning-capable bare name (not e.g. gpt-4o-mini): on the
+        openai provider, reasoning="off" assumes a reasoning-capable (gpt-5
+        tier) model and sets reasoning_effort="minimal" — classic models
+        are a documented-unsupported combination (see
+        TestInitModelUnsupported)."""
         cfg = ModelConfig(
-            name="gpt-4o-mini",
+            name="gpt-5-nano",
             temperature=0.0,
             reasoning="off",
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            args, kwargs = mock_init.call_args
-            assert args[0] == "gpt-4o-mini"
-            assert "thinking_budget" not in kwargs
-            assert "thinking" not in kwargs
-
-    def test_bare_name_reasoning_on_uses_openai_responses_api(self):
-        """A bare name + reasoning='on' must route into the OpenAI reasoning
-        branch (responses API + unified reasoning dict), not just the off path.
-        Guards against a default-provider regression that would silently drop
-        reasoning kwargs for prefix-less model names."""
-        cfg = ModelConfig(
-            name="gpt-5-mini",
-            temperature=0.0,
-            reasoning="on",
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
-            assert kwargs["use_responses_api"] is True
-
-    def test_explicit_openai_prefix_reasoning_on_regression(self):
-        """Regression check for the elif-provider-=='openai' branch split:
-        an explicit ``openai:`` prefix with reasoning='on' must still reach
-        the OpenAI-specific kwargs, not fall into the unrecognized-provider
-        ValueError path."""
-        cfg = ModelConfig(
-            name="openai:gpt-5-nano",
-            temperature=0.0,
-            reasoning="on",
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
-            assert kwargs["use_responses_api"] is True
+        args, kwargs = _call(cfg)
+        assert args[0] == "gpt-5-nano"
+        assert kwargs["reasoning_effort"] == "minimal"
+        assert "thinking_budget" not in kwargs
+        assert "thinking" not in kwargs
 
 
 class TestInitModelUnrecognizedProvider:
@@ -285,11 +250,9 @@ class TestInitModelUnrecognizedProvider:
             temperature=0.5,
             reasoning="off",
         )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            args, kwargs = mock_init.call_args
-            assert args[0] == "mistral:mistral-large"
-            assert kwargs == {"temperature": 0.5}
+        args, kwargs = _call(cfg)
+        assert args[0] == "mistral:mistral-large"
+        assert kwargs == {"temperature": 0.5}
 
 
 class TestInitModelUnsupported:
@@ -298,51 +261,47 @@ class TestInitModelUnsupported:
     Some bound models physically can't accept the kwarg
     (``gemini-1.5-flash`` rejects ``thinking_budget`` entirely;
     ``gemini-2.5-pro`` rejects ``thinking_budget=0`` because thinking
-    can't be disabled). Collapsing ``unsupported`` into ``off`` would
-    break both, so the helper must skip every reasoning kwarg regardless
-    of provider.
+    can't be disabled) and classic non-reasoning OpenAI models (e.g.
+    ``gpt-4o``) reject ``reasoning_effort`` outright. Collapsing
+    ``unsupported`` into ``off`` would break all of these, so the helper
+    must skip every reasoning kwarg regardless of provider.
     """
 
-    def test_unsupported_skips_all_reasoning_kwargs_for_gemini(self):
-        cfg = ModelConfig(
-            name="google_genai:gemini-1.5-flash",
-            temperature=0.0,
-            reasoning="unsupported",
-            thinking_budget=None,
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert "thinking_budget" not in kwargs
-            assert "thinking" not in kwargs
-            assert "reasoning" not in kwargs
-            assert "use_responses_api" not in kwargs
-            assert kwargs["temperature"] == 0.0
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "google_genai:gemini-1.5-flash",
+            "anthropic:claude-3-haiku",
+            "openai:gpt-4o",
+        ],
+        ids=["gemini", "anthropic", "openai"],
+    )
+    def test_unsupported_skips_all_reasoning_kwargs(self, name):
+        cfg = ModelConfig(name=name, temperature=0.0, reasoning="unsupported")
+        kwargs = _kwargs(cfg)
+        assert "thinking_budget" not in kwargs
+        assert "thinking" not in kwargs
+        assert "reasoning" not in kwargs
+        assert "reasoning_effort" not in kwargs
+        assert "use_responses_api" not in kwargs
+        assert kwargs["temperature"] == 0.0
 
-    def test_unsupported_skips_reasoning_kwargs_for_anthropic(self):
-        cfg = ModelConfig(
-            name="anthropic:claude-3-haiku",
-            temperature=0.0,
-            reasoning="unsupported",
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert "thinking" not in kwargs
-            assert kwargs["temperature"] == 0.0
 
-    def test_unsupported_skips_reasoning_kwargs_for_openai(self):
-        cfg = ModelConfig(
-            name="openai:gpt-4o",
-            temperature=0.0,
-            reasoning="unsupported",
-        )
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert "reasoning" not in kwargs
-            assert "use_responses_api" not in kwargs
-            assert kwargs["temperature"] == 0.0
+class TestInitModelDefaults:
+    def test_bare_default_model_config_is_valid(self):
+        """``ModelConfig()`` with no arguments (pure class defaults) must not
+        raise and must produce kwargs a real ``init_chat_model`` call would
+        accept. Regression guard for the default combination: the class
+        default used to be name="gpt-4o-mini" + reasoning="off", which is a
+        classic non-reasoning model paired with the openai reasoning="off"
+        path — verified against the real API to fail with "Unrecognized
+        request argument supplied: reasoning_effort". The default is now
+        openai:gpt-5-nano, a reasoning-capable model compatible with the
+        reasoning="off" default."""
+        cfg = ModelConfig()
+        args, kwargs = _call(cfg)
+        assert args[0] == "openai:gpt-5-nano"
+        assert kwargs["reasoning_effort"] == "minimal"
 
 
 class TestInitModelTemperature:
@@ -357,7 +316,5 @@ class TestInitModelTemperature:
     )
     def test_temperature_passed_for_all_providers(self, name):
         cfg = ModelConfig(name=name, temperature=0.7, reasoning="off")
-        with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-            _init_model(cfg)
-            kwargs = mock_init.call_args.kwargs
-            assert kwargs["temperature"] == 0.7
+        kwargs = _kwargs(cfg)
+        assert kwargs["temperature"] == 0.7

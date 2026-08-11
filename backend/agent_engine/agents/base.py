@@ -124,7 +124,14 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
       consume real, billed reasoning tokens even for trivial prompts.
       ``"minimal"`` is the lowest tier that actually reaches
       ``reasoning_tokens=0``; ``"none"`` is rejected by the API as an
-      unsupported value for these models.
+      unsupported value for these models. This assumes the bound model is
+      reasoning-capable (gpt-5 tier) — this function does NOT sniff the
+      model name to detect that. Classic non-reasoning OpenAI models
+      (gpt-4o, gpt-4o-mini, gpt-3.5, etc.) are incompatible with
+      ``reasoning="off"`` on this provider and will fail at the API with
+      ``"Unrecognized request argument supplied: reasoning_effort"``; such
+      models must use ``reasoning="unsupported"`` instead, which skips this
+      kwarg entirely.
     - Any other/unrecognized provider prefix — no reasoning kwarg mapping
       exists, so ``reasoning="on"`` raises ``ValueError`` rather than
       silently reusing the OpenAI kwargs. ``reasoning != "on"`` is a no-op

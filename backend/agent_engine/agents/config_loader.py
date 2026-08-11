@@ -18,9 +18,23 @@ class ModelConfig(BaseModel):
         temperature: Sampling temperature passed to the chat model.
         reasoning: Admin-configured reasoning capability for this agent.
             ``"on"`` enables provider-specific thinking/reasoning; ``"off"``
-            forces it disabled (e.g. Gemini ``thinking_budget=0``);
-            ``"unsupported"`` documents that the bound model has no reasoning
-            mode and the orchestrator should not attempt to enable one.
+            forces it disabled (e.g. Gemini ``thinking_budget=0``).
+
+            OpenAI-specific caveat: for the ``openai`` provider,
+            ``reasoning="off"`` assumes a reasoning-capable model (gpt-5
+            tier) and passes ``reasoning_effort="minimal"``. Classic,
+            non-reasoning OpenAI models (``gpt-4o``, ``gpt-4o-mini``,
+            ``gpt-3.5``, etc.) are NOT compatible with ``reasoning="off"``
+            on this provider — the API rejects ``reasoning_effort`` for
+            those models. Use ``reasoning="unsupported"`` for them instead.
+
+            ``"unsupported"`` documents that this config layer should not
+            attempt to pass any reasoning-control kwarg to the bound model
+            — either because the model has no reasoning capability at all
+            (e.g. gpt-4o-mini), or because it has reasoning that cannot be
+            controlled via these kwargs (e.g. gemini-2.5-pro, whose
+            thinking cannot be disabled). Provider-default reasoning
+            behavior may still apply and may still be billed.
             Defaults to ``"off"`` so reasoning never silently turns on.
         thinking_budget: Optional explicit reasoning token budget. Used as
             Anthropic ``budget_tokens`` (required, ≥1024) and Gemini
@@ -30,7 +44,7 @@ class ModelConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    name: str = "gpt-4o-mini"
+    name: str = "openai:gpt-5-nano"
     temperature: float = 0.0
     reasoning: Literal["on", "off", "unsupported"] = "off"
     thinking_budget: int | None = None

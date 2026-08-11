@@ -18,7 +18,7 @@ its text in the chunk flow instead of the metadata.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import NotRequired, TypedDict
 from uuid import NAMESPACE_DNS, uuid5
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -28,6 +28,29 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
     FlatItem,
     ParsedFiling,
 )
+
+
+class ChunkPayload(TypedDict):
+    """Qdrant payload schema for one content chunk.
+
+    ``ingested_at`` is stamped by the vectorizer at upsert time; every other
+    field is produced by :func:`build_chunk_payloads`.
+    """
+
+    ticker: str
+    fiscal_year: int
+    filing_date: str
+    filing_type: str
+    accession_number: str
+    cik: str
+    primary_document: str
+    item: str
+    block_heading: str | None
+    prelude: str | None
+    header_path: str
+    chunk_index: int
+    text: str
+    ingested_at: NotRequired[str]
 
 
 def create_text_splitter() -> RecursiveCharacterTextSplitter:
@@ -43,7 +66,7 @@ def chunk_point_id(ticker: str, fiscal_year: int, chunk_index: int) -> str:
     return str(uuid5(NAMESPACE_DNS, f"{ticker}:{fiscal_year}:{chunk_index}"))
 
 
-def build_chunk_payloads(filing: ParsedFiling) -> list[dict[str, Any]]:
+def build_chunk_payloads(filing: ParsedFiling) -> list[ChunkPayload]:
     """Chunk a filing into the full new-contract Qdrant payloads.
 
     Pure function: no I/O, no embeddings. The vectorizer stamps
@@ -54,10 +77,14 @@ def build_chunk_payloads(filing: ParsedFiling) -> list[dict[str, Any]]:
     ticker = canonicalize_ticker(meta.ticker)
     splitter = create_text_splitter()
 
-    payloads: list[dict[str, Any]] = []
+    payloads: list[ChunkPayload] = []
     chunk_index = 0
     for item in filing.items:
-        item_label = f"Item {item.item.upper()}. {item.title}"
+        # Normalize once at the contract boundary: the schema's `item` is an
+        # unconstrained str, but the payload `item` index/filter contract is
+        # the lowercase stripped key (e.g. "7a").
+        item_key = item.item.strip().lower()
+        item_label = f"Item {item_key.upper()}. {item.title}"
         base_path = f"{ticker} / {meta.fiscal_year} / {item_label}"
 
         # (block_heading, prelude, text) units feeding the chunk flow.
@@ -84,7 +111,7 @@ def build_chunk_payloads(filing: ParsedFiling) -> list[dict[str, Any]]:
                         "accession_number": meta.accession_number,
                         "cik": meta.cik,
                         "primary_document": meta.primary_document,
-                        "item": item.item,
+                        "item": item_key,
                         "block_heading": block_heading,
                         "prelude": prelude,
                         "header_path": header_path,

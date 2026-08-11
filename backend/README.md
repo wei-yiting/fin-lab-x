@@ -10,7 +10,7 @@ This directory contains the backend services for FinLab-X, including the AI Agen
 - `api/`: HTTP/SSE routing and request handling (FastAPI).
 - `common/`: Cross-subsystem domain types — currently SEC core (`FilingType`, `SECError` hierarchy, section helpers, cached filing fetch) shared by `agent_engine/tools/` and `ingestion/sec_filing_pipeline_html/`.
 - `evals/`: LLMOps and evaluation workflows (quality improvement + regression guardrail).
-- `ingestion/`: Data ingestion pipelines — `sec_filing_pipeline_html` (download + parse) and `sec_dense_pipeline_html` (chunk + embed + vector store).
+- `ingestion/`: Data ingestion pipelines — `sec_text_pipeline` (structured 10-K parsing) and `sec_dense_pipeline` (structured chunk + embed + vector store) form the new RAG path; `sec_filing_pipeline_html` and `sec_dense_pipeline_html` are frozen A/B baselines (deleted whole at sunset); `fundamentals_pipeline` (DuckDB quant data foundation).
 - `scripts/`: One-off analysis and developer tools (batch embed, dataset validation).
 - `tests/`: Programmatic tests for backend logic.
 - `../pyproject.toml`: Project dependency and tooling configuration (at project root).

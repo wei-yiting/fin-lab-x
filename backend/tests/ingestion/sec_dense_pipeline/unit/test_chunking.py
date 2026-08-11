@@ -1,16 +1,21 @@
 """Seam-2 unit tests: ParsedFiling → chunk payloads (pure, no Qdrant)."""
 
-from typing import Any
-
 import pytest
 
 from backend.ingestion.sec_dense_pipeline.chunking import (
+    ChunkPayload,
     build_chunk_payloads,
     chunk_point_id,
 )
+from backend.ingestion.sec_text_pipeline.filing_models import (
+    FlatItem,
+    ParsedFiling,
+)
 from backend.tests.ingestion.sec_dense_pipeline.conftest import (
     PRELUDE_TEXT,
+    make_metadata,
     make_toy_filing,
+    numbered_text,
 )
 
 EXPECTED_PAYLOAD_KEYS = {
@@ -31,7 +36,7 @@ EXPECTED_PAYLOAD_KEYS = {
 
 
 @pytest.fixture(scope="module")
-def payloads() -> list[dict[str, Any]]:
+def payloads() -> list[ChunkPayload]:
     return build_chunk_payloads(make_toy_filing())
 
 
@@ -132,6 +137,30 @@ def test_header_path_format_without_part_level(payloads) -> None:
     assert leading["header_path"] == "AAPL / 2024 / Item 1A. Risk Factors"
     for p in payloads:
         assert "Part" not in p["header_path"]
+
+
+@pytest.mark.parametrize("raw_item", ["7A", " 7a ", " 7A "])
+def test_item_is_normalized_at_the_contract_boundary(raw_item: str) -> None:
+    """Schema-valid item variants normalize to the lowercase stripped key.
+
+    The payload `item` is an index/filter field, so mixed case or stray
+    whitespace in the schema's unconstrained str must never leak into it;
+    the display-layer header_path keeps the uppercase form.
+    """
+    filing = ParsedFiling(
+        metadata=make_metadata(),
+        items=[
+            FlatItem(
+                item=raw_item,
+                title="Quantitative and Qualitative Disclosures About Market Risk",
+                text=numbered_text("foxtrot", 50),
+            )
+        ],
+    )
+    result = build_chunk_payloads(filing)
+    assert result
+    assert all(p["item"] == "7a" for p in result)
+    assert all(p["header_path"].startswith("AAPL / 2024 / Item 7A. ") for p in result)
 
 
 def test_ticker_is_canonicalized_into_payload_and_path(payloads) -> None:

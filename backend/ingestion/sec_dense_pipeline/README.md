@@ -26,6 +26,22 @@ EDGAR URLs are always derived, never stored).
 chunk flow, not the metadata). A valid prelude is attached whole to every chunk
 of its Item and is never independently chunked or embedded.
 
+## Environment variables
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SEC_TEXT_QDRANT_COLLECTION` | `sec_filings_openai_large_dense_text` | New-contract Qdrant collection name. |
+| `SEC_CHUNK_SIZE` | `512` | Chunk size in tokens (cl100k_base). |
+| `SEC_CHUNK_OVERLAP` | `50` | Overlap in tokens between adjacent chunks of a block. |
+| `SEC_EMBED_MODEL` | `text-embedding-3-large` | OpenAI embedding model. |
+| `SEC_EMBED_DIM` | `3072` | Embedding dimensions / collection vector size. |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint. |
+
+Extension note: any change to the payload filter fields must be applied in
+lockstep to payload construction (`chunking.py`), the payload-index bootstrap
+(`collection_schema.py`), the marker exclusion (`common.py`), and the retrieval
+side.
+
 ## Integrity: commit marker
 
 One marker point per (ticker, fiscal_year), same collection as the chunks:
@@ -33,6 +49,8 @@ ingest starts by (over)writing it to `pending`, wipes previous content points,
 and flips it to `complete` only after the last upsert. Retrieval treats
 anything but `complete` as absent (committed or absent — a failed ingest looks
 like no ingest), and every content query excludes marker points via
-`marker_status_condition()`. Re-running the ingest is the recovery path; there
+`marker_status_condition()`. A filing that chunks to zero payloads raises
+`EmptyIngestError` before any marker/wipe mutation, so it stays absent to
+readers. Re-running the ingest is the recovery path; there
 is no retry wrapper inside (the embedding client already retries transient
 failures internally).

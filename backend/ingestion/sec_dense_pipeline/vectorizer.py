@@ -17,9 +17,11 @@ and re-running a failed ingest is the recovery path.
 import os
 from datetime import UTC, datetime
 
+import httpx
 from llama_index.embeddings.openai import OpenAIEmbedding
 from qdrant_client import AsyncQdrantClient, models
 
+from backend.common.sec_core import SECError
 from backend.ingestion.sec_dense_pipeline.chunking import (
     build_chunk_payloads,
     chunk_point_id,
@@ -41,6 +43,14 @@ DEFAULT_COLLECTION = "sec_filings_openai_large_dense_text"
 _UPSERT_BATCH_SIZE = 100
 
 
+class EmptyIngestError(SECError):
+    """A filing produced zero chunk payloads — nothing to commit.
+
+    Raised before any marker/wipe mutation so the retrieval side keeps
+    seeing the filing as absent (committed or absent, never silently empty).
+    """
+
+
 def get_collection_name() -> str:
     """New-contract collection; the frozen baseline keeps its own env var."""
     return os.environ.get("SEC_TEXT_QDRANT_COLLECTION", DEFAULT_COLLECTION)
@@ -48,19 +58,22 @@ def get_collection_name() -> str:
 
 async def _embed_texts(texts: list[str]) -> list[list[float]]:
     """Low-level embedding via OpenAI. Patchable for testing."""
-    embed_model = OpenAIEmbedding(model=_EMBED_MODEL, dimensions=_EMBED_DIM)
+    # Inject a caller-owned async HTTP client and close it explicitly.
+    # Without this, GC finalizes the client after asyncio.run() has
+    # closed the event loop, raising "Event loop is closed" from
+    # httpx's AsyncClient.aclose() — visible as task-exception spam
+    # when eval_runner runs the local loop and Braintrust's loop
+    # back-to-back.
+    async_client = httpx.AsyncClient()
     try:
+        embed_model = OpenAIEmbedding(
+            model=_EMBED_MODEL,
+            dimensions=_EMBED_DIM,
+            async_http_client=async_client,
+        )
         return await embed_model.aget_text_embedding_batch(texts)
     finally:
-        # Close the underlying AsyncOpenAI httpx client explicitly.
-        # Without this, GC finalizes the client after asyncio.run() has
-        # closed the event loop, raising "Event loop is closed" from
-        # httpx's AsyncClient.aclose() — visible as task-exception spam
-        # when eval_runner runs the local loop and Braintrust's loop
-        # back-to-back.
-        aclient = embed_model._aclient
-        if aclient is not None:
-            await aclient.close()
+        await async_client.aclose()
 
 
 async def ingest_filing(filing: ParsedFiling) -> None:
@@ -74,6 +87,16 @@ async def ingest_filing(filing: ParsedFiling) -> None:
     meta = filing.metadata
     ticker = canonicalize_ticker(meta.ticker)
     fiscal_year = meta.fiscal_year
+
+    # Guard before any marker/wipe mutation: a filing that chunks to nothing
+    # must stay absent to readers, never become a committed empty corpus.
+    payloads = build_chunk_payloads(filing)
+    if not payloads:
+        raise EmptyIngestError(
+            f"Filing {ticker} FY{fiscal_year} produced zero chunk payloads; "
+            "refusing to ingest an empty corpus."
+        )
+
     collection = get_collection_name()
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
@@ -117,7 +140,6 @@ async def ingest_filing(filing: ParsedFiling) -> None:
             ),
         )
 
-        payloads = build_chunk_payloads(filing)
         ingested_at = datetime.now(UTC).isoformat()
         for payload in payloads:
             payload["ingested_at"] = ingested_at

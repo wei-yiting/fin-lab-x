@@ -145,8 +145,10 @@ def test_model_config_rejects_unknown_field():
 
 
 # ---------------------------------------------------------------------------
-# Task 5: profile yaml smoke load — every shipped profile runs on OpenAI
-# gpt-5-mini with reasoning summaries via the Responses API.
+# Loader contract: every shipped profile YAML parses into a valid ModelConfig
+# with a non-empty model name and a recognized reasoning literal. We
+# deliberately do NOT pin the exact model/reasoning values below — see the
+# test body's own docstring for why.
 # ---------------------------------------------------------------------------
 
 

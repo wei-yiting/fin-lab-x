@@ -16,7 +16,7 @@ tools:
   - sec_filing_get_section
 
 model:
-  name: "openai:gpt-5-mini"
+  name: "openai:gpt-5-nano"
   temperature: 0.0
   reasoning: "off"
   thinking_budget: null

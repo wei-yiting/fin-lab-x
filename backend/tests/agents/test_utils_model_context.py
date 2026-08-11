@@ -1,4 +1,8 @@
+from pathlib import Path
+
 import pytest
+import yaml
+
 from backend.agent_engine.utils import model_context
 from backend.agent_engine.utils.model_context import (
     DEFAULT_CONTEXT_WINDOW,
@@ -84,9 +88,6 @@ def test_registry_yaml_matches_orchestrator_configs():
     Provider-prefixed names (e.g. ``google_genai:gemini-2.5-flash``) match
     against the bare key (``gemini-2.5-flash``) — see ``_strip_provider_prefix``.
     """
-    from pathlib import Path
-    import yaml
-
     profiles = Path("backend/agent_engine/agents/profiles")
     needed = set()
     for cfg in profiles.glob("*/orchestrator_config.yaml"):

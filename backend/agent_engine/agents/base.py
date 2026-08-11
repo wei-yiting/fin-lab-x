@@ -114,9 +114,21 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
       only when reasoning is ``"on"``. Anthropic API requires an explicit
       budget (≥1024), so a ``None`` or sub-1024 budget with reasoning on
       is rejected here rather than letting the provider raise mid-request.
-    - ``openai`` — passes ``reasoning_effort="medium"`` and
-      ``use_responses_api=True`` when reasoning is ``"on"`` (gpt-5 series).
-      Bare names without a ``provider:`` prefix default to this branch.
+    - ``openai`` (also the default for bare names without a ``provider:``
+      prefix) — passes ``reasoning={"effort": "medium", "summary": "auto"}``
+      and ``use_responses_api=True`` when reasoning is ``"on"`` (gpt-5
+      series). When reasoning is ``"off"``, passes ``reasoning_effort=
+      "minimal"``: gpt-5-tier models are reasoning-capable by default, so
+      omitting a reasoning kwarg entirely leaves them at the provider's own
+      default effort — empirically confirmed (live API call) to still
+      consume real, billed reasoning tokens even for trivial prompts.
+      ``"minimal"`` is the lowest tier that actually reaches
+      ``reasoning_tokens=0``; ``"none"`` is rejected by the API as an
+      unsupported value for these models.
+    - Any other/unrecognized provider prefix — no reasoning kwarg mapping
+      exists, so ``reasoning="on"`` raises ``ValueError`` rather than
+      silently reusing the OpenAI kwargs. ``reasoning != "on"`` is a no-op
+      (only the base ``temperature`` kwarg is passed).
 
     ``reasoning="unsupported"`` short-circuits before any provider branch
     so NO reasoning kwarg reaches ``init_chat_model``. This matters for
@@ -134,6 +146,23 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
         return init_chat_model(name, **kwargs)
 
     if provider == "google_genai":
+        if config.reasoning == "on":
+            # thinking_budget=0 would silently disable thinking (contradicting
+            # reasoning="on"); anything below -1 is invalid per Gemini's API.
+            # None (provider default) and -1 (dynamic budget) are fine.
+            if (
+                config.thinking_budget is not None
+                and config.thinking_budget != -1
+                and config.thinking_budget < 1
+            ):
+                raise ValueError(
+                    "Gemini provider with reasoning='on' requires "
+                    "thinking_budget to be None (provider default), -1 "
+                    "(dynamic), or a positive integer "
+                    f"(got {config.thinking_budget}). 0 would silently "
+                    "disable thinking, and values below -1 are invalid "
+                    "per Gemini's API."
+                )
         kwargs["thinking_budget"] = (
             config.thinking_budget if config.reasoning == "on" else 0
         )
@@ -172,7 +201,7 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
                 "type": "enabled",
                 "budget_tokens": config.thinking_budget,
             }
-    else:
+    elif provider == "openai":
         # openai (explicit prefix) and bare names
         if config.reasoning == "on":
             # Pass both effort and summary via the unified ``reasoning`` dict
@@ -182,6 +211,21 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
             # even on gpt-5 / o4 models, leaving metadata.reasoning empty.
             kwargs["reasoning"] = {"effort": "medium", "summary": "auto"}
             kwargs["use_responses_api"] = True
+        else:
+            # gpt-5-tier models are reasoning-capable by default; omitting
+            # reasoning_effort leaves them at the provider's own default
+            # (empirically confirmed to consume real reasoning tokens even
+            # for trivial prompts). "none" is not a supported value for
+            # these models — "minimal" is the lowest tier that actually
+            # reaches reasoning_tokens=0 (verified via a live API call
+            # against gpt-5-nano and gpt-5-mini).
+            kwargs["reasoning_effort"] = "minimal"
+    else:
+        if config.reasoning == "on":
+            raise ValueError(
+                f"reasoning='on' is not supported for provider '{provider}' "
+                "— no reasoning kwarg mapping implemented in _init_model."
+            )
 
     return init_chat_model(name, **kwargs)
 

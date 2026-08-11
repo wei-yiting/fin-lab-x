@@ -19,4 +19,4 @@ None — no code changed. Round 4's verification (1020 backend tests, ruff clean
 holds; re-confirmed independently by the Round 5 Quality axis reviewer via its own
 constructor-level checks (6 reasoning-state × name-shape combinations).
 
-Commit: `<pending>` (about to commit, includes force-added artifacts/ directory).
+Commit: `8bcfcf3 docs(code-review-loop): preserve Round 1/4/5 review and fix records on branch` (pushed). **Note:** this force-adds a gitignored directory — must be untracked with a final cleanup commit before merge, per the project's "commit artifacts/ during work, untrack pre-merge" convention.

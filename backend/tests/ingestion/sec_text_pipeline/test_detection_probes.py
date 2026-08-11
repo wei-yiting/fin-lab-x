@@ -176,9 +176,14 @@ class TestKnownLimitations:
         """KNOWN LIMITATION (spec Known Limitations #1) — deliberately NOT fixed.
 
         DIS Item 7 hides ~2.6k chars of disguised body content (summary
-        tables) under the validity threshold, so it is attached as a
-        "valid" prelude and stays out of the index: bounded content loss,
-        <= 3,000 chars. Size cannot discriminate here (true preludes reach
+        tables) under the validity threshold, so it is classified as a
+        "valid" prelude when it is really tabular data, not framing prose.
+        Since DEV-135, a valid prelude also enters the chunk flow as its own
+        searchable leading chunk, so this is no longer a content-loss bug —
+        the text is indexed and findable either way. The residual harm is a
+        metadata mislabel: on this item's block chunks, the `prelude`
+        payload field carries a summary table under a field named for
+        framing text. Size cannot discriminate here (true preludes reach
         2,532; this false one is 2,610), so threshold tuning would overfit
         a single sample. If A/B failure mining surfaces more of this shape,
         the fix is a content signal (digit/table density), not a threshold

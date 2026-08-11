@@ -237,10 +237,19 @@ class TestInitModelOpenAI:
         provider integration (e.g. ChatAnthropic) and receive OpenAI-only
         kwargs. Guard that both explicit ``openai:`` prefixes and bare names
         always pass ``model_provider="openai"`` so our own "bare names
-        default to OpenAI" contract actually holds at the LangChain level."""
+        default to OpenAI" contract actually holds at the LangChain level.
+
+        Also guards the inverse failure mode: init_chat_model's own
+        prefix-stripping only runs when model_provider is *not* explicitly
+        given (langchain.chat_models.base._parse_model), so once we pass
+        model_provider="openai" ourselves, an "openai:"-prefixed name would
+        otherwise pass through unstripped as a literal (invalid) model id —
+        both explicit-prefix and bare names must resolve to the same bare
+        positional model name."""
         cfg = ModelConfig(name=name, temperature=0.0, reasoning="off")
-        kwargs = _kwargs(cfg)
+        args, kwargs = _call(cfg)
         assert kwargs["model_provider"] == "openai"
+        assert args[0] == "gpt-5-nano"
 
 
 class TestInitModelUnrecognizedProvider:
@@ -304,6 +313,24 @@ class TestInitModelUnsupported:
         assert "use_responses_api" not in kwargs
         assert kwargs["temperature"] == 0.0
 
+    @pytest.mark.parametrize(
+        "name",
+        ["openai:gpt-4o", "gpt-4o"],
+        ids=["explicit-prefix", "bare-name"],
+    )
+    def test_unsupported_still_forces_openai_routing(self, name):
+        """The reasoning="unsupported" short-circuit returns before the
+        provider branches below it — it must not also skip the
+        model_provider="openai" + prefix-stripping normalization those
+        branches rely on, or a bare OpenAI-shaped name paired with
+        reasoning="unsupported" would fall through to init_chat_model's own
+        (potentially different) provider inference, and a prefixed name
+        would pass through unstripped as a literal invalid model id."""
+        cfg = ModelConfig(name=name, temperature=0.0, reasoning="unsupported")
+        args, kwargs = _call(cfg)
+        assert kwargs["model_provider"] == "openai"
+        assert args[0] == "gpt-4o"
+
 
 class TestInitModelDefaults:
     def test_bare_default_model_config_is_valid(self):
@@ -315,10 +342,13 @@ class TestInitModelDefaults:
         path — verified against the real API to fail with "Unrecognized
         request argument supplied: reasoning_effort". The default is now
         openai:gpt-5-nano, a reasoning-capable model compatible with the
-        reasoning="off" default."""
+        reasoning="off" default. args[0] is the bare "gpt-5-nano", not the
+        "openai:"-prefixed config name — the openai branch strips the
+        prefix itself before calling init_chat_model (see
+        test_openai_branch_passes_model_provider_explicitly)."""
         cfg = ModelConfig()
         args, kwargs = _call(cfg)
-        assert args[0] == "openai:gpt-5-nano"
+        assert args[0] == "gpt-5-nano"
         assert kwargs["reasoning_effort"] == "minimal"
 
 

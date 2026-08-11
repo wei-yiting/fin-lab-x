@@ -24,7 +24,7 @@ def _valid_payload(name: str) -> dict:
         "name": name,
         "description": "test version",
         "tools": [],
-        "model": {"name": "gpt-4o-mini", "temperature": 0.0},
+        "model": {"name": "openai:gpt-5-nano", "temperature": 0.0},
         "constraints": {"max_tool_calls_per_run": 5},
     }
 
@@ -76,7 +76,8 @@ def test_load_accepts_valid_payload(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Task 5: ModelConfig reasoning + thinking_budget fields
+# ModelConfig.reasoning / thinking_budget: admin-configured reasoning
+# capability, independent of the loader's strict-schema behavior above.
 # ---------------------------------------------------------------------------
 
 

@@ -48,7 +48,10 @@ from backend.agent_engine.streaming.event_mapper import StreamEventMapper
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
 from backend.agent_engine.tools.registry import get_tools_by_names
-from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
+from backend.agent_engine.utils.model_context import (
+    _strip_provider_prefix,
+    compute_section_soft_cap_chars,
+)
 from backend.common.errors import ConfigurationError
 
 
@@ -142,17 +145,28 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
       silently reusing the OpenAI kwargs. ``reasoning != "on"`` is a no-op
       (only the base ``temperature`` kwarg is passed).
 
-    ``reasoning="unsupported"`` short-circuits before any provider branch
-    so NO reasoning kwarg reaches ``init_chat_model``. This matters for
-    bound models that physically cannot accept the kwarg (e.g.
+    ``reasoning="unsupported"`` short-circuits before any reasoning-kwarg
+    branch so NO reasoning kwarg reaches ``init_chat_model`` — this matters
+    for bound models that physically cannot accept the kwarg (e.g.
     gemini-1.5 rejects ``thinking_budget`` entirely; gemini-2.5-pro
     rejects ``thinking_budget=0`` because thinking can't be disabled).
     Treating ``"unsupported"`` and ``"off"`` identically would break
-    those cases.
+    those cases. The OpenAI ``model_provider`` + prefix-stripping described
+    above still applies before this short-circuit, since it's about routing
+    correctness, not a reasoning kwarg.
     """
     name = config.name
     provider = _provider_prefix(name)
     kwargs: dict[str, Any] = {"temperature": config.temperature}
+
+    # Force explicit OpenAI routing (and strip any "openai:" prefix, since
+    # init_chat_model only does so itself when model_provider is *not*
+    # given) ahead of the reasoning="unsupported" short-circuit below, so
+    # bare/prefixed OpenAI names route correctly regardless of reasoning
+    # state — not just inside the reasoning on/off branch further down.
+    if provider == "openai":
+        kwargs["model_provider"] = "openai"
+        name = _strip_provider_prefix(name)
 
     if config.reasoning == "unsupported":
         return init_chat_model(name, **kwargs)
@@ -214,14 +228,9 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
                 "budget_tokens": config.thinking_budget,
             }
     elif provider == "openai":
-        # openai (explicit prefix) and bare names. init_chat_model() does its
-        # own separate provider inference from the model name string when no
-        # model_provider is given — e.g. init_chat_model("claude-sonnet-4-5")
-        # would instantiate ChatAnthropic, not ChatOpenAI. Pass
-        # model_provider explicitly here so LangChain's actual routing is
-        # guaranteed to agree with the "bare names default to OpenAI"
-        # contract this function's kwargs-branching logic already assumes.
-        kwargs["model_provider"] = "openai"
+        # model_provider + prefix-stripping already handled above (applies
+        # regardless of reasoning state). Only the reasoning on/off kwargs
+        # are branch-specific.
         if config.reasoning == "on":
             # Pass both effort and summary via the unified ``reasoning`` dict
             # (langchain-openai 0.3.24+). ``summary="auto"`` lets the

@@ -7,6 +7,9 @@ import pytest
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     StreamError,
     TextDelta,
     TextEnd,
@@ -177,6 +180,35 @@ class TestUnknownEventType:
     def test_raises_type_error(self):
         with pytest.raises(TypeError, match="Unhandled event type"):
             serialize_event("not an event")
+
+
+class TestReasoningPartSerializers:
+    """AI SDK v6 native reasoning-* wire format."""
+
+    def test_reasoning_start_wire_format(self):
+        evt = ReasoningStart(reasoning_id="reasoning-0")
+        payload = _parse_sse(serialize_event(evt))
+        assert payload == {"type": "reasoning-start", "id": "reasoning-0"}
+
+    def test_reasoning_delta_wire_format(self):
+        evt = ReasoningDelta(reasoning_id="reasoning-0", delta="理解問題")
+        payload = _parse_sse(serialize_event(evt))
+        assert payload == {
+            "type": "reasoning-delta",
+            "id": "reasoning-0",
+            "delta": "理解問題",
+        }
+
+    def test_reasoning_delta_preserves_whitespace_verbatim(self):
+        """`\\n\\n` and mid-word fragments pass through untouched."""
+        evt = ReasoningDelta(reasoning_id="reasoning-1", delta="li\n\nne")
+        payload = _parse_sse(serialize_event(evt))
+        assert payload["delta"] == "li\n\nne"
+
+    def test_reasoning_end_wire_format(self):
+        evt = ReasoningEnd(reasoning_id="reasoning-0")
+        payload = _parse_sse(serialize_event(evt))
+        assert payload == {"type": "reasoning-end", "id": "reasoning-0"}
 
 
 class TestJsonSpecialCharacters:

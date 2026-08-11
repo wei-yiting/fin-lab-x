@@ -1,7 +1,8 @@
 """StreamEventMapper — stateful translator from LangGraph astream(version='v2') chunks to domain events.
 
 Handles TextStart/TextEnd pairing, MessageStart/Finish framing,
-and tool call lifecycle assembly across stream modes.
+tool call lifecycle assembly, and native reasoning part dispatch
+across stream modes.
 """
 
 from __future__ import annotations
@@ -12,6 +13,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
     MessageStart,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     TextDelta,
     TextEnd,
     TextStart,
@@ -24,6 +28,23 @@ from backend.agent_engine.streaming.domain_events_schema import (
 
 
 class StreamEventMapper:
+    """Per-request stateful translator.
+
+    One instance per chat HTTP request — never share across requests or
+    sessions. Multi-tab concurrent streaming relies on this isolation;
+    request-scoped state (reasoning part id counter, text_id counter,
+    pending tool calls) would corrupt across concurrent streams if the
+    mapper were per-session.
+
+    Reasoning contract: one provider reasoning block maps to one native
+    reasoning part (ReasoningStart / ReasoningDelta* / ReasoningEnd).
+    Provider deltas pass through verbatim — no buffering, no sentence
+    segmentation, no separator joining. Part ids are unique across the
+    whole turn (not per LLM call/step): the AI SDK resets its active
+    reasoning map on finish-step and allows id reuse across steps, which
+    would collide React keys / timer refs on the frontend.
+    """
+
     def __init__(self, session_id: str) -> None:
         self._session_id = session_id
         self._message_started = False
@@ -33,6 +54,13 @@ class StreamEventMapper:
         self._text_id_counter = 0
         self._total_input_tokens = 0
         self._total_output_tokens = 0
+        # Reasoning part state — turn-unique id counter + currently open part.
+        self._current_llm_call_id: str | None = None
+        self._open_reasoning_id: str | None = None
+        self._reasoning_id_counter = 0
+        # Idempotent finalize — invoked from both the natural-end and the
+        # error cleanup paths.
+        self._finalized = False
 
     def _next_text_id(self) -> str:
         # Within a single assistant turn we can emit multiple text blocks
@@ -62,30 +90,45 @@ class StreamEventMapper:
         if isinstance(msg_chunk, ToolMessage):
             return events
 
+        # chunk.id transitions are LLM-call boundaries — close any open
+        # reasoning part so each round of a multi-round tool loop gets its
+        # own part. id=None is treated as continuation (some providers emit
+        # None on intermediate chunks).
+        if msg_chunk.id is not None and msg_chunk.id != self._current_llm_call_id:
+            self._close_reasoning_part(events)
+            self._current_llm_call_id = msg_chunk.id
+
         if not self._message_started:
             events.append(
                 MessageStart(message_id=msg_chunk.id, session_id=self._session_id)
             )
             self._message_started = True
 
-        if msg_chunk.content:
-            if not self._text_block_open:
-                self._current_text_id = self._next_text_id()
-                events.append(TextStart(text_id=self._current_text_id))
-                self._text_block_open = True
-            events.append(
-                TextDelta(text_id=self._current_text_id, delta=msg_chunk.content)
-            )
+        # Single ordered dispatch over the pinned langchain-core
+        # provider-normalized accessor: every supported provider's tool call
+        # already surfaces in `content_blocks` — OpenAI/Anthropic as
+        # `tool_call_chunk`, Gemini as `tool_call` — so no separate pass over
+        # the raw `tool_call_chunks` attribute is needed. Trusting one
+        # accessor also avoids an ordering hazard a two-route shape would
+        # have (a `tool_call_chunk → reasoning` chunk could have its new
+        # part wrongly closed by a post-loop fallback).
+        blocks = list(msg_chunk.content_blocks)
 
-        if getattr(msg_chunk, "tool_call_chunks", None):
-            if self._text_block_open:
-                events.append(TextEnd(text_id=self._current_text_id))
-                self._text_block_open = False
-            for tc in msg_chunk.tool_call_chunks:
-                tc_id = tc.get("id")
-                tc_name = tc.get("name")
-                if tc_id and tc_name and tc_id not in self._pending_tool_calls:
-                    self._pending_tool_calls[tc_id] = tc_name
+        prev_block_type: str | None = None
+        for block in blocks:
+            block_type = block.get("type")
+            if block_type == "reasoning":
+                # A reasoning block directly following another reasoning
+                # block in the same chunk is a distinct provider block
+                # (OpenAI multi-summary explode) → its own part.
+                self._handle_reasoning_block(
+                    block, events, force_new_part=(prev_block_type == "reasoning")
+                )
+            elif block_type == "text":
+                self._handle_text_block(block, events)
+            elif block_type in ("tool_call", "tool_call_chunk"):
+                self._handle_tool_call_started(block, events)
+            prev_block_type = block_type
 
         # LangChain does not auto-aggregate usage_metadata across streaming
         # chunks — the official pattern is to concatenate AIMessageChunks
@@ -102,6 +145,62 @@ class StreamEventMapper:
             )
 
         return events
+
+    def _handle_reasoning_block(
+        self,
+        block: dict,
+        events: list[DomainEvent],
+        force_new_part: bool = False,
+    ) -> None:
+        if force_new_part:
+            self._close_reasoning_part(events)
+        if self._open_reasoning_id is None:
+            self._open_reasoning_id = f"reasoning-{self._reasoning_id_counter}"
+            self._reasoning_id_counter += 1
+            events.append(ReasoningStart(reasoning_id=self._open_reasoning_id))
+        delta = block.get("reasoning", "")
+        if delta:
+            events.append(
+                ReasoningDelta(reasoning_id=self._open_reasoning_id, delta=delta)
+            )
+
+    def _close_reasoning_part(self, events: list[DomainEvent]) -> None:
+        if self._open_reasoning_id is not None:
+            events.append(ReasoningEnd(reasoning_id=self._open_reasoning_id))
+            self._open_reasoning_id = None
+
+    def _handle_text_block(self, block: dict, events: list[DomainEvent]) -> None:
+        # The provider moved on to answer text — the current reasoning
+        # part (if any) is complete.
+        self._close_reasoning_part(events)
+        text = block.get("text", "")
+        if not text:
+            return
+        if not self._text_block_open:
+            self._current_text_id = self._next_text_id()
+            events.append(TextStart(text_id=self._current_text_id))
+            self._text_block_open = True
+        events.append(TextDelta(text_id=self._current_text_id, delta=text))
+
+    def _handle_tool_call_started(self, block: dict, events: list[DomainEvent]) -> None:
+        # Tool args arriving means this round's reasoning block is over —
+        # close the open part so the chip collapses at tool-start, matching
+        # the `Thought for Xs` freeze point. An earlier version left the
+        # part open until the next LLM call instead, but content_blocks
+        # gives the mapper no other end-of-block signal, so on the default
+        # provider the chip stayed open for the entire tool execution on
+        # every round, not just as a rare edge case. Arrival order is
+        # preserved — the tool card renders below the now-collapsed chip.
+        # Handles both normalized tool block types (`tool_call_chunk`:
+        # OpenAI/Anthropic; `tool_call`: Gemini).
+        self._close_reasoning_part(events)
+        if self._text_block_open:
+            events.append(TextEnd(text_id=self._current_text_id))
+            self._text_block_open = False
+        tc_id = block.get("id")
+        tc_name = block.get("name")
+        if tc_id and tc_name and tc_id not in self._pending_tool_calls:
+            self._pending_tool_calls[tc_id] = tc_name
 
     def _handle_updates(self, chunk: dict) -> list[DomainEvent]:
         events: list[DomainEvent] = []
@@ -147,7 +246,16 @@ class StreamEventMapper:
         return []
 
     def finalize(self) -> list[DomainEvent]:
+        if self._finalized:
+            return []
+        self._finalized = True
         events: list[DomainEvent] = []
+        # Reasoning may be the last content of the last LLM call — close the
+        # open part so the wire always carries a complete start/delta*/end
+        # sequence on natural finish and on the error path (the error path
+        # replays finalize() minus Finish, giving reasoning-end → error →
+        # finish).
+        self._close_reasoning_part(events)
         if self._text_block_open:
             events.append(TextEnd(text_id=self._current_text_id))
             self._text_block_open = False

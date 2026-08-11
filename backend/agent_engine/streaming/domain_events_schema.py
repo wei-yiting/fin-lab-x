@@ -56,6 +56,22 @@ class ToolProgress:
 
 
 @dataclass(frozen=True)
+class ReasoningStart:
+    reasoning_id: str
+
+
+@dataclass(frozen=True)
+class ReasoningDelta:
+    reasoning_id: str
+    delta: str
+
+
+@dataclass(frozen=True)
+class ReasoningEnd:
+    reasoning_id: str
+
+
+@dataclass(frozen=True)
 class StreamError:
     error_text: str
 
@@ -81,6 +97,9 @@ DomainEvent = (
     | ToolResult
     | ToolError
     | ToolProgress
+    | ReasoningStart
+    | ReasoningDelta
+    | ReasoningEnd
     | StreamError
     | Finish
 )

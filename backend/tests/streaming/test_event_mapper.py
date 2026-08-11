@@ -5,6 +5,9 @@ from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
+    ReasoningDelta,
+    ReasoningEnd,
+    ReasoningStart,
     TextDelta,
     TextEnd,
     TextStart,
@@ -34,6 +37,29 @@ def make_messages_chunk_tool_call(
         id=msg_id,
         tool_call_chunks=[{"id": tool_call_id, "name": tool_name, "args": "{}"}],
     )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
+class _NormalizedGeminiToolCallChunk:
+    """Stand-in for an AIMessageChunk whose `content_blocks` already surface
+    a Gemini-normalized `tool_call` block (M-1.1: the mapper trusts
+    `content_blocks` alone, so this exercises that block type directly
+    rather than re-verifying langchain-core's own translator)."""
+
+    def __init__(self, tool_call_id: str, tool_name: str, msg_id: str) -> None:
+        self.id = msg_id
+        self.content_blocks = [
+            {"type": "tool_call", "id": tool_call_id, "name": tool_name}
+        ]
+        self.usage_metadata = None
+
+
+def make_messages_chunk_normalized_gemini_tool_call(
+    tool_call_id: str,
+    tool_name: str,
+    msg_id: str = "msg-1",
+) -> dict:
+    msg = _NormalizedGeminiToolCallChunk(tool_call_id, tool_name, msg_id)
     return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
 
 
@@ -278,3 +304,277 @@ class TestUsageAccumulation:
         events = mapper.finalize()
         finish = next(e for e in events if isinstance(e, Finish))
         assert finish.usage == Usage(input_tokens=15, output_tokens=35)
+
+
+def make_messages_chunk_reasoning(text: str, msg_id: str = "msg-1") -> dict:
+    msg = AIMessageChunk(
+        content=[{"type": "reasoning", "reasoning": text}],
+        id=msg_id,
+    )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
+def make_messages_chunk_reasoning_then_text(
+    reasoning: str,
+    text: str,
+    msg_id: str = "msg-1",
+) -> dict:
+    msg = AIMessageChunk(
+        content=[
+            {"type": "reasoning", "reasoning": reasoning},
+            {"type": "text", "text": text},
+        ],
+        id=msg_id,
+    )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
+def make_messages_chunk_multi_reasoning(
+    texts: list[str],
+    msg_id: str = "msg-1",
+) -> dict:
+    msg = AIMessageChunk(
+        content=[{"type": "reasoning", "reasoning": t} for t in texts],
+        id=msg_id,
+    )
+    return {"type": "messages", "data": (msg, {"langgraph_node": "agent"})}
+
+
+class TestReasoningNativeParts:
+    """One provider reasoning block maps to one native part
+    (start/delta*/end)."""
+
+    def test_single_reasoning_chunk_opens_part_and_streams_delta(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("理解問題。", msg_id="msg-A")
+        )
+
+        assert events == [
+            MessageStart(message_id="msg-A", session_id=SESSION_ID),
+            ReasoningStart(reasoning_id="reasoning-0"),
+            ReasoningDelta(reasoning_id="reasoning-0", delta="理解問題。"),
+        ]
+
+    def test_raw_passthrough_no_buffering(self):
+        """Mid-word fragments and `\\n\\n` pass through verbatim, one
+        ReasoningDelta per provider delta — no sentence buffering."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(make_messages_chunk_reasoning("10-K li", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("sts\n\nrisks", msg_id="msg-A")
+        )
+
+        deltas = [e for e in events if isinstance(e, ReasoningDelta)]
+        assert deltas == [
+            ReasoningDelta(reasoning_id="reasoning-0", delta="sts\n\nrisks")
+        ]
+
+    def test_empty_delta_not_emitted(self):
+        """A zero-length reasoning block opens the part but emits no delta —
+        the frontend suppresses zero-delta chips."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(make_messages_chunk_reasoning("", msg_id="msg-A"))
+
+        assert ReasoningStart(reasoning_id="reasoning-0") in events
+        assert not [e for e in events if isinstance(e, ReasoningDelta)]
+
+
+class TestReasoningPartBoundaries:
+    """Part closes when the provider moves on: text, a same-round tool call
+    arriving (either normalized block type), a new LLM call, or finalize."""
+
+    def test_text_block_closes_open_reasoning_part(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning_then_text(
+                reasoning="分析中",
+                text="answer",
+                msg_id="msg-A",
+            )
+        )
+
+        types_in_order = [type(e).__name__ for e in events]
+        assert types_in_order == [
+            "MessageStart",
+            "ReasoningStart",
+            "ReasoningDelta",
+            "ReasoningEnd",
+            "TextStart",
+            "TextDelta",
+        ]
+
+    def test_tool_call_chunk_closes_open_reasoning_part(self):
+        """A tool-call-chunk arriving mid-round means the round's reasoning
+        block is over — the mapper closes the open reasoning part so the
+        chip collapses at tool-start. Arrival order is preserved (the tool
+        card renders below the now-collapsed chip).
+        """
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("partial-thought", msg_id="msg-A")
+        )
+
+        events = mapper.process_chunk(
+            make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
+        )
+
+        assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
+
+    def test_normalized_gemini_tool_call_block_also_closes_open_reasoning_part(self):
+        """Gemini's content_blocks translator normalizes tool calls to a
+        `tool_call` block (not `tool_call_chunk`) — the close-on-tool-start
+        rule must dispatch on that block type too, exactly once."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("gemini thought", msg_id="msg-A")
+        )
+
+        events = mapper.process_chunk(
+            make_messages_chunk_normalized_gemini_tool_call(
+                "tc-g", "poc_add", msg_id="msg-A"
+            )
+        )
+
+        assert events == [ReasoningEnd(reasoning_id="reasoning-0")]
+
+    def test_new_llm_call_closes_part_and_opens_new_id(self):
+        """Multi-round loop → one part per round, ids turn-unique."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(make_messages_chunk_reasoning("round-1", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning("round-2", msg_id="msg-B")
+        )
+
+        assert events == [
+            ReasoningEnd(reasoning_id="reasoning-0"),
+            ReasoningStart(reasoning_id="reasoning-1"),
+            ReasoningDelta(reasoning_id="reasoning-1", delta="round-2"),
+        ]
+
+    def test_tool_call_chunk_then_new_llm_call_closes_part_exactly_once(self):
+        """The tool-call-chunk closes the round's reasoning part; the next
+        round's LLM-call-id transition must NOT emit a second ReasoningEnd
+        for the already-closed part — close exactly once, at tool-start.
+        """
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("round-1 thought", msg_id="msg-A")
+        )
+        tool_chunk_events = mapper.process_chunk(
+            make_messages_chunk_tool_call("tc-1", "poc_add", msg_id="msg-A")
+        )
+        assert tool_chunk_events == [ReasoningEnd(reasoning_id="reasoning-0")]
+
+        next_round_events = mapper.process_chunk(
+            make_messages_chunk_reasoning("round-2 thought", msg_id="msg-B")
+        )
+
+        assert next_round_events == [
+            ReasoningStart(reasoning_id="reasoning-1"),
+            ReasoningDelta(reasoning_id="reasoning-1", delta="round-2 thought"),
+        ]
+
+    def test_same_id_continuation_keeps_part_open(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(make_messages_chunk_reasoning("step 1", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning(" continues", msg_id="msg-A")
+        )
+
+        assert events == [
+            ReasoningDelta(reasoning_id="reasoning-0", delta=" continues")
+        ]
+
+    def test_none_id_treated_as_continuation(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(make_messages_chunk_reasoning("partial", msg_id="msg-A"))
+        events = mapper.process_chunk(
+            make_messages_chunk_reasoning(" more", msg_id=None)
+        )
+
+        assert events == [ReasoningDelta(reasoning_id="reasoning-0", delta=" more")]
+
+    def test_consecutive_reasoning_blocks_in_one_chunk_become_separate_parts(self):
+        """Multi-summary explode → one part per provider block, no `\\n`
+        join (no longer joined into a single part)."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_messages_chunk_multi_reasoning(
+                ["Summary one.", "Summary two."], msg_id="msg-A"
+            )
+        )
+
+        assert events == [
+            MessageStart(message_id="msg-A", session_id=SESSION_ID),
+            ReasoningStart(reasoning_id="reasoning-0"),
+            ReasoningDelta(reasoning_id="reasoning-0", delta="Summary one."),
+            ReasoningEnd(reasoning_id="reasoning-0"),
+            ReasoningStart(reasoning_id="reasoning-1"),
+            ReasoningDelta(reasoning_id="reasoning-1", delta="Summary two."),
+        ]
+
+    def test_reasoning_after_text_same_call_opens_new_part(self):
+        """Anthropic interleave: reasoning → text → reasoning within one LLM
+        call yields two distinct parts (turn-unique ids)."""
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = []
+        events += mapper.process_chunk(
+            make_messages_chunk_reasoning("step A", msg_id="msg-A")
+        )
+        events += mapper.process_chunk(make_messages_chunk_text("t1", msg_id="msg-A"))
+        events += mapper.process_chunk(
+            make_messages_chunk_reasoning("step B", msg_id="msg-A")
+        )
+
+        starts = [e for e in events if isinstance(e, ReasoningStart)]
+        assert [s.reasoning_id for s in starts] == ["reasoning-0", "reasoning-1"]
+
+
+class TestFinalizeReasoning:
+    """finalize() closes any open reasoning part before Finish."""
+
+    def test_finalize_closes_open_reasoning_part(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        mapper.process_chunk(
+            make_messages_chunk_reasoning("no terminator here", msg_id="msg-A")
+        )
+        events = mapper.finalize()
+
+        types_in_order = [type(e).__name__ for e in events]
+        assert types_in_order == ["ReasoningEnd", "Finish"]
+
+    def test_finalize_no_open_part_emits_only_finish(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(make_messages_chunk_text("done.", msg_id="msg-A"))
+        mapper.process_chunk(
+            make_messages_chunk_tool_call("tc-1", "fn", msg_id="msg-A")
+        )
+
+        events = mapper.finalize()
+
+        # Text block already closed by tool call; no open reasoning part;
+        # only Finish should remain.
+        assert len(events) == 1
+        assert isinstance(events[0], Finish)
+
+    def test_finalize_called_twice_emits_only_one_finish(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(make_messages_chunk_text("hi", msg_id="msg-A"))
+
+        first = mapper.finalize()
+        second = mapper.finalize()
+
+        assert any(isinstance(e, Finish) for e in first)
+        assert second == []

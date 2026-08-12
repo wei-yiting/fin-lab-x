@@ -9,7 +9,7 @@ Atomic Design 6-layer component tree for the streaming chat UI. Layers are flat 
 - `molecules/` — small compositions of atoms, no streaming-lifecycle concern.
 - `organisms/` — feature regions that may own local UI state.
 - `templates/` — layout shells.
-- `pages/` — stateful orchestrators. `ChatPanel` is the sole page; it owns `useChat`, `chatId`, `abortedTools`, `lastTriggerRef`.
+- `pages/` — stateful orchestrators. `ChatPanel` is the sole page; it owns `useChat`, `chatId`, `abortedTools`, `interruptedMessages`, `lastTriggerRef`.
 
 ## State Rule
 

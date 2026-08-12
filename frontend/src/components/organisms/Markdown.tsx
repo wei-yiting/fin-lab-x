@@ -93,8 +93,10 @@ const MarkdownBlock = memo(function MarkdownBlock({ content }: { content: string
  * rendered by a memoized child. Without this, every delta re-parses the
  * whole message from the first character: for an N-character answer arriving
  * in D deltas the cost is O(N·D), which is what makes a long answer visibly
- * stutter near its end. Splitting reduces the per-delta cost to the size of
- * the block still being written.
+ * stutter near its end. Splitting still re-lexes the full accumulated text
+ * on every delta (cheap — no plugins, no hast conversion), but skips the
+ * expensive ReactMarkdown render pipeline for every block except the one
+ * still being written, via memoization.
  *
  * **Complete** — a single parse of the whole document. Citations are
  * resolved here and must stay whole-document: CommonMark scopes link

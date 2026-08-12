@@ -71,14 +71,6 @@ export function ChatPanel() {
     (messageId: string) => {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
-      // Regenerating replaces the turn — its interruption record no longer
-      // describes the new answer (the SDK may reuse the message id).
-      setInterruptedMessages((prev) => {
-        if (!prev.has(messageId)) return prev;
-        const next = new Set(prev);
-        next.delete(messageId);
-        return next;
-      });
       regenerate({ messageId });
     },
     [messages, regenerate],

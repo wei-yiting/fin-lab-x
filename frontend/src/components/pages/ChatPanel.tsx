@@ -2,6 +2,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
+import { STREAM_THROTTLE_MS } from "@/lib/timing";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
@@ -43,9 +44,16 @@ export function ChatPanel() {
   const { messages, setMessages, sendMessage, regenerate, stop, status, error } = useChat({
     id: chatId,
     transport,
+    experimental_throttle: STREAM_THROTTLE_MS,
     onData: handleData,
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
+  // Turn-level interruption record (DEV-109 ruling 11): message ids whose
+  // turn the user stopped. Companion to abortedTools — same capture point,
+  // message-granular instead of tool-granular, so the transcript always
+  // carries an explicit "Interrupted" row even when no chip or tool card
+  // exists to carry the abort state (Stop during placeholder / reply text).
+  const [interruptedMessages, setInterruptedMessages] = useState<Set<string>>(() => new Set());
   const lastTriggerRef = useRef<LastTrigger | null>(null);
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
@@ -82,6 +90,13 @@ export function ChatPanel() {
     if (runningIds.length) {
       setAbortedTools((prev) => new Set([...prev, ...runningIds]));
     }
+    // The turn-level marker anchors on the last message regardless of role:
+    // a Stop before the assistant message exists (placeholder window) still
+    // leaves an "Interrupted" row under the user bubble.
+    const anchor = messages.at(-1);
+    if (anchor) {
+      setInterruptedMessages((prev) => new Set(prev).add(anchor.id));
+    }
     stop();
   }, [messages, stop]);
 
@@ -90,6 +105,7 @@ export function ChatPanel() {
     setChatId(crypto.randomUUID());
     clearProgress();
     setAbortedTools(new Set());
+    setInterruptedMessages(new Set());
     lastTriggerRef.current = null;
   }, [stop, clearProgress]);
 
@@ -181,6 +197,7 @@ export function ChatPanel() {
         status={status as ChatStatus}
         toolProgress={toolProgress}
         abortedTools={abortedTools}
+        interruptedMessages={interruptedMessages}
         onRegenerate={handleRegenerate}
         emptyContent={
           !showError ? (

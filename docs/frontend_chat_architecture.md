@@ -27,6 +27,7 @@ flowchart BT
         ReasoningIndicator
         PromptChip
         RegenerateButton
+        InterruptedMarker
         SourceLink
         UserMessage
     end
@@ -68,7 +69,7 @@ flowchart BT
     classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
 
     class P1,P2,P3 primitiveCls
-    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
+    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
@@ -78,7 +79,7 @@ flowchart BT
 | Layer | Classification rule | Examples |
 |---|---|---|
 | **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw` |
-| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ReasoningIndicator`, `PromptChip`, `RegenerateButton`, `SourceLink`, `UserMessage` |
+| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ReasoningIndicator`, `PromptChip`, `RegenerateButton`, `InterruptedMarker`, `SourceLink`, `UserMessage` |
 | **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ToolRow`, `ToolDetail`, `Sources` |
 | **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState` |
 | **templates** | Layout shell that accepts data via props; does not wire `useChat`. | `MessageList` |
@@ -101,6 +102,7 @@ flowchart LR
     MessageList --> UserMessage
     MessageList --> AssistantMessage
     MessageList --> ReasoningIndicator
+    MessageList --> InterruptedMarker
 
     AssistantMessage --> ToolCard
     AssistantMessage --> Markdown
@@ -124,7 +126,7 @@ flowchart LR
     classDef templateCls fill:#fef3c7,stroke:#eab308,color:#713f12
     classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
 
-    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,SourceLink,UserMessage atomCls
+    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
@@ -180,7 +182,15 @@ stateDiagram-v2
     Aborted --> [*]
 ```
 
-`aborted` is a frontend-only 4th state — AI SDK's `ToolUIPart.state` enum has only three values (`input-available`, `output-available`, `output-error`). Entering `aborted` is triggered by `useChat.stop()` or a mid-stream `error` event while a tool is still `input-available`. Without this, a stopped tool would keep its pulsing dot and falsely imply "still running". `ChatPanel` tracks which tool call IDs are aborted via `abortedTools: Set<ToolCallId>`; `AssistantMessage` overrides the visual to `aborted` when dispatching parts.
+`aborted` is a frontend-only 4th state — AI SDK's `ToolUIPart.state` enum has only three values (`input-available`, `output-available`, `output-error`). Entering `aborted` is triggered by `useChat.stop()` or a mid-stream `error` event while a tool is still `input-available`. Without this, a stopped tool would keep its pulsing dot and falsely imply "still running". `ChatPanel` tracks which tool call IDs are aborted via `abortedTools: Set<ToolCallId>`; `AssistantMessage` overrides the visual to `aborted` when dispatching parts. Because `abortedTools` is a click-time snapshot of `handleStop`'s render closure, it can miss a tool call that arrives inside the `experimental_throttle` window right before Stop is clicked — status is already `streaming` by then, so no further status change forces a fresh render to pick it up. `AssistantMessage`'s check is therefore `(abortedTools.has(toolCallId) || interrupted) && isRunningToolState(...)`: the turn-level `interrupted` flag (§4.1) is read fresh on every render, so it catches that tool once its still-running state does eventually render.
+
+### 4.1 Turn-Level Interruption Record
+
+`abortedTools` above is tool-granular and only exists while a tool card is on screen. `ChatPanel` also keeps a message-granular companion, `interruptedMessages: Set<string>` — captured unconditionally in `handleStop`, at the same point as `abortedTools`, using the id of whichever message is last when Stop is clicked. This covers what `abortedTools` cannot: a Stop during the placeholder window or on reply text with no running tool still leaves a trace.
+
+- **Render** — `MessageList` renders the `InterruptedMarker` atom as a sibling row immediately after the `UserMessage` or `AssistantMessage` whose id is in `interruptedMessages`.
+- **Gate** — `AssistantMessage` takes `interrupted` as a prop and hides `RegenerateButton` when true. The backend's checkpoint only holds a finalized `AIMessage` for a turn that ran to completion, so regenerating an interrupted turn would 422 regardless of how much answer text reached the client.
+- **Lifecycle** — cleared only by `handleClearSession` (new `chatId`, fresh state). There is no per-message cleanup on regenerate: the gate above means a message id in the set never has a reachable Regenerate control to trigger one.
 
 ## 5. Smart Retry Routing
 
@@ -207,7 +217,7 @@ The non-obvious behaviors of `@ai-sdk/react@3.0.144` + `ai@6.0.142` — SSE erro
 
 The shipped strategy is **extract-on-finish**:
 
-- While `status === 'streaming' && isLast`, skip `extractSources` entirely. Raw `[N]: url "title"` definition lines are briefly visible in the stream; `[N]` stays as literal text; no Sources block; no RefSup.
+- While `status === 'streaming' && isLast`, skip `extractSources` entirely — no Sources block; no RefSup; `[N]` stays as literal text. Definition lines (`[N]: url "title"`) are stripped from the displayed text unconditionally, streaming or not (see `AssistantMessage`'s `displayText` memo), so they are never visible at any point — only the Sources block / RefSup resolution is what's deferred until the turn completes.
 - When `status` leaves `streaming` (ready / error / stop), a `useMemo` in `AssistantMessage` runs `extractSources` exactly once. The derived text (with definition lines stripped) plus the sources array is handed to the stateless `Markdown` organism and the `Sources` molecule.
 
 The UX is a "pop-in" at stream end, similar to ChatGPT / Claude.ai. Partial sources on error/stop are preserved because the `useMemo` also fires when the stream stops on error.
@@ -254,6 +264,10 @@ flowchart TD
 ### 7.2 Citation structure
 
 `extractSources` uses `remark-parse` (the same CommonMark parser `react-markdown` uses internally) to find `definition` nodes — this eliminates the drift that a custom regex would have against CommonMark. A separate `markdownSourcesPlugin` (registered on `<ReactMarkdown>`) runs at render time to tag `linkReference` nodes with `data-citation` and resolve `href` to the source URL. The anchor override in `Markdown.tsx` reads that attribute rather than sniffing link text, so a normal `[3](url)` whose text happens to be `3` is never mistaken for a citation.
+
+### 7.3 Streaming Block Memoization & Throttle
+
+Two independent mechanisms keep a long streaming answer from stuttering. `ChatPanel` passes `experimental_throttle: STREAM_THROTTLE_MS` (`frontend/src/lib/timing.ts`) to `useChat`, coalescing the SDK's message-state updates to roughly 20Hz instead of re-rendering on every wire delta. Independently, `Markdown` (`frontend/src/components/organisms/Markdown.tsx`) splits the accumulated text into top-level blocks via `remark-parse` while `isStreaming` is true and renders each block through a child memoized on its content, so a delta only re-runs `ReactMarkdown`'s full parse → mdast → hast → React pipeline for the block still being written — settled blocks are skipped. Once the turn completes, `Markdown` switches back to a single whole-document parse rather than continuing to render per block, because citation resolution (§7.1–7.2 above) needs the complete document: a `[1]` reference and its `[1]: url` definition can land in different blocks, and CommonMark only pairs them within one parse.
 
 ## 8. Related Documents
 

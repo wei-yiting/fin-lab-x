@@ -46,6 +46,50 @@ describe("MessageList — ReasoningIndicator visibility", () => {
   });
 });
 
+// S-regen-02: the Regenerate visibility rule — last assistant message AND
+// status=ready — is derived here and handed to AssistantMessage as the
+// presence/absence of onRegenerate, so no second POST can be issued while a
+// turn is in flight or mid-stream.
+describe("MessageList — Regenerate visibility (S-regen-02)", () => {
+  const transcript = [
+    { id: "u1", role: "user", parts: [{ type: "text", text: "q1" }] },
+    { id: "a1", role: "assistant", parts: [{ type: "text", text: "answer one" }] },
+    { id: "u2", role: "user", parts: [{ type: "text", text: "q2" }] },
+    { id: "a2", role: "assistant", parts: [{ type: "text", text: "answer two" }] },
+  ];
+
+  test("status=ready → exactly one Regenerate button, on the last message", () => {
+    render(
+      <MessageList
+        messages={transcript}
+        status="ready"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    const buttons = screen.getAllByTestId("regenerate-btn");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0].closest('[data-testid="assistant-message"]')).toHaveTextContent("answer two");
+  });
+
+  test.each(["submitted", "streaming", "error"] as const)(
+    "status=%s → no Regenerate button anywhere",
+    (status) => {
+      render(
+        <MessageList
+          messages={transcript}
+          status={status}
+          toolProgress={{}}
+          abortedTools={new Set()}
+          onRegenerate={vi.fn()}
+        />,
+      );
+      expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+    },
+  );
+});
+
 describe("MessageList — errorContent slot", () => {
   test("status=error with errorContent renders the error slot inside viewport", () => {
     render(

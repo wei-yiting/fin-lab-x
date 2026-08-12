@@ -303,6 +303,99 @@ describe("ChatPanel integration — aborted tools via stop", () => {
       },
       { timeout: 10000 },
     );
+
+    // Turn-level marker (DEV-109 ruling 11): every user Stop leaves an
+    // explicit "Interrupted" row under the cut turn.
+    expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
+    expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
+  }, 20000);
+
+  test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {
+    // This scenario needs a tool that has already resolved (not the shared
+    // abortedServer's tool, which stays running for the whole stream) so
+    // that by the time we stop, no ToolCard is in a running state — the
+    // "no chip/tool carrier" case this test's name claims to cover.
+    abortedServer.use(
+      http.post("/api/v1/chat", ({ request }) => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            const onAbort = () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            };
+            request.signal.addEventListener("abort", onAbort, { once: true });
+
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a2" })));
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({
+                  type: "tool-input-available",
+                  toolCallId: "tc-y",
+                  toolName: "yfinance_quote",
+                  input: { ticker: "NVDA" },
+                }),
+              ),
+            );
+            // Resolve the tool BEFORE any text streams, so once the reply
+            // text is visible, the ToolCard is already settled.
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({
+                  type: "tool-output-available",
+                  toolCallId: "tc-y",
+                  output: { price: 123.45 },
+                }),
+              ),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
+            );
+
+            // Keep streaming slowly to give time to click stop
+            for (let i = 0; i < 30; i++) {
+              await new Promise((r) => setTimeout(r, 100));
+              if (request.signal.aborted) return;
+              controller.enqueue(
+                encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
+              );
+            }
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "test query");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Wait until reply text is visibly streaming (past the tool phase).
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("assistant-message")).toHaveTextContent(/Looking up/);
+      },
+      { timeout: 10000 },
+    );
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
   }, 20000);
 });
 

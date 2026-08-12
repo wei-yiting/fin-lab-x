@@ -39,7 +39,7 @@ model:
   reasoning: "on"
   thinking_budget: 8192
 
-# Anthropic Claude Haiku 4.5 (reasoning on — temperature=1.0 + budget>=1024 mandatory)
+# Anthropic Claude Haiku 4.5 (reasoning on — note the hard constraints in the matrix)
 model:
   name: "anthropic:claude-haiku-4-5"
   temperature: 1.0
@@ -54,4 +54,4 @@ model:
 1. **Create Profile Directory**: Create a new subdirectory named after the capability tier it implements (e.g., filling in the placeholder `graph/`).
 2. **Define Configuration**: Create an `orchestrator_config.yaml` file within the new directory. Specify the `version`, `name`, `description`, list of `tools` from the registry, and the `model:` block (pick `reasoning` and `thinking_budget` based on the chosen provider's contract — see `ModelConfig` Fields above).
 3. **Write System Prompt**: Create a `system_prompt.md` file to define the agent's specific instructions, constraints, and output format.
-4. **Validation**: Ensure the new profile appears in the output of `ProfileConfigLoader.list_available_profiles()` and can be successfully loaded by the `Orchestrator`. If reasoning is bound but the trace shows empty `metadata.reasoning`, re-check the provider matrix in `agents/README.md` — Gemini needs `include_thoughts=True`, OpenAI needs `summary="auto"`; both are set by `_init_model` only when `reasoning="on"`.
+4. **Validation**: Ensure the new profile appears in the output of `ProfileConfigLoader.list_available_profiles()` and can be successfully loaded by the `Orchestrator`. If reasoning is bound but the trace shows empty `metadata.reasoning`, re-check the provider matrix in `agents/README.md` — the reasoning-visibility kwargs it lists are set by `_init_model` only when `reasoning="on"`.

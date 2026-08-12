@@ -36,8 +36,12 @@ from backend.ingestion.sec_dense_pipeline.common import (
 )
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
 
-_EMBED_MODEL = os.environ.get("SEC_EMBED_MODEL", "text-embedding-3-large")
-_EMBED_DIM = int(os.environ.get("SEC_EMBED_DIM", "3072"))
+# Fixed embedding configuration — not runtime knobs: the A/B experiment
+# holds the embedding model constant across both pipelines, and changing the
+# dimension without wiping the collection would break every upsert against
+# the existing vector size.
+_EMBED_MODEL = "text-embedding-3-large"
+_EMBED_DIM = 3072
 
 DEFAULT_COLLECTION = "sec_filings_openai_large_dense_text"
 _UPSERT_BATCH_SIZE = 100

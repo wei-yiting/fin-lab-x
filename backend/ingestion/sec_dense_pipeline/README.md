@@ -31,16 +31,17 @@ attachment, never search visibility. `prelude` and `block_heading` are `None`
 on every leading chunk (prelude-own, FlatItem, reclassified) and on block
 chunks of items without a valid prelude.
 
-## Environment variables
+## Configuration
 
-| Variable | Default | Purpose |
+| Environment variable | Default | Purpose |
 | --- | --- | --- |
-| `SEC_TEXT_QDRANT_COLLECTION` | `sec_filings_openai_large_dense_text` | New-contract Qdrant collection name. |
-| `SEC_CHUNK_SIZE` | `512` | Chunk size in tokens (cl100k_base). |
-| `SEC_CHUNK_OVERLAP` | `50` | Overlap in tokens between adjacent chunks of a block. |
-| `SEC_EMBED_MODEL` | `text-embedding-3-large` | OpenAI embedding model. |
-| `SEC_EMBED_DIM` | `3072` | Embedding dimensions / collection vector size. |
-| `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint. |
+| `SEC_TEXT_QDRANT_COLLECTION` | `sec_filings_openai_large_dense_text` | New-contract Qdrant collection name (test isolation; A/B run switching). |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint (alternate local/eval instances). |
+
+Chunking (512/50 tokens, cl100k_base) and embedding (`text-embedding-3-large`,
+3072 dims) are fixed module constants, not runtime knobs — they are part of the
+collection's contract and of A/B comparability. To experiment, change the
+constant in code (recorded in git) and re-ingest.
 
 Extension note: any change to the payload filter fields must be applied in
 lockstep to payload construction (`chunking.py`), the payload-index bootstrap

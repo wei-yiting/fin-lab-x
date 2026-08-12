@@ -20,7 +20,6 @@ items without a valid prelude.
 
 from __future__ import annotations
 
-import os
 from typing import NotRequired, TypedDict
 from uuid import NAMESPACE_DNS, uuid5
 
@@ -56,11 +55,19 @@ class ChunkPayload(TypedDict):
     ingested_at: NotRequired[str]
 
 
+# Fixed chunking parameters — part of the collection's contract, not runtime
+# knobs: changing them mid-corpus would mix chunk shapes inside one
+# collection, and A/B comparability needs them held constant. To experiment,
+# change the constant in code (recorded in git) and re-ingest.
+CHUNK_SIZE_TOKENS = 512
+CHUNK_OVERLAP_TOKENS = 50
+
+
 def create_text_splitter() -> RecursiveCharacterTextSplitter:
     return RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         encoding_name="cl100k_base",
-        chunk_size=int(os.environ.get("SEC_CHUNK_SIZE", "512")),
-        chunk_overlap=int(os.environ.get("SEC_CHUNK_OVERLAP", "50")),
+        chunk_size=CHUNK_SIZE_TOKENS,
+        chunk_overlap=CHUNK_OVERLAP_TOKENS,
     )
 
 

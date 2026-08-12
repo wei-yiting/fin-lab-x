@@ -357,9 +357,9 @@ class TestInitModelDefaults:
         request argument supplied: reasoning_effort". The default is now
         openai:gpt-5-nano, a reasoning-capable model compatible with the
         reasoning="off" default. args[0] is the bare "gpt-5-nano", not the
-        "openai:"-prefixed config name — the openai branch strips the
-        prefix itself before calling init_chat_model (see
-        test_openai_branch_passes_model_provider_explicitly)."""
+        "openai:"-prefixed config name — ModelConfig.bare_name owns the
+        prefix parsing and _init_model consumes it (see
+        test_mapped_providers_get_explicit_routing_and_bare_name)."""
         cfg = ModelConfig()
         args, kwargs = _call(cfg)
         assert args[0] == "gpt-5-nano"

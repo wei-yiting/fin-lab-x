@@ -15,7 +15,7 @@ This pipeline is the **new parse path**. It coexists with the frozen HTML baseli
 | Module | Responsibility |
 |---|---|
 | `parser.py` | `parse_filing()` — the single public entry point. Fetch (via `sec_core.fetch_filing_bundle` + `sec_core.fetch_filing_markdown`), per-Item boundary trimming, stub classification, block detection dispatch, store round-trip. Raises `EmptyFilingError` instead of caching a zero-item parse. |
-| `block_detection.py` | Markdown H3/H4 detection path: `canonicalize` (shared anchoring/scorer normalizer), noise-filtered heading-candidate collection, anchored search with the plausibility gate, prelude validity / leading-block reclassification. |
+| `block_detection.py` | The three-path detection chain: markdown H3/H4 (`canonicalize` shared anchoring/scorer normalizer, noise-filtered heading-candidate collection, anchored search) and the Title-Case text fallback (standalone heading-shaped lines, no markdown involved), all behind the same plausibility gate and prelude validity / leading-block reclassification. |
 | `filing_models.py` | The frozen `ParsedFiling` schema (`FilingMetadata`, `FlatItem`, `StructuredItem`, `Block`). All models forbid unknown fields so stored JSON cannot drift from the schema silently. |
 | `filing_store.py` | `LocalFilingStore` — schema-validated JSON cache under `data/sec_text/{TICKER}/10-K/{YEAR}.json`, written atomically. |
 | `stub_detection.py` | `is_stub_section_v2()` — v1 incorporated-by-reference detection plus pseudo-stub pointer patterns, via the shared `classify_stub_section` mechanism. |
@@ -45,7 +45,7 @@ The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline_ht
 
 ## Extension Guidelines
 
-- **Detection chain slot**: the markdown H3/H4 paths are live in `block_detection.py` — a plausibly-anchored Item becomes a `StructuredItem` (`detection_source` records which path found the blocks), everything else stays `FlatItem`. The Title-Case text fallback path (third in the chain) plugs into `detect_blocks`' miss branch when it lands.
+- **Detection chain complete**: all three paths are live in `block_detection.py` — markdown H3, markdown H4, then the Title-Case text fallback, tried in that order inside `detect_blocks`. A plausibly-anchored Item becomes a `StructuredItem` (`detection_source` records which path found the blocks); only when all three fail does the Item stay `FlatItem`.
 - **Schema is frozen**: downstream stages (block detection, dense ingest, inspect view) build against `filing_models.py` without changes. Do not add or rename fields casually — stored JSON validates against this schema on every read.
 - **New stub patterns** go into `PSEUDO_STUB_PATTERNS` in `stub_detection.py` and must run through `classify_stub_section`'s remove-then-measure mechanism — pattern presence alone must never classify a stub, because a large substantive Item can casually contain one pointer sentence.
 - **`sec_core`'s data contract stays frozen** (add-only for data-path behavior) until the HTML baseline is retired; error-handling fixes are allowed.

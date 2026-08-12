@@ -57,9 +57,7 @@ class TestParsedStructure:
         structured = [i for i in result.items if isinstance(i, StructuredItem)]
         assert structured  # recorded AAPL reality: fallback finds structure
         assert all(i.detection_source == "text_fallback" for i in structured)
-        assert all(
-            isinstance(i, FlatItem | StructuredItem) for i in result.items
-        )
+        assert all(isinstance(i, FlatItem | StructuredItem) for i in result.items)
 
     def test_stub_items_are_dropped(self, store, fetch_calls):
         # Recorded AAPL FY2025 reality: 6 is [Reserved]; 10/11/12/13 are

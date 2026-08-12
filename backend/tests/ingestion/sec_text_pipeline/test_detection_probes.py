@@ -1,13 +1,17 @@
 """Acceptance tests: detection results vs the 72-probe known outcomes.
 
 ``fixtures_detection_probes.json`` is recorded from the real latest 10-Ks
-(2026-08-05 probe vintage) via edgartools: per ticker, the filing-level
-markdown heading LINES (order- and duplicate-preserving; prose dropped) and
-the raw section text of the probed items. Tests run the full
-``parse_filing`` path over fakes at the fetch seams — no EDGAR.
+(CAT/WMT/JPM/DIS at the 2026-08-05 probe vintage; MSFT/GE and the 7A
+sections added 2026-08-11 from the same accessions where the ticker
+already existed) via edgartools: per ticker, the filing-level markdown
+heading LINES (order- and duplicate-preserving; prose dropped), the raw
+section text of the probed items, and the edgartools section shape
+(``section_item_attr`` — whether ``Section.item`` was populated). Tests
+run the full ``parse_filing`` path over fakes at the fetch seams — no
+EDGAR.
 
-Known results under test (DEV-133 acceptance criteria; probe evidence is
-recorded in the DEV-127 parent spec):
+Known results under test (DEV-133 + DEV-136 acceptance criteria; probe
+evidence is recorded in the DEV-127 parent spec):
 
 - CAT 7 / 1A: flagship true preludes (~2.5k chars) attached whole
 - WMT 1A: markdown_h4 path, true prelude ~800 chars
@@ -15,6 +19,9 @@ recorded in the DEV-127 parent spec):
 - WMT 1 / CAT 1: markdown_h4 multi-block, heading-line-only prelude
   (no framing prose)
 - DIS 7: false-valid prelude — recorded KNOWN LIMITATION, not fixed
+- MSFT 1 / 1A / 7 / 7A: text fallback carries the whole filing
+  (markdown renders no usable headings); GE 1A stays flat;
+  WMT 7A / DIS 7A: markdown demoted by plausibility, fallback takes over
 """
 
 import json
@@ -25,6 +32,7 @@ import pytest
 from backend.common.sec_core import FetchedFiling
 from backend.ingestion.sec_text_pipeline import parser
 from backend.ingestion.sec_text_pipeline.filing_models import (
+    FlatItem,
     ParsedFiling,
     StructuredItem,
 )
@@ -46,9 +54,17 @@ def parse_probe(monkeypatch, store):
 
     def _parse(ticker: str) -> ParsedFiling:
         data = PROBES[ticker]
+        # Mirror the recorded edgartools section shape: "missing" replays
+        # the spaced-name shape (Section.item unset — live MSFT/GE/DIS
+        # reality) so these probes exercise the parser's name-derivation
+        # path with real filings, not just the synthetic unit tests.
+        degraded = data.get("section_item_attr") == "missing"
         tenk = FakeTenK(
             sections_data={
-                f"item_{key}": {"item": key, "text": text}
+                (f"Item {key.upper()}" if degraded else f"item_{key}"): {
+                    "item": "" if degraded else key,
+                    "text": text,
+                }
                 for key, text in data["sections"].items()
             },
             period_of_report=data["period_of_report"],
@@ -169,6 +185,61 @@ class TestNoPreludeMultiBlock:
         assert len(business.prelude) < 40
         assert len(business.blocks) >= 15
         assert business.blocks[0].heading == "General"
+
+
+class TestTextFallbackPath:
+    """DEV-136 acceptance: the Title-Case text fallback on recorded filings.
+
+    MSFT is the load-bearing case — its filing markdown renders no usable
+    H3/H4 headings at all, so every structured item below exists only
+    because of the fallback. Recorded at the 2026-08-11 vintage (MSFT
+    FY2026, GE FY2025, plus 7A sections added to the existing WMT/DIS
+    recordings — same accessions as the 2026-08-05 probe vintage).
+    """
+
+    def test_msft_items_structure_via_fallback(self, parse_probe):
+        # Block counts reproduce the 72-probe evidence exactly (27/14/41/5).
+        filing = parse_probe("MSFT")
+        expected_blocks = {"1": 27, "1a": 14, "7": 41, "7a": 5}
+        for key, n_blocks in expected_blocks.items():
+            item = get_structured(filing, key)
+            assert item.detection_source == "text_fallback", key
+            assert len(item.blocks) == n_blocks, key
+
+    def test_msft_1a_zero_content_loss_via_fallback(self, parse_probe):
+        # The fallback path honors the same tiling invariant as the
+        # markdown paths: prelude + blocks reassemble the trimmed body.
+        risk = get_structured(parse_probe("MSFT"), "1a")
+        raw = PROBES["MSFT"]["sections"]["1a"]
+        trimmed = parser._trim_section_text(raw, "1a")
+        assert_tiles(risk.prelude, risk.blocks, trimmed)
+
+    def test_ge_1a_unstructured_stays_flat(self, parse_probe):
+        # 61k chars of continuous risk-factor prose with no heading-shaped
+        # standalone lines: the fallback must not invent structure.
+        filing = parse_probe("GE")
+        risk = next(i for i in filing.items if i.item == "1a")
+        assert isinstance(risk, FlatItem)
+        assert len(risk.text) > 50_000
+
+    def test_wmt_7a_demoted_markdown_hands_over_to_fallback(self, parse_probe):
+        # Full-chain demotion case: the same candidate set structures
+        # WMT 1/1A via markdown_h4 (pinned above), but 7A anchors only a
+        # single H4 heading — below the plausibility minimum — so the
+        # chain falls through to the fallback instead of giving up.
+        filing = parse_probe("WMT")
+        market_risk = get_structured(filing, "7a")
+        assert market_risk.detection_source == "text_fallback"
+        assert len(market_risk.blocks) == 5
+
+    def test_dis_7a_demoted_markdown_hands_over_to_fallback(self, parse_probe):
+        # Sibling demotion case: DIS 7A's markdown anchors are one H3 plus
+        # one H4 at 63% depth — each level implausible on its own — and
+        # the fallback takes over.
+        filing = parse_probe("DIS")
+        market_risk = get_structured(filing, "7a")
+        assert market_risk.detection_source == "text_fallback"
+        assert len(market_risk.blocks) == 2
 
 
 class TestKnownLimitations:

@@ -78,7 +78,9 @@ class FakeTenK:
     ) -> None:
         data = RECORDED_FILING["sections"] if sections_data is None else sections_data
         self.sections = {
-            name: FakeSection(item=entry["item"] or None, _text=entry["text"], name=name)
+            name: FakeSection(
+                item=entry["item"] or None, _text=entry["text"], name=name
+            )
             for name, entry in data.items()
         }
         self.period_of_report = period_of_report

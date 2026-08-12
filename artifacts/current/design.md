@@ -18,6 +18,9 @@ FinLab-X 需要把 SEC 10-K filing 的每個 Item(如 Item 1A "Risk Factors")內
 - **StructuredItem** — `prelude`(可選的前言)+ `blocks`(heading+內容列表)+ `detection_source`
 - **FlatItem** — Item 整段文字,不切分(三路偵測都失敗)
 
+`detection_source` 是 `Literal["markdown_h3", "markdown_h4", "text_fallback"]`(來自 DEV-127
+parent spec 的 schema 定義);FlatItem 不帶此欄位。
+
 **偵測鏈(三路依序嘗試):**
 
 1. Markdown H3 anchored search
@@ -51,18 +54,27 @@ heading 的獨立行」來偵測 heading(沒有 markdown 語法可以錨定,純�
 Item 文字中的一行,只要符合以下任一條件就會被拒絕(不能當 fallback heading 候選):
 
 1. 長度不在 5–120 chars 區間內
-2. 含 digit cluster:連續 3 碼以上數字,或整行純數字
+2. 含 digit cluster:regex `\d{3,}`(連續 3 碼以上數字,不論是否被字母包住,例如
+   "Q42024" 含 5 碼連續數字會命中),或整行純數字
 3. 該行是「Item 自引」(重複 Item 自己的標題,例如整行就是 "Item 1A" 或
    "Item 1A. Risk Factors")— 這種行不能當作自己這個 Item 的 fallback anchor
 4. 上下文訊號不成立:上一行**必須**不是句尾標點結束,且下一行**必須**是 long prose
    (>80 chars)— 兩個條件都要成立,任一不成立就拒絕
 5. 含 `|`、`$`、`%` 字元
 6. 以 `.`、`,`、`;`、`:` 結尾
+7. 以 `(數字)` 開頭(例如 "(1)ppt")— 財報表格 footnote 標籤的典型形狀
 
 規則 5、6 沒有明寫在 DEV-136 issue 本文的摘要句裡,但透過 handoff comment(對照演算法源頭的
-72-probe 研究 script)確認是已裁決、承重的規則組成部分 —— acceptance criteria 裡的精確 block
-數量,就是含這 6 條規則的完整實作跑出來的。6 條規則視為同一個 Rule 的整體,不要把 5、6 當作
-「implementation 自行多加的」而在 review 時當 spec 偏離處理。
+72-probe 研究 script)確認是已裁決、承重的規則組成部分。規則 7 則是**本輪討論期間才落地的
+code review fix**(commit `e282763`,「review round 1 — footnote-label rejection」):財報
+表格的 footnote 標記行(如 "(1)ppt")會被誤判成候選標題,fix 後 MSFT Item 7 的 block 數從
+41 修正為 **38**(見下方 Acceptance Criteria 表格與 Known Limitations)。7 條規則視為同一個
+Rule 的整體。
+
+同一輪 review 也發現、但**明確裁決不修**的第二個誤判案例:MSFT Item 1 裡一個財報表格儲存格
+「Vice Chair and President」被誤判成候選標題(它恰好符合現行全部規則的上下文條件,且找不到
+能安全排除它、又不誤傷真正標題的規則)。已寫成專屬 regression test 釘住現況,裁決依據與
+DEV-133 DIS-7 known limitation 同一先例:等待未來 A/B failure mining 累積更多證據再議。
 
 ### Rule: Assembly 是逐字重現 — 不做 prelude carve-out
 
@@ -95,7 +107,7 @@ plausibility,該 Item 變成 FlatItem(三路都已窮盡)。
 |---|---|---|---|---|
 | MSFT FY2026 | 1 | — | 經 `text_fallback` 產出 StructuredItem(兩條 markdown 路徑在此 filing 上皆劣化/不可信) | 27 |
 | MSFT FY2026 | 1A | — | 經 `text_fallback` 產出 StructuredItem | 14 |
-| MSFT FY2026 | 7 | — | 經 `text_fallback` 產出 StructuredItem | 41 |
+| MSFT FY2026 | 7 | — | 經 `text_fallback` 產出 StructuredItem | 38(原始 72-probe 數字是 41,review round 1 加上 footnote-label 規則後拿掉 3 個 "(1)ppt" 誤判 anchor,修正為 38) |
 | MSFT FY2026 | 7A | — | 經 `text_fallback` 產出 StructuredItem | 5 |
 | GE FY2025 | 1A | 61,747 chars | FlatItem — 三路都找不到結構,不捏造假 heading | 無 blocks |
 | WMT | 7A | — | markdown anchor 存在但不可信(僅 1 個淺層 anchor)→ 降級到 fallback → 經 fallback 產出 StructuredItem | — |
@@ -122,6 +134,11 @@ fallback 路徑被移除或壞掉,四個 Item 都會錯誤地變成 FlatItem。�
    **不屬於本 feature 範圍**。
 4. **表格無特殊處理**:block 內的表格會被壓扁成文字進行 chunk/embed(可搜尋,但對結構化數字
    查詢語意較弱)。這是設計現狀,不是缺陷。
+5. **官職表格儲存格誤判為 heading**(已觀察 1 例,MSFT Item 1):財報裡的官職對照表,儲存格
+   內容(如 "Vice Chair and President")恰好符合現行全部 7 條 rejection 規則的條件,被誤判
+   為候選標題。Review round 1 明確裁決不修——找不到能安全排除這類儲存格、又不會誤傷真正標題
+   的結構性規則;裁決先例與 DEV-133 的 DIS Item 7 known limitation 相同,等待未來 A/B
+   failure mining 累積更多證據再議。已有專屬 regression test 釘住現況。
 
 ## DEV-136 明確排除的範圍(Out of Scope)
 

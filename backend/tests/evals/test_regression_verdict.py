@@ -247,3 +247,12 @@ class TestAbsenceSemantics:
 
         assert gate.status == "red"
         assert "no scorer has" in gate.failures[0]
+
+    def test_enabled_with_gated_scorers_but_no_cases_is_red(self) -> None:
+        """An empty run produced zero scores — it cannot support green."""
+        config = _config([_scorer()])
+
+        gate = evaluate_gate(config, [])
+
+        assert gate.status == "red"
+        assert "no cases executed" in gate.failures[0]

@@ -64,6 +64,12 @@ def evaluate_gate(config: ScenarioConfig, cases: list[CaseResult]) -> GateVerdic
             "regression.enabled: false"
         )
 
+    if gated and not cases:
+        failures.append(
+            f"{scenario}: no cases executed — an empty run cannot support "
+            "'no regression' (ADR-0008)"
+        )
+
     crashed = [case for case in cases if case.task_error is not None]
     if crashed:
         crash_detail = "; ".join(

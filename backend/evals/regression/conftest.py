@@ -25,9 +25,8 @@ def resolve_profile() -> str:
     return os.environ.get("EVAL_PROFILE", "").strip() or "baseline"
 
 
-@pytest.fixture(scope="session")
-def profile() -> str:
-    """The Workflow Profile under test, validated eagerly.
+def validated_profile() -> str:
+    """Resolve the profile and validate it eagerly.
 
     A typo'd EVAL_PROFILE must fail here, loudly, before any LLM spend —
     ProfileConfigLoader raises for a profile directory that does not exist.
@@ -35,6 +34,12 @@ def profile() -> str:
     name = resolve_profile()
     ProfileConfigLoader(name).load()
     return name
+
+
+@pytest.fixture(scope="session")
+def profile() -> str:
+    """The Workflow Profile under test."""
+    return validated_profile()
 
 
 class GateRuns:

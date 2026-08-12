@@ -508,14 +508,15 @@ def run_scenario(
         ]
         is_full_dataset = case_ids is None or set(case_ids) >= set(all_case_ids)
         if case_ids is not None:
-            unknown = sorted(set(case_ids) - set(all_case_ids))
+            selected = set(case_ids)
+            unknown = sorted(selected - set(all_case_ids))
             if unknown:
                 raise ValueError(
                     f"Unknown case ids {unknown} for scenario '{config.name}'. "
                     f"Available: {all_case_ids}"
                 )
             selected_indices = [
-                idx for idx, cid in enumerate(all_case_ids) if cid in set(case_ids)
+                idx for idx, cid in enumerate(all_case_ids) if cid in selected
             ]
             raw_data = [raw_data[idx] for idx in selected_indices]
             original_rows = [original_rows[idx] for idx in selected_indices]
@@ -616,7 +617,7 @@ def run_scenario(
                 case_id=(
                     result_case_ids[idx]
                     if idx < len(result_case_ids)
-                    else f"case-{idx + 1:02d}"
+                    else case_identifier({}, idx)
                 ),
                 scores={name: result.scores.get(name) for name in scorer_names},
                 scorer_errors=scorer_errors,

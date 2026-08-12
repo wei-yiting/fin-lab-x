@@ -24,6 +24,7 @@ from backend.evals.eval_runner import (
 from backend.evals.dataset_loader import load_raw_csv_rows
 from backend.evals.eval_spec_schema import ScenarioConfig, load_scenario_config
 from backend.evals.regression.conftest import GateRuns
+from backend.evals.regression.selection import gate_skip_reason
 from backend.evals.regression.verdict import evaluate_gate
 
 pytestmark = pytest.mark.eval
@@ -56,8 +57,9 @@ def test_gate(scenario: str, gate_runs: GateRuns) -> None:
         pytest.skip(f"regression.enabled: false for scenario '{scenario}'")
 
     result = gate_runs.result(scenario)
-    if not result.is_full_dataset:
-        pytest.skip("partial run — the aggregate verdict requires the full dataset")
+    skip_reason = gate_skip_reason(is_full_dataset=result.is_full_dataset)
+    if skip_reason is not None:
+        pytest.skip(skip_reason)
 
     gate = evaluate_gate(config, result.case_results)
     assert gate.status == "green", "\n".join(gate.failures)
@@ -71,7 +73,10 @@ def test_case(scenario: str, case_id: str, gate_runs: GateRuns) -> None:
     judgment stays with ``test_gate`` — a single case has no aggregate.
     """
     result = gate_runs.result(scenario)
-    case = next(c for c in result.case_results if c.case_id == case_id)
+    matches = [c for c in result.case_results if c.case_id == case_id]
+    if not matches:
+        pytest.fail(f"case '{case_id}' missing from the run results for '{scenario}'")
+    case = matches[0]
 
     lines = [f"── {scenario} / {case_id} scores ──"]
     for name in result.scorer_names:

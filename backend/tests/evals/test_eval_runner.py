@@ -8,10 +8,13 @@ import threading
 import time
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from backend.evals.eval_runner import ScenarioRunResult
 
 
 def _make_eval_result(
@@ -1041,7 +1044,7 @@ class TestRunScenario:
 # ---------------------------------------------------------------------------
 
 
-def _stub_run_result(csv_path: Path) -> "object":
+def _stub_run_result(csv_path: Path) -> "ScenarioRunResult":
     from backend.evals.eval_runner import ScenarioRunResult
 
     return ScenarioRunResult(
@@ -1600,11 +1603,11 @@ class TestProfileInjectionAndSubset:
     def _run(
         self,
         tmp_path: Path,
-        task_fn: object,
+        task_fn: Any,
         *,
         profile: str | None = None,
         case_ids: list[str] | None = None,
-    ) -> object:
+    ) -> "ScenarioRunResult":
         scenarios_dir = self._setup_scenario_with_ids(tmp_path)
 
         fake_scorer = MagicMock(return_value=1.0)

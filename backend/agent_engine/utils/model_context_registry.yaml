@@ -1,3 +1,6 @@
+gemini-3.1-flash-lite:
+  max_input_tokens: 1048576
+  source: google_official
 gpt-4o:
   max_input_tokens: 128000
   source: litellm
@@ -5,11 +8,8 @@ gpt-4o-mini:
   max_input_tokens: 128000
   source: litellm
 gpt-5-mini:
-  max_input_tokens: 400000
-  source: openai_official
+  max_input_tokens: 272000
+  source: litellm
 gpt-5-nano:
-  max_input_tokens: 400000
-  source: openai_official
-gemini-3.1-flash-lite:
-  max_input_tokens: 1048576
-  source: google_official
+  max_input_tokens: 272000
+  source: litellm

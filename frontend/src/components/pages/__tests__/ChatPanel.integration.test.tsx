@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderHook, act } from "@testing-library/react";
 import { useChat } from "@ai-sdk/react";
@@ -311,6 +311,68 @@ describe("ChatPanel integration — aborted tools via stop", () => {
   }, 20000);
 
   test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {
+    // This scenario needs a tool that has already resolved (not the shared
+    // abortedServer's tool, which stays running for the whole stream) so
+    // that by the time we stop, no ToolCard is in a running state — the
+    // "no chip/tool carrier" case this test's name claims to cover.
+    abortedServer.use(
+      http.post("/api/v1/chat", ({ request }) => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            const onAbort = () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            };
+            request.signal.addEventListener("abort", onAbort, { once: true });
+
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a2" })));
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({
+                  type: "tool-input-available",
+                  toolCallId: "tc-y",
+                  toolName: "yfinance_quote",
+                  input: { ticker: "NVDA" },
+                }),
+              ),
+            );
+            // Resolve the tool BEFORE any text streams, so once the reply
+            // text is visible, the ToolCard is already settled.
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({
+                  type: "tool-output-available",
+                  toolCallId: "tc-y",
+                  output: { price: 123.45 },
+                }),
+              ),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
+            );
+
+            // Keep streaming slowly to give time to click stop
+            for (let i = 0; i < 30; i++) {
+              await new Promise((r) => setTimeout(r, 100));
+              if (request.signal.aborted) return;
+              controller.enqueue(
+                encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
+              );
+            }
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -335,6 +397,146 @@ describe("ChatPanel integration — aborted tools via stop", () => {
       { timeout: 10000 },
     );
   }, 20000);
+});
+
+// ---------------------------------------------------------------------------
+// M-2.1: throttled closure can miss a tool that just arrived
+//
+// handleStop reads running-tool ids off the CURRENT RENDER's `messages`
+// closure. useChat's `experimental_throttle` coalesces the messages-store's
+// re-render notifications to roughly STREAM_THROTTLE_MS — the underlying
+// snapshot updates immediately, but React doesn't necessarily re-render to
+// reflect it right away. If a tool-input-available chunk lands while the
+// assistant message is already streaming (status is already "streaming", so
+// no further status-change forces an unthrottled render), a Stop click that
+// lands inside that throttle window can miss the tool entirely: it's never
+// added to abortedTools, and since the stream is now aborted, no
+// tool-output-available/tool-output-error will ever arrive to resolve it —
+// the ToolCard is stuck pulsing forever. The fix (AssistantMessage.tsx)
+// additionally treats a tool as aborted whenever the whole turn is
+// `interrupted` and the tool's live state is still running, since
+// `interrupted` is read fresh on every render rather than snapshotted at
+// click time.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — aborted tools via stop (late-arriving tool race)", () => {
+  let resolveToolEnqueued: () => void;
+
+  const raceServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          const enqueue = (data: Record<string, unknown>) => {
+            if (request.signal.aborted) return;
+            try {
+              controller.enqueue(encoder.encode(sseFrame(data)));
+            } catch {
+              /* stream already closed by abort */
+            }
+          };
+
+          // Text starts streaming first — the component renders with
+          // status "streaming" before any tool exists.
+          enqueue({ type: "start", messageId: "a-race" });
+          enqueue({ type: "text-start", id: "t1" });
+          enqueue({ type: "text-delta", id: "t1", delta: "Streaming reply" });
+
+          // Give the client time to actually commit that render (confirmed
+          // by the test's waitFor) before the tool call lands on the wire —
+          // this is what makes the tool arrive "while the assistant message
+          // is already streaming" rather than before it. 400ms is well past
+          // this environment's observed cold-start render latency (measured
+          // ~150-250ms for the first SSE-driven render in jsdom/msw), so the
+          // ordering (text visible, then tool sent) is not itself a race.
+          await new Promise((r) => setTimeout(r, 400));
+
+          enqueue({
+            type: "tool-input-available",
+            toolCallId: "tc-race",
+            toolName: "yfinance_quote",
+            input: { ticker: "TSLA" },
+          });
+          resolveToolEnqueued();
+
+          // Keep streaming slowly to give time to click stop and for the
+          // abort handshake to complete.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+            enqueue({ type: "text-delta", id: "t1", delta: "." });
+          }
+          enqueue({ type: "text-end", id: "t1" });
+          enqueue({ type: "finish" });
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => raceServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => raceServer.resetHandlers());
+  afterAll(() => raceServer.close());
+
+  test("stop clicked right as a new tool call arrives mid-stream → tool still resolves to aborted", async () => {
+    const toolEnqueued = new Promise<void>((resolve) => {
+      resolveToolEnqueued = resolve;
+    });
+
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "test query");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Wait only for the reply text — NOT for the ToolCard — so the click
+    // below lands as close as possible to the tool's arrival. Waiting for
+    // the ToolCard first is exactly what let the throttled snapshot catch
+    // up in the original (pre-fix) bug.
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("assistant-message")).toHaveTextContent(/Streaming reply/);
+      },
+      { timeout: 10000 },
+    );
+
+    // Click as soon as the server has put the tool call on the wire — no
+    // additional wait for it to be reflected in the DOM. `fireEvent.click`
+    // (not `userEvent.click`) is deliberate here: userEvent dispatches a
+    // pointerdown/mousedown/pointerup/mouseup/click sequence with yields
+    // between steps, and that alone gives the throttled render enough real
+    // time to catch up and mask the race this test exists to catch.
+    // fireEvent dispatches a single click synchronously, landing handleStop
+    // as close as possible to the tool's arrival.
+    await toolEnqueued;
+    fireEvent.click(screen.getByTestId("composer-stop-btn"));
+
+    // Whether or not handleStop's closure caught the tool at click time,
+    // the turn-level `interrupted` flag must eventually mark it aborted
+    // once its still-running state renders — it can never resolve any
+    // other way once the stream is aborted.
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "aborted");
+      },
+      { timeout: 20000 },
+    );
+  }, 25000);
 });
 
 // ---------------------------------------------------------------------------

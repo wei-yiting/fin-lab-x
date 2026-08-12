@@ -92,8 +92,17 @@ export const AssistantMessage = memo(function AssistantMessage({
           part.type === "dynamic-tool"
         ) {
           const toolCallId = part.toolCallId as string;
+          // abortedTools is a click-time snapshot of `handleStop`'s render
+          // closure (ChatPanel), which can miss a tool call that arrived
+          // inside the `experimental_throttle` window right before Stop was
+          // clicked (M-2.1). `interrupted` is read fresh on every render, so
+          // OR-ing it in catches that tool once its running state finally
+          // renders — the stream is aborted, so it can never resolve any
+          // other way. Additive only: abortedTools/handleStop still drive the
+          // separate mid-stream-error path and must keep working unchanged.
           const isAborted =
-            abortedTools.has(toolCallId) && isRunningToolState(part.state as string);
+            (abortedTools.has(toolCallId) || interrupted) &&
+            isRunningToolState(part.state as string);
           return (
             <ToolCard
               key={toolCallId ?? i}

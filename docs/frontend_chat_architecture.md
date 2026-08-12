@@ -217,7 +217,7 @@ The non-obvious behaviors of `@ai-sdk/react@3.0.144` + `ai@6.0.142` — SSE erro
 
 The shipped strategy is **extract-on-finish**:
 
-- While `status === 'streaming' && isLast`, skip `extractSources` entirely. Raw `[N]: url "title"` definition lines are briefly visible in the stream; `[N]` stays as literal text; no Sources block; no RefSup.
+- While `status === 'streaming' && isLast`, skip `extractSources` entirely — no Sources block; no RefSup; `[N]` stays as literal text. Definition lines (`[N]: url "title"`) are stripped from the displayed text unconditionally, streaming or not (see `AssistantMessage`'s `displayText` memo), so they are never visible at any point — only the Sources block / RefSup resolution is what's deferred until the turn completes.
 - When `status` leaves `streaming` (ready / error / stop), a `useMemo` in `AssistantMessage` runs `extractSources` exactly once. The derived text (with definition lines stripped) plus the sources array is handed to the stateless `Markdown` organism and the `Sources` molecule.
 
 The UX is a "pop-in" at stream end, similar to ChatGPT / Claude.ai. Partial sources on error/stop are preserved because the `useMemo` also fires when the stream stops on error.

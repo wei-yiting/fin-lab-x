@@ -61,6 +61,9 @@ def make_structured_item(**overrides) -> StructuredItem:
 class FakeSection:
     item: str | None
     _text: str
+    #: edgartools section name — "part_ii_item_7a" (part-aware shape) or
+    #: "Item 7A" (spaced shape, where the real library leaves item=None).
+    name: str = ""
 
     def text(self) -> str:
         return self._text
@@ -75,7 +78,7 @@ class FakeTenK:
     ) -> None:
         data = RECORDED_FILING["sections"] if sections_data is None else sections_data
         self.sections = {
-            name: FakeSection(item=entry["item"] or None, _text=entry["text"])
+            name: FakeSection(item=entry["item"] or None, _text=entry["text"], name=name)
             for name, entry in data.items()
         }
         self.period_of_report = period_of_report

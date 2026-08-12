@@ -1,4 +1,4 @@
-"""Unit tests for the markdown H3/H4 block detection path (DEV-133).
+"""Unit tests for the block detection chain (markdown H3/H4 + text fallback).
 
 External behavior only: canonicalize is the shared anchoring/scorer helper
 (a public seam in its own right), candidate collection and detection are
@@ -243,5 +243,189 @@ class TestPreludeValidity:
         )
         c = HeadingCandidates(h3=("Overview", "Competition"), h4=())
         d = detect_blocks(text, c)
+        assert d is not None
+        assert_tiles(d.prelude, d.blocks, text)
+
+
+NO_CANDIDATES = HeadingCandidates(h3=(), h4=())
+
+
+def _fb_text(*parts: str) -> str:
+    """Item text whose headings are separated from prose by blank lines,
+    as real 10-K plain-text renderings are — the fallback's previous-line
+    signal (must not end a sentence) depends on that shape."""
+    return "\n\n".join(parts)
+
+
+class TestTextFallback:
+    """The third detection path: Title-Case standalone-line detection.
+
+    Reference behavior is the 72-probe-validated fallback (design §4.5);
+    each rejection rule gets a positive/negative pair through the public
+    detect_blocks seam.
+    """
+
+    def test_fallback_detects_standalone_heading_lines(self):
+        text = _fb_text(
+            "Item 1. Business",
+            "Company Overview",
+            FILLER,
+            "Human Capital Resources",
+            FILLER,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
+        assert d is not None
+        assert d.detection_source == "text_fallback"
+        assert [b.heading for b in d.blocks] == [
+            "Company Overview",
+            "Human Capital Resources",
+        ]
+        assert d.prelude == "Item 1. Business"
+
+    def test_markdown_path_preferred_over_fallback(self):
+        # Both paths would anchor plausibly; the markdown result must win.
+        text = _fb_text("Company Overview", FILLER, "Competition", FILLER)
+        c = HeadingCandidates(h3=("Company Overview", "Competition"), h4=())
+        d = detect_blocks(text, c)
+        assert d is not None
+        assert d.detection_source == "markdown_h3"
+
+    def test_demoted_markdown_falls_through_to_fallback(self):
+        # Markdown candidates anchor but implausibly (single anchor):
+        # the chain must demote to the fallback, not give up.
+        text = _fb_text("Company Overview", FILLER, "Competition", FILLER)
+        c = HeadingCandidates(h3=("Competition",), h4=())
+        d = detect_blocks(text, c)
+        assert d is not None
+        assert d.detection_source == "text_fallback"
+        assert [b.heading for b in d.blocks] == ["Company Overview", "Competition"]
+
+    def test_unstructured_text_stays_flat(self):
+        # The GE 1A shape: long prose with no heading-shaped lines. The
+        # fallback must not invent headings — detect_blocks yields None.
+        text = _fb_text(*[FILLER for _ in range(20)])
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_length_window_rejects_short_and_long_lines(self):
+        too_short = "Ops"
+        too_long = "X" + "very long pseudo heading " * 5  # > 120 chars
+        text = _fb_text(too_short, FILLER, too_long, FILLER)
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_digit_cluster_and_pure_number_rejected(self):
+        # The VZ-style year-label failure shape: "2025" is a standalone
+        # short line, and digit clusters mark table fragments.
+        text = _fb_text("2025", FILLER, "Revenue in 2024 dollars", FILLER)
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_item_self_reference_rejected_as_candidate(self):
+        # The Item's own heading line must not become a block anchor —
+        # but it still lands in the verbatim prelude (no carve-outs).
+        text = _fb_text(
+            "Item 7A. Market Risk",
+            "ITEM 7A. QUANTITATIVE DISCLOSURES",
+            "Interest Rate Risk",
+            FILLER,
+            "Currency Exchange Risk",
+            FILLER,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
+        assert d is not None
+        assert [b.heading for b in d.blocks] == [
+            "Interest Rate Risk",
+            "Currency Exchange Risk",
+        ]
+        assert d.prelude == (
+            "Item 7A. Market Risk\n\nITEM 7A. QUANTITATIVE DISCLOSURES"
+        )
+
+    def test_table_characters_rejected(self):
+        text = _fb_text(
+            "Revenue | Cost | Margin",
+            FILLER,
+            "Growth of 5% annually",
+            FILLER,
+            "Cash of $10 million",
+            FILLER,
+        )
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_trailing_punctuation_rejected(self):
+        text = _fb_text(
+            "The factors are these:",
+            FILLER,
+            "A sentence fragment,",
+            FILLER,
+            "It was short.",
+            FILLER,
+        )
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_candidate_after_sentence_end_rejected(self):
+        # Same candidate lines, but glued directly under a line that ends a
+        # sentence — the previous-line signal must reject them.
+        text = "\n".join(
+            [
+                "Some prose that ends the paragraph here.",
+                "Company Overview",
+                FILLER,
+                "Short prose also ending in a period.",
+                "Competition",
+                FILLER,
+            ]
+        )
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_candidate_without_following_prose_rejected(self):
+        # A heading-shaped line followed only by short fragments is a list
+        # entry or table label, not a block heading.
+        text = _fb_text(
+            "Company Overview",
+            "short line",
+            "Competition Landscape",
+            "another short line",
+        )
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_plausibility_gate_applies_to_fallback(self):
+        # Two valid candidates whose first sits past the 30% mark: the
+        # fallback result is just as untrusted as a markdown one would be.
+        long_head = _fb_text(*[FILLER for _ in range(20)])
+        text = _fb_text(
+            long_head,
+            "Company Overview",
+            FILLER,
+            "Competition",
+            FILLER,
+        )
+        assert detect_blocks(text, NO_CANDIDATES) is None
+
+    def test_prelude_validity_applies_to_fallback(self):
+        # An oversized pre-anchor span reclassifies as a heading-less
+        # leading block on the fallback path too.
+        pseudo = "Swallowed body text " * 200  # > 3,000 chars, no periods
+        text = _fb_text(
+            pseudo,
+            "Company Overview",
+            LONG_BODY,
+            "Competition",
+            LONG_BODY,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
+        assert d is not None
+        assert d.detection_source == "text_fallback"
+        assert d.prelude == ""
+        assert d.blocks[0].heading == ""
+        assert d.blocks[0].text == pseudo.strip()
+
+    def test_zero_content_loss_via_fallback(self):
+        text = _fb_text(
+            "Item 1. Business",
+            "Company Overview",
+            FILLER,
+            "Competition",
+            FILLER,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
         assert d is not None
         assert_tiles(d.prelude, d.blocks, text)

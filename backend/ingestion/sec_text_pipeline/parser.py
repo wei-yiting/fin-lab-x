@@ -1,11 +1,11 @@
 """parse_filing — fetch + parse orchestration for the SEC text pipeline.
 
 Single public entry point; edgartools types never leak to callers.
-Non-stub Items run through the markdown H3/H4 detection chain
-(:mod:`block_detection`): a plausibly-anchored Item becomes a
-:class:`StructuredItem` (prelude + blocks + detection_source), everything
-else stays a :class:`FlatItem`. The Title-Case text fallback path is the
-planned next step and will pick up Items the markdown path rejects.
+Non-stub Items run through the block detection chain
+(:mod:`block_detection`: markdown H3, H4, then the Title-Case text
+fallback): a plausibly-anchored Item becomes a :class:`StructuredItem`
+(prelude + blocks + detection_source), everything else stays a
+:class:`FlatItem`.
 """
 
 from __future__ import annotations
@@ -119,6 +119,27 @@ _ITEM_HEADING_RE = re.compile(r"(?:Item|ITEM)\s+(\d{1,2}[a-cA-C]?)\s*\.(?!\d)")
 # current Item's body.
 _TRAILING_PART_RE = re.compile(r"PART\s+[IVX]+$")
 
+# edgartools names sections two ways: part-aware ("part_ii_item_7a", with
+# Section.item populated) and spaced ("Item 7A", with Section.item None —
+# its parse_section_name only understands the underscore shape; upstream
+# inconsistency recorded on DEV-147). This matches the spaced shape so the
+# item key can be derived when the metadata is missing.
+_SECTION_NAME_ITEM_RE = re.compile(r"^item\s+(\d{1,2}[a-c]?)$", re.IGNORECASE)
+
+
+def _section_item_key(section: object) -> str | None:
+    """The section's item identifier, tolerant of both edgartools shapes.
+
+    Prefers the ``item`` attribute; when the library left it unset, derives
+    it from the section name. Returns None for non-item sections.
+    """
+    raw_item = getattr(section, "item", None)
+    if raw_item:
+        return str(raw_item)
+    name = getattr(section, "name", None) or ""
+    match = _SECTION_NAME_ITEM_RE.match(name.strip())
+    return match.group(1) if match else None
+
 
 def _is_structural_boundary(text: str, start: int) -> bool:
     """True when the ``Item N.`` match at ``start`` is a section heading
@@ -182,9 +203,9 @@ def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
     text and push a pure pointer stub (AAPL FY2025 Item 11) over the
     remaining-content threshold so it wrongly survives.
 
-    Surviving bodies run through the markdown H3/H4 detection chain: a
-    plausibly-anchored Item is emitted as a StructuredItem, the rest as
-    FlatItems.
+    Surviving bodies run through the block detection chain (markdown H3/H4,
+    then the Title-Case text fallback): a plausibly-anchored Item is
+    emitted as a StructuredItem, the rest as FlatItems.
 
     Skips: entries that are not standard items (signatures, unknown keys),
     empty bodies, stub items (v2 classifier), and duplicate item keys
@@ -193,7 +214,7 @@ def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
     items: list[ParsedItem] = []
     seen: set[str] = set()
     for section in tenk.sections.values():
-        raw_item = getattr(section, "item", None)
+        raw_item = _section_item_key(section)
         if not raw_item:
             continue
         key = raw_item.lower()

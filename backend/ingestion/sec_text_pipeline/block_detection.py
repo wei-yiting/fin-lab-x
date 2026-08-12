@@ -1,11 +1,14 @@
-"""Markdown H3/H4 block detection for the SEC text pipeline.
+"""Block detection chain for the SEC text pipeline.
 
 The filing-level markdown (edgartools ``filing.markdown()``) supplies H3/H4
 heading candidates; each Item's plain-text body is then searched for lines
 that exactly equal a candidate after both sides pass the same
 :func:`canonicalize`. An anchored result is only trusted if it passes the
-plausibility check — otherwise this path yields nothing and the Item stays
-flat (the Title-Case text fallback is a separate, later detection path).
+plausibility check. When neither markdown level anchors plausibly, the
+Title-Case text fallback takes over: standalone heading-shaped lines
+detected from the Item text alone (no markdown involved). A fallback result
+must pass the same plausibility check; only when all three paths fail does
+the Item stay flat.
 
 Prelude semantics: the text before the first anchored heading is a
 valid prelude only when it is short enough to plausibly be framing text
@@ -87,6 +90,74 @@ NOISE_HEADING_PATTERNS: tuple[re.Pattern[str], ...] = (
 )
 
 _MD_HEADING_RE = re.compile(r"^(#{1,6}) (.+)$")
+
+# --- text fallback path (72-probe validated; the rejection-rule inventory
+# beyond the ticket's shorthand list is recorded on DEV-136) ------------------
+
+#: Candidate length window for a standalone heading-shaped line.
+FALLBACK_MIN_HEADING_CHARS = 5
+FALLBACK_MAX_HEADING_CHARS = 120
+#: The next non-empty line after a real heading is body prose — anything
+#: this short marks a list entry or table label instead.
+FALLBACK_NEXT_PROSE_MIN_CHARS = 80
+
+#: The Item's own heading line ("Item 7A.", "ITEM 1A. RISK FACTORS") must not
+#: become a block anchor; it belongs to the prelude.
+_FALLBACK_ITEM_SELF_RE = re.compile(r"^item\s+\d+[a-c]?\.?", re.IGNORECASE)
+#: A run of >= 3 digits marks table fragments and year labels (the VZ
+#: year-label shape that exact-match anchoring cannot reject).
+_FALLBACK_DIGIT_CLUSTER_RE = re.compile(r"\d{3,}")
+#: Table/financial characters never appear in real section headings.
+_FALLBACK_TABLE_CHARS = "|$%"
+#: A parenthesized footnote label at line start marks a table-footnote line
+#: ("(1)ppt" — the standard financial-table footnote marker shape; MSFT
+#: FY2026 Item 7 table footnotes, review finding M-1.1).
+_FALLBACK_FOOTNOTE_LABEL_RE = re.compile(r"^\(\d+\)")
+#: A line of digits and whitespace only ("12  34  56  78") is a flattened
+#: table row, never a heading — spaces defeat isdigit() and split the
+#: digits below the cluster threshold, so this closes the gap between
+#: those two rules (BDD S-fallback-04).
+_FALLBACK_DIGITS_ONLY_RE = re.compile(r"^[\d\s]+$")
+#: A heading does not end mid-sentence...
+_FALLBACK_TRAILING_PUNCT = (".", ",", ";", ":")
+#: ...and does not sit directly under a line that ends one.
+_FALLBACK_PREV_SENTENCE_END = (".", "!", "?")
+
+
+def _fallback_heading_idxs(lines: list[str]) -> list[int]:
+    """Indexes of Title-Case standalone-line heading candidates.
+
+    A line qualifies only when it is heading-shaped (length window, no
+    digit clusters or table characters, no trailing sentence punctuation,
+    not the Item's self-reference) AND its context reads like a heading:
+    the previous line does not end a sentence and the next non-empty line
+    is long prose.
+    """
+    idxs: list[int] = []
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if not (FALLBACK_MIN_HEADING_CHARS <= len(s) <= FALLBACK_MAX_HEADING_CHARS):
+            continue
+        if s.isdigit() or _FALLBACK_DIGIT_CLUSTER_RE.search(s):
+            continue
+        if _FALLBACK_DIGITS_ONLY_RE.match(s):
+            continue
+        if _FALLBACK_ITEM_SELF_RE.match(s):
+            continue
+        if _FALLBACK_FOOTNOTE_LABEL_RE.match(s):
+            continue
+        if any(c in s for c in _FALLBACK_TABLE_CHARS):
+            continue
+        if s.endswith(_FALLBACK_TRAILING_PUNCT):
+            continue
+        prev = lines[i - 1].rstrip() if i > 0 else ""
+        if prev.endswith(_FALLBACK_PREV_SENTENCE_END):
+            continue
+        nxt = next((ln.strip() for ln in lines[i + 1 :] if ln.strip()), "")
+        if len(nxt) <= FALLBACK_NEXT_PROSE_MIN_CHARS:
+            continue
+        idxs.append(i)
+    return idxs
 
 
 def canonicalize(text: str) -> str:
@@ -175,11 +246,14 @@ def collect_heading_candidates(
     return HeadingCandidates(h3=clean(3), h4=clean(4))
 
 
+DetectionSource = Literal["markdown_h3", "markdown_h4", "text_fallback"]
+
+
 @dataclass(frozen=True)
 class DetectedBlocks:
-    """A trusted (plausibility-passing) markdown detection result."""
+    """A trusted (plausibility-passing) detection result."""
 
-    detection_source: Literal["markdown_h3", "markdown_h4"]
+    detection_source: DetectionSource
     prelude: str  # "" = no prelude (absent, or reclassified as leading block)
     blocks: list[Block]
 
@@ -187,11 +261,12 @@ class DetectedBlocks:
 def detect_blocks(
     item_text: str, candidates: HeadingCandidates
 ) -> DetectedBlocks | None:
-    """Run the markdown detection path (H3 first, then H4) on one Item body.
+    """Run the detection chain (markdown H3, then H4, then the Title-Case
+    text fallback) on one Item body.
 
-    Returns ``None`` when neither level anchors plausibly — the caller
-    keeps the Item flat. Never returns an implausible anchoring: a single
-    deep stray heading must not swallow the Item's body into its prelude.
+    Returns ``None`` when no path anchors plausibly — the caller keeps the
+    Item flat. Never returns an implausible anchoring: a single deep stray
+    heading must not swallow the Item's body into its prelude.
     """
     lines = item_text.splitlines()
     lines_canon = [canonicalize(line) for line in lines]
@@ -201,7 +276,7 @@ def detect_blocks(
         offsets.append(pos)
         pos += len(line) + 1
 
-    attempts: tuple[tuple[Literal["markdown_h3", "markdown_h4"], tuple[str, ...]], ...]
+    attempts: tuple[tuple[DetectionSource, tuple[str, ...]], ...]
     attempts = (
         ("markdown_h3", candidates.h3),
         ("markdown_h4", candidates.h4),
@@ -213,6 +288,10 @@ def detect_blocks(
         ]
         if _is_plausible(anchor_idxs, offsets, len(item_text)):
             return _assemble(source, lines, anchor_idxs)
+
+    fallback_idxs = _fallback_heading_idxs(lines)
+    if _is_plausible(fallback_idxs, offsets, len(item_text)):
+        return _assemble("text_fallback", lines, fallback_idxs)
     return None
 
 
@@ -223,7 +302,7 @@ def _is_plausible(anchor_idxs: list[int], offsets: list[int], total_chars: int) 
 
 
 def _assemble(
-    source: Literal["markdown_h3", "markdown_h4"],
+    source: DetectionSource,
     lines: list[str],
     anchor_idxs: list[int],
 ) -> DetectedBlocks:

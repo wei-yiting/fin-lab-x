@@ -22,6 +22,16 @@ from backend.tests.ingestion.sec_text_pipeline.conftest import (
 )
 
 
+def _full_text(item) -> str:
+    """An item's complete body regardless of kind, in document order."""
+    if isinstance(item, FlatItem):
+        return item.text
+    parts = [item.prelude]
+    for block in item.blocks:
+        parts.extend([block.heading, block.text])
+    return "\n".join(p for p in parts if p)
+
+
 @pytest.fixture
 def fetch_calls(monkeypatch, fake_bundle):
     """Patch the EDGAR fetch seam; record every call's arguments."""
@@ -38,11 +48,16 @@ def fetch_calls(monkeypatch, fake_bundle):
 
 
 class TestParsedStructure:
-    def test_all_emitted_items_are_flat(self, store, fetch_calls):
+    def test_items_structure_via_fallback_without_markdown(self, store, fetch_calls):
+        # The markdown seam defaults to empty here, so any structure must
+        # come from the text fallback; items it rejects stay flat.
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         assert isinstance(result, ParsedFiling)
         assert result.items  # non-empty
-        assert all(isinstance(item, FlatItem) for item in result.items)
+        structured = [i for i in result.items if isinstance(i, StructuredItem)]
+        assert structured  # recorded AAPL reality: fallback finds structure
+        assert all(i.detection_source == "text_fallback" for i in structured)
+        assert all(isinstance(i, FlatItem | StructuredItem) for i in result.items)
 
     def test_stub_items_are_dropped(self, store, fetch_calls):
         # Recorded AAPL FY2025 reality: 6 is [Reserved]; 10/11/12/13 are
@@ -64,15 +79,16 @@ class TestParsedStructure:
         heading_re = re.compile(r"Item\s+(\d{1,2}[a-cA-C]?)\s*\.(?!\d)")
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         for item in result.items:
+            body = _full_text(item)
             foreign = {
                 m.group(1).lower()
-                for m in heading_re.finditer(item.text)
+                for m in heading_re.finditer(body)
                 if m.group(1).lower() != item.item
-                and parser._is_structural_boundary(item.text, m.start())
+                and parser._is_structural_boundary(body, m.start())
             }
             assert not foreign, f"item {item.item} text bleeds into {foreign}"
         nine_c = next(item for item in result.items if item.item == "9c")
-        assert "Item 10." not in nine_c.text
+        assert "Item 10." not in _full_text(nine_c)
 
 
 class TestTrimSectionText:
@@ -158,7 +174,50 @@ class TestTrimSectionText:
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         eights = [item for item in result.items if item.item == "8"]
         assert len(eights) == 1
-        assert eights[0].text.startswith("Item 8.")
+        assert _full_text(eights[0]).startswith("Item 8.")
+
+    def test_degraded_section_shape_still_parses(self, store, monkeypatch):
+        """UPGRADE GUARD (DEV-136 diagnosis; upstream root cause on DEV-147).
+
+        edgartools names sections two ways: part-aware ("part_ii_item_7a",
+        Section.item populated) and spaced ("Item 7A", Section.item None —
+        observed live on MSFT/GE/DIS). The parser must not depend on the
+        .item metadata alone: when it is missing, the item key derives from
+        the section name. If an edgartools upgrade changes either shape,
+        this test and its sibling below must both stay green.
+        """
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "Item 1": {"item": "", "text": f"Item 1. Business\n{prose}"},
+                "Item 7A": {"item": "", "text": f"Item 7A. Market Risk\n{prose}"},
+                "Signatures": {"item": "", "text": f"Signatures\n{prose}"},
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert [item.item for item in result.items] == ["1", "7a"]
+
+    def test_part_aware_section_shape_still_parses(self, store, monkeypatch):
+        """UPGRADE GUARD sibling: the part-aware shape (item populated,
+        underscore names) keeps working unchanged."""
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_1": {"item": "1", "text": f"Item 1. Business\n{prose}"},
+                "part_ii_item_7a": {
+                    "item": "7A",
+                    "text": f"Item 7A. Market Risk\n{prose}",
+                },
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert [item.item for item in result.items] == ["1", "7a"]
 
     def test_non_item_entries_skipped(self, store, monkeypatch):
         # A section with item=None (e.g. signatures) must not crash nor emit.

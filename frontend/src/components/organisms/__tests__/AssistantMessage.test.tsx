@@ -158,6 +158,36 @@ describe("AssistantMessage — aborted tools", () => {
     );
     expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "output-available");
   });
+
+  // Proves the `interrupted` fallback in AssistantMessage's isAborted check
+  // in isolation: a running tool resolves to "aborted" even when its id was
+  // never added to abortedTools, e.g. because it arrived after ChatPanel's
+  // click-time closure snapshot was already taken (M-2.1).
+  test('input-available tool with interrupted=true and empty abortedTools → ToolCard data-tool-state="aborted"', () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        {
+          type: "tool" as const,
+          state: "input-available",
+          toolCallId: "tc-interrupted-fallback",
+          toolName: "x",
+          input: {},
+        },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={false}
+        interrupted
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+    expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "aborted");
+  });
 });
 
 describe("AssistantMessage — RegenerateButton visibility", () => {

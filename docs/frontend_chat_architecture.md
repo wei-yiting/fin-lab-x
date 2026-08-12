@@ -182,7 +182,7 @@ stateDiagram-v2
     Aborted --> [*]
 ```
 
-`aborted` is a frontend-only 4th state — AI SDK's `ToolUIPart.state` enum has only three values (`input-available`, `output-available`, `output-error`). Entering `aborted` is triggered by `useChat.stop()` or a mid-stream `error` event while a tool is still `input-available`. Without this, a stopped tool would keep its pulsing dot and falsely imply "still running". `ChatPanel` tracks which tool call IDs are aborted via `abortedTools: Set<ToolCallId>`; `AssistantMessage` overrides the visual to `aborted` when dispatching parts.
+`aborted` is a frontend-only 4th state — AI SDK's `ToolUIPart.state` enum has only three values (`input-available`, `output-available`, `output-error`). Entering `aborted` is triggered by `useChat.stop()` or a mid-stream `error` event while a tool is still `input-available`. Without this, a stopped tool would keep its pulsing dot and falsely imply "still running". `ChatPanel` tracks which tool call IDs are aborted via `abortedTools: Set<ToolCallId>`; `AssistantMessage` overrides the visual to `aborted` when dispatching parts. Because `abortedTools` is a click-time snapshot of `handleStop`'s render closure, it can miss a tool call that arrives inside the `experimental_throttle` window right before Stop is clicked — status is already `streaming` by then, so no further status change forces a fresh render to pick it up. `AssistantMessage`'s check is therefore `(abortedTools.has(toolCallId) || interrupted) && isRunningToolState(...)`: the turn-level `interrupted` flag (§4.1) is read fresh on every render, so it catches that tool once its still-running state does eventually render.
 
 ### 4.1 Turn-Level Interruption Record
 

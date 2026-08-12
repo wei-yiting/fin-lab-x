@@ -86,7 +86,8 @@ def test_registry_yaml_matches_orchestrator_configs():
     """Sanity: committed YAML covers every model referenced in profiles/*.
 
     Provider-prefixed names (e.g. ``google_genai:gemini-2.5-flash``) match
-    against the bare key (``gemini-2.5-flash``) — see ``_strip_provider_prefix``.
+    against the bare key (``gemini-2.5-flash``) — the same parsing rule
+    ``ModelConfig.bare_name`` owns.
     """
     profiles = Path("backend/agent_engine/agents/profiles")
     needed = set()
@@ -110,10 +111,11 @@ def test_registry_yaml_matches_orchestrator_configs():
     assert not missing, f"YAML missing entries for: {missing}"
 
 
-def test_get_model_context_window_strips_provider_prefix(monkeypatch):
-    """Lookup must succeed when the caller passes a provider-prefixed name
-    against a bare-key registry entry (Gemini / Anthropic LangChain naming).
-    """
+def test_lookup_expects_bare_names_from_config_boundary(monkeypatch):
+    """Registry lookup takes bare names only — callers holding a
+    ``provider:model`` identifier pass ``ModelConfig.bare_name``. The old
+    in-lookup prefix-stripping fallback was removed when parsing moved to
+    the single ModelConfig owner; a prefixed name is now simply a miss."""
     monkeypatch.setattr(
         model_context,
         "_REGISTRY",
@@ -124,22 +126,8 @@ def test_get_model_context_window_strips_provider_prefix(monkeypatch):
             }
         },
     )
-    assert get_model_context_window("google_genai:gemini-2.5-flash") == 1_048_576
-
-
-def test_compute_section_soft_cap_chars_with_prefixed_gemini(monkeypatch):
-    """End-to-end: compute_section_soft_cap_chars should reach the Gemini value
-    via prefix-stripping for the canonical agent config name.
-    """
-    monkeypatch.setattr(
-        model_context,
-        "_REGISTRY",
-        {
-            "gemini-2.5-flash": {
-                "max_input_tokens": 1_048_576,
-                "source": "google_official",
-            }
-        },
+    assert get_model_context_window("gemini-2.5-flash") == 1_048_576
+    assert (
+        get_model_context_window("google_genai:gemini-2.5-flash")
+        == DEFAULT_CONTEXT_WINDOW
     )
-    # 1_048_576 * 0.4 * 4 = 1_677_721 (int truncation)
-    assert compute_section_soft_cap_chars("google_genai:gemini-2.5-flash") == 1_677_721

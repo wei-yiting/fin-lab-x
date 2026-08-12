@@ -36,7 +36,8 @@ class TestInitModelGemini:
             thinking_budget=None,
         )
         args, kwargs = _call(cfg)
-        assert args[0] == "google_genai:gemini-2.5-flash"
+        assert args[0] == "gemini-2.5-flash"
+        assert kwargs["model_provider"] == "google_genai"
         assert kwargs["temperature"] == 0.0
         assert kwargs["thinking_budget"] is None
         # Gemini reasoning-on requires include_thoughts=True for the
@@ -225,31 +226,37 @@ class TestInitModelOpenAI:
         assert "thinking" not in kwargs
 
     @pytest.mark.parametrize(
-        "name",
-        ["openai:gpt-5-nano", "gpt-5-nano"],
-        ids=["explicit-prefix", "bare-name"],
+        ("name", "expected_provider", "expected_bare"),
+        [
+            ("openai:gpt-5-nano", "openai", "gpt-5-nano"),
+            ("gpt-5-nano", "openai", "gpt-5-nano"),
+            ("anthropic:claude-haiku-4-5", "anthropic", "claude-haiku-4-5"),
+            (
+                "google_genai:gemini-3.1-flash-lite",
+                "google_genai",
+                "gemini-3.1-flash-lite",
+            ),
+        ],
+        ids=["openai-prefix", "openai-bare", "anthropic", "gemini"],
     )
-    def test_openai_branch_passes_model_provider_explicitly(self, name):
-        """``init_chat_model`` infers provider from the model name string on
-        its own when no ``model_provider`` kwarg is given — independent of
-        this function's own provider-prefix branching. A bare or otherwise
-        non-OpenAI-shaped name could silently route to the wrong LangChain
-        provider integration (e.g. ChatAnthropic) and receive OpenAI-only
-        kwargs. Guard that both explicit ``openai:`` prefixes and bare names
-        always pass ``model_provider="openai"`` so our own "bare names
-        default to OpenAI" contract actually holds at the LangChain level.
-
-        Also guards the inverse failure mode: init_chat_model's own
-        prefix-stripping only runs when model_provider is *not* explicitly
-        given (langchain.chat_models.base._parse_model), so once we pass
-        model_provider="openai" ourselves, an "openai:"-prefixed name would
-        otherwise pass through unstripped as a literal (invalid) model id —
-        both explicit-prefix and bare names must resolve to the same bare
-        positional model name."""
+    def test_mapped_providers_get_explicit_routing_and_bare_name(
+        self, name, expected_provider, expected_bare
+    ):
+        """All three mapped providers must pass ``model_provider`` explicitly
+        AND the bare positional model id, for two inverse failure modes:
+        without explicit ``model_provider``, init_chat_model infers the
+        provider from the name string on its own (a bare non-OpenAI-shaped
+        name could silently route to the wrong integration); WITH it,
+        init_chat_model's own prefix-stripping is skipped
+        (langchain.chat_models.base._parse_model), so an unstripped
+        ``provider:``-prefixed name would pass through as a literal, invalid
+        model id. ``ModelConfig.provider``/``bare_name`` own the parsing;
+        this test pins that _init_model consumes them for every mapped
+        provider, not just openai (where both bugs were originally found)."""
         cfg = ModelConfig(name=name, temperature=0.0, reasoning="off")
         args, kwargs = _call(cfg)
-        assert kwargs["model_provider"] == "openai"
-        assert args[0] == "gpt-5-nano"
+        assert kwargs["model_provider"] == expected_provider
+        assert args[0] == expected_bare
 
 
 class TestInitModelUnrecognizedProvider:
@@ -314,22 +321,29 @@ class TestInitModelUnsupported:
         assert kwargs["temperature"] == 0.0
 
     @pytest.mark.parametrize(
-        "name",
-        ["openai:gpt-4o", "gpt-4o"],
-        ids=["explicit-prefix", "bare-name"],
+        ("name", "expected_provider", "expected_bare"),
+        [
+            ("openai:gpt-4o", "openai", "gpt-4o"),
+            ("gpt-4o", "openai", "gpt-4o"),
+            ("anthropic:claude-3-haiku", "anthropic", "claude-3-haiku"),
+            ("google_genai:gemini-1.5-flash", "google_genai", "gemini-1.5-flash"),
+        ],
+        ids=["openai-prefix", "openai-bare", "anthropic", "gemini"],
     )
-    def test_unsupported_still_forces_openai_routing(self, name):
+    def test_unsupported_still_normalizes_mapped_provider_routing(
+        self, name, expected_provider, expected_bare
+    ):
         """The reasoning="unsupported" short-circuit returns before the
-        provider branches below it — it must not also skip the
-        model_provider="openai" + prefix-stripping normalization those
-        branches rely on, or a bare OpenAI-shaped name paired with
-        reasoning="unsupported" would fall through to init_chat_model's own
-        (potentially different) provider inference, and a prefixed name
-        would pass through unstripped as a literal invalid model id."""
+        reasoning-kwarg branches — it must not also skip the routing
+        normalization (explicit model_provider + bare positional name), or
+        an unsupported-reasoning model would fall through to
+        init_chat_model's own inference/stripping with different results.
+        Routing correctness is orthogonal to the reasoning state, so the
+        guarantee must hold for every mapped provider."""
         cfg = ModelConfig(name=name, temperature=0.0, reasoning="unsupported")
         args, kwargs = _call(cfg)
-        assert kwargs["model_provider"] == "openai"
-        assert args[0] == "gpt-4o"
+        assert kwargs["model_provider"] == expected_provider
+        assert args[0] == expected_bare
 
 
 class TestInitModelDefaults:

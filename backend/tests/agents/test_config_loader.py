@@ -87,6 +87,25 @@ def test_model_config_defaults_reasoning_off():
     assert cfg.thinking_budget is None
 
 
+@pytest.mark.parametrize(
+    ("name", "expected_provider", "expected_bare"),
+    [
+        ("openai:gpt-5-nano", "openai", "gpt-5-nano"),
+        ("gpt-5-nano", "openai", "gpt-5-nano"),
+        ("google_genai:gemini-3.1-flash-lite", "google_genai", "gemini-3.1-flash-lite"),
+        ("anthropic:claude-haiku-4-5", "anthropic", "claude-haiku-4-5"),
+    ],
+    ids=["openai-prefix", "bare-defaults-openai", "gemini", "anthropic"],
+)
+def test_model_config_owns_name_parsing(name, expected_provider, expected_bare):
+    """``provider``/``bare_name`` are the single owner of ``name`` parsing —
+    every consumer (_init_model routing, context-window lookup, registry
+    refresh) reads these instead of re-splitting the string."""
+    cfg = ModelConfig(name=name)
+    assert cfg.provider == expected_provider
+    assert cfg.bare_name == expected_bare
+
+
 def test_model_config_accepts_reasoning_on_with_null_budget(tmp_path, monkeypatch):
     payload = _valid_payload("v_test_reasoning_on")
     payload["model"] = {

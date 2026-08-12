@@ -359,6 +359,56 @@ class TestTextFallback:
             "Competition",
         ]
 
+    def test_digits_and_whitespace_line_rejected(self):
+        # A flattened table row of short space-separated numbers
+        # ("12  34  56  78") slips between isdigit() (spaces defeat it) and
+        # the 3-digit cluster rule (each group is too short). A line with
+        # no letters at all is never a heading (BDD S-fallback-04).
+        text = _fb_text(
+            "Company Overview",
+            FILLER,
+            "12  34  56  78",
+            FILLER,
+            "Competition",
+            FILLER,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
+        assert d is not None
+        assert [b.heading for b in d.blocks] == [
+            "Company Overview",
+            "Competition",
+        ]
+
+    def test_item_prefixed_title_rejection_pinned_current_behavior(self):
+        """KNOWN LIMITATION pin (BDD S-fallback-03, deliberately NOT fixed).
+
+        The self-reference check is a prefix match, so a hypothetical
+        legitimate subsection title that merely starts with "Item <N>"
+        ("Item 1A Compliance Program") is also rejected as a candidate.
+        Deliberate: the real self-heading carries the item title after the
+        number ("Item 1A. Risk Factors"), so whole-line anchoring would let
+        it through — breaking the rule's core purpose — and a semantic
+        check would need the item key, which detect_blocks deliberately
+        does not receive. Rejection is the fail-safe direction (a missed
+        heading falls into the prelude/previous block, zero content loss);
+        no such title shape has been observed across the recorded corpus.
+        Resolution recorded in artifacts/current/temp/
+        bdd-verification-round-1-resolutions.md; revisit only if DEV-138
+        A/B failure mining surfaces a real instance.
+        """
+        text = _fb_text(
+            "Item 1A Compliance Program",
+            "Overview",
+            LONG_BODY,
+            "Competition",
+            LONG_BODY,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
+        assert d is not None
+        # The Item-prefixed line is NOT an anchor; it lands in the prelude.
+        assert [b.heading for b in d.blocks] == ["Overview", "Competition"]
+        assert d.prelude == "Item 1A Compliance Program"
+
     def test_table_characters_rejected(self):
         text = _fb_text(
             "Revenue | Cost | Margin",

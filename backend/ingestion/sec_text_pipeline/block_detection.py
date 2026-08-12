@@ -113,6 +113,11 @@ _FALLBACK_TABLE_CHARS = "|$%"
 #: ("(1)ppt" — the standard financial-table footnote marker shape; MSFT
 #: FY2026 Item 7 table footnotes, review finding M-1.1).
 _FALLBACK_FOOTNOTE_LABEL_RE = re.compile(r"^\(\d+\)")
+#: A line of digits and whitespace only ("12  34  56  78") is a flattened
+#: table row, never a heading — spaces defeat isdigit() and split the
+#: digits below the cluster threshold, so this closes the gap between
+#: those two rules (BDD S-fallback-04).
+_FALLBACK_DIGITS_ONLY_RE = re.compile(r"^[\d\s]+$")
 #: A heading does not end mid-sentence...
 _FALLBACK_TRAILING_PUNCT = (".", ",", ";", ":")
 #: ...and does not sit directly under a line that ends one.
@@ -134,6 +139,8 @@ def _fallback_heading_idxs(lines: list[str]) -> list[int]:
         if not (FALLBACK_MIN_HEADING_CHARS <= len(s) <= FALLBACK_MAX_HEADING_CHARS):
             continue
         if s.isdigit() or _FALLBACK_DIGIT_CLUSTER_RE.search(s):
+            continue
+        if _FALLBACK_DIGITS_ONLY_RE.match(s):
             continue
         if _FALLBACK_ITEM_SELF_RE.match(s):
             continue

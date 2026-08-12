@@ -339,6 +339,26 @@ class TestTextFallback:
             "Item 7A. Market Risk\n\nITEM 7A. QUANTITATIVE DISCLOSURES"
         )
 
+    def test_footnote_label_rejected_but_real_heading_anchors(self):
+        # The MSFT Item 7 table-footnote shape: "(1)ppt" is a standalone
+        # short line that passes every other gate, but a parenthesized
+        # footnote label at line start is never a heading (M-1.1).
+        text = _fb_text(
+            "Company Overview",
+            FILLER,
+            "(1)ppt",
+            FILLER,
+            "Competition",
+            FILLER,
+        )
+        d = detect_blocks(text, NO_CANDIDATES)
+        assert d is not None
+        assert d.detection_source == "text_fallback"
+        assert [b.heading for b in d.blocks] == [
+            "Company Overview",
+            "Competition",
+        ]
+
     def test_table_characters_rejected(self):
         text = _fb_text(
             "Revenue | Cost | Margin",

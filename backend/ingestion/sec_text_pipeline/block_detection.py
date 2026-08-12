@@ -109,6 +109,10 @@ _FALLBACK_ITEM_SELF_RE = re.compile(r"^item\s+\d+[a-c]?\.?", re.IGNORECASE)
 _FALLBACK_DIGIT_CLUSTER_RE = re.compile(r"\d{3,}")
 #: Table/financial characters never appear in real section headings.
 _FALLBACK_TABLE_CHARS = "|$%"
+#: A parenthesized footnote label at line start marks a table-footnote line
+#: ("(1)ppt" — the standard financial-table footnote marker shape; MSFT
+#: FY2026 Item 7 table footnotes, review finding M-1.1).
+_FALLBACK_FOOTNOTE_LABEL_RE = re.compile(r"^\(\d+\)")
 #: A heading does not end mid-sentence...
 _FALLBACK_TRAILING_PUNCT = (".", ",", ";", ":")
 #: ...and does not sit directly under a line that ends one.
@@ -132,6 +136,8 @@ def _fallback_heading_idxs(lines: list[str]) -> list[int]:
         if s.isdigit() or _FALLBACK_DIGIT_CLUSTER_RE.search(s):
             continue
         if _FALLBACK_ITEM_SELF_RE.match(s):
+            continue
+        if _FALLBACK_FOOTNOTE_LABEL_RE.match(s):
             continue
         if any(c in s for c in _FALLBACK_TABLE_CHARS):
             continue

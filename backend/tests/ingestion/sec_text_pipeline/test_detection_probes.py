@@ -25,6 +25,7 @@ evidence is recorded in the DEV-127 parent spec):
 """
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -58,7 +59,12 @@ def parse_probe(monkeypatch, store):
         # the spaced-name shape (Section.item unset — live MSFT/GE/DIS
         # reality) so these probes exercise the parser's name-derivation
         # path with real filings, not just the synthetic unit tests.
-        degraded = data.get("section_item_attr") == "missing"
+        section_item_attr = data["section_item_attr"]
+        assert section_item_attr in ("missing", "populated"), (
+            f"{ticker}: section_item_attr must be 'missing' or 'populated', "
+            f"got {section_item_attr!r}"
+        )
+        degraded = section_item_attr == "missing"
         tenk = FakeTenK(
             sections_data={
                 (f"Item {key.upper()}" if degraded else f"item_{key}"): {
@@ -198,13 +204,21 @@ class TestTextFallbackPath:
     """
 
     def test_msft_items_structure_via_fallback(self, parse_probe):
-        # Block counts reproduce the 72-probe evidence exactly (27/14/41/5).
+        # Block counts reproduce the 72-probe evidence (27/14/41/5) minus
+        # the three Item 7 "(1)ppt" table-footnote anchors removed by the
+        # M-1.1 footnote-label rejection rule (41 -> 38; their text merges
+        # into the preceding blocks).
         filing = parse_probe("MSFT")
-        expected_blocks = {"1": 27, "1a": 14, "7": 41, "7a": 5}
+        expected_blocks = {"1": 27, "1a": 14, "7": 38, "7a": 5}
         for key, n_blocks in expected_blocks.items():
             item = get_structured(filing, key)
             assert item.detection_source == "text_fallback", key
             assert len(item.blocks) == n_blocks, key
+            # No footnote-label line ("(1)ppt" shape) may anchor a block.
+            for block in item.blocks:
+                assert not re.match(r"^\(\d+\)", block.heading), (
+                    f"item {key}: footnote label promoted to heading: {block.heading!r}"
+                )
 
     def test_msft_1a_zero_content_loss_via_fallback(self, parse_probe):
         # The fallback path honors the same tiling invariant as the
@@ -267,3 +281,22 @@ class TestKnownLimitations:
         assert 2500 <= len(md_and_a.prelude) <= 3000
         # ...but the content is tabular summary data, not framing prose.
         assert "TABLE OF CONTENTS" in md_and_a.prelude
+
+    def test_msft_1_officer_table_cell_heading_current_behavior(self, parse_probe):
+        """KNOWN LIMITATION (DEV-136 review round 1) — deliberately NOT fixed.
+
+        MSFT Item 1 promotes "Vice Chair and President" — an officer-table
+        cell, not a section heading — to a block heading: the officer table
+        sits between the real heading and the following prose, so the cell
+        line inherits a heading-shaped context (standalone line, prose
+        follows) that every current rejection rule accepts. The user
+        deliberately declined rule changes for it: no safe structural rule
+        distinguishes this cell from a real heading, and any casing or
+        word-shape heuristic would risk rejecting real headings.
+        Arbitration is deferred to A/B failure mining (same precedent as
+        DEV-133 DIS-7 above). This test records the current behavior; if it
+        ever fails, detection behavior changed — re-read the review record
+        before "fixing" it.
+        """
+        business = get_structured(parse_probe("MSFT"), "1")
+        assert "Vice Chair and President" in [b.heading for b in business.blocks]

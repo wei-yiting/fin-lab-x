@@ -90,9 +90,14 @@ HTTP 的服務端點,所以驗證步驟採「直接呼叫函式 + 斷言回傳�
 
 - **Method**: script
 - **Steps**:
-  1. 「count 通過、position 失敗」案例:`[POST-CODING: 優先查 fixtures_detection_probes.json`
-     裡是否有真實案例的候選集合恰好落在「≥2 個候選但第一個超出前 30%」這個組合;若沒有,建構
-     一段合成文字——前 45% 塞入大量無候選特徵的填充內文,45% 之後放 ≥3 個明確合格的候選]`。
+  1. 「count 通過、position 失敗」案例:已查過 `fixtures_detection_probes.json` 涵蓋的
+     CAT/WMT/JPM/DIS/MSFT/GE 六檔 ticker 全部既有 acceptance 案例(見 `test_detection_probes.py`
+     的 `TestFlagshipTruePreludes`/`TestPseudoPreludeReclassification`/`TestNoPreludeMultiBlock`/
+     `TestTextFallbackPath`/`TestKnownLimitations`),沒有任何一個案例是「候選數 ≥2 但第一個
+     候選超出前 30%」——現有 recorded fixture 不包含這個分支,只能用合成文字構造:前 45% 塞入
+     大量無候選特徵的填充內文,45% 之後放 ≥3 個明確合格的候選(可參考 `test_block_detection.py`
+     的 `test_single_deep_heading_is_implausible` / `test_plausibility_gate_applies_to_fallback`
+     的合成手法)。
   2. WMT Item 7A 案例:從 fixture 讀取 WMT Item 7A 原始文字與其 markdown candidates(僅 1 個
      淺層 anchor)。
   3. 分別呼叫偵測鏈公開介面。
@@ -105,11 +110,13 @@ HTTP 的服務端點,所以驗證步驟採「直接呼叫函式 + 斷言回傳�
 - **Steps**:
   1. `anchor 數邊界`:建構一段合成文字,恰好 2 個候選、都落在前 30% 內,呼叫偵測鏈,斷言
      回傳非 `None`。
-  2. `prelude 長度邊界`:`[POST-CODING: 先確認 Known Limitation #1(DIS Item 7)在
-     fixtures_detection_probes.json 裡的真實 prelude 長度是否已貼近 3,000 chars;若貼近,
-     直接用這個真實案例驗證兩側,不需合成]`。若無現成案例貼近邊界,建構兩段合成文字(prelude
-     前綴分別恰為 3,000 / 3,001 chars),各自呼叫偵測鏈,斷言 `prelude` 欄位是否非空、
-     `blocks[0].heading` 是否為空字串(重新分類案例)。
+  2. `prelude 長度邊界`:已查得 Known Limitation #1(DIS Item 7)真實 prelude 長度為
+     **2,610 chars**(`test_dis_7_false_valid_prelude_current_behavior` 斷言
+     `2500 <= len(prelude) <= 3000`,docstring 明講精確數字)——離 3,000 邊界還有 390 chars,
+     不夠貼近,不能取代精確邊界案例。維持合成兩段文字(prelude 前綴分別恰為 3,000 / 3,001
+     chars),各自呼叫偵測鏈,斷言 `prelude` 欄位是否非空、`blocks[0].heading` 是否為空字串
+     (重新分類案例)。DIS Item 7 的 2,610 chars 可作為「有效 prelude 但非邊界本身」的補充
+     真實案例,與合成的精確邊界案例互補。
 - **Expected**: 2 個候選、皆在前 30% → 可信;3,000 chars → `prelude` 為該段文字(非空、不
   截斷);3,001 chars → `prelude == ""`,`blocks[0].heading == ""` 且 `blocks[0].text` 含
   該段文字。
@@ -118,17 +125,18 @@ HTTP 的服務端點,所以驗證步驟採「直接呼叫函式 + 斷言回傳�
 
 - **Method**: script
 - **Steps**:
-  1. 從 fixture 讀取 WMT Item 1、Item 1A、Item 7A,以及 DIS Item 7A 的原始文字與各自的
-     markdown candidates。
+  1. 從 fixture 讀取 CAT Item 7(H3 直接成功代表案例)、WMT Item 1A(H4 案例)、WMT Item 7A、
+     DIS Item 7A 的原始文字與各自的 markdown candidates。
   2. 對每個案例呼叫偵測鏈公開介面。
   3. 斷言回傳結果的 `detection_source` 與 blocks 數。
   4. 對 MSFT FY2026 全部 4 個 Item(1/1A/7/7A),同樣從 fixture 讀取並呼叫,斷言
      `detection_source == "text_fallback"` 且 blocks 數精確為 27/14/38/5(Item 7 原始
      72-probe 數字是 41,review round 1 的 footnote-label 規則修正為 38)。
-- **Expected**: WMT Item 1 → `markdown_h3`;WMT Item 1A → `markdown_h4`;WMT/DIS Item 7A →
-  `text_fallback`;MSFT 四個 Item → `text_fallback`,blocks 數精確吻合 27/14/38/5。
-  `[POST-CODING: WMT Item 1/1A/7A、DIS Item 7A 的精確 block 數待從 fixture 實際跑一次後
-  回填,design.md 的 AC 表格對這幾個案例只給了「有結果」沒給精確數字]`
+- **Expected**(已從既有 `test_detection_probes.py` 驗證過的真實案例回填,不再是 [POST-CODING]):
+  CAT Item 7 → `markdown_h3`,前兩個 block heading 為 "OVERVIEW"、"CONSOLIDATED SALES AND
+  REVENUES";WMT Item 1A → `markdown_h4`,blocks 為 "Strategic Risks"、"Operational Risks";
+  WMT Item 7A → `text_fallback`,5 blocks;DIS Item 7A → `text_fallback`,2 blocks;MSFT
+  四個 Item → `text_fallback`,blocks 數精確吻合 27/14/38/5。
 
 ### S-fallback-09:StructuredItem 的 prelude 與 blocks 依序重建原始 Item 文字
 
@@ -204,8 +212,9 @@ HTTP 的服務端點,所以驗證步驟採「直接呼叫函式 + 斷言回傳�
 - **Acceptance Question**: MSFT FY2026 的 4 個 Item(1/1A/7/7A)透過 `inspect` 視圖看起來,
   block 邊界是否落在合理的段落分界上,而不是把一段完整論述切成語意不通的兩半?
 - **Steps**:
-  1. `[POST-CODING: 確認 inspect CLI 的實際呼叫方式(DEV-127 spec 提到 `to_inspect_markdown()`
-     method + CLI `inspect` subcommand,精確指令待實作後補上)]`,對 MSFT FY2026 執行 inspect。
+  1. `inspect` CLI 尚未實作(獨立票 DEV-134「Inspect view + CLI」,不在 DEV-136 範圍內;
+     repo 內確認過 `sec_text_pipeline/` 目前沒有任何 CLI 進入點)。此 UAT 項目**阻塞於
+     DEV-134**,目前無法執行,先保留在報告的待辦清單中。
   2. 對照 SEC EDGAR 原始 10-K 全文(MSFT FY2026),抽查 Item 1A 的 14 個 block 邊界。
   3. 確認每個 block heading 是否對應原文裡真的有語意獨立性的小節,而不是誤切的表格殘留或
      其他雜訊行。
@@ -224,9 +233,12 @@ HTTP 的服務端點,所以驗證步驟採「直接呼叫函式 + 斷言回傳�
 
 ---
 
-## 待補事項(POST-CODING 總表)
+## 待補事項(POST-CODING 總表 — bdd-e2e-loop Step 0 執行後更新)
 
-- S-fallback-06:「count 通過、position 失敗」案例優先查真實 fixture 是否有現成案例
-- S-fallback-07:DIS Item 7 真實 prelude 長度是否貼近 3,000 chars 邊界
-- S-fallback-08:WMT Item 1/1A/7A、DIS Item 7A 的精確 block 數
-- UAT-01:`inspect` CLI 的實際呼叫指令
+- ~~S-fallback-06~~:已查證 recorded fixture 沒有「count 通過、position 失敗」的真實案例,
+  維持用合成文字驗證(見 verification 步驟)。
+- ~~S-fallback-07~~:已查得 DIS Item 7 真實 prelude 為 2,610 chars,離 3,000 邊界不夠近,
+  維持合成的精確邊界案例,DIS Item 7 作為補充案例。
+- ~~S-fallback-08~~:已從 `test_detection_probes.py` 回填全部真實 block 數與 detection_source
+  (CAT 7/WMT 1A/WMT 7A/DIS 7A/MSFT 全部四項)。
+- **UAT-01**:阻塞於 DEV-134(inspect CLI 尚未實作),無法執行,列入報告待辦清單。

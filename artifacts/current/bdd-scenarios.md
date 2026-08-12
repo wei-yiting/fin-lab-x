@@ -90,11 +90,22 @@ Origin: Multiple(Dev 發現空白行方向性誤拒風險,QA 發現鏡像的誤�
 | 候選行內容 | 結果 |
 |---|---|
 | "ITEM 1A—RISK FACTORS"(全大寫、em dash,格式與 canonical 的句點分隔不同) | 拒絕(視為自引) |
-| "Item 1A Compliance Program"(與 Item 編號開頭相同,但語意上是獨立小節標題,不是自引) | 通過(不因編號前綴相同而被誤判) |
+| "Item 1A Compliance Program"(與 Item 編號開頭相同,語意上是獨立小節標題,不是自引) | **拒絕**(前綴比對,fail-safe 方向裁決——見下方修訂記錄) |
 | "Item 1A"(因分頁殘留在 Item 文字中重複出現兩次) | 兩次出現都拒絕 |
 
+**Round 1 驗證後修訂**(2026-08-12):此列原預期為「通過」,經 Round 1 驗證發現實際行為是
+拒絕(`_FALLBACK_ITEM_SELF_RE` 為前綴比對,無 `$` 錨定)。User 裁決維持現行行為、不修 code:
+真實自引行的實際形狀是「Item 1A. Risk Factors」(編號後接標題文字),若改成整行比對會讓規則
+失去偵測真自引的能力;要做語意區分需要把 item key/標題穿透進 `detect_blocks()` 的介面,超出
+本票範圍;且此路線是 fail-safe 方向(誤判只是多切一個 block 邊界、零內容遺失,不像收緊比對
+可能讓自引行變成錯誤 anchor);14 檔實錄 filing、150+ 個真實 heading 裡沒有一個「Item 前綴
+合命名」的真實案例。已有 current-behavior pin test 釘住,完整理由見
+`artifacts/current/temp/bdd-verification-round-1-resolutions.md`。重啟條件:A/B failure
+mining(DEV-138)若發現真實案例。
+
 Category: Illustrative (table-driven)
-Origin: Multiple(Dev 發現格式容忍度的 false negative 風險,QA 發現鏡像的 false positive 風險)
+Origin: Multiple(Dev 發現格式容忍度的 false negative 風險,QA 發現鏡像的 false positive 風險;
+此列預期值於 Round 1 驗證後依 user 裁決修訂)
 
 #### S-fallback-04: 攤平表格殘留行不應被誤判為候選標題
 
@@ -207,11 +218,14 @@ Origin: QA(對 design.md 明文數值門檻的邊界值分析)
 
 | item | 狀況 | 結果 | detection_source | block 數 |
 |---|---|---|---|---|
-| WMT Item 1 | H3 直接找到 ≥2 個可信 anchor | StructuredItem,H4 與 fallback 皆不執行 | markdown_h3 | [POST-CODING] |
-| WMT Item 1A | H3 不可信,H4 找到 ≥2 個可信 anchor | StructuredItem,fallback 不執行 | markdown_h4 | [POST-CODING] |
-| WMT Item 7A | H3、H4 皆不可信(僅 1 個淺層 anchor)→ fallback 接手且通過 plausibility | StructuredItem | text_fallback | [POST-CODING] |
-| DIS Item 7A | H3、H4 皆不可信(僅 1 個深層 anchor)→ fallback 接手且通過 plausibility | StructuredItem | text_fallback | [POST-CODING] |
+| CAT Item 7 | H3 直接找到 ≥2 個可信 anchor | StructuredItem,H4 與 fallback 皆不執行 | markdown_h3 | ≥2(前兩個 heading 為 "OVERVIEW"、"CONSOLIDATED SALES AND REVENUES") |
+| WMT Item 1A | H3 不可信,H4 找到 ≥2 個可信 anchor | StructuredItem,fallback 不執行 | markdown_h4 | ≥2(blocks 為 "Strategic Risks"、"Operational Risks") |
+| WMT Item 7A | H3、H4 皆不可信(僅 1 個淺層 anchor)→ fallback 接手且通過 plausibility | StructuredItem | text_fallback | 5 |
+| DIS Item 7A | H3、H4 皆不可信(僅 1 個深層 anchor)→ fallback 接手且通過 plausibility | StructuredItem | text_fallback | 2 |
 | MSFT Item 1 / 1A / 7 / 7A | H3、H4 皆對此 filing 全面劣化/不可信(承重牆案例) | StructuredItem | text_fallback | 27 / 14 / 38 / 5(Item 7 原始 72-probe 數字為 41,review round 1 的 footnote-label 規則修正為 38) |
+
+註:原稿誤把 WMT Item 1 當成 H3 直接成功的代表案例;查證後 WMT Item 1 實際走的是 H4
+(markdown_h3 目前唯一有直接記錄的真實案例是 CAT Item 7 與 DIS Item 7),已改用 CAT Item 7。
 
 Category: Illustrative (table-driven)
 Origin: Multiple(PO 對 H3/H4 未區分提出原始 Question,Dev 指出三段式 fallthrough 的中間分支

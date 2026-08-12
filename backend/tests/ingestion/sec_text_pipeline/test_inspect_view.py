@@ -100,8 +100,17 @@ class TestInspectMarkdown:
         assert "## Item 1a — Risk Factors" in md
         assert "- kind: flat" in md
         assert f"- text: {len(FLAT_BODY):,} chars" in md
-        assert FLAT_BODY in md
+        assert FLAT_BODY in md  # under the preview limit: shown in full
+        assert "…" not in md  # no truncation marker on short text
         assert "detection_source" not in md.split("## Item 1a")[1]
+
+    def test_flat_item_long_text_preview_truncated(self):
+        long_text = "y" * 2000
+        item = FlatItem(item="9b", title="Other Information", text=long_text)
+        md = to_inspect_markdown(make_filing([item]))
+        assert "- text: 2,000 chars" in md  # count reflects the full text
+        assert "y" * 500 + "…" in md  # preview cut at the limit, marked
+        assert "y" * 501 not in md  # nothing beyond the cut leaks through
 
 
 class TestSummaryText:
@@ -135,6 +144,21 @@ class TestSectionText:
         assert "OVERVIEW" in text
         assert valid_prelude_item.blocks[0].text in text
         assert "##" not in text  # plain text, no markdown headers
+
+    def test_structured_section_blocks_stay_separated(self):
+        item = make_structured_item(
+            prelude="Overview of operations.",
+            blocks=[
+                Block(heading="RESULTS", text="Revenue ended continuing operations."),
+                Block(heading="LIQUIDITY", text="Legal proceedings include claims."),
+            ],
+        )
+        text = to_section_text(make_filing([item]), item.item)
+        assert text == (
+            "Overview of operations."
+            "\n\nRESULTS\n\nRevenue ended continuing operations."
+            "\n\nLIQUIDITY\n\nLegal proceedings include claims."
+        )
 
     def test_key_is_case_insensitive(self, flat_item):
         filing = make_filing([flat_item])

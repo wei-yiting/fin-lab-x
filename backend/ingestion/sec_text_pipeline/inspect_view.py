@@ -22,6 +22,11 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
 
 _RECLASSIFIED_LABEL = "reclassified leading block"
 
+# FlatItem bodies render as a capped preview (full char count stays exact):
+# flat items are unstructured dumps, so the inspect file shows enough to judge
+# "real content vs. stub residue" while `--section` remains the full-text path.
+_FLAT_PREVIEW_LIMIT = 500
+
 
 def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
     if item.prelude:
@@ -32,6 +37,12 @@ def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
             return f"reclassified ({chars:,} chars)"
         return f"{_RECLASSIFIED_LABEL} ({chars:,} chars in blocks[0])"
     return "absent"
+
+
+def _flat_preview(text: str) -> str:
+    if len(text) <= _FLAT_PREVIEW_LIMIT:
+        return text
+    return text[:_FLAT_PREVIEW_LIMIT] + "…"
 
 
 def _item_chars(item: StructuredItem) -> int:
@@ -56,8 +67,9 @@ def _header_lines(filing: ParsedFiling) -> list[str]:
 
 def to_inspect_markdown(filing: ParsedFiling) -> str:
     """Full markdown render: every Item's kind, detection verdicts, and
-    complete content, laid out for side-by-side comparison with the SEC
-    original."""
+    complete block content, laid out for side-by-side comparison with the
+    SEC original. FlatItem bodies appear as a length-capped preview next
+    to their full char count; ``--section`` prints them in full."""
     title, source_line, counts = _header_lines(filing)
     lines = [f"# {title} — inspect view", "", source_line, "", counts, ""]
     for item in filing.items:
@@ -73,7 +85,7 @@ def _render_item_markdown(item: ParsedItem) -> list[str]:
                 "- kind: flat",
                 f"- text: {len(item.text):,} chars",
                 "",
-                item.text,
+                _flat_preview(item.text),
                 "",
             ]
         )

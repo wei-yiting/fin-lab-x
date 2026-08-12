@@ -70,6 +70,20 @@ def test_inspect_writes_file_and_prints_path(toy_filing, capsys, monkeypatch, tm
     parse.assert_called_once_with("AAPL", 2024, True)
 
 
+def test_unknown_section_key_fails_legibly(toy_filing, capsys):
+    with patch(
+        "backend.ingestion.sec_text_pipeline.__main__.parse_filing",
+        return_value=toy_filing,
+    ):
+        with pytest.raises(SystemExit) as excinfo:
+            main(["--ticker", "AAPL", "--fiscal-year", "2024", "--section", "9b"])
+
+    assert excinfo.value.code == 1
+    err = capsys.readouterr().err
+    assert "available: 7, 1a" in err
+    assert "Traceback" not in err
+
+
 def test_malformed_ticker_fails_legibly(capsys):
     # No patch: the ticker is rejected by the filing store's validation
     # before any network access can happen.

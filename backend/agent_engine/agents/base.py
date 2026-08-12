@@ -24,6 +24,7 @@ from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitState
 from langchain.agents.middleware.types import ResponseT, hook_config
 from langchain.chat_models import init_chat_model
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, RemoveMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.runtime import Runtime
@@ -34,7 +35,10 @@ from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from typing_extensions import NotRequired, TypedDict
 
-from backend.agent_engine.agents.config_loader import WorkflowProfileConfig
+from backend.agent_engine.agents.config_loader import (
+    ModelConfig,
+    WorkflowProfileConfig,
+)
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
@@ -86,6 +90,125 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
 # Literal JSON fragments like `{"role": "user"}` have `"` as the first inner
 # char and are skipped, so they survive rendering untouched.
 _PROMPT_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def _init_model(config: ModelConfig) -> BaseChatModel:
+    """Build a chat model with provider-aware reasoning kwargs.
+
+    Translates the admin-declared ``ModelConfig.reasoning`` three-state
+    (plus ``thinking_budget``) into each provider's own reasoning kwargs,
+    and validates provider-specific hard constraints at startup instead of
+    at first request. The full per-provider kwarg matrix, hard constraints,
+    and empirically verified API caveats live in ONE place —
+    ``backend/agent_engine/agents/README.md``, "Multi-Provider Reasoning
+    Configuration" — and are deliberately not duplicated here.
+
+    Routing: for the three mapped providers the model id and provider come
+    pre-parsed from ``config.provider`` / ``config.bare_name`` and are
+    passed to ``init_chat_model`` explicitly, so LangChain never re-parses
+    the name (its own prefix-stripping and inference only run when
+    ``model_provider`` is NOT given). Unrecognized provider prefixes pass
+    through untouched for LangChain's own, broader inference —
+    ``reasoning="on"`` on such a provider raises instead, since no kwarg
+    mapping exists for it here.
+    """
+    provider = config.provider
+    kwargs: dict[str, Any] = {"temperature": config.temperature}
+
+    if provider in ("openai", "anthropic", "google_genai"):
+        kwargs["model_provider"] = provider
+        name = config.bare_name
+    else:
+        name = config.name
+
+    # "unsupported" = never pass any reasoning-control kwarg (some bound
+    # models reject even the disabled value). Routing above still applies —
+    # it's about model-id correctness, not a reasoning kwarg.
+    if config.reasoning == "unsupported":
+        return init_chat_model(name, **kwargs)
+
+    if provider == "google_genai":
+        if config.reasoning == "on":
+            # thinking_budget=0 would silently disable thinking (contradicting
+            # reasoning="on"); anything below -1 is invalid per Gemini's API.
+            # None (provider default) and -1 (dynamic budget) are fine.
+            if (
+                config.thinking_budget is not None
+                and config.thinking_budget != -1
+                and config.thinking_budget < 1
+            ):
+                raise ValueError(
+                    "Gemini provider with reasoning='on' requires "
+                    "thinking_budget to be None (provider default), -1 "
+                    "(dynamic), or a positive integer "
+                    f"(got {config.thinking_budget}). 0 would silently "
+                    "disable thinking, and values below -1 are invalid "
+                    "per Gemini's API."
+                )
+        kwargs["thinking_budget"] = (
+            config.thinking_budget if config.reasoning == "on" else 0
+        )
+        # Gemini 2.5 only surfaces thinking content in the response when both
+        # thinking_budget>0 AND include_thoughts=True are passed. Without
+        # include_thoughts, the model still spends thinking tokens but
+        # AIMessage.content_blocks contains no reasoning blocks, so
+        # metadata.reasoning and the wire reasoning parts both end up empty.
+        if config.reasoning == "on":
+            kwargs["include_thoughts"] = True
+    elif provider == "anthropic":
+        if config.reasoning == "on":
+            if config.thinking_budget is None:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires explicit "
+                    "thinking_budget (Anthropic API requires budget_tokens, "
+                    "minimum 1024). Set in agent yaml."
+                )
+            if config.thinking_budget < 1024:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires "
+                    f"thinking_budget >= 1024 (got {config.thinking_budget}). "
+                    "Anthropic API rejects lower values."
+                )
+            # Anthropic extended thinking rejects any temperature other than
+            # 1.0 with HTTP 400. The default agent ModelConfig.temperature is
+            # 0.0, so this combo would fail at first request without an
+            # actionable error from the provider. Catch it at startup.
+            if config.temperature != 1.0:
+                raise ValueError(
+                    "Anthropic provider with reasoning='on' requires "
+                    f"temperature=1.0 (got {config.temperature}). Extended "
+                    "thinking rejects other temperatures with HTTP 400."
+                )
+            kwargs["thinking"] = {
+                "type": "enabled",
+                "budget_tokens": config.thinking_budget,
+            }
+    elif provider == "openai":
+        if config.reasoning == "on":
+            # Pass both effort and summary via the unified ``reasoning`` dict
+            # (langchain-openai 0.3.24+). ``summary="auto"`` lets the
+            # Responses API decide whether to emit a reasoning summary block;
+            # without it the response carries no reasoning content_blocks
+            # even on gpt-5 / o4 models, leaving metadata.reasoning empty.
+            kwargs["reasoning"] = {"effort": "medium", "summary": "auto"}
+            kwargs["use_responses_api"] = True
+        else:
+            # gpt-5-tier models are reasoning-capable by default; omitting
+            # reasoning_effort leaves them at the provider's own default
+            # (empirically confirmed to consume real reasoning tokens even
+            # for trivial prompts). "none" is not a supported value for
+            # these models — "minimal" is the lowest tier that actually
+            # reaches reasoning_tokens=0 (verified via a live API call
+            # against gpt-5-nano and gpt-5-mini).
+            kwargs["reasoning_effort"] = "minimal"
+    else:
+        if config.reasoning == "on":
+            raise ValueError(
+                f"reasoning='on' is not supported for provider '{provider}' "
+                "— no reasoning kwarg mapping implemented in _init_model."
+            )
+
+    return init_chat_model(name, **kwargs)
 
 
 _DEFAULT_SYSTEM_PROMPT = """\
@@ -251,11 +374,11 @@ class Orchestrator:
         raw_prompt = config.system_prompt or _DEFAULT_SYSTEM_PROMPT
         self.system_prompt = self._render_prompt(
             raw_prompt,
-            config.model.name,
+            config.model.bare_name,
             max_tool_calls_per_run=config.constraints.max_tool_calls_per_run,
         )
 
-        model = init_chat_model(config.model.name, temperature=config.model.temperature)
+        model = _init_model(config.model)
         tool_call_limit = RunBudgetMiddleware(
             run_limit=config.constraints.max_tool_calls_per_run,
         )

@@ -31,7 +31,12 @@ _load_registry()
 
 def get_model_context_window(model_name: str) -> int:
     """Return max input tokens for ``model_name``; falls back to
-    ``DEFAULT_CONTEXT_WINDOW`` with a warn-once log on miss."""
+    ``DEFAULT_CONTEXT_WINDOW`` with a warn-once log on miss.
+
+    Registry keys are bare model names. Callers holding a LangChain-style
+    ``provider:model`` identifier pass ``ModelConfig.bare_name`` — parsing
+    happens once, at the config boundary, not here.
+    """
     entry = _REGISTRY.get(model_name)
     if entry and "max_input_tokens" in entry:
         return int(entry["max_input_tokens"])

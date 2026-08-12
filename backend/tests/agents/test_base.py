@@ -93,7 +93,7 @@ def test_orchestrator_falls_back_to_default_prompt():
     orch = _create_orchestrator(config, [])
     expected = Orchestrator._render_prompt(
         _DEFAULT_SYSTEM_PROMPT,
-        config.model.name,
+        config.model.bare_name,
         max_tool_calls_per_run=config.constraints.max_tool_calls_per_run,
     )
     assert orch.system_prompt == expected

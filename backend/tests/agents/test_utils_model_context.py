@@ -1,4 +1,9 @@
+from pathlib import Path
+
 import pytest
+import yaml
+
+from backend.agent_engine.agents.config_loader import ModelConfig
 from backend.agent_engine.utils import model_context
 from backend.agent_engine.utils.model_context import (
     DEFAULT_CONTEXT_WINDOW,
@@ -79,22 +84,48 @@ def test_load_registry_handles_non_dict_yaml(tmp_path, monkeypatch, caplog):
 
 
 def test_registry_yaml_matches_orchestrator_configs():
-    """Sanity: committed YAML covers every model referenced in profiles/*."""
-    from pathlib import Path
-    import yaml
+    """Sanity: committed YAML covers every model referenced in profiles/*.
 
+    Registry keys must be BARE model names — the runtime lookup receives
+    ``ModelConfig.bare_name`` and does no stripping of its own, so a
+    prefixed registry key would never be hit. Uses ``ModelConfig`` for the
+    parsing rather than re-splitting the string (single parsing owner).
+    """
     profiles = Path("backend/agent_engine/agents/profiles")
     needed = set()
     for cfg in profiles.glob("*/orchestrator_config.yaml"):
         data = yaml.safe_load(cfg.read_text()) or {}
         name = (data.get("model") or {}).get("name")
         if isinstance(name, str):
-            needed.add(name)
+            needed.add(ModelConfig(name=name).bare_name)
     registry = (
         yaml.safe_load(
             Path("backend/agent_engine/utils/model_context_registry.yaml").read_text()
         )
         or {}
     )
-    missing = needed - set(registry.keys())
-    assert not missing, f"YAML missing entries for: {missing}"
+    registry_keys = set(registry.keys())
+    missing = sorted(needed - registry_keys)
+    assert not missing, f"YAML missing bare-name entries for: {missing}"
+
+
+def test_lookup_expects_bare_names_from_config_boundary(monkeypatch):
+    """Registry lookup takes bare names only — callers holding a
+    ``provider:model`` identifier pass ``ModelConfig.bare_name``. The old
+    in-lookup prefix-stripping fallback was removed when parsing moved to
+    the single ModelConfig owner; a prefixed name is now simply a miss."""
+    monkeypatch.setattr(
+        model_context,
+        "_REGISTRY",
+        {
+            "gemini-2.5-flash": {
+                "max_input_tokens": 1_048_576,
+                "source": "google_official",
+            }
+        },
+    )
+    assert get_model_context_window("gemini-2.5-flash") == 1_048_576
+    assert (
+        get_model_context_window("google_genai:gemini-2.5-flash")
+        == DEFAULT_CONTEXT_WINDOW
+    )

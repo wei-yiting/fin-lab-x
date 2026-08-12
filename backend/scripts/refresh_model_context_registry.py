@@ -18,6 +18,8 @@ from typing import Any
 
 import yaml
 
+from backend.agent_engine.agents.config_loader import ModelConfig
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -29,12 +31,20 @@ _REGISTRY_PATH = (
 
 
 def _collect_model_names() -> list[str]:
+    """Collect bare (provider-prefix-stripped) model names from every profile.
+
+    Profile YAMLs store LangChain-style ``provider:model`` names (e.g.
+    ``openai:gpt-5-nano``), but ``litellm.get_model_info()`` only resolves
+    bare names — a prefixed name looks up as an unknown model and silently
+    fails. ``ModelConfig.bare_name`` owns that parsing rule; reuse it so this
+    script can never drift from the runtime's interpretation of ``name``.
+    """
     names: set[str] = set()
     for cfg in sorted(_PROFILES_DIR.glob("*/orchestrator_config.yaml")):
         data = yaml.safe_load(cfg.read_text()) or {}
         model = (data.get("model") or {}).get("name")
         if isinstance(model, str) and model:
-            names.add(model)
+            names.add(ModelConfig(name=model).bare_name)
     return sorted(names)
 
 

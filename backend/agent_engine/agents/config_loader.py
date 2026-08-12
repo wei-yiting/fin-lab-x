@@ -1,19 +1,49 @@
 """Workflow profile configuration loader for FinLab-X."""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class ModelConfig(BaseModel):
-    """Model configuration for a workflow profile."""
+    """Model configuration for a workflow profile.
+
+    ``name`` is a LangChain-style ``provider:model`` identifier; bare names
+    (no ``:``) default to OpenAI. ``reasoning`` is the admin-declared
+    reasoning capability: ``"on"`` / ``"off"`` / ``"unsupported"`` (the
+    latter = never pass any reasoning-control kwarg to the bound model).
+    The per-provider kwarg mapping, hard constraints (Anthropic budget and
+    temperature rules, Gemini budget bounds), and empirically verified API
+    caveats (including which models each state is valid for) are documented
+    once, in ``backend/agent_engine/agents/README.md`` under
+    "Multi-Provider Reasoning Configuration" — not repeated here.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    name: str = "gpt-4o-mini"
+    name: str = "openai:gpt-5-nano"
     temperature: float = 0.0
+    reasoning: Literal["on", "off", "unsupported"] = "off"
+    thinking_budget: int | None = None
+
+    # ``name`` is parsed exactly once, here. Every consumer (_init_model's
+    # provider branching and routing, context-window lookup, the registry
+    # refresh script) reads these two properties instead of re-splitting the
+    # string — a second parser (including LangChain's own, which only strips
+    # the prefix when model_provider is NOT explicitly given) is how routing
+    # bugs happened before.
+    @property
+    def provider(self) -> str:
+        """Provider segment of ``name``; bare names default to ``"openai"``."""
+        return self.name.split(":", 1)[0] if ":" in self.name else "openai"
+
+    @property
+    def bare_name(self) -> str:
+        """``name`` without its ``provider:`` prefix — the model id the
+        provider API actually accepts."""
+        return self.name.split(":", 1)[1] if ":" in self.name else self.name
 
 
 class ConstraintsConfig(BaseModel):

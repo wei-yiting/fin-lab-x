@@ -5,9 +5,14 @@ import { Sources } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
 import { extractSources, normalizeRefDefs } from "@/lib/markdown-sources";
 import { isRunningToolState } from "@/models";
-import type { ChatStatus, ExtractedSources } from "@/models";
+import type { ExtractedSources } from "@/models";
 
 type MessagePart = Record<string, unknown>;
+
+function isToolPart(part: MessagePart): boolean {
+  const t = part.type;
+  return typeof t === "string" && (t === "tool" || t.startsWith("tool-") || t === "dynamic-tool");
+}
 
 /** Shared empty-sources reference — see the note at its use site. */
 const NO_SOURCES: ExtractedSources = [];
@@ -20,29 +25,65 @@ interface AssistantMessageMessage {
 
 interface AssistantMessageProps {
   message: AssistantMessageMessage;
-  isLast: boolean;
-  status?: ChatStatus;
+  /** True only for the last message while the stream is still writing it —
+   * derived in MessageList from (isLast, status). Deriving it there keeps
+   * this prop a primitive, so settled messages stay memo-stable across
+   * status transitions instead of re-rendering on every one. */
+  isStreaming: boolean;
   abortedTools: Set<string>;
   toolProgress: Record<string, string>;
   /** The user stopped this turn (DEV-109 ruling 11) — gates Regenerate off,
    * since the backend never finalized this turn's AIMessage. */
   interrupted?: boolean;
+  /** Present only when Regenerate may render: MessageList passes it for the
+   * last message of a ready transcript and omits it otherwise (S-regen-02).
+   * That placement also protects memoization — the handler closes over
+   * `messages` and changes identity on every delta, so handing it to a
+   * message that can never show the button would only break its memo. */
   onRegenerate?: (messageId: string) => void;
 }
 
+/**
+ * Memo comparator. Every prop is shallow-compared except `toolProgress`:
+ * ChatPanel rebuilds that Record on each data-tool-progress event, so its
+ * identity changes even when nothing this message reads has changed —
+ * comparing it by reference would re-render every settled message in the
+ * transcript on every progress event. Instead, compare exactly the entries
+ * this message's tool parts read.
+ *
+ * Props are iterated generically, so a prop added later is shallow-compared
+ * by default — only `toolProgress` is special-cased.
+ */
+function arePropsEqual(
+  prev: Readonly<AssistantMessageProps>,
+  next: Readonly<AssistantMessageProps>,
+): boolean {
+  const keys = new Set([...Object.keys(prev), ...Object.keys(next)]) as Set<
+    keyof AssistantMessageProps
+  >;
+  for (const key of keys) {
+    if (key === "toolProgress") continue;
+    if (!Object.is(prev[key], next[key])) return false;
+  }
+  if (prev.toolProgress === next.toolProgress) return true;
+  // `message` was reference-equal above, so its tool parts enumerate every
+  // toolProgress entry this render can possibly read.
+  for (const part of next.message.parts) {
+    if (!isToolPart(part)) continue;
+    const id = part.toolCallId as string;
+    if (prev.toolProgress[id] !== next.toolProgress[id]) return false;
+  }
+  return true;
+}
+
 // Memoized so a delta on the streaming message does not re-render every
-// other message in the transcript. This only pays off while the remaining
-// props keep their references across unrelated renders, which is a standing
-// constraint on the call site, not a property of this file: `onRegenerate`
-// in particular closes over `messages` and therefore changes identity on
-// every delta, so MessageList passes it only to the message that can
-// actually use it. Adding a prop here that is rebuilt per render silently
-// reverts this component to unmemoized — <Markdown> carries its own
-// memoization for exactly that reason.
+// other message in the transcript. The props are primitives or references
+// the call site keeps stable across unrelated renders; the one exception,
+// `toolProgress`, is absorbed by the comparator above. <Markdown> carries
+// its own memoization as a second line of defense.
 export const AssistantMessage = memo(function AssistantMessage({
   message,
-  isLast,
-  status,
+  isStreaming,
   abortedTools,
   toolProgress,
   interrupted = false,
@@ -54,8 +95,6 @@ export const AssistantMessage = memo(function AssistantMessage({
     .filter((p) => p.type === "text")
     .map((p) => p.text as string)
     .join("");
-
-  const isStreaming = status === "streaming" && isLast;
 
   // NOTE the shared constant: returning a fresh `[]` here would hand
   // <Markdown> a new `sources` reference on every delta (this useMemo re-runs
@@ -86,11 +125,7 @@ export const AssistantMessage = memo(function AssistantMessage({
   return (
     <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
-        if (
-          part.type === "tool" ||
-          (typeof part.type === "string" && part.type.startsWith("tool-")) ||
-          part.type === "dynamic-tool"
-        ) {
+        if (isToolPart(part)) {
           const toolCallId = part.toolCallId as string;
           // abortedTools is a click-time snapshot of `handleStop`'s render
           // closure (ChatPanel), which can miss a tool call that arrived
@@ -134,10 +169,12 @@ export const AssistantMessage = memo(function AssistantMessage({
         ran to completion — so an interrupted turn 422s no matter how much
         answer text reached the client. `interrupted` is the turn-level
         record (DEV-109 ruling 11), captured unconditionally on every Stop.
+        The last-message + status=ready visibility rule lives in MessageList,
+        which only passes onRegenerate when both hold.
       */}
-      {isLast && status === "ready" && onRegenerate && !interrupted && (
+      {onRegenerate && !interrupted && (
         <RegenerateButton onRegenerate={() => onRegenerate(message.id)} />
       )}
     </article>
   );
-});
+}, arePropsEqual);

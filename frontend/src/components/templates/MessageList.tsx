@@ -98,21 +98,26 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             }
             if (msg.role === "assistant") {
               const isLast = i === messages.length - 1;
+              // (isLast, status) → primitive props here, instead of raw
+              // `status` inside AssistantMessage: earlier messages derive the
+              // same values for every status, so passing status raw would
+              // break their memoization on each transition of the streaming
+              // turn.
+              const isStreaming = isLast && status === "streaming";
               return (
                 <Fragment key={msg.id}>
                   <AssistantMessage
                     message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
-                    isLast={isLast}
-                    status={status}
+                    isStreaming={isStreaming}
                     abortedTools={abortedTools}
                     toolProgress={toolProgress}
                     interrupted={interrupted}
-                    // Only the last message renders a Regenerate button, and
-                    // this callback closes over `messages` — so its identity
-                    // changes on every delta. Handing it to the earlier
-                    // messages too would break their memoization for a button
-                    // they never show.
-                    onRegenerate={isLast ? onRegenerate : undefined}
+                    // Regenerate exists only on the last message of a ready
+                    // transcript (S-regen-02) — and this callback closes over
+                    // `messages`, so its identity changes on every delta.
+                    // Handing it to any other message would break that
+                    // message's memoization for a button it never shows.
+                    onRegenerate={isLast && status === "ready" ? onRegenerate : undefined}
                   />
                   {interrupted && <InterruptedMarker />}
                 </Fragment>

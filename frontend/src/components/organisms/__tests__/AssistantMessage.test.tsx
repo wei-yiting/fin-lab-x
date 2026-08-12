@@ -12,7 +12,7 @@ describe("AssistantMessage — parts dispatch", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -37,7 +37,7 @@ describe("AssistantMessage — parts dispatch", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -70,7 +70,7 @@ describe("AssistantMessage — parts dispatch", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -100,7 +100,7 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set(["tc-aborted"])}
         toolProgress={{}}
       />,
@@ -125,7 +125,7 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set(["tc-aborted-streaming"])}
         toolProgress={{}}
       />,
@@ -151,7 +151,7 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set(["tc-done"])}
         toolProgress={{}}
       />,
@@ -180,7 +180,7 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         interrupted
         abortedTools={new Set()}
         toolProgress={{}}
@@ -190,6 +190,51 @@ describe("AssistantMessage — aborted tools", () => {
   });
 });
 
+// The memo comparator ignores toolProgress's identity and compares only the
+// entries this message's tool parts read. The staleness risk of that
+// special-case is missing a real update, so lock the positive path: a new
+// progress value for this message's own toolCallId must re-render even when
+// every other prop keeps its reference across the rerender.
+describe("AssistantMessage — toolProgress memo comparator", () => {
+  test("progress update for own toolCallId re-renders through the comparator", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        {
+          type: "tool" as const,
+          state: "input-available",
+          toolCallId: "tc-progress",
+          toolName: "x",
+          input: {},
+        },
+      ],
+    };
+    const abortedTools = new Set<string>();
+    const { rerender } = render(
+      <AssistantMessage
+        message={message}
+        isStreaming={false}
+        abortedTools={abortedTools}
+        toolProgress={{}}
+      />,
+    );
+    rerender(
+      <AssistantMessage
+        message={message}
+        isStreaming={false}
+        abortedTools={abortedTools}
+        toolProgress={{ "tc-progress": "fetching page 2..." }}
+      />,
+    );
+    expect(screen.getByTestId("tool-card")).toHaveTextContent("fetching page 2...");
+  });
+});
+
+// The last-message + status=ready visibility rule (S-regen-02) is derived in
+// MessageList and covered in MessageList.test.tsx; this component only sees
+// the result — an onRegenerate prop that is present exactly when the button
+// may show.
 describe("AssistantMessage — RegenerateButton visibility", () => {
   const baseMsg = {
     id: "a1",
@@ -197,12 +242,11 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     parts: [{ type: "text" as const, text: "done" }],
   };
 
-  test("isLast=true and status=ready → button visible", () => {
+  test("onRegenerate provided → button visible", () => {
     render(
       <AssistantMessage
         message={baseMsg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
         onRegenerate={vi.fn()}
@@ -211,50 +255,17 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
   });
 
-  test("isLast=true but status=streaming → button hidden", () => {
+  test("onRegenerate omitted (non-last message, or transcript not ready) → hidden", () => {
     render(
       <AssistantMessage
         message={baseMsg}
-        isLast={true}
-        status="streaming"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
     );
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
   });
-
-  test("isLast=false → button hidden regardless of status", () => {
-    render(
-      <AssistantMessage
-        message={baseMsg}
-        isLast={false}
-        status="ready"
-        abortedTools={new Set()}
-        toolProgress={{}}
-      />,
-    );
-    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-  });
-
-  // S-regen-02: button must be hidden for every non-ready status so no second
-  // POST can be issued while one is already in flight or mid-stream.
-  test.each(["submitted", "streaming", "error"] as const)(
-    "isLast=true but status=%s → button hidden",
-    (status) => {
-      render(
-        <AssistantMessage
-          message={baseMsg}
-          isLast={true}
-          status={status}
-          abortedTools={new Set()}
-          toolProgress={{}}
-          onRegenerate={vi.fn()}
-        />,
-      );
-      expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-    },
-  );
 });
 
 // Regenerate replays the turn from the backend's checkpoint, which only
@@ -273,8 +284,7 @@ describe("AssistantMessage — interrupted turn hides Regenerate", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         interrupted
         abortedTools={new Set()}
         toolProgress={{}}
@@ -301,8 +311,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={commonMarkMsg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -321,8 +330,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={commonMarkMsg}
-        isLast={true}
-        status="streaming"
+        isStreaming={true}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -347,8 +355,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={fallbackMsg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -372,8 +379,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={msg}
-        isLast={true}
-        status="streaming"
+        isStreaming={true}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -394,8 +400,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={msg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -416,8 +421,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={msg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,

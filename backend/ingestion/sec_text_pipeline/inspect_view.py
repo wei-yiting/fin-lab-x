@@ -34,9 +34,7 @@ def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
     return "absent"
 
 
-def _item_chars(item: ParsedItem) -> int:
-    if isinstance(item, FlatItem):
-        return len(item.text)
+def _item_chars(item: StructuredItem) -> int:
     return len(item.prelude) + sum(len(block.text) for block in item.blocks)
 
 

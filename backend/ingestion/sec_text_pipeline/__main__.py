@@ -57,9 +57,11 @@ def _make_parser(prog: str, description: str) -> argparse.ArgumentParser:
 
 
 def _load_filing(ticker: str, fiscal_year: int, force: bool) -> ParsedFiling:
+    # ValueError covers ticker validation from the filing store, which sits
+    # outside the FinLabError taxonomy.
     try:
         return parse_filing(ticker, fiscal_year, force)
-    except FinLabError as exc:
+    except (FinLabError, ValueError) as exc:
         print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
         raise SystemExit(1) from None
     except KeyboardInterrupt:

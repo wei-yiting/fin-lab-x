@@ -158,7 +158,9 @@
   2. 呼叫 `to_section_text(filing, "1A")` 與 `to_section_text(filing, " 1a ")`
   3. Assert: 兩次回傳值相等，且都等於 `item.text`
 - **Expected**: key 比對不分大小寫、忽略前後空白
-- **現況**: 已涵蓋 —— `test_inspect_view.py::test_key_is_case_insensitive`
+- **現況**: 已涵蓋 —— `test_inspect_view.py::TestSectionText::test_key_is_case_insensitive`
+  （2026-08-13 修正：測試包在 `TestSectionText` class 裡，bdd-e2e-loop Round 1 發現
+  原本漏寫 class 名稱，pytest node ID 收不到）
 
 #### S-inspect-11: 查詢一個這份 filing 沒有的 key，列出可用的 key 清單
 - **Method**: script（render 層）+ script（CLI 整合層，見下方 CLI 部分）
@@ -174,11 +176,13 @@
   3. Assert: stderr 含 `"available: 7, 1a"`
   4. Assert: stderr **不含** `"Traceback"`
 - **Expected**: render 層拋出的 `ValueError` 被 CLI 邊界正確攔截並轉成 legible failure
-- **現況**: 已涵蓋 —— render 層 `test_inspect_view.py::test_unknown_key_lists_available`；
+- **現況**: 已涵蓋 —— render 層 `test_inspect_view.py::TestSectionText::test_unknown_key_lists_available`；
   CLI 層新增 `test_main.py::test_unknown_section_key_fails_legibly`（exit code 1、
   stderr 含 `"available: 7, 1a"`、無 Traceback），覆蓋 `_run_view` 原本零覆蓋的
   `except ValueError` 分支。這是 `--section` Rule 被指定的 legible-failure case，
   屬 envelope §5 標準之內
+  （2026-08-13 修正：render 層測試包在 `TestSectionText` class 裡，同上一條的
+  node ID 缺漏）
 
 #### S-inspect-12: 對同一 ticker/fiscal_year 重複執行 `inspect`，覆蓋既有檔案
 - **Method**: script（CLI 整合層）
@@ -210,7 +214,8 @@
   4. Assert: 第三者（`to_section_text`）的輸出**不含** `metadata.accession_number`
 - **Expected**: header 只出現在需要對照 filing 身份的模式，`--section` 保持純粹
 - **現況**: 既有覆蓋（2026-08-12 使用者裁決：不補測試）——
-  `to_inspect_markdown` 含 header：`test_metadata_header` 直接斷言。
+  `to_inspect_markdown` 含 header：`test_inspect_view.py::TestInspectMarkdown::test_metadata_header`
+  直接斷言（2026-08-13 修正：node ID 補上 `TestInspectMarkdown` class 名稱）。
   `to_summary_text` 含 header：`test_counts_and_rows` 斷言的 counts 行
   （`"2 items (structured 1 / flat 1)"`）正是 `_header_lines()` 的第三行，
   inclusion 已被執行到。`to_section_text` 不含 header：
@@ -318,60 +323,52 @@
 - **Method**: script（真實 EDGAR fetch，非 toy fixture —— Journey 場景需要真的走一次
   cache-miss → fetch → parse → render 的完整彈道）
 - **Steps**:
-  1. 確認 filing store 與 inspect 輸出目錄裡都沒有 MSFT FY2024 的殘留檔案（若有，先手動
+  1. 確認 filing store 與 inspect 輸出目錄裡都沒有 AAPL FY2024 的殘留檔案（若有，先手動
      刪除，模擬「從未查過」的狀態）
-  2. `time python -m backend.ingestion.sec_text_pipeline inspect --ticker MSFT
+  2. `time python -m backend.ingestion.sec_text_pipeline inspect --ticker AAPL
      --fiscal-year 2024`，記錄執行時間（應包含明顯的網路等待）與印出的檔案路徑
   3. `cat <印出的路徑>`，人工核對輸出內容：
      - 每個 Item 是否都依 render 規則正確攤開（StructuredItem 三要素、FlatItem 兩要素）
-     - 挑 2-3 個 Item，對照 [SEC EDGAR 原文](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=microsoft)
+     - 挑 2-3 個 Item，對照 [SEC EDGAR 原文](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=apple)
        確認 detection_source 與 prelude 判定合理
   4. Assert（腳本層可自動化的部分）：印出的路徑存在、檔案非空、檔案開頭符合
-     `f"# MSFT 10-K FY2024"` 格式
+     `f"# AAPL 10-K FY2024"` 格式
   5. 人工核對的部分（步驟 3）記錄在 Manual Verification 的 User Acceptance Test
 - **Expected**: 完整彈道走通，operator 能拿著檔案內容對照 SEC 原文
-- **現況**: **尚未執行過真實 smoke test 記錄在本文件裡**——code-review-improvement-
-  report.md 提到「真實 filing 煙霧測試（AAPL FY2025）：三入口 + cache hit/miss + 錯誤
-  路徑皆人工驗證（見 session 紀錄）」，代表其他 session 已經做過類似的手動驗證，但用的
-  是 AAPL 不是本 Journey 指定的 MSFT，且驗證紀錄不在這份 verification-plan.md 的追蹤
-  範圍內。建議至少對 MSFT（或任一份尚未 inspect 過的新 ticker）重跑一次，取得屬於這份
-  verification plan 自己的紀錄
-- **⚠️ Ticker 選擇限制（2026-08-12 verifier 實跑發現）**: MSFT FY2024 目前必然以
-  `EmptyFilingError` 失敗——edgartools 5.17.1 對 MSFT/GE/DIS 回傳 spaced section 名
-  且 `Section.item = None`，`parser.py::_parse_items` 因此 skip 全部 24 個 section。
-  這不是 inspect CLI 的 bug（legible failure 彈道正常運作，正是 DEV-127 Known
-  Limitation #3 定義的行為），修復已在 DEV-136 branch（`.item` 缺時從 section name
-  推導 key，含 regression tests，尚未 merge）；upstream 根治見 DEV-147。**DEV-136
-  merge 前，本 Journey 請改用其他 ticker**（AAPL FY2025 已驗證可走通完整流程）；
+- **現況（2026-08-13，bdd-e2e-loop Round 1 執行紀錄）**: 原本指定 MSFT FY2024，Round 1
+  真的跑了一次，結果必然是 `EmptyFilingError`——edgartools 5.17.1 對 MSFT/GE/DIS 回傳
+  spaced section 名，`Section.item = None`，`parser.py::_parse_items` 因此 skip 全部
+  24 個 section。**這不是 inspect CLI 的 bug**：legible failure 彈道本身運作正常，正是
+  DEV-127 Known Limitation #3 定義的行為（「上游邊界，不在我們 detection 可修範圍 →
+  ParsedFiling 缺項 + legible failure」）。修復已在 DEV-136 branch 進行中（`.item` 缺時
+  從 section name 推導 key，含 regression tests，尚未 merge）；upstream 根治見 DEV-147。
+  使用者裁決：**DEV-136 merge 前，本 Journey 改用 AAPL FY2024**（未快取過，保留
+  cache-miss 語意；`.item` 欄位在 Round 1 的診斷腳本裡已確認能正確填值）。DEV-136
   merge 後可回頭用 MSFT 補跑，一併驗證 `text_fallback` 的 detection_source 顯示
   （S-inspect-05 的真實資料版本）
 
 #### J-inspect-02: Operator 標準抽查工作流程——先 `--verbose` 掃視，再 `--section` 深入
-- **Method**: script（可用真實 filing 或 toy fixture，取決於執行時是否已有快取）
+- **Method**: script（真實 filing——bdd-e2e-loop Round 1 已用 AAPL FY2025 實際跑過一次）
 - **Steps**:
-  1. 對一份已經 inspect 過、且已知有至少一個 Item 的 prelude 判定是「reclassified」
-     的 filing（若沒有現成案例，用手造 toy filing：`items=[StructuredItem(item="1a",
-     prelude="", blocks=[Block(heading="", text="x"*3500), ...])]`，monkeypatch
-     `parse_filing`）
-  2. `python -m backend.ingestion.sec_text_pipeline --ticker <ticker> --fiscal-year
-     <year> --verbose`，人工/腳本掃視輸出，找到 prelude 欄位顯示 `"reclassified"`
-     的那一列，記下該列的 item key
-  3. `python -m backend.ingestion.sec_text_pipeline --ticker <ticker> --fiscal-year
-     <year> --section <上一步記下的 key>`
-  4. Assert: 兩次呼叫使用同一組 `--ticker`/`--fiscal-year`，`parse_filing` 應該只被
-     呼叫兩次（一次一個 CLI invocation，因為 CLI 進程本身不跨 invocation 快取——快取
-     發生在 filing store 這一層），且兩次回傳的 filing 內容一致（同一份 filing store
-     JSON）
+  1. 對 AAPL FY2025（Round 1 確認已快取、有至少一個 Item 的 prelude 判定是
+     「reclassified」，若該快取被清除則重新 inspect 一次即可）
+  2. `python -m backend.ingestion.sec_text_pipeline --ticker AAPL --fiscal-year 2025
+     --verbose`，掃視輸出，找到 prelude 欄位顯示 `"reclassified"` 的那一列，記下該列
+     的 item key
+  3. `python -m backend.ingestion.sec_text_pipeline --ticker AAPL --fiscal-year 2025
+     --section <上一步記下的 key>`
+  4. Assert: 兩次呼叫使用同一組 `--ticker`/`--fiscal-year`，且兩次回傳的 filing 內容
+     一致（同一份 filing store JSON）
   5. Assert: `--section` 的輸出裡能看到該 item 原本被判定為 reclassified 的那個
-     block 的完整原始內容（沒有 heading，因為 reclassified block 本來就沒有標題）
+     block 的完整原始內容（沒有 heading，因為 reclassified block 本來就沒有標題），
+     且不含 `"##"`
 - **Expected**: 兩個 CLI 入口銜接起來構成一次完整的抽查流程，資料一致
-- **現況**: 映射既有覆蓋（2026-08-12 使用者裁決：不另寫 journey 測試）——這個 CLI 是
-  無狀態的：兩次 invocation 之間唯一共享的是 filing store 快取，而快取一致性屬於
-  parser/filing_store 的已測行為（DEV-132/133）。「先 verbose 再 section」的組合測試
-  只是把 `test_default_prints_summary` 與 `test_section_prints_plain_text` 串著重跑，
-  不存在單獨測不到的失敗模式——「銜接」是人的工作流程，不是系統行為。系統面的驗證由
-  上述兩條單入口測試 + parser 快取測試共同構成；人因面（工作流程是否順暢）由
-  J-inspect-01 的 User Acceptance Test 一併回答
+- **現況（2026-08-13，bdd-e2e-loop Round 1 執行紀錄）**: 原本指定 MSFT FY2024（沿用
+  J-inspect-01），Round 1 因 J-inspect-01 的 MSFT 已知限制（見上方）連第一步都無法執行。
+  Round 1 改用已快取的真實 AAPL FY2025 跑過整條流程：`--verbose` 印出 17 列摘要表，
+  含兩個 reclassified 判定的 Item（`8`、`1a`）；`--section 8` 印出 62,190 bytes 純文字、
+  zero 個 `"##"`。**流程本身已用真實資料驗證過**，本 scenario 正式改指定 AAPL FY2025
+  取代原本的 MSFT FY2024 / 待定 NVDA FY2025
 
 ---
 

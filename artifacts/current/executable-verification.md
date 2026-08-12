@@ -89,16 +89,16 @@
 - **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSectionText::test_flat_section_is_raw_text backend/tests/ingestion/sec_text_pipeline/test_main.py::test_section_prints_plain_text -q`
 
 #### S-inspect-10: `--section` 的 key 比對大小寫不敏感
-- **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::test_key_is_case_insensitive -q`
+- **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSectionText::test_key_is_case_insensitive -q`
 
 #### S-inspect-11: 查詢一個這份 filing 沒有的 key，列出可用的 key 清單
-- **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::test_unknown_key_lists_available backend/tests/ingestion/sec_text_pipeline/test_main.py::test_unknown_section_key_fails_legibly -q`
+- **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSectionText::test_unknown_key_lists_available backend/tests/ingestion/sec_text_pipeline/test_main.py::test_unknown_section_key_fails_legibly -q`
 
 #### S-inspect-12: 對同一 ticker/fiscal_year 重複執行 `inspect`，覆蓋既有檔案
 - **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_main.py::test_inspect_writes_file_and_prints_path -q`（精確路徑相等斷言，見 verification-plan.md 現況說明的裁決理由）
 
 #### S-inspect-13: 三種輸出模式對 filing header 的顯示行為
-- **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::test_metadata_header backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSummaryText::test_counts_and_rows backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSectionText::test_flat_section_is_raw_text backend/tests/ingestion/sec_text_pipeline/test_main.py::test_section_prints_plain_text -q`
+- **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestInspectMarkdown::test_metadata_header backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSummaryText::test_counts_and_rows backend/tests/ingestion/sec_text_pipeline/test_inspect_view.py::TestSectionText::test_flat_section_is_raw_text backend/tests/ingestion/sec_text_pipeline/test_main.py::test_section_prints_plain_text -q`
 
 #### S-inspect-14: 未快取過的 ticker 直接查詢，自動完成 fetch+parse
 - **既有測試**: `uv run pytest backend/tests/ingestion/sec_text_pipeline/test_main.py::test_default_prints_summary -q`
@@ -136,24 +136,29 @@
 
 #### J-inspect-01: 首次對未快取的 ticker 執行完整 inspect，並對照 SEC 原文核對
 - **Method**: script（真實 EDGAR fetch）
+- **Ticker 變更（2026-08-13）**: 原訂 MSFT FY2024，Round 1 實跑證實必然
+  `EmptyFilingError`（edgartools 5.17.1 對 MSFT/GE/DIS 回傳 spaced section 名，
+  `Section.item = None`；已知限制，修復在 DEV-136 branch，尚未 merge）。改用
+  **AAPL FY2024**。
 - **Steps**:
-  1. 檢查 `data/sec_text/MSFT/10-K/2024.json` 與 inspect 輸出目錄下 MSFT 的殘留檔案是否
-     存在；若存在，記錄下來但不要刪除使用者的資料（改用一個真正未查過的 ticker/年度組合，
-     或在報告裡註明這是 cache-hit 而非嚴格的 cache-miss 路徑）
-  2. `time uv run python -m backend.ingestion.sec_text_pipeline inspect --ticker MSFT --fiscal-year 2024`
-  3. `cat <印出的路徑>` 讀取內容，檢查開頭格式是否符合 `f"# MSFT 10-K FY2024"`
+  1. 檢查 `data/sec_text/AAPL/10-K/2024.json` 與 inspect 輸出目錄下 AAPL FY2024 的
+     殘留檔案是否存在；若存在，記錄下來但不要刪除使用者的資料
+  2. `time uv run python -m backend.ingestion.sec_text_pipeline inspect --ticker AAPL --fiscal-year 2024`
+  3. `cat <印出的路徑>` 讀取內容，檢查開頭格式是否符合 `f"# AAPL 10-K FY2024"`
   4. Assert（自動化部分）：exit code 為 0、印出的路徑存在、檔案非空、檔案內容開頭符合
-     `"# MSFT 10-K FY2024"` 格式
+     `"# AAPL 10-K FY2024"` 格式
   5. 人工核對部分（對照 SEC EDGAR 原文）不在本輪自動驗證範圍內，留給 Manual/UAT
 - **Expected**: 完整彈道走通
 
 #### J-inspect-02: Operator 標準抽查工作流程——先 `--verbose` 掃視，再 `--section` 深入
-- **Method**: script（可沿用 J-inspect-01 剛 inspect 過的 MSFT FY2024，或建 toy fixture）
+- **Method**: script（真實 filing——Round 1 已用 AAPL FY2025 實際跑過一次）
+- **Ticker 變更（2026-08-13）**: 原訂沿用 J-inspect-01 的 MSFT FY2024。改用
+  **AAPL FY2025**（已快取，Round 1 確認有 reclassified Item `8`/`1a`）。
 - **Steps**:
-  1. `uv run python -m backend.ingestion.sec_text_pipeline --ticker MSFT --fiscal-year 2024 --verbose`
-  2. 掃視輸出，找到任一列（若沒有 reclassified 案例，取第一個 structured 列即可）記下
-     item key
-  3. `uv run python -m backend.ingestion.sec_text_pipeline --ticker MSFT --fiscal-year 2024 --section <該 key>`
+  1. `uv run python -m backend.ingestion.sec_text_pipeline --ticker AAPL --fiscal-year 2025 --verbose`
+  2. 掃視輸出，找到 prelude 欄位顯示 `"reclassified"` 的那一列（Round 1 紀錄：`8` 或
+     `1a`），記下 item key
+  3. `uv run python -m backend.ingestion.sec_text_pipeline --ticker AAPL --fiscal-year 2025 --section <該 key>`
   4. Assert: 兩次呼叫都成功（exit code 0），`--section` 輸出非空且不含 markdown 標記
      （`##`）
 - **Expected**: 兩個 CLI 入口銜接起來構成一次完整的抽查流程

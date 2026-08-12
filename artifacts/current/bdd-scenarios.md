@@ -361,12 +361,24 @@ skill 的 Incremental update 流程）。
 
 ### Journey Scenarios
 
+> **2026-08-13 使用者裁決（bdd-e2e-loop Round 1 發現後）**：兩條 Journey 原本都指向
+> MSFT FY2024，Round 1 對它真的跑了一次 `inspect`，結果 `EmptyFilingError`——
+> edgartools 5.17.1 對 MSFT FY2024 的所有 24 個 section 都回傳 `section.item is None`，
+> `_parse_items` 因此整份跳過。使用者確認：**MSFT FY2024 要等 DEV-136（text fallback）
+> merge 後才能走通，在那之前這是已知限制，不是 DEV-134 的 bug**——與 DEV-127 spec 的
+> Known Limitation #3（「Source-level missing...上游邊界，不在我們 detection 可修範圍
+> → ParsedFiling 缺項 + legible failure」）吻合。兩條 Journey 改用 AAPL：
+> J-inspect-01 換成 **AAPL FY2024**（尚未快取過，保留「cache miss」語意）；
+> J-inspect-02 換成 **AAPL FY2025**（bdd-e2e-loop Round 1 用真實資料驗證過，確實有
+> reclassified 的 Item，`--section` 輸出乾淨——比原本 NVDA FY2025 這個未經驗證的例子
+>更紮實）。
+
 #### J-inspect-01: 首次對未快取的 ticker 執行完整 inspect，並對照 SEC 原文核對
 > 證明從「從未查過的 ticker」到「operator 能拿著檔案對照 SEC 原文核對」這條完整路徑走得通——這是 DEV-127 user story #12 的核心動機，也是 PO 提出的必要 Journey
 
-- **Given** operator 想要核對 MSFT FY2024 的 detection/prelude 判定品質，這份 filing
+- **Given** operator 想要核對 AAPL FY2024 的 detection/prelude 判定品質，這份 filing
   從未被 inspect 過
-- **When** operator 執行 `inspect --ticker MSFT --fiscal-year 2024`，CLI 自動完成
+- **When** operator 執行 `inspect --ticker AAPL --fiscal-year 2024`，CLI 自動完成
   fetch + parse（cache miss），把完整 markdown 寫入輸出目錄並印出檔案路徑；operator
   打開這個檔案，依序核對每個 Item 的 detection_source、prelude 判定、block 邊界
 - **Then** operator 能用這份檔案的內容，逐項對照 SEC EDGAR 原文，判斷 detection 是否
@@ -379,12 +391,12 @@ Origin: PO
 #### J-inspect-02: Operator 標準抽查工作流程——先用 `--verbose` 掃視全貌，再用 `--section` 深入單一 Item
 > 證明三個 CLI 入口不是三個互不相干的功能，而是同一套 render 邏輯支撐的一套完整工作流程——這正是 DEV-134 票面明講的「prelude 判定人工抽查與四象限 failure 分析的標準工具」
 
-- **Given** operator 想快速掃過 NVDA FY2025 所有 Item 的 detection 狀態，找出看起來
+- **Given** operator 想快速掃過 AAPL FY2025 所有 Item 的 detection 狀態，找出看起來
   可疑的項目（例如某個 Item 的 prelude 被判定為「reclassified」，代表原本可能是超過
   3,000 字的偽 prelude）
-- **When** operator 先執行 `--verbose` 看過一畫面的摘要表，注意到 Item 1A 的 prelude
-  判定是 reclassified；接著執行 `--section 1a` 深入看這個 Item 的完整純文字內容，
-  判斷這次 reclassify 是否合理
+- **When** operator 先執行 `--verbose` 看過一畫面的摘要表，注意到某個 Item 的 prelude
+  判定是 reclassified；接著執行 `--section <該 item key>` 深入看這個 Item 的完整純
+  文字內容，判斷這次 reclassify 是否合理
 - **Then** operator 能在不重新解析 filing 的情況下（同一份已快取的 parse 結果），從
   「全貌掃視」自然銜接到「單點深入」，完成一次完整的人工抽查
 

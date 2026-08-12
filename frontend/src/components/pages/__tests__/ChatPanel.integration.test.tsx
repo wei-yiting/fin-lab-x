@@ -303,6 +303,37 @@ describe("ChatPanel integration — aborted tools via stop", () => {
       },
       { timeout: 10000 },
     );
+
+    // Turn-level marker (DEV-109 ruling 11): every user Stop leaves an
+    // explicit "Interrupted" row under the cut turn.
+    expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
+    expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
+  }, 20000);
+
+  test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "test query");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Wait until reply text is visibly streaming (past the tool phase).
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("assistant-message")).toHaveTextContent(/Looking up/);
+      },
+      { timeout: 10000 },
+    );
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
   }, 20000);
 });
 

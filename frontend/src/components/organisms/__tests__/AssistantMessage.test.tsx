@@ -227,6 +227,34 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
   );
 });
 
+// Regenerate replays the turn from the backend's checkpoint, which only
+// holds a finalized AIMessage for turns that ran to completion. The
+// turn-level interruption record (DEV-109 ruling 11) is set unconditionally
+// on every Stop, so it gates the button even when every part in the message
+// already reads "done" — the case an abort mid-flight (streaming part
+// states) does not cover.
+describe("AssistantMessage — interrupted turn hides Regenerate", () => {
+  test("interrupted turn hides Regenerate even when every part reads complete", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "text" as const, text: "a complete-looking answer" }],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isLast={true}
+        status="ready"
+        interrupted
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
+});
+
 describe("AssistantMessage — citation rendering", () => {
   const commonMarkText =
     "Analysis shows growth [1] and stability [2].\n\n" +

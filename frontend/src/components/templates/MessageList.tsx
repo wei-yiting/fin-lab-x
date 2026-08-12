@@ -1,5 +1,6 @@
-import { useRef, useImperativeHandle, forwardRef, type ReactNode } from "react";
+import { useRef, useImperativeHandle, forwardRef, Fragment, type ReactNode } from "react";
 import { UserMessage } from "@/components/atoms/UserMessage";
+import { InterruptedMarker } from "@/components/atoms/InterruptedMarker";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
 import { ReasoningIndicator } from "@/components/atoms/ReasoningIndicator";
 import { shouldShowReasoningIndicator } from "@/lib/reasoning-indicator-logic";
@@ -17,6 +18,9 @@ interface MessageListProps {
   status: ChatStatus;
   toolProgress: Record<string, string>;
   abortedTools: Set<string>;
+  /** Message ids whose turn the user interrupted (DEV-109 ruling 11) — an
+   * "Interrupted" row renders right under each. */
+  interruptedMessages?: Set<string>;
   onRegenerate: (id: string) => void;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
@@ -27,7 +31,16 @@ export interface MessageListHandle {
 }
 
 export const MessageList = forwardRef<MessageListHandle, MessageListProps>(function MessageList(
-  { messages, status, toolProgress, abortedTools, onRegenerate, emptyContent, errorContent },
+  {
+    messages,
+    status,
+    toolProgress,
+    abortedTools,
+    interruptedMessages,
+    onRegenerate,
+    emptyContent,
+    errorContent,
+  },
   ref,
 ) {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -73,22 +86,36 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
       >
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-16 pt-[76px] pb-4">
           {messages.map((msg, i) => {
+            const interrupted = interruptedMessages?.has(msg.id) ?? false;
             if (msg.role === "user") {
               const textPart = msg.parts.find((p) => p.type === "text");
-              return <UserMessage key={msg.id} content={(textPart?.text as string) ?? ""} />;
+              return (
+                <Fragment key={msg.id}>
+                  <UserMessage content={(textPart?.text as string) ?? ""} />
+                  {interrupted && <InterruptedMarker />}
+                </Fragment>
+              );
             }
             if (msg.role === "assistant") {
               const isLast = i === messages.length - 1;
               return (
-                <AssistantMessage
-                  key={msg.id}
-                  message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
-                  isLast={isLast}
-                  status={status}
-                  abortedTools={abortedTools}
-                  toolProgress={toolProgress}
-                  onRegenerate={onRegenerate}
-                />
+                <Fragment key={msg.id}>
+                  <AssistantMessage
+                    message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
+                    isLast={isLast}
+                    status={status}
+                    abortedTools={abortedTools}
+                    toolProgress={toolProgress}
+                    interrupted={interrupted}
+                    // Only the last message renders a Regenerate button, and
+                    // this callback closes over `messages` — so its identity
+                    // changes on every delta. Handing it to the earlier
+                    // messages too would break their memoization for a button
+                    // they never show.
+                    onRegenerate={isLast ? onRegenerate : undefined}
+                  />
+                  {interrupted && <InterruptedMarker />}
+                </Fragment>
               );
             }
             return null;

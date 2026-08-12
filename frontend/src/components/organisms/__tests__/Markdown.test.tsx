@@ -84,3 +84,80 @@ describe("Markdown — URL sanitization (inline body links)", () => {
     );
   });
 });
+
+// While streaming, the text is rendered as separately-memoized top-level
+// blocks so that an arriving delta only re-parses the block still being
+// written. Splitting is where that optimization can go wrong, so these lock
+// the structures a naive blank-line split would tear apart, plus the
+// property that matters to the reader: streaming and completed renders show
+// the same content.
+describe("Markdown — streaming block splitting", () => {
+  test("fenced code block survives its own internal blank lines", () => {
+    const text = "Intro.\n\n```python\ndef a():\n\n    return 1\n```\n\nAfter.";
+
+    render(<Markdown text={text} isStreaming sources={[]} />);
+
+    // One <pre>, not one per side of the blank line.
+    const blocks = document.querySelectorAll("pre");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].textContent).toContain("def a():");
+    expect(blocks[0].textContent).toContain("return 1");
+  });
+
+  test("GFM table stays a single table", () => {
+    const text =
+      "Comparison:\n\n| Metric | NVDA | AMD |\n| --- | --- | --- |\n| P/E | 32.1 | 122.3 |\n| P/S | 20.2 | 19.1 |\n\nDone.";
+
+    render(<Markdown text={text} isStreaming sources={[]} />);
+
+    expect(document.querySelectorAll("table")).toHaveLength(1);
+    expect(screen.getByRole("columnheader", { name: "Metric" })).toBeInTheDocument();
+    expect(document.querySelectorAll("tbody tr")).toHaveLength(2);
+  });
+
+  test("loose list (blank lines between items) stays one list", () => {
+    const text = "Points:\n\n- first\n\n- second\n\n- third";
+
+    render(<Markdown text={text} isStreaming sources={[]} />);
+
+    expect(document.querySelectorAll("ul")).toHaveLength(1);
+    expect(document.querySelectorAll("li")).toHaveLength(3);
+  });
+
+  test("streaming render produces the same visible structure as the completed render", () => {
+    const text =
+      "# Heading\n\nA paragraph with **bold** text.\n\n- item one\n- item two\n\n> a quote\n\nFinal words.";
+
+    // Element tag + trimmed text, which is what a reader perceives. Raw
+    // textContent would not match: rendering the document as one pass leaves
+    // the newline between two block elements as a text node, while rendering
+    // block-by-block does not. Both display identically — block elements
+    // already break the line — so the difference is not a regression.
+    const outline = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll("h1,h2,h3,p,li,blockquote,pre,table")).map(
+        (el) => `${el.tagName}:${(el.textContent ?? "").trim()}`,
+      );
+
+    const streaming = render(<Markdown text={text} isStreaming sources={[]} />);
+    const streamedOutline = outline(streaming.container);
+    const streamedText = streaming.container.textContent ?? "";
+    streaming.unmount();
+
+    const complete = render(<Markdown text={text} isStreaming={false} sources={[]} />);
+
+    expect(streamedOutline).toEqual(outline(complete.container));
+    // The cursor sentinel must always be swapped for the real element.
+    expect(streamedText).not.toContain("CURSOR");
+  });
+
+  test("cursor renders once, at the end of the last block", () => {
+    const text = "First para.\n\nSecond para.";
+
+    const { container } = render(<Markdown text={text} isStreaming sources={[]} />);
+
+    const cursors = container.querySelectorAll('[data-testid="cursor"]');
+    expect(cursors).toHaveLength(1);
+    const paragraphs = container.querySelectorAll("p");
+    expect(paragraphs[paragraphs.length - 1].contains(cursors[0])).toBe(true);
+  });
+});

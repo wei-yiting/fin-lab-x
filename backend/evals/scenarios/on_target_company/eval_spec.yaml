@@ -17,7 +17,7 @@ column_mapping:
 scorers:
   - name: on_target_company
     type: llm_judge
-    model: gpt-4o
+    model: gemini-3.6-flash
     use_cot: true
     temperature: 0
     rubric_file: rubric.md

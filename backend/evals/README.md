@@ -48,7 +48,8 @@ Braintrust Project Settings should set a stable diagnostic comparison key, e.g. 
 This is the primary flow for dataset-based quality evaluation.
 
 ```bash
-# Local mode (default — needs OPENAI_API_KEY, but no BRAINTRUST_API_KEY)
+# Local mode (default — needs OPENAI_API_KEY; GEMINI_API_KEY too if the
+# scenario has an llm_judge scorer; no BRAINTRUST_API_KEY)
 uv run python -m backend.evals.eval_runner language_policy
 
 # Upload mode (creates a Braintrust experiment)
@@ -86,7 +87,8 @@ Both tracks call real LLM/tools. Configure environment variables in `backend/.en
 
 | Variable             | Regression Suite (pytest) | Quality Track (default) | Quality Track (`--upload`) | Purpose           |
 | -------------------- | ------------------ | ------------------------------ | --------------------------------- | ----------------- |
-| `OPENAI_API_KEY`     | Yes                | Yes                             | Yes                                | LLM calls         |
+| `OPENAI_API_KEY`     | Yes                | Yes                             | Yes                                | Agent task calls  |
+| `GEMINI_API_KEY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | LLM-judge calls (llm_judge scorers, ADR-0014) |
 | `TAVILY_API_KEY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Search tool calls |
 | `EDGAR_IDENTITY`     | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | SEC retrieval     |
 | `QDRANT_URL`         | Scenario-dependent | Scenario-dependent              | Scenario-dependent                 | Vector store (sec_retrieval) |
@@ -203,7 +205,9 @@ scorers:
                                 # YAML is rejected at load time. The file content
                                 # is a Mustache template, can use {{input}},
                                 # {{expected.field}}
-    model: string               # (optional) LLM model, e.g. "gpt-4o"
+    model: string               # (optional) LLM model, e.g. "gemini-3.6-flash" — the
+                                # judge client is pinned to Gemini (ADR-0007, ADR-0014),
+                                # deliberately a different model family than the agent
     use_cot: bool               # (optional) Chain-of-thought before scoring, default false
     temperature: float          # (optional) Judge sampling temperature, default 0.0; llm_judge only
     choice_scores:              # (optional) LLM choice → score mapping, default {"Y": 1.0, "N": 0.0}

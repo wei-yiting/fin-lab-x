@@ -16,9 +16,12 @@ from backend.evals.eval_spec_schema import ScorerConfig
 
 logger = logging.getLogger(__name__)
 
-# LLM-judge calls go straight to OpenAI, deliberately bypassing the Braintrust
-# gateway and any OPENAI_BASE_URL override — see ADR-0007 before changing this.
-_JUDGE_BASE_URL = "https://api.openai.com/v1"
+# LLM-judge calls go straight to Gemini's OpenAI-compatible endpoint,
+# deliberately bypassing the Braintrust gateway and any OPENAI_* env vars —
+# see ADR-0007 and ADR-0014 before changing this. The judge is pinned to a
+# different model family than the agent (DEV-146) to avoid self-preference
+# bias; this endpoint is hardcoded, not env-inferred.
+_JUDGE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 _TEMPLATE_VAR_RE = re.compile(r"\{\{(expected\.\w+|input)\}\}")
 
@@ -50,12 +53,12 @@ def resolve_function(dotpath: str, *, label: str = "scorer") -> Callable[..., An
 
 
 def _build_judge_client() -> OpenAI:
-    """Build the OpenAI client injected into every LLM-judge scorer."""
-    api_key = os.environ.get("OPENAI_API_KEY")
+    """Build the OpenAI-SDK client (pointed at Gemini) injected into every LLM-judge scorer."""
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise ValueError(
-            "OPENAI_API_KEY is not set. The eval LLM-judge client calls "
-            f"{_JUDGE_BASE_URL} directly; set OPENAI_API_KEY to run "
+            "GEMINI_API_KEY is not set. The eval LLM-judge client calls "
+            f"{_JUDGE_BASE_URL} directly; set GEMINI_API_KEY to run "
             "llm_judge scorers."
         )
     return OpenAI(api_key=api_key, base_url=_JUDGE_BASE_URL)

@@ -475,7 +475,7 @@ class TestRunScenario:
             "name": scenario_name,
             "csv": "dataset.csv",
             "regression": {"enabled": True},
-            "task": {"function": "backend.evals.eval_tasks.run_baseline"},
+            "task": {"function": "backend.evals.eval_tasks.run_profile"},
             "column_mapping": {"prompt": "input"},
             "scorers": [
                 {
@@ -558,7 +558,7 @@ class TestRunScenario:
 
         from backend.evals.eval_runner import run_scenario
 
-        result_path = run_scenario(
+        run_result = run_scenario(
             "test_scenario",
             upload=False,
             output_dir=output_dir,
@@ -566,10 +566,10 @@ class TestRunScenario:
         )
 
         mock_init_tracing.assert_not_called()
-        assert result_path.exists()
-        assert result_path.suffix == ".csv"
+        assert run_result.csv_path.exists()
+        assert run_result.csv_path.suffix == ".csv"
 
-        with result_path.open("r", encoding="utf-8") as f:
+        with run_result.csv_path.open("r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -623,7 +623,7 @@ class TestRunScenario:
 
         from backend.evals.eval_runner import run_scenario
 
-        result_path = run_scenario(
+        run_result = run_scenario(
             "test_scenario",
             upload=True,
             output_dir=output_dir,
@@ -634,7 +634,7 @@ class TestRunScenario:
         _, call_kwargs = mock_eval.call_args
         assert call_kwargs["no_send_logs"] is False
         assert call_kwargs["max_concurrency"] == 10
-        assert result_path.exists()
+        assert run_result.csv_path.exists()
 
     @patch("backend.evals.eval_runner.Eval")
     @patch("backend.evals.eval_runner.resolve_scorers")
@@ -800,7 +800,7 @@ class TestRunScenario:
 
         from backend.evals.eval_runner import run_scenario
 
-        result_path = run_scenario(
+        run_result = run_scenario(
             "baseline_behavior_diagnostic",
             upload=False,
             output_dir=output_dir,
@@ -809,7 +809,7 @@ class TestRunScenario:
             row_ids="2,1",
         )
 
-        with result_path.open("r", encoding="utf-8") as file:
+        with run_result.csv_path.open("r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             rows = list(reader)
 
@@ -865,7 +865,7 @@ class TestRunScenario:
         from backend.evals.eval_runner import run_scenario
 
         with patch("backend.evals.eval_runner.Eval", side_effect=fake_eval):
-            result_path = run_scenario(
+            run_result = run_scenario(
                 "baseline_behavior_diagnostic",
                 upload=True,
                 output_dir=output_dir,
@@ -874,7 +874,7 @@ class TestRunScenario:
                 row_ids="2",
             )
 
-        assert result_path.exists()
+        assert run_result.csv_path.exists()
         assert len(eval_calls) == 1
         mock_init_platform_tracing.assert_called_once()
 
@@ -903,7 +903,7 @@ class TestRunScenario:
         assert braintrust_metadata["capability_band"] == "boundary"
         assert not any(key.startswith("reference_") for key in braintrust_metadata)
 
-        with result_path.open("r", encoding="utf-8") as file:
+        with run_result.csv_path.open("r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             rows = list(reader)
 
@@ -993,7 +993,7 @@ class TestRunScenario:
 
         from backend.evals.eval_runner import run_scenario
 
-        result_path = run_scenario(
+        run_result = run_scenario(
             "baseline_behavior_diagnostic",
             upload=False,
             output_dir=tmp_path / "results",
@@ -1002,7 +1002,7 @@ class TestRunScenario:
             row_ids="2",
         )
 
-        with result_path.open("r", encoding="utf-8") as file:
+        with run_result.csv_path.open("r", encoding="utf-8") as file:
             rows = list(csv.DictReader(file))
 
         assert len(rows) == 1
@@ -1041,6 +1041,18 @@ class TestRunScenario:
 # ---------------------------------------------------------------------------
 
 
+def _stub_run_result(csv_path: Path) -> "object":
+    from backend.evals.eval_runner import ScenarioRunResult
+
+    return ScenarioRunResult(
+        scenario_name="stub",
+        scorer_names=[],
+        case_results=[],
+        csv_path=csv_path,
+        is_full_dataset=True,
+    )
+
+
 class TestMainCli:
     @patch("backend.evals.eval_runner.run_scenario")
     def test_main_forwards_diagnostic_cli_flags(
@@ -1055,7 +1067,9 @@ class TestMainCli:
         (scenario_dir / "eval_spec.yaml").write_text(
             "name: baseline_behavior_diagnostic\n"
         )
-        mock_run_scenario.return_value = tmp_path / "results" / "manifest.csv"
+        mock_run_scenario.return_value = _stub_run_result(
+            tmp_path / "results" / "manifest.csv"
+        )
 
         from backend.evals.eval_runner import main
 
@@ -1190,15 +1204,15 @@ class TestMainCli:
                 "name": "response_quality",
                 "csv": "dataset.csv",
                 "regression": {"enabled": True},
-                "task": {"function": "backend.evals.eval_tasks.run_baseline"},
+                "task": {"function": "backend.evals.eval_tasks.run_profile"},
                 "column_mapping": {"prompt": "input"},
                 "scorers": [{"name": "s", "function": "some.func"}],
             }
             (d / "eval_spec.yaml").write_text(yaml.dump(spec))
 
         mock_run.side_effect = [
-            tmp_path / "results" / "r1.csv",
-            tmp_path / "results" / "r2.csv",
+            _stub_run_result(tmp_path / "results" / "r1.csv"),
+            _stub_run_result(tmp_path / "results" / "r2.csv"),
         ]
 
         from backend.evals.eval_runner import main
@@ -1228,7 +1242,7 @@ class TestMainCli:
             (d / "eval_spec.yaml").write_text(f"name: {name}\n")
 
         mock_run.side_effect = [
-            tmp_path / "results" / "good_one_result.csv",
+            _stub_run_result(tmp_path / "results" / "good_one_result.csv"),
             ValueError("bad scenario config"),
         ]
 
@@ -1264,7 +1278,7 @@ class TestMainCli:
 
         mock_run.side_effect = [
             RuntimeError("invalid api key"),
-            tmp_path / "results" / "good_one_result.csv",
+            _stub_run_result(tmp_path / "results" / "good_one_result.csv"),
         ]
 
         from backend.evals.eval_runner import main
@@ -1553,3 +1567,144 @@ class TestConvertCellPrecision:
         from backend.evals.dataset_loader import _convert_cell
 
         assert _convert_cell("12") == 12.0
+
+
+# ---------------------------------------------------------------------------
+# profile injection + case subset (regression gate support)
+# ---------------------------------------------------------------------------
+
+
+class TestProfileInjectionAndSubset:
+    def _setup_scenario_with_ids(self, tmp_path: Path) -> Path:
+        import yaml
+
+        scenarios_dir = tmp_path / "scenarios"
+        scenario_dir = scenarios_dir / "test_scenario"
+        scenario_dir.mkdir(parents=True)
+        spec = {
+            "name": "test_scenario",
+            "csv": "dataset.csv",
+            "regression": {"enabled": True},
+            "task": {"function": "backend.evals.eval_tasks.run_profile"},
+            "column_mapping": {"prompt": "input"},
+            "scorers": [
+                {"name": "test_scorer", "function": "pkg.mod.fn"},
+            ],
+        }
+        (scenario_dir / "eval_spec.yaml").write_text(yaml.dump(spec))
+        (scenario_dir / "dataset.csv").write_text(
+            "id,prompt\nLP-01,hello\nLP-02,goodbye\n"
+        )
+        return scenarios_dir
+
+    def _run(
+        self,
+        tmp_path: Path,
+        task_fn: object,
+        *,
+        profile: str | None = None,
+        case_ids: list[str] | None = None,
+    ) -> object:
+        scenarios_dir = self._setup_scenario_with_ids(tmp_path)
+
+        fake_scorer = MagicMock(return_value=1.0)
+        fake_scorer.__name__ = "test_scorer"
+
+        from backend.evals.eval_runner import run_scenario
+
+        with (
+            patch(
+                "backend.evals.eval_runner.resolve_function",
+                return_value=task_fn,
+            ),
+            patch(
+                "backend.evals.eval_runner.resolve_scorers",
+                return_value=[fake_scorer],
+            ),
+        ):
+            return run_scenario(
+                "test_scenario",
+                upload=False,
+                output_dir=tmp_path / "results",
+                scenarios_dir=scenarios_dir,
+                profile=profile,
+                case_ids=case_ids,
+            )
+
+    def test_profile_passed_when_signature_accepts(self, tmp_path: Path) -> None:
+        seen: list[str] = []
+
+        def task(input: object, profile: str = "baseline") -> str:
+            seen.append(profile)
+            return "response"
+
+        self._run(tmp_path, task, profile="candidate_a")
+
+        assert seen == ["candidate_a", "candidate_a"]
+
+    def test_profile_not_passed_when_signature_lacks_it(self, tmp_path: Path) -> None:
+        calls: list[object] = []
+
+        def task(input: object) -> str:
+            calls.append(input)
+            return "response"
+
+        result = self._run(tmp_path, task, profile="candidate_a")
+
+        assert len(calls) == 2
+        assert all(case.task_error is None for case in result.case_results)
+
+    def test_profile_none_leaves_task_default(self, tmp_path: Path) -> None:
+        seen: list[str] = []
+
+        def task(input: object, profile: str = "baseline") -> str:
+            seen.append(profile)
+            return "response"
+
+        self._run(tmp_path, task, profile=None)
+
+        assert seen == ["baseline", "baseline"]
+
+    def test_case_ids_runs_subset_and_flags_partial(self, tmp_path: Path) -> None:
+        prompts: list[object] = []
+
+        def task(input: object) -> str:
+            prompts.append(input)
+            return "response"
+
+        result = self._run(tmp_path, task, case_ids=["LP-02"])
+
+        assert prompts == ["goodbye"]
+        assert result.is_full_dataset is False
+        assert [case.case_id for case in result.case_results] == ["LP-02"]
+
+    def test_full_run_reports_full_dataset_and_case_ids(self, tmp_path: Path) -> None:
+        def task(input: object) -> str:
+            return "response"
+
+        result = self._run(tmp_path, task)
+
+        assert result.is_full_dataset is True
+        assert [case.case_id for case in result.case_results] == ["LP-01", "LP-02"]
+        assert result.scorer_names == ["test_scorer"]
+        assert all(case.scores == {"test_scorer": 1.0} for case in result.case_results)
+
+    def test_unknown_case_ids_raise(self, tmp_path: Path) -> None:
+        def task(input: object) -> str:
+            return "response"
+
+        with pytest.raises(ValueError, match="Unknown case ids"):
+            self._run(tmp_path, task, case_ids=["NOPE-99"])
+
+    def test_task_crash_recorded_as_case_task_error(self, tmp_path: Path) -> None:
+        def task(input: object) -> str:
+            if input == "goodbye":
+                raise RuntimeError("stream died")
+            return "response"
+
+        result = self._run(tmp_path, task)
+
+        errors = {case.case_id: case.task_error for case in result.case_results}
+        assert errors["LP-01"] is None
+        assert errors["LP-02"] is not None
+        assert "stream died" in errors["LP-02"]

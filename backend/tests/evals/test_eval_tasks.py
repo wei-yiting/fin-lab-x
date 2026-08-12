@@ -1,6 +1,6 @@
 """Tests for eval task functions.
 
-Verifies that run_baseline uses the async streaming path (astream_run) and
+Verifies that run_profile uses the async streaming path (astream_run) and
 correctly collects domain events into OrchestratorResult.
 """
 
@@ -55,7 +55,7 @@ async def _async_gen(events: list):
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_v1_string_input_calls_astream_run(mock_get_orch: MagicMock) -> None:
+def test_run_profile_string_input_calls_astream_run(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
     mock_orchestrator.config.version = "baseline"
@@ -64,9 +64,9 @@ def test_run_v1_string_input_calls_astream_run(mock_get_orch: MagicMock) -> None
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_baseline
+    from backend.evals.eval_tasks import run_profile
 
-    result = asyncio.run(run_baseline("微軟最近有什麼新聞？"))
+    result = asyncio.run(run_profile("微軟最近有什麼新聞？"))
 
     mock_get_orch.assert_called_once_with("baseline")
     mock_orchestrator.astream_run.assert_called_once()
@@ -76,7 +76,26 @@ def test_run_v1_string_input_calls_astream_run(mock_get_orch: MagicMock) -> None
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_v1_dict_input_extracts_prompt(mock_get_orch: MagicMock) -> None:
+def test_run_profile_explicit_profile_selects_orchestrator(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "candidate"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_profile
+
+    asyncio.run(run_profile("test query", profile="candidate"))
+
+    mock_get_orch.assert_called_once_with("candidate")
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_profile_dict_input_extracts_prompt(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
     mock_orchestrator.config.version = "baseline"
@@ -85,9 +104,9 @@ def test_run_v1_dict_input_extracts_prompt(mock_get_orch: MagicMock) -> None:
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_baseline
+    from backend.evals.eval_tasks import run_profile
 
-    result = asyncio.run(run_baseline({"prompt": "test query"}))
+    result = asyncio.run(run_profile({"prompt": "test query"}))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "test query"
@@ -95,7 +114,7 @@ def test_run_v1_dict_input_extracts_prompt(mock_get_orch: MagicMock) -> None:
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_v1_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
+def test_run_profile_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
     events = _mock_astream_events(
         text="蘋果公司最新財報表現良好",
         tool_name="tavily_financial_search",
@@ -107,9 +126,9 @@ def test_run_v1_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
     mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_baseline
+    from backend.evals.eval_tasks import run_profile
 
-    result = asyncio.run(run_baseline("蘋果公司最新的財報表現如何？"))
+    result = asyncio.run(run_profile("蘋果公司最新的財報表現如何？"))
 
     assert result["response"] == "蘋果公司最新財報表現良好"
     assert len(result["tool_outputs"]) == 1
@@ -121,7 +140,7 @@ def test_run_v1_collects_tool_outputs(mock_get_orch: MagicMock) -> None:
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_v1_scalar_input_converted_to_string(mock_get_orch: MagicMock) -> None:
+def test_run_profile_scalar_input_converted_to_string(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
     mock_orchestrator.config.version = "baseline"
@@ -130,16 +149,16 @@ def test_run_v1_scalar_input_converted_to_string(mock_get_orch: MagicMock) -> No
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_baseline
+    from backend.evals.eval_tasks import run_profile
 
-    asyncio.run(run_baseline(42))
+    asyncio.run(run_profile(42))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "42"
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_v1_float_input_converted_to_string(mock_get_orch: MagicMock) -> None:
+def test_run_profile_float_input_converted_to_string(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
     mock_orchestrator.config.version = "baseline"
@@ -148,16 +167,16 @@ def test_run_v1_float_input_converted_to_string(mock_get_orch: MagicMock) -> Non
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_baseline
+    from backend.evals.eval_tasks import run_profile
 
-    asyncio.run(run_baseline(3.14))
+    asyncio.run(run_profile(3.14))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "3.14"
 
 
 @patch("backend.evals.eval_tasks._get_orchestrator")
-def test_run_v1_list_input_converted_to_string(mock_get_orch: MagicMock) -> None:
+def test_run_profile_list_input_converted_to_string(mock_get_orch: MagicMock) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.config.model.name = "gpt-4o-mini"
     mock_orchestrator.config.version = "baseline"
@@ -166,9 +185,9 @@ def test_run_v1_list_input_converted_to_string(mock_get_orch: MagicMock) -> None
     )
     mock_get_orch.return_value = mock_orchestrator
 
-    from backend.evals.eval_tasks import run_baseline
+    from backend.evals.eval_tasks import run_profile
 
-    asyncio.run(run_baseline(["a", "b"]))
+    asyncio.run(run_profile(["a", "b"]))
 
     call_kwargs = mock_orchestrator.astream_run.call_args[1]
     assert call_kwargs["message"] == "['a', 'b']"

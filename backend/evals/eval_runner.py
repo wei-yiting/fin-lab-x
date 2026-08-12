@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import functools
 import inspect
 import json
 import logging
@@ -18,8 +19,9 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Sequence
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -61,6 +63,61 @@ logger = logging.getLogger(__name__)
 # exception) all the way through Eval().
 _ERROR_MARKER = "ERROR"
 _SKIPPED_MARKER = "SKIPPED"
+
+
+@dataclass(frozen=True)
+class CaseResult:
+    """Per-case outcome of a scenario run, in the SDK's own vocabulary.
+
+    ``scores`` maps scorer name to its score, with ``None`` covering both a
+    deliberate skip and a scorer error — ``scorer_errors`` names which of the
+    two it was. ``task_error`` is set when the task function itself raised,
+    in which case every scorer is absent for the case.
+    """
+
+    case_id: str
+    scores: dict[str, float | None] = field(default_factory=dict)
+    scorer_errors: frozenset[str] = frozenset()
+    task_error: str | None = None
+
+
+@dataclass(frozen=True)
+class ScenarioRunResult:
+    """Structured result of ``run_scenario`` — scores stay in memory.
+
+    Downstream verdicts (the regression gate) consume ``case_results``
+    directly instead of re-parsing the result CSV, whose ERROR/SKIPPED
+    sentinels are a human-facing report format, not an API.
+    """
+
+    scenario_name: str
+    scorer_names: list[str]
+    case_results: list[CaseResult]
+    csv_path: Path
+    is_full_dataset: bool
+
+
+def case_identifier(row: dict[str, str], index: int) -> str:
+    """Stable case identifier: the dataset's ``id`` column, else 1-based index."""
+    row_id = row.get("id", "").strip()
+    return row_id if row_id else f"case-{index + 1:02d}"
+
+
+def _accepts_profile(fn: Any) -> bool:
+    """True when *fn* declares an explicit ``profile`` parameter.
+
+    Deliberately ignores ``**kwargs``: profile injection is opt-in by
+    signature (``run_profile`` accepts, ``run_sec_retrieval`` does not).
+    """
+    try:
+        sig = inspect.signature(fn)
+    except (ValueError, TypeError):
+        return False
+    param = sig.parameters.get("profile")
+    return param is not None and param.kind in (
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        inspect.Parameter.KEYWORD_ONLY,
+    )
 
 
 def discover_scenarios(scenarios_dir: Path) -> list[str]:
@@ -363,7 +420,9 @@ def run_scenario(
     scenarios_dir: Path = SCENARIOS_DIR,
     run_label: str | None = None,
     row_ids: str | None = None,
-) -> Path:
+    profile: str | None = None,
+    case_ids: Sequence[str] | None = None,
+) -> ScenarioRunResult:
     """Execute a single evaluation scenario via Braintrust ``Eval()``.
 
     Steps:
@@ -373,7 +432,13 @@ def run_scenario(
     3. Validate CSV exists, load_dataset() -> data list
     4. resolve_scorers() -> scorer callables, dynamic import task function
     5. Eval() call (no_send_logs=not upload)
-    6. write_result_csv() -> result CSV path
+    6. write_result_csv(), return ScenarioRunResult
+
+    ``profile`` is forwarded to the task function only when its signature
+    declares a ``profile`` parameter; ``None`` means the function's own
+    default applies. ``case_ids`` restricts the run to those dataset cases
+    (matched by ``id`` column, else positional ``case-NN``) — the result then
+    reports ``is_full_dataset=False`` so aggregate consumers can refuse it.
     """
     bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
 
@@ -390,6 +455,10 @@ def run_scenario(
         value is not None for value in diagnostic_flags
     ):
         raise ValueError("Diagnostic flags are only supported for diagnostic scenarios")
+    if config.diagnostic is not None and case_ids is not None:
+        raise ValueError(
+            "case_ids is not supported for diagnostic scenarios — use row_ids"
+        )
 
     banner_fields: dict[str, Any] = {}
     if config.pre_run is not None:
@@ -418,6 +487,8 @@ def run_scenario(
 
     scorers = resolve_scorers(config.scorers)
     task_fn = resolve_function(config.task.function, label="task")
+    if profile is not None and _accepts_profile(task_fn):
+        task_fn = functools.partial(task_fn, profile=profile)
 
     scorer_names = [s.name for s in config.scorers]
     wrapped_task = _wrap_task(task_fn, timeout=config.task.timeout)
@@ -431,9 +502,27 @@ def run_scenario(
     git_sha = _git_sha()
 
     if config.diagnostic is None:
+        raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
+        all_case_ids = [
+            case_identifier(row, idx) for idx, row in enumerate(original_rows)
+        ]
+        is_full_dataset = case_ids is None or set(case_ids) >= set(all_case_ids)
+        if case_ids is not None:
+            unknown = sorted(set(case_ids) - set(all_case_ids))
+            if unknown:
+                raise ValueError(
+                    f"Unknown case ids {unknown} for scenario '{config.name}'. "
+                    f"Available: {all_case_ids}"
+                )
+            selected_indices = [
+                idx for idx, cid in enumerate(all_case_ids) if cid in set(case_ids)
+            ]
+            raw_data = [raw_data[idx] for idx in selected_indices]
+            original_rows = [original_rows[idx] for idx in selected_indices]
+            all_case_ids = [all_case_ids[idx] for idx in selected_indices]
+            banner_line += f" | Cases: {len(selected_indices)} (subset)"
         print(banner_line, file=sys.stderr)
 
-        raw_data = load_dataset(csv_path, config.column_mapping, config.column_types)
         eval_cases = [
             EvalCase(
                 input=row["input"],
@@ -444,6 +533,7 @@ def run_scenario(
         ]
         eval_metadata: dict[str, Any] | None = None
         csv_rows = original_rows
+        result_case_ids = all_case_ids
     else:
         diagnostic_config = config.diagnostic
         effective_run_label = run_label or _build_default_run_label()
@@ -481,6 +571,7 @@ def run_scenario(
             )
             for row in diagnostic_data
         ]
+        is_full_dataset = len(selected_rows) == len(original_rows)
         eval_metadata = {
             "dataset_name": diagnostic_config.dataset_name,
             "dataset_version": diagnostic_config.dataset_version,
@@ -488,11 +579,12 @@ def run_scenario(
             # A subset run must never be mistaken for an authoritative one:
             # record exactly which rows ran and whether that was all of them.
             "selected_row_ids": selected_row_ids,
-            "is_full_dataset": len(selected_rows) == len(original_rows),
+            "is_full_dataset": is_full_dataset,
             "agent_version": effective_agent_version,
             "git_commit": git_sha,
         }
         csv_rows = selected_rows
+        result_case_ids = selected_row_ids
 
     eval_result = Eval(
         bt_config.project,
@@ -505,7 +597,7 @@ def run_scenario(
         max_concurrency=MAX_CONCURRENCY,
     )
 
-    return write_result_csv(
+    result_csv_path = write_result_csv(
         eval_result,
         scenario_name,
         scorer_names,
@@ -514,6 +606,30 @@ def run_scenario(
         original_rows=csv_rows,
         experiment_name=experiment_name,
         git_sha=git_sha,
+    )
+
+    case_results: list[CaseResult] = []
+    for idx, result in enumerate(eval_result.results):
+        scorer_errors = frozenset((result.metadata or {}).get("scorer_errors", {}))
+        case_results.append(
+            CaseResult(
+                case_id=(
+                    result_case_ids[idx]
+                    if idx < len(result_case_ids)
+                    else f"case-{idx + 1:02d}"
+                ),
+                scores={name: result.scores.get(name) for name in scorer_names},
+                scorer_errors=scorer_errors,
+                task_error=str(result.error) if result.error is not None else None,
+            )
+        )
+
+    return ScenarioRunResult(
+        scenario_name=config.name,
+        scorer_names=scorer_names,
+        case_results=case_results,
+        csv_path=result_csv_path,
+        is_full_dataset=is_full_dataset,
     )
 
 
@@ -759,7 +875,7 @@ def main(
         skipped = 0
         for name in available:
             try:
-                result_path = run_scenario(
+                run_result = run_scenario(
                     name,
                     upload=args.upload,
                     output_dir=output_dir,
@@ -767,7 +883,7 @@ def main(
                     run_label=args.run_label,
                     row_ids=args.row_ids,
                 )
-                print(f"  {name}: {result_path}")
+                print(f"  {name}: {run_result.csv_path}")
                 succeeded += 1
             except Exception as exc:
                 print(f"  {name}: SKIPPED ({exc})", file=sys.stderr)
@@ -790,7 +906,7 @@ def main(
         )
         raise SystemExit(1)
 
-    result_path = run_scenario(
+    run_result = run_scenario(
         args.scenario,
         upload=args.upload,
         output_dir=output_dir,
@@ -798,7 +914,7 @@ def main(
         run_label=args.run_label,
         row_ids=args.row_ids,
     )
-    print(f"Result: {result_path}")
+    print(f"Result: {run_result.csv_path}")
 
 
 def _check_duplicate_config_names(

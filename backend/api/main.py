@@ -30,7 +30,8 @@ DEFAULT_WORKFLOW_PROFILE = "baseline"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize application-level singletons on startup."""
-    config = ProfileConfigLoader(DEFAULT_WORKFLOW_PROFILE).load()
+    profile_name = os.getenv("WORKFLOW_PROFILE", DEFAULT_WORKFLOW_PROFILE)
+    config = ProfileConfigLoader(profile_name).load()
 
     db_path = str(get_checkpoint_db_path())
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
@@ -38,7 +39,8 @@ async def lifespan(app: FastAPI):
     async with AsyncSqliteSaver.from_conn_string(db_path) as checkpointer:
         app.state.orchestrator = Orchestrator(config, checkpointer=checkpointer)
         logger.info(
-            "Orchestrator initialized: version=%s, model=%s, checkpointer=AsyncSqliteSaver(%s)",
+            "Orchestrator initialized: profile=%s, version=%s, model=%s, checkpointer=AsyncSqliteSaver(%s)",
+            config.name,
             config.version,
             config.model.name,
             db_path,

@@ -3,6 +3,7 @@ import re
 import pytest
 
 from backend.common.sec_core import (
+    TENK_STANDARD_TITLES,
     FetchedFiling,
     FilingNotFoundError,
     FilingType,
@@ -276,6 +277,91 @@ class TestTrimSectionText:
         assert "2025" in str(excinfo.value)
         assert "0000320193-25-000079" in str(excinfo.value)
         assert store.get("AAPL", FilingType.TEN_K, 2025) is None
+
+
+class TestCanonicalItemOrder:
+    """edgartools' ``Sections`` dict arrives in its own detection order, not
+    canonical Item order (its ``__rich__`` sorts for display only). The parser
+    owns the ordering contract for every downstream consumer — notably the
+    filing-wide ``chunk_index`` that citation IDs are built from.
+    """
+
+    def test_misordered_sections_emit_in_canonical_order(self, store, monkeypatch):
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_ii_item_7a": {
+                    "item": "7A",
+                    "text": f"Item 7A. Market Risk\n{prose}",
+                },
+                "part_i_item_1": {"item": "1", "text": f"Item 1. Business\n{prose}"},
+                "part_ii_item_9": {
+                    "item": "9",
+                    "text": f"Item 9. Changes in Accountants\n{prose}",
+                },
+                "part_i_item_1a": {
+                    "item": "1A",
+                    "text": f"Item 1A. Risk Factors\n{prose}",
+                },
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert [item.item for item in result.items] == ["1", "1a", "7a", "9"]
+
+    def test_recorded_filing_emits_in_canonical_order(
+        self, store, fetch_calls, fake_tenk
+    ):
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        emitted = [item.item for item in result.items]
+        assert emitted == [k for k in TENK_STANDARD_TITLES if k in set(emitted)]
+
+        # Not vacuous: the recorded filing really does arrive misordered, so
+        # passing requires reordering rather than preserving arrival order.
+        arrival = [
+            key.lower()
+            for key in (
+                parser._section_item_key(section)
+                for section in fake_tenk.sections.values()
+            )
+            if key
+        ]
+        assert [k for k in arrival if k in set(emitted)] != emitted
+
+    def test_duplicate_item_keys_keep_first_surviving_occurrence(
+        self, store, monkeypatch
+    ):
+        # Ordering must not weaken the dedup rule: the first *surviving*
+        # section wins, so a stub first occurrence yields to a substantive
+        # later one rather than swallowing the item.
+        prose = "Net sales rose across every reportable segment. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_ii_item_7": {
+                    "item": "7",
+                    "text": (
+                        "Item 7. Management's Discussion and Analysis. The "
+                        "information required by this Item is incorporated "
+                        "herein by reference from the Proxy Statement."
+                    ),
+                },
+                "part_iv_item_7": {
+                    "item": "7",
+                    "text": f"Item 7. Management's Discussion and Analysis\n{prose}",
+                },
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        sevens = [item for item in result.items if item.item == "7"]
+        assert len(sevens) == 1
+        assert "Net sales rose across every reportable segment." in _full_text(
+            sevens[0]
+        )
 
 
 class TestDetectionWiring:

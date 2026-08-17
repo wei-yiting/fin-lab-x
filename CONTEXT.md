@@ -44,6 +44,10 @@ _Avoid_: sentinel point (legacy term)
 **Committed or absent**:
 The ingestion invariant: a failed, concurrent, or abandoned ingest must never leave partial or stale-mixed retrievable data. Refresh is wipe-before-rerun.
 
+**Canonical Item order**:
+The SEC Form 10-K standard item sequence (1, 1a, 1b, 1c, 2, … 15, 16) as fixed by the item registry, independent of any particular filing. Parsed filings emit items in this order; the actual position of an item inside a filing's document is not measured and not promised.
+_Avoid_: "filing order" / "document order" (implies a per-filing measurement the pipeline does not make)
+
 **Filing store**:
 The on-disk cache of parsed filings, shared by the ingestion pipelines and the JIT flow. The text pipeline stores schema-validated `ParsedFiling` JSON; the frozen HTML baseline keeps its legacy Markdown variant until sunset.
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
@@ -195,8 +195,33 @@ def _trim_section_text(text: str, current_item: str) -> str:
     return _TRAILING_PART_RE.sub("", trimmed.rstrip()).rstrip()
 
 
+def _build_item(key: str, text: str, candidates: HeadingCandidates) -> ParsedItem:
+    """One item from an already-trimmed, non-stub body: structured when the
+    detection chain (markdown H3/H4, then the Title-Case text fallback) finds
+    a plausibly-anchored structure, flat otherwise."""
+    title = TENK_STANDARD_TITLES[key]
+    detected = detect_blocks(text, candidates)
+    if detected is None:
+        return FlatItem(item=key, title=title, text=text)
+    return StructuredItem(
+        item=key,
+        title=title,
+        prelude=detected.prelude,
+        blocks=detected.blocks,
+        detection_source=detected.detection_source,
+    )
+
+
 def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
-    """Emit one parsed item per substantive 10-K item, in filing order.
+    """Emit one parsed item per substantive 10-K item, in canonical Item order.
+
+    edgartools iterates its ``Sections`` dict in the order its own detection
+    happened to populate it, which is neither canonical nor the filing's
+    document order (``Section.start_offset`` is 0 throughout under the ``toc``
+    method, so document order is not observable here). The order is therefore
+    taken from ``TENK_STANDARD_TITLES``: the registry is walked and each key's
+    sections looked up, the same way ``sec_filing_tools`` consumes this
+    surface.
 
     Each section body is trimmed to its own Item boundary before stub
     classification — a bled tail would otherwise both corrupt the emitted
@@ -209,39 +234,31 @@ def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
 
     Skips: entries that are not standard items (signatures, unknown keys),
     empty bodies, stub items (v2 classifier), and duplicate item keys
-    (first occurrence wins).
+    (first surviving occurrence wins — a stub first occurrence yields to a
+    substantive later one).
     """
-    items: list[ParsedItem] = []
-    seen: set[str] = set()
+    sections_by_key: dict[str, list[Any]] = {}
     for section in tenk.sections.values():
         raw_item = _section_item_key(section)
         if not raw_item:
             continue
         key = raw_item.lower()
-        if key not in TENK_STANDARD_TITLES or key in seen:
+        if key not in TENK_STANDARD_TITLES:
             continue
-        text = section.text()
-        if not text or not text.strip():
-            continue
-        text = _trim_section_text(text, key)
-        is_stub, _reason = is_stub_section_v2(text)
-        if is_stub:
-            continue
-        seen.add(key)
-        title = TENK_STANDARD_TITLES[key]
-        detected = detect_blocks(text, candidates)
-        if detected is not None:
-            items.append(
-                StructuredItem(
-                    item=key,
-                    title=title,
-                    prelude=detected.prelude,
-                    blocks=detected.blocks,
-                    detection_source=detected.detection_source,
-                )
-            )
-        else:
-            items.append(FlatItem(item=key, title=title, text=text))
+        sections_by_key.setdefault(key, []).append(section)
+
+    items: list[ParsedItem] = []
+    for key in TENK_STANDARD_TITLES:
+        for section in sections_by_key.get(key, ()):
+            text = section.text()
+            if not text or not text.strip():
+                continue
+            text = _trim_section_text(text, key)
+            is_stub, _reason = is_stub_section_v2(text)
+            if is_stub:
+                continue
+            items.append(_build_item(key, text, candidates))
+            break
     return items
 
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
@@ -42,6 +42,7 @@ from backend.ingestion.sec_text_pipeline.stub_detection import is_stub_section_v
 
 if TYPE_CHECKING:
     from edgar.company_reports.ten_k import TenK
+    from edgar.documents.document import Section
 
 
 class EmptyFilingError(SECError):
@@ -220,8 +221,8 @@ def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
     document order (``Section.start_offset`` is 0 throughout under the ``toc``
     method, so document order is not observable here). The order is therefore
     taken from ``TENK_STANDARD_TITLES``: the registry is walked and each key's
-    sections looked up, the same way ``sec_filing_tools`` consumes this
-    surface.
+    sections looked up. ``sec_filing_tools`` walks the registry the same way;
+    only the walk is shared — the dedup rule below is this module's own.
 
     Each section body is trimmed to its own Item boundary before stub
     classification — a bled tail would otherwise both corrupt the emitted
@@ -237,7 +238,7 @@ def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
     (first surviving occurrence wins — a stub first occurrence yields to a
     substantive later one).
     """
-    sections_by_key: dict[str, list[Any]] = {}
+    sections_by_key: dict[str, list[Section]] = {}
     for section in tenk.sections.values():
         raw_item = _section_item_key(section)
         if not raw_item:
@@ -249,7 +250,7 @@ def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
 
     items: list[ParsedItem] = []
     for key in TENK_STANDARD_TITLES:
-        for section in sections_by_key.get(key, ()):
+        for section in sections_by_key.get(key, []):
             text = section.text()
             if not text or not text.strip():
                 continue

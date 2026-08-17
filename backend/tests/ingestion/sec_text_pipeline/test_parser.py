@@ -320,6 +320,9 @@ class TestCanonicalItemOrder:
 
         # Not vacuous: the recorded filing really does arrive misordered, so
         # passing requires reordering rather than preserving arrival order.
+        # This half asserts a property of the recording — if the fixture is
+        # ever re-recorded and happens to arrive canonical, drop it and lean
+        # on the synthetic misorder test above.
         arrival = [
             key.lower()
             for key in (

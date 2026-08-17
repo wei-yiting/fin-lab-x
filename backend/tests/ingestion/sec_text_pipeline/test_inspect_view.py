@@ -107,12 +107,12 @@ class TestInspectMarkdown:
     def test_flat_item_long_text_shows_head_and_tail(self):
         # A boundary bleed (parser._trim_section_text) only shows up at the
         # tail, so the preview must surface both ends, not just the head.
-        long_text = "H" * 500 + "MIDDLE" * 100 + "T" * 500
+        long_text = "H" * 300 + "MIDDLE" * 100 + "T" * 300
         item = FlatItem(item="9b", title="Other Information", text=long_text)
         md = to_inspect_markdown(make_filing([item]))
         assert f"- text: {len(long_text):,} chars" in md  # count reflects the full text
-        assert "H" * 500 in md  # head shown in full
-        assert "T" * 500 in md  # tail shown in full
+        assert "H" * 300 in md  # head shown in full
+        assert "T" * 300 in md  # tail shown in full
         assert "MIDDLE" not in md  # omitted middle doesn't leak through
         assert "600 chars omitted" in md  # explicit count, not a bare ellipsis
 

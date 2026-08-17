@@ -27,7 +27,7 @@ _RECLASSIFIED_LABEL = "reclassified leading block"
 # (see parser._trim_section_text — observed on AAPL FY2025's Item 11 carrying
 # Items 12-15), and that failure only shows up at the tail. A head-only
 # preview would hide it; `--section` remains the full-text path.
-_FLAT_PREVIEW_EACH_END = 500
+_FLAT_PREVIEW_EACH_END = 300
 
 
 def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:

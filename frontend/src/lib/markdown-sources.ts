@@ -74,6 +74,24 @@ export function normalizeRefDefs(text: string): string {
     .replace(/([^\n])\n(\[(\d+)\]:\s)/gm, "$1\n\n$2");
 }
 
+// Matches a `[N]: url "title"` definition line so it can be stripped —
+// CommonMark hides these from the rendered body, but ReactMarkdown still
+// needs the raw text pre-stripped so streaming text doesn't flash the
+// unrendered definition syntax before the parser catches up.
+export const REF_DEF_LINE_RE = /^\[(\d+)\]:?\s+\S+.*$/gm;
+
+/**
+ * Whether reply text has any content the user would actually see rendered.
+ * Reuses the exact stripping pipeline AssistantMessage applies to its
+ * displayText, so a caller deciding "did this text paint anything" (e.g.
+ * the dead-air placeholder) agrees with what actually renders — a
+ * reference-definition-only or source-header-only chunk normalizes to
+ * nothing on both sides.
+ */
+export function hasVisibleReplyText(text: string): boolean {
+  return normalizeRefDefs(text).replace(REF_DEF_LINE_RE, "").trim() !== "";
+}
+
 /**
  * Remark plugin that rewrites `[N]`-style linkReference nodes whose identifier
  * matches a known source label into hast `<a>` elements carrying the source URL

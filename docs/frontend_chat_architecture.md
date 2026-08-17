@@ -24,7 +24,7 @@ flowchart BT
         StatusDot
         RefSup
         Cursor
-        ReasoningIndicator
+        ActivityPlaceholder
         PromptChip
         RegenerateButton
         InterruptedMarker
@@ -69,7 +69,7 @@ flowchart BT
     classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
 
     class P1,P2,P3 primitiveCls
-    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
+    class StatusDot,RefSup,Cursor,ActivityPlaceholder,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
@@ -79,7 +79,7 @@ flowchart BT
 | Layer | Classification rule | Examples |
 |---|---|---|
 | **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw` |
-| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ReasoningIndicator`, `PromptChip`, `RegenerateButton`, `InterruptedMarker`, `SourceLink`, `UserMessage` |
+| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ActivityPlaceholder`, `PromptChip`, `RegenerateButton`, `InterruptedMarker`, `SourceLink`, `UserMessage` |
 | **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ToolRow`, `ToolDetail`, `Sources` |
 | **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState` |
 | **templates** | Layout shell that accepts data via props; does not wire `useChat`. | `MessageList` |
@@ -101,7 +101,7 @@ flowchart LR
 
     MessageList --> UserMessage
     MessageList --> AssistantMessage
-    MessageList --> ReasoningIndicator
+    MessageList --> ActivityPlaceholder
     MessageList --> InterruptedMarker
 
     AssistantMessage --> ToolCard
@@ -126,7 +126,7 @@ flowchart LR
     classDef templateCls fill:#fef3c7,stroke:#eab308,color:#713f12
     classDef pageCls fill:#fce7f3,stroke:#ec4899,color:#831843
 
-    class StatusDot,RefSup,Cursor,ReasoningIndicator,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
+    class StatusDot,RefSup,Cursor,ActivityPlaceholder,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls

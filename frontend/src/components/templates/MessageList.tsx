@@ -2,8 +2,6 @@ import { useRef, useImperativeHandle, forwardRef, Fragment, type ReactNode } fro
 import { UserMessage } from "@/components/atoms/UserMessage";
 import { InterruptedMarker } from "@/components/atoms/InterruptedMarker";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
-import { ReasoningIndicator } from "@/components/atoms/ReasoningIndicator";
-import { shouldShowReasoningIndicator } from "@/lib/reasoning-indicator-logic";
 import { useFollowBottom } from "@/hooks/useFollowBottom";
 import type { ChatStatus } from "@/models";
 
@@ -22,6 +20,8 @@ interface MessageListProps {
    * "Interrupted" row renders right under each. */
   interruptedMessages?: Set<string>;
   onRegenerate: (id: string) => void;
+  /** Rendered below the transcript in the dead-air windows (F6′ placeholder). */
+  placeholder?: ReactNode;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
 }
@@ -38,6 +38,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     abortedTools,
     interruptedMessages,
     onRegenerate,
+    placeholder,
     emptyContent,
     errorContent,
   },
@@ -51,13 +52,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
 
   useImperativeHandle(ref, () => ({ forceFollowBottom }), [forceFollowBottom]);
 
-  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-  const showReasoning = shouldShowReasoningIndicator({
-    status,
-    lastMessage: lastMessage as Parameters<typeof shouldShowReasoningIndicator>[0]["lastMessage"],
-  });
-
-  if (messages.length === 0 && !showReasoning) {
+  if (messages.length === 0 && !placeholder) {
     return (
       <div
         data-testid="message-list"
@@ -126,7 +121,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             return null;
           })}
           {errorContent}
-          {showReasoning && <ReasoningIndicator />}
+          {placeholder}
         </div>
       </div>
     </div>

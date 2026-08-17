@@ -1,13 +1,17 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
+import { useStallTimer } from "@/hooks/useStallTimer";
+import { useDeadAirPlaceholder } from "@/hooks/useDeadAirPlaceholder";
+import { isToolPart } from "@/lib/reasoning-chips";
 import { STREAM_THROTTLE_MS } from "@/lib/timing";
 import { ChatHeader } from "@/components/organisms/ChatHeader";
 import { Composer, type ComposerHandle } from "@/components/organisms/Composer";
 import { MessageList, type MessageListHandle } from "@/components/templates/MessageList";
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { ErrorBlock } from "@/components/organisms/ErrorBlock";
+import { ActivityPlaceholder } from "@/components/atoms/ActivityPlaceholder";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
@@ -16,11 +20,6 @@ import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
 
 type PartLike = Record<string, unknown>;
-
-function isToolPart(p: PartLike): boolean {
-  const t = p.type;
-  return typeof t === "string" && (t.startsWith("tool-") || t === "dynamic-tool");
-}
 
 function getToolCallId(p: PartLike): string {
   return p.toolCallId as string;
@@ -40,12 +39,31 @@ export function ChatPanel() {
       }),
     [],
   );
-  const { toolProgress, handleData, clearProgress } = useToolProgress();
+  const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
+  // Late-bound handle to the stall stopwatch's reset — onData is wired into
+  // useChat above the stall hook in this component, so it reaches the reset
+  // through a ref kept in sync by an effect below.
+  const notifyActivityRef = useRef<(() => void) | null>(null);
+
+  // AI SDK v6's onData only fires for data-* chunks. Native parts
+  // (reasoning-*, text-*, tool-*) land in message.parts — the placeholder
+  // derives everything from (status, messages).
+  const onData = useCallback(
+    (dataPart: { type: string; id?: string; data: unknown }) => {
+      toolProgressHandleData(dataPart);
+      // Transient data-* chunks never enter message.parts, so the
+      // messages-keyed reset below can't see them — but they ARE stream
+      // parts and must zero the stall stopwatch (C3).
+      notifyActivityRef.current?.();
+    },
+    [toolProgressHandleData],
+  );
+
   const { messages, setMessages, sendMessage, regenerate, stop, status, error } = useChat({
     id: chatId,
     transport,
     experimental_throttle: STREAM_THROTTLE_MS,
-    onData: handleData,
+    onData,
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
   // Turn-level interruption record (DEV-109 ruling 11): message ids whose
@@ -57,6 +75,26 @@ export function ChatPanel() {
   const lastTriggerRef = useRef<LastTrigger | null>(null);
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
+
+  // The dead-air placeholder's non-derived state (see hooks/README.md): the
+  // global stall stopwatch, owned by useStallTimer, and its own grace timer,
+  // owned by useDeadAirPlaceholder.
+  const chatActive = status === "submitted" || status === "streaming";
+  const { stalled, notifyActivity } = useStallTimer(chatActive);
+  useEffect(() => {
+    notifyActivityRef.current = notifyActivity;
+  }, [notifyActivity]);
+
+  // Any stream part / delta arrival re-renders `messages` — that is the
+  // stopwatch's reset signal (C3: any part zeroes the global stall clock).
+  // Layout effect, not effect: the reset must land before paint so the
+  // render that introduces a new part never paints a stale degraded header
+  // (reset-before-derive — QA18 / S-place-05).
+  useLayoutEffect(() => {
+    if (chatActive) notifyActivity();
+  }, [messages, chatActive, notifyActivity]);
+
+  const placeholderState = useDeadAirPlaceholder(messages, status);
 
   const handleSend = useCallback(
     (text: string) => {
@@ -199,6 +237,9 @@ export function ChatPanel() {
         abortedTools={abortedTools}
         interruptedMessages={interruptedMessages}
         onRegenerate={handleRegenerate}
+        placeholder={
+          placeholderState === "waiting" ? <ActivityPlaceholder stalled={stalled} /> : undefined
+        }
         emptyContent={
           !showError ? (
             <EmptyState

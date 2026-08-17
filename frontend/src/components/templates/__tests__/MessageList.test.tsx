@@ -2,9 +2,24 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MessageList } from "../MessageList";
 
-describe("MessageList — ReasoningIndicator visibility", () => {
-  test("transient data-tool-progress does not hide ReasoningIndicator", () => {
-    const { rerender } = render(
+describe("MessageList — placeholder slot", () => {
+  test("renders the placeholder node when provided", () => {
+    render(
+      <MessageList
+        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
+        status="submitted"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+        placeholder={<div data-testid="activity-placeholder">Thinking…</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("activity-placeholder")).toBeInTheDocument();
+  });
+
+  test("no placeholder node renders nothing extra", () => {
+    render(
       <MessageList
         messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
         status="streaming"
@@ -14,20 +29,7 @@ describe("MessageList — ReasoningIndicator visibility", () => {
       />,
     );
 
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-
-    rerender(
-      <MessageList
-        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
-        status="streaming"
-        toolProgress={{ "tc-1": "fetching..." }}
-        abortedTools={new Set()}
-        onRegenerate={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("activity-placeholder")).not.toBeInTheDocument();
   });
 
   test("empty messages with ready status renders empty content", () => {

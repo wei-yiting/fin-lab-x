@@ -17,7 +17,6 @@ from backend.evals.eval_runner import (
     ScenarioRunResult,
     run_scenario,
 )
-from backend.evals.regression.selection import plan_run
 
 
 def resolve_profile() -> str:
@@ -58,14 +57,21 @@ class GateRuns:
 
     def result(self, scenario: str) -> ScenarioRunResult:
         if scenario not in self._cache:
-            gate_selected, case_ids = _scan_selection(self._session, scenario)
-            plan = plan_run(gate_selected=gate_selected, selected_case_ids=case_ids)
+            gate_selected, selected_case_ids = _scan_selection(self._session, scenario)
+            # A selected gate item forces the full dataset: the aggregate verdict
+            # is only meaningful over all cases. A pure case selection runs just
+            # those cases, so a `-k LP-07` debug loop burns one agent call.
+            case_ids = (
+                None
+                if gate_selected or not selected_case_ids
+                else list(dict.fromkeys(selected_case_ids))
+            )
             self._cache[scenario] = run_scenario(
                 scenario,
                 upload=False,
                 output_dir=DEFAULT_RESULTS_DIR,
                 profile=self._profile,
-                case_ids=None if plan.full else list(plan.case_ids or ()),
+                case_ids=case_ids,
             )
         return self._cache[scenario]
 

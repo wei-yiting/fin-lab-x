@@ -24,8 +24,7 @@ from backend.evals.eval_runner import (
 from backend.evals.dataset_loader import load_raw_csv_rows
 from backend.evals.eval_spec_schema import ScenarioConfig, load_scenario_config
 from backend.evals.regression.conftest import GateRuns
-from backend.evals.regression.selection import gate_skip_reason
-from backend.evals.regression.verdict import evaluate_gate
+from backend.evals.regression.verdict import GateVerdict, evaluate_gate
 
 pytestmark = pytest.mark.eval
 
@@ -49,19 +48,37 @@ def _collect_scenarios() -> tuple[dict[str, ScenarioConfig], list[tuple[str, str
 _CONFIGS, _CASE_PARAMS = _collect_scenarios()
 
 
+def _print_gate_summary(gate: GateVerdict) -> None:
+    """Print per-scorer counts on every outcome — green included.
+
+    A green verdict computed over a shrunken denominator (skipped or errored
+    scorers) is still a guard that partly fell over; ADR-0015 requires those
+    counts to stay visible rather than be swallowed by the pass.
+    """
+    lines = [f"── {gate.scenario} gate [{gate.status}] ──"]
+    for verdict in gate.scorer_verdicts:
+        aggregate = "n/a" if verdict.aggregate is None else f"{verdict.aggregate:g}"
+        lines.append(
+            f"  {verdict.scorer}: aggregate={aggregate} "
+            f"floor={verdict.metric_floor:g} produced={verdict.produced} "
+            f"skipped={verdict.skipped} errored={verdict.errored}"
+        )
+    print("\n".join(lines), file=sys.stderr)
+
+
 @pytest.mark.parametrize("scenario", sorted(_CONFIGS))
-def test_gate(scenario: str, gate_runs: GateRuns) -> None:
+def test_gate(
+    scenario: str, gate_runs: GateRuns, capsys: pytest.CaptureFixture[str]
+) -> None:
     """Aggregate red/green verdict for one scenario — the gate itself."""
     config = _CONFIGS[scenario]
     if not config.regression.enabled:
         pytest.skip(f"regression.enabled: false for scenario '{scenario}'")
 
     result = gate_runs.result(scenario)
-    skip_reason = gate_skip_reason(is_full_dataset=result.is_full_dataset)
-    if skip_reason is not None:
-        pytest.skip(skip_reason)
-
     gate = evaluate_gate(config, result.case_results)
+    with capsys.disabled():
+        _print_gate_summary(gate)
     assert gate.status == "green", "\n".join(gate.failures)
 
 

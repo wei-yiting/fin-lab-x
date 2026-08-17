@@ -615,12 +615,13 @@ class TestRunScenario:
         mock_eval.return_value = SimpleNamespace(
             results=[
                 SimpleNamespace(
-                    input="hello world",
+                    input=prompt,
                     output="fake response",
                     scores={"test_scorer": 0.9},
                     error=None,
                     metadata={},
                 )
+                for prompt in ("hello world", "goodbye world")
             ]
         )
 
@@ -663,12 +664,13 @@ class TestRunScenario:
         mock_eval.return_value = SimpleNamespace(
             results=[
                 SimpleNamespace(
-                    input="hello world",
+                    input=prompt,
                     output="fake response",
                     scores={"test_scorer": 0.9},
                     error=None,
                     metadata={},
                 )
+                for prompt in ("hello world", "goodbye world")
             ]
         )
 
@@ -683,6 +685,52 @@ class TestRunScenario:
 
         _, call_kwargs = mock_eval.call_args
         assert call_kwargs["max_concurrency"] == 10
+
+    @patch("backend.evals.eval_runner.Eval")
+    @patch("backend.evals.eval_runner.resolve_scorers")
+    @patch("backend.evals.eval_runner.resolve_function")
+    def test_result_case_id_count_mismatch_raises(
+        self,
+        mock_resolve_task: MagicMock,
+        mock_resolve_scorers: MagicMock,
+        mock_eval: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        """M-3.1: a result/case-id count mismatch must fail closed rather than
+        attach a fabricated case id to a real score."""
+        scenarios_dir, _ = self._setup_scenario(tmp_path)
+        output_dir = tmp_path / "results"
+
+        fake_task = MagicMock(return_value="fake response")
+        mock_resolve_task.return_value = fake_task
+        fake_scorer = MagicMock(return_value=0.9)
+        fake_scorer.__name__ = "test_scorer"
+        mock_resolve_scorers.return_value = [fake_scorer]
+
+        mock_eval.return_value = SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    input=prompt,
+                    output="fake response",
+                    scores={"test_scorer": 0.9},
+                    error=None,
+                    metadata={},
+                )
+                for prompt in ("hello world", "goodbye world", "extra world")
+            ]
+        )
+
+        from backend.evals.eval_runner import run_scenario
+
+        with pytest.raises(ValueError):
+            run_scenario(
+                "test_scenario",
+                upload=False,
+                output_dir=output_dir,
+                scenarios_dir=scenarios_dir,
+            )
+
+        assert list(output_dir.glob("*.csv"))
 
     @patch("backend.evals.eval_runner.resolve_scorers")
     @patch("backend.evals.eval_runner.resolve_function")
@@ -1048,11 +1096,9 @@ def _stub_run_result(csv_path: Path) -> "ScenarioRunResult":
     from backend.evals.eval_runner import ScenarioRunResult
 
     return ScenarioRunResult(
-        scenario_name="stub",
         scorer_names=[],
         case_results=[],
         csv_path=csv_path,
-        is_full_dataset=True,
     )
 
 
@@ -1668,7 +1714,7 @@ class TestProfileInjectionAndSubset:
 
         assert seen == ["baseline", "baseline"]
 
-    def test_case_ids_runs_subset_and_flags_partial(self, tmp_path: Path) -> None:
+    def test_case_ids_runs_subset(self, tmp_path: Path) -> None:
         prompts: list[object] = []
 
         def task(input: object) -> str:
@@ -1678,19 +1724,46 @@ class TestProfileInjectionAndSubset:
         result = self._run(tmp_path, task, case_ids=["LP-02"])
 
         assert prompts == ["goodbye"]
-        assert result.is_full_dataset is False
         assert [case.case_id for case in result.case_results] == ["LP-02"]
 
-    def test_full_run_reports_full_dataset_and_case_ids(self, tmp_path: Path) -> None:
+    def test_full_run_reports_every_case_id(self, tmp_path: Path) -> None:
         def task(input: object) -> str:
             return "response"
 
         result = self._run(tmp_path, task)
 
-        assert result.is_full_dataset is True
         assert [case.case_id for case in result.case_results] == ["LP-01", "LP-02"]
         assert result.scorer_names == ["test_scorer"]
         assert all(case.scores == {"test_scorer": 1.0} for case in result.case_results)
+
+    def test_duplicate_dataset_ids_raise_before_execution(self, tmp_path: Path) -> None:
+        scenarios_dir = self._setup_scenario_with_ids(tmp_path)
+        (scenarios_dir / "test_scenario" / "dataset.csv").write_text(
+            "id,prompt\nLP-01,hello\nLP-01,goodbye\n"
+        )
+
+        task = MagicMock(return_value="response")
+        fake_scorer = MagicMock(return_value=1.0)
+        fake_scorer.__name__ = "test_scorer"
+
+        from backend.evals.eval_runner import run_scenario
+
+        with (
+            patch("backend.evals.eval_runner.resolve_function", return_value=task),
+            patch(
+                "backend.evals.eval_runner.resolve_scorers",
+                return_value=[fake_scorer],
+            ),
+            pytest.raises(ValueError, match="LP-01"),
+        ):
+            run_scenario(
+                "test_scenario",
+                upload=False,
+                output_dir=tmp_path / "results",
+                scenarios_dir=scenarios_dir,
+            )
+
+        assert task.call_count == 0
 
     def test_unknown_case_ids_raise(self, tmp_path: Path) -> None:
         def task(input: object) -> str:

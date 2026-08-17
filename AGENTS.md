@@ -48,7 +48,7 @@ The backend uses **Ruff** for fast linting and formatting, and **Pytest** for te
 
 **Regression Suite gate (burns real LLM/API calls — manual, pre-merge, never CI):**
 
-- Run the gate: `pytest backend/evals/regression/ -m eval` (red = a gated scorer fell below its metric floor; see ADR-0008/ADR-0015)
+- Run the gate: `pytest backend/evals/regression/ -m eval` (red = a task crash, a gated scorer below its metric floor, a fully-empty gated metric, or an enabled scenario with zero gated scorers; see ADR-0008/ADR-0015)
 - Debug one case after a red light: `pytest backend/evals/regression/ -m eval -k "LP-07" -s`
 - Test another Workflow Profile: `EVAL_PROFILE=<name> pytest backend/evals/regression/ -m eval` (default `baseline`; this env var is read only by the regression conftest)
 

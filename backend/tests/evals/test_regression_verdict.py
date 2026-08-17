@@ -21,11 +21,11 @@ def _scorer(
     return spec
 
 
-def _config(scorers: list[dict[str, Any]], *, enabled: bool = True) -> ScenarioConfig:
+def _config(scorers: list[dict[str, Any]]) -> ScenarioConfig:
     return ScenarioConfig.model_validate(
         {
             "name": "demo",
-            "regression": {"enabled": enabled},
+            "regression": {"enabled": True},
             "task": {"function": "backend.evals.eval_tasks.run_profile"},
             "column_mapping": {"prompt": "input"},
             "scorers": scorers,
@@ -100,21 +100,6 @@ class TestFloorRules:
 
         assert gate.status == "green"
         assert [v.scorer for v in gate.scorer_verdicts] == ["gated"]
-
-    def test_enabled_false_is_skipped(self) -> None:
-        config = _config([_scorer()], enabled=False)
-
-        gate = evaluate_gate(config, [_case("c1", {"s1": 0.0})])
-
-        assert gate.status == "skipped"
-        assert gate.failures == []
-
-    def test_enabled_false_skip_takes_precedence_over_vacuous_gate(self) -> None:
-        config = _config([_scorer(gate=False)], enabled=False)
-
-        gate = evaluate_gate(config, [])
-
-        assert gate.status == "skipped"
 
 
 class TestEmptyMetric:

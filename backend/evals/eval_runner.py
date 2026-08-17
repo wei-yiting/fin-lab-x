@@ -90,17 +90,35 @@ class ScenarioRunResult:
     sentinels are a human-facing report format, not an API.
     """
 
-    scenario_name: str
     scorer_names: list[str]
     case_results: list[CaseResult]
     csv_path: Path
-    is_full_dataset: bool
 
 
 def case_identifier(row: dict[str, str], index: int) -> str:
     """Stable case identifier: the dataset's ``id`` column, else 1-based index."""
     row_id = row.get("id", "").strip()
     return row_id if row_id else f"case-{index + 1:02d}"
+
+
+def _reject_duplicate_case_ids(scenario_name: str, case_ids: Sequence[str]) -> None:
+    """Fail before any execution when the dataset repeats a case id.
+
+    Downstream consumers key per-case results by id, so a repeat silently
+    collapses rows — shrinking a gated scorer's denominator and letting the
+    last row's score win. Raised before ``Eval()`` so nothing is spent.
+    """
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for case_id in case_ids:
+        if case_id in seen and case_id not in duplicates:
+            duplicates.append(case_id)
+        seen.add(case_id)
+    if duplicates:
+        raise ValueError(
+            f"Duplicate case ids {duplicates} in scenario '{scenario_name}' — "
+            "each dataset row must have a unique 'id'"
+        )
 
 
 def _accepts_profile(fn: Any) -> bool:
@@ -437,8 +455,7 @@ def run_scenario(
     ``profile`` is forwarded to the task function only when its signature
     declares a ``profile`` parameter; ``None`` means the function's own
     default applies. ``case_ids`` restricts the run to those dataset cases
-    (matched by ``id`` column, else positional ``case-NN``) — the result then
-    reports ``is_full_dataset=False`` so aggregate consumers can refuse it.
+    (matched by ``id`` column, else positional ``case-NN``).
     """
     bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
 
@@ -506,7 +523,7 @@ def run_scenario(
         all_case_ids = [
             case_identifier(row, idx) for idx, row in enumerate(original_rows)
         ]
-        is_full_dataset = case_ids is None or set(case_ids) >= set(all_case_ids)
+        _reject_duplicate_case_ids(config.name, all_case_ids)
         if case_ids is not None:
             selected = set(case_ids)
             unknown = sorted(selected - set(all_case_ids))
@@ -610,15 +627,11 @@ def run_scenario(
     )
 
     case_results: list[CaseResult] = []
-    for idx, result in enumerate(eval_result.results):
+    for case_id, result in zip(result_case_ids, eval_result.results, strict=True):
         scorer_errors = frozenset((result.metadata or {}).get("scorer_errors", {}))
         case_results.append(
             CaseResult(
-                case_id=(
-                    result_case_ids[idx]
-                    if idx < len(result_case_ids)
-                    else case_identifier({}, idx)
-                ),
+                case_id=case_id,
                 scores={name: result.scores.get(name) for name in scorer_names},
                 scorer_errors=scorer_errors,
                 task_error=str(result.error) if result.error is not None else None,
@@ -626,11 +639,9 @@ def run_scenario(
         )
 
     return ScenarioRunResult(
-        scenario_name=config.name,
         scorer_names=scorer_names,
         case_results=case_results,
         csv_path=result_csv_path,
-        is_full_dataset=is_full_dataset,
     )
 
 

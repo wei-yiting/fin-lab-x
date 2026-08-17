@@ -33,13 +33,14 @@ uv run pytest backend/evals/regression/ -m eval
 # Run one scenario's gate only
 uv run pytest backend/evals/regression/ -m eval -k "language_policy"
 
-# Debug a single failing case after a red light (burns one case, not the dataset;
-# the aggregate verdict itself is skipped for a partial run — it has no dataset to aggregate)
+# Debug a single failing case after a red light (burns one case, not the dataset).
+# A case-only -k selection deselects the gate item itself, so the run produces no
+# aggregate verdict — a subset mean never impersonates red/green.
 uv run pytest backend/evals/regression/ -m eval -k "LP-07" -s
 
 # Gate a different Workflow Profile (default: baseline). This is the ONLY place in the
 # codebase that reads EVAL_PROFILE — the Quality Track and eval_runner CLI stay env-free.
-EVAL_PROFILE=candidate_a uv run pytest backend/evals/regression/ -m eval
+EVAL_PROFILE=<profile> uv run pytest backend/evals/regression/ -m eval
 ```
 
 ## Diagnostic Human Review
@@ -91,11 +92,6 @@ uv run python -m backend.evals.eval_runner language_policy --output-dir ./tmp/ev
 ### 2) Regression Suite (pytest)
 
 Use this for a compact "no serious regression" signal.
-
-> **Currently empty.** The one existing guardrail test was retired as part of the
-> scenario-first SSOT consolidation (DEV-89); this track is being rebuilt as a
-> `regression/` package in a follow-up ticket. The commands below describe the
-> intended usage once that lands — running them today collects zero tests.
 
 ```bash
 # Run regression-suite eval tests
@@ -206,7 +202,7 @@ regression:
                                 # its gate membership; a spec without it fails to load
 
 task:
-  function: string              # Python dotpath, e.g. "backend.evals.eval_tasks.run_v1"
+  function: string              # Python dotpath, e.g. "backend.evals.eval_tasks.run_profile"
 
 column_mapping:
   <csv_column>: input           # Single column → input (string)
@@ -283,15 +279,6 @@ graph TD
 3. Add/update task functions in `backend/evals/eval_tasks.py`.
 4. Add/update scoring functions in `backend/evals/scenarios/<scenario_name>/scorer.py`.
 5. Run `uv run python -m backend.evals.eval_runner <scenario_name>`.
-
-### Add a new regression-suite case
-
-> This track is currently being rebuilt as a `regression/` package (DEV-89
-> follow-up); the steps below describe the pre-rebuild pattern for reference only.
-
-1. Add/update `backend/evals/test_*.py` with `@pytest.mark.eval`.
-2. Keep assertions focused on severe regression signals.
-3. Run `uv run pytest backend/evals/ -m eval -v`.
 
 ### Separation rule (important)
 

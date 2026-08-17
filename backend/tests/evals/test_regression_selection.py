@@ -1,36 +1,12 @@
-"""Unit tests for regression run planning and the EVAL_PROFILE entry point."""
+"""Unit tests for regression run selection and the EVAL_PROFILE entry point."""
 
 from __future__ import annotations
 
-import pytest
 from types import SimpleNamespace
 
+import pytest
+
 from backend.evals.regression.conftest import resolve_profile
-from backend.evals.regression.selection import plan_run
-
-
-class TestPlanRun:
-    def test_gate_selected_forces_full_dataset(self) -> None:
-        plan = plan_run(gate_selected=True, selected_case_ids=["LP-07"])
-
-        assert plan.full is True
-        assert plan.case_ids is None
-
-    def test_no_selection_defaults_to_full_dataset(self) -> None:
-        plan = plan_run(gate_selected=False, selected_case_ids=[])
-
-        assert plan.full is True
-
-    def test_pure_case_selection_runs_subset(self) -> None:
-        plan = plan_run(gate_selected=False, selected_case_ids=["LP-07", "LP-01"])
-
-        assert plan.full is False
-        assert plan.case_ids == ("LP-07", "LP-01")
-
-    def test_duplicate_case_ids_deduplicated(self) -> None:
-        plan = plan_run(gate_selected=False, selected_case_ids=["LP-07", "LP-07"])
-
-        assert plan.case_ids == ("LP-07",)
 
 
 class TestResolveProfile:
@@ -52,21 +28,6 @@ class TestResolveProfile:
         monkeypatch.setenv("EVAL_PROFILE", "   ")
 
         assert resolve_profile() == "baseline"
-
-
-class TestGateSkipReason:
-    def test_full_dataset_proceeds(self) -> None:
-        from backend.evals.regression.selection import gate_skip_reason
-
-        assert gate_skip_reason(is_full_dataset=True) is None
-
-    def test_partial_run_skips_with_reason(self) -> None:
-        from backend.evals.regression.selection import gate_skip_reason
-
-        reason = gate_skip_reason(is_full_dataset=False)
-
-        assert reason is not None
-        assert "full dataset" in reason
 
 
 class TestValidatedProfile:
@@ -160,3 +121,28 @@ class TestScanSelectionAndGateRuns:
         runs.result("language_policy")
 
         assert calls[0]["case_ids"] is None
+
+    def test_gate_runs_deduplicates_repeated_case_ids(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import backend.evals.regression.conftest as regression_conftest
+
+        calls: list[dict[str, object]] = []
+
+        def fake_run_scenario(scenario: str, **kwargs: object) -> str:
+            calls.append({"scenario": scenario, **kwargs})
+            return f"result-{scenario}"
+
+        monkeypatch.setattr(regression_conftest, "run_scenario", fake_run_scenario)
+        session = SimpleNamespace(
+            items=[
+                _item("language_policy", "LP-07"),
+                _item("language_policy", "LP-07"),
+                _item("language_policy", "LP-01"),
+            ]
+        )
+        runs = regression_conftest.GateRuns(session, "baseline")  # type: ignore[arg-type]
+
+        runs.result("language_policy")
+
+        assert calls[0]["case_ids"] == ["LP-07", "LP-01"]

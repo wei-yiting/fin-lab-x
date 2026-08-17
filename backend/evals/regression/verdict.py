@@ -16,7 +16,7 @@ from typing import Literal
 from backend.evals.eval_runner import CaseResult
 from backend.evals.eval_spec_schema import ScenarioConfig
 
-GateStatus = Literal["green", "red", "skipped"]
+GateStatus = Literal["green", "red"]
 
 
 @dataclass(frozen=True)
@@ -45,14 +45,6 @@ class GateVerdict:
 def evaluate_gate(config: ScenarioConfig, cases: list[CaseResult]) -> GateVerdict:
     """Evaluate the regression gate for one scenario run."""
     scenario = config.name
-
-    if not config.regression.enabled:
-        return GateVerdict(
-            scenario=scenario,
-            status="skipped",
-            failures=[],
-            scorer_verdicts=[],
-        )
 
     failures: list[str] = []
 

@@ -33,7 +33,10 @@ parse_filing(ticker, fiscal_year)
   │                                   re-download)
   ├─ sec_core.fetch_filing_markdown() filing-level markdown (transient —
   │   └─ collect_heading_candidates() heading candidates only, not persisted)
-  ├─ _parse_items()                 per section:
+  ├─ _parse_items()                 walked in canonical Item order — the
+  │                                 TENK_STANDARD_TITLES registry drives the
+  │                                 sequence, not edgartools' dict order; per
+  │                                 section:
   │     trim to own Item boundary → drop empty/stub/duplicate
   │       → detect_blocks() plausibly anchored → StructuredItem
   │                         otherwise         → FlatItem

@@ -100,17 +100,21 @@ class TestInspectMarkdown:
         assert "## Item 1a — Risk Factors" in md
         assert "- kind: flat" in md
         assert f"- text: {len(FLAT_BODY):,} chars" in md
-        assert FLAT_BODY in md  # under the preview limit: shown in full
-        assert "…" not in md  # no truncation marker on short text
+        assert FLAT_BODY in md  # under the head+tail budget: shown in full
+        assert "chars omitted" not in md  # no truncation marker on short text
         assert "detection_source" not in md.split("## Item 1a")[1]
 
-    def test_flat_item_long_text_preview_truncated(self):
-        long_text = "y" * 2000
+    def test_flat_item_long_text_shows_head_and_tail(self):
+        # A boundary bleed (parser._trim_section_text) only shows up at the
+        # tail, so the preview must surface both ends, not just the head.
+        long_text = "H" * 500 + "MIDDLE" * 100 + "T" * 500
         item = FlatItem(item="9b", title="Other Information", text=long_text)
         md = to_inspect_markdown(make_filing([item]))
-        assert "- text: 2,000 chars" in md  # count reflects the full text
-        assert "y" * 500 + "…" in md  # preview cut at the limit, marked
-        assert "y" * 501 not in md  # nothing beyond the cut leaks through
+        assert f"- text: {len(long_text):,} chars" in md  # count reflects the full text
+        assert "H" * 500 in md  # head shown in full
+        assert "T" * 500 in md  # tail shown in full
+        assert "MIDDLE" not in md  # omitted middle doesn't leak through
+        assert "600 chars omitted" in md  # explicit count, not a bare ellipsis
 
 
 class TestSummaryText:

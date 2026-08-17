@@ -22,10 +22,12 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
 
 _RECLASSIFIED_LABEL = "reclassified leading block"
 
-# FlatItem bodies render as a capped preview (full char count stays exact):
-# flat items are unstructured dumps, so the inspect file shows enough to judge
-# "real content vs. stub residue" while `--section` remains the full-text path.
-_FLAT_PREVIEW_LIMIT = 500
+# FlatItem bodies render as a head+tail preview (full char count stays exact):
+# a flat item's raw text can bleed past its own boundary into the next item
+# (see parser._trim_section_text — observed on AAPL FY2025's Item 11 carrying
+# Items 12-15), and that failure only shows up at the tail. A head-only
+# preview would hide it; `--section` remains the full-text path.
+_FLAT_PREVIEW_EACH_END = 500
 
 
 def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
@@ -40,9 +42,12 @@ def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
 
 
 def _flat_preview(text: str) -> str:
-    if len(text) <= _FLAT_PREVIEW_LIMIT:
+    if len(text) <= 2 * _FLAT_PREVIEW_EACH_END:
         return text
-    return text[:_FLAT_PREVIEW_LIMIT] + "…"
+    head = text[:_FLAT_PREVIEW_EACH_END]
+    tail = text[-_FLAT_PREVIEW_EACH_END:]
+    skipped = len(text) - 2 * _FLAT_PREVIEW_EACH_END
+    return f"{head}\n\n… [{skipped:,} chars omitted] …\n\n{tail}"
 
 
 def _item_chars(item: StructuredItem) -> int:
@@ -68,8 +73,9 @@ def _header_lines(filing: ParsedFiling) -> list[str]:
 def to_inspect_markdown(filing: ParsedFiling) -> str:
     """Full markdown render: every Item's kind, detection verdicts, and
     complete block content, laid out for side-by-side comparison with the
-    SEC original. FlatItem bodies appear as a length-capped preview next
-    to their full char count; ``--section`` prints them in full."""
+    SEC original. FlatItem bodies appear as a head+tail preview (each end
+    capped, middle elided) next to their full char count; ``--section``
+    prints them in full."""
     title, source_line, counts = _header_lines(filing)
     lines = [f"# {title} — inspect view", "", source_line, "", counts, ""]
     for item in filing.items:

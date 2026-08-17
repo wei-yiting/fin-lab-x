@@ -1,9 +1,9 @@
 """JSON filing store — the fetch+parse stage cache.
 
 Persists :class:`ParsedFiling` as schema-validated JSON under
-``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only: a
-planned inspect helper (future extension, not yet built) will derive a
-human-facing markdown view from this store. Parallel to Qdrant (the
+``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only:
+the inspect view (:mod:`inspect_view` + the package CLI) derives the
+human-facing markdown render from this store. Parallel to Qdrant (the
 embedding-stage cache) — the two
 invalidate under different conditions (a parser change invalidates this
 store; an embedding-model change invalidates only Qdrant), hence both
@@ -29,8 +29,7 @@ _TICKER_RE = re.compile(r"^[A-Z0-9][A-Z0-9.\-]*$")
 
 class FilingStore(Protocol):
     """What parse_filing needs from a store — nothing more (envelope §0
-    reachability). Downstream tickets widen this when they consume more
-    (e.g. the inspect CLI's listing needs).
+    reachability). Downstream tickets widen this when they consume more.
     """
 
     def save(self, filing: ParsedFiling) -> None: ...

@@ -23,5 +23,9 @@ def get_sec_text_dir() -> Path:
     return Path(os.getenv("SEC_TEXT_DIR", str(DATA_DIR / "sec_text")))
 
 
+def get_sec_text_inspect_dir() -> Path:
+    return Path(os.getenv("SEC_TEXT_INSPECT_DIR", str(DATA_DIR / "sec_text_inspect")))
+
+
 def get_checkpoint_db_path() -> Path:
     return Path(os.getenv("CHECKPOINT_DB_PATH", str(DATA_DIR / "checkpoints.db")))

@@ -19,6 +19,8 @@ This pipeline is the **new parse path**. It coexists with the frozen HTML baseli
 | `filing_models.py` | The frozen `ParsedFiling` schema (`FilingMetadata`, `FlatItem`, `StructuredItem`, `Block`). All models forbid unknown fields so stored JSON cannot drift from the schema silently. |
 | `filing_store.py` | `LocalFilingStore` — schema-validated JSON cache under `data/sec_text/{TICKER}/10-K/{YEAR}.json`, written atomically. |
 | `stub_detection.py` | `is_stub_section_v2()` — v1 incorporated-by-reference detection plus pseudo-stub pointer patterns, via the shared `classify_stub_section` mechanism. |
+| `inspect_view.py` | Human-facing renders over a `ParsedFiling`: full markdown inspect view, one-screen summary table, single-Item plain text. Infers the prelude verdict (valid / reclassified leading block / absent) at render time — the schema stores no judgment. |
+| `__main__.py` | CLI (`python -m backend.ingestion.sec_text_pipeline`): summary table by default (`--verbose`), `--section <key>` for one Item as plain text, `inspect` subcommand to render the full markdown view into the gitignored `data/sec_text_inspect/` directory. Cache-first via `parse_filing`. |
 
 ## Data Flow
 
@@ -41,7 +43,7 @@ parse_filing(ticker, fiscal_year)
 
 ## Two Cache Stages
 
-The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline_html/`, and in this pipeline's own dense-ingest stage once built) is the **embedding** cache. They invalidate under different conditions — a parser change invalidates the filing store, an embedding-model change invalidates only Qdrant — hence both exist. The filing store is machine-facing; a planned inspect helper (future extension, not yet built) will derive a human-facing markdown view from it.
+The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline_html/`, and in this pipeline's own dense-ingest stage once built) is the **embedding** cache. They invalidate under different conditions — a parser change invalidates the filing store, an embedding-model change invalidates only Qdrant — hence both exist. The filing store is machine-facing; the inspect view (`inspect_view.py` + the CLI) derives the human-facing markdown render from it.
 
 ## Extension Guidelines
 

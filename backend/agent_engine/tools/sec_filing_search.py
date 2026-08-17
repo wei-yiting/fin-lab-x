@@ -25,8 +25,8 @@ from backend.common.sec_core import (
     FilingType,
     _resolve_latest_fiscal_year,
 )
-from backend.ingestion.sec_dense_pipeline.retriever import Chunk, search
-from backend.ingestion.sec_filing_pipeline.filing_store import LocalFilingStore
+from backend.ingestion.sec_dense_pipeline_html.retriever import Chunk, search
+from backend.ingestion.sec_filing_pipeline_html.filing_store import LocalFilingStore
 
 _TOP_K = 10
 

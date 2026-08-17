@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.ingestion.sec_dense_pipeline.retriever import (
+from backend.ingestion.sec_dense_pipeline_html.retriever import (
     Chunk,
     JITInvalidTickerError,
 )

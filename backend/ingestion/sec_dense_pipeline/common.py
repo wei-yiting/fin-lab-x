@@ -63,6 +63,10 @@ def check_commit_marker_complete(
             ids=[commit_marker_id(ticker, fiscal_year)],
             with_payload=True,
         )
-        return len(points) > 0 and points[0].payload.get("status") == "complete"
+        if not points:
+            return False
+        # A point can exist with no payload at all; that is a miss, not
+        # a complete marker.
+        return (points[0].payload or {}).get("status") == "complete"
     except Exception:
         return False

@@ -154,7 +154,10 @@ async def ingest_filing(filing: ParsedFiling) -> None:
             models.PointStruct(
                 id=chunk_point_id(ticker, fiscal_year, payload["chunk_index"]),
                 vector=embedding,
-                payload=payload,
+                # dict() widens the TypedDict to the plain mapping the client
+                # declares; same contents, and it keeps ChunkPayload as the
+                # checked shape everywhere upstream of this call.
+                payload=dict(payload),
             )
             for payload, embedding in zip(payloads, embeddings, strict=True)
         ]

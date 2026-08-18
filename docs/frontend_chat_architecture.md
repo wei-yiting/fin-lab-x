@@ -33,6 +33,7 @@ flowchart BT
     end
 
     subgraph molecules
+        ReasoningChip
         ToolRow
         ToolDetail
         Sources
@@ -71,7 +72,7 @@ flowchart BT
 
     class P1,P2,P3 primitiveCls
     class StatusDot,RefSup,Cursor,ActivityPlaceholder,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
-    class ToolRow,ToolDetail,Sources moleculeCls
+    class ReasoningChip,ToolRow,ToolDetail,Sources moleculeCls
     class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
     class ChatPanel pageCls
@@ -81,7 +82,7 @@ flowchart BT
 |---|---|---|
 | **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw` |
 | **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ActivityPlaceholder`, `PromptChip`, `RegenerateButton`, `InterruptedMarker`, `SourceLink`, `UserMessage` |
-| **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ToolRow`, `ToolDetail`, `Sources` |
+| **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ReasoningChip`, `ToolRow`, `ToolDetail`, `Sources` |
 | **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState` |
 | **templates** | Layout shell that accepts data via props; does not wire `useChat`. | `MessageList` |
 | **pages** | Top-level orchestrator — the only layer that wires `useChat` and owns the chat lifecycle. | `ChatPanel` |

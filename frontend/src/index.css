@@ -199,6 +199,15 @@
   }
 }
 
+/* ReasoningChip — streaming window (ADR-0015).
+   ~4 lines, newest text pinned to the bottom via JS scrollTop; CJK/long
+   tokens must wrap (overflow-wrap: anywhere set in the component) so the
+   pinned-scroll math stays valid. */
+.reasoning-chip-window {
+  max-height: calc(4 * 1.25rem);
+  line-height: 1.25rem;
+}
+
 /* ActivityPlaceholder — animated ellipsis cycler ("" → "." → ".." → "..."). */
 .thinking-dots::after {
   content: "";

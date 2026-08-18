@@ -47,6 +47,16 @@ These classes drive both the friendly title (via `lib/error-messages.ts`) and th
 
 `running | success | error | aborted`
 
+### `data-state` (on `ReasoningChip` root, testid `reasoning-chip`)
+
+`streaming | collapsed | expanded`
+
+- `streaming` — the chip's reasoning part is live (`part.state === "streaming"` on an active stream): full text in a pinned ~4-line window.
+- `collapsed` — the resting state: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived from the part shape, not tracked).
+- `expanded` — user override opened a collapsed chip. `data-round` carries the chip's 1-based ordinal within its message.
+
+Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`, announces only the header copy) and `reasoning-chip-body`.
+
 ## Adding new components
 
 DOM contract is part of a component spec, alongside props / state / behavior. When adding a component:

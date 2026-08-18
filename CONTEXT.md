@@ -126,6 +126,9 @@ One conversation thread, checkpointed under a thread id. The busy-guard rejects 
 The frontend placeholder shown between sending a message and the first streamed part arriving — it fills perceived latency and has nothing to do with model reasoning.
 _Avoid_: reasoning indicator (current component name; rename when that code is next touched), thinking indicator
 
+**Reasoning chip**:
+The collapsible transcript block rendering one provider reasoning segment — live and auto-scrolling while streaming, collapsed to a "Thought for Xs" header afterwards. One chip per reasoning segment; chips persist in the transcript for the session, not across reload.
+
 **Reasoning stream**:
 Provider reasoning tokens streamed as their own domain events. The word "reasoning" belongs to this feature alone — never to the waiting indicator.
 

@@ -1,6 +1,10 @@
 name: rag_filter_three_layer
 status: draft
 csv: dataset.csv
+regression:
+  # One-shot A/B experiment arm; ticker filter makes precision a tautology
+  # (always 1.0), so there is nothing meaningful to gate on.
+  enabled: false
 task:
   function: backend.evals.eval_tasks.run_rag_filter_three_layer
 pre_run:

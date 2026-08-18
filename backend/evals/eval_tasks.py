@@ -190,7 +190,9 @@ async def _eval_search(
 
     from qdrant_client import AsyncQdrantClient, models
 
-    from backend.ingestion.sec_dense_pipeline.vectorizer import (
+    # The experiment corpus lives in the frozen `_html` collection (payload key
+    # `year`, not `fiscal_year`); its vectorizer owns the matching embed_query.
+    from backend.ingestion.sec_dense_pipeline_html.vectorizer import (
         _EMBED_MODEL,
         embed_query,
     )

@@ -1,6 +1,9 @@
 name: rag_filter_naive
 status: draft
 csv: dataset.csv
+regression:
+  # One-shot A/B experiment arm, not a standing eval — never gated.
+  enabled: false
 task:
   function: backend.evals.eval_tasks.run_rag_filter_naive
 pre_run:

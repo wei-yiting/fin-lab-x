@@ -21,7 +21,7 @@
 兩個 collection 共用**完全相同**的 embedding vectors —— naive 是用 Qdrant `scroll + upsert` 從三層契約 collection 拷貝過去,只在 build-time 差別:
 
 ```
-Collection A (naive)             vs   Collection B (three-layer)
+Collection A (naive)             vs   Collection B (metadata-filter)
 ─────────────────────                  ────────────────────────────
 ▪ Vectors only                         ▪ Vectors + payload
 ▪ No payload index                     ▪ KeywordIndex on ticker/year/item
@@ -34,7 +34,7 @@ Query: search(q, top_k=10)             Query: search(q, must=[ticker=X], top_k=1
 
 ## 2. Aggregate Summary
 
-| Metric | Naive(無契約、無 filter) | Three-layer(有契約、帶 filter) |
+| Metric | Naive(無契約、無 filter) | Metadata-filter(有契約、帶 filter) |
 |---|---:|---:|
 | **Mean p@5** | **0.644** | **1.000** |
 | **Mean p@10** | **0.622** | **1.000** |
@@ -70,7 +70,7 @@ Query: search(q, top_k=10)             Query: search(q, must=[ticker=X], top_k=1
 
 > `**TICKER:N**` 標示目標公司 chunks 數;其他 ticker 代表 cross-ticker contamination。
 
-| Ticker | Query | Naive p@5 | Naive p@10 | Three p@5 | Three p@10 | Naive Top-10 ticker mix |
+| Ticker | Query | Naive p@5 | Naive p@10 | MF p@5 | MF p@10 | Naive Top-10 ticker mix |
 |---|---|---:|---:|---:|---:|---|
 | AAPL | 蘋果在中國市場面臨什麼風險? | 1.0 | 0.9 | 1.0 | 1.0 | **AAPL:9**  GOOGL:1 |
 | AAPL | 蘋果服務業務最新的成長趨勢是什麼? | 1.0 | 0.9 | 1.0 | 1.0 | **AAPL:9**  NVDA:1 |
@@ -147,7 +147,7 @@ Query: search(q, top_k=10)             Query: search(q, must=[ticker=X], top_k=1
 
 | 數字 | 是 finding 嗎? | 文章該怎麼用 |
 |---|---|---|
-| Three-layer p@10 = **1.000** | ❌ Tautology(`must=[ticker=X]` 數學保證) | 當「fix 達成」的對照,不要單獨炫耀這個數字 |
+| Metadata-filter p@10 = **1.000** | ❌ Tautology(`must=[ticker=X]` 數學保證) | 當「fix 達成」的對照,不要單獨炫耀這個數字 |
 | Naive mean p@10 = **0.622** | ✅ Finding | 「平均六成的 retrieval 拿到正確公司,意味著 LLM 拿到的脈絡有近四成是錯實體的雜訊」 |
 | Naive **std = 0.312** | ✅ Finding | 「不只是平均偏低,**變異還很大**(0% → 100%)—— 系統的可靠度從根本上不可預測」 |
 | AMD 全軍覆沒(0.13 mean) | ✅ Finding | 「**小語料 ticker 在純向量搜尋下會被語意鄰居淹沒**,即使整個語料庫有它的資料」 |
@@ -163,7 +163,7 @@ Query: search(q, top_k=10)             Query: search(q, must=[ticker=X], top_k=1
 # 1. Qdrant
 docker compose up -d qdrant
 
-# 2. 建 three-layer(baseline)語料 —— 財年必須釘死,否則 EDGAR latest 會隨時間漂移
+# 2. 建 metadata-filter(baseline)語料 —— 財年必須釘死,否則 EDGAR latest 會隨時間漂移
 #    (--year 是全域旗標,NVDA 財年不同,分兩次呼叫)
 uv run python -m backend.scripts.embed_sec_filings GOOGL MSFT AAPL AMD INTC --year 2025
 uv run python -m backend.scripts.embed_sec_filings NVDA --year 2026
@@ -174,7 +174,7 @@ uv run python -m backend.scripts.setup_naive_collection
 
 # 4. 兩臂各跑一輪(eval_runner 預設 local、不上傳;--upload 才會建 Braintrust experiment)
 uv run python -m backend.evals.eval_runner rag_filter_naive
-uv run python -m backend.evals.eval_runner rag_filter_three_layer
+uv run python -m backend.evals.eval_runner rag_filter_metadata_filter
 
 # 5.(可選)質性 Top-5 對照表
 uv run python -m backend.scripts.dump_retrieval_diff
@@ -187,7 +187,7 @@ uv run python -m backend.scripts.dump_retrieval_diff
 
 ### 重現記錄
 
-| 日期 | Code 版本 | 語料 | Naive p@5 / p@10 | Three-layer p@5 / p@10 |
+| 日期 | Code 版本 | 語料 | Naive p@5 / p@10 | Metadata-filter p@5 / p@10 |
 |---|---|---|---:|---:|
 | 2026-05-13 | branch `experiment/rag-filter-eval`(原始執行,CSV 已 commit) | 1,844 chunks | 0.644 / 0.622 | 1.000 / 1.000 |
 | 2026-08-18 | tag `experiment/2026-08-18-rag-metadata-filter-ab-eval`(從空 Qdrant 照本節步驟重跑) | 1,844 chunks | 0.656 / 0.617 | 1.000 / 1.000 |
@@ -196,7 +196,7 @@ uv run python -m backend.scripts.dump_retrieval_diff
 
 Raw CSVs:
 - `backend/evals/results/rag_filter_naive_<ts>.csv`
-- `backend/evals/results/rag_filter_three_layer_<ts>.csv`
+- `backend/evals/results/rag_filter_metadata_filter_<ts>.csv`
 
 質性 Top-5 對照表(5 個 highlight query):
 - `artifacts/retrieval_diff_<ts>.md`(由 `backend/scripts/dump_retrieval_diff.py` 產生)

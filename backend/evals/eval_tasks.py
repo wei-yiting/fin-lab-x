@@ -183,7 +183,7 @@ async def _eval_search(
     Emits a Langfuse trace per call with two child spans:
       - `sec_query_embedding`  (OpenAI embed_query)
       - `sec_vector_search`    (Qdrant query_points)
-    The trace mode (naive / three-layer) is captured in the outer span metadata
+    The trace mode (naive / metadata-filter) is captured in the outer span metadata
     so the Langfuse UI can group runs.
     """
     import os
@@ -220,7 +220,7 @@ async def _eval_search(
         query_filter = models.Filter(
             must=must or None,
             # Defensive: exclude sentinel markers if they happen to live in
-            # the collection (three-layer collection carries them).
+            # the collection (metadata-filter collection carries them).
             must_not=[
                 models.FieldCondition(
                     key="status",
@@ -271,8 +271,8 @@ async def _eval_search(
             )
 
         # Mode is captured on the outer span so Langfuse UI can filter
-        # naive vs three_layer runs without parsing collection name.
-        mode = "naive" if collection == NAIVE_COLLECTION else "three_layer"
+        # naive vs metadata_filter runs without parsing collection name.
+        mode = "naive" if collection == NAIVE_COLLECTION else "metadata_filter"
         get_client().update_current_span(
             metadata={
                 "experiment": "rag_filter_ab",
@@ -290,7 +290,7 @@ async def _eval_search(
 async def run_rag_filter_naive(input: Any) -> dict:
     """A/B condition A — naive collection, no payload index, no filter.
 
-    Demonstrates baseline cross-ticker contamination when the three-layer
+    Demonstrates baseline cross-ticker contamination when the metadata-filter
     contract is absent.
     """
     return await _eval_search(
@@ -301,8 +301,8 @@ async def run_rag_filter_naive(input: Any) -> dict:
     )
 
 
-async def run_rag_filter_three_layer(input: Any) -> dict:
-    """A/B condition C — three-layer collection (Metadata + Index + Tenant),
+async def run_rag_filter_metadata_filter(input: Any) -> dict:
+    """A/B condition B — metadata-filter collection (payload + KeywordIndex + tenant),
     query carrying oracle ticker filter.
     """
     import os
@@ -329,7 +329,7 @@ def pre_run_rag_filter() -> dict[str, Any]:
     from qdrant_client import QdrantClient, models
 
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
-    three_layer = os.environ.get(
+    filtered_collection = os.environ.get(
         "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
     )
     client = QdrantClient(url=qdrant_url)
@@ -343,13 +343,13 @@ def pre_run_rag_filter() -> dict[str, Any]:
         ],
     )
 
-    if not client.collection_exists(three_layer):
+    if not client.collection_exists(filtered_collection):
         raise RuntimeError(
-            f"Three-layer collection '{three_layer}' does not exist. "
+            f"Metadata-filter collection '{filtered_collection}' does not exist. "
             "Run backend/scripts/embed_sec_filings.py first."
         )
-    three_count = client.count(
-        collection_name=three_layer,
+    filtered_count = client.count(
+        collection_name=filtered_collection,
         count_filter=sentinel_excl,
     ).count
 
@@ -364,7 +364,7 @@ def pre_run_rag_filter() -> dict[str, Any]:
     ).count
 
     return {
-        "Three-layer": f"{three_layer} ({three_count} pts)",
+        "Metadata-filter": f"{filtered_collection} ({filtered_count} pts)",
         "Naive": f"{NAIVE_COLLECTION} ({naive_count} pts)",
     }
 

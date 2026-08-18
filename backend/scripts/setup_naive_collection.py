@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Build the `sec_filings_naive` Qdrant collection for the A/B experiment.
 
-Copies content points (vectors + payload) from the production three-layer
+Copies content points (vectors + payload) from the production metadata-filter
 collection into a sibling collection that has NO payload indexes and NO
 tenant configuration. Same embeddings, different HNSW build-time setup.
 
@@ -98,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
         default=os.environ.get(
             "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
         ),
-        help="Three-layer collection to copy from",
+        help="Metadata-filter collection to copy from",
     )
     parser.add_argument("--batch", type=int, default=DEFAULT_BATCH)
     args = parser.parse_args(argv)

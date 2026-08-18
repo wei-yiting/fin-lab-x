@@ -1,4 +1,4 @@
-name: rag_filter_three_layer
+name: rag_filter_metadata_filter
 status: draft
 csv: dataset.csv
 regression:
@@ -6,7 +6,7 @@ regression:
   # (always 1.0), so there is nothing meaningful to gate on.
   enabled: false
 task:
-  function: backend.evals.eval_tasks.run_rag_filter_three_layer
+  function: backend.evals.eval_tasks.run_rag_filter_metadata_filter
 pre_run:
   function: backend.evals.eval_tasks.pre_run_rag_filter
 column_mapping:
@@ -15,6 +15,6 @@ column_mapping:
   target_entity_zh: input.target_entity_zh
 scorers:
   - name: ticker_precision_at_5
-    function: backend.evals.scenarios.rag_filter_three_layer.scorer.ticker_precision_at_5
+    function: backend.evals.scenarios.rag_filter_metadata_filter.scorer.ticker_precision_at_5
   - name: ticker_precision_at_10
-    function: backend.evals.scenarios.rag_filter_three_layer.scorer.ticker_precision_at_10
+    function: backend.evals.scenarios.rag_filter_metadata_filter.scorer.ticker_precision_at_10

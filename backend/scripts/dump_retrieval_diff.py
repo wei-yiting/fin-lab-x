@@ -2,7 +2,7 @@
 """Qualitative retrieval diff dump for the RAG filter article.
 
 Picks a handful of queries from the experiment dataset and dumps top-5
-side-by-side from the naive vs three-layer collections into a markdown
+side-by-side from the naive vs metadata-filter collections into a markdown
 file. Output is the raw material for the article's "before/after" tables.
 """
 
@@ -28,7 +28,7 @@ DEFAULT_DATASET = (
     Path(__file__).resolve().parents[1]
     / "evals"
     / "scenarios"
-    / "rag_filter_three_layer"
+    / "rag_filter_metadata_filter"
     / "dataset.csv"
 )
 
@@ -69,7 +69,7 @@ async def _dump_one(
     question: str,
     target_ticker: str,
     target_entity_zh: str,
-    three_layer_collection: str,
+    metadata_filter_collection: str,
 ) -> str:
     naive = await _eval_search(
         collection=NAIVE_COLLECTION,
@@ -78,7 +78,7 @@ async def _dump_one(
         top_k=5,
     )
     filtered = await _eval_search(
-        collection=three_layer_collection,
+        collection=metadata_filter_collection,
         query=question,
         ticker_filter=target_ticker,
         top_k=5,
@@ -91,7 +91,7 @@ async def _dump_one(
         "### Naive collection (no filter, no payload index, no tenant)",
         _render_top5_table(naive["retrieved_chunks"], target_ticker),
         "",
-        "### Three-layer collection (filter ticker, tenant-aware HNSW)",
+        "### Metadata-filter collection (filter ticker, tenant-aware HNSW)",
         _render_top5_table(filtered["retrieved_chunks"], target_ticker),
         "",
     ]
@@ -116,22 +116,22 @@ async def _amain(args: argparse.Namespace) -> int:
             continue
         selected.append(by_question[q])
 
-    three_layer = os.environ.get(
+    filtered_collection = os.environ.get(
         "SEC_QDRANT_COLLECTION", "sec_filings_openai_large_dense_baseline"
     )
 
     sections = [
-        "# Retrieval Diff — Naive vs Three-layer",
+        "# Retrieval Diff — Naive vs Metadata-filter",
         "",
         f"_Generated {datetime.now(tz=timezone.utc).isoformat()}_",
         "",
         f"- Naive collection: `{NAIVE_COLLECTION}` "
         "(no payload index, no `is_tenant`, query without filter)",
-        f"- Three-layer collection: `{three_layer}` "
+        f"- Metadata-filter collection: `{filtered_collection}` "
         "(`is_tenant=True` on ticker, query with `must=[ticker=X]`)",
         "",
         "Both collections share identical embeddings — naive was populated "
-        "via Qdrant scroll + upsert from the three-layer collection. Only "
+        "via Qdrant scroll + upsert from the metadata-filter collection. Only "
         "build-time payload-index config and query-time filter differ.",
         "",
         "---",
@@ -142,7 +142,7 @@ async def _amain(args: argparse.Namespace) -> int:
             question=row["question"],
             target_ticker=row["target_ticker"],
             target_entity_zh=row["target_entity_zh"],
-            three_layer_collection=three_layer,
+            metadata_filter_collection=filtered_collection,
         )
         sections.append(section)
         sections.append("---")

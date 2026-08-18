@@ -3,7 +3,7 @@
 Measures: of the top-k retrieved chunks, what fraction belong to the
 caller-intended ticker (entity scope). The killer metric for the
 "entity mismatch" narrative — naive vector search returns cross-ticker
-results, three-layer filter forces 100%.
+results, the metadata filter forces 100%.
 """
 
 from __future__ import annotations

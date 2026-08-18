@@ -61,6 +61,32 @@ addopts = "-m 'not eval and not sec_integration and not integration and not finn
 [tool.ruff]
 line-length = 88
 
+[tool.pyright]
+# Narrow adoption: the checker guards live backend source, and everything it
+# would only produce noise on is excluded deliberately. Each exclusion below
+# states what would have to change for it to be lifted.
+include = ["backend"]
+exclude = [
+    "**/__pycache__",
+    # Test doubles are not the types they stand in for (a FakeTenK is not a
+    # TenK, a @tool object is not statically callable), and fixtures unpack
+    # heterogeneous JSON dicts as **kwargs. Holding them to the checker's
+    # standard would mean TypedDicts and casts scattered through the suite —
+    # noise traded for a green tick. Revisit if a type error ever survives
+    # into production because only the tests would have caught it.
+    "backend/tests",
+    # Frozen A/B baseline: AGENTS.md forbids touching these, and the sunset PR
+    # deletes them wholesale. Delete these two lines with the tree.
+    "backend/ingestion/sec_filing_pipeline_html",
+    "backend/ingestion/sec_dense_pipeline_html",
+    # Frozen data contract for the same A/B experiment: public signatures and
+    # data-path behaviour must not move while the baseline lives. Its errors
+    # come from an upstream signature that is wider than the call sites
+    # (edgartools' filings.latest()). Drop this line at sunset too.
+    "backend/common/sec_core.py",
+]
+typeCheckingMode = "standard"
+
 [dependency-groups]
 dev = [
     "pyright>=1.1.408",

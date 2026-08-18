@@ -37,7 +37,7 @@ The backend uses **Ruff** for fast linting and formatting, and **Pytest** for te
 - Check linting (Ruff): `ruff check backend/`
 - Fix auto-fixable lint issues: `ruff check --fix backend/`
 - **Format code (Ruff) — run before every push:** `ruff format backend/`. CI's lint job runs `ruff format --check backend/` and will reject unformatted code. This is the only enforcement mechanism; there is no pre-commit hook or editor auto-format (see [ADR-0004](docs/adr/0004-ci-only-ruff-format-enforcement.md)).
-- **Type check (Pyright) — CI-enforced:** `uv run pyright`. Scope is configured in `[tool.pyright]` (`pyproject.toml`); run it bare so it picks that up rather than passing a path, which would override the exclusions. Tests, the frozen `_html` baseline, and `backend/common/sec_core.py` are excluded on purpose — the reasons and the conditions for lifting each are recorded next to the config.
+- **Type check (Pyright) — CI-enforced:** `uv run pyright`. Run it bare so it picks up the configured scope from `[tool.pyright]` (`pyproject.toml`). Tests, the frozen `_html` baseline, and `backend/common/sec_core.py` are excluded on purpose — the reasons and the conditions for lifting each are recorded next to the config (see [ADR-0015](docs/adr/0015-narrow-pyright-adoption-enforced-in-ci.md)).
 
 **Testing (Pytest):**
 
@@ -72,7 +72,7 @@ The frontend uses **pnpm** (there is a `pnpm-lock.yaml`; do not introduce `packa
 
 ### 3.1. Backend (Python)
 
-- **Typing:** Strict typing is mandatory. Use Python's `typing` module (`List`, `Dict`, `Optional`, `Any`, `TypedDict`). All function arguments and return types must be explicitly annotated.
+- **Typing:** Strict typing is mandatory. Use Python's `typing` module (`List`, `Dict`, `Optional`, `Any`, `TypedDict`). All function arguments and return types must be explicitly annotated. This is an authoring convention, not pyright's `strict` mode — the CI-enforced baseline is `typeCheckingMode = "standard"`.
 - **Formatting:** Adhere to **Ruff** defaults (typically equivalent to Black, max line length 88).
 - **Imports:**
   - Group imports correctly: Standard library first, third-party libraries second, internal project imports last.

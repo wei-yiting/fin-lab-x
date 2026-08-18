@@ -157,13 +157,42 @@ Query: search(q, top_k=10)             Query: search(q, must=[ticker=X], top_k=1
 
 ## 8. 重現步驟
 
+前提:本機 Qdrant 為空(或至少沒有 `sec_filings_openai_large_dense_baseline` / `sec_filings_naive`),`backend/.env` 有 `OPENAI_API_KEY`。所有指令在 repo 根目錄執行。
+
 ```bash
+# 1. Qdrant
 docker compose up -d qdrant
-uv run python -m backend.scripts.embed_sec_filings GOOGL MSFT AAPL NVDA AMD INTC
+
+# 2. 建 three-layer(baseline)語料 —— 財年必須釘死,否則 EDGAR latest 會隨時間漂移
+#    (--year 是全域旗標,NVDA 財年不同,分兩次呼叫)
+uv run python -m backend.scripts.embed_sec_filings GOOGL MSFT AAPL AMD INTC --year 2025
+uv run python -m backend.scripts.embed_sec_filings NVDA --year 2026
+
+# 3. 從 baseline 複製出 naive 對照 collection(無 payload index、無 tenant)
+#    依賴步驟 2 已完成;會刪除並重建 sec_filings_naive
 uv run python -m backend.scripts.setup_naive_collection
-uv run python -m backend.evals.eval_runner rag_filter_naive --local-only
-uv run python -m backend.evals.eval_runner rag_filter_three_layer --local-only
+
+# 4. 兩臂各跑一輪(eval_runner 預設 local、不上傳;--upload 才會建 Braintrust experiment)
+uv run python -m backend.evals.eval_runner rag_filter_naive
+uv run python -m backend.evals.eval_runner rag_filter_three_layer
+
+# 5.(可選)質性 Top-5 對照表
+uv run python -m backend.scripts.dump_retrieval_diff
 ```
+
+注意事項:
+- 步驟 2 的 filing 快取目錄是 `data/sec_filings_html/`(`_html` freeze 之後的預設);第一次執行會從 EDGAR 下載,約幾分鐘。
+- 步驟 4 的 pre-run banner 會印出兩個 collection 的 point 數,應皆為 1,844(sentinel 排除後);數字不符代表語料與本報告不同版本。
+- 語料建在凍結的 `sec_dense_pipeline_html` pipeline 上;新一代 `sec_dense_pipeline`(payload key 為 `fiscal_year`)不是本實驗的對象。
+
+### 重現記錄
+
+| 日期 | Code 版本 | 語料 | Naive p@5 / p@10 | Three-layer p@5 / p@10 |
+|---|---|---|---:|---:|
+| 2026-05-13 | branch `experiment/rag-filter-eval`(原始執行,CSV 已 commit) | 1,844 chunks | 0.644 / 0.622 | 1.000 / 1.000 |
+| 2026-08-18 | tag `experiment/2026-08-18-rag-metadata-filter-ab-eval`(從空 Qdrant 照本節步驟重跑) | 1,844 chunks | 0.656 / 0.617 | 1.000 / 1.000 |
+
+兩次差異落在第三位小數(embedding API 非嚴格 deterministic 的正常範圍),結論不變。
 
 Raw CSVs:
 - `backend/evals/results/rag_filter_naive_<ts>.csv`

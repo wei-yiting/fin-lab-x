@@ -25,6 +25,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     ToolResult,
     Usage,
 )
+from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 
 
 class StreamEventMapper:
@@ -238,16 +239,22 @@ class StreamEventMapper:
 
                 if isinstance(msg, ToolMessage):
                     if msg.status == "error":
-                        # str() pins the wire contract: ToolMessage.content
-                        # is `str | list[...]` — a provider may send content
-                        # blocks — while errorText carries text. Without the
-                        # narrowing a raw array would reach the client where a
-                        # string is expected, and the frozen domain events do
-                        # no runtime validation to catch it.
+                        # Sanitize here, not at the raising site: an error
+                        # ToolMessage does not always come from the agent's
+                        # error middleware. ToolNode answers an argument-
+                        # validation failure by *returning* an error message
+                        # instead of raising, so the middleware's except never
+                        # runs and its sanitize call is skipped — the raw text
+                        # (including the kwargs the model passed) would reach
+                        # the client. This mapper is the one point every error
+                        # ToolMessage on the streaming path crosses, whatever
+                        # its origin.
+                        # str() already pins the wire contract; the sanitizer
+                        # takes a str, so the two narrow the same value.
                         events.append(
                             ToolError(
                                 tool_call_id=msg.tool_call_id,
-                                error=str(msg.content),
+                                error=sanitize_tool_error(str(msg.content)),
                             )
                         )
                     else:

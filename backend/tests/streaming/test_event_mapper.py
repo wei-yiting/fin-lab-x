@@ -238,6 +238,40 @@ class TestToolError:
         events = mapper.process_chunk(make_updates_tool_error("tc-1", "API timeout"))
         assert ToolError(tool_call_id="tc-1", error="API timeout") in events
 
+    def test_error_tool_message_is_routed_through_the_sanitizer(self):
+        # Not every error ToolMessage has passed through the agent's error
+        # middleware: LangGraph's ToolNode answers an argument-validation
+        # failure by *returning* an error ToolMessage rather than raising, so
+        # the middleware's except never fires and its sanitize call is
+        # skipped. This mapper is the one point every error ToolMessage on the
+        # streaming path crosses, whatever its origin, so the redaction
+        # happens here.
+        #
+        # What this proves is exactly that routing: an error ToolMessage
+        # reaching the mapper passes through sanitize_tool_error before
+        # becoming a ToolError, so the streaming mapper bypass is closed. It
+        # does not prove the kwargs payload is generally safe — the values
+        # below are caught by the sanitizer's dedicated `sk-*` and
+        # filesystem-path patterns. Secrets written in mapping syntax
+        # (e.g. {'api_key': ...}) are not matched by those patterns today;
+        # that is a separate, tracked limitation of the sanitizer, not of
+        # this routing.
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        raw = (
+            "Error invoking tool 'poc_add' with kwargs "
+            "{'token': 'sk-ABCDEFGHIJKLMNOP1234'} at /var/lib/finlab/secrets"
+        )
+
+        events = mapper.process_chunk(make_updates_tool_error("tc-1", raw))
+
+        error = next(e for e in events if isinstance(e, ToolError))
+        assert "sk-ABCDEFGHIJKLMNOP1234" not in error.error
+        assert "/var/lib/finlab/secrets" not in error.error
+        assert "[REDACTED]" in error.error
+        # The tool name survives — sanitizing must not destroy the
+        # description the user needs to understand what failed.
+        assert "poc_add" in error.error
+
     def test_non_string_error_content_is_coerced(self):
         # ToolMessage.content is `str | list[str | dict]`; the wire contract
         # for an error is a string, so a provider sending content blocks must

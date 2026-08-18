@@ -21,7 +21,8 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from backend.common.sec_core import SECError  # noqa: E402
+from backend.common.data_paths import get_sec_filings_html_dir  # noqa: E402
+from backend.common.errors import FinLabError  # noqa: E402
 from backend.ingestion.sec_filing_pipeline_html.filing_models import (  # noqa: E402
     FilingMetadata,
     ParsedFiling,
@@ -30,7 +31,7 @@ from backend.ingestion.sec_filing_pipeline_html.pipeline import (  # noqa: E402
     SECFilingPipeline,
 )
 
-_STORE_BASE_DIR = Path("data/sec_filings_html")
+_STORE_BASE_DIR = get_sec_filings_html_dir()
 
 _USAGE = """\
 usage: python -m backend.ingestion.sec_filing_pipeline_html TICKER FILING_TYPE [options]
@@ -88,7 +89,7 @@ def _run_single(argv: list[str]) -> None:
         filing = pipeline.process(
             args.ticker, args.filing_type, args.fiscal_year, args.force
         )
-    except SECError as exc:
+    except FinLabError as exc:
         print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
         raise SystemExit(1) from None
     except KeyboardInterrupt:
@@ -120,7 +121,7 @@ def _run_batch(argv: list[str]) -> None:
     try:
         pipeline = SECFilingPipeline.create()
         results = pipeline.process_batch(args.tickers, args.filing_type)
-    except SECError as exc:
+    except FinLabError as exc:
         print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
         raise SystemExit(1) from None
     except KeyboardInterrupt:

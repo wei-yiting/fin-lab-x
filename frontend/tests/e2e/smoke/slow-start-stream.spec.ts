@@ -9,7 +9,7 @@ test(
     await chat.sendMessage("test");
 
     // Fixture delays the first chunk by 2s — the activity placeholder must
-    // cover the submitted dead-air window (S-place-01).
+    // cover the submitted dead-air window.
     await expect(page.getByTestId("activity-placeholder")).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });

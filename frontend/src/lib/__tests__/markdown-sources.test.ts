@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { extractSources } from "../markdown-sources";
+import { extractSources, hasVisibleReplyText } from "../markdown-sources";
 
 describe("extractSources — happy paths", () => {
   test("extracts single reference with title attribute", () => {
@@ -329,4 +329,22 @@ Body text [3] then [1] then [2].
   const result = extractSources(md);
 
   expect(result.map((r) => r.label)).toEqual(["1", "2", "3"]);
+});
+
+describe("hasVisibleReplyText — dead-air window A must not close on invisible text", () => {
+  test("indented reference definition renders nothing (CommonMark allows up to 3 leading spaces)", () => {
+    expect(hasVisibleReplyText("   [1]: https://example.com")).toBe(false);
+  });
+
+  test("column-zero reference definition still renders nothing", () => {
+    expect(hasVisibleReplyText("[1]: https://example.com")).toBe(false);
+  });
+
+  test("four leading spaces is an indented code block — that DOES paint", () => {
+    expect(hasVisibleReplyText("    [1]: https://example.com")).toBe(true);
+  });
+
+  test("actual prose still counts as visible", () => {
+    expect(hasVisibleReplyText("NVDA is up [1].\n\n[1]: https://example.com")).toBe(true);
+  });
 });

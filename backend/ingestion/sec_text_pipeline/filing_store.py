@@ -1,9 +1,9 @@
 """JSON filing store — the fetch+parse stage cache.
 
 Persists :class:`ParsedFiling` as schema-validated JSON under
-``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only: a
-planned inspect helper (future extension, not yet built) will derive a
-human-facing markdown view from this store. Parallel to Qdrant (the
+``data/sec_text/{TICKER}/10-K/{YEAR}.json``. Machine-facing cache only:
+the inspect view (:mod:`inspect_view` + the package CLI) derives the
+human-facing markdown render from this store. Parallel to Qdrant (the
 embedding-stage cache) — the two
 invalidate under different conditions (a parser change invalidates this
 store; an embedding-model change invalidates only Qdrant), hence both
@@ -18,6 +18,7 @@ import tempfile
 from pathlib import Path
 from typing import Protocol
 
+from backend.common.data_paths import get_sec_text_dir
 from backend.common.sec_core import FilingType
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
 
@@ -28,8 +29,7 @@ _TICKER_RE = re.compile(r"^[A-Z0-9][A-Z0-9.\-]*$")
 
 class FilingStore(Protocol):
     """What parse_filing needs from a store — nothing more (envelope §0
-    reachability). Downstream tickets widen this when they consume more
-    (e.g. the inspect CLI's listing needs).
+    reachability). Downstream tickets widen this when they consume more.
     """
 
     def save(self, filing: ParsedFiling) -> None: ...
@@ -40,8 +40,8 @@ class FilingStore(Protocol):
 
 
 class LocalFilingStore:
-    def __init__(self, base_dir: str = "data/sec_text") -> None:
-        self._base_dir = Path(base_dir)
+    def __init__(self, base_dir: str | Path | None = None) -> None:
+        self._base_dir = Path(base_dir) if base_dir is not None else get_sec_text_dir()
 
     @staticmethod
     def _validate_ticker(ticker: str) -> str:

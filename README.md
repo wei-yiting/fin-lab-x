@@ -236,8 +236,10 @@ backend/
   common/               Shared SEC domain types & error taxonomy
   evals/                Scenario-first eval framework (Braintrust executor)
   ingestion/
-    sec_filing_pipeline_html/   EDGAR → Markdown (heading promotion, cleanup)
-    sec_dense_pipeline_html/    Markdown → Qdrant (JIT, commit markers)
+    sec_filing_pipeline_html/   EDGAR → Markdown (frozen A/B baseline, deleted at sunset)
+    sec_dense_pipeline_html/    Markdown → Qdrant (frozen A/B baseline, deleted at sunset)
+    sec_text_pipeline/          EDGAR → ParsedFiling (structured 10-K parsing, edgartools)
+    sec_dense_pipeline/         ParsedFiling → Qdrant (per-block chunks, commit markers)
     fundamentals_pipeline/ DuckDB 8-table foundation
   tests/                ~755 tests mirroring source layout
 data/trace-archives/    Curated trace bundles (permanent evidence)

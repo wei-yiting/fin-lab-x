@@ -18,9 +18,9 @@ tools:
   - text_to_sql
 
 model:
-  name: "openai:gpt-5-mini"
+  name: "openai:gpt-5-nano"
   temperature: 0.0
-  reasoning: "on"
+  reasoning: "off"
   thinking_budget: null
 
 constraints:

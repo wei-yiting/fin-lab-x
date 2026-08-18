@@ -183,7 +183,7 @@ class TestUnknownEventType:
 
 
 class TestReasoningPartSerializers:
-    """AI SDK v6 native reasoning-* wire format — S-parts-01 contract."""
+    """AI SDK v6 native reasoning-* wire format."""
 
     def test_reasoning_start_wire_format(self):
         evt = ReasoningStart(reasoning_id="reasoning-0")
@@ -200,7 +200,7 @@ class TestReasoningPartSerializers:
         }
 
     def test_reasoning_delta_preserves_whitespace_verbatim(self):
-        """S-parts-02: `\\n\\n` and mid-word fragments pass through untouched."""
+        """`\\n\\n` and mid-word fragments pass through untouched."""
         evt = ReasoningDelta(reasoning_id="reasoning-1", delta="li\n\nne")
         payload = _parse_sse(serialize_event(evt))
         assert payload["delta"] == "li\n\nne"

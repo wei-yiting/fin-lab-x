@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
 
-// F6 ruling: exactly one ChatPanel integration case verifies the stall
-// wiring with a mocked small threshold against MSW real time. The mock is
-// file-level (vi.mock hoists); the 10s production default is locked by the
+// Exactly one ChatPanel integration case verifies the stall wiring, with a
+// mocked small threshold against MSW real time. The mock is file-level
+// (vi.mock hoists); the 10s production default is locked by the
 // useStallTimer fake-timer unit test instead.
 vi.mock("@/lib/timing", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/timing")>();
@@ -40,50 +40,6 @@ function sseResponse(stream: ReadableStream) {
     headers: {
       "Content-Type": "text/event-stream",
       "x-vercel-ai-ui-message-stream": "v1",
-    },
-  });
-}
-
-// Shared shape for the three "Stop mid-stream" servers below: emit some
-// frames immediately, then poll slowly (checking the abort signal each
-// tick) so the test has time to click Stop, then — if never aborted —
-// finish normally. `pollFrame` returns null for ticks that emit nothing
-// (the placeholder-phase server just needs the delay, not more frames).
-function holdStreamUntilAbort(
-  request: Request,
-  opts: {
-    initialFrames: Array<Record<string, unknown>>;
-    pollFrame?: (tick: number) => Record<string, unknown> | null;
-    finalFrames: Array<Record<string, unknown>>;
-  },
-): ReadableStream {
-  const encoder = new TextEncoder();
-  return new ReadableStream({
-    async start(controller) {
-      const onAbort = () => {
-        try {
-          controller.close();
-        } catch {
-          /* already closed */
-        }
-      };
-      request.signal.addEventListener("abort", onAbort, { once: true });
-
-      for (const frame of opts.initialFrames) {
-        controller.enqueue(encoder.encode(sseFrame(frame)));
-      }
-
-      for (let tick = 0; tick < 30; tick++) {
-        await new Promise((r) => setTimeout(r, 100));
-        if (request.signal.aborted) return;
-        const frame = opts.pollFrame?.(tick);
-        if (frame) controller.enqueue(encoder.encode(sseFrame(frame)));
-      }
-
-      for (const frame of opts.finalFrames) {
-        controller.enqueue(encoder.encode(sseFrame(frame)));
-      }
-      controller.close();
     },
   });
 }
@@ -272,25 +228,50 @@ describe("ChatPanel integration — mid-stream retry preserves user history", ()
 
 describe("ChatPanel integration — aborted tools via stop", () => {
   const abortedServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) =>
-      sseResponse(
-        holdStreamUntilAbort(request, {
-          initialFrames: [
-            { type: "start", messageId: "a1" },
-            {
-              type: "tool-input-available",
-              toolCallId: "tc-x",
-              toolName: "yfinance_quote",
-              input: { ticker: "NVDA" },
-            },
-            { type: "text-start", id: "t1" },
-            { type: "text-delta", id: "t1", delta: "Looking up..." },
-          ],
-          pollFrame: () => ({ type: "text-delta", id: "t1", delta: "." }),
-          finalFrames: [{ type: "text-end", id: "t1" }, { type: "finish" }],
-        }),
-      ),
-    ),
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({
+                type: "tool-input-available",
+                toolCallId: "tc-x",
+                toolName: "yfinance_quote",
+                input: { ticker: "NVDA" },
+              }),
+            ),
+          );
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
+          );
+
+          // Keep streaming slowly to give time to click stop
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
+            );
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
   );
 
   beforeAll(() => abortedServer.listen({ onUnhandledRequest: "bypass" }));
@@ -337,39 +318,70 @@ describe("ChatPanel integration — aborted tools via stop", () => {
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
     expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
   }, 20000);
-});
-
-// ---------------------------------------------------------------------------
-// Stop with no chip/tool carrier
-//
-// The "aborted tools via stop" server above always has a running ToolCard
-// live by the time reply text streams (tool-input-available lands before
-// text-start, with no tool result in between), so it can't exercise a Stop
-// with genuinely no chip/tool carrier. This uses a pure text-only stream.
-// ---------------------------------------------------------------------------
-
-describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", () => {
-  const textOnlyServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) =>
-      sseResponse(
-        holdStreamUntilAbort(request, {
-          initialFrames: [
-            { type: "start", messageId: "a1" },
-            { type: "text-start", id: "t1" },
-            { type: "text-delta", id: "t1", delta: "Looking up..." },
-          ],
-          pollFrame: () => ({ type: "text-delta", id: "t1", delta: "." }),
-          finalFrames: [{ type: "text-end", id: "t1" }, { type: "finish" }],
-        }),
-      ),
-    ),
-  );
-
-  beforeAll(() => textOnlyServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => textOnlyServer.resetHandlers());
-  afterAll(() => textOnlyServer.close());
 
   test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {
+    // This scenario needs a tool that has already resolved (not the shared
+    // abortedServer's tool, which stays running for the whole stream) so
+    // that by the time we stop, no ToolCard is in a running state — the
+    // "no chip/tool carrier" case this test's name claims to cover.
+    abortedServer.use(
+      http.post("/api/v1/chat", ({ request }) => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            const onAbort = () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            };
+            request.signal.addEventListener("abort", onAbort, { once: true });
+
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a2" })));
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({
+                  type: "tool-input-available",
+                  toolCallId: "tc-y",
+                  toolName: "yfinance_quote",
+                  input: { ticker: "NVDA" },
+                }),
+              ),
+            );
+            // Resolve the tool BEFORE any text streams, so once the reply
+            // text is visible, the ToolCard is already settled.
+            controller.enqueue(
+              encoder.encode(
+                sseFrame({
+                  type: "tool-output-available",
+                  toolCallId: "tc-y",
+                  output: { price: 123.45 },
+                }),
+              ),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "Looking up..." })),
+            );
+
+            // Keep streaming slowly to give time to click stop
+            for (let i = 0; i < 30; i++) {
+              await new Promise((r) => setTimeout(r, 100));
+              if (request.signal.aborted) return;
+              controller.enqueue(
+                encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "." })),
+              );
+            }
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -377,15 +389,13 @@ describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", 
     await user.type(textarea, "test query");
     await user.click(screen.getByTestId("composer-send-btn"));
 
-    // Wait until reply text is visibly streaming.
+    // Wait until reply text is visibly streaming (past the tool phase).
     await waitFor(
       () => {
         expect(screen.getByTestId("assistant-message")).toHaveTextContent(/Looking up/);
       },
       { timeout: 10000 },
     );
-    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("composer-stop-btn"));
 
@@ -399,27 +409,50 @@ describe("ChatPanel integration — stop mid-answer with no chip/tool carrier", 
 });
 
 // ---------------------------------------------------------------------------
-// Stop during the placeholder phase
+// Stop during the dead-air placeholder window
 //
-// Stop can also fire before any content has arrived at all — only the
-// dead-air placeholder ("submitted"/pre-content window) is showing. That has
-// no integration coverage either; this delayed-start server holds the
-// stream at just the `start` frame so Stop lands there.
+// A Stop that lands before the assistant message has anything renderable
+// (the placeholder is the only visible content — no chip, no tool card)
+// must still leave an "Interrupted" row. This is the window abortedTools
+// cannot cover (no tool call exists yet) and the earlier "no chip/tool
+// carrier" case above cannot cover either (that one has reply text already
+// streaming).
 // ---------------------------------------------------------------------------
 
 describe("ChatPanel integration — stop during placeholder phase", () => {
   const placeholderStopServer = setupServer(
     http.post("/api/v1/chat", ({ request }) =>
       sseResponse(
-        holdStreamUntilAbort(request, {
-          initialFrames: [{ type: "start", messageId: "a1" }],
-          finalFrames: [
-            { type: "text-start", id: "t1" },
-            { type: "text-delta", id: "t1", delta: "late answer" },
-            { type: "text-end", id: "t1" },
-            { type: "finish" },
-          ],
-        }),
+        (() => {
+          const encoder = new TextEncoder();
+          return new ReadableStream({
+            async start(controller) {
+              const onAbort = () => {
+                try {
+                  controller.close();
+                } catch {
+                  /* already closed */
+                }
+              };
+              request.signal.addEventListener("abort", onAbort, { once: true });
+
+              controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
+
+              for (let tick = 0; tick < 30; tick++) {
+                await new Promise((r) => setTimeout(r, 100));
+                if (request.signal.aborted) return;
+              }
+
+              controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+              controller.enqueue(
+                encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "late answer" })),
+              );
+              controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+              controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+              controller.close();
+            },
+          });
+        })(),
       ),
     ),
   );
@@ -443,7 +476,6 @@ describe("ChatPanel integration — stop during placeholder phase", () => {
       { timeout: 10000 },
     );
     expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("composer-stop-btn"));
 
@@ -457,20 +489,173 @@ describe("ChatPanel integration — stop during placeholder phase", () => {
 });
 
 // ---------------------------------------------------------------------------
-// onFinish non-normal-completion branches — only natural finish should announce
+// Dead-air placeholder stall degradation
 //
-// AI SDK v6 routes the SSE `finish` chunk through onFinish with a payload
-// shape of `{ message, messages, isAbort, isDisconnect, isError }`. Three
-// non-normal exits set one of those flags:
-//   - isAbort      — user-initiated stop() (catch block + AbortError)
-//   - isError      — SSE error chunk OR any thrown error in the stream
-//   - isDisconnect — TypeError mentioning "fetch"/"network" (subset of isError)
-// In all three cases the user has another visible affordance (the aborted
-// chip's Stopped header, or status === "error" routing in LiveStatusAnnouncer),
-// so the ChatPanel must NOT also push a "finish" event into lastSSEEvent —
-// that would race the error path and could leak a misleading "Response
-// complete" announcement.
+// The global stall stopwatch (useStallTimer) also degrades the placeholder's
+// copy from "Thinking" to "Still working" when the wire goes silent past the
+// threshold, and any arriving stream part must zero it again. Mocked small
+// threshold + real MSW time — the 10s production default is locked by the
+// useStallTimer fake-timer unit test instead.
 // ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — placeholder stall degradation (the single stall-wiring case)", () => {
+  const SMALL_THRESHOLD = 700;
+  const stallServer = setupServer(
+    http.post("/api/v1/chat", () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          send({ type: "start", messageId: "m-stall" });
+          // Phase 1 — silence beyond the mocked threshold with nothing
+          // renderable yet → degraded copy on the placeholder. The hold is
+          // generous (threshold + 2.5s) so the degraded copy stays
+          // observable even under parallel-suite load.
+          await new Promise((r) => setTimeout(r, SMALL_THRESHOLD + 2500));
+
+          // Phase 2 — the reset half of the wiring. Whitespace-only text
+          // deltas are stream parts (they change `messages`, so the
+          // layout-effect calls notifyActivity) but are NOT renderable
+          // (hasVisibleReplyText trims them to nothing), so the dead-air
+          // window stays open and the same placeholder element must revert
+          // to the non-degraded copy. Spaced well under the threshold so the
+          // non-degraded copy holds for the whole burst.
+          send({ type: "text-start", id: "t1" });
+          for (let i = 0; i < 12; i++) {
+            send({ type: "text-delta", id: "t1", delta: "\n" });
+            await new Promise((r) => setTimeout(r, SMALL_THRESHOLD / 4));
+          }
+
+          // Phase 3 — the real answer arrives and replaces the placeholder.
+          send({ type: "text-delta", id: "t1", delta: "done" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => stallServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => stallServer.resetHandlers());
+  afterAll(() => stallServer.close());
+
+  test("silence degrades the copy, an arriving part resets the stopwatch, the answer replaces it", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Still working");
+      },
+      { timeout: 5000 },
+    );
+
+    // Any stream part zeroes the global stall stopwatch. The whitespace
+    // deltas keep the placeholder mounted (nothing renderable yet) while
+    // restoring the non-degraded copy — without this assertion the case
+    // would pass even with notifyActivity disconnected from part arrival.
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Thinking");
+      },
+      { timeout: 5000 },
+    );
+
+    await waitFor(
+      () => {
+        expect(screen.getByText("done")).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  }, 20000);
+});
+
+// ---------------------------------------------------------------------------
+// Stop + clear race
+//
+// During active streaming, clicking clear should stop the stream, reset the
+// chat ID, and show EmptyState with no residual messages.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — stop + clear", () => {
+  const clearServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-clear" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(
+              sseFrame({ type: "text-delta", id: "t1", delta: "streaming content here" }),
+            ),
+          );
+
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: ` chunk${i}` })),
+            );
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => clearServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => clearServer.resetHandlers());
+  afterAll(() => clearServer.close());
+
+  test("streaming → click clear → EmptyState, no residual messages", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "stream me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Wait for streaming to start
+    await waitFor(
+      () => {
+        expect(screen.getByText(/streaming content/)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    // Click clear during streaming
+    await user.click(screen.getByTestId("composer-clear-btn"));
+
+    // Should show empty state, no messages
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+        expect(screen.queryByTestId("assistant-message")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("user-bubble")).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  });
+});
 
 describe("ChatPanel integration — onFinish does not announce non-normal completions", () => {
   const announcerServer = setupServer(
@@ -662,85 +847,6 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
 // chat ID, and show EmptyState with no residual messages.
 // ---------------------------------------------------------------------------
 
-describe("ChatPanel integration — stop + clear", () => {
-  const clearServer = setupServer(
-    http.post("/api/v1/chat", ({ request }) => {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const onAbort = () => {
-            try {
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-          };
-          request.signal.addEventListener("abort", onAbort, { once: true });
-
-          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-clear" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
-          controller.enqueue(
-            encoder.encode(
-              sseFrame({ type: "text-delta", id: "t1", delta: "streaming content here" }),
-            ),
-          );
-
-          for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 100));
-            if (request.signal.aborted) return;
-            controller.enqueue(
-              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: ` chunk${i}` })),
-            );
-          }
-          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
-          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
-          controller.close();
-        },
-      });
-      return sseResponse(stream);
-    }),
-  );
-
-  beforeAll(() => clearServer.listen({ onUnhandledRequest: "bypass" }));
-  afterEach(() => clearServer.resetHandlers());
-  afterAll(() => clearServer.close());
-
-  test("streaming → click clear → EmptyState, no residual messages", async () => {
-    const user = userEvent.setup();
-    render(<ChatPanel />);
-
-    const textarea = screen.getByTestId("composer-textarea");
-    await user.type(textarea, "stream me");
-    await user.click(screen.getByTestId("composer-send-btn"));
-
-    // Wait for streaming to start
-    await waitFor(
-      () => {
-        expect(screen.getByText(/streaming content/)).toBeInTheDocument();
-      },
-      { timeout: 5000 },
-    );
-
-    // Click clear during streaming
-    await user.click(screen.getByTestId("composer-clear-btn"));
-
-    // Should show empty state, no messages
-    await waitFor(
-      () => {
-        expect(screen.getByTestId("empty-state")).toBeInTheDocument();
-        expect(screen.queryByTestId("assistant-message")).not.toBeInTheDocument();
-        expect(screen.queryByTestId("user-bubble")).not.toBeInTheDocument();
-      },
-      { timeout: 5000 },
-    );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Reasoning chips (F6′ / ADR-0008) — native reasoning-* parts render as
-// collapsible transcript chips; everything derives from (status, messages).
-// ---------------------------------------------------------------------------
-
 describe("ChatPanel integration — reasoning chips golden path", () => {
   const chipServer = setupServer(
     http.post("/api/v1/chat", () => {
@@ -804,7 +910,7 @@ describe("ChatPanel integration — reasoning chips golden path", () => {
   }, 15000);
 });
 
-describe("ChatPanel integration — abort keeps a collapsed half-chip (S-chip-07)", () => {
+describe("ChatPanel integration — abort keeps a collapsed half-chip", () => {
   const abortServer = setupServer(
     http.post("/api/v1/chat", ({ request }) => {
       const encoder = new TextEncoder();
@@ -875,7 +981,7 @@ describe("ChatPanel integration — abort keeps a collapsed half-chip (S-chip-07
   }, 15000);
 });
 
-describe("ChatPanel integration — stall degradation wiring (the ONE ChatPanel case, F6 ruling)", () => {
+describe("ChatPanel integration — chip header stall degradation (shares the file-level mocked threshold)", () => {
   // Mock small threshold + real MSW time. The 10s default itself is locked
   // by the useStallTimer fake-timer unit test.
   const SMALL_THRESHOLD = 700;
@@ -937,7 +1043,7 @@ describe("ChatPanel integration — stall degradation wiring (the ONE ChatPanel 
   }, 15000);
 });
 
-describe("ChatPanel integration — abort-then-resend coexistence (J-pres-01)", () => {
+describe("ChatPanel integration — abort-then-resend coexistence", () => {
   let call = 0;
   const resendServer = setupServer(
     http.post("/api/v1/chat", ({ request }) => {

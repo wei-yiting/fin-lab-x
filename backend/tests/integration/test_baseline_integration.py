@@ -7,8 +7,6 @@ and tool outputs.
 
 from typing import Any
 from unittest.mock import Mock, patch, MagicMock
-
-import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.agents.config_loader import (
@@ -55,51 +53,135 @@ def _create_orchestrator_with_mocked_llm(config: WorkflowProfileConfig) -> Orche
         return orch
 
 
-@pytest.mark.parametrize(
-    "tool_name, args",
-    [
-        ("finnhub_company_basic_financials", {"ticker": "AAPL"}),
-        ("tavily_financial_search", {"query": "latest news", "ticker": "TSLA"}),
-        ("sec_filing_list_sections", {"ticker": "MSFT", "doc_type": "10-K"}),
-    ],
-    ids=["finnhub", "tavily", "sec"],
-)
-def test_single_tool_output_is_extracted(tool_name, args):
-    """A single tool call yields a single tool_output carrying the tool name
-    and the echoed args. finnhub / tavily / sec are the same extraction
-    equivalence class — only the tool name and args strings differ — so they
-    share one parametrized test. Multi-tool sequencing is covered separately by
-    test_multi_tool_integration."""
+def test_finnhub_tool_integration():
+    """Test that finnhub tool output is correctly extracted."""
     config = WorkflowProfileConfig(
         version="0.1.0",
         name="baseline",
         description="Test version",
-        tools=[tool_name],
+        tools=["finnhub_company_basic_financials"],
     )
 
     mock_tool = Mock()
-    mock_tool.name = tool_name
+    mock_tool.name = "finnhub_company_basic_financials"
+
+    orch = _create_orchestrator(config, [mock_tool])
+
+    # Simulate agent returning message history with tool call + result
+    orch.agent.invoke.return_value = {
+        "messages": [
+            HumanMessage(content="What are AAPL's fundamentals?"),
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "finnhub_company_basic_financials",
+                        "args": {"ticker": "AAPL"},
+                        "id": "call_1",
+                    }
+                ],
+            ),
+            ToolMessage(
+                content='{"ticker": "AAPL", "peTTM": 28.4}',
+                tool_call_id="call_1",
+                name="finnhub_company_basic_financials",
+            ),
+            AIMessage(content="AAPL fundamentals summary."),
+        ]
+    }
+
+    result = orch.run("What are AAPL's fundamentals?")
+
+    assert len(result["tool_outputs"]) > 0
+    assert result["tool_outputs"][0]["tool"] == "finnhub_company_basic_financials"
+    assert result["tool_outputs"][0]["args"]["ticker"] == "AAPL"
+
+
+def test_tavily_tool_integration():
+    """Test that tavily tool output is correctly extracted."""
+    config = WorkflowProfileConfig(
+        version="0.1.0",
+        name="baseline",
+        description="Test version",
+        tools=["tavily_financial_search"],
+    )
+
+    mock_tool = Mock()
+    mock_tool.name = "tavily_financial_search"
 
     orch = _create_orchestrator(config, [mock_tool])
 
     orch.agent.invoke.return_value = {
         "messages": [
-            HumanMessage(content="q"),
+            HumanMessage(content="What's the latest news about TSLA?"),
             AIMessage(
                 content="",
-                tool_calls=[{"name": tool_name, "args": args, "id": "call_1"}],
+                tool_calls=[
+                    {
+                        "name": "tavily_financial_search",
+                        "args": {"query": "latest news", "ticker": "TSLA"},
+                        "id": "call_1",
+                    }
+                ],
             ),
-            ToolMessage(content="{}", tool_call_id="call_1", name=tool_name),
-            AIMessage(content="done"),
+            ToolMessage(
+                content='{"results": []}',
+                tool_call_id="call_1",
+                name="tavily_financial_search",
+            ),
+            AIMessage(content="No recent news for TSLA."),
         ]
     }
 
-    result = orch.run("q")
+    result = orch.run("What's the latest news about TSLA?")
 
     assert len(result["tool_outputs"]) > 0
-    output = result["tool_outputs"][0]
-    assert output["tool"] == tool_name
-    assert output["args"] == args
+    assert result["tool_outputs"][0]["tool"] == "tavily_financial_search"
+    assert result["tool_outputs"][0]["args"]["ticker"] == "TSLA"
+
+
+def test_sec_tool_integration():
+    """Test that SEC tool output is correctly extracted."""
+    config = WorkflowProfileConfig(
+        version="0.1.0",
+        name="baseline",
+        description="Test version",
+        tools=["sec_filing_list_sections"],
+    )
+
+    mock_tool = Mock()
+    mock_tool.name = "sec_filing_list_sections"
+
+    orch = _create_orchestrator(config, [mock_tool])
+
+    orch.agent.invoke.return_value = {
+        "messages": [
+            HumanMessage(content="Get the latest 10-K for MSFT"),
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "sec_filing_list_sections",
+                        "args": {"ticker": "MSFT", "doc_type": "10-K"},
+                        "id": "call_1",
+                    }
+                ],
+            ),
+            ToolMessage(
+                content='{"ticker": "MSFT", "doc_type": "10-K"}',
+                tool_call_id="call_1",
+                name="sec_filing_list_sections",
+            ),
+            AIMessage(content="MSFT 10-K filing retrieved."),
+        ]
+    }
+
+    result = orch.run("Get the latest 10-K for MSFT")
+
+    assert len(result["tool_outputs"]) > 0
+    assert result["tool_outputs"][0]["tool"] == "sec_filing_list_sections"
+    assert result["tool_outputs"][0]["args"]["ticker"] == "MSFT"
+    assert result["tool_outputs"][0]["args"]["doc_type"] == "10-K"
 
 
 def test_multi_tool_integration():
@@ -200,7 +282,7 @@ def test_config_loading_from_yaml():
     assert "finnhub_stock_quote" in config.tools
     assert "tavily_financial_search" in config.tools
     assert config.model.name == "openai:gpt-5-nano"
-    assert config.model.reasoning == "on"
+    assert config.model.reasoning == "off"
 
 
 def test_system_prompt_loaded_from_file():

@@ -1,4 +1,4 @@
-"""ReasoningTranscriptAccumulator — trace-level reasoning transcript (F7 / ADR-0011).
+"""ReasoningTranscriptAccumulator — trace-level reasoning transcript (F7 / ADR-0016).
 
 Observes the reasoning domain events (``ReasoningStart`` / ``ReasoningDelta`` /
 ``ReasoningEnd``) that ``StreamEventMapper`` already emits to the client, and

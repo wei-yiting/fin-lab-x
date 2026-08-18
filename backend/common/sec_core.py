@@ -5,7 +5,8 @@ Types: :class:`FilingType`, :class:`SECError` hierarchy,
 Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`is_stub_section` (incorp-by-reference / reserved detection),
 :func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch),
-:func:`fetch_filing_bundle` (same fetch plus citation metadata).
+:func:`fetch_filing_bundle` (same fetch plus citation metadata),
+:func:`fetch_filing_markdown` (filing-level markdown for block detection).
 
 Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
 :mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
@@ -21,6 +22,14 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
+from backend.common.errors import (
+    ConfigurationError,
+    FinLabError,
+    RateLimitError,
+    TickerNotFoundError,
+    TransientError,
+)
+
 if TYPE_CHECKING:
     from edgar.company_reports.ten_k import TenK  # noqa: F401
 
@@ -30,37 +39,14 @@ class FilingType(StrEnum):
     # TEN_Q = "10-Q"  # reserved for future PR
 
 
-class SECError(Exception):
+class SECError(FinLabError):
     """SEC domain base exception."""
-
-
-class TickerNotFoundError(SECError): ...
 
 
 class FilingNotFoundError(SECError): ...
 
 
 class UnsupportedFilingTypeError(SECError): ...
-
-
-class TransientError(SECError): ...
-
-
-class RateLimitError(SECError):
-    """SEC EDGAR returned HTTP 429. Carries ``retry_after`` when SEC provides
-    the ``Retry-After`` header; ``None`` means SEC did not tell us how long
-    to wait (typically corresponds to the default 10-minute IP block).
-    """
-
-    def __init__(self, ticker: str, retry_after: int | None):
-        self.retry_after = retry_after
-        msg = f"SEC EDGAR rate-limited {ticker}"
-        if retry_after is not None:
-            msg += f" (Retry-After={retry_after}s)"
-        super().__init__(msg)
-
-
-class ConfigurationError(SECError): ...
 
 
 class SectionNotFoundError(SECError): ...
@@ -237,8 +223,13 @@ def _find_by_fiscal_year(filings, fiscal_year: int):
     return None
 
 
-def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
-    """Map a raw edgartools / HTTP exception to a SECError subclass.
+def _classify_edgar_error(
+    exc: Exception,
+    ticker: str,
+    *,
+    post_locate_context: str | None = None,
+) -> FinLabError:
+    """Map a raw edgartools / HTTP exception to a FinLabError subclass.
 
     Returns the mapped exception (caller uses ``raise mapped from exc``).
 
@@ -247,14 +238,24 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
       (carries ``retry_after`` when SEC provides the header).
     - HTTP 5xx (``httpx.HTTPStatusError`` or ``requests.HTTPError``) →
       ``TransientError``.
-    - Existing ``SECError`` → pass through unchanged.
-    - Anything else → ``TickerNotFoundError`` (empty-filings template).
+    - Existing ``FinLabError`` (e.g. already-classified ``SECError``) →
+      pass through unchanged.
+    - Anything else: the fallback guess depends on the call's stage.
+      Locate-stage callers (``post_locate_context=None``) get
+      ``TickerNotFoundError`` — at that stage an unclassifiable failure
+      most plausibly means the ticker is wrong. Callers that already hold
+      a located filing pass ``post_locate_context`` (a message prefix
+      describing what they were doing); "ticker not found" is factually
+      impossible for them, so the fallback becomes a ``SECError`` built
+      from that context instead of a misleading lookup error.
     """
     try:
         from edgar.httprequests import TooManyRequestsError
 
         if isinstance(exc, TooManyRequestsError):
-            return RateLimitError(ticker, retry_after=getattr(exc, "retry_after", None))
+            return RateLimitError(
+                f"SEC EDGAR ({ticker})", retry_after=getattr(exc, "retry_after", None)
+            )
     except ImportError:
         pass
 
@@ -265,7 +266,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
             status = getattr(getattr(exc, "response", None), "status_code", None)
             if status == 429:
                 return RateLimitError(
-                    ticker,
+                    f"SEC EDGAR ({ticker})",
                     retry_after=_parse_retry_after_seconds_header(exc.response),
                 )
             if status is not None and 500 <= status < 600:
@@ -280,7 +281,7 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
             status = getattr(getattr(exc, "response", None), "status_code", None)
             if status == 429:
                 return RateLimitError(
-                    ticker,
+                    f"SEC EDGAR ({ticker})",
                     retry_after=_parse_retry_after_seconds_header(exc.response),
                 )
             if status is not None and 500 <= status < 600:
@@ -288,8 +289,10 @@ def _classify_edgar_error(exc: Exception, ticker: str) -> SECError:
     except ImportError:
         pass
 
-    if isinstance(exc, SECError):
+    if isinstance(exc, FinLabError):
         return exc
+    if post_locate_context is not None:
+        return SECError(f"{post_locate_context}: {exc}")
     return TickerNotFoundError(f"Ticker {ticker!r} not found on SEC EDGAR.")
 
 
@@ -451,7 +454,13 @@ def _fetch_filing_obj_cached(
     try:
         obj = filing.obj()
     except Exception as exc:
-        raise _classify_edgar_error(exc, ticker_upper) from exc
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
+                f"Failed to parse the located {filing_type} filing for {ticker_upper}"
+            ),
+        ) from exc
 
     if not isinstance(obj, TenK):
         raise SECError(f"Expected TenK, got {type(obj).__name__}")
@@ -468,8 +477,8 @@ def _fetch_filing_bundle_cached(
 
     # Capture citation metadata from the public Filing API. ``filing.document``
     # may trigger an extra SGML/homepage fetch inside edgartools — acceptable,
-    # it happens once per cached key — so its failures must map to the same
-    # SECError family as the primary fetches.
+    # it happens once per cached key — so its failures must go through the
+    # same FinLabError classification as the primary fetches.
     try:
         accession_number = filing.accession_number
         cik = str(filing.cik)
@@ -479,7 +488,14 @@ def _fetch_filing_bundle_cached(
             getattr(document, "document", None) if document is not None else None
         )
     except Exception as exc:
-        raise _classify_edgar_error(exc, ticker_upper) from exc
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
+                f"Failed to read citation metadata for the located "
+                f"{filing_type} filing of {ticker_upper}"
+            ),
+        ) from exc
 
     if not primary_document:
         raise SECError(
@@ -494,6 +510,48 @@ def _fetch_filing_bundle_cached(
         cik=cik,
         company_name=company_name,
         primary_document=primary_document,
+    )
+
+
+@lru_cache(maxsize=8)
+def _fetch_filing_markdown_cached(
+    ticker_upper: str,
+    filing_type: FilingType,
+    fiscal_year: int | None,
+) -> str:
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+    try:
+        return filing.markdown() or ""
+    except Exception as exc:
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
+                f"Failed to render markdown for {ticker_upper} {filing_type} "
+                f"(fiscal year {fiscal_year if fiscal_year is not None else 'latest'}, "
+                f"accession {filing.accession_number})"
+            ),
+        ) from exc
+
+
+def fetch_filing_markdown(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> str:
+    """Fetch the filing-level markdown rendering of a filing (additive API).
+
+    The markdown's H3/H4 heading lines feed the text pipeline's block
+    detection; nothing downstream stores the markdown itself. Shares
+    :func:`_locate_filing_cached` with the other fetchers, so calling this
+    alongside :func:`fetch_filing_bundle` costs one extra document render,
+    not an extra EDGAR locate. Cache is smaller than the other LRUs because
+    whole-filing markdown strings are MB-scale.
+
+    Same exception family as :func:`fetch_filing_obj`.
+    """
+    return _fetch_filing_markdown_cached(
+        ticker.strip().upper(), filing_type, fiscal_year
     )
 
 
@@ -516,7 +574,8 @@ def fetch_filing_obj(
     Raises ``ConfigurationError`` (no ``EDGAR_IDENTITY``),
     ``TickerNotFoundError``, ``UnsupportedFilingTypeError`` (20-F filer),
     ``FilingNotFoundError``, ``TransientError`` (5xx), or
-    ``RateLimitError`` (429; edgartools' retry already exhausted).
+    ``RateLimitError`` (429; surfaced immediately with ``retry_after`` —
+    edgartools does not retry rate limits).
     """
     key = (ticker.strip().upper(), filing_type, fiscal_year)
 

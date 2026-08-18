@@ -44,11 +44,15 @@ _Avoid_: sentinel point (legacy term)
 **Committed or absent**:
 The ingestion invariant: a failed, concurrent, or abandoned ingest must never leave partial or stale-mixed retrievable data. Refresh is wipe-before-rerun.
 
+**Canonical Item order**:
+The SEC Form 10-K standard item sequence (1, 1a, 1b, 1c, 2, … 15, 16) as fixed by the item registry, independent of any particular filing. Parsed filings emit items in this order; the actual position of an item inside a filing's document is not measured and not promised.
+_Avoid_: "filing order" / "document order" (implies a per-filing measurement the pipeline does not make)
+
 **Filing store**:
-The on-disk Markdown cache of parsed filings, shared by the ingestion pipelines and the JIT flow.
+The on-disk cache of parsed filings, shared by the ingestion pipelines and the JIT flow. The text pipeline stores schema-validated `ParsedFiling` JSON; the frozen HTML baseline keeps its legacy Markdown variant until sunset.
 
 **header_path**:
-The hierarchical section locator attached to each chunk (e.g. `NVDA / 2026 / Part I / Item 1A`); retrieval scoring matches on it.
+The hierarchical section locator attached to each chunk; retrieval scoring matches on it. New contract: `TICKER / fiscal year / Item N. Title / block heading`, with no Part level. The frozen HTML baseline's variant may include Part segments.
 
 **Heading promotion**:
 The preprocessing stage that promotes raw 10-K markup to semantic heading levels; tickers are bucketed Class A/B/C by markup difficulty.
@@ -73,7 +77,7 @@ The behavior-health check for an agent close to the `baseline` spec: each questi
 _Avoid_: near-v1 diagnostic (legacy dataset/scenario name, to be renamed at rework)
 
 **Regression Suite**:
-The stable set of test cases rerun manually before merging any change to a scenario's behavior determinants — system prompt, model, or retrieval pipeline — answering "did existing behavior get worse" with a binary red/green verdict. Scorers may be programmatic or binary-rubric LLM judges; each gated scorer's mean score must clear its declared floor. A development-stage gate, deliberately kept out of CI.
+The stable set of test cases rerun manually before merging any change to a scenario's behavior determinants — system prompt, model, or retrieval pipeline — answering "did existing behavior get worse" with a binary red/green verdict. Scorers may be programmatic or binary-rubric LLM judges; each gated scorer's dataset-level metric must clear its declared metric floor. A development-stage gate, deliberately kept out of CI.
 _Avoid_: Prompt Regression Suite (superseded — the suite also gates non-prompt subsystems such as retrieval); Regression Guardrail (a guardrail is a runtime concept — see Guardrail)
 
 **Quality Track**:
@@ -91,6 +95,10 @@ One execution of a scenario against a single agent configuration, persisted as o
 
 **Scorer**:
 A scoring function `(output, expected, input) → Score` — programmatic when the criterion is structurally decidable, LLM-judge when semantic.
+
+**Metric floor**:
+The declared minimum a gated scorer's dataset-level metric value must clear for the Regression Suite to stay green — mean for per-case scorers, the metric's own aggregate for rank metrics (MRR, MAP), pass rate for binary judges.
+_Avoid_: min_score (the value gated is a metric — recall, MRR, pass rate — not a per-case "score" minimum)
 
 **Binary rubric**:
 All LLM-judge dimensions score 0/1, one LLM call per criterion — never free-form scales — to avoid halo and anchoring bias.

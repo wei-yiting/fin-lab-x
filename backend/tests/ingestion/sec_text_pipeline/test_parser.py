@@ -2,14 +2,35 @@ import re
 
 import pytest
 
-from backend.common.sec_core import FetchedFiling, FilingType
+from backend.common.sec_core import (
+    TENK_STANDARD_TITLES,
+    FetchedFiling,
+    FilingNotFoundError,
+    FilingType,
+    SECError,
+    UnsupportedFilingTypeError,
+)
 from backend.ingestion.sec_text_pipeline import parser
-from backend.ingestion.sec_text_pipeline.filing_models import FlatItem, ParsedFiling
+from backend.ingestion.sec_text_pipeline.filing_models import (
+    FlatItem,
+    ParsedFiling,
+    StructuredItem,
+)
 from backend.tests.ingestion.sec_text_pipeline.conftest import (
     FakeTenK,
     make_bundle,
     make_metadata,
 )
+
+
+def _full_text(item) -> str:
+    """An item's complete body regardless of kind, in document order."""
+    if isinstance(item, FlatItem):
+        return item.text
+    parts = [item.prelude]
+    for block in item.blocks:
+        parts.extend([block.heading, block.text])
+    return "\n".join(p for p in parts if p)
 
 
 @pytest.fixture
@@ -28,11 +49,16 @@ def fetch_calls(monkeypatch, fake_bundle):
 
 
 class TestParsedStructure:
-    def test_all_emitted_items_are_flat(self, store, fetch_calls):
+    def test_items_structure_via_fallback_without_markdown(self, store, fetch_calls):
+        # The markdown seam defaults to empty here, so any structure must
+        # come from the text fallback; items it rejects stay flat.
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         assert isinstance(result, ParsedFiling)
         assert result.items  # non-empty
-        assert all(isinstance(item, FlatItem) for item in result.items)
+        structured = [i for i in result.items if isinstance(i, StructuredItem)]
+        assert structured  # recorded AAPL reality: fallback finds structure
+        assert all(i.detection_source == "text_fallback" for i in structured)
+        assert all(isinstance(i, FlatItem | StructuredItem) for i in result.items)
 
     def test_stub_items_are_dropped(self, store, fetch_calls):
         # Recorded AAPL FY2025 reality: 6 is [Reserved]; 10/11/12/13 are
@@ -54,15 +80,16 @@ class TestParsedStructure:
         heading_re = re.compile(r"Item\s+(\d{1,2}[a-cA-C]?)\s*\.(?!\d)")
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         for item in result.items:
+            body = _full_text(item)
             foreign = {
                 m.group(1).lower()
-                for m in heading_re.finditer(item.text)
+                for m in heading_re.finditer(body)
                 if m.group(1).lower() != item.item
-                and parser._is_structural_boundary(item.text, m.start())
+                and parser._is_structural_boundary(body, m.start())
             }
             assert not foreign, f"item {item.item} text bleeds into {foreign}"
         nine_c = next(item for item in result.items if item.item == "9c")
-        assert "Item 10." not in nine_c.text
+        assert "Item 10." not in _full_text(nine_c)
 
 
 class TestTrimSectionText:
@@ -110,6 +137,19 @@ class TestTrimSectionText:
         )
         assert parser._trim_section_text(text, "7") == text.rstrip()
 
+    def test_quoted_cross_reference_is_preserved(self):
+        # WMT FY2025 Item 1A regression: a quoted cross-reference
+        # ('See "Item 1. Business" above') has a quote, not a space, before
+        # "Item" — it must read as prose, not as a glued structural
+        # boundary (which silently amputated 82k of 93k chars).
+        text = (
+            "Item 1A. Risk Factors\n"
+            'Competition could hurt us. See "Item 1. Business" above for '
+            "additional discussion of the competitive landscape.\n"
+            "Further substantive risk discussion continues here.\n"
+        )
+        assert parser._trim_section_text(text, "1a") == text.rstrip()
+
     def test_all_caps_foreign_heading_is_cut(self):
         # Some filings render section headings in ALL-CAPS ("ITEM 1A. RISK
         # FACTORS") — a bleed in that style must still be cut.
@@ -135,7 +175,50 @@ class TestTrimSectionText:
         result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
         eights = [item for item in result.items if item.item == "8"]
         assert len(eights) == 1
-        assert eights[0].text.startswith("Item 8.")
+        assert _full_text(eights[0]).startswith("Item 8.")
+
+    def test_degraded_section_shape_still_parses(self, store, monkeypatch):
+        """UPGRADE GUARD (DEV-136 diagnosis; upstream root cause on DEV-147).
+
+        edgartools names sections two ways: part-aware ("part_ii_item_7a",
+        Section.item populated) and spaced ("Item 7A", Section.item None —
+        observed live on MSFT/GE/DIS). The parser must not depend on the
+        .item metadata alone: when it is missing, the item key derives from
+        the section name. If an edgartools upgrade changes either shape,
+        this test and its sibling below must both stay green.
+        """
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "Item 1": {"item": "", "text": f"Item 1. Business\n{prose}"},
+                "Item 7A": {"item": "", "text": f"Item 7A. Market Risk\n{prose}"},
+                "Signatures": {"item": "", "text": f"Signatures\n{prose}"},
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert [item.item for item in result.items] == ["1", "7a"]
+
+    def test_part_aware_section_shape_still_parses(self, store, monkeypatch):
+        """UPGRADE GUARD sibling: the part-aware shape (item populated,
+        underscore names) keeps working unchanged."""
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_1": {"item": "1", "text": f"Item 1. Business\n{prose}"},
+                "part_ii_item_7a": {
+                    "item": "7A",
+                    "text": f"Item 7A. Market Risk\n{prose}",
+                },
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert [item.item for item in result.items] == ["1", "7a"]
 
     def test_non_item_entries_skipped(self, store, monkeypatch):
         # A section with item=None (e.g. signatures) must not crash nor emit.
@@ -196,6 +279,150 @@ class TestTrimSectionText:
         assert store.get("AAPL", FilingType.TEN_K, 2025) is None
 
 
+class TestCanonicalItemOrder:
+    """edgartools' ``Sections`` dict arrives in its own detection order, not
+    canonical Item order (its ``__rich__`` sorts for display only). The parser
+    owns the ordering contract for every downstream consumer — notably the
+    filing-wide ``chunk_index`` that citation IDs are built from.
+    """
+
+    def test_misordered_sections_emit_in_canonical_order(self, store, monkeypatch):
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_ii_item_7a": {
+                    "item": "7A",
+                    "text": f"Item 7A. Market Risk\n{prose}",
+                },
+                "part_i_item_1": {"item": "1", "text": f"Item 1. Business\n{prose}"},
+                "part_ii_item_9": {
+                    "item": "9",
+                    "text": f"Item 9. Changes in Accountants\n{prose}",
+                },
+                "part_i_item_1a": {
+                    "item": "1A",
+                    "text": f"Item 1A. Risk Factors\n{prose}",
+                },
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert [item.item for item in result.items] == ["1", "1a", "7a", "9"]
+
+    def test_recorded_filing_emits_in_canonical_order(
+        self, store, fetch_calls, fake_tenk
+    ):
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        emitted = [item.item for item in result.items]
+        assert emitted == [k for k in TENK_STANDARD_TITLES if k in set(emitted)]
+
+        # Not vacuous: the recorded filing really does arrive misordered, so
+        # passing requires reordering rather than preserving arrival order.
+        # This half asserts a property of the recording — if the fixture is
+        # ever re-recorded and happens to arrive canonical, drop it and lean
+        # on the synthetic misorder test above.
+        arrival = [
+            key.lower()
+            for key in (
+                parser._section_item_key(section)
+                for section in fake_tenk.sections.values()
+            )
+            if key
+        ]
+        assert [k for k in arrival if k in set(emitted)] != emitted
+
+    def test_duplicate_item_keys_keep_first_surviving_occurrence(
+        self, store, monkeypatch
+    ):
+        # Ordering must not weaken the dedup rule: the first *surviving*
+        # section wins, so a stub first occurrence yields to a substantive
+        # later one rather than swallowing the item.
+        prose = "Net sales rose across every reportable segment. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_ii_item_7": {
+                    "item": "7",
+                    "text": (
+                        "Item 7. Management's Discussion and Analysis. The "
+                        "information required by this Item is incorporated "
+                        "herein by reference from the Proxy Statement."
+                    ),
+                },
+                "part_iv_item_7": {
+                    "item": "7",
+                    "text": f"Item 7. Management's Discussion and Analysis\n{prose}",
+                },
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        sevens = [item for item in result.items if item.item == "7"]
+        assert len(sevens) == 1
+        assert "Net sales rose across every reportable segment." in _full_text(
+            sevens[0]
+        )
+
+
+class TestDetectionWiring:
+    def test_plausible_markdown_headings_upgrade_item_to_structured(
+        self, store, monkeypatch, fake_bundle
+    ):
+        body = "Substantive business discussion line. " * 5
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_2": {
+                    "item": "2",
+                    "text": (
+                        f"Item 2. Properties\nOwned Facilities\n{body}\n"
+                        f"Leased Facilities\n{body}"
+                    ),
+                }
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(
+            parser,
+            "fetch_filing_markdown",
+            lambda *a, **k: "### Owned Facilities\n### Leased Facilities\n",
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        (item,) = result.items
+        assert isinstance(item, StructuredItem)
+        assert item.detection_source == "markdown_h3"
+        assert [b.heading for b in item.blocks] == [
+            "Owned Facilities",
+            "Leased Facilities",
+        ]
+        assert item.prelude == "Item 2. Properties"  # verbatim, no carve-outs
+
+    def test_structured_items_round_trip_through_store(
+        self, store, monkeypatch, fake_bundle
+    ):
+        body = "Substantive business discussion line. " * 5
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_2": {
+                    "item": "2",
+                    "text": f"Item 2. Properties\nOwned\n{body}\nLeased\n{body}",
+                }
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_markdown", lambda *a, **k: "### Owned\n### Leased\n"
+        )
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == result
+
+
 class TestMetadata:
     def test_metadata_from_filing_object(self, store, fetch_calls):
         meta = parser.parse_filing("AAPL", fiscal_year=2025, store=store).metadata
@@ -243,7 +470,118 @@ class TestStoreInteraction:
         assert store.get("AAPL", FilingType.TEN_K, 2025) == result
 
     def test_default_store_is_local_sec_text(self, monkeypatch, tmp_path, fake_bundle):
-        monkeypatch.chdir(tmp_path)
+        """Default store resolves via backend.common.data_paths — repo-root
+        anchored, not CWD-relative. Chdir to a directory distinct from the
+        SEC_TEXT_DIR override to prove CWD has no bearing on the resolved
+        location, and use the env override so the test never writes into the
+        real repo's data/ directory."""
+        other_cwd = tmp_path / "elsewhere"
+        other_cwd.mkdir()
+        monkeypatch.chdir(other_cwd)
+        target_dir = tmp_path / "sec_text_store"
+        monkeypatch.setenv("SEC_TEXT_DIR", str(target_dir))
         monkeypatch.setattr(parser, "fetch_filing_bundle", lambda *a, **k: fake_bundle)
         parser.parse_filing("AAPL", fiscal_year=2025)
-        assert (tmp_path / "data" / "sec_text" / "AAPL" / "10-K" / "2025.json").exists()
+        assert (target_dir / "AAPL" / "10-K" / "2025.json").exists()
+
+
+class TestErrorPropagationThroughParseFiling:
+    """Fetch-stage errors must survive parse_filing untouched.
+
+    parse_filing's docstring promises the FinLabError taxonomy propagates
+    from fetch failures; these tests pin the two SEC-specific members
+    (FilingNotFoundError, UnsupportedFilingTypeError) at the public seam —
+    exact type (distinguishable by an API layer), message intact, and the
+    failure happens before the markdown fetch (the detection-stage call
+    inserted between bundle fetch and item parsing must not reorder or
+    swallow fetch errors). EmptyFilingError's leg of the same contract is
+    covered by test_all_sections_empty_or_stub_raises_and_saves_nothing.
+    """
+
+    @pytest.mark.parametrize(
+        "exc_type,message",
+        [
+            (
+                FilingNotFoundError,
+                "No 10-K filing for AAPL in fiscal year 2025.",
+            ),
+            (
+                UnsupportedFilingTypeError,
+                "Ticker AAPL appears to be a foreign private issuer that "
+                "files 20-F; only '10-K' is supported.",
+            ),
+        ],
+    )
+    def test_fetch_errors_propagate_with_exact_type_and_message(
+        self, store, monkeypatch, exc_type, message
+    ):
+        def raising_fetch(*args, **kwargs):
+            raise exc_type(message)
+
+        monkeypatch.setattr(parser, "fetch_filing_bundle", raising_fetch)
+        markdown_calls: list[tuple] = []
+        monkeypatch.setattr(
+            parser,
+            "fetch_filing_markdown",
+            lambda *a, **k: markdown_calls.append(a) or "",
+        )
+
+        with pytest.raises(exc_type) as excinfo:
+            parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+
+        assert type(excinfo.value) is exc_type  # not a SECError sibling
+        assert str(excinfo.value) == message  # ticker/year context intact
+        assert markdown_calls == []  # failed before the markdown fetch
+
+
+class TestForceRerunFailureLeavesStoreIntact:
+    """force=True re-runs that fail must not touch the previously saved
+    parse — the new attempt aborts before its single store.save() call, so
+    the good result from the earlier run stays byte-identical on disk."""
+
+    def _seed_success(self, store, tmp_path, monkeypatch, fake_bundle):
+        monkeypatch.setattr(parser, "fetch_filing_bundle", lambda *a, **k: fake_bundle)
+        first = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        saved_file = next(tmp_path.rglob("*.json"))
+        return first, saved_file, saved_file.read_bytes()
+
+    def test_empty_filing_failure_preserves_previous_result(
+        self, store, tmp_path, monkeypatch, fake_bundle
+    ):
+        first, saved_file, bytes_before = self._seed_success(
+            store, tmp_path, monkeypatch, fake_bundle
+        )
+
+        all_stub = FakeTenK(
+            sections_data={
+                "part_ii_item_6": {"item": "6", "text": "Item 6. [Reserved]"}
+            }
+        )
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(all_stub)
+        )
+        with pytest.raises(parser.EmptyFilingError):
+            parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
+
+        assert saved_file.read_bytes() == bytes_before
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == first
+
+    def test_markdown_fetch_failure_preserves_previous_result(
+        self, store, tmp_path, monkeypatch, fake_bundle
+    ):
+        # The markdown fetch is the failure point THIS slice added to
+        # parse_filing — it sits before store.save(), so a render failure on
+        # a forced re-run must leave the earlier good parse untouched.
+        first, saved_file, bytes_before = self._seed_success(
+            store, tmp_path, monkeypatch, fake_bundle
+        )
+
+        def failing_markdown(*args, **kwargs):
+            raise SECError("Failed to render markdown for AAPL 10-K")
+
+        monkeypatch.setattr(parser, "fetch_filing_markdown", failing_markdown)
+        with pytest.raises(SECError):
+            parser.parse_filing("AAPL", fiscal_year=2025, force=True, store=store)
+
+        assert saved_file.read_bytes() == bytes_before
+        assert store.get("AAPL", FilingType.TEN_K, 2025) == first

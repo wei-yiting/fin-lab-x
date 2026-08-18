@@ -10,30 +10,40 @@ from pydantic import BaseModel, ConfigDict, Field
 class ModelConfig(BaseModel):
     """Model configuration for a workflow profile.
 
-    Fields:
-        name: Provider-prefixed model identifier accepted by
-            ``langchain.chat_models.init_chat_model`` (e.g.
-            ``"google_genai:gemini-2.5-flash"`` or ``"anthropic:claude-..."``).
-            Bare names (``"gpt-4o-mini"``) default to OpenAI.
-        temperature: Sampling temperature passed to the chat model.
-        reasoning: Admin-configured reasoning capability for this agent.
-            ``"on"`` enables provider-specific thinking/reasoning; ``"off"``
-            forces it disabled (e.g. Gemini ``thinking_budget=0``);
-            ``"unsupported"`` documents that the bound model has no reasoning
-            mode and the orchestrator should not attempt to enable one.
-            Defaults to ``"off"`` so reasoning never silently turns on.
-        thinking_budget: Optional explicit reasoning token budget. Used as
-            Anthropic ``budget_tokens`` (required, ≥1024) and Gemini
-            ``thinking_budget``. ``None`` lets the provider pick its default
-            for Gemini and is rejected for Anthropic with reasoning="on".
+    ``name`` is a LangChain-style ``provider:model`` identifier; bare names
+    (no ``:``) default to OpenAI. ``reasoning`` is the admin-declared
+    reasoning capability: ``"on"`` / ``"off"`` / ``"unsupported"`` (the
+    latter = never pass any reasoning-control kwarg to the bound model).
+    The per-provider kwarg mapping, hard constraints (Anthropic budget and
+    temperature rules, Gemini budget bounds), and empirically verified API
+    caveats (including which models each state is valid for) are documented
+    once, in ``backend/agent_engine/agents/README.md`` under
+    "Multi-Provider Reasoning Configuration" — not repeated here.
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    name: str = "gpt-4o-mini"
+    name: str = "openai:gpt-5-nano"
     temperature: float = 0.0
     reasoning: Literal["on", "off", "unsupported"] = "off"
     thinking_budget: int | None = None
+
+    # ``name`` is parsed exactly once, here. Every consumer (_init_model's
+    # provider branching and routing, context-window lookup, the registry
+    # refresh script) reads these two properties instead of re-splitting the
+    # string — a second parser (including LangChain's own, which only strips
+    # the prefix when model_provider is NOT explicitly given) is how routing
+    # bugs happened before.
+    @property
+    def provider(self) -> str:
+        """Provider segment of ``name``; bare names default to ``"openai"``."""
+        return self.name.split(":", 1)[0] if ":" in self.name else "openai"
+
+    @property
+    def bare_name(self) -> str:
+        """``name`` without its ``provider:`` prefix — the model id the
+        provider API actually accepts."""
+        return self.name.split(":", 1)[1] if ":" in self.name else self.name
 
 
 class ConstraintsConfig(BaseModel):

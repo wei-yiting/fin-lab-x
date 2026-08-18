@@ -3,7 +3,7 @@ import { renderHook, act } from "@testing-library/react";
 import { useStallTimer } from "../useStallTimer";
 import { STALL_THRESHOLD_MS } from "@/lib/timing";
 
-describe("useStallTimer — global stall stopwatch (F6)", () => {
+describe("useStallTimer — global stall stopwatch", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -11,7 +11,7 @@ describe("useStallTimer — global stall stopwatch (F6)", () => {
     vi.useRealTimers();
   });
 
-  test("default threshold is 10s (locked by this test per F6 ruling)", () => {
+  test("default threshold is 10s (locked by this test)", () => {
     expect(STALL_THRESHOLD_MS).toBe(10_000);
   });
 
@@ -59,7 +59,7 @@ describe("useStallTimer — global stall stopwatch (F6)", () => {
     expect(result.current.stalled).toBe(false);
   });
 
-  test("deactivation (turn end) resets; a new turn starts from zero (S-place-05)", () => {
+  test("deactivation (turn end) resets; a new turn starts from zero", () => {
     const { result, rerender } = renderHook(({ active }) => useStallTimer(active), {
       initialProps: { active: true },
     });
@@ -84,23 +84,44 @@ describe("useStallTimer — global stall stopwatch (F6)", () => {
     expect(result.current.stalled).toBe(true);
   });
 
+  test("sustained activity never stalls (re-arm path, 1s deltas over 30s)", () => {
+    const { result } = renderHook(() => useStallTimer(true));
+    for (let i = 0; i < 30; i++) {
+      act(() => {
+        vi.advanceTimersByTime(1_000);
+      });
+      act(() => {
+        result.current.notifyActivity();
+      });
+      expect(result.current.stalled).toBe(false);
+    }
+    // Activity stops → the stopwatch still reaches the threshold.
+    act(() => {
+      vi.advanceTimersByTime(STALL_THRESHOLD_MS);
+    });
+    expect(result.current.stalled).toBe(true);
+  });
+
+  test("activity does not rebuild an already-pending check", () => {
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+    const { result } = renderHook(() => useStallTimer(true));
+    clearSpy.mockClear();
+
+    act(() => {
+      for (let i = 0; i < 20; i++) result.current.notifyActivity();
+    });
+
+    // The pending check re-arms itself against the wall clock, so no
+    // teardown/rebuild churn per stream delta.
+    expect(clearSpy).not.toHaveBeenCalled();
+    clearSpy.mockRestore();
+  });
+
   test("inactive hook never stalls", () => {
     const { result } = renderHook(() => useStallTimer(false));
     act(() => {
       vi.advanceTimersByTime(STALL_THRESHOLD_MS * 3);
     });
     expect(result.current.stalled).toBe(false);
-  });
-
-  test("custom threshold is honored", () => {
-    const { result } = renderHook(() => useStallTimer(true, 500));
-    act(() => {
-      vi.advanceTimersByTime(499);
-    });
-    expect(result.current.stalled).toBe(false);
-    act(() => {
-      vi.advanceTimersByTime(1);
-    });
-    expect(result.current.stalled).toBe(true);
   });
 });

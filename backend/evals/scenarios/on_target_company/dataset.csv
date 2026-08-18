@@ -1,0 +1,9 @@
+id,description,prompt,ticker
+OTC-01,Chinese news query,微軟最近有什麼新聞？,MSFT
+OTC-02,Chinese earnings query,Google 最新的AI方面有什麼新的發展的消息會影響股價的嗎？,GOOGL
+OTC-03,English news query,What is the latest news about MSFT?,MSFT
+OTC-04,English performance query,How is AAPL performing recently?,AAPL
+OTC-05,Chinese price query,特斯拉現在股價多少？,TSLA
+OTC-06,English price query,What is TSLA's current price?,TSLA
+OTC-07,Mixed lang query,NVDA 最近表現如何？,NVDA
+OTC-08,Ticker-only prompt,GOOGL,GOOGL

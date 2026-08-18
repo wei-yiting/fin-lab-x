@@ -1,4 +1,4 @@
-import { useRef, useImperativeHandle, forwardRef, Fragment, type ReactNode } from "react";
+import { useRef, useMemo, useImperativeHandle, forwardRef, Fragment, type ReactNode } from "react";
 import { UserMessage } from "@/components/atoms/UserMessage";
 import { InterruptedMarker } from "@/components/atoms/InterruptedMarker";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
@@ -20,7 +20,7 @@ interface MessageListProps {
    * "Interrupted" row renders right under each. */
   interruptedMessages?: Set<string>;
   onRegenerate: (id: string) => void;
-  /** Rendered below the transcript in the dead-air windows (F6′ placeholder). */
+  /** Rendered below the transcript during the dead-air windows. */
   placeholder?: ReactNode;
   /** Chip context — threaded to AssistantMessage (see its prop docs). */
   stalled?: boolean;
@@ -54,9 +54,19 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
   ref,
 ) {
   const viewportRef = useRef<HTMLDivElement>(null);
+  // The placeholder mounts on its own grace timer — in windows B/C that is
+  // 300ms *after* the `messages` change that opened the gap, so `messages`
+  // alone would not re-run the follow-bottom effect and the placeholder
+  // could be appended below the fold for exactly the dead-air period it
+  // exists to cover. Fold its visibility into the trigger. A boolean, not
+  // the node: `placeholder` is a fresh ReactNode on every parent render.
+  // `shouldFollowBottom` still gates the scroll, so a user who scrolled up
+  // is never yanked back down.
+  const hasPlaceholder = placeholder != null;
+  const scrollTrigger = useMemo(() => ({ messages, hasPlaceholder }), [messages, hasPlaceholder]);
   const { shouldFollowBottom, handleScroll, forceFollowBottom } = useFollowBottom(
     viewportRef,
-    messages,
+    scrollTrigger,
   );
 
   useImperativeHandle(ref, () => ({ forceFollowBottom }), [forceFollowBottom]);
@@ -102,21 +112,26 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
             }
             if (msg.role === "assistant") {
               const isLast = i === messages.length - 1;
+              // (isLast, status) → primitive props here, instead of raw
+              // `status` inside AssistantMessage: earlier messages derive the
+              // same values for every status, so passing status raw would
+              // break their memoization on each transition of the streaming
+              // turn.
+              const isStreaming = isLast && status === "streaming";
               return (
                 <Fragment key={msg.id}>
                   <AssistantMessage
                     message={msg as unknown as Parameters<typeof AssistantMessage>[0]["message"]}
-                    isLast={isLast}
-                    status={status}
+                    isStreaming={isStreaming}
                     abortedTools={abortedTools}
                     toolProgress={toolProgress}
                     interrupted={interrupted}
-                    // Only the last message renders a Regenerate button, and
-                    // this callback closes over `messages` — so its identity
-                    // changes on every delta. Handing it to the earlier
-                    // messages too would break their memoization for a button
-                    // they never show.
-                    onRegenerate={isLast ? onRegenerate : undefined}
+                    // Regenerate exists only on the last message of a ready
+                    // transcript (S-regen-02) — and this callback closes over
+                    // `messages`, so its identity changes on every delta.
+                    // Handing it to any other message would break that
+                    // message's memoization for a button it never shows.
+                    onRegenerate={isLast && status === "ready" ? onRegenerate : undefined}
                     stalled={stalled}
                     getChipSeconds={getChipSeconds}
                     chipOverrides={chipOverrides}

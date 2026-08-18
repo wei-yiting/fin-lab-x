@@ -84,8 +84,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --status-aborted: oklch(0.4 0.01 250);
-  --status-aborted-bg: oklch(0.95 0.005 250);
 }
 
 .dark {
@@ -128,7 +126,6 @@
   --status-success: oklch(0.7771 0.1882 154.28);
   --status-error: oklch(0.7282 0.161 27.12);
   --status-aborted: oklch(0.55 0.01 250);
-  --status-aborted-bg: oklch(0.25 0.01 250);
   --chat-fg-secondary: oklch(0.8462 0.01 252.82);
   --chat-fg-subtle: oklch(0.4368 0.0253 261.66);
   --chat-fg-subtler: oklch(0.369 0.0159 255.61);
@@ -202,7 +199,7 @@
   }
 }
 
-/* ReasoningChip — streaming window (F6' / ADR-0006).
+/* ReasoningChip — streaming window (ADR-0015).
    ~4 lines, newest text pinned to the bottom via JS scrollTop; CJK/long
    tokens must wrap (overflow-wrap: anywhere set in the component) so the
    pinned-scroll math stays valid. */

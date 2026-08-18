@@ -12,7 +12,7 @@ Langfuse CallbackHandler through to LangChain's callback manager but does not
 `await` on it. LangChain's callback manager catches handler exceptions. The
 Langfuse SDK ingests spans on a background schedule so endpoint failures surface
 only as SDK-level warnings, never as user-facing errors or request latency.
-The trace-level reasoning transcript (ADR-0011) is written on a root span the
+The trace-level reasoning transcript (ADR-0016) is written on a root span the
 Orchestrator owns, so handler breakage cannot gate it out.
 """
 
@@ -178,7 +178,7 @@ class TestLangfuseEndpointOutageResilience:
 @pytest.mark.asyncio
 class TestTranscriptWriteResilience:
     """J-obs-03: a broken Langfuse handler must not gate out the trace-level
-    reasoning transcript write (ADR-0011) — the same isolation shape an
+    reasoning transcript write (ADR-0016) — the same isolation shape an
     eval-time Braintrust handler coexistence would need."""
 
     async def test_transcript_written_when_langfuse_handler_broken(self):

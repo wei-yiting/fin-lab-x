@@ -1,0 +1,23 @@
+name: on_target_company
+csv: dataset.csv
+
+regression:
+  # No evaluation has been run yet, so there is no measured baseline to set
+  # a metric_floor from. Flipping to true once a first run establishes one
+  # is owned by DEV-96 alongside the dedicated dataset work.
+  enabled: false
+
+task:
+  function: backend.evals.eval_tasks.run_baseline
+
+column_mapping:
+  prompt: input
+  ticker: expected.ticker
+
+scorers:
+  - name: on_target_company
+    type: llm_judge
+    model: gemini-3.6-flash
+    use_cot: true
+    temperature: 0
+    rubric_file: rubric.md

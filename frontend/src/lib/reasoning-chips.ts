@@ -1,12 +1,18 @@
+import { isReasoningUIPart, isToolUIPart } from "ai";
+import type { UIDataTypes, UIMessagePart, UITools } from "ai";
 import { hasVisibleReplyText } from "@/lib/markdown-sources";
 
 /**
- * Pure derivation helpers for reasoning chips (F6′ / ADR-0008 + DEV-109
- * ruling 11). Everything here derives from `useChat`'s `(status, messages)`
- * — the five allowed non-derived stores live across ChatPanel and the hooks
- * it composes (chip timing map, global stall stopwatch, expand/collapse
- * override map, placeholder grace timer, turn interruption record). See
- * `hooks/README.md` for the full budget and each store's owner.
+ * Cast target at the delegation boundary below. The local predicates keep
+ * structural parameter types so the hooks — and their plain-object test
+ * fixtures — type-check without constructing full SDK parts, while the SDK
+ * guards they delegate to only ever read `part.type`.
+ */
+type AnyUIPart = UIMessagePart<UIDataTypes, UITools>;
+
+/**
+ * Pure derivation helpers shared by the streaming chat UI. Everything here
+ * derives from `useChat`'s `(status, messages)` — no additional state.
  */
 
 export interface ReasoningPartLike {
@@ -16,36 +22,40 @@ export interface ReasoningPartLike {
 }
 
 /** Minimal structural view of a chat message shared by the chip hooks. */
+export type ChipState = "streaming" | "done" | "aborted";
+
 export interface ChatMessageLike {
   id: string;
   role: string;
   parts: Array<{ type?: unknown; state?: unknown }>;
 }
 
-export type ChipState = "streaming" | "done" | "aborted";
-
+/** Reasoning-part classification, delegated to AI SDK 6's `isReasoningUIPart`. */
 export function isReasoningPart(part: {
   type?: unknown;
 }): part is ReasoningPartLike & { type: "reasoning" } {
-  return part.type === "reasoning";
+  return isReasoningUIPart(part as AnyUIPart);
 }
 
 /**
- * Single source of truth for tool-part classification: mirrors AI SDK 6's
- * `isToolUIPart` (static `tool-${name}` parts + `dynamic-tool`). Plain
- * `"tool"` is not a real AI SDK UI part shape and is intentionally not
- * matched here — callers that need it must import this function rather
- * than hand-roll their own predicate.
+ * Tool-part classification, delegated to AI SDK 6's `isToolUIPart` (static
+ * `tool-${name}` parts + `dynamic-tool`) so the SDK owns the rules and this
+ * module cannot drift from them when a new part shape lands. The `typeof`
+ * guard keeps the predicate total for the structurally-typed parts the hooks
+ * pass, whose `type` may be absent — the SDK guard assumes a string.
+ *
+ * Single tool predicate for the chat UI — `AssistantMessage` imports this
+ * one rather than hand-rolling its own. Plain `"tool"` is not a real AI SDK
+ * UI part shape and is intentionally not matched.
  */
 export function isToolPart(part: { type?: unknown }): boolean {
-  return (
-    typeof part.type === "string" && (part.type.startsWith("tool-") || part.type === "dynamic-tool")
-  );
+  if (typeof part.type !== "string") return false;
+  return isToolUIPart(part as AnyUIPart);
 }
 
 /**
  * Whether a part currently paints anything the user can see: a
- * non-suppressed reasoning chip, a tool card, or non-empty reply text.
+ * non-suppressed reasoning part, a tool card, or non-empty reply text.
  * Wire frames that create parts without visible content
  * (`reasoning-start` before its first delta, `text-start`, step
  * boundaries) don't count. Single source of truth for the dead-air
@@ -74,10 +84,10 @@ export function turnHasRenderableContent(msg: ChatMessageLike): boolean {
 }
 
 /**
- * Zero-delta suppression (decision 3): a part that closed without ever
- * carrying a single delta renders no chip at all. A chip whose streamed
- * content happens to be whitespace-only DID stream — it stays (no
- * flash-then-vanish removal).
+ * Zero-delta suppression: a reasoning part that closed without
+ * ever carrying a single delta paints nothing. A part whose streamed content
+ * happens to be whitespace-only DID stream — it stays (no flash-then-vanish
+ * removal).
  */
 export function isSuppressedChip(part: ReasoningPartLike): boolean {
   return (part.text ?? "") === "";
@@ -98,10 +108,9 @@ export function chipStateOf(part: ReasoningPartLike, chatActive: boolean): ChipS
 }
 
 /**
- * Expansion derivation (decision 1, Claude.ai style): only the currently
- * streaming chip is expanded — a part collapses the moment it completes or
- * the stream ends. The user's explicit toggle overrides the derivation in
- * both directions (S-chip-05).
+ * Expansion derivation (Claude.ai style): only the currently streaming chip
+ * is expanded — a part collapses the moment it completes or the stream ends.
+ * The user's explicit toggle overrides the derivation in both directions.
  */
 export function isChipExpanded(chipState: ChipState, override: boolean | undefined): boolean {
   return override ?? chipState === "streaming";

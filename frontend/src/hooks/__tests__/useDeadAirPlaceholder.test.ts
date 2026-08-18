@@ -8,7 +8,15 @@ function assistantMsg(id: string, parts: Array<Record<string, unknown>>) {
 }
 const userMsg = { id: "u1", role: "user", parts: [{ type: "text", text: "q" }] };
 
-describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
+/**
+ * Scope: window A/B/C transitions, the grace delay and its micro-gaps, the
+ * invisible-trailing-part behaviour, and status gating — what only the hook
+ * can prove. Which *part shapes* count as renderable is enumerated against the
+ * pure predicates in `src/lib/__tests__/reasoning-chips.test.ts`; the cases
+ * here use one representative shape per window rather than repeating that
+ * matrix behind fake timers.
+ */
+describe("useDeadAirPlaceholder — dead-air windows", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -16,30 +24,29 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     vi.useRealTimers();
   });
 
-  test("window (a): visible while status === 'submitted' (D17 4-value status)", () => {
+  test("window (a): visible while status === 'submitted'", () => {
     const { result } = renderHook(() => useDeadAirPlaceholder([userMsg], "submitted"));
     expect(result.current).toBe("waiting");
   });
 
   test("window (a): stays visible after the `start` frame flips status to streaming", () => {
     // The assistant message may not exist yet, exist with no parts, or hold
-    // only not-yet-renderable parts (reasoning-start before its first delta,
-    // step boundaries) — all still dead air, no grace delay.
+    // only not-yet-renderable parts — all still dead air, and window (a) needs
+    // no grace delay, so the placeholder must never blink across one either
+    // (one shape below is a reasoning part that closed without ever carrying
+    // a delta). The full set of shapes that paint nothing lives in
+    // reasoning-chips.test.ts.
     const preContentShapes = [
       [userMsg],
       [userMsg, assistantMsg("a1", [])],
-      [userMsg, assistantMsg("a1", [{ type: "step-start" }])],
-      [userMsg, assistantMsg("a1", [{ type: "reasoning", text: "", state: "streaming" }])],
-      [userMsg, assistantMsg("a1", [{ type: "text", text: "" }])],
-      // A whitespace-only, reference-definition-only, or source-header-only
-      // text delta all normalize to nothing in AssistantMessage's rendered
-      // output, so none of them count as painted content either.
-      [userMsg, assistantMsg("a1", [{ type: "text", text: "  \n " }])],
-      [userMsg, assistantMsg("a1", [{ type: "text", text: "[1]: https://example.com" }])],
-      [userMsg, assistantMsg("a1", [{ type: "text", text: "來源：" }])],
+      [userMsg, assistantMsg("a1", [{ type: "reasoning", text: "", state: "done" }])],
     ];
     for (const messages of preContentShapes) {
       const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
+      expect(result.current).toBe("waiting");
+      act(() => {
+        vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);
+      });
       expect(result.current).toBe("waiting");
     }
   });
@@ -56,7 +63,7 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("hidden");
   });
 
-  test("hidden while a tool card is the last part (tool owns feedback — decision 5)", () => {
+  test("hidden while a tool card is the last part — the card owns the feedback", () => {
     const messages = [
       userMsg,
       assistantMsg("a1", [
@@ -84,7 +91,7 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("waiting");
   });
 
-  test("chip→tool micro-gap inside the grace delay never flashes (decision 5)", () => {
+  test("chip→tool micro-gap inside the grace delay never flashes", () => {
     const collapsed = [
       userMsg,
       assistantMsg("a1", [{ type: "reasoning", text: "r", state: "done" }]),
@@ -184,7 +191,7 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("hidden");
   });
 
-  test("window (c) stays covering when a not-yet-painting reasoning part appends (round-3 fix)", () => {
+  test("window (c) stays covering when a not-yet-painting reasoning part appends", () => {
     // Next round's reasoning-start arrives but its first delta is seconds
     // away — the appended part paints nothing, so the placeholder must
     // neither hide nor restart its grace timer (no blink).
@@ -226,41 +233,6 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
     expect(result.current).toBe("hidden");
   });
 
-  test("window (c) survives a zero-delta suppressed round between tool rounds", () => {
-    // tool done → zero-delta reasoning (never paints) appended: dead air
-    // continues until the next renderable part.
-    const messages = [
-      userMsg,
-      assistantMsg("a1", [
-        { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
-        { type: "reasoning", text: "", state: "done" },
-      ]),
-    ];
-    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
-    act(() => {
-      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
-    });
-    expect(result.current).toBe("waiting");
-  });
-
-  test("window (c) survives a text delta that normalizes to nothing between tool rounds", () => {
-    // Whitespace-only, reference-definition-only, and source-header-only
-    // deltas all trim to nothing in AssistantMessage, so none of them may
-    // end the dead-air window either.
-    const messages = [
-      userMsg,
-      assistantMsg("a1", [
-        { type: "tool-x", toolCallId: "tc-1", state: "output-available" },
-        { type: "text", text: "[1]: https://example.com" },
-      ]),
-    ];
-    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
-    act(() => {
-      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS);
-    });
-    expect(result.current).toBe("waiting");
-  });
-
   test("hidden once reply text starts (placeholder yields to the answer)", () => {
     const messages = [
       userMsg,
@@ -274,21 +246,6 @@ describe("useDeadAirPlaceholder — dead-air windows (C1 + decision 5)", () => {
       vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);
     });
     expect(result.current).toBe("hidden");
-  });
-
-  test("zero-delta suppressed chip: no chip renders, so placeholder keeps covering (S-chip-08)", () => {
-    // No churn: the placeholder has been up since submit and simply stays —
-    // it never flashes off/on around the suppressed part.
-    const messages = [
-      userMsg,
-      assistantMsg("a1", [{ type: "reasoning", text: "", state: "done" }]),
-    ];
-    const { result } = renderHook(() => useDeadAirPlaceholder(messages, "streaming"));
-    expect(result.current).toBe("waiting");
-    act(() => {
-      vi.advanceTimersByTime(PLACEHOLDER_GRACE_MS * 5);
-    });
-    expect(result.current).toBe("waiting");
   });
 
   test("hidden at ready / error status", () => {

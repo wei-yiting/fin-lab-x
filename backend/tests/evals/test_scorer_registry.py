@@ -98,12 +98,15 @@ def _capture_llm_classifier(
     return captured
 
 
+_GEMINI_JUDGE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+
 def _judge_config() -> ScorerConfig:
     return ScorerConfig(
         name="judge_score",
         type="llm_judge",
         rubric="Judge whether the answer follows the policy.",
-        model="gpt-4.1",
+        model="gemini-3.6-flash",
         use_cot=True,
         choice_scores={"Y": 1.0, "N": 0.0},
     )
@@ -112,7 +115,7 @@ def _judge_config() -> ScorerConfig:
 def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) -> None:
     from backend.evals import scorer_registry
 
-    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    monkeypatch.setenv("GEMINI_API_KEY", "sk-test-gemini")
     captured = _capture_llm_classifier(monkeypatch)
 
     scorers = scorer_registry.resolve_scorers([_judge_config()])
@@ -120,23 +123,28 @@ def test_resolve_scorers_builds_llm_classifier(monkeypatch: pytest.MonkeyPatch) 
     assert len(scorers) == 1
     assert callable(scorers[0])
     client = captured.pop("client")
-    assert client.api_key == "sk-test-openai"
-    assert str(client.base_url) == "https://api.openai.com/v1/"
+    assert client.api_key == "sk-test-gemini"
+    assert str(client.base_url) == _GEMINI_JUDGE_BASE_URL
     assert captured == {
         "name": "judge_score",
         "prompt_template": "Judge whether the answer follows the policy.",
         "choice_scores": {"Y": 1.0, "N": 0.0},
         "use_cot": True,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "temperature": 0.0,
     }
 
 
-def test_llm_judge_uses_openai_key_when_braintrust_key_is_present(
+def test_llm_judge_uses_gemini_key_when_openai_and_braintrust_keys_are_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """ADR-0007's original bug was an env-inferred key picking the wrong
+    provider; guard the same failure mode for the Gemini client — an
+    OPENAI_API_KEY sitting in .env for the agent must never leak into the
+    judge."""
     from backend.evals import scorer_registry
 
+    monkeypatch.setenv("GEMINI_API_KEY", "sk-test-gemini")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
     monkeypatch.setenv("BRAINTRUST_API_KEY", "sk-test-braintrust")
     captured = _capture_llm_classifier(monkeypatch)
@@ -144,8 +152,8 @@ def test_llm_judge_uses_openai_key_when_braintrust_key_is_present(
     scorer_registry.resolve_scorers([_judge_config()])
 
     client = captured["client"]
-    assert client.api_key == "sk-test-openai"
-    assert str(client.base_url) == "https://api.openai.com/v1/"
+    assert client.api_key == "sk-test-gemini"
+    assert str(client.base_url) == _GEMINI_JUDGE_BASE_URL
 
 
 def test_llm_judge_ignores_openai_base_url_env(
@@ -153,28 +161,28 @@ def test_llm_judge_ignores_openai_base_url_env(
 ) -> None:
     from backend.evals import scorer_registry
 
-    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
+    monkeypatch.setenv("GEMINI_API_KEY", "sk-test-gemini")
     monkeypatch.setenv("OPENAI_BASE_URL", "https://api.braintrust.dev/v1/proxy")
     captured = _capture_llm_classifier(monkeypatch)
 
     scorer_registry.resolve_scorers([_judge_config()])
 
-    assert str(captured["client"].base_url) == "https://api.openai.com/v1/"
+    assert str(captured["client"].base_url) == _GEMINI_JUDGE_BASE_URL
 
 
-def test_llm_judge_fails_fast_without_openai_api_key(
+def test_llm_judge_fails_fast_without_gemini_api_key(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from backend.evals import scorer_registry
 
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     _capture_llm_classifier(monkeypatch)
 
-    with pytest.raises(ValueError, match="OPENAI_API_KEY") as exc_info:
+    with pytest.raises(ValueError, match="GEMINI_API_KEY") as exc_info:
         scorer_registry.resolve_scorers([_judge_config()])
 
     assert "judge" in str(exc_info.value)
-    assert "https://api.openai.com/v1" in str(exc_info.value)
+    assert _GEMINI_JUDGE_BASE_URL in str(exc_info.value)
 
 
 def test_scorer_config_rejects_temperature_on_programmatic_scorer() -> None:

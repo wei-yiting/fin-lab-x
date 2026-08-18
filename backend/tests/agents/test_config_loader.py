@@ -24,7 +24,7 @@ def _valid_payload(name: str) -> dict:
         "name": name,
         "description": "test version",
         "tools": [],
-        "model": {"name": "gpt-4o-mini", "temperature": 0.0},
+        "model": {"name": "openai:gpt-5-nano", "temperature": 0.0},
         "constraints": {"max_tool_calls_per_run": 5},
     }
 
@@ -76,7 +76,8 @@ def test_load_accepts_valid_payload(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Task 5: ModelConfig reasoning + thinking_budget fields
+# ModelConfig.reasoning / thinking_budget: admin-configured reasoning
+# capability, independent of the loader's strict-schema behavior above.
 # ---------------------------------------------------------------------------
 
 
@@ -84,6 +85,25 @@ def test_model_config_defaults_reasoning_off():
     cfg = ModelConfig()
     assert cfg.reasoning == "off"
     assert cfg.thinking_budget is None
+
+
+@pytest.mark.parametrize(
+    ("name", "expected_provider", "expected_bare"),
+    [
+        ("openai:gpt-5-nano", "openai", "gpt-5-nano"),
+        ("gpt-5-nano", "openai", "gpt-5-nano"),
+        ("google_genai:gemini-3.1-flash-lite", "google_genai", "gemini-3.1-flash-lite"),
+        ("anthropic:claude-haiku-4-5", "anthropic", "claude-haiku-4-5"),
+    ],
+    ids=["openai-prefix", "bare-defaults-openai", "gemini", "anthropic"],
+)
+def test_model_config_owns_name_parsing(name, expected_provider, expected_bare):
+    """``provider``/``bare_name`` are the single owner of ``name`` parsing —
+    every consumer (_init_model routing, context-window lookup, registry
+    refresh) reads these instead of re-splitting the string."""
+    cfg = ModelConfig(name=name)
+    assert cfg.provider == expected_provider
+    assert cfg.bare_name == expected_bare
 
 
 def test_model_config_accepts_reasoning_on_with_null_budget(tmp_path, monkeypatch):
@@ -145,8 +165,10 @@ def test_model_config_rejects_unknown_field():
 
 
 # ---------------------------------------------------------------------------
-# Task 5: profile yaml smoke load — every shipped profile runs on OpenAI
-# gpt-5-mini with reasoning summaries via the Responses API.
+# Loader contract: every shipped profile YAML parses into a valid ModelConfig
+# with a non-empty model name and a recognized reasoning literal. We
+# deliberately do NOT pin the exact model/reasoning values below — see the
+# test body's own docstring for why.
 # ---------------------------------------------------------------------------
 
 

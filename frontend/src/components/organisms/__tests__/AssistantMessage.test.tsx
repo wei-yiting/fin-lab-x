@@ -12,7 +12,7 @@ describe("AssistantMessage — parts dispatch", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -37,7 +37,7 @@ describe("AssistantMessage — parts dispatch", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -70,7 +70,7 @@ describe("AssistantMessage — parts dispatch", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -100,7 +100,7 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set(["tc-aborted"])}
         toolProgress={{}}
       />,
@@ -125,7 +125,7 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set(["tc-aborted-streaming"])}
         toolProgress={{}}
       />,
@@ -151,189 +151,19 @@ describe("AssistantMessage — aborted tools", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={false}
+        isStreaming={false}
         abortedTools={new Set(["tc-done"])}
         toolProgress={{}}
       />,
     );
     expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "output-available");
   });
-});
 
-describe("AssistantMessage — RegenerateButton visibility", () => {
-  const baseMsg = {
-    id: "a1",
-    role: "assistant" as const,
-    parts: [{ type: "text" as const, text: "done" }],
-  };
-
-  test("isLast=true and status=ready → button visible", () => {
-    render(
-      <AssistantMessage
-        message={baseMsg}
-        isLast={true}
-        status="ready"
-        abortedTools={new Set()}
-        toolProgress={{}}
-        onRegenerate={vi.fn()}
-      />,
-    );
-    expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
-  });
-
-  test("isLast=true but status=streaming → button hidden", () => {
-    render(
-      <AssistantMessage
-        message={baseMsg}
-        isLast={true}
-        status="streaming"
-        abortedTools={new Set()}
-        toolProgress={{}}
-      />,
-    );
-    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-  });
-
-  test("isLast=false → button hidden regardless of status", () => {
-    render(
-      <AssistantMessage
-        message={baseMsg}
-        isLast={false}
-        status="ready"
-        abortedTools={new Set()}
-        toolProgress={{}}
-      />,
-    );
-    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-  });
-
-  // S-regen-02: button must be hidden for every non-ready status so no second
-  // POST can be issued while one is already in flight or mid-stream.
-  test.each(["submitted", "streaming", "error"] as const)(
-    "isLast=true but status=%s → button hidden",
-    (status) => {
-      render(
-        <AssistantMessage
-          message={baseMsg}
-          isLast={true}
-          status={status}
-          abortedTools={new Set()}
-          toolProgress={{}}
-          onRegenerate={vi.fn()}
-        />,
-      );
-      expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-    },
-  );
-});
-
-// Regenerate replays the turn from the backend's checkpoint, which only
-// holds a finalized AIMessage for turns that ran to completion. Partial text
-// on the client says nothing about that — an interrupted turn 422s whether
-// or not any answer text arrived, so every abort shape must hide the button.
-describe("AssistantMessage — aborted turn hides Regenerate", () => {
-  test("aborted mid-reasoning WITH partial text still hides Regenerate", () => {
-    // Previously this asserted the opposite, on the premise that partial text
-    // meant "there is something to regenerate from". The backend does not
-    // work that way: it 422s on the missing finalized AIMessage regardless.
-    const message = {
-      id: "a1",
-      role: "assistant" as const,
-      parts: [
-        { type: "reasoning" as const, text: "half a thought", state: "streaming" },
-        { type: "text" as const, text: "partial answer" },
-      ],
-    };
-    render(
-      <AssistantMessage
-        message={message}
-        isLast={true}
-        status="ready"
-        abortedTools={new Set()}
-        toolProgress={{}}
-        onRegenerate={vi.fn()}
-      />,
-    );
-    expect(screen.getByText(/partial answer/)).toBeInTheDocument();
-    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-  });
-
-  test("aborted mid-answer-text hides Regenerate (text part left streaming)", () => {
-    // The reported shape: Stop pressed while the answer streamed. Reasoning
-    // and tools all read complete, so only the text part's own state carries
-    // the abort.
-    const message = {
-      id: "a1",
-      role: "assistant" as const,
-      parts: [
-        { type: "reasoning" as const, text: "done thinking", state: "done" },
-        { type: "text" as const, text: "partial answer", state: "streaming" },
-      ],
-    };
-    render(
-      <AssistantMessage
-        message={message}
-        isLast={true}
-        status="ready"
-        abortedTools={new Set()}
-        toolProgress={{}}
-        onRegenerate={vi.fn()}
-      />,
-    );
-    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-  });
-
-  test("Stop recorded for this turn hides Regenerate even when every part reads complete", () => {
-    // Stop can land between parts — after text-end, before finish — leaving
-    // nothing in the part shapes to derive the abort from. The turn-level
-    // interruption record (ruling 11) is the only remaining signal.
-    const message = {
-      id: "a1",
-      role: "assistant" as const,
-      parts: [
-        { type: "reasoning" as const, text: "done thinking", state: "done" },
-        { type: "text" as const, text: "a complete-looking answer", state: "done" },
-      ],
-    };
-    render(
-      <AssistantMessage
-        message={message}
-        isLast={true}
-        status="ready"
-        interrupted
-        abortedTools={new Set()}
-        toolProgress={{}}
-        onRegenerate={vi.fn()}
-      />,
-    );
-    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
-  });
-
-  test("a turn that finished normally still shows Regenerate", () => {
-    const message = {
-      id: "a1",
-      role: "assistant" as const,
-      parts: [
-        { type: "reasoning" as const, text: "done thinking", state: "done" },
-        { type: "text" as const, text: "the full answer", state: "done" },
-      ],
-    };
-    render(
-      <AssistantMessage
-        message={message}
-        isLast={true}
-        status="ready"
-        abortedTools={new Set()}
-        toolProgress={{}}
-        onRegenerate={vi.fn()}
-      />,
-    );
-    expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
-  });
-
-  test("aborted with only a tool part (no text) hides Regenerate (C2.a)", () => {
-    // Stop-C: aborted mid-tool with no text body — the backend regenerate
-    // path 422s on the missing finalized AIMessage, so the button is gated off.
+  // Proves the `interrupted` fallback in AssistantMessage's isAborted check
+  // in isolation: a running tool resolves to "aborted" even when its id was
+  // never added to abortedTools, e.g. because it arrived after ChatPanel's
+  // click-time closure snapshot was already taken (M-2.1).
+  test('input-available tool with interrupted=true and empty abortedTools → ToolCard data-tool-state="aborted"', () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -341,7 +171,7 @@ describe("AssistantMessage — aborted turn hides Regenerate", () => {
         {
           type: "tool-x" as const,
           state: "input-available",
-          toolCallId: "tc-1",
+          toolCallId: "tc-interrupted-fallback",
           toolName: "x",
           input: {},
         },
@@ -350,20 +180,96 @@ describe("AssistantMessage — aborted turn hides Regenerate", () => {
     render(
       <AssistantMessage
         message={message}
-        isLast={true}
-        status="ready"
-        abortedTools={new Set(["tc-1"])}
+        isStreaming={false}
+        interrupted
+        abortedTools={new Set()}
+        toolProgress={{}}
+      />,
+    );
+    expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "aborted");
+  });
+});
+
+// The memo comparator ignores toolProgress's identity and compares only the
+// entries this message's tool parts read. The staleness risk of that
+// special-case is missing a real update, so lock the positive path: a new
+// progress value for this message's own toolCallId must re-render even when
+// every other prop keeps its reference across the rerender.
+describe("AssistantMessage — toolProgress memo comparator", () => {
+  test("progress update for own toolCallId re-renders through the comparator", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        {
+          type: "tool-x" as const,
+          state: "input-available",
+          toolCallId: "tc-progress",
+          toolName: "x",
+          input: {},
+        },
+      ],
+    };
+    const abortedTools = new Set<string>();
+    const { rerender } = render(
+      <AssistantMessage
+        message={message}
+        isStreaming={false}
+        abortedTools={abortedTools}
+        toolProgress={{}}
+      />,
+    );
+    rerender(
+      <AssistantMessage
+        message={message}
+        isStreaming={false}
+        abortedTools={abortedTools}
+        toolProgress={{ "tc-progress": "fetching page 2..." }}
+      />,
+    );
+    expect(screen.getByTestId("tool-card")).toHaveTextContent("fetching page 2...");
+  });
+});
+
+// The last-message + status=ready visibility rule (S-regen-02) is derived in
+// MessageList and covered in MessageList.test.tsx; this component only sees
+// the result — an onRegenerate prop that is present exactly when the button
+// may show.
+describe("AssistantMessage — RegenerateButton visibility", () => {
+  const baseMsg = {
+    id: "a1",
+    role: "assistant" as const,
+    parts: [{ type: "text" as const, text: "done" }],
+  };
+
+  test("onRegenerate provided → button visible", () => {
+    render(
+      <AssistantMessage
+        message={baseMsg}
+        isStreaming={false}
+        abortedTools={new Set()}
         toolProgress={{}}
         onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument();
+  });
+
+  test("onRegenerate omitted (non-last message, or transcript not ready) → hidden", () => {
+    render(
+      <AssistantMessage
+        message={baseMsg}
+        isStreaming={false}
+        abortedTools={new Set()}
+        toolProgress={{}}
       />,
     );
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
   });
 });
 
-describe("AssistantMessage — reasoning chips (F6′)", () => {
+describe("AssistantMessage — reasoning chips", () => {
   const chipProps = {
-    isLast: true,
     abortedTools: new Set<string>(),
     toolProgress: {},
     getChipSeconds: () => 3,
@@ -377,7 +283,7 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
       role: "assistant" as const,
       parts: [{ type: "reasoning" as const, text: "分析 10-K 中", state: "streaming" }],
     };
-    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
     const chip = screen.getByTestId("reasoning-chip");
     expect(chip).toHaveAttribute("data-state", "streaming");
     expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("分析 10-K 中");
@@ -393,20 +299,20 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
         { type: "text" as const, text: "answer" },
       ],
     };
-    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
     const chip = screen.getByTestId("reasoning-chip");
     expect(chip).toHaveAttribute("data-state", "collapsed");
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thought for 3s");
     expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
   });
 
-  test("aborted half-chip keeps text behind a Stopped header (S-chip-07)", () => {
+  test("aborted half-chip keeps text behind a Stopped header", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
       parts: [{ type: "reasoning" as const, text: "half a thought", state: "streaming" }],
     };
-    render(<AssistantMessage message={message} status="ready" {...chipProps} />);
+    render(<AssistantMessage message={message} isStreaming={false} {...chipProps} />);
     const chip = screen.getByTestId("reasoning-chip");
     expect(chip).toHaveAttribute("data-state", "collapsed");
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
@@ -414,7 +320,7 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
     );
   });
 
-  test("zero-delta reasoning part renders no chip (S-chip-08 ghost suppression)", () => {
+  test("zero-delta reasoning part renders no chip", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -423,21 +329,21 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
         { type: "text" as const, text: "answer" },
       ],
     };
-    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
     expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
   });
 
-  test("whitespace-streamed chip is kept, not removed after the fact (S-chip-08)", () => {
+  test("whitespace-streamed chip is kept, not removed after the fact", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
       parts: [{ type: "reasoning" as const, text: "  \n ", state: "done" }],
     };
-    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
     expect(screen.getByTestId("reasoning-chip")).toBeInTheDocument();
   });
 
-  test("chips interleave with tool cards in part order (S-chip-06)", () => {
+  test("chips interleave with tool cards in part order", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -455,7 +361,7 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
         { type: "text" as const, text: "answer" },
       ],
     };
-    render(<AssistantMessage message={message} status="streaming" {...chipProps} />);
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
     const article = screen.getByTestId("assistant-message");
     const rendered = Array.from(
       article.querySelectorAll("[data-testid='reasoning-chip'], [data-testid='tool-card']"),
@@ -470,7 +376,7 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
     expect(rendered[2]).toHaveAttribute("data-round", "2");
   });
 
-  test("user override expands a collapsed chip and shows its full text (S-chip-05)", () => {
+  test("user override expands a collapsed chip and shows its full text", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -482,7 +388,7 @@ describe("AssistantMessage — reasoning chips (F6′)", () => {
     render(
       <AssistantMessage
         message={message}
-        status="streaming"
+        isStreaming={true}
         {...chipProps}
         chipOverrides={new Map([["a1:0", true]])}
       />,
@@ -509,8 +415,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={commonMarkMsg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -529,8 +434,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={commonMarkMsg}
-        isLast={true}
-        status="streaming"
+        isStreaming={true}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -555,8 +459,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={fallbackMsg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -568,8 +471,16 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.queryByText("**References**")).not.toBeInTheDocument();
   });
 
-  test("streaming strips definition lines (no flicker)", () => {
-    const streamingText = "NVDA 很棒 [1]。\n\n" + '[1]: https://reuters.com/report "Reuters"';
+  // CommonMark accepts up to three leading spaces on a link reference
+  // definition, so the streaming strip must cover indented definitions too —
+  // otherwise the raw definition flashes on screen while the renderer paints
+  // nothing.
+  test.each([
+    ["column-zero", ""],
+    ["three-space indented", "   "],
+  ])("streaming strips %s definition lines (no flicker)", (_label, indent) => {
+    const streamingText =
+      "NVDA 很棒 [1]。\n\n" + `${indent}[1]: https://reuters.com/report "Reuters"`;
 
     const msg = {
       id: "a3",
@@ -580,8 +491,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={msg}
-        isLast={true}
-        status="streaming"
+        isStreaming={true}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -602,8 +512,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={msg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,
@@ -624,8 +533,7 @@ describe("AssistantMessage — citation rendering", () => {
     render(
       <AssistantMessage
         message={msg}
-        isLast={true}
-        status="ready"
+        isStreaming={false}
         abortedTools={new Set()}
         toolProgress={{}}
       />,

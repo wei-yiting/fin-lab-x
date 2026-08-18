@@ -56,7 +56,7 @@ export function ChatPanel() {
       toolProgressHandleData(dataPart);
       // Transient data-* chunks never enter message.parts, so the
       // messages-keyed reset below can't see them — but they ARE stream
-      // parts and must zero the stall stopwatch (C3).
+      // parts and must zero the stall stopwatch.
       notifyActivityRef.current?.();
     },
     [toolProgressHandleData],
@@ -94,7 +94,7 @@ export function ChatPanel() {
   // useDeadAirPlaceholder — see hooks/README.md for the full budget):
   //   1. chip timing map (Thought-for-Xs measurement),
   //   2. global stall stopwatch,
-  //   3. user expand/collapse overrides (cleared each turn — QA16),
+  //   3. user expand/collapse overrides (cleared each turn),
   //   4. turn interruption record (interruptedMessages — DEV-109 ruling 11).
   const chatActive = status === "submitted" || status === "streaming";
   const { stalled, notifyActivity } = useStallTimer(chatActive);
@@ -105,10 +105,10 @@ export function ChatPanel() {
   const [chipOverrides, setChipOverrides] = useState<Map<string, boolean>>(() => new Map());
 
   // Any stream part / delta arrival re-renders `messages` — that is the
-  // stopwatch's reset signal (C3: any part zeroes the global stall clock).
-  // Layout effect, not effect: the reset must land before paint so the
-  // render that introduces a new part never paints a stale degraded header
-  // (reset-before-derive — QA18 / S-place-05).
+  // stopwatch's reset signal: any part zeroes the global stall clock.
+  // Layout effect, not effect: the reset must land before paint, so the
+  // render that introduces a new part never paints a stale degraded copy
+  // for one frame before correcting itself.
   useLayoutEffect(() => {
     if (chatActive) notifyActivity();
   }, [messages, chatActive, notifyActivity]);
@@ -133,7 +133,7 @@ export function ChatPanel() {
   // so entries for already-completed, still-rendered messages are never
   // re-read once a new turn's message ids are in play — wiping the whole
   // map on every send/regenerate/retry corrupted already-displayed
-  // "Thought for Xs" durations on unrelated past turns (DEV-106 review fix).
+  // "Thought for Xs" durations on unrelated past turns.
   const resetForNewTurn = useCallback(() => {
     setChipOverrides(new Map());
   }, []);
@@ -154,14 +154,6 @@ export function ChatPanel() {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
       resetForNewTurn();
-      // Regenerating replaces the turn — its interruption record no longer
-      // describes the new answer (the SDK may reuse the message id).
-      setInterruptedMessages((prev) => {
-        if (!prev.has(messageId)) return prev;
-        const next = new Set(prev);
-        next.delete(messageId);
-        return next;
-      });
       regenerate({ messageId });
     },
     [messages, regenerate, resetForNewTurn],

@@ -1,9 +1,11 @@
 """parse_filing — fetch + parse orchestration for the SEC text pipeline.
 
 Single public entry point; edgartools types never leak to callers.
-Detection is currently degenerate — every non-stub Item is emitted as a
-:class:`FlatItem`; the markdown H3/H4 detection chain is the planned next
-step and upgrades qualifying Items to :class:`StructuredItem`.
+Non-stub Items run through the block detection chain
+(:mod:`block_detection`: markdown H3, H4, then the Title-Case text
+fallback): a plausibly-anchored Item becomes a :class:`StructuredItem`
+(prelude + blocks + detection_source), everything else stays a
+:class:`FlatItem`.
 """
 
 from __future__ import annotations
@@ -18,12 +20,19 @@ from backend.common.sec_core import (
     FilingType,
     SECError,
     fetch_filing_bundle,
+    fetch_filing_markdown,
+)
+from backend.ingestion.sec_text_pipeline.block_detection import (
+    HeadingCandidates,
+    collect_heading_candidates,
+    detect_blocks,
 )
 from backend.ingestion.sec_text_pipeline.filing_models import (
     FilingMetadata,
     FlatItem,
     ParsedFiling,
     ParsedItem,
+    StructuredItem,
 )
 from backend.ingestion.sec_text_pipeline.filing_store import (
     FilingStore,
@@ -33,6 +42,7 @@ from backend.ingestion.sec_text_pipeline.stub_detection import is_stub_section_v
 
 if TYPE_CHECKING:
     from edgar.company_reports.ten_k import TenK
+    from edgar.documents.document import Section
 
 
 class EmptyFilingError(SECError):
@@ -66,8 +76,11 @@ def parse_filing(
     ``store`` is a keyword-only test/advanced seam; the default is
     :class:`LocalFilingStore`.
 
-    Raises the :class:`backend.common.sec_core.SECError` family on fetch
-    failures (ticker unknown, no 10-K, rate limit, ...), and
+    Raises the :class:`backend.common.errors.FinLabError` taxonomy on fetch
+    failures — shared errors directly (``TickerNotFoundError``,
+    ``RateLimitError``, ``TransientError``, ``ConfigurationError``) and
+    SEC-specific ones via :class:`backend.common.sec_core.SECError`
+    (``FilingNotFoundError``, ``UnsupportedFilingTypeError``) — plus
     :class:`EmptyFilingError` when the filing parses to zero substantive
     items (nothing is saved to the store in that case).
     """
@@ -81,7 +94,9 @@ def parse_filing(
 
     bundle = fetch_filing_bundle(ticker_norm, FilingType.TEN_K, fiscal_year)
     metadata = _build_metadata(bundle, ticker_norm, fiscal_year)
-    items = _parse_items(bundle.tenk)
+    markdown = fetch_filing_markdown(ticker_norm, FilingType.TEN_K, fiscal_year)
+    candidates = collect_heading_candidates(markdown, bundle.company_name)
+    items = _parse_items(bundle.tenk, candidates)
     if not items:
         raise EmptyFilingError(
             f"Parsed 0 substantive items for {ticker_norm} FY{fiscal_year} "
@@ -105,6 +120,27 @@ _ITEM_HEADING_RE = re.compile(r"(?:Item|ITEM)\s+(\d{1,2}[a-cA-C]?)\s*\.(?!\d)")
 # current Item's body.
 _TRAILING_PART_RE = re.compile(r"PART\s+[IVX]+$")
 
+# edgartools names sections two ways: part-aware ("part_ii_item_7a", with
+# Section.item populated) and spaced ("Item 7A", with Section.item None —
+# its parse_section_name only understands the underscore shape; upstream
+# inconsistency recorded on DEV-147). This matches the spaced shape so the
+# item key can be derived when the metadata is missing.
+_SECTION_NAME_ITEM_RE = re.compile(r"^item\s+(\d{1,2}[a-c]?)$", re.IGNORECASE)
+
+
+def _section_item_key(section: object) -> str | None:
+    """The section's item identifier, tolerant of both edgartools shapes.
+
+    Prefers the ``item`` attribute; when the library left it unset, derives
+    it from the section name. Returns None for non-item sections.
+    """
+    raw_item = getattr(section, "item", None)
+    if raw_item:
+        return str(raw_item)
+    name = getattr(section, "name", None) or ""
+    match = _SECTION_NAME_ITEM_RE.match(name.strip())
+    return match.group(1) if match else None
+
 
 def _is_structural_boundary(text: str, start: int) -> bool:
     """True when the ``Item N.`` match at ``start`` is a section heading
@@ -119,11 +155,16 @@ def _is_structural_boundary(text: str, start: int) -> bool:
     bleed and line-start headings never do. A preceding letter that is
     NOT part of a "PART <roman>" label means the match sits inside a
     larger word ("SubItem 1.", "LineItem 1A.") — prose, not a heading.
+    A preceding quote or opening bracket is a quoted/parenthesized
+    cross-reference ('See "Item 1. Business" above', observed on WMT
+    FY2025 Item 1A) — prose as well.
     """
     if start == 0:
         return True
     prev = text[start - 1]
     if not prev.isspace():
+        if prev in "\"'“”‘’([":
+            return False
         if prev.isalpha():
             return bool(_TRAILING_PART_RE.search(text[:start]))
         return True
@@ -155,36 +196,70 @@ def _trim_section_text(text: str, current_item: str) -> str:
     return _TRAILING_PART_RE.sub("", trimmed.rstrip()).rstrip()
 
 
-def _parse_items(tenk: TenK) -> list[ParsedItem]:
-    """Emit one FlatItem per substantive 10-K item, in filing order.
+def _build_item(key: str, text: str, candidates: HeadingCandidates) -> ParsedItem:
+    """One item from an already-trimmed, non-stub body: structured when the
+    detection chain (markdown H3/H4, then the Title-Case text fallback) finds
+    a plausibly-anchored structure, flat otherwise."""
+    title = TENK_STANDARD_TITLES[key]
+    detected = detect_blocks(text, candidates)
+    if detected is None:
+        return FlatItem(item=key, title=title, text=text)
+    return StructuredItem(
+        item=key,
+        title=title,
+        prelude=detected.prelude,
+        blocks=detected.blocks,
+        detection_source=detected.detection_source,
+    )
+
+
+def _parse_items(tenk: TenK, candidates: HeadingCandidates) -> list[ParsedItem]:
+    """Emit one parsed item per substantive 10-K item, in canonical Item order.
+
+    edgartools iterates its ``Sections`` dict in the order its own detection
+    happened to populate it, which is neither canonical nor the filing's
+    document order (``Section.start_offset`` is 0 throughout under the ``toc``
+    method, so document order is not observable here). The order is therefore
+    taken from ``TENK_STANDARD_TITLES``: the registry is walked and each key's
+    sections looked up. ``sec_filing_tools`` walks the registry the same way;
+    only the walk is shared — the dedup rule below is this module's own.
 
     Each section body is trimmed to its own Item boundary before stub
     classification — a bled tail would otherwise both corrupt the emitted
     text and push a pure pointer stub (AAPL FY2025 Item 11) over the
     remaining-content threshold so it wrongly survives.
 
+    Surviving bodies run through the block detection chain (markdown H3/H4,
+    then the Title-Case text fallback): a plausibly-anchored Item is
+    emitted as a StructuredItem, the rest as FlatItems.
+
     Skips: entries that are not standard items (signatures, unknown keys),
     empty bodies, stub items (v2 classifier), and duplicate item keys
-    (first occurrence wins).
+    (first surviving occurrence wins — a stub first occurrence yields to a
+    substantive later one).
     """
-    items: list[ParsedItem] = []
-    seen: set[str] = set()
+    sections_by_key: dict[str, list[Section]] = {}
     for section in tenk.sections.values():
-        raw_item = getattr(section, "item", None)
+        raw_item = _section_item_key(section)
         if not raw_item:
             continue
         key = raw_item.lower()
-        if key not in TENK_STANDARD_TITLES or key in seen:
+        if key not in TENK_STANDARD_TITLES:
             continue
-        text = section.text()
-        if not text or not text.strip():
-            continue
-        text = _trim_section_text(text, key)
-        is_stub, _reason = is_stub_section_v2(text)
-        if is_stub:
-            continue
-        seen.add(key)
-        items.append(FlatItem(item=key, title=TENK_STANDARD_TITLES[key], text=text))
+        sections_by_key.setdefault(key, []).append(section)
+
+    items: list[ParsedItem] = []
+    for key in TENK_STANDARD_TITLES:
+        for section in sections_by_key.get(key, []):
+            text = section.text()
+            if not text or not text.strip():
+                continue
+            text = _trim_section_text(text, key)
+            is_stub, _reason = is_stub_section_v2(text)
+            if is_stub:
+                continue
+            items.append(_build_item(key, text, candidates))
+            break
     return items
 
 

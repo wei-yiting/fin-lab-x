@@ -1,13 +1,17 @@
 interface ActivityPlaceholderProps {
-  /** Degraded copy swap (decision C4) driven by the global stall stopwatch. */
+  /** Swaps in the degraded copy; driven by the global stall stopwatch. */
   stalled: boolean;
 }
 
 /**
- * Dead-air placeholder (F6′): fills the two windows where the screen has no
- * live element — submit → first content, chip collapse → reply text. Never
- * contains reasoning text; never rendered while a tool card or streaming
- * chip is on screen (the parent derives visibility).
+ * Dead-air placeholder: fills the three windows where the screen has no
+ * live element — (A) submit → first renderable content, (B) reasoning chip
+ * collapse → next content, (C) tool round complete (every tool part terminal)
+ * → next content. Never contains reasoning text. Visibility is derived by the
+ * parent via `useDeadAirPlaceholder`, which suppresses it while a chip is
+ * streaming or a tool card is still *running*; window C is exactly the case
+ * where it renders beneath *completed* tool cards, which are not live
+ * elements.
  */
 export function ActivityPlaceholder({ stalled }: ActivityPlaceholderProps) {
   return (

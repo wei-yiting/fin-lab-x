@@ -5,20 +5,24 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from backend.common.sec_core import (
-    TENK_STANDARD_TITLES,
+from backend.common.errors import (
     ConfigurationError,
-    FilingNotFoundError,
-    FilingType,
+    FinLabError,
     RateLimitError,
-    SECError,
-    SectionNotFoundError,
     TickerNotFoundError,
     TransientError,
+)
+from backend.common.sec_core import (
+    TENK_STANDARD_TITLES,
+    FilingNotFoundError,
+    FilingType,
+    SECError,
+    SectionNotFoundError,
     UnsupportedFilingTypeError,
     _resolve_latest_fiscal_year,
     classify_stub_section,
     fetch_filing_bundle,
+    fetch_filing_markdown,
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
@@ -33,17 +37,28 @@ def test_filing_type_enum():
     assert FilingType("10-K") is FilingType.TEN_K
 
 
-def test_all_sec_errors_inherit_from_sec_error():
+def test_sec_specific_errors_inherit_from_sec_error():
     for exc_cls in (
         SectionNotFoundError,
-        TickerNotFoundError,
         FilingNotFoundError,
         UnsupportedFilingTypeError,
+    ):
+        assert issubclass(exc_cls, SECError)
+        assert issubclass(exc_cls, FinLabError)
+
+
+def test_shared_errors_inherit_from_finlab_error_not_sec_error():
+    """TickerNotFoundError/TransientError/RateLimitError/ConfigurationError are
+    single, cross-subsystem definitions in backend.common.errors — they
+    subclass FinLabError directly, not the SEC-specific SECError."""
+    for exc_cls in (
+        TickerNotFoundError,
         TransientError,
         RateLimitError,
         ConfigurationError,
     ):
-        assert issubclass(exc_cls, SECError)
+        assert issubclass(exc_cls, FinLabError)
+        assert not issubclass(exc_cls, SECError)
 
 
 def test_tenk_standard_titles_shape():
@@ -507,10 +522,12 @@ def _make_429_httpx_error(retry_after: str | None = None) -> httpx.HTTPStatusErr
 def test_fetch_filing_obj_429_raises_rate_limit_error_immediately(monkeypatch):
     """429 → RateLimitError with retry_after populated, no retry attempt.
 
-    edgartools already runs its own exponential-backoff retries before any
-    429 reaches this layer. We intentionally do NOT wrap an additional
-    retry here — the caller must wait (typically ~10 minutes) before
-    retrying on its own. This test pins that contract: exactly one
+    edgartools 5.17.1 deliberately does NOT retry 429s (excluded from its
+    retry predicate): a SEC 429 means the IP is blocked for ~10 minutes,
+    and retrying before the block expires extends it. edgartools instead
+    throttles requests pre-emptively below SEC's rate cap. We honor the
+    same semantics — no retry wrapper here; the caller must wait out the
+    block on its own. This test pins that contract: exactly one
     ``get_filings`` call, no sleep, ``retry_after`` surfaced from the
     SEC-provided header.
     """
@@ -745,3 +762,116 @@ def test_fetch_filing_obj_ticker_not_found_both_forms_empty(mock_edgar):
     with pytest.raises(TickerNotFoundError) as exc_info:
         fetch_filing_obj("ZZZZ", FilingType.TEN_K, 2025)
     assert "ZZZZ" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# fetch_filing_markdown
+# ---------------------------------------------------------------------------
+
+
+class _MarkdownFiling:
+    """Filing mock whose markdown() behavior is injectable."""
+
+    def __init__(self, tenk_cls: type, markdown_behavior):
+        self.period_of_report = "2025-09-27"
+        self.accession_number = "0000320193-25-000079"
+        self.cik = 320193
+        self.company = "Apple Inc."
+        self._markdown_behavior = markdown_behavior
+        self._obj = tenk_cls()
+
+    def obj(self):
+        return self._obj
+
+    def markdown(self):
+        return self._markdown_behavior()
+
+
+def test_fetch_filing_markdown_returns_markdown_and_shares_locate(mock_edgar):
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], lambda: "### Overview\nbody\n")
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+    md = fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)
+
+    assert md == "### Overview\nbody\n"
+    assert mock_edgar["company_spy"].call_count == 1  # locate cache shared
+
+
+def test_fetch_filing_markdown_none_result_becomes_empty_string(mock_edgar):
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], lambda: None)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    assert fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025) == ""
+
+
+def test_fetch_filing_markdown_render_failure_is_not_ticker_not_found(mock_edgar):
+    """M-1.1 regression: the filing is already located, so an arbitrary
+    render exception must surface as a truthful SECError with filing
+    context — never the false claim that the ticker does not exist."""
+
+    def _boom():
+        raise ValueError("busted table structure")
+
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], _boom)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)
+
+    assert not isinstance(exc_info.value, TickerNotFoundError)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "0000320193-25-000079" in msg
+    assert "busted table structure" in msg
+
+
+def test_fetch_filing_markdown_429_still_maps_to_rate_limit(mock_edgar):
+    from edgar.httprequests import TooManyRequestsError
+
+    def _rate_limited():
+        raise TooManyRequestsError("www.sec.gov")
+
+    filing = _MarkdownFiling(mock_edgar["tenk_cls"], _rate_limited)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(RateLimitError):
+        fetch_filing_markdown("AAPL", FilingType.TEN_K, 2025)
+
+
+# ---------------------------------------------------------------------------
+# post-locate failures must never masquerade as "ticker not found"
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_filing_obj_parse_failure_is_not_ticker_not_found(mock_edgar):
+    """The filing is already located when ``filing.obj()`` runs — an
+    unclassifiable parse failure must surface as a truthful SECError,
+    never as the locate-stage TickerNotFoundError fallback."""
+    filing = _make_filing("2025-09-27", mock_edgar["tenk_cls"])
+    filing.obj = MagicMock(side_effect=ValueError("broken section index"))
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
+
+    assert not isinstance(exc_info.value, TickerNotFoundError)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "broken section index" in msg
+
+
+def test_fetch_filing_bundle_metadata_failure_is_not_ticker_not_found(mock_edgar):
+    """Same stage rule for the bundle path's citation-metadata read."""
+    filing = _InstrumentedDocFiling(
+        mock_edgar["tenk_cls"], _raise(ValueError("SGML index corrupted"))
+    )
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError) as exc_info:
+        fetch_filing_bundle("AAPL", FilingType.TEN_K, 2025)
+
+    assert not isinstance(exc_info.value, TickerNotFoundError)
+    msg = str(exc_info.value)
+    assert "AAPL" in msg
+    assert "SGML index corrupted" in msg

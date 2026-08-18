@@ -7,6 +7,9 @@ Cross-subsystem domain types and helpers that more than one feature area depends
 | Module | Companion doc | Summary |
 |--------|---------------|---------|
 | `sec_core.py` | [sec_core.md](../agent_engine/docs/sec_core.md) | Shared SEC filing layer: `FilingType`, `SECError` hierarchy, canonical 10-K item table, LRU-cached `fetch_filing_obj`, edgartools-error classification. |
+| `data_paths.py` | — | Repo-anchored data path resolvers (`get_duckdb_path`, `get_sec_filings_html_dir`, `get_sec_text_dir`, `get_checkpoint_db_path`) — anchored off this module's own file location so resolution is independent of the process's CWD, each overridable via its existing env var. See [ADR-0011](../../docs/adr/0011-repo-anchored-data-path-configuration.md). |
+| `errors.py` | — | Shared error taxonomy: `FinLabError` base plus the four cross-subsystem error classes (`TransientError`, `TickerNotFoundError`, `ConfigurationError`, `RateLimitError`) every subsystem must import rather than redefine. See [ADR-0012](../../docs/adr/0012-unified-error-taxonomy-under-finlaberror.md). |
+| `retry.py` | — | `retry_transient` — the single tenacity-based retry decorator (`TransientError` only, 2 attempts total, exponential backoff + jitter, reraise). See [ADR-0013](../../docs/adr/0013-single-tenacity-retry-policy.md). |
 
 ## Conventions
 

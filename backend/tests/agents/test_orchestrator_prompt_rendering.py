@@ -257,10 +257,8 @@ def test_setup_tools_registers_new_tools_and_drops_old(monkeypatch):
 
 @pytest.mark.parametrize("profile", sorted(EXPECTED_TOOLS_BY_PROFILE.keys()))
 def test_all_profiles_use_new_tool_names(profile):
-    """Every profile config must replace the deprecated single SEC retriever
-    with the two-step pair. We assert that invariant, NOT the exact tool list /
-    ordering — pinning the full list change-detects every intentional tool
-    addition across all five profiles at once.
+    """Every profile config must replace sec_official_docs_retriever with the
+    two-step pair and preserve all other tools in their original order.
     """
     yaml_path = PROFILES_DIR / profile / "orchestrator_config.yaml"
     with yaml_path.open() as f:
@@ -270,3 +268,4 @@ def test_all_profiles_use_new_tool_names(profile):
     assert "sec_official_docs_retriever" not in tools
     assert "sec_filing_list_sections" in tools
     assert "sec_filing_get_section" in tools
+    assert tools == EXPECTED_TOOLS_BY_PROFILE[profile]

@@ -15,12 +15,12 @@ Workflow Profiles — the config directories the runtime loads. Each capability 
 
 Each profile's `model:` block accepts the following fields. The provider kwargs matrix is enforced in `_init_model()` — see `backend/agent_engine/agents/README.md` for the full per-provider requirement list.
 
-| Field             | Type                              | Purpose                                                                                                                                                                                                                                            |
-| ----------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`            | `provider:model` string           | e.g. `openai:gpt-5-mini`, `google_genai:gemini-2.5-flash`, `anthropic:claude-sonnet-4-5`. Bare names (no `:` prefix) default to OpenAI.                                                                                                            |
-| `temperature`     | float                             | Sampling temperature. **Must be `1.0`** when binding Anthropic with `reasoning="on"` — extended thinking rejects any other value with HTTP 400.                                                                                                  |
-| `reasoning`       | `"on"` / `"off"` / `"unsupported"` | Admin-configured reasoning capability. `"unsupported"` short-circuits `_init_model`'s provider branch — pick it for bound models that reject reasoning kwargs (e.g. gemini-1.5, gemini-2.5-pro variants with thinking disabled). Defaults to `"off"`. |
-| `thinking_budget` | int / null                        | Used as Anthropic `budget_tokens` (≥1024 required) and Gemini `thinking_budget`. `null` is fine for Gemini (provider default) and OpenAI (unused). `null` with Anthropic + `reasoning="on"` raises `ValueError` at startup.                       |
+| Field             | Type                               | Purpose                                                                                                                                    |
+| ----------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`            | `provider:model` string            | e.g. `openai:gpt-5-mini`, `google_genai:gemini-3.1-flash-lite`, `anthropic:claude-haiku-4-5`. Bare names (no `:` prefix) default to OpenAI. |
+| `temperature`     | float                              | Sampling temperature. Provider-specific constraints apply when reasoning is on — see the matrix.                                            |
+| `reasoning`       | `"on"` / `"off"` / `"unsupported"` | Admin-declared reasoning capability; defaults to `"off"`. Which state is valid for which model — including the OpenAI classic-model caveat — is in the matrix. |
+| `thinking_budget` | int / null                         | Reasoning token budget for providers that take one (Anthropic / Gemini); per-provider bounds are in the matrix.                             |
 
 ### Provider examples
 
@@ -32,16 +32,16 @@ model:
   reasoning: "on"
   thinking_budget: null
 
-# Gemini 2.5 Flash (reasoning on)
+# Gemini 3.1 Flash-Lite (reasoning on)
 model:
-  name: "google_genai:gemini-2.5-flash"
+  name: "google_genai:gemini-3.1-flash-lite"
   temperature: 0.0
   reasoning: "on"
   thinking_budget: 8192
 
-# Anthropic Claude Sonnet 4.x (reasoning on — temperature=1.0 + budget>=1024 mandatory)
+# Anthropic Claude Haiku 4.5 (reasoning on — note the hard constraints in the matrix)
 model:
-  name: "anthropic:claude-sonnet-4-5"
+  name: "anthropic:claude-haiku-4-5"
   temperature: 1.0
   reasoning: "on"
   thinking_budget: 4096
@@ -54,4 +54,4 @@ model:
 1. **Create Profile Directory**: Create a new subdirectory named after the capability tier it implements (e.g., filling in the placeholder `graph/`).
 2. **Define Configuration**: Create an `orchestrator_config.yaml` file within the new directory. Specify the `version`, `name`, `description`, list of `tools` from the registry, and the `model:` block (pick `reasoning` and `thinking_budget` based on the chosen provider's contract — see `ModelConfig` Fields above).
 3. **Write System Prompt**: Create a `system_prompt.md` file to define the agent's specific instructions, constraints, and output format.
-4. **Validation**: Ensure the new profile appears in the output of `ProfileConfigLoader.list_available_profiles()` and can be successfully loaded by the `Orchestrator`. If reasoning is bound but the trace shows empty `metadata.reasoning`, re-check the provider matrix in `agents/README.md` — Gemini needs `include_thoughts=True`, OpenAI needs `summary="auto"`; both are set by `_init_model` only when `reasoning="on"`.
+4. **Validation**: Ensure the new profile appears in the output of `ProfileConfigLoader.list_available_profiles()` and can be successfully loaded by the `Orchestrator`. If reasoning is bound but the trace shows empty `metadata.reasoning`, re-check the provider matrix in `agents/README.md` — the reasoning-visibility kwargs it lists are set by `_init_model` only when `reasoning="on"`.

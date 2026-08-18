@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from typing import TYPE_CHECKING, cast
 
 from langfuse import get_client, observe
 from pydantic import BaseModel
@@ -29,6 +30,11 @@ from backend.common.sec_core import (
 )
 from backend.ingestion.sec_filing_pipeline_html.filing_store import LocalFilingStore
 from backend.ingestion.sec_filing_pipeline_html.pipeline import SECFilingPipeline
+
+if TYPE_CHECKING:
+    from backend.ingestion.sec_filing_pipeline_html.filing_models import (
+        ParsedFiling,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -207,8 +213,11 @@ async def search(
                     pipeline = SECFilingPipeline.create()
 
                 if filing_hit:
-                    filing = LocalFilingStore().get(
-                        ticker, FilingType.TEN_K, year_to_use
+                    # ``filing_hit`` is the store's own ``exists()`` answer for this
+                    # key, so ``get()`` returns the filing rather than ``None``.
+                    filing = cast(
+                        "ParsedFiling",
+                        LocalFilingStore().get(ticker, FilingType.TEN_K, year_to_use),
                     )
                 else:
                     with traced_span(
@@ -319,14 +328,20 @@ async def search(
                     "num_results": len(results.points),
                     "top_scores": [round(p.score, 4) for p in results.points[:3]],
                     "top_headers": [
-                        p.payload.get("header_path", "") for p in results.points[:3]
+                        cast("models.Payload", p.payload).get("header_path", "")
+                        for p in results.points[:3]
                     ],
                 }
             )
 
         chunks = []
         for point in results.points:
-            payload = point.payload
+            # ``ScoredPoint.payload`` is ``Payload | None`` upstream; the search above
+            # requests ``with_payload=True``, so every returned point carries one. The
+            # non-frozen twin (``sec_dense_pipeline/common.py``) guards this with
+            # ``payload or {}``; here a cast keeps the frozen A/B baseline's runtime
+            # behaviour byte-for-byte identical, and the whole tree goes at sunset.
+            payload = cast("models.Payload", point.payload)
             chunks.append(
                 Chunk(
                     ticker=payload["ticker"],

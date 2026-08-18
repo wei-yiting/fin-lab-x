@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING, cast
 from uuid import NAMESPACE_DNS, uuid5
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,6 +18,9 @@ from backend.ingestion.sec_dense_pipeline_html.common import (
     commit_marker_id,
 )
 from backend.utils.span_tracing import traced_span
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def parse_item(raw_header_path: str) -> str:
@@ -132,7 +136,12 @@ async def ingest_filing(
             doc = Document(text=markdown)
             section_nodes = MarkdownNodeParser().get_nodes_from_documents([doc])
             splitter = LangchainNodeParser(create_text_splitter())
-            chunk_nodes = splitter.get_nodes_from_documents(section_nodes)
+            # ``get_nodes_from_documents`` annotates its parameter
+            # ``Sequence[Document]`` but only reads ``BaseNode`` attributes off it,
+            # so chaining one parser's nodes into the next is in-contract.
+            chunk_nodes = splitter.get_nodes_from_documents(
+                cast("Sequence[Document]", section_nodes)
+            )
             chunking_span.update(
                 output={
                     "num_sections": len(section_nodes),

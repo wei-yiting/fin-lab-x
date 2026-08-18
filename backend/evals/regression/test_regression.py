@@ -24,7 +24,11 @@ from backend.evals.eval_runner import (
 from backend.evals.dataset_loader import load_raw_csv_rows
 from backend.evals.eval_spec_schema import ScenarioConfig, load_scenario_config
 from backend.evals.regression.conftest import GateRuns
-from backend.evals.regression.verdict import GateVerdict, evaluate_gate
+from backend.evals.regression.verdict import (
+    GateVerdict,
+    describe_absence,
+    evaluate_gate,
+)
 
 pytestmark = pytest.mark.eval
 
@@ -53,15 +57,18 @@ def _print_gate_summary(gate: GateVerdict) -> None:
 
     A green verdict computed over a shrunken denominator (skipped or errored
     scorers) is still a guard that partly fell over; ADR-0015 requires those
-    counts to stay visible rather than be swallowed by the pass.
+    absences to stay visible rather than be swallowed by the pass, and naming
+    the case ids is what makes them actionable (``-k <case-id>``).
     """
-    lines = [f"── {gate.scenario} gate [{gate.status}] ──"]
+    # Leading newline: pytest's progress dots otherwise glue onto the header.
+    lines = ["", f"── {gate.scenario} gate [{gate.status}] ──"]
     for verdict in gate.scorer_verdicts:
         aggregate = "n/a" if verdict.aggregate is None else f"{verdict.aggregate:g}"
         lines.append(
             f"  {verdict.scorer}: aggregate={aggregate} "
             f"floor={verdict.metric_floor:g} produced={verdict.produced} "
-            f"skipped={verdict.skipped} errored={verdict.errored}"
+            f"{describe_absence('skipped', verdict.skipped_cases)} "
+            f"{describe_absence('errored', verdict.errored_cases)}"
         )
     print("\n".join(lines), file=sys.stderr)
 
@@ -73,6 +80,11 @@ def test_gate(
     """Aggregate red/green verdict for one scenario — the gate itself."""
     config = _CONFIGS[scenario]
     if not config.regression.enabled:
+        with capsys.disabled():
+            print(
+                f"\n── {scenario} gate [skipped] regression.enabled: false ──",
+                file=sys.stderr,
+            )
         pytest.skip(f"regression.enabled: false for scenario '{scenario}'")
 
     result = gate_runs.result(scenario)

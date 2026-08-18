@@ -9,6 +9,7 @@ is noise until it removes all evidence).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from statistics import fmean
 from typing import Literal
@@ -27,8 +28,8 @@ class ScorerVerdict:
     metric_floor: float
     aggregate: float | None
     produced: int
-    skipped: int
-    errored: int
+    skipped_cases: tuple[str, ...]
+    errored_cases: tuple[str, ...]
     failure: str | None
 
 
@@ -40,6 +41,16 @@ class GateVerdict:
     status: GateStatus
     failures: list[str]
     scorer_verdicts: list[ScorerVerdict]
+
+
+def describe_absence(label: str, case_ids: Sequence[str]) -> str:
+    """Render an absence count with the case ids behind it, e.g. ``skipped=2 (LP-02, LP-07)``.
+
+    A bare count says a guard partly fell over; the ids say where to point ``-k``.
+    """
+    if not case_ids:
+        return f"{label}=0"
+    return f"{label}={len(case_ids)} ({', '.join(case_ids)})"
 
 
 def evaluate_gate(config: ScenarioConfig, cases: list[CaseResult]) -> GateVerdict:
@@ -103,16 +114,16 @@ def _evaluate_scorer(
 ) -> ScorerVerdict:
     """Aggregate one gated scorer over the non-crashed cases."""
     produced: dict[str, float] = {}
-    errored = 0
-    skipped = 0
+    errored: list[str] = []
+    skipped: list[str] = []
     for case in cases:
         score = case.scores.get(scorer_name)
         if score is not None:
             produced[case.case_id] = score
         elif scorer_name in case.scorer_errors:
-            errored += 1
+            errored.append(case.case_id)
         else:
-            skipped += 1
+            skipped.append(case.case_id)
 
     if not produced:
         if cases:
@@ -135,8 +146,8 @@ def _evaluate_scorer(
             metric_floor=metric_floor,
             aggregate=None,
             produced=0,
-            skipped=skipped,
-            errored=errored,
+            skipped_cases=tuple(skipped),
+            errored_cases=tuple(errored),
             failure=failure,
         )
 
@@ -149,7 +160,9 @@ def _evaluate_scorer(
             if score < metric_floor
         ]
         absence = (
-            f"; excluded from denominator: {skipped} skipped, {errored} errored"
+            "; excluded from denominator: "
+            f"{describe_absence('skipped', skipped)}, "
+            f"{describe_absence('errored', errored)}"
             if skipped or errored
             else ""
         )
@@ -163,7 +176,7 @@ def _evaluate_scorer(
         metric_floor=metric_floor,
         aggregate=aggregate,
         produced=len(produced),
-        skipped=skipped,
-        errored=errored,
+        skipped_cases=tuple(skipped),
+        errored_cases=tuple(errored),
         failure=failure,
     )

@@ -65,7 +65,7 @@ class TestGateSummaryOutput:
 
         err = capsys.readouterr().err
         assert "[green]" in err
-        assert "s1: aggregate=1 floor=1 produced=2 skipped=0 errored=1" in err
+        assert "s1: aggregate=1 floor=1 produced=2 skipped=0 errored=1 (c2)" in err
 
     def test_red_verdict_reports_counts_before_failing(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
@@ -82,7 +82,7 @@ class TestGateSummaryOutput:
 
         err = capsys.readouterr().err
         assert "[red]" in err
-        assert "s1: aggregate=0 floor=1 produced=1 skipped=1 errored=0" in err
+        assert "s1: aggregate=0 floor=1 produced=1 skipped=1 (c2) errored=0" in err
 
     def test_no_scores_produced_renders_aggregate_legibly(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
@@ -95,7 +95,7 @@ class TestGateSummaryOutput:
             wrapper.test_gate("demo", gate_runs, _stub_capsys())  # type: ignore[arg-type]
 
         err = capsys.readouterr().err
-        assert "s1: aggregate=n/a floor=1 produced=0 skipped=1 errored=0" in err
+        assert "s1: aggregate=n/a floor=1 produced=0 skipped=1 (c1) errored=0" in err
 
 
 class TestDisabledScenario:

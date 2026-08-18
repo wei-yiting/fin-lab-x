@@ -149,8 +149,8 @@ class TestEmptyMetric:
         assert gate.status == "green"
         verdict = gate.scorer_verdicts[0]
         assert verdict.produced == 2
-        assert verdict.skipped == 1
-        assert verdict.errored == 0
+        assert verdict.skipped_cases == ("c2",)
+        assert verdict.errored_cases == ()
 
     def test_gate_false_scorer_fully_dead_has_no_effect(self) -> None:
         config = _config([_scorer("gated"), _scorer("advisory", gate=False)])
@@ -222,8 +222,8 @@ class TestAbsenceSemantics:
 
         assert gate.status == "red"
         assert "aggregate 0.5" in gate.failures[0]
-        assert "1 errored" in gate.failures[0]
-        assert gate.scorer_verdicts[0].errored == 1
+        assert "errored=1 (c2)" in gate.failures[0]
+        assert gate.scorer_verdicts[0].errored_cases == ("c2",)
 
     def test_enabled_with_zero_gated_scorers_is_red(self) -> None:
         config = _config([_scorer(gate=False)])

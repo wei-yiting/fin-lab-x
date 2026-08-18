@@ -55,6 +55,11 @@ markers = [
     "finnhub_integration: Finnhub integration tests that hit the real Finnhub free API",
 ]
 addopts = "-m 'not eval and not sec_integration and not integration and not finnhub_integration'"
+filterwarnings = [
+    # edgartools' own internals import its deprecated edgar.files.* modules at package
+    # init; nothing on our side triggers it, and it buries the regression gate summary.
+    "ignore:edgar\\.files\\.\\S+ module.*is deprecated:DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 88

@@ -87,7 +87,7 @@ def make_updates_agent(tool_calls: list[dict], msg_id: str = "msg-1") -> dict:
 
 def make_updates_tool_result(
     tool_call_id: str,
-    content: str,
+    content: str | list,
     tool_name: str = "poc_add",
 ) -> dict:
     tool_msg = ToolMessage(content=content, tool_call_id=tool_call_id, name=tool_name)
@@ -96,7 +96,7 @@ def make_updates_tool_result(
 
 def make_updates_tool_error(
     tool_call_id: str,
-    content: str,
+    content: str | list,
     tool_name: str = "poc_add",
 ) -> dict:
     tool_msg = ToolMessage(
@@ -185,6 +185,44 @@ class TestToolCallHappyPath:
         assert any(isinstance(e, Finish) for e in events)
 
 
+class TestToolCallWithoutId:
+    """A provider may omit the tool call id — it is only required to pair a
+    call with its result. Such a call must not reach the client, since the
+    pairing it needs could never happen."""
+
+    def test_id_less_tool_call_is_skipped(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        mapper.process_chunk(make_messages_chunk_text("x", msg_id="msg-1"))
+
+        events = mapper.process_chunk(
+            make_updates_agent(
+                [
+                    {"id": None, "name": "poc_add", "args": {"a": 1}},
+                    {"id": "tc-2", "name": "poc_add", "args": {"a": 2}},
+                ]
+            )
+        )
+
+        calls = [e for e in events if isinstance(e, ToolCall)]
+        assert [c.tool_call_id for c in calls] == ["tc-2"]
+
+
+class TestToolResultCoercion:
+    def test_non_string_result_content_is_coerced(self):
+        # ToolMessage.content is `str | list[str | dict]`, but the wire field
+        # carries text — a provider sending content blocks must not put a raw
+        # array where the client expects a string.
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_updates_tool_result("tc-1", [{"type": "text", "text": "42"}])
+        )
+
+        result = next(e for e in events if isinstance(e, ToolResult))
+        assert isinstance(result.result, str)
+        assert "42" in result.result
+
+
 class TestToolError:
     """tool update with ToolMessage(status="error") → ToolError."""
 
@@ -199,6 +237,20 @@ class TestToolError:
 
         events = mapper.process_chunk(make_updates_tool_error("tc-1", "API timeout"))
         assert ToolError(tool_call_id="tc-1", error="API timeout") in events
+
+    def test_non_string_error_content_is_coerced(self):
+        # ToolMessage.content is `str | list[str | dict]`; the wire contract
+        # for an error is a string, so a provider sending content blocks must
+        # not put a JSON array where the client expects text.
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+
+        events = mapper.process_chunk(
+            make_updates_tool_error("tc-1", [{"type": "text", "text": "boom"}])
+        )
+
+        error = next(e for e in events if isinstance(e, ToolError))
+        assert isinstance(error.error, str)
+        assert "boom" in error.error
 
 
 class TestToolProgressCustomChunk:

@@ -48,8 +48,10 @@ class StreamEventMapper:
     def __init__(self, session_id: str) -> None:
         self._session_id = session_id
         self._message_started = False
-        self._text_block_open = False
-        self._current_text_id: str | None = None
+        # One field, not an `is_open` bool beside an Optional id: the two
+        # would encode the same state twice and nothing would stop them
+        # disagreeing. None means no text block is open.
+        self._open_text_id: str | None = None
         self._pending_tool_calls: dict[str, str] = {}
         self._text_id_counter = 0
         self._total_input_tokens = 0
@@ -169,6 +171,11 @@ class StreamEventMapper:
             events.append(ReasoningEnd(reasoning_id=self._open_reasoning_id))
             self._open_reasoning_id = None
 
+    def _close_text_block(self, events: list[DomainEvent]) -> None:
+        if self._open_text_id is not None:
+            events.append(TextEnd(text_id=self._open_text_id))
+            self._open_text_id = None
+
     def _handle_text_block(self, block: dict, events: list[DomainEvent]) -> None:
         # The provider moved on to answer text — the current reasoning
         # part (if any) is complete.
@@ -176,11 +183,11 @@ class StreamEventMapper:
         text = block.get("text", "")
         if not text:
             return
-        if not self._text_block_open:
-            self._current_text_id = self._next_text_id()
-            events.append(TextStart(text_id=self._current_text_id))
-            self._text_block_open = True
-        events.append(TextDelta(text_id=self._current_text_id, delta=text))
+        text_id = self._open_text_id
+        if text_id is None:
+            text_id = self._open_text_id = self._next_text_id()
+            events.append(TextStart(text_id=text_id))
+        events.append(TextDelta(text_id=text_id, delta=text))
 
     def _handle_tool_call_started(self, block: dict, events: list[DomainEvent]) -> None:
         # Tool args arriving means this round's reasoning block is over —
@@ -194,9 +201,7 @@ class StreamEventMapper:
         # Handles both normalized tool block types (`tool_call_chunk`:
         # OpenAI/Anthropic; `tool_call`: Gemini).
         self._close_reasoning_part(events)
-        if self._text_block_open:
-            events.append(TextEnd(text_id=self._current_text_id))
-            self._text_block_open = False
+        self._close_text_block(events)
         tc_id = block.get("id")
         tc_name = block.get("name")
         if tc_id and tc_name and tc_id not in self._pending_tool_calls:
@@ -214,9 +219,18 @@ class StreamEventMapper:
             for msg in messages:
                 if isinstance(msg, AIMessage) and msg.tool_calls:
                     for tc in msg.tool_calls:
+                        # id is Optional in the provider schema — it only has
+                        # to be there to pair a call with its result. Without
+                        # one the client could never match this event to the
+                        # later output, so an id-less call is dropped rather
+                        # than rendered as a card that can never resolve.
+                        # _handle_tool_call_started skips them the same way.
+                        tc_id = tc.get("id")
+                        if not tc_id:
+                            continue
                         events.append(
                             ToolCall(
-                                tool_call_id=tc["id"],
+                                tool_call_id=tc_id,
                                 tool_name=tc["name"],
                                 args=tc.get("args", {}),
                             )
@@ -224,13 +238,23 @@ class StreamEventMapper:
 
                 if isinstance(msg, ToolMessage):
                     if msg.status == "error":
+                        # str() pins the wire contract: ToolMessage.content
+                        # is `str | list[...]` — a provider may send content
+                        # blocks — while errorText carries text. Without the
+                        # narrowing a raw array would reach the client where a
+                        # string is expected, and the frozen domain events do
+                        # no runtime validation to catch it.
                         events.append(
-                            ToolError(tool_call_id=msg.tool_call_id, error=msg.content)
+                            ToolError(
+                                tool_call_id=msg.tool_call_id,
+                                error=str(msg.content),
+                            )
                         )
                     else:
                         events.append(
                             ToolResult(
-                                tool_call_id=msg.tool_call_id, result=msg.content
+                                tool_call_id=msg.tool_call_id,
+                                result=str(msg.content),
                             )
                         )
                     self._pending_tool_calls.pop(msg.tool_call_id, None)
@@ -256,9 +280,7 @@ class StreamEventMapper:
         # replays finalize() minus Finish, giving reasoning-end → error →
         # finish).
         self._close_reasoning_part(events)
-        if self._text_block_open:
-            events.append(TextEnd(text_id=self._current_text_id))
-            self._text_block_open = False
+        self._close_text_block(events)
         events.append(
             Finish(
                 finish_reason="stop",

@@ -1,6 +1,6 @@
 # Reasoning rendered as collapsed transcript chips
 
-Status: accepted (2026-07-24) — supersedes the earlier "transcript never shows reasoning" ruling of the multi-provider refactor spec (DEV-105).
+Status: accepted (2026-07-24) — supersedes the earlier "transcript never shows reasoning" ruling of the multi-provider refactor spec.
 
 Provider reasoning streams to the client as AI SDK native `reasoning-*` parts. The original ruling hid reasoning from the transcript entirely, surfacing it only through an ephemeral activity indicator that disappeared once reply text started. We reversed the rendering half of that ruling: each reasoning segment renders as a collapsible transcript chip — live and auto-scrolling while streaming, collapsed to a "Thought for Xs" header afterwards — interleaved with tool cards in part order. The wire protocol and "one part per provider reasoning block" mapping are unchanged; one part = one chip.
 
@@ -17,4 +17,4 @@ Provider reasoning streams to the client as AI SDK native `reasoning-*` parts. T
 - Reasoning parts now live in the transcript as data *and* UI; the former `AssistantMessage` reasoning filter becomes a chip renderer.
 - v1 chips do not survive a page reload — history replay of reasoning parts is deliberately out of scope until evidence demands it.
 - The activity indicator shrinks to a placeholder for dead-air windows (submit → first content, chip collapse → reply text); it never contains reasoning text.
-- The chip's "Thought for Xs" duration is measured client-side (parts carry no timestamps) — the one deliberate piece of non-derived frontend state.
+- The chip's "Thought for Xs" duration is measured client-side (parts carry no timestamps) — the one piece of non-derived frontend state the reasoning chips introduce.

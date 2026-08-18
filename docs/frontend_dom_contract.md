@@ -51,11 +51,15 @@ These classes drive both the friendly title (via `lib/error-messages.ts`) and th
 
 `streaming | collapsed | expanded`
 
-- `streaming` — the chip's reasoning part is live (`part.state === "streaming"` on an active stream): full text in a pinned ~4-line window.
-- `collapsed` — the resting state: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived from the part shape, not tracked).
-- `expanded` — user override opened a collapsed chip. `data-round` carries the chip's 1-based ordinal within its message.
+The enum tracks the **part lifecycle**, not body visibility:
 
-Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`, announces only the header copy) and `reasoning-chip-body`.
+- `streaming` — the chip's reasoning part is live (`part.state === "streaming"` on an active stream). It stays `streaming` even when the user has explicitly collapsed the chip, so the value never lies about whether the part is still arriving.
+- `collapsed` — the part is no longer live and the body is hidden: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived from the part shape, not tracked).
+- `expanded` — the part is no longer live and the user override opened the chip. `data-round` carries the chip's 1-based ordinal within its message.
+
+`data-state` and `aria-expanded` are deliberately decoupled: `data-state` answers "is the part live", `aria-expanded` answers "is the body visible". Body visibility follows the `expanded` prop alone, so a streaming chip the user collapsed renders `data-state="streaming"` with `aria-expanded="false"` and no body node.
+
+Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`, `aria-label` = the live header copy plus the expand/collapse action) and `reasoning-chip-body`.
 
 ## Adding new components
 

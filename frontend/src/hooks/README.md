@@ -14,10 +14,11 @@ Custom React hooks scoped to the streaming chat lifecycle. All hooks are pure co
 
 ## Non-derived state budget
 
-The placeholder derives everything from `useChat`'s `(status, messages)`. Two non-derived stores are allowed so far, each owned by the hook that needs it:
+The placeholder derives everything from `useChat`'s `(status, messages)`. Three non-derived stores are allowed so far, each owned by the hook that needs it:
 
 1. **Global stall stopwatch** (`useStallTimer`) — no timestamps travel on the wire, so silence is measured client-side against wall-clock time.
 2. **Placeholder grace timer** (`useDeadAirPlaceholder`'s `elapsedGapKey` + `setTimeout`-backed `PLACEHOLDER_GRACE_MS`) — the wire gives no lookahead, so a short grace window is needed to distinguish "chip/tool round done → next tool call" from "→ reply text" without flashing the placeholder on that micro-gap.
+3. **Per-chip reasoning timing** (`useReasoningTimers`'s `timings` state map) — reasoning parts carry no timestamps on the wire, so a chip's "Thought for Xs" duration can only be measured client-side against wall-clock time (ADR-0015 records this as deliberate non-derived state).
 
 `ChatPanel` also keeps the turn interruption record (`interruptedMessages`) and the tool-abort set (`abortedTools`) — see `components/pages/README.md`.
 

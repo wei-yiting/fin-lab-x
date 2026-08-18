@@ -1,4 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { StrictMode, createElement } from "react";
+import type { ReactNode } from "react";
 import { renderHook, act } from "@testing-library/react";
 import { useReasoningTimers } from "../useReasoningTimers";
 import { chipKey } from "@/lib/reasoning-chips";
@@ -155,5 +157,65 @@ describe("useReasoningTimers — Thought-for-Xs measurement", () => {
     // The past chip's frozen duration must be exactly what it was — not
     // reset to 0 by the new turn's observation pass.
     expect(result.current.getSeconds(chipKey("a1", 0))).toBe(4);
+  });
+
+  test("re-observing identical input changes nothing and stops re-rendering (effect-loop guard)", () => {
+    let renders = 0;
+    const { result } = renderHook(() => {
+      renders++;
+      return useReasoningTimers();
+    });
+    const messages = [assistantMsg("a1", [{ type: "reasoning", text: "x", state: "streaming" }])];
+
+    act(() => {
+      result.current.observe(messages, true);
+    });
+    // `getSeconds` is a useCallback over the timings map, so its identity
+    // changes if and only if the updater returned a new map. Unchanged
+    // identity across every repeat is the bail-out itself.
+    const settledGetSeconds = result.current.getSeconds;
+
+    const renderCounts: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      act(() => {
+        result.current.observe(messages, true);
+      });
+      renderCounts.push(renders);
+      expect(result.current.getSeconds).toBe(settledGetSeconds);
+    }
+
+    // React may re-render the component once more before it can bail out;
+    // after that the state update is dropped eagerly and the render count
+    // plateaus, so a consumer's useLayoutEffect cannot loop.
+    expect(renderCounts[1]).toBe(renderCounts[0]);
+    expect(renderCounts[2]).toBe(renderCounts[0]);
+    expect(renderCounts[3]).toBe(renderCounts[0]);
+  });
+
+  test("StrictMode double-invocation leaves durations intact", () => {
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(StrictMode, null, children);
+    const { result } = renderHook(() => useReasoningTimers(), { wrapper });
+    const reasoning = { type: "reasoning", text: "…", state: "streaming" };
+
+    act(() => {
+      result.current.observe([assistantMsg("a1", [reasoning])], true);
+    });
+
+    vi.setSystemTime(new Date("2026-07-28T10:00:03Z"));
+    act(() => {
+      result.current.observe(
+        [
+          assistantMsg("a1", [
+            { ...reasoning, state: "done" },
+            { type: "tool-get_section", toolCallId: "tc-1", state: "input-available" },
+          ]),
+        ],
+        true,
+      );
+    });
+
+    vi.setSystemTime(new Date("2026-07-28T10:00:15Z"));
+    expect(result.current.getSeconds(chipKey("a1", 0))).toBe(3);
   });
 });

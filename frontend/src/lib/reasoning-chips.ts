@@ -21,9 +21,10 @@ export interface ReasoningPartLike {
   state?: string;
 }
 
-/** Minimal structural view of a chat message shared by the chip hooks. */
+/** Lifecycle a reasoning chip's header renders from. */
 export type ChipState = "streaming" | "done" | "aborted";
 
+/** Minimal structural view of a chat message shared by the chip hooks. */
 export interface ChatMessageLike {
   id: string;
   role: string;
@@ -126,7 +127,7 @@ export function chipHeaderLabel(chipState: ChipState, seconds: number, stalled: 
   return `Thought for ${seconds}s`;
 }
 
-/** Stable key for timer refs / override map — part ids are turn-unique but
+/** Stable key for the timer and override maps — part ids are turn-unique but
  * reused across turns (the backend counter restarts per request), so scope
  * them by message id. */
 export function chipKey(messageId: string, partIndex: number): string {

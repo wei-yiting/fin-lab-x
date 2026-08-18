@@ -84,6 +84,39 @@ describe("useStallTimer — global stall stopwatch", () => {
     expect(result.current.stalled).toBe(true);
   });
 
+  test("sustained activity never stalls (re-arm path, 1s deltas over 30s)", () => {
+    const { result } = renderHook(() => useStallTimer(true));
+    for (let i = 0; i < 30; i++) {
+      act(() => {
+        vi.advanceTimersByTime(1_000);
+      });
+      act(() => {
+        result.current.notifyActivity();
+      });
+      expect(result.current.stalled).toBe(false);
+    }
+    // Activity stops → the stopwatch still reaches the threshold.
+    act(() => {
+      vi.advanceTimersByTime(STALL_THRESHOLD_MS);
+    });
+    expect(result.current.stalled).toBe(true);
+  });
+
+  test("activity does not rebuild an already-pending check", () => {
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+    const { result } = renderHook(() => useStallTimer(true));
+    clearSpy.mockClear();
+
+    act(() => {
+      for (let i = 0; i < 20; i++) result.current.notifyActivity();
+    });
+
+    // The pending check re-arms itself against the wall clock, so no
+    // teardown/rebuild churn per stream delta.
+    expect(clearSpy).not.toHaveBeenCalled();
+    clearSpy.mockRestore();
+  });
+
   test("inactive hook never stalls", () => {
     const { result } = renderHook(() => useStallTimer(false));
     act(() => {

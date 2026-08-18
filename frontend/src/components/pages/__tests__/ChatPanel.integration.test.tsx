@@ -1,4 +1,13 @@
-import { describe, test, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { describe, test, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
+
+// Exactly one ChatPanel integration case verifies the stall wiring, with a
+// mocked small threshold against MSW real time. The mock is file-level
+// (vi.mock hoists); the 10s production default is locked by the
+// useStallTimer fake-timer unit test instead.
+vi.mock("@/lib/timing", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/timing")>();
+  return { ...actual, STALL_THRESHOLD_MS: 700 };
+});
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderHook, act } from "@testing-library/react";
@@ -395,6 +404,174 @@ describe("ChatPanel integration — aborted tools via stop", () => {
         expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
       },
       { timeout: 10000 },
+    );
+  }, 20000);
+});
+
+// ---------------------------------------------------------------------------
+// Stop during the dead-air placeholder window
+//
+// A Stop that lands before the assistant message has anything renderable
+// (the placeholder is the only visible content — no chip, no tool card)
+// must still leave an "Interrupted" row. This is the window abortedTools
+// cannot cover (no tool call exists yet) and the earlier "no chip/tool
+// carrier" case above cannot cover either (that one has reply text already
+// streaming).
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — stop during placeholder phase", () => {
+  const placeholderStopServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) =>
+      sseResponse(
+        (() => {
+          const encoder = new TextEncoder();
+          return new ReadableStream({
+            async start(controller) {
+              const onAbort = () => {
+                try {
+                  controller.close();
+                } catch {
+                  /* already closed */
+                }
+              };
+              request.signal.addEventListener("abort", onAbort, { once: true });
+
+              controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a1" })));
+
+              for (let tick = 0; tick < 30; tick++) {
+                await new Promise((r) => setTimeout(r, 100));
+                if (request.signal.aborted) return;
+              }
+
+              controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+              controller.enqueue(
+                encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "late answer" })),
+              );
+              controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+              controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+              controller.close();
+            },
+          });
+        })(),
+      ),
+    ),
+  );
+
+  beforeAll(() => placeholderStopServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => placeholderStopServer.resetHandlers());
+  afterAll(() => placeholderStopServer.close());
+
+  test("stop while the dead-air placeholder is the only visible content → Interrupted marker renders", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "test query");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
+    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
+  }, 20000);
+});
+
+// ---------------------------------------------------------------------------
+// Dead-air placeholder stall degradation
+//
+// The global stall stopwatch (useStallTimer) also degrades the placeholder's
+// copy from "Thinking" to "Still working" when the wire goes silent past the
+// threshold, and any arriving stream part must zero it again. Mocked small
+// threshold + real MSW time — the 10s production default is locked by the
+// useStallTimer fake-timer unit test instead.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — placeholder stall degradation (the single stall-wiring case)", () => {
+  const SMALL_THRESHOLD = 700;
+  const stallServer = setupServer(
+    http.post("/api/v1/chat", () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          send({ type: "start", messageId: "m-stall" });
+          // Phase 1 — silence beyond the mocked threshold with nothing
+          // renderable yet → degraded copy on the placeholder. The hold is
+          // generous (threshold + 2.5s) so the degraded copy stays
+          // observable even under parallel-suite load.
+          await new Promise((r) => setTimeout(r, SMALL_THRESHOLD + 2500));
+
+          // Phase 2 — the reset half of the wiring. Whitespace-only text
+          // deltas are stream parts (they change `messages`, so the
+          // layout-effect calls notifyActivity) but are NOT renderable
+          // (hasVisibleReplyText trims them to nothing), so the dead-air
+          // window stays open and the same placeholder element must revert
+          // to the non-degraded copy. Spaced well under the threshold so the
+          // non-degraded copy holds for the whole burst.
+          send({ type: "text-start", id: "t1" });
+          for (let i = 0; i < 12; i++) {
+            send({ type: "text-delta", id: "t1", delta: "\n" });
+            await new Promise((r) => setTimeout(r, SMALL_THRESHOLD / 4));
+          }
+
+          // Phase 3 — the real answer arrives and replaces the placeholder.
+          send({ type: "text-delta", id: "t1", delta: "done" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => stallServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => stallServer.resetHandlers());
+  afterAll(() => stallServer.close());
+
+  test("silence degrades the copy, an arriving part resets the stopwatch, the answer replaces it", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Still working");
+      },
+      { timeout: 5000 },
+    );
+
+    // Any stream part zeroes the global stall stopwatch. The whitespace
+    // deltas keep the placeholder mounted (nothing renderable yet) while
+    // restoring the non-degraded copy — without this assertion the case
+    // would pass even with notifyActivity disconnected from part arrival.
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Thinking");
+      },
+      { timeout: 5000 },
+    );
+
+    await waitFor(
+      () => {
+        expect(screen.getByText("done")).toBeInTheDocument();
+      },
+      { timeout: 5000 },
     );
   }, 20000);
 });

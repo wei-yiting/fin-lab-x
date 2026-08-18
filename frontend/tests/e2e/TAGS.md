@@ -37,7 +37,7 @@ Filter with `pnpm exec playwright test --grep @tag-name`.
 | clear session resets messages and chatId                                      | `@smoke`, `@regression`    |
 | overflowed content is scrollable                                              | `@smoke`, `@regression`    |
 | sending new message auto-scrolls to bottom                                    | `@smoke`, `@regression`    |
-| typing indicator persists during slow stream start                            | `@smoke`, `@regression`    |
+| placeholder fills the submit dead-air, then yields to the answer              | `@smoke`, `@regression`    |
 | pre-stream error recovery via Retry                                           | `@critical`, `@regression` |
 | pre-stream 409 surfaces retriable 'system busy' error                         | `@critical`, `@regression` |
 | mid-stream error preserves partial text + surfaces non-retriable inline error | `@critical`, `@regression` |

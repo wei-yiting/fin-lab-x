@@ -1,10 +1,26 @@
 import { describe, test, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { MessageList } from "../MessageList";
 
-describe("MessageList — ReasoningIndicator visibility", () => {
-  test("transient data-tool-progress does not hide ReasoningIndicator", () => {
-    const { rerender } = render(
+describe("MessageList — placeholder slot", () => {
+  test("renders the placeholder node when provided", () => {
+    render(
+      <MessageList
+        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
+        status="submitted"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+        placeholder={<div data-testid="activity-placeholder">Thinking…</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("activity-placeholder")).toBeInTheDocument();
+  });
+
+  test("no placeholder node renders nothing extra", () => {
+    render(
       <MessageList
         messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
         status="streaming"
@@ -14,20 +30,7 @@ describe("MessageList — ReasoningIndicator visibility", () => {
       />,
     );
 
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-
-    rerender(
-      <MessageList
-        messages={[{ id: "u1", role: "user", parts: [{ type: "text", text: "q" }] }]}
-        status="streaming"
-        toolProgress={{ "tc-1": "fetching..." }}
-        abortedTools={new Set()}
-        onRegenerate={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByTestId("reasoning-indicator")).toBeInTheDocument();
-    expect(screen.queryByTestId("tool-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("activity-placeholder")).not.toBeInTheDocument();
   });
 
   test("empty messages with ready status renders empty content", () => {
@@ -88,6 +91,67 @@ describe("MessageList — Regenerate visibility (S-regen-02)", () => {
       expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
     },
   );
+});
+
+// M-1.1: in dead-air windows B/C the placeholder mounts on a 300ms grace
+// timer, i.e. in a render where `messages` did NOT change. If the follow-
+// bottom trigger watched `messages` alone, the placeholder would be
+// appended below the fold of a tall transcript and the user would see
+// nothing during exactly the period it exists to cover.
+describe("MessageList — follow-bottom when the placeholder mounts", () => {
+  // Same array identity across rerenders → the `messages` half of the
+  // trigger is provably unchanged, so only placeholder visibility can drive
+  // the scroll.
+  const messages = [
+    { id: "u1", role: "user", parts: [{ type: "text", text: "q" }] },
+    { id: "a1", role: "assistant", parts: [{ type: "text", text: "a long answer" }] },
+  ];
+
+  function renderList(placeholder?: ReactNode) {
+    return (
+      <MessageList
+        messages={messages}
+        status="streaming"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+        placeholder={placeholder}
+      />
+    );
+  }
+
+  // jsdom has no layout: give the viewport measurable scroll metrics and a
+  // plain writable scrollTop so the hook's assignment is observable.
+  function stubViewportMetrics(el: HTMLElement) {
+    Object.defineProperty(el, "scrollTop", { value: 0, writable: true, configurable: true });
+    Object.defineProperty(el, "scrollHeight", { value: 2000, writable: true, configurable: true });
+    Object.defineProperty(el, "clientHeight", { value: 300, writable: true, configurable: true });
+  }
+
+  test("placeholder appears without a messages change → viewport follows to the bottom", () => {
+    const { rerender } = render(renderList());
+    const viewport = screen.getByTestId("message-list-viewport");
+    stubViewportMetrics(viewport);
+
+    rerender(renderList(<div data-testid="activity-placeholder">Thinking</div>));
+
+    expect(screen.getByTestId("activity-placeholder")).toBeInTheDocument();
+    expect(viewport.scrollTop).toBe(2000);
+  });
+
+  test("user scrolled up → placeholder mount does not yank the viewport down", () => {
+    const { rerender } = render(renderList());
+    const viewport = screen.getByTestId("message-list-viewport");
+    stubViewportMetrics(viewport);
+
+    // 2000 - 0 - 300 = 1700px from the bottom → past the 100px follow threshold.
+    fireEvent.scroll(viewport);
+    expect(viewport).toHaveAttribute("data-at-bottom", "false");
+
+    rerender(renderList(<div data-testid="activity-placeholder">Thinking</div>));
+
+    expect(viewport.scrollTop).toBe(0);
+  });
 });
 
 describe("MessageList — errorContent slot", () => {

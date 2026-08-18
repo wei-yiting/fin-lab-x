@@ -367,8 +367,16 @@ describe("AssistantMessage — citation rendering", () => {
     expect(screen.queryByText("**References**")).not.toBeInTheDocument();
   });
 
-  test("streaming strips definition lines (no flicker)", () => {
-    const streamingText = "NVDA 很棒 [1]。\n\n" + '[1]: https://reuters.com/report "Reuters"';
+  // CommonMark accepts up to three leading spaces on a link reference
+  // definition, so the streaming strip must cover indented definitions too —
+  // otherwise the raw definition flashes on screen while the renderer paints
+  // nothing.
+  test.each([
+    ["column-zero", ""],
+    ["three-space indented", "   "],
+  ])("streaming strips %s definition lines (no flicker)", (_label, indent) => {
+    const streamingText =
+      "NVDA 很棒 [1]。\n\n" + `${indent}[1]: https://reuters.com/report "Reuters"`;
 
     const msg = {
       id: "a3",

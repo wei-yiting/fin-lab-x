@@ -2,21 +2,22 @@ import { test, expect } from "../fixtures";
 import { E2E_TIMEOUTS } from "../constants";
 
 test(
-  "reasoning indicator persists during slow stream start, clears when content arrives",
+  "placeholder fills the submit dead-air, then yields to the streamed answer",
   { tag: ["@smoke", "@regression"] },
   async ({ chat, page }) => {
     await chat.gotoFixture("slow-start-stream");
     await chat.sendMessage("test");
 
-    // Fixture delays the first chunk by 2s — reasoning indicator must be visible
-    // during that waiting period (not hidden prematurely)
-    await expect(page.getByTestId("reasoning-indicator")).toBeVisible({
+    // Fixture delays the first chunk by 2s — the activity placeholder must
+    // cover the submitted dead-air window.
+    await expect(page.getByTestId("activity-placeholder")).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });
+    await expect(page.getByTestId("activity-placeholder")).toHaveText("Thinking");
 
-    // After content streams in, indicator is replaced by the assistant message
+    // After content streams in, the placeholder yields to the answer.
     await chat.waitReady();
     await expect(page.getByTestId("assistant-message")).toContainText("Finally arrived!");
-    await expect(page.getByTestId("reasoning-indicator")).not.toBeVisible();
+    await expect(page.getByTestId("activity-placeholder")).not.toBeVisible();
   },
 );

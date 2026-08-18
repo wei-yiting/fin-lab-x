@@ -28,7 +28,8 @@ data/sec_text_inspect/
 npm-debug.log*
 pnpm-debug.log*
 
-# data/ is tracked by default (curated assets like data/trace-archives/, see
+# data/ is tracked by default (curated assets like data/trace-archives/ and
+# data/experiment-archives/, see
 # ADR-0005). When adding a NEW runtime writer under data/, list its output
 # path here explicitly — reproducible runtime output never goes into git.
 # Current runtime outputs: data/sec_filings_html/, data/sec_text/,

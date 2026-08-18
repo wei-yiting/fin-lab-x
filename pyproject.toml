@@ -62,9 +62,8 @@ addopts = "-m 'not eval and not sec_integration and not integration and not finn
 line-length = 88
 
 [tool.pyright]
-# Narrow adoption: the checker guards live backend source, and everything it
-# would only produce noise on is excluded deliberately. Each exclusion below
-# states what would have to change for it to be lifted.
+# The checker guards all live backend source. The one exclusion below states
+# what would have to change for it to be lifted.
 include = ["backend"]
 exclude = [
     "**/__pycache__",
@@ -75,15 +74,6 @@ exclude = [
     # noise traded for a green tick. Revisit if a type error ever survives
     # into production because only the tests would have caught it.
     "backend/tests",
-    # Frozen A/B baseline: AGENTS.md forbids touching these, and the sunset PR
-    # deletes them wholesale. Delete these two lines with the tree.
-    "backend/ingestion/sec_filing_pipeline_html",
-    "backend/ingestion/sec_dense_pipeline_html",
-    # Frozen data contract for the same A/B experiment: public signatures and
-    # data-path behaviour must not move while the baseline lives. Its errors
-    # come from an upstream signature that is wider than the call sites
-    # (edgartools' filings.latest()). Drop this line at sunset too.
-    "backend/common/sec_core.py",
 ]
 # Pin the checker to `requires-python` rather than to whatever interpreter
 # happens to be active (CI installs 3.13).

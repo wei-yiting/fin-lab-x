@@ -37,7 +37,7 @@ The backend uses **Ruff** for fast linting and formatting, and **Pytest** for te
 - Check linting (Ruff): `ruff check backend/`
 - Fix auto-fixable lint issues: `ruff check --fix backend/`
 - **Format code (Ruff) — run before every push:** `ruff format backend/`. CI's lint job runs `ruff format --check backend/` and will reject unformatted code. This is the only enforcement mechanism; there is no pre-commit hook or editor auto-format (see [ADR-0004](docs/adr/0004-ci-only-ruff-format-enforcement.md)).
-- **Type check (Pyright) — CI-enforced:** `uv run pyright`. Run it bare so it picks up the configured scope from `[tool.pyright]` (`pyproject.toml`). Tests, the frozen `_html` baseline, and `backend/common/sec_core.py` are excluded on purpose — the reasons and the conditions for lifting each are recorded next to the config (see [ADR-0015](docs/adr/0015-narrow-pyright-adoption-enforced-in-ci.md)).
+- **Type check (Pyright) — CI-enforced:** `uv run pyright`. Run it bare so it picks up the configured scope from `[tool.pyright]` (`pyproject.toml`). All of `backend/` is checked, including the frozen `_html` baseline and `backend/common/sec_core.py` — the freeze covers the A/B experimental variables, not type annotations, so runtime-neutral type fixes there are in scope. Only `backend/tests` is excluded, with the reason and the condition for lifting it recorded next to the config (see [ADR-0015](docs/adr/0015-pyright-enforced-in-ci-over-live-backend-source.md)).
 
 **Testing (Pytest):**
 

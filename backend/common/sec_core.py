@@ -20,7 +20,7 @@ from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from backend.common.errors import (
     ConfigurationError,
@@ -31,6 +31,7 @@ from backend.common.errors import (
 )
 
 if TYPE_CHECKING:
+    from edgar import Filing  # noqa: F401
     from edgar.company_reports.ten_k import TenK  # noqa: F401
 
 
@@ -211,7 +212,7 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
     return classify_stub_section(text)
 
 
-def _find_by_fiscal_year(filings, fiscal_year: int):
+def _find_by_fiscal_year(filings, fiscal_year: int) -> "Filing | None":
     """Iterate edgartools Filings and return the filing whose
     period_of_report year matches ``fiscal_year``, else None.
     Does NOT raise — caller decides.
@@ -352,7 +353,11 @@ def _resolve_latest_fiscal_year_cached(ticker_upper: str) -> int:
             f"Ticker {ticker_upper!r} has no 10-K filings on SEC EDGAR."
         )
 
-    latest = filings.latest()
+    # ``Filings.latest()`` is unannotated upstream, so pyright widens it to
+    # ``Filing | EntityFilings | None``. The guard above already raised when the
+    # listing was empty, and ``latest()`` with the default ``n=1`` returns a single
+    # ``Filing``, so the cast states what this branch is guaranteed to hold.
+    latest = cast("Filing", filings.latest())
     return int(str(latest.period_of_report)[:4])
 
 
@@ -389,7 +394,7 @@ def _locate_filing_cached(
     ticker_upper: str,
     filing_type: FilingType,
     fiscal_year: int | None,
-):
+) -> "Filing":
     """Locate the target ``Filing`` on SEC EDGAR (index metadata only).
 
     Company lookup + filings listing + fiscal-year pick; does NOT call
@@ -425,7 +430,10 @@ def _locate_filing_cached(
         )
 
     if fiscal_year is None:
-        filing = filings.latest()
+        # Same upstream widening as in ``_resolve_latest_fiscal_year_cached``: the
+        # empty-listing guard above has already raised, and ``n=1`` yields one
+        # ``Filing``.
+        filing = cast("Filing", filings.latest())
     else:
         filing = _find_by_fiscal_year(filings, fiscal_year)
         if filing is None:

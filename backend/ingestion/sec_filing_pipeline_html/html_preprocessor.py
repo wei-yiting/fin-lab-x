@@ -1,6 +1,8 @@
 import re
+from typing import cast
 
-from bs4 import BeautifulSoup, NavigableString, Tag
+from bs4 import BeautifulSoup, Tag
+from bs4.element import NavigableString
 
 from backend.ingestion.sec_filing_pipeline_html.sec_heading_promoter import (
     detect_item_regions,
@@ -140,14 +142,16 @@ def _has_item_strong_size_signal(
 def _has_bold_signal(tag: Tag) -> bool:
     if tag.find(["b", "strong"]):
         return True
-    style = tag.get("style", "")
+    # ``Tag.get`` is declared to return ``str | list[str] | None``; the ``""``
+    # default rules out ``None``, and the list form is handled just below.
+    style = cast("str | list[str]", tag.get("style", ""))
     if isinstance(style, list):
         style = ";".join(style)
     if re.search(r"font-weight\s*:\s*(700|bold)", style):
         return True
     for desc in tag.descendants:
         if isinstance(desc, Tag):
-            desc_style = desc.get("style", "")
+            desc_style = cast("str | list[str]", desc.get("style", ""))
             if isinstance(desc_style, list):
                 desc_style = ";".join(desc_style)
             if re.search(r"font-weight\s*:\s*(700|bold)", desc_style):

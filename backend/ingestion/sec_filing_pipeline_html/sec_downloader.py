@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING, cast
 
 from edgar import Company, CompanyNotFoundError, set_identity
 
@@ -13,6 +14,9 @@ from backend.common.sec_core import (
     UnsupportedFilingTypeError,
 )
 from backend.ingestion.sec_filing_pipeline_html.filing_models import RawFiling
+
+if TYPE_CHECKING:
+    from edgar import Filing  # noqa: F401
 
 
 class SECDownloader:
@@ -59,7 +63,11 @@ class SECDownloader:
                         f" (fiscal year {fiscal_year})"
                     )
             else:
-                filing = filings.latest()
+                # ``Filings.latest()`` is unannotated upstream, so pyright widens it
+                # to ``Filing | EntityFilings | None``. With the default ``n=1`` it
+                # only ever yields a single filing or ``None`` — the ``None`` case is
+                # the one the guard below already handles.
+                filing = cast("Filing | None", filings.latest())
                 if filing is None:
                     raise FilingNotFoundError(
                         f"No {filing_type} filing found for {ticker}"
@@ -71,10 +79,17 @@ class SECDownloader:
             derived_fy = int(str(filing.period_of_report)[:4])
 
             return RawFiling(
-                raw_html=filing.html(),
+                # ``Filing.html()`` is ``str | None`` for filings whose primary
+                # document is not HTML. This pipeline is defined over HTML-primary
+                # 10-Ks, and a ``None`` here is out of contract: ``RawFiling`` rejects
+                # it with a pydantic ``ValidationError``, exactly as it does today.
+                raw_html=cast(str, filing.html()),
                 ticker=ticker,
                 cik=str(company.cik),
-                company_name=company.name,
+                # ``Company.name`` is declared ``str | None`` because of a ``hasattr``
+                # fallback, but ``EntityData.name`` is a required ``str`` on every
+                # company that resolved above.
+                company_name=cast(str, company.name),
                 filing_date=str(filing.filing_date),
                 fiscal_year=derived_fy,
                 accession_number=filing.accession_number,
@@ -107,7 +122,8 @@ class SECDownloader:
                 raise TickerNotFoundError(f"Ticker not found: {ticker}") from exc
 
             filings = company.get_filings(form=filing_type)
-            filing = filings.latest()
+            # Same upstream widening as in ``download()``.
+            filing = cast("Filing | None", filings.latest())
             if filing is None:
                 raise FilingNotFoundError(f"No {filing_type} filing found for {ticker}")
 

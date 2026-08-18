@@ -11,9 +11,9 @@ tools:
   - sec_filing_search
 
 model:
-  name: "openai:gpt-5-nano"
+  name: "openai:gpt-4o-mini"
   temperature: 0.0
-  reasoning: "off"
+  reasoning: "unsupported"
   thinking_budget: null
 
 constraints:

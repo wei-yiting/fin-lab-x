@@ -18,6 +18,6 @@ Streaming lifecycle state lives here only. Atoms / molecules / organisms never i
 pnpm -C frontend test -- --run ChatPanel.integration
 ```
 
-`__tests__/ChatPanel.integration.test.tsx` covers smart retry, mid-stream retry, aborted tools via stop, stop during the dead-air placeholder window, the stall-degradation wiring (mocked small threshold + MSW real time — F6 ruling), and stop + clear.
+`__tests__/ChatPanel.integration.test.tsx` covers smart retry, mid-stream retry, aborted tools via stop, stop during the dead-air placeholder window, the stall-degradation wiring (mocked small threshold + MSW real time), and stop + clear.
 
 E2E specs for cross-page flows live in `frontend/tests/e2e/`.

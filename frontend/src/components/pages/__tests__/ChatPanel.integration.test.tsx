@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
 
-// F6 ruling: exactly one ChatPanel integration case verifies the stall
-// wiring with a mocked small threshold against MSW real time. The mock is
-// file-level (vi.mock hoists); the 10s production default is locked by the
+// Exactly one ChatPanel integration case verifies the stall wiring, with a
+// mocked small threshold against MSW real time. The mock is file-level
+// (vi.mock hoists); the 10s production default is locked by the
 // useStallTimer fake-timer unit test instead.
 vi.mock("@/lib/timing", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/timing")>();
@@ -493,11 +493,12 @@ describe("ChatPanel integration — stop during placeholder phase", () => {
 //
 // The global stall stopwatch (useStallTimer) also degrades the placeholder's
 // copy from "Thinking" to "Still working" when the wire goes silent past the
-// threshold. Mocked small threshold + real MSW time — the 10s production
-// default is locked by the useStallTimer fake-timer unit test instead.
+// threshold, and any arriving stream part must zero it again. Mocked small
+// threshold + real MSW time — the 10s production default is locked by the
+// useStallTimer fake-timer unit test instead.
 // ---------------------------------------------------------------------------
 
-describe("ChatPanel integration — placeholder stall degradation (the ONE ChatPanel case, F6 ruling)", () => {
+describe("ChatPanel integration — placeholder stall degradation (the single stall-wiring case)", () => {
   const SMALL_THRESHOLD = 700;
   const stallServer = setupServer(
     http.post("/api/v1/chat", () => {
@@ -507,12 +508,26 @@ describe("ChatPanel integration — placeholder stall degradation (the ONE ChatP
           const send = (d: Record<string, unknown>) =>
             controller.enqueue(encoder.encode(sseFrame(d)));
           send({ type: "start", messageId: "m-stall" });
-          // Silence beyond the mocked threshold with nothing renderable yet
-          // → degraded copy on the placeholder; then the answer arrives and
-          // replaces it. The hold is generous (threshold + 2.5s) so the
-          // degraded copy stays observable even under parallel-suite load.
+          // Phase 1 — silence beyond the mocked threshold with nothing
+          // renderable yet → degraded copy on the placeholder. The hold is
+          // generous (threshold + 2.5s) so the degraded copy stays
+          // observable even under parallel-suite load.
           await new Promise((r) => setTimeout(r, SMALL_THRESHOLD + 2500));
+
+          // Phase 2 — the reset half of the wiring. Whitespace-only text
+          // deltas are stream parts (they change `messages`, so the
+          // layout-effect calls notifyActivity) but are NOT renderable
+          // (hasVisibleReplyText trims them to nothing), so the dead-air
+          // window stays open and the same placeholder element must revert
+          // to the non-degraded copy. Spaced well under the threshold so the
+          // non-degraded copy holds for the whole burst.
           send({ type: "text-start", id: "t1" });
+          for (let i = 0; i < 12; i++) {
+            send({ type: "text-delta", id: "t1", delta: "\n" });
+            await new Promise((r) => setTimeout(r, SMALL_THRESHOLD / 4));
+          }
+
+          // Phase 3 — the real answer arrives and replaces the placeholder.
           send({ type: "text-delta", id: "t1", delta: "done" });
           send({ type: "text-end", id: "t1" });
           send({ type: "finish" });
@@ -527,7 +542,7 @@ describe("ChatPanel integration — placeholder stall degradation (the ONE ChatP
   afterEach(() => stallServer.resetHandlers());
   afterAll(() => stallServer.close());
 
-  test("silence past threshold degrades the placeholder copy; the answer replaces it", async () => {
+  test("silence degrades the copy, an arriving part resets the stopwatch, the answer replaces it", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -541,13 +556,24 @@ describe("ChatPanel integration — placeholder stall degradation (the ONE ChatP
       { timeout: 5000 },
     );
 
+    // Any stream part zeroes the global stall stopwatch. The whitespace
+    // deltas keep the placeholder mounted (nothing renderable yet) while
+    // restoring the non-degraded copy — without this assertion the case
+    // would pass even with notifyActivity disconnected from part arrival.
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Thinking");
+      },
+      { timeout: 5000 },
+    );
+
     await waitFor(
       () => {
         expect(screen.getByText("done")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
-  }, 15000);
+  }, 20000);
 });
 
 // ---------------------------------------------------------------------------

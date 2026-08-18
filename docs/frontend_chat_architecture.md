@@ -60,6 +60,7 @@ flowchart BT
     organisms --> MessageList
     MessageList --> ChatPanel
     organisms --> ChatPanel
+    atoms --> ChatPanel
 
     classDef primitiveCls fill:#eef2ff,stroke:#6366f1,color:#1e1b4b
     classDef atomCls fill:#ecfeff,stroke:#06b6d4,color:#083344
@@ -98,10 +99,10 @@ flowchart LR
     ChatPanel --> Composer
     ChatPanel --> EmptyState
     ChatPanel --> ErrorBlock
+    ChatPanel --> ActivityPlaceholder
 
     MessageList --> UserMessage
     MessageList --> AssistantMessage
-    MessageList --> ActivityPlaceholder
     MessageList --> InterruptedMarker
 
     AssistantMessage --> ToolCard

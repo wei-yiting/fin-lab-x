@@ -53,7 +53,7 @@ export function ChatPanel() {
       toolProgressHandleData(dataPart);
       // Transient data-* chunks never enter message.parts, so the
       // messages-keyed reset below can't see them — but they ARE stream
-      // parts and must zero the stall stopwatch (C3).
+      // parts and must zero the stall stopwatch.
       notifyActivityRef.current?.();
     },
     [toolProgressHandleData],
@@ -86,10 +86,10 @@ export function ChatPanel() {
   }, [notifyActivity]);
 
   // Any stream part / delta arrival re-renders `messages` — that is the
-  // stopwatch's reset signal (C3: any part zeroes the global stall clock).
-  // Layout effect, not effect: the reset must land before paint so the
-  // render that introduces a new part never paints a stale degraded header
-  // (reset-before-derive — QA18 / S-place-05).
+  // stopwatch's reset signal: any part zeroes the global stall clock.
+  // Layout effect, not effect: the reset must land before paint, so the
+  // render that introduces a new part never paints a stale degraded copy
+  // for one frame before correcting itself.
   useLayoutEffect(() => {
     if (chatActive) notifyActivity();
   }, [messages, chatActive, notifyActivity]);

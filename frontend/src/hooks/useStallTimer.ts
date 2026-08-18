@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { STALL_THRESHOLD_MS } from "@/lib/timing";
 
 /**
- * Global single stall stopwatch (F6). Wall-clock based: `stalled` flips true
- * when `threshold` ms elapse with no `notifyActivity()` call while `active`.
+ * Global single stall stopwatch. Wall-clock based: `stalled` flips true
+ * when `STALL_THRESHOLD_MS` elapse with no `notifyActivity()` call while
+ * `active`.
  * Any stream part arrival must call `notifyActivity()` (the caller watches
  * `useChat.messages` — every part/delta arrival re-renders it). Deactivation
  * (turn end) resets the stopwatch so no stale value leaks into the next turn.
@@ -12,7 +13,7 @@ import { STALL_THRESHOLD_MS } from "@/lib/timing";
  * background-tab timer throttling cannot under-count: a late-firing timeout
  * re-checks real elapsed time before flipping.
  */
-export function useStallTimer(active: boolean, threshold: number = STALL_THRESHOLD_MS) {
+export function useStallTimer(active: boolean) {
   const [stalled, setStalled] = useState(false);
   const lastActivityRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,16 +36,16 @@ export function useStallTimer(active: boolean, threshold: number = STALL_THRESHO
       timerRef.current = null;
       if (!activeRef.current) return;
       const elapsed = Date.now() - lastActivityRef.current;
-      if (elapsed >= threshold) {
+      if (elapsed >= STALL_THRESHOLD_MS) {
         setStalled(true);
       } else {
         // Timer fired early relative to wall-clock (clamped/throttled
         // environments) — re-arm for the remainder.
-        timerRef.current = setTimeout(check, threshold - elapsed);
+        timerRef.current = setTimeout(check, STALL_THRESHOLD_MS - elapsed);
       }
     };
-    timerRef.current = setTimeout(check, threshold);
-  }, [threshold]);
+    timerRef.current = setTimeout(check, STALL_THRESHOLD_MS);
+  }, []);
 
   const notifyActivity = useCallback(() => {
     lastActivityRef.current = Date.now();

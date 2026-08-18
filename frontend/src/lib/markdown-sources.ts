@@ -77,8 +77,13 @@ export function normalizeRefDefs(text: string): string {
 // Matches a `[N]: url "title"` definition line so it can be stripped —
 // CommonMark hides these from the rendered body, but ReactMarkdown still
 // needs the raw text pre-stripped so streaming text doesn't flash the
-// unrendered definition syntax before the parser catches up.
-export const REF_DEF_LINE_RE = /^\[(\d+)\]:?\s+\S+.*$/gm;
+// unrendered definition syntax before the parser catches up. The optional
+// ` {0,3}` prefix mirrors CommonMark, which accepts up to three leading
+// spaces on a link reference definition; without it an indented
+// definition-only chunk looks like visible text here while the renderer
+// paints nothing. Single definition — `AssistantMessage`'s displayText
+// stripping imports this same constant.
+export const REF_DEF_LINE_RE = /^ {0,3}\[(\d+)\]:?\s+\S+.*$/gm;
 
 /**
  * Whether reply text has any content the user would actually see rendered.

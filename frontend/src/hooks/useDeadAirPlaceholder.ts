@@ -15,10 +15,10 @@ export type PlaceholderState = "hidden" | "waiting";
 const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
 
 /**
- * Placeholder visibility (F6′, 3 states — Hidden / Waiting / Waiting+degraded;
+ * Placeholder visibility (3 states — Hidden / Waiting / Waiting+degraded;
  * the degraded copy swap is the caller's concern via the stall stopwatch).
  *
- * Covers three dead-air windows (decision C1 + DEV-109 rulings 2026-08-04):
+ * Covers three dead-air windows:
  *   (a) submit → first *renderable* content. `status === "submitted"` alone
  *       ends at the stream's first wire frame (`start`), which arrives
  *       seconds before anything paints — reasoning deltas can lag
@@ -29,9 +29,9 @@ const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
  *       back on mid-turn (no grace delay needed).
  *   (b) chip collapse → reply text — the last *renderable* part of the
  *       streaming assistant message is a completed reasoning part, held
- *       behind a grace delay so the chip→tool micro-gap (decision 5: tool
- *       card owns that feedback) never flashes the placeholder.
- *   (c) tool round complete → next content (DEV-109 ruling): every tool
+ *       behind a grace delay so the chip→tool micro-gap (where the tool
+ *       card itself owns the feedback) never flashes the placeholder.
+ *   (c) tool round complete → next content: every tool
  *       part has its result and nothing renderable has arrived after —
  *       completed tool cards are not live elements, so the wait for the
  *       next LLM call is dead air. Same grace delay as (b).
@@ -40,7 +40,7 @@ const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
  * part: a mid-turn `reasoning-start` whose first delta is still seconds
  * away appends an invisible part, and ending the window there would drop
  * the placeholder while the screen still shows nothing new (observed in
- * DEV-109 round-3 manual testing). Invisible trailing parts neither close
+ * manual testing during DEV-109 verification). Invisible trailing parts neither close
  * the window nor restart its grace timer.
  *
  * Never visible while a chip is streaming or a tool card is live.
@@ -48,7 +48,6 @@ const TERMINAL_TOOL_STATES = new Set(["output-available", "output-error"]);
 export function useDeadAirPlaceholder(
   messages: ChatMessageLike[],
   status: ChatStatus,
-  graceMs: number = PLACEHOLDER_GRACE_MS,
 ): PlaceholderState {
   // The gap that has outlived the grace delay, identified by message id +
   // index of the last renderable part (stable while invisible parts append,
@@ -80,12 +79,12 @@ export function useDeadAirPlaceholder(
   const gapKey = (windowB || windowC) && last ? `${last.id}:${lastRenderableIndex}` : null;
 
   useEffect(() => {
-    if (gapKey === null || graceMs <= 0) return;
-    const timer = setTimeout(() => setElapsedGapKey(gapKey), graceMs);
+    if (gapKey === null) return;
+    const timer = setTimeout(() => setElapsedGapKey(gapKey), PLACEHOLDER_GRACE_MS);
     return () => clearTimeout(timer);
-  }, [gapKey, graceMs]);
+  }, [gapKey]);
 
   if (windowA) return "waiting";
-  if ((windowB || windowC) && (graceMs <= 0 || elapsedGapKey === gapKey)) return "waiting";
+  if ((windowB || windowC) && elapsedGapKey === gapKey) return "waiting";
   return "hidden";
 }

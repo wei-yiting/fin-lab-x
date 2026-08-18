@@ -3,7 +3,7 @@ import { renderHook, act } from "@testing-library/react";
 import { useStallTimer } from "../useStallTimer";
 import { STALL_THRESHOLD_MS } from "@/lib/timing";
 
-describe("useStallTimer — global stall stopwatch (F6)", () => {
+describe("useStallTimer — global stall stopwatch", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -11,7 +11,7 @@ describe("useStallTimer — global stall stopwatch (F6)", () => {
     vi.useRealTimers();
   });
 
-  test("default threshold is 10s (locked by this test per F6 ruling)", () => {
+  test("default threshold is 10s (locked by this test)", () => {
     expect(STALL_THRESHOLD_MS).toBe(10_000);
   });
 
@@ -59,7 +59,7 @@ describe("useStallTimer — global stall stopwatch (F6)", () => {
     expect(result.current.stalled).toBe(false);
   });
 
-  test("deactivation (turn end) resets; a new turn starts from zero (S-place-05)", () => {
+  test("deactivation (turn end) resets; a new turn starts from zero", () => {
     const { result, rerender } = renderHook(({ active }) => useStallTimer(active), {
       initialProps: { active: true },
     });
@@ -90,17 +90,5 @@ describe("useStallTimer — global stall stopwatch (F6)", () => {
       vi.advanceTimersByTime(STALL_THRESHOLD_MS * 3);
     });
     expect(result.current.stalled).toBe(false);
-  });
-
-  test("custom threshold is honored", () => {
-    const { result } = renderHook(() => useStallTimer(true, 500));
-    act(() => {
-      vi.advanceTimersByTime(499);
-    });
-    expect(result.current.stalled).toBe(false);
-    act(() => {
-      vi.advanceTimersByTime(1);
-    });
-    expect(result.current.stalled).toBe(true);
   });
 });

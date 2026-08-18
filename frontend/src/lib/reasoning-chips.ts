@@ -1,11 +1,21 @@
+import { isReasoningUIPart, isToolUIPart } from "ai";
+import type { UIDataTypes, UIMessagePart, UITools } from "ai";
 import { hasVisibleReplyText } from "@/lib/markdown-sources";
+
+/**
+ * Cast target at the delegation boundary below. The local predicates keep
+ * structural parameter types so the hooks — and their plain-object test
+ * fixtures — type-check without constructing full SDK parts, while the SDK
+ * guards they delegate to only ever read `part.type`.
+ */
+type AnyUIPart = UIMessagePart<UIDataTypes, UITools>;
 
 /**
  * Pure derivation helpers shared by the streaming chat UI. Everything here
  * derives from `useChat`'s `(status, messages)` — no additional state.
  */
 
-export interface ReasoningPartLike {
+interface ReasoningPartLike {
   type?: unknown;
   text?: string;
   state?: string;
@@ -18,23 +28,27 @@ export interface ChatMessageLike {
   parts: Array<{ type?: unknown; state?: unknown }>;
 }
 
+/** Reasoning-part classification, delegated to AI SDK 6's `isReasoningUIPart`. */
 export function isReasoningPart(part: {
   type?: unknown;
 }): part is ReasoningPartLike & { type: "reasoning" } {
-  return part.type === "reasoning";
+  return isReasoningUIPart(part as AnyUIPart);
 }
 
 /**
- * Single source of truth for tool-part classification: mirrors AI SDK 6's
- * `isToolUIPart` (static `tool-${name}` parts + `dynamic-tool`). Plain
- * `"tool"` is not a real AI SDK UI part shape and is intentionally not
- * matched here — callers that need it must import this function rather
- * than hand-roll their own predicate.
+ * Tool-part classification, delegated to AI SDK 6's `isToolUIPart` (static
+ * `tool-${name}` parts + `dynamic-tool`) so the SDK owns the rules and this
+ * module cannot drift from them when a new part shape lands. The `typeof`
+ * guard keeps the predicate total for the structurally-typed parts the hooks
+ * pass, whose `type` may be absent — the SDK guard assumes a string.
+ *
+ * This is not the app's only tool predicate: `AssistantMessage` holds its own,
+ * differently-shaped one that additionally matches a plain `"tool"` type.
+ * Unifying the two is tracked separately, outside this slice.
  */
 export function isToolPart(part: { type?: unknown }): boolean {
-  return (
-    typeof part.type === "string" && (part.type.startsWith("tool-") || part.type === "dynamic-tool")
-  );
+  if (typeof part.type !== "string") return false;
+  return isToolUIPart(part as AnyUIPart);
 }
 
 /**
@@ -68,11 +82,11 @@ export function turnHasRenderableContent(msg: ChatMessageLike): boolean {
 }
 
 /**
- * Zero-delta suppression (decision 3): a reasoning part that closed without
+ * Zero-delta suppression: a reasoning part that closed without
  * ever carrying a single delta paints nothing. A part whose streamed content
  * happens to be whitespace-only DID stream — it stays (no flash-then-vanish
  * removal).
  */
-export function isSuppressedChip(part: ReasoningPartLike): boolean {
+function isSuppressedChip(part: ReasoningPartLike): boolean {
   return (part.text ?? "") === "";
 }

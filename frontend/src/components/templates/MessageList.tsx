@@ -1,4 +1,4 @@
-import { useRef, useImperativeHandle, forwardRef, Fragment, type ReactNode } from "react";
+import { useRef, useMemo, useImperativeHandle, forwardRef, Fragment, type ReactNode } from "react";
 import { UserMessage } from "@/components/atoms/UserMessage";
 import { InterruptedMarker } from "@/components/atoms/InterruptedMarker";
 import { AssistantMessage } from "@/components/organisms/AssistantMessage";
@@ -20,7 +20,7 @@ interface MessageListProps {
    * "Interrupted" row renders right under each. */
   interruptedMessages?: Set<string>;
   onRegenerate: (id: string) => void;
-  /** Rendered below the transcript in the dead-air windows (F6′ placeholder). */
+  /** Rendered below the transcript during the dead-air windows. */
   placeholder?: ReactNode;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
@@ -45,9 +45,19 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
   ref,
 ) {
   const viewportRef = useRef<HTMLDivElement>(null);
+  // The placeholder mounts on its own grace timer — in windows B/C that is
+  // 300ms *after* the `messages` change that opened the gap, so `messages`
+  // alone would not re-run the follow-bottom effect and the placeholder
+  // could be appended below the fold for exactly the dead-air period it
+  // exists to cover. Fold its visibility into the trigger. A boolean, not
+  // the node: `placeholder` is a fresh ReactNode on every parent render.
+  // `shouldFollowBottom` still gates the scroll, so a user who scrolled up
+  // is never yanked back down.
+  const hasPlaceholder = placeholder != null;
+  const scrollTrigger = useMemo(() => ({ messages, hasPlaceholder }), [messages, hasPlaceholder]);
   const { shouldFollowBottom, handleScroll, forceFollowBottom } = useFollowBottom(
     viewportRef,
-    messages,
+    scrollTrigger,
   );
 
   useImperativeHandle(ref, () => ({ forceFollowBottom }), [forceFollowBottom]);

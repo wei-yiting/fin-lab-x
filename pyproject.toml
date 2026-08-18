@@ -85,6 +85,12 @@ exclude = [
     # (edgartools' filings.latest()). Drop this line at sunset too.
     "backend/common/sec_core.py",
 ]
+# Pin the checker to `requires-python` rather than to whatever interpreter
+# happens to be active (CI installs 3.13).
+pythonVersion = "3.11"
+# `standard` is the currently enforced baseline; AGENTS.md §3.1's "strict typing
+# is mandatory" is an authoring convention (annotate everything), not pyright's
+# `strict` mode.
 typeCheckingMode = "standard"
 
 [dependency-groups]

@@ -39,8 +39,10 @@ export function useStallTimer(active: boolean) {
       if (elapsed >= STALL_THRESHOLD_MS) {
         setStalled(true);
       } else {
-        // Timer fired early relative to wall-clock (clamped/throttled
-        // environments) — re-arm for the remainder.
+        // The pending check is deliberately not rescheduled on activity, so
+        // it fires against a deadline that has since moved — re-arm for the
+        // remainder. This is the normal path while a stream is flowing; it
+        // also absorbs a timeout that fires early relative to wall-clock.
         timerRef.current = setTimeout(check, STALL_THRESHOLD_MS - elapsed);
       }
     };
@@ -50,7 +52,12 @@ export function useStallTimer(active: boolean) {
   const notifyActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
     setStalled((prev) => (prev ? false : prev));
-    if (activeRef.current) scheduleCheck();
+    // A check already in flight needs no rescheduling: when it fires it
+    // re-arms itself for the remaining wall-clock time (see scheduleCheck).
+    // Arming only when nothing is pending keeps the stream's ~20 activity
+    // notifications per second from tearing down and rebuilding a timeout
+    // each time.
+    if (activeRef.current && timerRef.current === null) scheduleCheck();
   }, [scheduleCheck]);
 
   useEffect(() => {

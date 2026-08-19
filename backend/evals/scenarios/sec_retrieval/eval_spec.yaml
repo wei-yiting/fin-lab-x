@@ -2,10 +2,11 @@ name: sec_retrieval
 status: draft
 csv: dataset.csv
 regression:
-  # Metrics have no measured baseline yet (status: draft — hand-written
-  # placeholder dataset). Flipping to true and setting metric_floor values
-  # from a measured baseline belongs to DEV-103.
-  enabled: false
+  # Floors derive from a single reference measurement against the frozen
+  # HTML pipeline + this draft placeholder dataset (see README). Both are
+  # time-boxed: DEV-164 re-measures and re-derives once the retriever and
+  # dataset are replaced.
+  enabled: true
 task:
   function: backend.evals.eval_tasks.run_sec_retrieval
 pre_run:
@@ -24,9 +25,13 @@ column_types:
 scorers:
   - name: header_path_recall_at_5
     function: backend.evals.scenarios.sec_retrieval.scorer.header_path_recall_at_5
+    metric_floor: 0.65
   - name: header_path_recall_at_10
     function: backend.evals.scenarios.sec_retrieval.scorer.header_path_recall_at_10
+    metric_floor: 0.65
   - name: mrr
     function: backend.evals.scenarios.sec_retrieval.scorer.mean_reciprocal_rank
+    metric_floor: 0.60
   - name: map
     function: backend.evals.scenarios.sec_retrieval.scorer.mean_average_precision
+    metric_floor: 0.55

@@ -752,12 +752,26 @@ def test_real_language_policy_spec_matches_gate_contract() -> None:
     assert "response_relevance" not in scorer_names
 
 
-def test_real_sec_retrieval_spec_stays_out_of_gate() -> None:
+def test_real_sec_retrieval_spec_matches_gate_contract() -> None:
+    """DEV-103: flipped from enabled: false to a reference-measurement floor
+    per scorer. Floors are time-boxed to the frozen HTML pipeline (see the
+    scenario README) and will be re-derived by DEV-164."""
     config = load_scenario_config(
         REAL_SCENARIOS_DIR / "sec_retrieval" / "eval_spec.yaml"
     )
 
-    assert config.regression.enabled is False
+    assert config.regression.enabled is True
+    expected_floors = {
+        "header_path_recall_at_5": 0.65,
+        "header_path_recall_at_10": 0.65,
+        "mrr": 0.60,
+        "map": 0.55,
+    }
+    assert {s.name for s in config.scorers} == set(expected_floors)
+    for scorer in config.scorers:
+        assert scorer.type is None
+        assert scorer.gate is True
+        assert scorer.metric_floor == expected_floors[scorer.name]
 
 
 def test_real_on_target_company_spec_matches_gate_contract() -> None:

@@ -22,7 +22,7 @@ Answers "did existing behavior get worse" with a binary red/green verdict — on
 per scenario declaring `regression.enabled: true` in its `eval_spec.yaml`, aggregating each gated
 scorer's dataset-level metric against its `metric_floor` (ADR-0008). Absence semantics — a task
 crash, a fully-empty metric, or an enabled scenario with no gated scorer — are covered in
-ADR-0015. Burns real LLM/API calls; deliberately kept out of CI (a manual pre-merge check), gated
+ADR-0016. Burns real LLM/API calls; deliberately kept out of CI (a manual pre-merge check), gated
 behind the `eval` marker on top of the `backend/evals/regression/` path exclusion so a bare
 `pytest backend/` never touches it by accident.
 

@@ -9,9 +9,15 @@ Integrity is the per-(ticker, fiscal_year) commit-marker lifecycle: a
 ``pending`` marker is (over)written first, all chunk points are upserted,
 and only then does the marker flip to ``complete``. The retrieval side
 treats anything but ``complete`` as absent, so a failed ingest is
-indistinguishable from no ingest (committed or absent). No retry wrapper
-here: the embedding client retries transient upstream failures internally,
-and re-running a failed ingest is the recovery path.
+indistinguishable from no ingest (committed or absent).
+
+Three separate retry surfaces exist in this module, not one: bare
+``ingest_filing`` itself carries no retry wrapper; ``ingest_filing_with_retry``
+adds a single retry around it for transient Qdrant-side failures
+(connection/timeout/5xx); and the embedding client (``_embed_texts``, the
+OpenAI SDK) separately retries transient upstream failures internally.
+Re-running a failed ingest remains the recovery path for anything outside
+those two retry surfaces.
 """
 
 import os

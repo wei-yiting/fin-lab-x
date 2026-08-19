@@ -59,9 +59,12 @@ anything but `complete` as absent (committed or absent — a failed ingest looks
 like no ingest), and every content query excludes marker points via
 `marker_status_condition()`. A filing that chunks to zero payloads raises
 `EmptyIngestError` before any marker/wipe mutation, so it stays absent to
-readers. Re-running the ingest is the recovery path; there
-is no retry wrapper inside (the embedding client already retries transient
-failures internally).
+readers. Re-running the ingest is the recovery path for anything not
+already covered by this module's own retries: `ingest_filing` itself
+carries none, `ingest_filing_with_retry` retries transient Qdrant failures
+once, and the embedding client separately retries transient upstream
+failures internally — see [JIT retrieval](#jit-retrieval-retrieverpy)'s
+retry-boundaries note below for the full breakdown.
 
 ## JIT retrieval (`retriever.py`)
 

@@ -7,17 +7,17 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.scripts.embed_sec_filings import _embed_one, main
+from backend.scripts.embed_sec_filings import _parse_and_ingest, main
 from backend.tests.ingestion.sec_dense_pipeline.conftest import make_toy_filing
 
 
 @pytest.mark.asyncio
-async def test_embed_one_uses_explicit_fiscal_year_without_resolving_latest():
+async def test_parse_and_ingest_calls_parse_then_ingest_with_given_year():
+    """_parse_and_ingest takes an already-resolved concrete fiscal_year —
+    latest-year resolution is main()'s responsibility, exercised separately
+    below via the main()-level tests."""
     toy = make_toy_filing()
     with (
-        patch(
-            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry"
-        ) as mock_resolve,
         patch(
             "backend.scripts.embed_sec_filings.parse_filing_with_retry",
             return_value=toy,
@@ -27,36 +27,10 @@ async def test_embed_one_uses_explicit_fiscal_year_without_resolving_latest():
             new=AsyncMock(),
         ) as mock_ingest,
     ):
-        resolved = await _embed_one("AAPL", 2024)
+        await _parse_and_ingest("AAPL", 2024)
 
-    mock_resolve.assert_not_called()
     mock_parse.assert_called_once_with("AAPL", 2024, False)
     mock_ingest.assert_awaited_once_with(toy)
-    assert resolved == 2024
-
-
-@pytest.mark.asyncio
-async def test_embed_one_resolves_latest_fiscal_year_when_omitted():
-    toy = make_toy_filing()
-    with (
-        patch(
-            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry",
-            return_value=2025,
-        ) as mock_resolve,
-        patch(
-            "backend.scripts.embed_sec_filings.parse_filing_with_retry",
-            return_value=toy,
-        ) as mock_parse,
-        patch(
-            "backend.scripts.embed_sec_filings.ingest_filing_with_retry",
-            new=AsyncMock(),
-        ),
-    ):
-        resolved = await _embed_one("AAPL", None)
-
-    mock_resolve.assert_called_once_with("AAPL")
-    mock_parse.assert_called_once_with("AAPL", 2025, False)
-    assert resolved == 2025
 
 
 def test_main_reports_success_for_all_tickers(capsys):
@@ -138,9 +112,9 @@ def test_main_continues_past_a_failing_ticker_and_reports_it(capsys):
 
 
 def test_main_reports_resolved_year_when_ingest_fails_after_resolution(capsys):
-    """SP-1.6: if latest-year resolution succeeds but a later step (parse or
-    ingest) fails, the summary must still show the real resolved year, not
-    fall back to the omitted --fiscal-year (None) and print '?'."""
+    """If latest-year resolution succeeds but a later step (parse or ingest)
+    fails, the summary must still show the real resolved year, not fall
+    back to the omitted --fiscal-year (None) and print '?'."""
     toy = make_toy_filing()
     with (
         patch(

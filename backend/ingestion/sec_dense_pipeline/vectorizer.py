@@ -224,7 +224,23 @@ def resolve_latest_fiscal_year_with_retry(ticker: str) -> int:
 # caller code. A bare `except httpx.ConnectError` etc. here would therefore
 # be unreachable: this tuple is what ResponseHandlingException.source is
 # checked against instead.
-_TRANSIENT_SOURCE_TYPES = (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout)
+#
+# httpx.TimeoutException (ConnectTimeout, ReadTimeout, WriteTimeout,
+# PoolTimeout) and httpx.NetworkError (ConnectError, ReadError, WriteError,
+# CloseError) are both "no usable request/response cycle happened at all"
+# transport failures (verified against the installed 0.28.1 package's
+# exception hierarchy) — the network blips a single retry (design-envelope
+# §2) exists to smooth over.
+#
+# httpx.RemoteProtocolError is deliberately excluded: it means a response
+# cycle *did* begin but broke HTTP framing mid-stream (e.g. the peer closed
+# the connection mid-response), which is closer in kind to the
+# ValidationError-wrapped "response received but malformed" branch below (a
+# structural problem retrying is unlikely to fix, and may indicate a real
+# incompatibility) than to a clean connection-refused/timeout signal. This
+# is a judgment call, not a settled taxonomy fact — revisit if it proves
+# wrong in practice.
+_TRANSIENT_SOURCE_TYPES = (httpx.TimeoutException, httpx.NetworkError)
 
 
 @retry_transient

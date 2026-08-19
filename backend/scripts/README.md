@@ -58,7 +58,7 @@ The script intentionally runs without Langfuse tracing.
 
 When to run:
 
-- Pre-loading tickers for the DEV-138 A/B eval
+- Pre-loading tickers for an A/B eval backfill
 - Curating a new eval dataset with tickers not yet in the frozen collection
 
 ### `refresh_model_context_registry.py`

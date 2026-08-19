@@ -63,10 +63,12 @@ async def test_hot_path_returns_results_without_parsing(
 async def test_cold_path_ingests_then_serves_from_the_same_call(
     clean_collection, mock_openai_embed, qdrant_client
 ):
+    # clean_collection already guarantees the collection doesn't exist yet
+    # at this point (a stronger, more direct precondition than checking the
+    # marker — check_commit_marker_complete requires an existing collection
+    # to check, matching how it's always called downstream of
+    # async_ensure_collection_and_indexes() in the real search() flow).
     toy = make_toy_filing()
-    assert not check_commit_marker_complete(
-        qdrant_client, TEST_COLLECTION, "AAPL", 2024
-    )
 
     with patch(
         "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",

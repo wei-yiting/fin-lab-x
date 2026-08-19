@@ -47,7 +47,7 @@ def marker_status_condition() -> models.FieldCondition:
     )
 
 
-def _marker_is_complete(points: list) -> bool:
+def _marker_is_complete(points: list[models.Record]) -> bool:
     """Shared predicate for both the sync and async marker-check below —
     the one place that decides what a 'complete' commit-marker point looks
     like, so the two Qdrant-client variants can't drift apart on it."""
@@ -59,21 +59,21 @@ def check_commit_marker_complete(
 ) -> bool:
     """Return True iff a 'complete' commit marker exists for (ticker, fiscal_year).
 
-    Sync Qdrant client. Catches all exceptions and returns False so that a
-    transient lookup failure is treated as a cache miss (caller will
-    re-ingest), not as an error that aborts the search. See
-    :func:`async_check_commit_marker_complete` for the retriever's async
-    counterpart.
+    Sync Qdrant client. Returns False only when the retrieve call succeeds
+    and no complete marker is found (empty result, or a marker whose status
+    isn't 'complete') — a genuine "not ingested yet" state. A Qdrant lookup
+    failure (transport, HTTP, or response-validation) propagates to the
+    caller instead of being folded into that same False, so a permanent
+    failure is never silently treated as "nothing ingested" and driven into
+    an unnecessary re-ingest. See :func:`async_check_commit_marker_complete`
+    for the retriever's async counterpart.
     """
-    try:
-        points = client.retrieve(
-            collection_name=collection,
-            ids=[commit_marker_id(ticker, fiscal_year)],
-            with_payload=True,
-        )
-        return _marker_is_complete(points)
-    except Exception:
-        return False
+    points = client.retrieve(
+        collection_name=collection,
+        ids=[commit_marker_id(ticker, fiscal_year)],
+        with_payload=True,
+    )
+    return _marker_is_complete(points)
 
 
 async def async_check_commit_marker_complete(
@@ -85,12 +85,9 @@ async def async_check_commit_marker_complete(
     matching the vectorizer's ingest side), unlike the frozen ``_html``
     baseline which mixed a sync Qdrant client into an async ``search()``.
     """
-    try:
-        points = await client.retrieve(
-            collection_name=collection,
-            ids=[commit_marker_id(ticker, fiscal_year)],
-            with_payload=True,
-        )
-        return _marker_is_complete(points)
-    except Exception:
-        return False
+    points = await client.retrieve(
+        collection_name=collection,
+        ids=[commit_marker_id(ticker, fiscal_year)],
+        with_payload=True,
+    )
+    return _marker_is_complete(points)

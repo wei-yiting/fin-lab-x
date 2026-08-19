@@ -139,11 +139,11 @@ async def test_empty_filing_raises_and_leaves_no_trace(
     with pytest.raises(EmptyIngestError):
         await ingest_filing(empty_filing)
 
-    # No mutation happened at all: the collection was never even created.
+    # No mutation happened at all: the collection was never even created
+    # (check_commit_marker_complete itself requires an existing collection
+    # to check — it is always called downstream of
+    # async_ensure_collection_and_indexes() in the real search() flow).
     assert not qdrant_client.collection_exists(TEST_COLLECTION)
-    assert not check_commit_marker_complete(
-        qdrant_client, TEST_COLLECTION, "AAPL", 2024
-    )
 
 
 @pytest.mark.integration

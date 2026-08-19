@@ -19,6 +19,7 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
+from typing import Literal, TypedDict
 
 from dotenv import load_dotenv
 
@@ -31,35 +32,27 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import (  # noqa: E402
 )
 
 
-async def _embed_one(
-    ticker: str,
-    fiscal_year: int | None,
-    resolved_holder: dict[str, int] | None = None,
-) -> int:
-    """Ingest one ticker; returns the fiscal year actually ingested so the
-    caller can report it — the operator must be able to tell which year was
-    picked when --fiscal-year was omitted and latest-year resolution ran.
+class BatchIngestResult(TypedDict):
+    """One row of the batch-ingest summary table."""
 
-    ``resolved_holder``, if given, is populated with the resolved fiscal
-    year as soon as resolution completes — independent of whether the
-    later parse/ingest steps succeed. This lets ``main()``'s failure-path
-    summary report the real resolved year instead of falling back to the
-    (often ``None``) ``--fiscal-year`` argument when resolution succeeded
-    but a later step failed.
+    ticker: str
+    fiscal_year: int | None
+    status: Literal["success", "failed"]
+    error: str | None
+
+
+async def _parse_and_ingest(ticker: str, fiscal_year: int) -> None:
+    """Parse and ingest one ticker's already-resolved fiscal year.
+
+    Takes a concrete ``fiscal_year`` — latest-year resolution happens
+    earlier, in ``main()``'s per-ticker loop, so the caller already has the
+    real year in hand before this can fail; this function has no partial
+    progress of its own to report back.
     """
-    if resolved_holder is None:
-        resolved_holder = {}
-    resolved_fiscal_year = (
-        fiscal_year
-        if fiscal_year is not None
-        else await asyncio.to_thread(resolve_latest_fiscal_year_with_retry, ticker)
-    )
-    resolved_holder["fiscal_year"] = resolved_fiscal_year
     filing = await asyncio.to_thread(
-        parse_filing_with_retry, ticker, resolved_fiscal_year, False
+        parse_filing_with_retry, ticker, fiscal_year, False
     )
     await ingest_filing_with_retry(filing)
-    return resolved_fiscal_year
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -74,15 +67,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    results: list[dict] = []
+    results: list[BatchIngestResult] = []
 
     for ticker in args.tickers:
         ticker_upper = ticker.strip().upper()
-        resolved_holder: dict[str, int] = {}
+        # Resolved eagerly, before the parse/ingest call: if a later step
+        # fails, this local variable still holds the real resolved year
+        # (not the often-None --fiscal-year argument) for the summary below.
+        resolved_fiscal_year: int | None = args.fiscal_year
         try:
-            resolved_fiscal_year = asyncio.run(
-                _embed_one(ticker_upper, args.fiscal_year, resolved_holder)
-            )
+            if resolved_fiscal_year is None:
+                resolved_fiscal_year = resolve_latest_fiscal_year_with_retry(
+                    ticker_upper
+                )
+            asyncio.run(_parse_and_ingest(ticker_upper, resolved_fiscal_year))
             results.append(
                 {
                     "ticker": ticker_upper,
@@ -95,9 +93,7 @@ def main(argv: list[str] | None = None) -> int:
             results.append(
                 {
                     "ticker": ticker_upper,
-                    # Resolution may have completed before a later parse/
-                    # ingest failure — report that real year, not "?"/None.
-                    "fiscal_year": resolved_holder.get("fiscal_year", args.fiscal_year),
+                    "fiscal_year": resolved_fiscal_year,
                     "status": "failed",
                     "error": str(exc),
                 }

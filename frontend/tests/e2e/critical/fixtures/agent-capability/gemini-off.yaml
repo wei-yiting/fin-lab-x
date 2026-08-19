@@ -1,0 +1,6 @@
+# Matrix row 2 — Gemini reasoning OFF (forces thinking_budget=0 in the orchestrator).
+model:
+  name: "google_genai:gemini-2.5-flash"
+  temperature: 0.0
+  reasoning: "off"
+  thinking_budget: null

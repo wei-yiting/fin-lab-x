@@ -22,6 +22,11 @@ interface MessageListProps {
   onRegenerate: (id: string) => void;
   /** Rendered below the transcript during the dead-air windows. */
   placeholder?: ReactNode;
+  /** Chip context — threaded to AssistantMessage (see its prop docs). */
+  stalled?: boolean;
+  getChipSeconds?: (key: string) => number;
+  chipOverrides?: Map<string, boolean>;
+  onToggleChip?: (key: string, currentExpanded: boolean) => void;
   emptyContent?: ReactNode;
   errorContent?: ReactNode;
 }
@@ -39,6 +44,10 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     interruptedMessages,
     onRegenerate,
     placeholder,
+    stalled = false,
+    getChipSeconds,
+    chipOverrides,
+    onToggleChip,
     emptyContent,
     errorContent,
   },
@@ -123,6 +132,10 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
                     // Handing it to any other message would break that
                     // message's memoization for a button it never shows.
                     onRegenerate={isLast && status === "ready" ? onRegenerate : undefined}
+                    stalled={stalled}
+                    getChipSeconds={getChipSeconds}
+                    chipOverrides={chipOverrides}
+                    onToggleChip={onToggleChip}
                   />
                   {interrupted && <InterruptedMarker />}
                 </Fragment>

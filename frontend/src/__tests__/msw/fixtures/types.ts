@@ -3,6 +3,9 @@ export type UIMessageChunk =
   | { type: "text-start"; id: string }
   | { type: "text-delta"; id: string; delta: string }
   | { type: "text-end"; id: string }
+  | { type: "reasoning-start"; id: string }
+  | { type: "reasoning-delta"; id: string; delta: string }
+  | { type: "reasoning-end"; id: string }
   | { type: "tool-input-available"; toolCallId: string; toolName: string; input: object }
   | { type: "tool-output-available"; toolCallId: string; output: object }
   | { type: "tool-output-error"; toolCallId: string; errorText: string }

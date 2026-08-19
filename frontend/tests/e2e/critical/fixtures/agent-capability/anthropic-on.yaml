@@ -1,0 +1,6 @@
+# Matrix row 3 — Anthropic reasoning ON. thinking_budget is required (>=1024) for reasoning="on" per backend init_chat_model contract.
+model:
+  name: "anthropic:claude-3-5-sonnet-latest"
+  temperature: 0.0
+  reasoning: "on"
+  thinking_budget: 2048

@@ -4,13 +4,17 @@ Stateful orchestrator layer — the top of the atomic-design tree. Pages own str
 
 ## Files
 
-| File            | Responsibility                                                                                                                                                                                                                                                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ChatPanel.tsx` | Sole streaming-chat orchestrator. Owns `useChat({ transport, onData })`, `chatId`, `abortedTools`, `interruptedMessages`, `lastTriggerRef`, the dead-air placeholder's non-derived state (`useStallTimer`, `useDeadAirPlaceholder`'s grace timer), `useToolProgress`. Composes `MessageList` (templates) and `Composer` (organisms). |
+| File            | Responsibility                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ChatPanel.tsx` | Sole streaming-chat orchestrator. Owns `useChat({ transport, onData, onFinish })`, `chatId`, `abortedTools`, `interruptedMessages`, `lastTriggerRef`, the chips system's non-derived stores (`useStallTimer`, `useReasoningTimers`, the chip expand/collapse override map, `useDeadAirPlaceholder`'s grace timer), `useToolProgress`, and the `LiveStatusAnnouncer` wiring. Composes `MessageList` (templates) and `Composer` (organisms). |
 
 ## State rule
 
-Streaming lifecycle state lives here only. Atoms / molecules / organisms never import from `@ai-sdk/react`. Organisms may accept `status` / `messages` as props but must not subscribe to chat state themselves. Everything the dead-air placeholder needs derives from `(status, messages)` except the two stores listed in `src/hooks/README.md`.
+Streaming lifecycle state lives here only. Atoms / molecules / organisms never import from `@ai-sdk/react`. Organisms may accept `status` / `messages` as props but must not subscribe to chat state themselves. Reasoning renders from native `reasoning` message parts (chips); everything derives from `(status, messages)` except the stores listed in `src/hooks/README.md`.
+
+## `onFinish` contract
+
+AI SDK v6's `onFinish` payload carries `{ message, messages, isAbort, isDisconnect, isError }`. `ChatPanel` short-circuits `setLastSSEEvent({ type: "finish" })` whenever any of the three failure flags is `true` — otherwise `LiveStatusAnnouncer` would announce "Response complete" on user stop, network disconnect, or SSE error.
 
 ## Tests
 
@@ -18,6 +22,6 @@ Streaming lifecycle state lives here only. Atoms / molecules / organisms never i
 pnpm -C frontend test -- --run ChatPanel.integration
 ```
 
-`__tests__/ChatPanel.integration.test.tsx` covers smart retry, mid-stream retry, aborted tools via stop, stop during the dead-air placeholder window, the stall-degradation wiring (mocked small threshold + MSW real time), and stop + clear.
+`__tests__/ChatPanel.integration.test.tsx` covers smart retry, mid-stream retry, aborted tools via stop, stop during the dead-air placeholder window, the stall-degradation wiring (mocked small threshold + MSW real time — placeholder copy and streaming chip header), stop + clear, the `onFinish` flag matrix (natural completion announces "Response complete"; abort / isError / isDisconnect do not), the reasoning chips golden path (stream → collapse), abort mid-reasoning → collapsed `Stopped — thought for Xs` half-chip, and abort-then-resend coexistence.
 
 E2E specs for cross-page flows live in `frontend/tests/e2e/`.

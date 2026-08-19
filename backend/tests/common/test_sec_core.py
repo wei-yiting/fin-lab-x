@@ -386,7 +386,7 @@ def mock_edgar(monkeypatch):
 
     filings_by_form: dict[str, MagicMock] = {}
 
-    def get_filings(form: str):
+    def get_filings(form: str, **_kwargs):
         return filings_by_form.get(form, _make_filings_collection([]))
 
     company_instance = MagicMock()
@@ -448,19 +448,38 @@ def test_fetch_filing_obj_fiscal_year_filter(mock_edgar):
         fetch_filing_obj("AAPL", FilingType.TEN_K, 2099)
 
 
-def test_fetch_filing_obj_skips_amendments(mock_edgar):
+def _ten_k_calls(mock_edgar) -> list:
+    return [
+        call
+        for call in mock_edgar["company_instance"].get_filings.call_args_list
+        if (call.kwargs.get("form") or (call.args[0] if call.args else None)) == "10-K"
+    ]
+
+
+def test_fetch_filing_obj_excludes_amendments(mock_edgar):
+    """edgartools' ``get_filings(form="10-K")`` includes 10-K/A by default, and
+    a Part III amendment is always newer than its original — so without
+    ``amendments=False`` every locate picks the amendment (TSLA, 2026-08-19).
+    Filtering happens inside edgartools, so the seam is the kwarg."""
     tenk_cls = mock_edgar["tenk_cls"]
-    filing = _make_filing("2025-09-27", tenk_cls)
-    mock_edgar["set_filings"]("10-K", [filing])
+    mock_edgar["set_filings"]("10-K", [_make_filing("2025-09-27", tenk_cls)])
 
     fetch_filing_obj("AAPL", FilingType.TEN_K, 2025)
 
-    called_forms = [
-        call.kwargs.get("form") or (call.args[0] if call.args else None)
-        for call in mock_edgar["company_instance"].get_filings.call_args_list
-    ]
-    assert "10-K" in called_forms
-    assert "10-K/A" not in called_forms
+    calls = _ten_k_calls(mock_edgar)
+    assert calls, "expected a 10-K listing call"
+    assert all(call.kwargs.get("amendments") is False for call in calls)
+
+
+def test_resolve_latest_fiscal_year_excludes_amendments(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"]("10-K", [_make_filing("2025-12-31", tenk_cls)])
+
+    _resolve_latest_fiscal_year("TSLA")
+
+    calls = _ten_k_calls(mock_edgar)
+    assert calls, "expected a 10-K listing call"
+    assert all(call.kwargs.get("amendments") is False for call in calls)
 
 
 def test_fetch_filing_obj_ticker_not_found(monkeypatch):

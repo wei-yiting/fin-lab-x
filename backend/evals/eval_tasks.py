@@ -157,12 +157,12 @@ async def run_sec_retrieval(input: Any) -> dict:
     return {"retrieved_chunks": [chunk.model_dump() for chunk in chunks]}
 
 
-async def run_baseline(input: Any) -> OrchestratorResult:
-    """Braintrust task function: run baseline agent via async streaming.
+async def run_profile(input: Any, profile: str = "baseline") -> OrchestratorResult:
+    """Braintrust task function: run the given Workflow Profile via async streaming.
 
     Uses astream_run() to match the production API code path.
     """
-    orchestrator = _get_orchestrator("baseline")
+    orchestrator = _get_orchestrator(profile)
     if isinstance(input, str):
         prompt = input
     elif isinstance(input, Mapping):

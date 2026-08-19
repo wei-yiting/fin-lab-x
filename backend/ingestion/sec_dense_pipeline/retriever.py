@@ -22,7 +22,7 @@ from qdrant_client import AsyncQdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from backend.common.errors import FinLabError
-from backend.common.sec_core import SECError, _resolve_latest_fiscal_year
+from backend.common.sec_core import SECError
 from backend.ingestion.sec_dense_pipeline.collection_schema import (
     async_ensure_collection_and_indexes,
 )
@@ -37,6 +37,7 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import (
     get_collection_name,
     ingest_filing_with_retry,
     parse_filing_with_retry,
+    resolve_latest_fiscal_year_with_retry,
 )
 
 logger = logging.getLogger(__name__)
@@ -115,37 +116,27 @@ def _release_ingest_slot(key: tuple[str, int]) -> None:
     _inflight_ingests.discard(key)
 
 
-def _build_query_filter(
-    ticker: str | None, fiscal_year: int | None
-) -> tuple[models.Filter, dict]:
+def _build_query_filter(ticker: str, fiscal_year: int) -> models.Filter:
     """Build the Qdrant query filter for a search call.
 
     Pure and unit-testable in isolation: this is the single place that
-    decides whether a ``ticker``/``fiscal_year`` filter actually reaches
-    Qdrant. A caller-supplied ticker (or a JIT-resolved fiscal year) must
-    always show up here as a ``must`` condition — a query that silently
-    drops it would let cross-ticker bleed back into results the AC
-    explicitly rules out.
+    decides what reaches Qdrant as a ``must`` condition. By the time
+    ``search()`` calls this, ``ticker`` is a mandatory search() filter and
+    ``fiscal_year`` has always been resolved (explicit or latest) — so both
+    are always concrete values here and both always become ``must``
+    conditions. A query that silently dropped either would let cross-ticker
+    or cross-year bleed back into results the AC explicitly rules out.
     """
-    must_conditions: list[models.Condition] = []
-    applied: dict = {}
-    if ticker is not None:
-        must_conditions.append(
-            models.FieldCondition(key="ticker", match=models.MatchValue(value=ticker))
-        )
-        applied["ticker"] = ticker
-    if fiscal_year is not None:
-        must_conditions.append(
+    query_filter = models.Filter(
+        must=[
+            models.FieldCondition(key="ticker", match=models.MatchValue(value=ticker)),
             models.FieldCondition(
                 key="fiscal_year", match=models.MatchValue(value=fiscal_year)
-            )
-        )
-        applied["fiscal_year"] = fiscal_year
-    query_filter = models.Filter(
-        must=must_conditions or None,
+            ),
+        ],
         must_not=[marker_status_condition()],
     )
-    return query_filter, applied
+    return query_filter
 
 
 def _point_to_chunk(point) -> Chunk:
@@ -178,13 +169,22 @@ async def _ensure_ingested(
     (no work done), False if this call performed the JIT ingest. Raises
     :class:`IngestionInProgressError` if another in-process call is already
     ingesting the same (ticker, fiscal_year) — see the module-level
-    ``_inflight_ingests`` registry.
+    ``_inflight_ingests`` registry. Raises :class:`JITDisabledError` if
+    ``SEC_DISABLE_JIT=1`` and no complete marker exists yet — an
+    already-ingested hit is never blocked by the flag, only genuine JIT work.
     """
     embedding_hit = await async_check_commit_marker_complete(
         client, collection, ticker, fiscal_year
     )
     if embedding_hit:
         return True
+
+    if os.environ.get("SEC_DISABLE_JIT") == "1":
+        raise JITDisabledError(
+            f"JIT disabled by SEC_DISABLE_JIT=1; ticker={ticker} "
+            f"fiscal_year={fiscal_year} is not yet ingested. Pre-load via "
+            f"backend/scripts/embed_sec_filings.py"
+        )
 
     key = (ticker, fiscal_year)
     if not _try_claim_ingest_slot(key):
@@ -193,6 +193,16 @@ async def _ensure_ingested(
             f"in this process; retry shortly."
         )
     try:
+        # Re-check after claiming the slot: the marker can flip to complete
+        # between the fast check above and claiming the slot — e.g. a
+        # concurrent caller committed this same (ticker, fiscal_year) in
+        # that window. Without this, a stale miss would cause a redundant
+        # re-parse/re-embed/re-commit of data that is already complete.
+        already_complete = await async_check_commit_marker_complete(
+            client, collection, ticker, fiscal_year
+        )
+        if already_complete:
+            return True
         filing = await asyncio.to_thread(
             parse_filing_with_retry, ticker, fiscal_year, False
         )
@@ -207,11 +217,15 @@ async def search(
 ) -> list[Chunk]:
     """Semantic search over the SEC dense collection.
 
-    ``filters={"ticker": ..., "fiscal_year": ...}`` (fiscal_year optional —
-    omitted resolves to the ticker's latest 10-K) triggers the JIT path:
-    ingest the filing first if it is not already committed, then search.
-    Without a ``ticker`` filter, searches whatever is already in the
-    collection with no JIT side effect.
+    ``filters={"ticker": ..., "fiscal_year": ...}`` is required — ``ticker``
+    is a mandatory key (``fiscal_year`` optional; omitted resolves to the
+    ticker's latest 10-K). Triggers the JIT path: ingest the filing first if
+    it is not already committed, then search. An unfiltered, collection-wide
+    search is not a supported production path — DEV-113's naive-vs-filtered
+    A/B eval measured naive search's ``ticker_precision@10`` as low as 0.00
+    with no legitimate production caller — so ``filters`` missing or lacking
+    ``ticker`` raises ``ValueError`` instead of falling through to an
+    unfiltered query.
 
     Raises the shared :class:`~backend.common.errors.FinLabError` taxonomy
     directly on fetch/parse failures (``TickerNotFoundError``,
@@ -220,54 +234,64 @@ async def search(
     ``EmptyFilingError``) — never swallowed into a generic error, so a
     source-level gap (e.g. a filing with zero substantive items) surfaces
     as a legible, typed failure rather than a silent empty result. Also
-    raises ``ValueError`` (bad ``top_k``), :class:`JITDisabledError`,
-    :class:`IngestionInProgressError`, :class:`EmbeddingServiceError`, and
-    :class:`CorpusUnavailableError` (vector-store failures, including a
-    missing collection).
+    raises ``ValueError`` (bad ``top_k`` or missing ``ticker``),
+    :class:`JITDisabledError`, :class:`IngestionInProgressError`,
+    :class:`EmbeddingServiceError`, and :class:`CorpusUnavailableError`
+    (vector-store failures, including a missing collection).
     """
     if not 1 <= top_k <= 100:
         raise ValueError(f"top_k must be between 1 and 100, got {top_k}")
+    if not filters or "ticker" not in filters:
+        raise ValueError(
+            "search() requires filters={'ticker': ...}; unfiltered, "
+            "collection-wide search is not supported (DEV-113: naive "
+            "search is a proven-harmful retrieval mode with no legitimate "
+            "production caller)."
+        )
 
     collection = get_collection_name()
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
 
-    resolved_fiscal_year: int | None = None
-    cache_hit: bool | None = None
-    ticker: str | None = None
-
     client = AsyncQdrantClient(url=qdrant_url)
     try:
-        if filters and "ticker" in filters:
-            ticker = canonicalize_ticker(filters["ticker"])
+        ticker = canonicalize_ticker(filters["ticker"])
+        fiscal_year_filter = filters.get("fiscal_year")
 
-            if os.environ.get("SEC_DISABLE_JIT") == "1":
-                raise JITDisabledError(
-                    f"JIT disabled by SEC_DISABLE_JIT=1; "
-                    f"pre-load ticker={ticker} via backend/scripts/embed_sec_filings.py"
-                )
-
-            await async_ensure_collection_and_indexes(
-                client, collection, vector_size=_EMBED_DIM
+        # An omitted fiscal_year requires resolving the latest year via
+        # EDGAR before we even know which (ticker, fiscal_year) to check —
+        # that resolution call itself must be blocked by the flag. An
+        # explicit fiscal_year is NOT gated here: _ensure_ingested() below
+        # only raises JITDisabledError for that case on an actual marker
+        # miss, so an already-ingested hit still succeeds with the flag on.
+        if fiscal_year_filter is None and os.environ.get("SEC_DISABLE_JIT") == "1":
+            raise JITDisabledError(
+                f"JIT disabled by SEC_DISABLE_JIT=1; omitted fiscal_year "
+                f"for ticker={ticker} requires resolving the latest year "
+                f"via EDGAR. Pass an explicit fiscal_year for an "
+                f"already-ingested hit, or pre-load via "
+                f"backend/scripts/embed_sec_filings.py"
             )
 
-            fiscal_year_filter = filters.get("fiscal_year")
-            if fiscal_year_filter is None:
-                resolved_fiscal_year = await asyncio.to_thread(
-                    _resolve_latest_fiscal_year, ticker
-                )
-            else:
-                resolved_fiscal_year = fiscal_year_filter
-            assert resolved_fiscal_year is not None  # both branches above set it
+        await async_ensure_collection_and_indexes(
+            client, collection, vector_size=_EMBED_DIM
+        )
 
-            cache_hit = await _ensure_ingested(
-                client, collection, ticker, resolved_fiscal_year
+        if fiscal_year_filter is None:
+            resolved_fiscal_year = await asyncio.to_thread(
+                resolve_latest_fiscal_year_with_retry, ticker
             )
-            logger.info(
-                "SEC JIT search ticker=%s fiscal_year=%s cache_hit=%s",
-                ticker,
-                resolved_fiscal_year,
-                cache_hit,
-            )
+        else:
+            resolved_fiscal_year = fiscal_year_filter
+
+        cache_hit = await _ensure_ingested(
+            client, collection, ticker, resolved_fiscal_year
+        )
+        logger.info(
+            "SEC JIT search ticker=%s fiscal_year=%s cache_hit=%s",
+            ticker,
+            resolved_fiscal_year,
+            cache_hit,
+        )
 
         if not await client.collection_exists(collection):
             raise CorpusUnavailableError(
@@ -284,9 +308,7 @@ async def search(
         except Exception as e:
             raise EmbeddingServiceError(f"Embedding failed: {e}") from e
 
-        query_filter, applied_filters = _build_query_filter(
-            ticker, resolved_fiscal_year
-        )
+        query_filter = _build_query_filter(ticker, resolved_fiscal_year)
 
         results = await client.query_points(
             collection_name=collection,

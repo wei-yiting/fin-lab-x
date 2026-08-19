@@ -25,13 +25,41 @@ The summary table reports the resolved fiscal year per ticker, so an omitted `--
 
 Both the parse and ingest steps carry a single retry on transient failures via `retry_transient` (ADR-0013); a failure that survives the retry does not abort the batch — it is recorded as `failed` in the summary and the script exits with code 1.
 
-The script intentionally runs without Braintrust tracing — observability lives in the `search()` JIT path only.
+The script intentionally runs without Braintrust tracing. Tracing for the new JIT path itself ships in a follow-up ticket; this script runs without it in the meantime, same as `search()`.
 
 When to run:
 
 - After changing chunking or embedding parameters
 - When pre-warming Qdrant for a new dev environment or eval run
 - When EDGAR publishes a new fiscal year for a covered ticker
+
+### `embed_sec_filings_html.py`
+
+Batch ingest SEC 10-K filings into the frozen `_html` dense vector pipeline (`sec_dense_pipeline_html` — not the structured-contract pipeline). For each ticker, calls `SECFilingPipeline.process()` (local cache first, EDGAR on miss, with its own internal retry) and then `sec_dense_pipeline_html.vectorizer.ingest_filing()` to chunk, embed, and upsert into Qdrant.
+
+Operator backfill path for the frozen collection now that `embed_sec_filings.py` exclusively targets the new one — see `backend/ingestion/sec_dense_pipeline_html/README.md`.
+
+```bash
+# EDGAR's latest fiscal year per ticker
+uv run python -m backend.scripts.embed_sec_filings_html NVDA AAPL INTC
+
+# Specific year
+uv run python -m backend.scripts.embed_sec_filings_html NVDA --year 2024
+```
+
+| Argument | Required | Description |
+|---|---|---|
+| `tickers` (positional) | Yes | One or more ticker symbols to ingest |
+| `--year` | No | Fiscal year to ingest (default: EDGAR's latest) |
+
+`SECFilingPipeline.process()` already exhausts its own retry budget for transient failures, so this script does not retry further; a failure on one ticker does not abort the batch — it is recorded as `failed` in the summary and the script exits with code 1.
+
+The script intentionally runs without Langfuse tracing.
+
+When to run:
+
+- Pre-loading tickers for the DEV-138 A/B eval
+- Curating a new eval dataset with tickers not yet in the frozen collection
 
 ### `refresh_model_context_registry.py`
 

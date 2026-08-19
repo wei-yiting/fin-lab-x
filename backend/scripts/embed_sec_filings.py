@@ -24,22 +24,37 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from backend.common.sec_core import _resolve_latest_fiscal_year  # noqa: E402
 from backend.ingestion.sec_dense_pipeline.vectorizer import (  # noqa: E402
     ingest_filing_with_retry,
     parse_filing_with_retry,
+    resolve_latest_fiscal_year_with_retry,
 )
 
 
-async def _embed_one(ticker: str, fiscal_year: int | None) -> int:
+async def _embed_one(
+    ticker: str,
+    fiscal_year: int | None,
+    resolved_holder: dict[str, int] | None = None,
+) -> int:
     """Ingest one ticker; returns the fiscal year actually ingested so the
     caller can report it — the operator must be able to tell which year was
-    picked when --fiscal-year was omitted and latest-year resolution ran."""
+    picked when --fiscal-year was omitted and latest-year resolution ran.
+
+    ``resolved_holder``, if given, is populated with the resolved fiscal
+    year as soon as resolution completes — independent of whether the
+    later parse/ingest steps succeed. This lets ``main()``'s failure-path
+    summary report the real resolved year instead of falling back to the
+    (often ``None``) ``--fiscal-year`` argument when resolution succeeded
+    but a later step failed.
+    """
+    if resolved_holder is None:
+        resolved_holder = {}
     resolved_fiscal_year = (
         fiscal_year
         if fiscal_year is not None
-        else await asyncio.to_thread(_resolve_latest_fiscal_year, ticker)
+        else await asyncio.to_thread(resolve_latest_fiscal_year_with_retry, ticker)
     )
+    resolved_holder["fiscal_year"] = resolved_fiscal_year
     filing = await asyncio.to_thread(
         parse_filing_with_retry, ticker, resolved_fiscal_year, False
     )
@@ -63,9 +78,10 @@ def main(argv: list[str] | None = None) -> int:
 
     for ticker in args.tickers:
         ticker_upper = ticker.strip().upper()
+        resolved_holder: dict[str, int] = {}
         try:
             resolved_fiscal_year = asyncio.run(
-                _embed_one(ticker_upper, args.fiscal_year)
+                _embed_one(ticker_upper, args.fiscal_year, resolved_holder)
             )
             results.append(
                 {
@@ -79,7 +95,9 @@ def main(argv: list[str] | None = None) -> int:
             results.append(
                 {
                     "ticker": ticker_upper,
-                    "fiscal_year": args.fiscal_year,
+                    # Resolution may have completed before a later parse/
+                    # ingest failure — report that real year, not "?"/None.
+                    "fiscal_year": resolved_holder.get("fiscal_year", args.fiscal_year),
                     "status": "failed",
                     "error": str(exc),
                 }

@@ -13,7 +13,6 @@ import { MessageList, type MessageListHandle } from "@/components/templates/Mess
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { ErrorBlock } from "@/components/organisms/ErrorBlock";
 import { ActivityPlaceholder } from "@/components/atoms/ActivityPlaceholder";
-import { LiveStatusAnnouncer, type AnnouncedEvent } from "@/components/atoms/LiveStatusAnnouncer";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
@@ -42,7 +41,7 @@ export function ChatPanel() {
     [],
   );
   const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
-  const [lastSSEEvent, setLastSSEEvent] = useState<AnnouncedEvent | null>(null);
+  const [responseComplete, setResponseComplete] = useState(false);
   // Late-bound handle to the stall stopwatch's reset — onData is wired into
   // useChat above the stall hook in this component, so it reaches the reset
   // through a ref kept in sync by an effect below.
@@ -71,11 +70,10 @@ export function ChatPanel() {
       // Only the natural-completion path should trigger the SR "Response
       // complete" announcement. The three non-normal paths each have their
       // own user-visible affordance:
-      //   - isAbort      → aborted chip header (Stopped — thought for Xs)
-      //   - isDisconnect → status === "error" in LiveStatusAnnouncer
-      //   - isError      → status === "error" in LiveStatusAnnouncer
+      //   - isAbort                → aborted chip header (Stopped — thought for Xs)
+      //   - isDisconnect / isError → announced by ErrorBlock's role="alert"
       if (isAbort || isDisconnect || isError) return;
-      setLastSSEEvent({ type: "finish" });
+      setResponseComplete(true);
     },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
@@ -147,7 +145,7 @@ export function ChatPanel() {
       lastTriggerRef.current = { type: "send", userText: text };
       messageListRef.current?.forceFollowBottom();
       resetForNewTurn();
-      setLastSSEEvent(null);
+      setResponseComplete(false);
       sendMessage({ text });
     },
     [sendMessage, resetForNewTurn],
@@ -158,7 +156,7 @@ export function ChatPanel() {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
       resetForNewTurn();
-      setLastSSEEvent(null);
+      setResponseComplete(false);
       regenerate({ messageId });
     },
     [messages, regenerate, resetForNewTurn],
@@ -199,7 +197,7 @@ export function ChatPanel() {
     // transcript disappears with the new chatId, so no stale entry can leak.
     resetTimers();
     resetForNewTurn();
-    setLastSSEEvent(null);
+    setResponseComplete(false);
     setAbortedTools(new Set());
     setInterruptedMessages(new Set());
     lastTriggerRef.current = null;
@@ -209,7 +207,7 @@ export function ChatPanel() {
     const last = lastTriggerRef.current;
     if (!last) return;
     resetForNewTurn();
-    setLastSSEEvent(null);
+    setResponseComplete(false);
     // Two failure shapes end up here:
     //   1) Pre-stream failure — messages is [user₀]. Last message is the user turn.
     //      Drop the trailing user and re-send the text (regenerate({messageId}) would
@@ -331,7 +329,9 @@ export function ChatPanel() {
         stop={handleStop}
         status={status as ChatStatus}
       />
-      <LiveStatusAnnouncer lastEvent={lastSSEEvent} />
+      <div role="status" aria-live="polite" className="sr-only">
+        {responseComplete ? "Response complete" : ""}
+      </div>
     </div>
   );
 }

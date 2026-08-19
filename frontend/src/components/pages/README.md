@@ -4,9 +4,9 @@ Stateful orchestrator layer — the top of the atomic-design tree. Pages own str
 
 ## Files
 
-| File            | Responsibility                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ChatPanel.tsx` | Sole streaming-chat orchestrator. Owns `useChat({ transport, onData, onFinish })`, `chatId`, `abortedTools`, `interruptedMessages`, `lastTriggerRef`, the chips system's non-derived stores (`useStallTimer`, `useReasoningTimers`, the chip expand/collapse override map, `useDeadAirPlaceholder`'s grace timer), `useToolProgress`, and the `LiveStatusAnnouncer` wiring. Composes `MessageList` (templates) and `Composer` (organisms). |
+| File            | Responsibility                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ChatPanel.tsx` | Sole streaming-chat orchestrator. Owns `useChat({ transport, onData, onFinish })`, `chatId`, `abortedTools`, `interruptedMessages`, `lastTriggerRef`, the chips system's non-derived stores (`useStallTimer`, `useReasoningTimers`, the chip expand/collapse override map, `useDeadAirPlaceholder`'s grace timer), `useToolProgress`, and the inline `role="status"` completion announcement. Composes `MessageList` (templates) and `Composer` (organisms). |
 
 ## State rule
 
@@ -14,7 +14,7 @@ Streaming lifecycle state lives here only. Atoms / molecules / organisms never i
 
 ## `onFinish` contract
 
-AI SDK v6's `onFinish` payload carries `{ message, messages, isAbort, isDisconnect, isError }`. `ChatPanel` short-circuits `setLastSSEEvent({ type: "finish" })` whenever any of the three failure flags is `true` — otherwise `LiveStatusAnnouncer` would announce "Response complete" on user stop, network disconnect, or SSE error.
+AI SDK v6's `onFinish` payload carries `{ message, messages, isAbort, isDisconnect, isError }`. `ChatPanel` short-circuits `setResponseComplete(true)` whenever any of the three failure flags is `true` — otherwise the inline `role="status"` region would announce "Response complete" on user stop, network disconnect, or SSE error.
 
 ## Tests
 

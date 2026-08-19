@@ -754,10 +754,10 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
   }, 15000);
 
   test("Regenerate clears the live region so a second natural completion announces again", async () => {
-    // handleRegenerate must clear lastSSEEvent the same way handleSend does
-    // (M-1.2/SP-1.1) — otherwise the live region still holds the first
-    // turn's "Response complete" and the second onFinish writes identical
-    // text, which is not a DOM mutation a screen reader would pick up.
+    // handleRegenerate must clear the completion flag the same way handleSend
+    // does — otherwise the live region still holds the first turn's
+    // "Response complete" and the second onFinish writes identical text,
+    // which is not a DOM mutation a screen reader would pick up.
     let call = 0;
     const regenServer = setupServer(
       http.post("/api/v1/chat", () => {
@@ -829,9 +829,9 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
 
   test("mid-stream SSE error (isError=true) → SR announcer does not say 'Response complete'", async () => {
     // SSE `error` chunk → useChat catches the rethrown error → onFinish
-    // fires with isError=true (isAbort=false). The ChatPanel must NOT
-    // push a "finish" event into lastSSEEvent on this branch, even though
-    // status === "error" routes the announcement to "Response failed".
+    // fires with isError=true (isAbort=false). The ChatPanel must NOT mark
+    // the completion flag on this branch — disconnect and error paths are
+    // announced separately by ErrorBlock's role="alert", not this region.
     // Verifying the negative: announcer never reads "Response complete".
     const errorServer = setupServer(
       http.post("/api/v1/chat", () => {
@@ -885,9 +885,9 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
     // at the fetch layer. In useChat's catch block:
     //     err instanceof TypeError && err.message.includes("fetch")
     // → isError=true AND isDisconnect=true. The ChatPanel must short-circuit
-    // on isDisconnect too — otherwise the "finish" event leaks and
-    // LiveStatusAnnouncer could announce "Response complete" before the
-    // status flips to "error".
+    // on isDisconnect too — otherwise the "finish" event leaks and the
+    // completion announcer region could announce "Response complete" before
+    // the status flips to "error".
     const disconnectServer = setupServer(http.post("/api/v1/chat", () => HttpResponse.error()));
     disconnectServer.listen({ onUnhandledRequest: "bypass" });
 

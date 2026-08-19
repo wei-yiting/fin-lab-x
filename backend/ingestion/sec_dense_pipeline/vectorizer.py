@@ -219,28 +219,32 @@ def resolve_latest_fiscal_year_with_retry(ticker: str) -> int:
 # Qdrant's default REST transport (qdrant_client.http.api_client.ApiClient
 # .send_inner / AsyncApiClient.send_inner, verified against the installed
 # 1.17.1 package) wraps every exception the underlying httpx client raises
-# while sending a request — including connection and timeout failures —
-# into ResponseHandlingException(source=original_exc) before it can reach
-# caller code. A bare `except httpx.ConnectError` etc. here would therefore
-# be unreachable: this tuple is what ResponseHandlingException.source is
-# checked against instead.
+# while sending a request — including connection, timeout, and protocol
+# failures — into ResponseHandlingException(source=original_exc) before it
+# can reach caller code. A bare `except httpx.ConnectError` etc. here would
+# therefore be unreachable: this tuple is what ResponseHandlingException
+# .source is checked against instead.
 #
-# httpx.TimeoutException (ConnectTimeout, ReadTimeout, WriteTimeout,
-# PoolTimeout) and httpx.NetworkError (ConnectError, ReadError, WriteError,
-# CloseError) are both "no usable request/response cycle happened at all"
-# transport failures (verified against the installed 0.28.1 package's
-# exception hierarchy) — the network blips a single retry (design-envelope
-# §2) exists to smooth over.
+# httpx's own exception hierarchy (the module docstring in the installed
+# 0.28.1 package's _exceptions.py) groups TimeoutException, NetworkError,
+# and ProtocolError as sibling branches under the common TransportError —
+# all three mean "no usable request/response cycle completed," as opposed
+# to the separate DecodingError branch ("a response was received but
+# couldn't be decoded"). httpx.RemoteProtocolError (a ProtocolError
+# subclass) fires when a connection breaks mid-response-stream — the peer
+# closed the connection before finishing sending the body — which is a
+# transport-level reliability failure, not a schema/content one. Qdrant
+# ingest here uses deterministic point IDs with wipe-before-upsert, so a
+# retry after a mid-stream disconnect is safe.
 #
-# httpx.RemoteProtocolError is deliberately excluded: it means a response
-# cycle *did* begin but broke HTTP framing mid-stream (e.g. the peer closed
-# the connection mid-response), which is closer in kind to the
-# ValidationError-wrapped "response received but malformed" branch below (a
-# structural problem retrying is unlikely to fix, and may indicate a real
-# incompatibility) than to a clean connection-refused/timeout signal. This
-# is a judgment call, not a settled taxonomy fact — revisit if it proves
-# wrong in practice.
-_TRANSIENT_SOURCE_TYPES = (httpx.TimeoutException, httpx.NetworkError)
+# httpx.LocalProtocolError (the other ProtocolError subclass) is
+# deliberately excluded: it represents client-side protocol misuse — a real
+# bug in how the request was built — which retrying will not fix.
+_TRANSIENT_SOURCE_TYPES = (
+    httpx.TimeoutException,
+    httpx.NetworkError,
+    httpx.RemoteProtocolError,
+)
 
 
 @retry_transient
@@ -254,14 +258,15 @@ async def ingest_filing_with_retry(filing: ParsedFiling) -> None:
     side failure surfaces that ``ingest_filing`` does not classify itself:
 
     - ``ResponseHandlingException``: Qdrant's REST transport wraps *both*
-      connection/timeout failures and successful-response schema validation
-      failures (a wrapped ``pydantic.ValidationError``) in this same
-      exception type. Only the former is retryable — a validation failure
-      means the response was received but doesn't match the expected shape,
-      a permanent problem retrying cannot fix — so ``exc.source`` is
-      inspected and only connection/timeout-shaped causes are reclassified
-      as ``TransientError``; anything else (e.g. a wrapped
-      ``ValidationError``) propagates unchanged.
+      connection/timeout/protocol failures and successful-response schema
+      validation failures (a wrapped ``pydantic.ValidationError``) in this
+      same exception type. Only the former is retryable — a validation
+      failure means the response was received but doesn't match the
+      expected shape, a permanent problem retrying cannot fix — so
+      ``exc.source`` is inspected and only transport-shaped causes
+      (``_TRANSIENT_SOURCE_TYPES``) are reclassified as ``TransientError``;
+      anything else (e.g. a wrapped ``ValidationError``) propagates
+      unchanged.
     - ``UnexpectedResponse``: an HTTP error status from Qdrant. Only 5xx
       (server-side) is retried; 4xx propagates unchanged as a permanent
       failure (bad request shape, not a transient blip).

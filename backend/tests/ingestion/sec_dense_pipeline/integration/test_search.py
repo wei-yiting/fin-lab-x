@@ -142,24 +142,51 @@ async def test_concurrent_jit_for_same_ticker_year_one_wins_one_gets_legible_err
 ):
     """Envelope §1 concurrent-JIT resolution: the second concurrent caller
     for the same (ticker, fiscal_year) gets IngestionInProgressError, not a
-    silent duplicate ingest or a hang."""
+    silent duplicate ingest or a hang.
+
+    The first call's ingest step is held on a barrier until it signals that
+    it has reached ingestion — which only happens after it has already
+    claimed the in-flight slot — before the second call starts. Without this
+    barrier, a first call that finishes (and commits the marker) before the
+    second call runs its own marker check would legitimately land a hot hit
+    on both calls instead of the in-flight rejection this test targets: a
+    different, already-covered scenario (see
+    test_ensure_ingested_returns_true_on_marker_hit_without_jit in the unit
+    suite).
+    """
     toy = make_toy_filing()
+    ingest_claimed = asyncio.Event()
+    release_ingest = asyncio.Event()
 
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
-        side_effect=lambda *a: toy,
+    async def blocked_then_real_ingest(filing):
+        ingest_claimed.set()
+        await release_ingest.wait()
+        await ingest_filing(filing)
+
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
+            side_effect=lambda *a: toy,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.ingest_filing_with_retry",
+            new=blocked_then_real_ingest,
+        ),
     ):
-        # asyncio.to_thread runs parse_filing_with_retry off-loop, so both
-        # calls race into _ensure_ingested; only one can claim the slot.
-        results = await asyncio.gather(
-            search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}),
-            search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}),
-            return_exceptions=True,
+        first_call = asyncio.create_task(
+            search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
         )
+        try:
+            await ingest_claimed.wait()
 
-    errors = [r for r in results if isinstance(r, BaseException)]
-    successes = [r for r in results if not isinstance(r, BaseException)]
-    assert len(errors) == 1
-    assert isinstance(errors[0], IngestionInProgressError)
-    assert len(successes) == 1
+            with pytest.raises(IngestionInProgressError):
+                await search(
+                    query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+                )
+        finally:
+            release_ingest.set()
+
+        first_result = await first_call
+
+    assert first_result
     assert check_commit_marker_complete(qdrant_client, TEST_COLLECTION, "AAPL", 2024)

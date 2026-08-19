@@ -9,7 +9,7 @@ Single-concern visual elements. No business state, no `useChat`, no streaming-li
 | `ActivityPlaceholder.tsx` | Dead-air placeholder: `Thinking` / `Still working` copy with a CSS-animated dots cycler (`aria-hidden`) for the windows where the screen has no live element. Visibility derived by `ChatPanel` via `useDeadAirPlaceholder`; carries its own `aria-live="polite"`. |
 | `Cursor.tsx`              | Blinking cursor appended to a streaming text block.                                                                                                                                                                                                                |
 | `LiveStatusAnnouncer.tsx` | Screen-reader announcer for chat lifecycle (`role="status"` + `aria-live="polite"`).                                                                                                                                                                               |
-| `live-status-text.ts`     | Pure `(status, lastEvent) → string` formatter for `LiveStatusAnnouncer`. Exported so the transition table is unit-testable.                                                                                                                                        |
+| `live-status-text.ts`     | Pure `(lastEvent) → string` formatter for `LiveStatusAnnouncer`. Exported so the transition table is unit-testable.                                                                                                                                                |
 | `InterruptedMarker.tsx`   | "Interrupted" row rendered under a turn the user stopped.                                                                                                                                                                                                          |
 | `PromptChip.tsx`          | Clickable prompt suggestion chip in the empty state.                                                                                                                                                                                                               |
 | `RefSup.tsx`              | Superscript reference link `[1]` rendered inline in markdown.                                                                                                                                                                                                      |
@@ -18,12 +18,12 @@ Single-concern visual elements. No business state, no `useChat`, no streaming-li
 | `StatusDot.tsx`           | Tool status indicator dot, rendered by `molecules/ToolRow`.                                                                                                                                                                                                        |
 | `UserMessage.tsx`         | User-side message bubble.                                                                                                                                                                                                                                          |
 
-The reasoning surface itself lives one layer up: `molecules/ReasoningChip.tsx` renders each native `reasoning` message part as a collapsible transcript chip.
+The reasoning surface itself lives two layers up: `organisms/ReasoningChip.tsx` renders each native `reasoning` message part as a collapsible transcript chip.
 
 ## ARIA surfaces (minimal `aria-live`)
 
-- **`LiveStatusAnnouncer`** — single `role="status" aria-live="polite"` element for lifecycle transitions (`finish` / `error`). Precedence in `formatStatusText`: `status === "error"` always wins over a stale `finish` event.
-- **`ActivityPlaceholder` + `ReasoningChip` header** — each carries `aria-live="polite"` announcing only high-level state (`Thinking…`, `Still working…`, `Thought for Xs`). Reasoning body text is never fed into the polite queue; `ToolCard` stays `aria-hidden`.
+- **`LiveStatusAnnouncer`** — single `role="status" aria-live="polite"` element for the natural-completion event (`finish`). Errors are announced separately by `ErrorBlock`'s `role="alert"`, so a failure is never read out twice.
+- **`ActivityPlaceholder` + `ReasoningChip` header** — each carries `aria-live="polite"` announcing only high-level state (`Thinking…`, `Still working…`, `Thought for Xs`). Reasoning body text is never fed into the polite queue; `ToolCard` remains fully accessible (no `aria-hidden`).
 
 ## Stop behavior
 
@@ -33,4 +33,4 @@ The reasoning surface itself lives one layer up: `molecules/ReasoningChip.tsx` r
 
 ## Testing
 
-Atoms are covered where their behaviour warrants it rather than one test file each; unit tests live in `__tests__/<Component>.test.tsx`. Today that folder holds `ActivityPlaceholder.test.tsx` (both copy states and the `aria-live` contract) and `LiveStatusAnnouncer.test.tsx` (the `formatStatusText` transition table) — the rest of the atoms are pure prop-to-markup and are exercised through their consumers' tests. Chip states are covered in `molecules/__tests__/ReasoningChip.test.tsx`. `ActivityPlaceholder`'s _visibility_ is not this component's concern: it is derived by `useDeadAirPlaceholder` (hook unit tests) and wired in `components/pages/__tests__/ChatPanel.integration.test.tsx`.
+Atoms are covered where their behaviour warrants it rather than one test file each; unit tests live in `__tests__/<Component>.test.tsx`. Today that folder holds `ActivityPlaceholder.test.tsx` (both copy states and the `aria-live` contract) and `LiveStatusAnnouncer.test.tsx` (the `formatStatusText` transition table) — the rest of the atoms are pure prop-to-markup and are exercised through their consumers' tests. Chip states are covered in `organisms/__tests__/ReasoningChip.test.tsx`. `ActivityPlaceholder`'s _visibility_ is not this component's concern: it is derived by `useDeadAirPlaceholder` (hook unit tests) and wired in `components/pages/__tests__/ChatPanel.integration.test.tsx`.

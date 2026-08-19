@@ -95,7 +95,7 @@ export function ChatPanel() {
   //   1. chip timing map (Thought-for-Xs measurement),
   //   2. global stall stopwatch,
   //   3. user expand/collapse overrides (cleared each turn),
-  //   4. turn interruption record (interruptedMessages — DEV-109 ruling 11).
+  //   4. turn interruption record (interruptedMessages — set whenever the user stops a turn).
   const chatActive = status === "submitted" || status === "streaming";
   const { stalled, notifyActivity } = useStallTimer(chatActive);
   useEffect(() => {
@@ -158,6 +158,7 @@ export function ChatPanel() {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
       resetForNewTurn();
+      setLastSSEEvent(null);
       regenerate({ messageId });
     },
     [messages, regenerate, resetForNewTurn],
@@ -330,7 +331,7 @@ export function ChatPanel() {
         stop={handleStop}
         status={status as ChatStatus}
       />
-      <LiveStatusAnnouncer status={status as ChatStatus} lastEvent={lastSSEEvent} />
+      <LiveStatusAnnouncer lastEvent={lastSSEEvent} />
     </div>
   );
 }

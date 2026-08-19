@@ -239,7 +239,7 @@
   }
 }
 
-/* Visually hidden but reachable by assistive tech (D22 — LiveStatusAnnouncer). */
+/* Visually hidden but reachable by assistive tech — used by LiveStatusAnnouncer. */
 .sr-only {
   position: absolute;
   width: 1px;

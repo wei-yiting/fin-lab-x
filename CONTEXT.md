@@ -126,7 +126,7 @@ A frozen value object (`MessageStart`, `TextDelta`, `ToolCall`, `Finish`, …) f
 One conversation thread, checkpointed under a thread id, made up of successive Chat turns. The busy-guard rejects concurrent runs on the same session (HTTP 409).
 
 **Chat turn**:
-One user submit through to that response's terminal state (finish, abort, or error), containing any number of LLM calls and tool invocations. The unit of the root trace and the Reasoning transcript; reasoning part ids are unique within a Chat turn, and one turn may produce several Reasoning chips.
+One user submit through to that response's terminal state (finish, abort, or error), containing any number of LLM calls and tool invocations. The unit of the root trace; reasoning part ids are unique within a Chat turn, and one turn may produce several Reasoning chips.
 _Avoid_: turn (bare word — collides with eval and ingestion vocabulary), round (reads as one LLM call), conversation (that is a Session)
 
 **Activity indicator**:
@@ -138,10 +138,6 @@ The collapsible transcript block rendering one provider reasoning segment — li
 
 **Reasoning stream**:
 Provider reasoning tokens streamed live to the client, rendered as reasoning chips. The word "reasoning" belongs to this feature alone — never to the activity indicator's placeholder copy.
-
-**Reasoning transcript**:
-The observability record of one Chat turn's full reasoning text — every reasoning segment, delimited by per-segment markers, written once to that turn's root trace when it ends. An aborted marker appears only when the turn aborts mid-segment; a turn-level abort is recorded separately by the trace status.
-_Avoid_: reasoning metadata, per-call reasoning
 
 **Stream stall**:
 A streaming response going 10 seconds without any stream part arriving. One global clock per response, reset by any arriving part; on entry, whichever surface is currently live — the Activity indicator or a streaming Reasoning chip's header — swaps to degraded copy. Names a quiet stream, not a dead one: a broken connection is a timeout, a wedged process is a hang.

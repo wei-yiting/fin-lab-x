@@ -3,7 +3,7 @@ import type { SSEStreamFixture } from "./types";
 const fixture: SSEStreamFixture = {
   description:
     "Native reasoning part streaming with a long mid-part hold — the chip stays streaming long enough for an abort (or a full run collapses it before text)",
-  scenarios: ["S-chip-01", "S-chip-07", "J-pres-01"],
+  scenarios: [],
   chunks: [
     { data: { type: "start", messageId: "asst-reason" } },
     { data: { type: "reasoning-start", id: "reasoning-0" } },

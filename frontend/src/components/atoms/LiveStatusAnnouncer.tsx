@@ -1,20 +1,19 @@
-import type { ChatStatus } from "@/models";
 import { formatStatusText, type AnnouncedEvent } from "./live-status-text";
 
 interface LiveStatusAnnouncerProps {
-  status: ChatStatus;
   lastEvent: AnnouncedEvent | null;
 }
 
 /**
  * Screen-reader announcer for chat lifecycle.
  *
- * Currently announces 'finish' (via onFinish) and 'error' (via status==='error').
- * Tool-call transitions are deferred — AI SDK v6 routes those through state
- * callbacks not exposed via onData.
+ * Announces only the natural-completion event ('finish', via onFinish).
+ * Errors are announced separately by ErrorBlock's role="alert", so a failure
+ * is never read out twice. Tool-call transitions are deferred — AI SDK v6
+ * routes those through state callbacks not exposed via onData.
  */
-export function LiveStatusAnnouncer({ status, lastEvent }: LiveStatusAnnouncerProps) {
-  const text = formatStatusText(status, lastEvent);
+export function LiveStatusAnnouncer({ lastEvent }: LiveStatusAnnouncerProps) {
+  const text = formatStatusText(lastEvent);
 
   return (
     <div role="status" aria-live="polite" className="sr-only">

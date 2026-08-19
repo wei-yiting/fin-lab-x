@@ -8,16 +8,16 @@ Dense vector retrieval pipeline for SEC 10-K filings. Chunks filing markdown wit
 # 1. Start Qdrant
 docker compose up -d qdrant
 
-# 2. Batch ingest filings (downloads from EDGAR automatically; requires EDGAR_IDENTITY in env)
-uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
-
-# Optional: pin a fiscal year (default: latest 10-K per ticker)
-uv run python -m backend.scripts.embed_sec_filings NVDA --year 2024
-
-# 3. Search from Python
+# 2. Search from Python (JIT-ingests on a cache miss — see JIT Ingest Contract below)
 from backend.ingestion.sec_dense_pipeline_html.retriever import search
 chunks = await search(query="NVIDIA export control risks", top_k=10)
 ```
+
+This pipeline is a frozen A/B baseline (deleted whole at sunset — see `backend/README.md`).
+`backend.scripts.embed_sec_filings` no longer targets it: as of the `sec_dense_pipeline`
+cutover (DEV-160), that batch script exclusively ingests into the new pipeline. Whatever is
+already in Qdrant, plus anything `search()`'s own JIT path ingests on a cache miss, is all
+this pipeline will ever hold going forward.
 
 ## Key Components
 

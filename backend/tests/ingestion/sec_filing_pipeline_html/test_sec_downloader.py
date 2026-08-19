@@ -92,13 +92,18 @@ class TestDownloadHappyPath:
         assert result.ticker == "AAPL"
 
     @patch("backend.ingestion.sec_filing_pipeline_html.sec_downloader.Company")
-    def test_calls_get_filings_with_form(self, mock_company_cls, mock_company):
+    def test_calls_get_filings_excluding_amendments(
+        self, mock_company_cls, mock_company
+    ):
+        """edgartools includes 10-K/A under form="10-K" by default, and an
+        amendment is always newer than its original — so without
+        amendments=False, .latest() picks the amendment (TSLA, 2026-08-19)."""
         mock_company_cls.return_value = mock_company
         downloader = SECDownloader()
 
         downloader.download("AAPL", "10-K")
 
-        mock_company.get_filings.assert_called_once_with(form="10-K")
+        mock_company.get_filings.assert_called_once_with(form="10-K", amendments=False)
 
 
 class TestDownloadWithFiscalYear:
@@ -179,6 +184,29 @@ class TestDownloadWithFiscalYear:
 
         filings = mock_company.get_filings.return_value
         filings.filter.assert_not_called()
+
+
+class TestGetLatestFiscalYear:
+    @patch("backend.ingestion.sec_filing_pipeline_html.sec_downloader.Company")
+    def test_calls_get_filings_excluding_amendments(
+        self, mock_company_cls, mock_company
+    ):
+        mock_company_cls.return_value = mock_company
+        downloader = SECDownloader()
+
+        downloader.get_latest_fiscal_year("AAPL", "10-K")
+
+        mock_company.get_filings.assert_called_once_with(form="10-K", amendments=False)
+
+    @patch("backend.ingestion.sec_filing_pipeline_html.sec_downloader.Company")
+    def test_returns_year_from_period_of_report(
+        self, mock_company_cls, mock_company, mock_filing
+    ):
+        mock_filing.period_of_report = date(2025, 12, 31)
+        mock_company_cls.return_value = mock_company
+        downloader = SECDownloader()
+
+        assert downloader.get_latest_fiscal_year("AAPL", "10-K") == 2025
 
 
 class TestDownloadErrorMapping:

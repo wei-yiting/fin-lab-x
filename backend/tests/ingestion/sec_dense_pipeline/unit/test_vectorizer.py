@@ -154,6 +154,67 @@ async def test_ingest_filing_with_retry_classifies_connection_shaped_cause_and_r
 
 
 @pytest.mark.asyncio
+async def test_ingest_filing_with_retry_classifies_write_timeout_and_retries():
+    """WriteTimeout is a httpx.TimeoutException subclass, not one of the
+    previously-hardcoded three source types — pins the broadened tuple."""
+    calls = {"count": 0}
+
+    async def flaky(filing):
+        calls["count"] += 1
+        if calls["count"] < 2:
+            raise ResponseHandlingException(httpx.WriteTimeout("write timed out"))
+
+    with patch(
+        "backend.ingestion.sec_dense_pipeline.vectorizer.ingest_filing",
+        new=AsyncMock(side_effect=flaky),
+    ):
+        await ingest_filing_with_retry.retry_with(wait=wait_none())(make_toy_filing())
+    assert calls["count"] == 2
+
+
+@pytest.mark.asyncio
+async def test_ingest_filing_with_retry_classifies_read_error_and_retries():
+    """ReadError is a httpx.NetworkError subclass, not one of the
+    previously-hardcoded three source types — pins the broadened tuple."""
+    calls = {"count": 0}
+
+    async def flaky(filing):
+        calls["count"] += 1
+        if calls["count"] < 2:
+            raise ResponseHandlingException(httpx.ReadError("connection reset"))
+
+    with patch(
+        "backend.ingestion.sec_dense_pipeline.vectorizer.ingest_filing",
+        new=AsyncMock(side_effect=flaky),
+    ):
+        await ingest_filing_with_retry.retry_with(wait=wait_none())(make_toy_filing())
+    assert calls["count"] == 2
+
+
+@pytest.mark.asyncio
+async def test_ingest_filing_with_retry_does_not_retry_remote_protocol_error():
+    """Pins the deliberate exclusion of RemoteProtocolError from the
+    transient set (see the reasoning comment on _TRANSIENT_SOURCE_TYPES)."""
+    calls = {"count": 0}
+
+    async def always_protocol_error(filing):
+        calls["count"] += 1
+        raise ResponseHandlingException(
+            httpx.RemoteProtocolError("peer closed connection mid-response")
+        )
+
+    with patch(
+        "backend.ingestion.sec_dense_pipeline.vectorizer.ingest_filing",
+        new=AsyncMock(side_effect=always_protocol_error),
+    ):
+        with pytest.raises(ResponseHandlingException):
+            await ingest_filing_with_retry.retry_with(wait=wait_none())(
+                make_toy_filing()
+            )
+    assert calls["count"] == 1
+
+
+@pytest.mark.asyncio
 async def test_ingest_filing_with_retry_does_not_retry_validation_error_shaped_cause():
     """A ResponseHandlingException wrapping a ValidationError means Qdrant
     answered but the response didn't match the expected schema — a

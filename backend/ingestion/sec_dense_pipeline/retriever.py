@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+from typing import NotRequired, TypedDict
 
 from pydantic import BaseModel
 from qdrant_client import AsyncQdrantClient, models
@@ -70,6 +71,22 @@ class Chunk(BaseModel):
     score: float
 
 
+class SearchFilters(TypedDict):
+    """Required shape for ``search()``'s ``filters`` argument, when present:
+    mandatory ``ticker``, optional ``fiscal_year`` (omitted resolves to the
+    ticker's latest 10-K).
+
+    A ``TypedDict`` is a static-typing construct only — it is not enforced
+    by Python at runtime, so a value that doesn't match this shape (extra
+    keys, wrong value types) can still reach ``search()`` at runtime, e.g.
+    from untyped caller code or deserialized JSON. See
+    :func:`_validate_filters` for the runtime check that closes that gap.
+    """
+
+    ticker: str
+    fiscal_year: NotRequired[int]
+
+
 class JITDisabledError(SECError):
     """JIT is disabled (``SEC_DISABLE_JIT=1``) and the requested ticker/year
     is not already ingested. Set in CI so no test can reach real EDGAR."""
@@ -116,6 +133,52 @@ def _release_ingest_slot(key: tuple[str, int]) -> None:
     _inflight_ingests.discard(key)
 
 
+_ALLOWED_FILTER_KEYS = frozenset({"ticker", "fiscal_year"})
+
+
+def _validate_filters(filters: SearchFilters) -> None:
+    """Validate the shape/types of a present ``filters`` dict.
+
+    Called before any Qdrant client or EDGAR work runs. Presence of
+    ``filters`` and its ``ticker`` key is checked separately by ``search()``
+    itself first (that ``ValueError`` is the legible rejection path for a
+    caller who omitted filters entirely); this function only runs once
+    ``filters`` and its ``ticker`` key are already known to be present, and
+    validates the rest of the shape:
+
+    - Unknown keys (e.g. a leftover legacy ``year`` key from the old filter
+      contract) are rejected outright rather than silently ignored — an
+      ignored key can silently change query results, e.g. a caller passing
+      ``{"ticker": ..., "year": 2024}`` would otherwise have ``year`` dropped
+      and resolve the latest fiscal year instead of the one requested.
+    - ``ticker`` must be a ``str``. A non-string value would otherwise reach
+      ``canonicalize_ticker`` as a ``TypeError``, which the generic exception
+      handler at the bottom of ``search()`` would misreport as a
+      vector-store failure instead of a caller-input error.
+    - ``fiscal_year``, if given, must be an ``int`` (excluding ``bool``,
+      which is technically an ``int`` subclass in Python but not a
+      meaningful fiscal year).
+    """
+    unknown_keys = set(filters) - _ALLOWED_FILTER_KEYS
+    if unknown_keys:
+        raise ValueError(
+            f"search() filters has unsupported key(s) {sorted(unknown_keys)}; "
+            f"only {sorted(_ALLOWED_FILTER_KEYS)} are supported."
+        )
+    ticker = filters["ticker"]
+    if not isinstance(ticker, str):
+        raise ValueError(
+            f"search() filters['ticker'] must be a str, got {type(ticker).__name__}."
+        )
+    if "fiscal_year" in filters:
+        fiscal_year = filters["fiscal_year"]
+        if isinstance(fiscal_year, bool) or not isinstance(fiscal_year, int):
+            raise ValueError(
+                f"search() filters['fiscal_year'] must be an int, got "
+                f"{type(fiscal_year).__name__}."
+            )
+
+
 def _build_query_filter(ticker: str, fiscal_year: int) -> models.Filter:
     """Build the Qdrant query filter for a search call.
 
@@ -125,7 +188,8 @@ def _build_query_filter(ticker: str, fiscal_year: int) -> models.Filter:
     ``fiscal_year`` has always been resolved (explicit or latest) — so both
     are always concrete values here and both always become ``must``
     conditions. A query that silently dropped either would let cross-ticker
-    or cross-year bleed back into results the AC explicitly rules out.
+    or cross-year bleed back into results — exactly what this filter exists
+    to prevent.
     """
     query_filter = models.Filter(
         must=[
@@ -139,7 +203,7 @@ def _build_query_filter(ticker: str, fiscal_year: int) -> models.Filter:
     return query_filter
 
 
-def _point_to_chunk(point) -> Chunk:
+def _point_to_chunk(point: models.ScoredPoint) -> Chunk:
     payload = point.payload
     return Chunk(
         ticker=payload["ticker"],
@@ -213,7 +277,7 @@ async def _ensure_ingested(
 
 
 async def search(
-    query: str, filters: dict | None = None, top_k: int = 10
+    query: str, filters: SearchFilters | None = None, top_k: int = 10
 ) -> list[Chunk]:
     """Semantic search over the SEC dense collection.
 
@@ -221,11 +285,12 @@ async def search(
     is a mandatory key (``fiscal_year`` optional; omitted resolves to the
     ticker's latest 10-K). Triggers the JIT path: ingest the filing first if
     it is not already committed, then search. An unfiltered, collection-wide
-    search is not a supported production path — DEV-113's naive-vs-filtered
-    A/B eval measured naive search's ``ticker_precision@10`` as low as 0.00
-    with no legitimate production caller — so ``filters`` missing or lacking
+    search is not a supported production path — naive-vs-filtered A/B eval
+    measured naive search's ``ticker_precision@10`` as low as 0.00 with no
+    legitimate production caller — so ``filters`` missing or lacking
     ``ticker`` raises ``ValueError`` instead of falling through to an
-    unfiltered query.
+    unfiltered query. See :class:`SearchFilters` for the full shape and
+    :func:`_validate_filters` for the runtime checks applied to it.
 
     Raises the shared :class:`~backend.common.errors.FinLabError` taxonomy
     directly on fetch/parse failures (``TickerNotFoundError``,
@@ -234,7 +299,8 @@ async def search(
     ``EmptyFilingError``) — never swallowed into a generic error, so a
     source-level gap (e.g. a filing with zero substantive items) surfaces
     as a legible, typed failure rather than a silent empty result. Also
-    raises ``ValueError`` (bad ``top_k`` or missing ``ticker``),
+    raises ``ValueError`` (bad ``top_k``, missing ``ticker``, or a
+    ``filters`` shape/type rejected by :func:`_validate_filters`),
     :class:`JITDisabledError`, :class:`IngestionInProgressError`,
     :class:`EmbeddingServiceError`, and :class:`CorpusUnavailableError`
     (vector-store failures, including a missing collection).
@@ -244,10 +310,11 @@ async def search(
     if not filters or "ticker" not in filters:
         raise ValueError(
             "search() requires filters={'ticker': ...}; unfiltered, "
-            "collection-wide search is not supported (DEV-113: naive "
-            "search is a proven-harmful retrieval mode with no legitimate "
-            "production caller)."
+            "collection-wide search is not supported (naive search is a "
+            "proven-harmful retrieval mode with no legitimate production "
+            "caller)."
         )
+    _validate_filters(filters)
 
     collection = get_collection_name()
     qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
@@ -292,13 +359,6 @@ async def search(
             resolved_fiscal_year,
             cache_hit,
         )
-
-        if not await client.collection_exists(collection):
-            raise CorpusUnavailableError(
-                f"Collection '{collection}' does not exist. "
-                f"Run backend/scripts/embed_sec_filings.py to ingest filings, "
-                f"or call search() with filters={{'ticker': ...}} to trigger JIT."
-            )
 
         try:
             # Module-qualified (not a bare imported name) so the shared

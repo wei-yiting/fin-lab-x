@@ -17,8 +17,8 @@ Operator backfill path for the frozen sec_dense_pipeline_html collection
 (see backend/ingestion/sec_dense_pipeline_html/README.md): the
 structured-contract batch script (embed_sec_filings.py) exclusively targets
 the new sec_dense_pipeline collection, so this script is what is left to
-pre-load tickers into the old collection — e.g. for the DEV-138 A/B eval or
-a new eval dataset (DEV-162) that needs tickers not yet present there.
+pre-load tickers into the old collection — e.g. for an A/B eval backfill or
+a new eval dataset that needs tickers not yet present there.
 
 This mirrors the repo's established _html sunset convention: this whole
 file is deleted together with the rest of the frozen pipeline at sunset,
@@ -32,6 +32,7 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
+from typing import Literal, TypedDict
 
 from dotenv import load_dotenv
 
@@ -43,6 +44,14 @@ from backend.ingestion.sec_dense_pipeline_html.vectorizer import (  # noqa: E402
 from backend.ingestion.sec_filing_pipeline_html.pipeline import (  # noqa: E402
     SECFilingPipeline,
 )
+
+
+class BatchIngestResult(TypedDict):
+    """One row of the batch-ingest summary table."""
+
+    ticker: str
+    status: Literal["success", "failed"]
+    error: str | None
 
 
 async def _embed_one(
@@ -73,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     pipeline = SECFilingPipeline.create()
-    results: list[dict] = []
+    results: list[BatchIngestResult] = []
 
     for ticker in args.tickers:
         ticker_upper = ticker.strip().upper()

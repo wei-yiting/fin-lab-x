@@ -109,6 +109,9 @@ Names two things: the root trace span on retrieval, and the eval scenario measur
 **Trace Archive**:
 A curated bundle of traces pulled from the tracing platform within its retention window and kept in the repo (`data/trace-archives/`) as the permanent record — typically a notable failure and its later successful counterpart. Re-uploadable to the platform for side-by-side analysis. Event-driven, per trace worth keeping; never a bulk backup of all traces.
 
+**Experiment Archive**:
+The curated, git-tracked record of a one-shot experiment's results (`data/experiment-archives/<date>-<topic>/`): a report, the per-query metrics behind it, and raw eval-run CSVs worth keeping. Always paired with a git tag of the same name under `experiment/` that pins the code that produced it — the tag holds how to run it, the archive holds what it produced. Event-driven like the Trace Archive; distinct from a standing scenario, whose runs are gated rather than archived.
+
 ## Verification
 
 **Journey**:

@@ -251,7 +251,7 @@ async def search(
         if not client.collection_exists(collection):
             raise CorpusUnavailableError(
                 f"Collection '{collection}' does not exist. "
-                f"Run backend/scripts/embed_sec_filings.py to ingest filings, "
+                f"Run backend/scripts/embed_sec_filings_html.py to ingest filings, "
                 f"or call search() with filters={{'ticker': ...}} to trigger JIT."
             )
 

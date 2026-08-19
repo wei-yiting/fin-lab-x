@@ -16,7 +16,7 @@ Custom React hooks scoped to the streaming chat lifecycle. All hooks are pure co
 
 The chips system derives everything from `useChat`'s `(status, messages)` — native `reasoning` parts included. Four non-derived stores are allowed, owned by `ChatPanel` or the hook that needs them:
 
-1. **Chip timing map** (`useReasoningTimers`, owned by the hook) — parts carry no timestamps, so duration is measured client-side.
+1. **Chip timing map** (`useReasoningTimers`'s `timings` state map, owned by the hook) — reasoning parts carry no timestamps on the wire, so a chip's "Thought for Xs" duration can only be measured client-side against wall-clock time (ADR-0015 records this as deliberate non-derived state).
 2. **Global stall stopwatch** (`useStallTimer`, owned by the hook) — no timestamps travel on the wire, so silence is measured client-side against wall-clock time.
 3. **Expand/collapse override map** (`Map<chipKey, boolean>` in `ChatPanel` state) — the user's toggle beats the tail-only expansion derivation; cleared on every new turn / regenerate / retry.
 4. **Placeholder grace timer** (`useDeadAirPlaceholder`'s `elapsedGapKey` + `setTimeout`-backed `PLACEHOLDER_GRACE_MS`, owned by the hook) — the wire gives no lookahead, so a short grace window is needed to distinguish "chip/tool round done → next tool call" from "→ reply text" without flashing the placeholder on that micro-gap.

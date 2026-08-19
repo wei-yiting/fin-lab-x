@@ -24,16 +24,6 @@ These enums drive both test selectors and rendering logic. They are **not** deri
 
 `submitted | streaming | ready | error` — mirrors `useChat.status`.
 
-### `data-state` (on `ReasoningChip` root, testid `reasoning-chip`)
-
-`streaming | collapsed | expanded`
-
-- `streaming` — the chip's reasoning part is live (`part.state === "streaming"` on an active stream): full text in a pinned ~4-line window.
-- `collapsed` — the resting state: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived, not tracked).
-- `expanded` — user override opened a collapsed chip (`data-round` carries the chip's 1-based ordinal within its message).
-
-Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`), `reasoning-chip-body`, and `activity-placeholder` (the dead-air placeholder; copy `Thinking` / `Still working` followed by a CSS-animated `.thinking-dots` ellipsis cycler, `aria-hidden` so the live region announces only the stable copy).
-
 ### `data-error-source` (on `ErrorBlock` root)
 
 `pre-stream | mid-stream` — selects which variant of the block renders. Both variants currently render through the same `errorContent` slot inside `MessageList` (after the last message). The distinction drives the friendly-title source (pre-stream-http / network vs mid-stream-sse in `lib/error-messages.ts`) and the `data-testid` (`stream-error-block` vs `inline-error-block`).
@@ -56,6 +46,20 @@ These classes drive both the friendly title (via `lib/error-messages.ts`) and th
 ### `data-status-state` (on `StatusDot`)
 
 `running | success | error | aborted`
+
+### `data-state` (on `ReasoningChip` root, testid `reasoning-chip`)
+
+`streaming | collapsed | expanded`
+
+The enum tracks the **part lifecycle**, not body visibility:
+
+- `streaming` — the chip's reasoning part is live (`part.state === "streaming"` on an active stream). It stays `streaming` even when the user has explicitly collapsed the chip, so the value never lies about whether the part is still arriving.
+- `collapsed` — the part is no longer live and the body is hidden: header only (`Thought for Xs`, or `Stopped — thought for Xs` when the part never received `reasoning-end` — abort detection is derived from the part shape, not tracked).
+- `expanded` — the part is no longer live and the user override opened the chip. `data-round` carries the chip's 1-based ordinal within its message.
+
+`data-state` and `aria-expanded` are deliberately decoupled: `data-state` answers "is the part live", `aria-expanded` answers "is the body visible". Body visibility follows the `expanded` prop alone, so a streaming chip the user collapsed renders `data-state="streaming"` with `aria-expanded="false"` and no body node.
+
+Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`, `aria-label` = the live header copy plus the expand/collapse action), `reasoning-chip-body`, and `activity-placeholder` (the dead-air placeholder; copy `Thinking` / `Still working` followed by a CSS-animated `.thinking-dots` ellipsis cycler, `aria-hidden` so the live region announces only the stable copy).
 
 ## Adding new components
 

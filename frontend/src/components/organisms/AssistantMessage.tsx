@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Markdown } from "@/components/organisms/Markdown";
 import { ToolCard } from "@/components/organisms/ToolCard";
-import { ReasoningChip } from "@/components/molecules/ReasoningChip";
+import { ReasoningChip } from "@/components/organisms/ReasoningChip";
 import { Sources } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
 import { extractSources, normalizeRefDefs, REF_DEF_LINE_RE } from "@/lib/markdown-sources";

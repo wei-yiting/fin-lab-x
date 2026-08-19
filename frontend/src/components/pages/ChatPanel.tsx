@@ -113,10 +113,14 @@ export function ChatPanel() {
     if (chatActive) notifyActivity();
   }, [messages, chatActive, notifyActivity]);
 
-  // Render-time observation: freezing happens on the very render triggered
-  // by the freezing event (next part arrival / status change), so chip
-  // durations are consistent before paint.
-  observe(messages, chatActive);
+  // observe schedules a state update (see the hook's docstring), so it must
+  // run from an effect rather than during render. Layout effect, not effect:
+  // freezing must be visible before paint, same as the stall-timer reset
+  // above — and its bail-out (identical map reference when nothing changed)
+  // keeps an unchanged pass from looping.
+  useLayoutEffect(() => {
+    observe(messages, chatActive);
+  }, [observe, messages, chatActive]);
 
   const placeholderState = useDeadAirPlaceholder(messages, status);
 

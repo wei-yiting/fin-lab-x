@@ -4,6 +4,10 @@ import {
   isToolPart,
   isRenderablePart,
   turnHasRenderableContent,
+  chipStateOf,
+  isChipExpanded,
+  chipHeaderLabel,
+  chipKey,
 } from "@/lib/reasoning-chips";
 
 /**
@@ -128,5 +132,60 @@ describe("turnHasRenderableContent", () => {
         ]),
       ),
     ).toBe(true);
+  });
+});
+
+// Chip derivations — the header/state contract `ReasoningChip` renders from.
+// Kept here (not behind a component render) so the abort-vs-finish rule and
+// the override precedence are pinned as pure functions.
+describe("chipStateOf — abort detection from part shape", () => {
+  test("state=streaming while the chat is active → streaming", () => {
+    expect(chipStateOf({ type: "reasoning", text: "…", state: "streaming" }, true)).toBe(
+      "streaming",
+    );
+  });
+
+  test("state=streaming after the chat left the active pair → aborted (no reasoning-end)", () => {
+    expect(chipStateOf({ type: "reasoning", text: "…", state: "streaming" }, false)).toBe(
+      "aborted",
+    );
+  });
+
+  test("state=done → done regardless of chat activity", () => {
+    const part = { type: "reasoning", text: "…", state: "done" };
+    expect(chipStateOf(part, true)).toBe("done");
+    expect(chipStateOf(part, false)).toBe("done");
+  });
+});
+
+describe("isChipExpanded — tail-only derivation with user override", () => {
+  test("no override: only a streaming chip is expanded", () => {
+    expect(isChipExpanded("streaming", undefined)).toBe(true);
+    expect(isChipExpanded("done", undefined)).toBe(false);
+    expect(isChipExpanded("aborted", undefined)).toBe(false);
+  });
+
+  test("override beats the derivation in both directions", () => {
+    expect(isChipExpanded("streaming", false)).toBe(false);
+    expect(isChipExpanded("done", true)).toBe(true);
+  });
+});
+
+describe("chipHeaderLabel", () => {
+  test("streaming: Thinking…, degraded to Still working… on stall", () => {
+    expect(chipHeaderLabel("streaming", 0, false)).toBe("Thinking…");
+    expect(chipHeaderLabel("streaming", 0, true)).toBe("Still working…");
+  });
+
+  test("done / aborted carry the measured seconds; stall has no effect", () => {
+    expect(chipHeaderLabel("done", 7, true)).toBe("Thought for 7s");
+    expect(chipHeaderLabel("aborted", 3, false)).toBe("Stopped — thought for 3s");
+  });
+});
+
+describe("chipKey", () => {
+  test("scopes the part index by message id so cross-turn id reuse never collides", () => {
+    expect(chipKey("m1", 0)).toBe("m1:0");
+    expect(chipKey("m1", 0)).not.toBe(chipKey("m2", 0));
   });
 });

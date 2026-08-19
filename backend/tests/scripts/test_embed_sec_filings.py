@@ -16,7 +16,7 @@ async def test_embed_one_uses_explicit_fiscal_year_without_resolving_latest():
     toy = make_toy_filing()
     with (
         patch(
-            "backend.scripts.embed_sec_filings._resolve_latest_fiscal_year"
+            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry"
         ) as mock_resolve,
         patch(
             "backend.scripts.embed_sec_filings.parse_filing_with_retry",
@@ -40,7 +40,7 @@ async def test_embed_one_resolves_latest_fiscal_year_when_omitted():
     toy = make_toy_filing()
     with (
         patch(
-            "backend.scripts.embed_sec_filings._resolve_latest_fiscal_year",
+            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry",
             return_value=2025,
         ) as mock_resolve,
         patch(
@@ -89,7 +89,7 @@ def test_main_reports_resolved_fiscal_year_when_flag_omitted(capsys):
     toy = make_toy_filing()
     with (
         patch(
-            "backend.scripts.embed_sec_filings._resolve_latest_fiscal_year",
+            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry",
             return_value=2025,
         ) as mock_resolve,
         patch(
@@ -135,3 +135,33 @@ def test_main_continues_past_a_failing_ticker_and_reports_it(capsys):
     assert "AAPL" in out and "success" in out
     assert "ZZZZ" in out and "failed" in out
     assert "not found" in out
+
+
+def test_main_reports_resolved_year_when_ingest_fails_after_resolution(capsys):
+    """SP-1.6: if latest-year resolution succeeds but a later step (parse or
+    ingest) fails, the summary must still show the real resolved year, not
+    fall back to the omitted --fiscal-year (None) and print '?'."""
+    toy = make_toy_filing()
+    with (
+        patch(
+            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry",
+            return_value=2025,
+        ) as mock_resolve,
+        patch(
+            "backend.scripts.embed_sec_filings.parse_filing_with_retry",
+            return_value=toy,
+        ),
+        patch(
+            "backend.scripts.embed_sec_filings.ingest_filing_with_retry",
+            new=AsyncMock(side_effect=RuntimeError("Qdrant unavailable")),
+        ),
+    ):
+        exit_code = main(["AAPL"])
+
+    assert exit_code == 1
+    mock_resolve.assert_called_once_with("AAPL")
+    out = capsys.readouterr().out
+    aapl_line = next(line for line in out.splitlines() if line.startswith("AAPL"))
+    assert "2025" in aapl_line
+    assert "failed" in aapl_line
+    assert "?" not in aapl_line

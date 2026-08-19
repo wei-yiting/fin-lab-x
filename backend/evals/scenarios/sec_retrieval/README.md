@@ -26,6 +26,6 @@ Key notes for dataset maintenance:
 
 ## Pre-requisites
 
-1. Ingest target tickers: `python -m backend.scripts.embed_sec_filings NVDA INTC AAPL AMD TSLA`
+1. Ingest target tickers: `python -m backend.scripts.embed_sec_filings_html NVDA INTC AAPL AMD TSLA` — the eval task (`run_sec_retrieval` in `backend/evals/eval_tasks.py`) reads the frozen `_html` collection, not the structured-contract one `embed_sec_filings.py` now targets.
 2. Validate dataset: `python -m backend.scripts.validation.validate_sec_eval_dataset`
 3. Run: `python -m backend.evals.eval_runner sec_retrieval`

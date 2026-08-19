@@ -200,3 +200,70 @@ async def test_rerun_after_partial_failure_recovers(
 
     count = _qdrant_count("TEST")
     assert count > 0
+
+
+@pytest.mark.integration
+def test_batch_cli_failure_isolation_and_summary(
+    clean_collection, mock_openai_embed, capsys
+):
+    from unittest.mock import MagicMock
+
+    from backend.ingestion.sec_dense_pipeline_html.common import commit_marker_id
+    from backend.common.sec_core import (
+        FilingNotFoundError,
+        FilingType,
+    )
+    from backend.scripts.embed_sec_filings_html import main
+    from qdrant_client import QdrantClient
+
+    fixtures = {
+        "NVDA": FIXTURE_MARKDOWN_CLASS_A,
+        "INTC": FIXTURE_MARKDOWN_CLASS_C,
+    }
+
+    def fake_process(ticker, filing_type, fiscal_year=None, force=False, on_retry=None):
+        if ticker not in fixtures:
+            raise FilingNotFoundError(f"No 10-K filing for ticker={ticker}")
+        filing = MagicMock()
+        filing.markdown_content = fixtures[ticker]
+        filing.metadata = MagicMock()
+        filing.metadata.fiscal_year = 2025
+        filing.metadata.filing_date = "2025-02-28"
+        filing.metadata.filing_type = FilingType.TEN_K
+        filing.metadata.accession_number = "0001234567-25-000001"
+        return filing
+
+    fake_pipeline = MagicMock()
+    fake_pipeline.process.side_effect = fake_process
+
+    with patch(
+        "backend.scripts.embed_sec_filings_html.SECFilingPipeline.create",
+        return_value=fake_pipeline,
+    ):
+        exit_code = main(["NVDA", "FAIL_TICKER", "INTC"])
+
+    captured = capsys.readouterr()
+    assert "NVDA" in captured.out
+    assert "INTC" in captured.out
+    assert "FAIL_TICKER" in captured.out
+    assert "success" in captured.out.lower()
+    assert "failed" in captured.out.lower()
+    assert exit_code == 1
+
+    # No outer retry loop: the permanently-failing ticker is attempted exactly once.
+    fail_attempts = sum(
+        1
+        for call in fake_pipeline.process.call_args_list
+        if call.args[0] == "FAIL_TICKER"
+    )
+    assert fail_attempts == 1
+
+    client = QdrantClient(url=QDRANT_URL)
+    for ticker in ["NVDA", "INTC"]:
+        points = client.retrieve(
+            collection_name=TEST_COLLECTION,
+            ids=[commit_marker_id(ticker, 2025)],
+            with_payload=True,
+        )
+        assert len(points) == 1
+        assert points[0].payload["status"] == "complete"

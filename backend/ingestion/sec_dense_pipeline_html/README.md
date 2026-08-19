@@ -14,10 +14,11 @@ chunks = await search(query="NVIDIA export control risks", top_k=10)
 ```
 
 This pipeline is a frozen A/B baseline (deleted whole at sunset — see `backend/README.md`).
-`backend.scripts.embed_sec_filings` no longer targets it: as of the `sec_dense_pipeline`
-cutover (DEV-160), that batch script exclusively ingests into the new pipeline. Whatever is
-already in Qdrant, plus anything `search()`'s own JIT path ingests on a cache miss, is all
-this pipeline will ever hold going forward.
+`backend.scripts.embed_sec_filings` no longer targets it: batch script now targets the
+structured-contract pipeline exclusively. Operators backfilling this collection (e.g.
+pre-loading tickers for the A/B eval or a new eval dataset) use
+`backend.scripts.embed_sec_filings_html` instead — see `backend/scripts/README.md`. Beyond
+that operator path, this collection only grows via `search()`'s own JIT path on a cache miss.
 
 ## Key Components
 

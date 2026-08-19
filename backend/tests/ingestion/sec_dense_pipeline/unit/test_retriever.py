@@ -140,6 +140,18 @@ def test_point_to_chunk_rejects_none_payload_with_clear_error():
         _point_to_chunk(point)
 
 
+def test_point_to_chunk_raises_keyerror_on_missing_ingested_at():
+    """ingested_at is stamped onto every payload at ingest time
+    (vectorizer.ingest_filing) — a point missing it is vector-store
+    corruption, so it must use the same access pattern (payload["..."],
+    raising KeyError on absence) as every other required Chunk field,
+    instead of silently defaulting to an empty string."""
+    point = _make_point()
+    del point.payload["ingested_at"]
+    with pytest.raises(KeyError):
+        _point_to_chunk(point)
+
+
 # --- _ensure_ingested: cache_hit return value, asserted directly ---
 
 
@@ -301,6 +313,24 @@ async def test_search_raises_when_filters_is_none():
 async def test_search_raises_when_filters_empty():
     with pytest.raises(ValueError, match="ticker"):
         await search(query="revenue", filters={})
+
+
+@pytest.mark.asyncio
+async def test_search_rejects_non_dict_filters_int():
+    """A filters value that isn't a mapping at all (e.g. an int) must raise
+    a legible ValueError before any membership/indexing operation runs on
+    it, not a raw TypeError from `"ticker" not in filters`."""
+    with pytest.raises(ValueError, match="filters"):
+        await search(query="revenue", filters=123)  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_search_rejects_non_dict_filters_list():
+    """Same as above for a list: `"ticker" in [...]` does not raise, so
+    without an explicit type guard this would reach filters["ticker"] and
+    fail with a raw TypeError from list indexing instead of ValueError."""
+    with pytest.raises(ValueError, match="filters"):
+        await search(query="revenue", filters=["ticker"])  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio
@@ -781,6 +811,40 @@ async def test_search_maps_malformed_payload_to_corpus_unavailable():
     leak out raw through the except (ValueError, FinLabError) passthrough
     meant for caller-input rejections."""
     client = _mock_client(points=[_make_point(ticker=None)])
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
+            return_value=client,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
+            new=AsyncMock(),
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
+            new=AsyncMock(return_value=[[0.1] * 3072]),
+        ),
+    ):
+        with pytest.raises(CorpusUnavailableError):
+            await search(
+                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+            )
+
+
+@pytest.mark.asyncio
+async def test_search_maps_missing_ingested_at_to_corpus_unavailable():
+    """ingested_at is stamped onto every payload at ingest time (see
+    vectorizer.ingest_filing) — a point missing it represents vector-store
+    corruption, not a legitimate absence, so it must surface the same way
+    as any other missing required field: CorpusUnavailableError, never a
+    Chunk with ingested_at silently defaulted to an empty string."""
+    point = _make_point()
+    del point.payload["ingested_at"]
+    client = _mock_client(points=[point])
     with (
         patch(
             "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",

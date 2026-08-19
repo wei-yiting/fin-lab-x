@@ -153,7 +153,14 @@ async def test_concurrent_jit_for_same_ticker_year_one_wins_one_gets_legible_err
     different, already-covered scenario (see
     test_ensure_ingested_returns_true_on_marker_hit_without_jit in the unit
     suite).
+
+    Waiting for the barrier races it against first_call itself, bounded by
+    an overall timeout: if first_call fails (or unexpectedly succeeds)
+    before ever reaching the barrier — e.g. a regression earlier in
+    search() — that outcome surfaces immediately instead of this test
+    hanging forever on ingest_claimed.wait().
     """
+    barrier_timeout_s = 10
     toy = make_toy_filing()
     ingest_claimed = asyncio.Event()
     release_ingest = asyncio.Event()
@@ -176,8 +183,28 @@ async def test_concurrent_jit_for_same_ticker_year_one_wins_one_gets_legible_err
         first_call = asyncio.create_task(
             search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
         )
+        claimed_wait = asyncio.create_task(ingest_claimed.wait())
         try:
-            await ingest_claimed.wait()
+            done, _pending = await asyncio.wait_for(
+                asyncio.wait(
+                    {claimed_wait, first_call}, return_when=asyncio.FIRST_COMPLETED
+                ),
+                timeout=barrier_timeout_s,
+            )
+
+            if first_call in done:
+                # first_call finished before ever signalling the barrier.
+                # Retrieving its result here surfaces the real failure
+                # immediately (the regression this race guards against)
+                # instead of the test hanging on ingest_claimed.wait()
+                # below forever. If it unexpectedly succeeded instead, that
+                # is itself surprising and reported explicitly rather than
+                # silently falling through.
+                first_call.result()
+                raise AssertionError(
+                    "first_call finished before signalling ingest_claimed; "
+                    "expected it to block on the ingest barrier first"
+                )
 
             with pytest.raises(IngestionInProgressError):
                 await search(
@@ -185,6 +212,16 @@ async def test_concurrent_jit_for_same_ticker_year_one_wins_one_gets_legible_err
                 )
         finally:
             release_ingest.set()
+            claimed_wait.cancel()
+            try:
+                await claimed_wait
+            except asyncio.CancelledError:
+                pass
+            if not first_call.done():
+                try:
+                    await asyncio.wait_for(first_call, timeout=barrier_timeout_s)
+                except TimeoutError:
+                    pass
 
         first_result = await first_call
 

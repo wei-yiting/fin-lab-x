@@ -231,7 +231,7 @@ def _point_to_chunk(point: models.ScoredPoint) -> Chunk:
         header_path=payload["header_path"],
         chunk_index=payload["chunk_index"],
         text=payload["text"],
-        ingested_at=payload.get("ingested_at", ""),
+        ingested_at=payload["ingested_at"],
         score=point.score,
     )
 
@@ -309,14 +309,26 @@ async def search(query: str, filters: SearchFilters, top_k: int = 10) -> list[Ch
     ``EmptyFilingError``) — never swallowed into a generic error, so a
     source-level gap (e.g. a filing with zero substantive items) surfaces
     as a legible, typed failure rather than a silent empty result. Also
-    raises ``ValueError`` (bad ``top_k``, missing ``ticker``, or a
-    ``filters`` shape/type rejected by :func:`_validate_filters`),
-    :class:`JITDisabledError`, :class:`IngestionInProgressError`,
-    :class:`EmbeddingServiceError`, and :class:`CorpusUnavailableError`
-    (vector-store failures, including a missing collection).
+    raises ``ValueError`` (bad ``top_k``, a non-dict ``filters`` value,
+    missing ``ticker``, or a ``filters`` shape/type rejected by
+    :func:`_validate_filters`), :class:`JITDisabledError`,
+    :class:`IngestionInProgressError`, :class:`EmbeddingServiceError`, and
+    :class:`CorpusUnavailableError` (vector-store failures, including a
+    missing collection).
     """
     if not 1 <= top_k <= 100:
         raise ValueError(f"top_k must be between 1 and 100, got {top_k}")
+    if filters and not isinstance(filters, dict):
+        # A present-but-non-mapping filters (e.g. an int or a list) must be
+        # rejected here, before the membership/indexing checks below ever
+        # touch it — "ticker" not in 123 raises a raw TypeError, and
+        # filters["ticker"] on a list raises a raw TypeError from list
+        # indexing. An absent/falsy filters (None, {}) still falls through
+        # to the check below unchanged, since `not filters` alone never
+        # touches filters as a container.
+        raise ValueError(
+            f"search() requires filters to be a dict, got {type(filters).__name__}."
+        )
     if not filters or "ticker" not in filters:
         raise ValueError(
             "search() requires filters={'ticker': ...}; unfiltered, "
@@ -392,16 +404,18 @@ async def search(query: str, filters: SearchFilters, top_k: int = 10) -> list[Ch
         for point in results.points:
             try:
                 chunks.append(_point_to_chunk(point))
-            except ValueError as e:
+            except (ValueError, KeyError) as e:
                 # _point_to_chunk raises plain ValueError for a missing
-                # payload, and lets pydantic.ValidationError (a ValueError
+                # payload, lets pydantic.ValidationError (a ValueError
                 # subclass) through for a payload that doesn't match
-                # Chunk's shape — catching ValueError here covers both.
+                # Chunk's shape, and raises KeyError for a payload missing
+                # one of Chunk's required fields (e.g. ingested_at) —
+                # catching both exception types here covers all three.
                 # Either way this is malformed vector-store data, not a
                 # caller-input problem, so it must be mapped to
                 # CorpusUnavailableError here, before the except (ValueError,
                 # FinLabError) passthrough below would otherwise let a raw
-                # pydantic.ValidationError escape unwrapped.
+                # pydantic.ValidationError or KeyError escape unwrapped.
                 raise CorpusUnavailableError(
                     f"Malformed Qdrant payload on point {point.id!r}: {e}"
                 ) from e

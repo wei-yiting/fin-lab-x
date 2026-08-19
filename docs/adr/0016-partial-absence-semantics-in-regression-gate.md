@@ -1,4 +1,4 @@
-# ADR-0015: Partial-absence semantics in the regression gate (2026-08-12)
+# ADR-0016: Partial-absence semantics in the regression gate (2026-08-12)
 
 **Decision**: A gated scorer's verdict aggregate is computed over the cases that produced a
 score: deliberate skips (`Score(score=None)`) and per-case scorer errors leave the

@@ -1,4 +1,4 @@
-"""Unit tests for the regression gate verdict core (ADR-0008 / ADR-0015).
+"""Unit tests for the regression gate verdict core (ADR-0008 / ADR-0016).
 
 Pure-function tests over mock data — no LLM, no Braintrust execution.
 """

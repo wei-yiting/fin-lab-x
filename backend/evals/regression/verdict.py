@@ -2,7 +2,7 @@
 
 Maps (regression declaration, per-case per-scorer scores, per-case task
 errors) to a red/green verdict with failure detail. Contract: ADR-0008
-(explicit gate declaration, empty metric is red) and ADR-0015
+(explicit gate declaration, empty metric is red) and ADR-0016
 (partial-absence semantics — subject failure is signal, instrument failure
 is noise until it removes all evidence).
 """

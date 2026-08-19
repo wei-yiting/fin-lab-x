@@ -72,14 +72,14 @@ class Chunk(BaseModel):
 
 
 class SearchFilters(TypedDict):
-    """Required shape for ``search()``'s ``filters`` argument, when present:
+    """Required shape for ``search()``'s required ``filters`` argument:
     mandatory ``ticker``, optional ``fiscal_year`` (omitted resolves to the
     ticker's latest 10-K).
 
     A ``TypedDict`` is a static-typing construct only — it is not enforced
-    by Python at runtime, so a value that doesn't match this shape (extra
-    keys, wrong value types) can still reach ``search()`` at runtime, e.g.
-    from untyped caller code or deserialized JSON. See
+    by Python at runtime, so a value that doesn't match this shape (missing
+    entirely, extra keys, wrong value types) can still reach ``search()`` at
+    runtime, e.g. from untyped caller code or deserialized JSON. See
     :func:`_validate_filters` for the runtime check that closes that gap.
     """
 
@@ -204,7 +204,19 @@ def _build_query_filter(ticker: str, fiscal_year: int) -> models.Filter:
 
 
 def _point_to_chunk(point: models.ScoredPoint) -> Chunk:
+    """Convert one Qdrant search result into a :class:`Chunk`.
+
+    ``models.ScoredPoint.payload`` is typed ``dict[str, Any] | None`` by
+    qdrant-client (verified against the installed 1.17.1 package) — Qdrant
+    does not guarantee every point carries a payload. Raises ``ValueError``
+    (not a bare ``TypeError``/``KeyError``) on a missing payload, and lets
+    ``pydantic.ValidationError`` (itself a ``ValueError`` subclass) surface
+    when the payload doesn't match :class:`Chunk`'s shape — both are caught
+    by the caller and mapped to :class:`CorpusUnavailableError`.
+    """
     payload = point.payload
+    if payload is None:
+        raise ValueError(f"Qdrant point {point.id!r} has no payload")
     return Chunk(
         ticker=payload["ticker"],
         fiscal_year=payload["fiscal_year"],
@@ -276,9 +288,7 @@ async def _ensure_ingested(
     return False
 
 
-async def search(
-    query: str, filters: SearchFilters | None = None, top_k: int = 10
-) -> list[Chunk]:
+async def search(query: str, filters: SearchFilters, top_k: int = 10) -> list[Chunk]:
     """Semantic search over the SEC dense collection.
 
     ``filters={"ticker": ..., "fiscal_year": ...}`` is required — ``ticker``
@@ -378,7 +388,24 @@ async def search(
             query_filter=query_filter,
         )
 
-        return [_point_to_chunk(point) for point in results.points]
+        chunks = []
+        for point in results.points:
+            try:
+                chunks.append(_point_to_chunk(point))
+            except ValueError as e:
+                # _point_to_chunk raises plain ValueError for a missing
+                # payload, and lets pydantic.ValidationError (a ValueError
+                # subclass) through for a payload that doesn't match
+                # Chunk's shape — catching ValueError here covers both.
+                # Either way this is malformed vector-store data, not a
+                # caller-input problem, so it must be mapped to
+                # CorpusUnavailableError here, before the except (ValueError,
+                # FinLabError) passthrough below would otherwise let a raw
+                # pydantic.ValidationError escape unwrapped.
+                raise CorpusUnavailableError(
+                    f"Malformed Qdrant payload on point {point.id!r}: {e}"
+                ) from e
+        return chunks
     except (ValueError, FinLabError):
         raise
     except UnexpectedResponse as e:

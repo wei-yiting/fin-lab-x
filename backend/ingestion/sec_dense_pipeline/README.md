@@ -66,9 +66,10 @@ failures internally).
 ## JIT retrieval (`retriever.py`)
 
 `search(query, filters, top_k)` is the single query entry point. `filters` is
-required and, when present, must match the `SearchFilters` shape: mandatory
-`ticker`, optional `fiscal_year` (omitted resolves to the ticker's latest
-10-K via EDGAR). An absent, empty, or ticker-less `filters` raises
+a required parameter matching the `SearchFilters` shape: mandatory `ticker`,
+optional `fiscal_year` (omitted resolves to the ticker's latest 10-K via
+EDGAR). Python does not enforce type hints at runtime, so a caller that
+still passes an absent, empty, or ticker-less `filters` value gets a
 `ValueError` before any Qdrant or EDGAR work runs — an unfiltered,
 collection-wide search is a proven-harmful retrieval mode with no legitimate
 production caller. Unknown filter keys (e.g. a leftover `year` key) and

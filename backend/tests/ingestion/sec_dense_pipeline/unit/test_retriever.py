@@ -106,7 +106,9 @@ def _make_point(**payload_overrides):
         "ingested_at": "2026-08-19T00:00:00+00:00",
     }
     payload.update(payload_overrides)
-    return SimpleNamespace(payload=payload, score=0.87)
+    return SimpleNamespace(
+        id="0d290f1c-1111-4c22-8b7c-1a2b3c4d5e6f", payload=payload, score=0.87
+    )
 
 
 def test_point_to_chunk_maps_all_fields():
@@ -126,6 +128,16 @@ def test_point_to_chunk_handles_none_block_heading_and_prelude():
     chunk = _point_to_chunk(point)
     assert chunk.block_heading is None
     assert chunk.prelude is None
+
+
+def test_point_to_chunk_rejects_none_payload_with_clear_error():
+    """Qdrant does not guarantee every point carries a payload
+    (ScoredPoint.payload is dict[str, Any] | None) — a None payload must
+    raise a clear, typed error, not a bare TypeError from unguarded
+    indexing."""
+    point = SimpleNamespace(id="deadbeef", payload=None, score=0.5)
+    with pytest.raises(ValueError, match="no payload"):
+        _point_to_chunk(point)
 
 
 # --- _ensure_ingested: cache_hit return value, asserted directly ---
@@ -266,17 +278,23 @@ def _clear_registry():
 @pytest.mark.parametrize("top_k", [0, -1, 101, 1000])
 @pytest.mark.asyncio
 async def test_search_rejects_invalid_top_k(top_k):
+    """top_k is validated before filters, so a valid filters dict is passed
+    here to isolate this from the separate filters-rejection tests below."""
     with pytest.raises(ValueError):
-        await search(query="test", top_k=top_k)
+        await search(query="test", filters={"ticker": "AAPL"}, top_k=top_k)
 
 
 @pytest.mark.asyncio
 async def test_search_raises_when_filters_is_none():
     """ticker is a required search() filter: an omitted/absent filters dict
-    must not fall through to an unfiltered, collection-wide query (DEV-113:
-    naive search is a proven-harmful retrieval mode)."""
+    must not fall through to an unfiltered, collection-wide query — naive
+    search is a proven-harmful retrieval mode with no legitimate production
+    caller. filters is a required parameter, so an untyped caller passing
+    None explicitly (rather than a typed caller omitting the argument
+    outright, which Python itself rejects with a TypeError) is what this
+    pins."""
     with pytest.raises(ValueError, match="ticker"):
-        await search(query="revenue")
+        await search(query="revenue", filters=None)  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio
@@ -731,6 +749,38 @@ async def test_search_maps_404_unexpected_response_to_corpus_unavailable():
             status_code=404, reason_phrase="Not Found", content=b"", headers=None
         )
     )
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
+            return_value=client,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
+            new=AsyncMock(),
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
+            new=AsyncMock(return_value=[[0.1] * 3072]),
+        ),
+    ):
+        with pytest.raises(CorpusUnavailableError):
+            await search(
+                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+            )
+
+
+@pytest.mark.asyncio
+async def test_search_maps_malformed_payload_to_corpus_unavailable():
+    """A Qdrant payload that doesn't match Chunk's shape makes pydantic
+    raise ValidationError while building the Chunk. That must surface as
+    CorpusUnavailableError — a vector-store data-integrity problem — not
+    leak out raw through the except (ValueError, FinLabError) passthrough
+    meant for caller-input rejections."""
+    client = _mock_client(points=[_make_point(ticker=None)])
     with (
         patch(
             "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",

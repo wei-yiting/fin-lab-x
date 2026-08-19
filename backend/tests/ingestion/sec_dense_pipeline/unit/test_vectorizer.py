@@ -192,20 +192,44 @@ async def test_ingest_filing_with_retry_classifies_read_error_and_retries():
 
 
 @pytest.mark.asyncio
-async def test_ingest_filing_with_retry_does_not_retry_remote_protocol_error():
-    """Pins the deliberate exclusion of RemoteProtocolError from the
-    transient set (see the reasoning comment on _TRANSIENT_SOURCE_TYPES)."""
+async def test_ingest_filing_with_retry_classifies_remote_protocol_error_and_retries():
+    """RemoteProtocolError means the peer closed the connection mid-response
+    — a transport-level reliability failure, not a schema/content one (see
+    the reasoning comment on _TRANSIENT_SOURCE_TYPES) — so it must retry
+    like any other transport failure."""
     calls = {"count": 0}
 
-    async def always_protocol_error(filing):
+    async def flaky(filing):
+        calls["count"] += 1
+        if calls["count"] < 2:
+            raise ResponseHandlingException(
+                httpx.RemoteProtocolError("peer closed connection mid-response")
+            )
+
+    with patch(
+        "backend.ingestion.sec_dense_pipeline.vectorizer.ingest_filing",
+        new=AsyncMock(side_effect=flaky),
+    ):
+        await ingest_filing_with_retry.retry_with(wait=wait_none())(make_toy_filing())
+    assert calls["count"] == 2
+
+
+@pytest.mark.asyncio
+async def test_ingest_filing_with_retry_does_not_retry_local_protocol_error():
+    """LocalProtocolError means the client misused the HTTP protocol when
+    building the request — a real bug, not a transient blip — so unlike its
+    RemoteProtocolError sibling it must not retry."""
+    calls = {"count": 0}
+
+    async def always_local_protocol_error(filing):
         calls["count"] += 1
         raise ResponseHandlingException(
-            httpx.RemoteProtocolError("peer closed connection mid-response")
+            httpx.LocalProtocolError("illegal header value")
         )
 
     with patch(
         "backend.ingestion.sec_dense_pipeline.vectorizer.ingest_filing",
-        new=AsyncMock(side_effect=always_protocol_error),
+        new=AsyncMock(side_effect=always_local_protocol_error),
     ):
         with pytest.raises(ResponseHandlingException):
             await ingest_filing_with_retry.retry_with(wait=wait_none())(

@@ -15,11 +15,14 @@ type AnyUIPart = UIMessagePart<UIDataTypes, UITools>;
  * derives from `useChat`'s `(status, messages)` — no additional state.
  */
 
-interface ReasoningPartLike {
+export interface ReasoningPartLike {
   type?: unknown;
   text?: string;
   state?: string;
 }
+
+/** Lifecycle a reasoning chip's header renders from. */
+export type ChipState = "streaming" | "done" | "aborted";
 
 /** Minimal structural view of a chat message shared by the chip hooks. */
 export interface ChatMessageLike {
@@ -89,4 +92,44 @@ export function turnHasRenderableContent(msg: ChatMessageLike): boolean {
  */
 function isSuppressedChip(part: ReasoningPartLike): boolean {
   return (part.text ?? "") === "";
+}
+
+/**
+ * Abort-vs-finish detection falls out of the native part shape: an abort
+ * closes the wire with no `reasoning-end`, so the part's `state` stays
+ * `"streaming"` while the chat-level status has left the active pair.
+ * An errored round whose `reasoning-end` did arrive is `state === "done"`
+ * and keeps the clean header.
+ */
+export function chipStateOf(part: ReasoningPartLike, chatActive: boolean): ChipState {
+  if (part.state === "streaming") {
+    return chatActive ? "streaming" : "aborted";
+  }
+  return "done";
+}
+
+/**
+ * Expansion derivation (Claude.ai style): only the currently streaming chip
+ * is expanded — a part collapses the moment it completes or the stream ends.
+ * The user's explicit toggle overrides the derivation in both directions.
+ */
+export function isChipExpanded(chipState: ChipState, override: boolean | undefined): boolean {
+  return override ?? chipState === "streaming";
+}
+
+export function chipHeaderLabel(chipState: ChipState, seconds: number, stalled: boolean): string {
+  if (chipState === "streaming") {
+    return stalled ? "Still working…" : "Thinking…";
+  }
+  if (chipState === "aborted") {
+    return `Stopped — thought for ${seconds}s`;
+  }
+  return `Thought for ${seconds}s`;
+}
+
+/** Stable key for the timer and override maps — part ids are turn-unique but
+ * reused across turns (the backend counter restarts per request), so scope
+ * them by message id. */
+export function chipKey(messageId: string, partIndex: number): string {
+  return `${messageId}:${partIndex}`;
 }

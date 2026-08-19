@@ -1,4 +1,4 @@
-"""Shared utilities for the SEC dense pipeline (vectorizer + retriever).
+"""Shared utilities for the SEC dense pipeline (vectorizer + retriever + JIT).
 
 Deliberately duplicates the marker/ticker helpers of the frozen
 ``sec_dense_pipeline_html`` baseline instead of importing them: the frozen
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from uuid import NAMESPACE_DNS, uuid5
 
-from qdrant_client import QdrantClient, models
+from qdrant_client import AsyncQdrantClient, QdrantClient, models
 
 # Payload ``status`` values that mark a commit-marker point. Content chunks
 # never carry a ``status`` field, so matching on these values identifies
@@ -47,15 +47,23 @@ def marker_status_condition() -> models.FieldCondition:
     )
 
 
+def _marker_is_complete(points: list) -> bool:
+    """Shared predicate for both the sync and async marker-check below —
+    the one place that decides what a 'complete' commit-marker point looks
+    like, so the two Qdrant-client variants can't drift apart on it."""
+    return bool(points) and (points[0].payload or {}).get("status") == "complete"
+
+
 def check_commit_marker_complete(
     client: QdrantClient, collection: str, ticker: str, fiscal_year: int
 ) -> bool:
     """Return True iff a 'complete' commit marker exists for (ticker, fiscal_year).
 
-    Sync Qdrant client only — the vector-search and JIT paths use the sync
-    client. Catches all exceptions and returns False so that a transient lookup
-    failure is treated as a cache miss (caller will re-ingest), not as an
-    error that aborts the search.
+    Sync Qdrant client. Catches all exceptions and returns False so that a
+    transient lookup failure is treated as a cache miss (caller will
+    re-ingest), not as an error that aborts the search. See
+    :func:`async_check_commit_marker_complete` for the retriever's async
+    counterpart.
     """
     try:
         points = client.retrieve(
@@ -63,6 +71,26 @@ def check_commit_marker_complete(
             ids=[commit_marker_id(ticker, fiscal_year)],
             with_payload=True,
         )
-        return len(points) > 0 and points[0].payload.get("status") == "complete"
+        return _marker_is_complete(points)
+    except Exception:
+        return False
+
+
+async def async_check_commit_marker_complete(
+    client: AsyncQdrantClient, collection: str, ticker: str, fiscal_year: int
+) -> bool:
+    """Async counterpart of :func:`check_commit_marker_complete`, same contract.
+
+    The retriever's JIT path is async end-to-end (``AsyncQdrantClient``,
+    matching the vectorizer's ingest side), unlike the frozen ``_html``
+    baseline which mixed a sync Qdrant client into an async ``search()``.
+    """
+    try:
+        points = await client.retrieve(
+            collection_name=collection,
+            ids=[commit_marker_id(ticker, fiscal_year)],
+            with_payload=True,
+        )
+        return _marker_is_complete(points)
     except Exception:
         return False

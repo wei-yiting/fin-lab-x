@@ -6,24 +6,26 @@ CLI tools used during development and operations. Not imported by production cod
 
 ### `embed_sec_filings.py`
 
-Batch ingest SEC 10-K filings into the dense vector pipeline. For each ticker, calls `SECFilingPipeline.process()` (which downloads + parses from EDGAR if not already cached locally) and then runs `ingest_filing()` to chunk, embed, and upsert into Qdrant.
+Batch ingest SEC 10-K filings into the dense vector pipeline (`sec_dense_pipeline`, the structured-contract pipeline — not the frozen `_html` baseline). For each ticker, calls `parse_filing_with_retry()` (filing-store cache first, EDGAR on miss) and then `ingest_filing_with_retry()` to chunk, embed, and upsert into Qdrant.
 
 ```bash
-# Latest fiscal year (resolved from EDGAR)
+# Latest fiscal year per ticker (resolved from EDGAR)
 uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
 
 # Specific year
-uv run python -m backend.scripts.embed_sec_filings NVDA --year 2024
+uv run python -m backend.scripts.embed_sec_filings NVDA --fiscal-year 2024
 ```
 
 | Argument | Required | Description |
 |---|---|---|
 | `tickers` (positional) | Yes | One or more ticker symbols to ingest |
-| `--year` | No | Fiscal year to ingest (default: EDGAR's latest) |
+| `--fiscal-year` | No | Fiscal year to ingest (default: each ticker's latest 10-K) |
 
-Transient-failure retry lives inside `SECFilingPipeline.process` (not this script); failed tickers appear as `failed` in the summary and the script exits with code 1.
+The summary table reports the resolved fiscal year per ticker, so an omitted `--fiscal-year` still tells the operator which year was actually ingested.
 
-The script intentionally runs without Langfuse tracing — observability lives in the `search()` JIT path only.
+Both the parse and ingest steps carry a single retry on transient failures via `retry_transient` (ADR-0013); a failure that survives the retry does not abort the batch — it is recorded as `failed` in the summary and the script exits with code 1.
+
+The script intentionally runs without Braintrust tracing — observability lives in the `search()` JIT path only.
 
 When to run:
 

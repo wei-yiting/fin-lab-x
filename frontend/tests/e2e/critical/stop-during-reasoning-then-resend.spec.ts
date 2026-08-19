@@ -1,4 +1,4 @@
-// J-pres-01 / S-chip-07 — abort while a reasoning chip is streaming, then resend.
+// Abort while a reasoning chip is streaming, then resend.
 //
 // Validates that:
 // 1. Pressing Stop while a chip is streaming aborts cleanly: the half-chip
@@ -6,17 +6,12 @@
 // 2. Sending a fresh prompt runs a full clean turn — the aborted chip's
 //    Stopped header persists on the prior bubble while the new turn streams
 //    and collapses its own chip normally (no cross-turn contamination).
-//
-// Video records the full sequence so reviewers can confirm the screen stays
-// stable across the abort and the resend.
 import { test, expect } from "../fixtures";
 import { E2E_TIMEOUTS } from "../constants";
 
-test.use({ video: "on" });
-
 test(
-  "J-pres-01 / S-chip-07 — abort during reasoning keeps a Stopped half-chip, resend runs clean",
-  { tag: ["@journey", "@regression"] },
+  "stop during reasoning collapses to a Stopped half-chip, resend runs clean",
+  { tag: ["@critical", "@regression"] },
   async ({ chat, page }) => {
     await chat.gotoFixture("long-reasoning-then-text");
     await chat.sendMessage("first prompt: long reasoning");
@@ -31,7 +26,7 @@ test(
     await page.getByTestId("composer-stop-btn").click();
 
     // Status flips back to ready; the half-chip collapses with the
-    // abort-distinct header (decision 6).
+    // abort-distinct header.
     await expect(page.getByTestId("message-list")).toHaveAttribute("data-status", "ready", {
       timeout: E2E_TIMEOUTS.status,
     });

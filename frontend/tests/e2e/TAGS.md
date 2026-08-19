@@ -44,6 +44,7 @@ Filter with `pnpm exec playwright test --grep @tag-name`.
 | page refresh produces new chatId and clean state                              | `@critical`, `@regression` |
 | regenerate failure → retry succeeds without duplicate history                 | `@critical`, `@regression` |
 | stop preserves partial text and resets Composer                               | `@critical`, `@regression` |
+| stop during reasoning collapses to a Stopped half-chip, resend runs clean     | `@critical`, `@regression` |
 | inline javascript: URL is sanitized end-to-end                                | `@security`, `@regression` |
 | source-reference javascript: URL is sanitized end-to-end                      | `@security`, `@regression` |
 

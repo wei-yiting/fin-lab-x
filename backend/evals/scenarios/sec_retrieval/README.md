@@ -21,35 +21,11 @@ Evaluates the RAG path's retrieval quality for SEC 10-K filings.
 
 ## Regression gate
 
-`enabled: true`, `metric_floor` per scorer — see `eval_spec.yaml`. Floors are
-derived from a **reference measurement**, not aspirational targets: the one
-recorded run below, minus a fixed margin, rounded down to the nearest 0.05.
-The margin is deliberately wide — floors catch collapse, not slow erosion
-(erosion belongs to the Quality Track) — and this dataset was only measured
-once (it's a draft placeholder; multiple runs wouldn't distinguish signal
-from dataset noise).
-
-**Reference measurement** — `2026-08-19`, git `73faf5f`, collection
-`sec_filings_openai_large_dense_baseline` (3154 points, frozen HTML
-pipeline). Taken after re-ingesting all five dataset tickers with the
-10-K/A amendment fix (PR #64/#66) — the earlier ingests of AMD and TSLA
-had picked up amendments instead of the original 10-K filings:
-
-| Scorer | Measured | Margin | `metric_floor` |
-| --- | --- | --- | --- |
-| `header_path_recall_at_5` | 0.95 | −0.20 | 0.75 |
-| `header_path_recall_at_10` | 0.95 | −0.20 | 0.75 |
-| `mrr` | 0.80 | −0.20 | 0.60 |
-| `map` | 0.75 | −0.20 | 0.55 |
-
-**⚠️ This floor is time-boxed to the frozen HTML pipeline.** It measures
-`eval_tasks.run_sec_retrieval`, which calls `sec_dense_pipeline_html.retriever`
-— the pipeline currently in production, but scheduled for sunset (see
-`AGENTS.md` "Ingestion Rewrite Coexistence"). Once the retriever cuts over to
-the new `sec_dense_pipeline` (tracked in DEV-160) and this dataset is
-replaced by a curated one (DEV-162), **DEV-164** re-measures against the new
-retriever + dataset and re-derives these floors from scratch — the values
-above do not carry over.
+`regression.enabled: true`; per-scorer floors live in `eval_spec.yaml`.
+How the numbers were derived — and the recorded reference measurement
+backing them (setup, per-case results, raw run CSV, expiry conditions) —
+lives with the Regression Suite: `../../regression/metric-floor-policy.md`
+and `../../regression/reference_measurements/sec_retrieval/`.
 
 Key notes for dataset maintenance:
 - NVDA uses FY2026 (fiscal year ending Jan 2026), not calendar year 2025.

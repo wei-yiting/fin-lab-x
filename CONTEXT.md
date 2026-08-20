@@ -97,7 +97,7 @@ One execution of a scenario against a single agent configuration, persisted as o
 A scoring function `(output, expected, input) → Score` — programmatic when the criterion is structurally decidable, LLM-judge when semantic.
 
 **Metric floor**:
-The declared minimum a gated scorer's dataset-level metric value must clear for the Regression Suite to stay green — mean for per-case scorers, the metric's own aggregate for rank metrics (MRR, MAP), pass rate for binary judges. Derived from a recorded **reference measurement** — one run (git sha + collection/model + date), captured in the scenario's README — minus a margin wide enough to catch collapse, not slow erosion.
+The declared minimum a gated scorer's dataset-level metric value must clear for the Regression Suite to stay green — mean for per-case scorers, the metric's own aggregate for rank metrics (MRR, MAP), pass rate for binary judges. Derived from a recorded **reference measurement** — one run (git sha + collection/model + date), recorded as a paired record + raw-run CSV under `backend/evals/regression/reference_measurements/<scenario>/` — minus a margin wide enough to catch collapse, not slow erosion (derivation rules: `backend/evals/regression/metric-floor-policy.md`).
 _Avoid_: min_score (the value gated is a metric — recall, MRR, pass rate — not a per-case "score" minimum); baseline (overloaded — see Workflow Profile's `baseline` tier and the frozen HTML pipeline, neither of which this term means here)
 
 **Binary rubric**:

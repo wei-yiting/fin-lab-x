@@ -106,6 +106,14 @@ All LLM-judge dimensions score 0/1, one LLM call per criterion — never free-fo
 **sec_retrieval**:
 Names two things: the root trace span on retrieval, and the eval scenario measuring retrieval quality. Qualify which one you mean ("sec_retrieval span" / "sec_retrieval scenario").
 
+**Answer span**:
+The ground-truth unit of a retrieval eval row: one contiguous stretch of filing text (within a single block, at most about half a chunk) that supports the query, located by filing, Item, and verbatim text — never by chunk id, so it stays valid across chunking pipelines. A row may carry several spans when the evidence sits in non-contiguous places of the same filing.
+_Avoid_: passage (the query-type name, not the ground-truth unit), chunk (a pipeline artifact)
+
+**Answer snippet**:
+The single key sentence inside an answer span, unique across the parsed corpus, that the strict-containment scorer uses as its hit key. A snippet is always a sub-span of its answer span; the span, not the snippet, is what human review certifies as evidence.
+_Avoid_: anchor sentence
+
 **Trace Archive**:
 A curated bundle of traces pulled from the tracing platform within its retention window and kept in the repo (`data/trace-archives/`) as the permanent record — typically a notable failure and its later successful counterpart. Re-uploadable to the platform for side-by-side analysis. Event-driven, per trace worth keeping; never a bulk backup of all traces.
 

@@ -176,3 +176,29 @@
   （CONFIRMED / PLAUSIBLE / REFUTED，recall-biased）；F-9.1 由 reviewer 本人以
   `SEC_DISABLE_JIT=1 pytest` 直接重現。
 - 存活的 10 項 findings 全數 CONFIRMED；2 項 REFUTED 如上表。
+
+---
+
+## Discussion Gate Outcome (Round 9)
+
+Orchestrator independently verified the key claims before this gate (reproduced F-9.1
+locally with `SEC_DISABLE_JIT=1 pytest` → 2 failed; grep-confirmed F-9.7's sync
+marker-check has no production caller; verified against installed packages for the F-9.3
+question: LlamaIndex `OpenAIEmbedding` has built-in tenacity retry (`max_retries=10`
+default) while qdrant-client's transport has **zero** retry logic — it only reads the
+429 `Retry-After` header into an exception message without acting on it).
+
+Resolutions, discussed with the user:
+
+| Finding | Resolution |
+|---|---|
+| F-9.1 (CI env breaks tests) | **Fix** — Blocking, reproduced firsthand. |
+| F-9.2 (cold-path embedding misclassification) | **Fix** — taxonomy inconsistency confirmed. |
+| F-9.3 (retry taxonomy over-engineering) | **Fix, option B (user decision)** — keep the wrapper (the ticket's ratified AC explicitly assigns Qdrant-boundary retry to this ticket, and qdrant-client has no built-in retry), but replace the ~70-line source-type taxonomy with a blanket single retry on `ResponseHandlingException` + `UnexpectedResponse` 5xx; tests reduced accordingly. Option A (delete entirely) rejected: it would silently waive a ratified AC. Embedding stays unwrapped — the framework already retries it (SP-1.5 embedding-half dismissal stands). |
+| F-9.4 (test volume) | **Fix as reported** — delete the stdlib-pinning test, dedupe the two-layer missing-key coverage, trim full-string log assertions to key fields (the log channel itself is AC-mandated and stays), extract a shared patch-stack fixture. |
+| F-9.5 (docs) | **Split**: the "no production caller / routing cutover 不存在" half re-litigates round 1's M-1.1, already dismissed by user decision — stands dismissed. The documentation half is new and valid: fix `docs/observability.md`'s now-wrong operator instructions, reconcile `docs/file_structure.md`/`docs/agent_architecture.md` statements this PR invalidated, and soften the new README's premature "single JIT query entry point" claim. |
+| F-9.6 (tracing) | **Dismissed (standing user decision)** — re-raises round 1's M-1.6; the deferral is recorded in Linear (the repo's SSOT for work state), DEV-161 blocked-by DEV-160. |
+| F-9.7 (sync marker check unreachable) | **Fix** — merge to async-only. |
+| F-9.8 (4 round-trips) | **Deferred / mention-once** — envelope §1 (<1 QPS) makes the cost a non-issue; the proposed fix also partially conflicts with M-2.4's propagate-don't-swallow decision (would require re-treating missing-collection 404 as a cache miss). Not actioned in this PR. |
+| F-9.9 (`Chunk(**payload)`) | **Fix** — verified drop-in; strictly better than the field-by-field bracket-access approach rounds 4–6 iterated into. |
+| F-9.10 (retry wrappers' module placement) | **Fix** — move to the modules that own the wrapped concerns; the agent-tool path's missing retry is pre-existing and stays out of scope. |

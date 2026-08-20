@@ -16,5 +16,5 @@ Provider reasoning streams to the client as AI SDK native `reasoning-*` parts. T
 
 - Reasoning parts now live in the transcript as data *and* UI; the former `AssistantMessage` reasoning filter becomes a chip renderer.
 - v1 chips do not survive a page reload — history replay of reasoning parts is deliberately out of scope until evidence demands it.
-- The activity indicator shrinks to a placeholder for dead-air windows (submit → first content, chip collapse → reply text); it never contains reasoning text.
+- The activity indicator shrinks to a placeholder for dead-air windows (submit → first content, chip collapse → reply text); it never contains reasoning text. **Superseded by ADR-0017**: real multi-provider testing surfaced a third window (all tool parts terminal, next LLM call not yet arrived) — this two-window description is no longer accurate.
 - The chip's "Thought for Xs" duration is measured client-side (parts carry no timestamps) — the one piece of non-derived frontend state the reasoning chips introduce.

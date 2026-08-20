@@ -1,7 +1,7 @@
 candidate_id,in_draft,ticker,items,query_type,generation_mode,question,snippet_preview,approved,reviewer_comment
+a02,yes,DDOG,1a,multi_passage,passage_first,Contractual exposure arising from Datadog's platform outage history,"For example, in March 2023, our platform experienced widespread outages across m",,
 a05,yes,JPM,1a,multi_passage,passage_first,How could artificial intelligence reshape staffing needs and employee capabilities?,It is also possible that JPMorganChase could miscalibrate its workforce planning,,
 p01,yes,NVDA,1a/7,multi_passage,passage_first,Blackwell production issues and causes of fiscal 2026 gross margin decline,"For example, our gross margins in the second quarter of fiscal year 2025 were ne",,
-p02,yes,DDOG,1a,multi_passage,passage_first,Why do outsourced hosting failures threaten Datadog's contractual availability promises?,We outsource substantially all of the infrastructure relating to our cloud solut,,
 p03,yes,LLY,1a,multi_passage,passage_first,Why do enforcement gaps around illicit incretins threaten Lilly?,Our reputation and business could suffer harm as a result of counterfeit or mass,,
 p04,yes,PODD,1a,multi_passage,passage_first,GLP-1 adoption effects on diabetes demand and Insulet shares,"Further, increased availability and adoption of the GLP-1 class of drugs may del",,
 p05,yes,JPM,1a,multi_passage,passage_first,How can rising rates trigger loan losses and capital constraints?,Higher interest rates could also negatively affect the payment performance on lo,,
@@ -57,7 +57,6 @@ p50,yes,LIN,1a,factoid,passage_first,Have cyber incidents materially affected Li
 a01,no,NVDA,1a/7,multi_passage,passage_first,"How much went to private startups, and what threatens recovery?","In fiscal year 2026, we made the following investments:
 
 •We invested $17.5 bill",,
-a02,no,DDOG,1a,multi_passage,passage_first,Contractual exposure arising from Datadog's platform outage history,"For example, in March 2023, our platform experienced widespread outages across m",,
 a03,no,LLY,1a,multi_passage,passage_first,Why are trade levies especially difficult for Lilly to absorb?,Regional or single-source dependencies may in some cases accentuate risks and co,,
 a04,no,PODD,1a,multi_passage,passage_first,Why does Omnipod expansion heighten component sourcing vulnerability?,Our growth will create challenges for our organization and may strain our manage,,
 a06,no,COIN,1a,multi_passage,passage_first,How can crypto-sector contagion reduce Coinbase revenue?,Our total revenue is substantially dependent on the prices of crypto assets and ,,
@@ -81,3 +80,4 @@ a23,no,DECK,7,passage,passage_first,Deckers currency-neutral revenue and compara
 a24,no,GOOGL,7,passage,passage_first,What borrowing capacity and maturity schedule did Alphabet's unused revolvers have?,"As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4",,
 a25,no,CAT,7,passage,passage_first,"RPMGlobal deal cost, completion schedule, and mining software capabilities",The transaction is expected to close in the final two weeks of February with a p,,
 p13,no,XOM,1a,multi_passage,passage_first,How do public policies intensify competitive threats to ExxonMobil?,Such restrictions may provide a competitive advantage to competitors who may not,,
+p02,rejected,DDOG,1a,multi_passage,passage_first,Why do outsourced hosting failures threaten Datadog's contractual availability promises?,We outsource substantially all of the infrastructure relating to our cloud solut,,

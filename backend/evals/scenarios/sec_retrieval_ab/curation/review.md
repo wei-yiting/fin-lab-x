@@ -2,6 +2,22 @@
 
 Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`). Snippet is **bold** inside its span; one sentence of context shown on each side.
 
+## a02 — DDOG Item 1A (multi_passage, passage_first)
+
+- sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
+- **query**: Contractual exposure arising from Datadog's platform outage history
+- curation_note: These passages connect Datadog’s documented March 2023 outage with customer credits, terminations, reduced renewals, and reputational consequences under its service commitments.
+
+**Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Strategic and Operational Risks
+
+> …19  Our continued growth depends in part on the ability of our existing and potential customers to access our products and platform capabilities at any time and within an acceptable amount of time. We have experienced, and may in the future experience, disruptions, outages, and other performance problems due to a variety of factors, including infrastructure changes, introductions of new functionality, human or software errors, capacity constraints due to an overwhelming number of users accessing our products and platform capabilities simultaneously, denial of service attacks, or other security-related incidents. **For example, in March 2023, our platform experienced widespread outages across multiple products and regions, which was substantially resolved in approximately a day.** It may become increasingly difficult to maintain and improve our performance, especially during peak usage times and as our products and platform capabilities become more complex and our user traffi…
+
+**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
+
+> …ovide credits for future service or face subscription termination with refunds of prepaid amounts, which would lower our revenue and harm our business, financial condition and results of operations. Our subscription agreements typically contain service-level commitments. If we are unable to meet the stated service-level commitments, including failure to meet the uptime and response time requirements under our customer subscription agreements, we may be contractually obligated to provide these customers with service credits which could significantly affect our revenue in the periods in which the failure occurs and the credits are applied. **We could also face subscription terminations and a reduction in renewals, which could significantly affect both our current and future revenue.** Any service-level failures could also damage our reputation, which could also adversely affect our business, financial condition and results of operations. 26  Indemnity provisions in various agreements to which we are party potentially expose us to substantial liability for infringement, misappropriation or other violation of intellectual property rig…
+
+---
+
 ## a05 — JPM Item 1A (multi_passage, passage_first)
 
 - sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
@@ -31,22 +47,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 2** — `NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Overview
 
 > …onal demand for Blackwell as well as the launch of our new DGX Spark.  Automotive revenue for fiscal year 2026 was up 39% from a year ago, driven by continued adoption of our self-driving platforms. **Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions.** The gross margin decrease was also impacted by a $4.5 billion charge associated with H20 excess inventory and purchase obligations. Operating expenses for fiscal year 2026 were up 41% from a year ago, driven by higher compensation and benefits expenses due to employee growth and compute and infrastructure costs.   37   Critical…
-
----
-
-## p02 — DDOG Item 1A (multi_passage, passage_first)
-
-- sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: Why do outsourced hosting failures threaten Datadog's contractual availability promises?
-- curation_note: These passages connect Datadog’s near-total infrastructure outsourcing with the customer availability commitments that make provider disruptions consequential.
-
-**Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Strategic and Operational Risks
-
-> …nd improvements to our internal infrastructure will be effectively implemented on a timely basis, if at all, and such failures could harm our business, financial condition and results of operations. We rely upon third-party providers of cloud-based infrastructure to host our products. Any disruption in the operations of these third-party providers, limitations on capacity or interference with our use could adversely affect our business, financial condition and results of operations.  **We outsource substantially all of the infrastructure relating to our cloud solution to third-party hosting services.** Customers of our cloud-based products need to be able to access our platform at any time, without interruption or degradation of performance, and we provide them with service-level commitments with respect to uptime. Our cloud-based products depend on protecting the virtual cloud infrastructure hosted by third-party hosting services by maintaining its configuration, architecture, features and interconnection spec…
-
-**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
-
-> **We typically provide service-level commitments under our subscription agreements.** If we fail to meet these contractual commitments, we could be obligated to provide credits for future service or face subscription termination with refunds of prepaid amounts, which would lower our revenue and harm our business, financial condition and results of operations.  Our subscription agreements typically contain service-level commitments. If we are unable to meet the stated service-level commitments, including failure to meet the uptime and response time requirements under our customer subscription agreements, we may be contractually…
 
 ---
 
@@ -686,22 +686,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## a02 — DDOG Item 1A (multi_passage, passage_first, ALTERNATE)
-
-- sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: Contractual exposure arising from Datadog's platform outage history
-- curation_note: These passages connect Datadog’s documented March 2023 outage with customer credits, terminations, reduced renewals, and reputational consequences under its service commitments.
-
-**Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Strategic and Operational Risks
-
-> …19  Our continued growth depends in part on the ability of our existing and potential customers to access our products and platform capabilities at any time and within an acceptable amount of time. We have experienced, and may in the future experience, disruptions, outages, and other performance problems due to a variety of factors, including infrastructure changes, introductions of new functionality, human or software errors, capacity constraints due to an overwhelming number of users accessing our products and platform capabilities simultaneously, denial of service attacks, or other security-related incidents. **For example, in March 2023, our platform experienced widespread outages across multiple products and regions, which was substantially resolved in approximately a day.** It may become increasingly difficult to maintain and improve our performance, especially during peak usage times and as our products and platform capabilities become more complex and our user traffi…
-
-**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
-
-> …ovide credits for future service or face subscription termination with refunds of prepaid amounts, which would lower our revenue and harm our business, financial condition and results of operations. Our subscription agreements typically contain service-level commitments. If we are unable to meet the stated service-level commitments, including failure to meet the uptime and response time requirements under our customer subscription agreements, we may be contractually obligated to provide these customers with service credits which could significantly affect our revenue in the periods in which the failure occurs and the credits are applied. **We could also face subscription terminations and a reduction in renewals, which could significantly affect both our current and future revenue.** Any service-level failures could also damage our reputation, which could also adversely affect our business, financial condition and results of operations. 26  Indemnity provisions in various agreements to which we are party potentially expose us to substantial liability for infringement, misappropriation or other violation of intellectual property rig…
-
----
-
 ## a03 — LLY Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Health Care / cap: large / FY2025 / detection: markdown_h3, markdown_h3
@@ -1027,5 +1011,27 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Operational and Other Factors
 
 > …ve the internal resources and capabilities of ExxonMobil or reduce the need for resource-owning countries to partner with private-sector oil and gas companies in order to monetize national resources. **As described in more detail above, our hydrocarbon-based energy products are also subject to growing and, in many cases, government-supported competition from alternative energy sources.** In addition, as we enter new markets in pursuit of lower-emission and other new business opportunities, we will need to compete effectively with established competitors in these markets, as well as with new market entrants seeking to capitalize on these opportunities, while successfully navigating changing market conditions or technologies. Reputation. Our reputation is an important corporate asset. Factors that could have a negative impact on our reputation include an operating incident or significant cybersecurity disruption; changes…
+
+---
+
+
+# Rejected candidates
+
+Removed from the draft after quality review; kept for provenance only. No review action needed.
+
+## p02 — DDOG Item 1A (multi_passage, passage_first, REJECTED)
+
+- sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
+- **query**: Why do outsourced hosting failures threaten Datadog's contractual availability promises?
+- curation_note: These passages connect Datadog’s near-total infrastructure outsourcing with the customer availability commitments that make provider disruptions consequential.
+- **rejected because**: Query's information need ('why do hosting failures threaten availability promises') is fully answered by evidence 1 alone; evidence 2 covers breach consequences, not the asked 'why', and its only cap-compliant snippet restates a fact already present in evidence 1's span. Replaced by a02 (same ticker/item/query type).
+
+**Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Strategic and Operational Risks
+
+> …nd improvements to our internal infrastructure will be effectively implemented on a timely basis, if at all, and such failures could harm our business, financial condition and results of operations. We rely upon third-party providers of cloud-based infrastructure to host our products. Any disruption in the operations of these third-party providers, limitations on capacity or interference with our use could adversely affect our business, financial condition and results of operations.  **We outsource substantially all of the infrastructure relating to our cloud solution to third-party hosting services.** Customers of our cloud-based products need to be able to access our platform at any time, without interruption or degradation of performance, and we provide them with service-level commitments with respect to uptime. Our cloud-based products depend on protecting the virtual cloud infrastructure hosted by third-party hosting services by maintaining its configuration, architecture, features and interconnection spec…
+
+**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
+
+> **We typically provide service-level commitments under our subscription agreements.** If we fail to meet these contractual commitments, we could be obligated to provide credits for future service or face subscription termination with refunds of prepaid amounts, which would lower our revenue and harm our business, financial condition and results of operations.  Our subscription agreements typically contain service-level commitments. If we are unable to meet the stated service-level commitments, including failure to meet the uptime and response time requirements under our customer subscription agreements, we may be contractually…
 
 ---

@@ -147,7 +147,7 @@ class Plan:
     query_type: str  # factoid | passage | multi_passage
     mode: str  # passage_first | intent_first
     intent: str | None = None
-    role: str = "primary"  # primary | alternate
+    role: str = "primary"  # primary | alternate | rejected
 
 
 @dataclass
@@ -169,6 +169,7 @@ class Candidate:
     evidences: list[Evidence]
     fiscal_year: int
     accession_number: str
+    rejection_reason: str | None = None
     model: str = MODEL_ID
     system_fingerprint: str | None = None
     prompt_version: str = PROMPT_VERSION
@@ -763,7 +764,7 @@ def generate(limit: int | None) -> list[Candidate]:
 
     with ThreadPoolExecutor(max_workers=3) as pool:
         list(pool.map(run_plan, plans))
-    candidates.sort(key=lambda c: (c.plan.role != "primary", c.candidate_id))
+    candidates.sort(key=_role_order)
     _flush()
     print(f"\nwrote {len(candidates)} candidates -> {CANDIDATES_JSON}")
     return candidates
@@ -772,6 +773,13 @@ def generate(limit: int | None) -> list[Candidate]:
 # --------------------------------------------------------------------------
 # emit: dataset.csv (draft), review.csv, review.md
 # --------------------------------------------------------------------------
+
+
+_ROLE_RANK = {"primary": 0, "alternate": 1, "rejected": 2}
+
+
+def _role_order(c: Candidate) -> tuple[int, str]:
+    return (_ROLE_RANK[c.plan.role], c.candidate_id)
 
 
 def _load_candidates() -> list[Candidate]:
@@ -812,7 +820,7 @@ def _dataset_row(c: Candidate) -> dict[str, str]:
 
 
 def emit() -> int:
-    candidates = _load_candidates()
+    candidates = sorted(_load_candidates(), key=_role_order)
     primaries = [c for c in candidates if c.plan.role == "primary"]
     if not primaries:
         print("no primary candidates to emit", file=sys.stderr)
@@ -846,7 +854,11 @@ def emit() -> int:
             writer.writerow(
                 {
                     "candidate_id": c.candidate_id,
-                    "in_draft": "yes" if c.plan.role == "primary" else "no",
+                    "in_draft": {
+                        "primary": "yes",
+                        "alternate": "no",
+                        "rejected": "rejected",
+                    }[c.plan.role],
                     "ticker": c.plan.ticker,
                     "items": "/".join(c.plan.item_keys),
                     "query_type": c.plan.query_type,
@@ -896,13 +908,24 @@ def _render_review_md(
         "sentence of context shown on each side.",
         "",
     ]
-    for c in candidates:
+    rejected_header_written = False
+    for c in sorted(candidates, key=_role_order):
+        if c.plan.role == "rejected" and not rejected_header_written:
+            lines += [
+                "",
+                "# Rejected candidates",
+                "",
+                "Removed from the draft after quality review; kept for "
+                "provenance only. No review action needed.",
+                "",
+            ]
+            rejected_header_written = True
         grid = TICKER_GRID[c.plan.ticker]
+        role_tag = {"primary": "", "alternate": ", ALTERNATE", "rejected": ", REJECTED"}
         lines += [
             f"## {c.candidate_id} — {c.plan.ticker} "
             f"{'/'.join('Item ' + k.upper() for k in c.plan.item_keys)} "
-            f"({c.plan.query_type}, {c.plan.mode}"
-            f"{', ALTERNATE' if c.plan.role == 'alternate' else ''})",
+            f"({c.plan.query_type}, {c.plan.mode}{role_tag[c.plan.role]})",
             "",
             f"- sector: {grid['sector']} / cap: {grid['cap']} / "
             f"FY{c.fiscal_year} / detection: "
@@ -912,6 +935,8 @@ def _render_review_md(
         if c.plan.intent:
             lines.append(f"- user_intent: {c.plan.intent}")
         lines.append(f"- curation_note: {c.curation_note}")
+        if c.rejection_reason:
+            lines.append(f"- **rejected because**: {c.rejection_reason}")
         for i, ev in enumerate(c.evidences):
             lines += [
                 "",

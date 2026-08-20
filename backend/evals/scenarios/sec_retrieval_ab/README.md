@@ -106,9 +106,10 @@ Distribution tables: see below (generated from the draft dataset).
   (lay user intent, recorded in `user_intent` → evidence). The 18 zh
   questions from the DEV-113 experiment informed intent style only; none
   were copied.
-- Over-generation: 25 alternate candidates accompany the 50 primaries in
-  the review sheet; rejected primaries are replaced from approved
-  alternates.
+- Over-generation: alternate candidates accompany the 50 primaries in the
+  review sheet; a rejected primary is replaced from the alternates and
+  moved to the review sheet's trailing "Rejected candidates" section
+  (provenance only, `in_draft: rejected` in review.csv).
 
 ## Curation pipeline
 

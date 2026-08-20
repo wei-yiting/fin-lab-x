@@ -10,7 +10,7 @@ docker compose up -d qdrant
 
 # 2. Search from Python (JIT-ingests on a cache miss — see JIT Ingest Contract below)
 from backend.ingestion.sec_dense_pipeline_html.retriever import search
-chunks = await search(query="NVIDIA export control risks", top_k=10)
+chunks = await search(query="NVIDIA export control risks", filters={"ticker": "NVDA"}, top_k=10)
 ```
 
 This pipeline is a frozen A/B baseline (deleted whole at sunset — see `backend/README.md`).

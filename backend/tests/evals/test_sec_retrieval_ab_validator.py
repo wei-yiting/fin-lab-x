@@ -132,10 +132,7 @@ def store_dir(tmp_path: Path) -> Path:
             ),
             FlatItem(
                 item="7a",
-                title=(
-                    "Quantitative and Qualitative Disclosures About "
-                    "Market Risk"
-                ),
+                title=("Quantitative and Qualitative Disclosures About Market Risk"),
                 text=(
                     f"{FLAT_FIRST_SENT} {FLAT_NEAR_SENT} "
                     f"{_filler(500, 'ratebook')} {FLAT_FAR_SENT}"
@@ -165,8 +162,8 @@ def store_dir(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _row(**overrides) -> Row:
-    base = dict(
+def _row(**overrides: object) -> Row:
+    base: dict[str, object] = dict(
         row_id="r1",
         question="export restriction impact on data center products",
         header_paths=["AAA / 2025 / Item 1A. Risk Factors"],
@@ -176,7 +173,7 @@ def _row(**overrides) -> Row:
         query_type="factoid",
     )
     base.update(overrides)
-    return Row(**base)
+    return Row(**base)  # type: ignore[arg-type]
 
 
 def _issues(store_dir: Path, *rows: Row):
@@ -296,8 +293,10 @@ def test_snippet_too_short_fails(store_dir):
 
 def test_snippet_duplicated_across_corpus_fails(store_dir):
     row = _row(
-        spans=[f"{CONCENTRATION_SENT} The loss of any such customer could "
-               f"harm results. {DUP_SENT}"],
+        spans=[
+            f"{CONCENTRATION_SENT} The loss of any such customer could "
+            f"harm results. {DUP_SENT}"
+        ],
         snippets=[DUP_SENT],
     )
     assert "snippet_not_unique" in _rules(_issues(store_dir, row))
@@ -307,9 +306,7 @@ def test_snippet_duplicated_across_corpus_fails(store_dir):
 
 
 def test_multi_passage_spans_in_same_block_fails(store_dir):
-    same_block_sent = (
-        "We continue to seek licenses where they are available to us."
-    )
+    same_block_sent = "We continue to seek licenses where they are available to us."
     row = _row(
         header_paths=[
             "AAA / 2025 / Item 1A. Risk Factors",
@@ -355,9 +352,7 @@ def test_header_path_item_missing_from_filing_fails(store_dir):
 
 
 def test_filing_missing_from_store_fails(store_dir):
-    row = _row(
-        header_paths=["ZZZ / 2025 / Item 1A. Risk Factors"], tickers=["ZZZ"]
-    )
+    row = _row(header_paths=["ZZZ / 2025 / Item 1A. Risk Factors"], tickers=["ZZZ"])
     assert "filing_missing" in _rules(_issues(store_dir, row))
 
 

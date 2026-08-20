@@ -28,6 +28,7 @@ import sys
 import threading
 from collections import Counter
 from dataclasses import asdict, dataclass, field
+from typing import Any
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -327,7 +328,7 @@ Hard rules:
 6. curation_note: one sentence — why this evidence was picked and what the row tests.
 Respond only via the JSON schema."""
 
-RESPONSE_SCHEMA = {
+RESPONSE_SCHEMA: Any = {
     "type": "json_schema",
     "json_schema": {
         "name": "retrieval_eval_candidate",
@@ -562,7 +563,7 @@ def generate(limit: int | None) -> list[Candidate]:
                 for s in used_by_item.get((plan.ticker, key), [])
             ]
 
-        messages = [
+        messages: list[Any] = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
@@ -577,7 +578,10 @@ def generate(limit: int | None) -> list[Candidate]:
                 messages=messages,
                 response_format=RESPONSE_SCHEMA,
             )
-            payload = json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            if content is None:
+                raise ValueError(f"empty completion for plan {plan.plan_id}")
+            payload = json.loads(content)
             evidences: list[Evidence] = []
             index_errors: list[str] = []
             for ev in payload["evidences"]:
@@ -634,9 +638,7 @@ def generate(limit: int | None) -> list[Candidate]:
                     system_fingerprint=response.system_fingerprint,
                 )
                 break
-            messages.append(
-                {"role": "assistant", "content": response.choices[0].message.content}
-            )
+            messages.append({"role": "assistant", "content": content})
             messages.append(
                 {
                     "role": "user",

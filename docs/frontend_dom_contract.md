@@ -59,7 +59,7 @@ The enum tracks the **part lifecycle**, not body visibility:
 
 `data-state` and `aria-expanded` are deliberately decoupled: `data-state` answers "is the part live", `aria-expanded` answers "is the body visible". Body visibility follows the `expanded` prop alone, so a streaming chip the user collapsed renders `data-state="streaming"` with `aria-expanded="false"` and no body node.
 
-Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`, `aria-label` = the live header copy plus the expand/collapse action) and `reasoning-chip-body`.
+Companion testids: `reasoning-chip-header` (clickable, `aria-live="polite"`, `aria-label` = the live header copy plus the expand/collapse action), `reasoning-chip-body`, and `activity-placeholder` (the dead-air placeholder; copy `Thinking` / `Still working` followed by a CSS-animated `.thinking-dots` ellipsis cycler, `aria-hidden` so the live region announces only the stable copy).
 
 ## Adding new components
 

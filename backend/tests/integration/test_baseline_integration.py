@@ -282,7 +282,7 @@ def test_config_loading_from_yaml():
     assert "finnhub_stock_quote" in config.tools
     assert "tavily_financial_search" in config.tools
     assert config.model.name == "openai:gpt-5-nano"
-    assert config.model.reasoning == "off"
+    assert config.model.reasoning == "on"
 
 
 def test_system_prompt_loaded_from_file():

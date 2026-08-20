@@ -1,18 +1,22 @@
 import { memo, useMemo } from "react";
 import { Markdown } from "@/components/organisms/Markdown";
 import { ToolCard } from "@/components/organisms/ToolCard";
+import { ReasoningChip } from "@/components/organisms/ReasoningChip";
 import { Sources } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
 import { extractSources, normalizeRefDefs, REF_DEF_LINE_RE } from "@/lib/markdown-sources";
+import {
+  chipKey,
+  chipStateOf,
+  isChipExpanded,
+  isReasoningPart,
+  isSuppressedChip,
+  isToolPart,
+} from "@/lib/reasoning-chips";
 import { isRunningToolState } from "@/models";
 import type { ExtractedSources } from "@/models";
 
 type MessagePart = Record<string, unknown>;
-
-function isToolPart(part: MessagePart): boolean {
-  const t = part.type;
-  return typeof t === "string" && (t === "tool" || t.startsWith("tool-") || t === "dynamic-tool");
-}
 
 /** Shared empty-sources reference — see the note at its use site. */
 const NO_SOURCES: ExtractedSources = [];
@@ -32,7 +36,7 @@ interface AssistantMessageProps {
   isStreaming: boolean;
   abortedTools: Set<string>;
   toolProgress: Record<string, string>;
-  /** The user stopped this turn (DEV-109 ruling 11) — gates Regenerate off,
+  /** The user stopped this turn — gates Regenerate off,
    * since the backend never finalized this turn's AIMessage. */
   interrupted?: boolean;
   /** Present only when Regenerate may render: MessageList passes it for the
@@ -41,6 +45,13 @@ interface AssistantMessageProps {
    * `messages` and changes identity on every delta, so handing it to a
    * message that can never show the button would only break its memo. */
   onRegenerate?: (messageId: string) => void;
+  /** Global stall stopwatch — degraded copy consumer for streaming chip headers. */
+  stalled?: boolean;
+  /** Frozen "Thought for Xs" lookup keyed by chipKey (client timing map). */
+  getChipSeconds?: (key: string) => number;
+  /** User expand/collapse overrides — beats the tail-only derivation. */
+  chipOverrides?: Map<string, boolean>;
+  onToggleChip?: (key: string, currentExpanded: boolean) => void;
 }
 
 /**
@@ -88,6 +99,10 @@ export const AssistantMessage = memo(function AssistantMessage({
   toolProgress,
   interrupted = false,
   onRegenerate,
+  stalled = false,
+  getChipSeconds,
+  chipOverrides,
+  onToggleChip,
 }: AssistantMessageProps) {
   const parts = message.parts;
 
@@ -122,9 +137,37 @@ export const AssistantMessage = memo(function AssistantMessage({
     return cleaned;
   }, [concatenatedText, extractedSources, isStreaming]);
 
+  // 1-based reasoning ordinal per part index (chip `data-round`).
+  const chipRounds = useMemo(() => {
+    let round = 0;
+    return parts.map((p) => (isReasoningPart(p) ? ++round : 0));
+  }, [parts]);
+
   return (
     <article data-testid="assistant-message" className="min-w-0">
       {parts.map((part, i) => {
+        if (isReasoningPart(part)) {
+          if (isSuppressedChip(part)) return null;
+          const key = chipKey(message.id, i);
+          // The streaming chip is live only on the last message of an active
+          // stream — exactly what `isStreaming` encodes (a `submitted` turn
+          // always has the user's message last, never an assistant one).
+          const chipState = chipStateOf(part, isStreaming);
+          const expanded = isChipExpanded(chipState, chipOverrides?.get(key));
+          return (
+            <ReasoningChip
+              key={key}
+              chipState={chipState}
+              text={part.text ?? ""}
+              seconds={getChipSeconds?.(key) ?? 0}
+              stalled={stalled}
+              expanded={expanded}
+              onToggle={() => onToggleChip?.(key, expanded)}
+              round={chipRounds[i]}
+            />
+          );
+        }
+
         if (isToolPart(part)) {
           const toolCallId = part.toolCallId as string;
           // abortedTools is a click-time snapshot of `handleStop`'s render
@@ -168,7 +211,7 @@ export const AssistantMessage = memo(function AssistantMessage({
         checkpoint, which only holds a finalized AIMessage for a turn that
         ran to completion — so an interrupted turn 422s no matter how much
         answer text reached the client. `interrupted` is the turn-level
-        record (DEV-109 ruling 11), captured unconditionally on every Stop.
+        record, captured unconditionally on every Stop.
         The last-message + status=ready visibility rule lives in MessageList,
         which only passes onRegenerate when both hold.
       */}

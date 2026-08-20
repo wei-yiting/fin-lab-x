@@ -78,20 +78,20 @@ flowchart BT
     class ChatPanel pageCls
 ```
 
-| Layer | Classification rule | Examples |
-|---|---|---|
-| **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw` |
-| **atoms** | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components). | `StatusDot`, `RefSup`, `Cursor`, `ActivityPlaceholder`, `PromptChip`, `RegenerateButton`, `InterruptedMarker`, `SourceLink`, `UserMessage` |
-| **molecules** | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic. | `ToolRow`, `ToolDetail`, `Sources` |
-| **organisms** | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.). | `ReasoningChip`, `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState` |
-| **templates** | Layout shell that accepts data via props; does not wire `useChat`. | `MessageList` |
-| **pages** | Top-level orchestrator — the only layer that wires `useChat` and owns the chat lifecycle. | `ChatPanel` |
+| Layer          | Classification rule                                                                                                                                                                                               | Examples                                                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **primitives** | External/unmodified components. Two physical homes: `components/primitives/` (shadcn) and `node_modules/lucide-react`. **Do not hand-edit shadcn files** — they are overwritten by `pnpm dlx shadcn@latest add`. | `Button`, `Textarea`, `ScrollArea`, `Collapsible`, `Empty`, `Alert`, `Badge`, `AlertCircle`, `RefreshCw`                                                          |
+| **atoms**      | Leaf component OR trivial primitive wrapper (primitive + a fixed set of child elements, no structural composition of other project components).                                                                  | `StatusDot`, `RefSup`, `Cursor`, `ActivityPlaceholder`, `PromptChip`, `RegenerateButton`, `InterruptedMarker`, `SourceLink`, `UserMessage` |
+| **molecules**  | Structural composition of atoms (multiple rows/columns/sections or ≥3 distinct children). Still `(props) => JSX` — no `useState`, no business logic.                                                             | `ToolRow`, `ToolDetail`, `Sources`                                                                                                               |
+| **organisms**  | Uses `useState` / hooks, or is domain-aware (walks `UIMessage.parts`, reads `ToolUIPart.state`, etc.).                                                                                                            | `ReasoningChip`, `ChatHeader`, `AssistantMessage`, `ToolCard`, `Markdown`, `ErrorBlock`, `Composer`, `EmptyState`                                                                  |
+| **templates**  | Layout shell that accepts data via props; does not wire `useChat`.                                                                                                                                               | `MessageList`                                                                                                                                                     |
+| **pages**      | Top-level orchestrator — the only layer that wires `useChat` and owns the chat lifecycle.                                                                                                                         | `ChatPanel`                                                                                                                                                       |
 
 **Extension rule** — inline a new visual element at first use; extract to `atoms/` only on the second occurrence. Do not introduce `features/` or `hooks/` subfolders under `components/`; hooks live in `frontend/src/hooks/`.
 
 ### 2.2 Concrete composition graph
 
-The layer diagram above shows which layer *may* depend on which. This graph shows the *actual* compositions that ship — what each component wraps in its render tree. Use it to trace which atom change affects which organism.
+The layer diagram above shows which layer _may_ depend on which. This graph shows the _actual_ compositions that ship — what each component wraps in its render tree. Use it to trace which atom change affects which organism.
 
 ```mermaid
 flowchart LR
@@ -106,6 +106,7 @@ flowchart LR
     MessageList --> AssistantMessage
     MessageList --> InterruptedMarker
 
+    AssistantMessage --> ReasoningChip
     AssistantMessage --> ToolCard
     AssistantMessage --> Markdown
     AssistantMessage --> Sources
@@ -130,7 +131,7 @@ flowchart LR
 
     class StatusDot,RefSup,Cursor,ActivityPlaceholder,PromptChip,RegenerateButton,InterruptedMarker,SourceLink,UserMessage atomCls
     class ToolRow,ToolDetail,Sources moleculeCls
-    class ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
+    class ReasoningChip,ChatHeader,AssistantMessage,ToolCard,Markdown,ErrorBlock,Composer,EmptyState organismCls
     class MessageList templateCls
     class ChatPanel pageCls
 ```
@@ -159,16 +160,17 @@ Tool-specific parts are narrowed: `ToolCard` receives a `toolPart` prop after `A
 
 The backend emits AI SDK v6 `uiMessageChunkSchema`-compatible chunks. The frontend interprets them as follows:
 
-| Backend SSE event | AI SDK `ToolUIPart.state` | UI render |
-|---|---|---|
-| `tool-input-available` | `input-available` | 🟠 StatusDot running + `toolProgress[id]` or `Calling {toolName}...` |
-| `data-tool-progress` (transient sidecar) | — | `toolProgress[id] = message`; re-renders the running ToolCard. Never enters `messages`. |
-| `tool-output-available` | `output-available` | 🟢 StatusDot success + generic label `Completed` + expandable INPUT/OUTPUT JSON |
-| `tool-output-error` | `output-error` | 🔴 StatusDot error + friendly translated title (via `lib/error-messages.ts`) + expandable raw detail |
-| `text-start` / `text-delta` / `text-end` | text part | Markdown incremental re-render + trailing `Cursor` while streaming |
-| `error` | — (stream-level) | `useChat.error` set; `status → 'error'`. Does **not** append an `error` part to `messages` (see §6). |
-| `finish` | — | `status → 'ready'` |
-| _(no SSE — frontend-only)_ | `aborted` | ⚫ StatusDot gray + label `Aborted` + expandable INPUT |
+| Backend SSE event                                       | AI SDK `ToolUIPart.state`                  | UI render                                                                                                                                                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tool-input-available`                                  | `input-available`                          | 🟠 StatusDot running + `toolProgress[id]` or `Calling {toolName}...`                                                                                                                                                                 |
+| `data-tool-progress` (transient sidecar)                | —                                          | `toolProgress[id] = message`; re-renders the running ToolCard. Never enters `messages`.                                                                                                                                              |
+| `tool-output-available`                                 | `output-available`                         | 🟢 StatusDot success + generic label `Completed` + expandable INPUT/OUTPUT JSON                                                                                                                                                      |
+| `tool-output-error`                                     | `output-error`                             | 🔴 StatusDot error + friendly translated title (via `lib/error-messages.ts`) + expandable raw detail                                                                                                                                 |
+| `text-start` / `text-delta` / `text-end`                | text part                                  | Markdown incremental re-render + trailing `Cursor` while streaming                                                                                                                                                                   |
+| `reasoning-start` / `reasoning-delta` / `reasoning-end` | reasoning part (`state: streaming → done`) | `ReasoningChip`: streaming = pinned ~4-line window with live text; `done` = collapsed `Thought for Xs`; part stuck `streaming` after abort = collapsed `Stopped — thought for Xs`. A part that closed with no delta renders nothing. |
+| `error`                                                 | — (stream-level)                           | `useChat.error` set; `status → 'error'`. Does **not** append an `error` part to `messages` (see §6).                                                                                                                                 |
+| `finish`                                                | —                                          | `status → 'ready'`                                                                                                                                                                                                                    |
+| _(no SSE — frontend-only)_                              | `aborted`                                  | ⚫ StatusDot gray + label `Aborted` + expandable INPUT                                                                                                                                                                                |
 
 ## 4. Tool Card State Machine
 
@@ -198,11 +200,11 @@ stateDiagram-v2
 
 `handleRetry` dispatches by the shape of `messages` at the time of retry:
 
-| Situation | Action |
-|---|---|
-| Last message is `user` (pre-stream error, nothing streamed) | `sendMessage(originalUserText)` |
-| Last message is `assistant` with partial parts (mid-stream error) | `regenerate({ messageId: lastAssistantMessage.id })` |
-| Any pre-stream **4xx** on a regenerate attempt (race window) | Fall back to `sendMessage(originalUserText)` to avoid a 4xx loop on a stale `messageId` |
+| Situation                                                         | Action                                                                                  |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Last message is `user` (pre-stream error, nothing streamed)       | `sendMessage(originalUserText)`                                                         |
+| Last message is `assistant` with partial parts (mid-stream error) | `regenerate({ messageId: lastAssistantMessage.id })`                                    |
+| Any pre-stream **4xx** on a regenerate attempt (race window)      | Fall back to `sendMessage(originalUserText)` to avoid a 4xx loop on a stale `messageId` |
 
 **No manual `messageId` stash is needed**. AI SDK v6 writes `start.messageId` directly into `state.message.id`, so `regenerate({ messageId: lastAssistantMessage.id })` already carries the backend-issued `lc_run--...` ID. Verified in `ai@6.0.142` (`node_modules/ai/dist/index.js`, chat store reducer) and against the live backend (see `scripts/v1-partial-regen-probe.sh`).
 

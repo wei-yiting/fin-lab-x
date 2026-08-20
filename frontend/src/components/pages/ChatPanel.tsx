@@ -3,6 +3,7 @@ import { DefaultChatTransport } from "ai";
 import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useToolProgress } from "@/hooks/useToolProgress";
 import { useStallTimer } from "@/hooks/useStallTimer";
+import { useReasoningTimers } from "@/hooks/useReasoningTimers";
 import { useDeadAirPlaceholder } from "@/hooks/useDeadAirPlaceholder";
 import { isToolPart } from "@/lib/reasoning-chips";
 import { STREAM_THROTTLE_MS } from "@/lib/timing";
@@ -40,14 +41,15 @@ export function ChatPanel() {
     [],
   );
   const { toolProgress, handleData: toolProgressHandleData, clearProgress } = useToolProgress();
+  const [responseComplete, setResponseComplete] = useState(false);
   // Late-bound handle to the stall stopwatch's reset — onData is wired into
   // useChat above the stall hook in this component, so it reaches the reset
   // through a ref kept in sync by an effect below.
   const notifyActivityRef = useRef<(() => void) | null>(null);
 
   // AI SDK v6's onData only fires for data-* chunks. Native parts
-  // (reasoning-*, text-*, tool-*) land in message.parts — the placeholder
-  // derives everything from (status, messages).
+  // (reasoning-*, text-*, tool-*) land in message.parts — the chips and
+  // placeholder derive everything from (status, messages).
   const onData = useCallback(
     (dataPart: { type: string; id?: string; data: unknown }) => {
       toolProgressHandleData(dataPart);
@@ -64,9 +66,18 @@ export function ChatPanel() {
     transport,
     experimental_throttle: STREAM_THROTTLE_MS,
     onData,
+    onFinish: ({ isAbort, isDisconnect, isError }) => {
+      // Only the natural-completion path should trigger the SR "Response
+      // complete" announcement. The three non-normal paths each have their
+      // own user-visible affordance:
+      //   - isAbort                → aborted chip header (Stopped — thought for Xs)
+      //   - isDisconnect / isError → announced by ErrorBlock's role="alert"
+      if (isAbort || isDisconnect || isError) return;
+      setResponseComplete(true);
+    },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
-  // Turn-level interruption record (DEV-109 ruling 11): message ids whose
+  // Turn-level interruption record: message ids whose
   // turn the user stopped. Companion to abortedTools — same capture point,
   // message-granular instead of tool-granular, so the transcript always
   // carries an explicit "Interrupted" row even when no chip or tool card
@@ -76,14 +87,20 @@ export function ChatPanel() {
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<ComposerHandle>(null);
 
-  // The dead-air placeholder's non-derived state (see hooks/README.md): the
-  // global stall stopwatch, owned by useStallTimer, and its own grace timer,
-  // owned by useDeadAirPlaceholder.
+  // Four of the five allowed non-derived stores of the chips system live
+  // here (the fifth, the placeholder grace timer, lives inside
+  // useDeadAirPlaceholder — see hooks/README.md for the full budget):
+  //   1. chip timing map (Thought-for-Xs measurement),
+  //   2. global stall stopwatch,
+  //   3. user expand/collapse overrides (cleared each turn),
+  //   4. turn interruption record (interruptedMessages — set whenever the user stops a turn).
   const chatActive = status === "submitted" || status === "streaming";
   const { stalled, notifyActivity } = useStallTimer(chatActive);
   useEffect(() => {
     notifyActivityRef.current = notifyActivity;
   }, [notifyActivity]);
+  const { observe, getSeconds, reset: resetTimers } = useReasoningTimers();
+  const [chipOverrides, setChipOverrides] = useState<Map<string, boolean>>(() => new Map());
 
   // Any stream part / delta arrival re-renders `messages` — that is the
   // stopwatch's reset signal: any part zeroes the global stall clock.
@@ -94,24 +111,55 @@ export function ChatPanel() {
     if (chatActive) notifyActivity();
   }, [messages, chatActive, notifyActivity]);
 
+  // observe schedules a state update (see the hook's docstring), so it must
+  // run from an effect rather than during render. Layout effect, not effect:
+  // freezing must be visible before paint, same as the stall-timer reset
+  // above — and its bail-out (identical map reference when nothing changed)
+  // keeps an unchanged pass from looping.
+  useLayoutEffect(() => {
+    observe(messages, chatActive);
+  }, [observe, messages, chatActive]);
+
   const placeholderState = useDeadAirPlaceholder(messages, status);
+
+  const handleToggleChip = useCallback((key: string, currentExpanded: boolean) => {
+    setChipOverrides((prev) => {
+      const next = new Map(prev);
+      next.set(key, !currentExpanded);
+      return next;
+    });
+  }, []);
+
+  // Clears only the expand/collapse override map. The chip timing map is
+  // deliberately NOT touched here: it's keyed by chipKey(messageId, partIndex),
+  // so entries for already-completed, still-rendered messages are never
+  // re-read once a new turn's message ids are in play — wiping the whole
+  // map on every send/regenerate/retry corrupted already-displayed
+  // "Thought for Xs" durations on unrelated past turns.
+  const resetForNewTurn = useCallback(() => {
+    setChipOverrides(new Map());
+  }, []);
 
   const handleSend = useCallback(
     (text: string) => {
       lastTriggerRef.current = { type: "send", userText: text };
       messageListRef.current?.forceFollowBottom();
+      resetForNewTurn();
+      setResponseComplete(false);
       sendMessage({ text });
     },
-    [sendMessage],
+    [sendMessage, resetForNewTurn],
   );
 
   const handleRegenerate = useCallback(
     (messageId: string) => {
       const userText = findOriginalUserText(messages, messageId);
       lastTriggerRef.current = { type: "regenerate", messageId, userText };
+      resetForNewTurn();
+      setResponseComplete(false);
       regenerate({ messageId });
     },
-    [messages, regenerate],
+    [messages, regenerate, resetForNewTurn],
   );
 
   const handleStop = useCallback(() => {
@@ -128,6 +176,9 @@ export function ChatPanel() {
     if (runningIds.length) {
       setAbortedTools((prev) => new Set([...prev, ...runningIds]));
     }
+    // The aborted chip needs no capture here: the reasoning part stays in
+    // message.parts with state "streaming" (no reasoning-end on the wire),
+    // and the header derives "Stopped — thought for Xs" from that shape.
     // The turn-level marker anchors on the last message regardless of role:
     // a Stop before the assistant message exists (placeholder window) still
     // leaves an "Interrupted" row under the user bubble.
@@ -142,14 +193,21 @@ export function ChatPanel() {
     stop();
     setChatId(crypto.randomUUID());
     clearProgress();
+    // The only call site where a full timing-map wipe is correct: the whole
+    // transcript disappears with the new chatId, so no stale entry can leak.
+    resetTimers();
+    resetForNewTurn();
+    setResponseComplete(false);
     setAbortedTools(new Set());
     setInterruptedMessages(new Set());
     lastTriggerRef.current = null;
-  }, [stop, clearProgress]);
+  }, [stop, clearProgress, resetTimers, resetForNewTurn]);
 
   const handleRetry = useCallback(() => {
     const last = lastTriggerRef.current;
     if (!last) return;
+    resetForNewTurn();
+    setResponseComplete(false);
     // Two failure shapes end up here:
     //   1) Pre-stream failure — messages is [user₀]. Last message is the user turn.
     //      Drop the trailing user and re-send the text (regenerate({messageId}) would
@@ -171,7 +229,7 @@ export function ChatPanel() {
     lastTriggerRef.current = { type: "send", userText: last.userText };
     setMessages((msgs) => msgs.slice(0, -1));
     sendMessage({ text: last.userText });
-  }, [messages, regenerate, setMessages, sendMessage]);
+  }, [messages, regenerate, setMessages, sendMessage, resetForNewTurn]);
 
   // When useChat enters error state, mark any running tools on the last assistant message as aborted.
   // AI SDK v6 routes SSE `error` chunks to onError/status=error, not message.parts, so we cannot
@@ -240,6 +298,10 @@ export function ChatPanel() {
         placeholder={
           placeholderState === "waiting" ? <ActivityPlaceholder stalled={stalled} /> : undefined
         }
+        stalled={stalled}
+        getChipSeconds={getSeconds}
+        chipOverrides={chipOverrides}
+        onToggleChip={handleToggleChip}
         emptyContent={
           !showError ? (
             <EmptyState
@@ -267,6 +329,9 @@ export function ChatPanel() {
         stop={handleStop}
         status={status as ChatStatus}
       />
+      <div role="status" aria-live="polite" className="sr-only">
+        {responseComplete ? "Response complete" : ""}
+      </div>
     </div>
   );
 }

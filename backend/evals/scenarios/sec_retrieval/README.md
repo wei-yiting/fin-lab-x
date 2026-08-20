@@ -19,12 +19,6 @@ Evaluates the RAG path's retrieval quality for SEC 10-K filings.
 
 **Next step:** Evaluate whether to build the synthetic generation script, or manually generate questions via LLM with careful human curation. Either way, the dataset should be expanded and answer snippets validated against actual filing content before trusting metrics.
 
-Known gap: AMD's ingested filing only contains Part II (no Item 1A) — the
-"How does AMD discuss competitive risks?" row therefore always misses on
-this dataset regardless of retriever quality. Pre-existing in the frozen
-pipeline's AMD ingest, not something this scenario's task/scorer can fix;
-carried into the reference measurement below.
-
 ## Regression gate
 
 `enabled: true`, `metric_floor` per scorer — see `eval_spec.yaml`. Floors are
@@ -35,14 +29,16 @@ The margin is deliberately wide — floors catch collapse, not slow erosion
 once (it's a draft placeholder; multiple runs wouldn't distinguish signal
 from dataset noise).
 
-**Reference measurement** — `2026-08-19`, git `aa6dd84`, collection
-`sec_filings_openai_large_dense_baseline` (2811 points, frozen HTML
-pipeline):
+**Reference measurement** — `2026-08-19`, git `73faf5f`, collection
+`sec_filings_openai_large_dense_baseline` (3154 points, frozen HTML
+pipeline). Taken after re-ingesting all five dataset tickers with the
+10-K/A amendment fix (PR #64/#66) — the earlier ingests of AMD and TSLA
+had picked up amendments instead of the original 10-K filings:
 
 | Scorer | Measured | Margin | `metric_floor` |
 | --- | --- | --- | --- |
-| `header_path_recall_at_5` | 0.85 | −0.20 | 0.65 |
-| `header_path_recall_at_10` | 0.85 | −0.20 | 0.65 |
+| `header_path_recall_at_5` | 0.95 | −0.20 | 0.75 |
+| `header_path_recall_at_10` | 0.95 | −0.20 | 0.75 |
 | `mrr` | 0.80 | −0.20 | 0.60 |
 | `map` | 0.75 | −0.20 | 0.55 |
 

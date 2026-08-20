@@ -25,10 +25,10 @@ column_types:
 scorers:
   - name: header_path_recall_at_5
     function: backend.evals.scenarios.sec_retrieval.scorer.header_path_recall_at_5
-    metric_floor: 0.65
+    metric_floor: 0.75
   - name: header_path_recall_at_10
     function: backend.evals.scenarios.sec_retrieval.scorer.header_path_recall_at_10
-    metric_floor: 0.65
+    metric_floor: 0.75
   - name: mrr
     function: backend.evals.scenarios.sec_retrieval.scorer.mean_reciprocal_rank
     metric_floor: 0.60

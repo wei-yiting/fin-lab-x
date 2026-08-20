@@ -762,8 +762,8 @@ def test_real_sec_retrieval_spec_matches_gate_contract() -> None:
 
     assert config.regression.enabled is True
     expected_floors = {
-        "header_path_recall_at_5": 0.65,
-        "header_path_recall_at_10": 0.65,
+        "header_path_recall_at_5": 0.75,
+        "header_path_recall_at_10": 0.75,
         "mrr": 0.60,
         "map": 0.55,
     }

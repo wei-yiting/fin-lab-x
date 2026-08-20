@@ -12,5 +12,7 @@ reproducible runtime output (runtime outputs under `data/` — e.g. `sec_filings
 `*.db` — are individually gitignored). Never use it as a bulk backup of all traces.
 
 Scope: runtime **traces only**. Experiments and evaluation results are separate
-concepts with their own homes — and unlike logs, experiments are retained
-long-term on the platform, so they need no retention-driven archival.
+concepts with their own homes — curated experiment results live in
+`data/experiment-archives/` (see the **Experiment Archive** entry in `CONTEXT.md`) — and
+unlike logs, experiments are retained long-term on the platform, so they need no
+retention-driven archival.

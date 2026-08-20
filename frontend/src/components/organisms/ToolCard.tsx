@@ -43,9 +43,7 @@ export function ToolCard({ toolPart, isAborted, progressText }: ToolCardProps) {
       : null;
 
   return (
-    // D22: aria-hidden so screen readers skip the visual tool card —
-    // LiveStatusAnnouncer announces tool transitions textually instead.
-    <Collapsible aria-hidden="true">
+    <Collapsible>
       <div
         data-testid="tool-card"
         data-tool-call-id={toolPart.toolCallId}

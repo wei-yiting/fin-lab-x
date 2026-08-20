@@ -5,7 +5,7 @@ regression:
   enabled: true
 
 task:
-  function: backend.evals.eval_tasks.run_baseline
+  function: backend.evals.eval_tasks.run_profile
 
 column_mapping:
   prompt: input

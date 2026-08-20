@@ -36,7 +36,7 @@ interface AssistantMessageProps {
   isStreaming: boolean;
   abortedTools: Set<string>;
   toolProgress: Record<string, string>;
-  /** The user stopped this turn (DEV-109 ruling 11) — gates Regenerate off,
+  /** The user stopped this turn — gates Regenerate off,
    * since the backend never finalized this turn's AIMessage. */
   interrupted?: boolean;
   /** Present only when Regenerate may render: MessageList passes it for the
@@ -211,7 +211,7 @@ export const AssistantMessage = memo(function AssistantMessage({
         checkpoint, which only holds a finalized AIMessage for a turn that
         ran to completion — so an interrupted turn 422s no matter how much
         answer text reached the client. `interrupted` is the turn-level
-        record (DEV-109 ruling 11), captured unconditionally on every Stop.
+        record, captured unconditionally on every Stop.
         The last-message + status=ready visibility rule lives in MessageList,
         which only passes onRegenerate when both hold.
       */}

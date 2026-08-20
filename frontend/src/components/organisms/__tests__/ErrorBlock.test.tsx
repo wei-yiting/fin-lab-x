@@ -88,7 +88,7 @@ describe("ErrorBlock", () => {
     expect(screen.queryByTestId("stream-error-block")).not.toBeInTheDocument();
   });
 
-  test('outer container carries role="alert" so screen readers interrupt and announce errors (D22)', () => {
+  test('outer container carries role="alert" so screen readers interrupt and announce errors', () => {
     render(
       <ErrorBlock
         friendly={{ title: "Server error.", retriable: false }}

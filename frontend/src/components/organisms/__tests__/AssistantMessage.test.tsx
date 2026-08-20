@@ -266,6 +266,25 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     );
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
   });
+
+  // Regenerate replays the turn from the backend's checkpoint, which only
+  // holds a finalized AIMessage for turns that ran to completion — the
+  // turn-level `interrupted` flag gates the button off even when every part
+  // in the message already reads "done", the case an abort mid-flight
+  // (streaming part states) does not cover.
+  test("interrupted turn hides Regenerate even when every part reads complete", () => {
+    render(
+      <AssistantMessage
+        message={baseMsg}
+        isStreaming={false}
+        interrupted
+        abortedTools={new Set()}
+        toolProgress={{}}
+        onRegenerate={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
 });
 
 describe("AssistantMessage — reasoning chips", () => {

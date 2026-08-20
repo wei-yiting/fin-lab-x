@@ -313,7 +313,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
       { timeout: 10000 },
     );
 
-    // Turn-level marker (DEV-109 ruling 11): every user Stop leaves an
+    // Turn-level marker: every user Stop leaves an
     // explicit "Interrupted" row under the cut turn.
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
     expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
@@ -753,11 +753,85 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
     }
   }, 15000);
 
+  test("Regenerate clears the live region so a second natural completion announces again", async () => {
+    // handleRegenerate must clear the completion flag the same way handleSend
+    // does — otherwise the live region still holds the first turn's
+    // "Response complete" and the second onFinish writes identical text,
+    // which is not a DOM mutation a screen reader would pick up.
+    let call = 0;
+    const regenServer = setupServer(
+      http.post("/api/v1/chat", () => {
+        call += 1;
+        if (call === 1) {
+          return sseResponse(happyStream("a-first", "first answer"));
+        }
+        // Hold the second turn open briefly — a same-tick response would
+        // make the cleared live-region window too transient for `waitFor`
+        // to ever observe before the "finish" text reappears.
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-second" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            await new Promise((r) => setTimeout(r, 300));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "second answer" })),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+    regenServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+
+      await user.click(screen.getByTestId("regenerate-btn"));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+
+      await waitFor(
+        () => {
+          expect(screen.getByText("second answer")).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+    } finally {
+      regenServer.close();
+    }
+  }, 15000);
+
   test("mid-stream SSE error (isError=true) → SR announcer does not say 'Response complete'", async () => {
     // SSE `error` chunk → useChat catches the rethrown error → onFinish
-    // fires with isError=true (isAbort=false). The ChatPanel must NOT
-    // push a "finish" event into lastSSEEvent on this branch, even though
-    // status === "error" routes the announcement to "Response failed".
+    // fires with isError=true (isAbort=false). The ChatPanel must NOT mark
+    // the completion flag on this branch — disconnect and error paths are
+    // announced separately by ErrorBlock's role="alert", not this region.
     // Verifying the negative: announcer never reads "Response complete".
     const errorServer = setupServer(
       http.post("/api/v1/chat", () => {
@@ -811,9 +885,9 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
     // at the fetch layer. In useChat's catch block:
     //     err instanceof TypeError && err.message.includes("fetch")
     // → isError=true AND isDisconnect=true. The ChatPanel must short-circuit
-    // on isDisconnect too — otherwise the "finish" event leaks and
-    // LiveStatusAnnouncer could announce "Response complete" before the
-    // status flips to "error".
+    // on isDisconnect too — otherwise the "finish" event leaks and the
+    // completion announcer region could announce "Response complete" before
+    // the status flips to "error".
     const disconnectServer = setupServer(http.post("/api/v1/chat", () => HttpResponse.error()));
     disconnectServer.listen({ onUnhandledRequest: "bypass" });
 
@@ -904,7 +978,7 @@ describe("ChatPanel integration — reasoning chips golden path", () => {
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Thought for \d+s/);
     expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
 
-    // Post-hoc expand (S-chip-05 user override).
+    // Post-hoc expand: clicking the collapsed header re-opens it via the user override.
     await user.click(screen.getByTestId("reasoning-chip-header"));
     expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("Analyzing the filing");
   }, 15000);
@@ -1126,11 +1200,11 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
       },
       { timeout: 5000 },
     );
-    // Pin the exact displayed duration before the second turn starts — the
-    // regression this locks (DEV-106 review fix) is the timing map being
-    // wiped wholesale on handleSend, which re-freezes this already-completed
-    // chip at 0s. A loose /\d+s/ regex would still pass on "0s", so capture
-    // the literal text and require an exact match after the second send.
+    // Pin the exact displayed duration before the second turn starts — this
+    // guards against the timing map being wiped wholesale on handleSend,
+    // which would re-freeze this already-completed chip at 0s. A loose
+    // /\d+s/ regex would still pass on "0s", so capture the literal text and
+    // require an exact match after the second send.
     const firstHeaderTextBeforeSecondTurn =
       screen.getByTestId("reasoning-chip-header").textContent ?? "";
     expect(firstHeaderTextBeforeSecondTurn).toMatch(/Stopped — thought for [1-9]\d*s/);

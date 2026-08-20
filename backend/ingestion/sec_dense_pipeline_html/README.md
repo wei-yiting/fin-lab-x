@@ -7,10 +7,23 @@ Dense vector retrieval pipeline for SEC 10-K filings. Chunks filing markdown wit
 ```bash
 # 1. Start Qdrant
 docker compose up -d qdrant
+```
 
+```python
 # 2. Search from Python (JIT-ingests on a cache miss — see JIT Ingest Contract below)
+import asyncio
+
 from backend.ingestion.sec_dense_pipeline_html.retriever import search
-chunks = await search(query="NVIDIA export control risks", filters={"ticker": "NVDA"}, top_k=10)
+
+
+async def main() -> None:
+    chunks = await search(
+        query="NVIDIA export control risks", filters={"ticker": "NVDA"}, top_k=10
+    )
+    print(chunks)
+
+
+asyncio.run(main())
 ```
 
 This pipeline is a frozen A/B baseline (deleted whole at sunset — see `backend/README.md`).

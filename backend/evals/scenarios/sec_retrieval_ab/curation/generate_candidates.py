@@ -26,6 +26,7 @@ import json
 import re
 import sys
 import threading
+import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -527,7 +528,10 @@ def _flat_gap_tokens(
 
 
 def generate(limit: int | None) -> list[Candidate]:
-    from openai import OpenAI  # lazy: emit-only runs must not need the key
+    from openai import (
+        OpenAI,
+        RateLimitError,
+    )  # lazy: emit-only runs must not need the key
 
     client = OpenAI(timeout=600, max_retries=2)
     filings = load_filings()
@@ -535,10 +539,27 @@ def generate(limit: int | None) -> list[Candidate]:
     if limit is not None:
         plans = plans[:limit]
 
-    candidates: list[Candidate] = []
-    used_snippets: set[str] = set()
+    # Resume: keep candidates already on disk (a rate-limit crash must not
+    # burn the finished ones) and skip their plans.
+    candidates: list[Candidate] = _load_candidates() if CANDIDATES_JSON.exists() else []
+    done_ids = {c.candidate_id for c in candidates}
+    if done_ids:
+        print(f"resuming: {len(done_ids)} candidates already on disk")
+        plans = [p for p in plans if p.plan_id not in done_ids]
+    used_snippets: set[str] = {
+        ev.snippet.lower() for c in candidates for ev in c.evidences
+    }
     used_by_item: dict[tuple[str, str], list[str]] = {}
+    for c in candidates:
+        for ev in c.evidences:
+            used_by_item.setdefault((c.plan.ticker, ev.item_key), []).append(ev.snippet)
     state_lock = threading.Lock()
+
+    def _flush() -> None:
+        CANDIDATES_JSON.write_text(
+            json.dumps([asdict(c) for c in candidates], indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
 
     def run_plan(plan: Plan) -> Candidate | None:
         filing = _filing_for(filings, plan.ticker)
@@ -573,11 +594,21 @@ def generate(limit: int | None) -> list[Candidate]:
 
         accepted: Candidate | None = None
         for attempt in range(1 + MAX_APP_RETRIES):
-            response = client.chat.completions.create(
-                model=MODEL_ID,
-                messages=messages,
-                response_format=RESPONSE_SCHEMA,
-            )
+            for backoff in range(8):
+                try:
+                    response = client.chat.completions.create(
+                        model=MODEL_ID,
+                        messages=messages,
+                        response_format=RESPONSE_SCHEMA,
+                    )
+                    break
+                except RateLimitError:
+                    wait = min(60, 10 * (backoff + 1))
+                    print(f"[429]  {plan.plan_id}: waiting {wait}s", flush=True)
+                    time.sleep(wait)
+            else:
+                print(f"[DROP] {plan.plan_id} (rate limit exhausted)", flush=True)
+                return None
             content = response.choices[0].message.content
             if content is None:
                 raise ValueError(f"empty completion for plan {plan.plan_id}")
@@ -670,6 +701,7 @@ def generate(limit: int | None) -> list[Candidate]:
                     ev.snippet
                 )
             candidates.append(accepted)
+            _flush()
         print(
             f"[GEN]  {plan.plan_id} {plan.ticker} {'/'.join(plan.item_keys)} "
             f"{plan.query_type} ({plan.mode}, {plan.role})",
@@ -679,14 +711,10 @@ def generate(limit: int | None) -> list[Candidate]:
 
     from concurrent.futures import ThreadPoolExecutor
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         list(pool.map(run_plan, plans))
     candidates.sort(key=lambda c: (c.plan.role != "primary", c.candidate_id))
-
-    CANDIDATES_JSON.write_text(
-        json.dumps([asdict(c) for c in candidates], indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    _flush()
     print(f"\nwrote {len(candidates)} candidates -> {CANDIDATES_JSON}")
     return candidates
 

@@ -752,12 +752,29 @@ def test_real_language_policy_spec_matches_gate_contract() -> None:
     assert "response_relevance" not in scorer_names
 
 
-def test_real_sec_retrieval_spec_stays_out_of_gate() -> None:
+def test_real_sec_retrieval_spec_matches_gate_contract() -> None:
+    """The floors are pinned because they derive from a recorded reference
+    measurement (see the scenario README and the measurement record under
+    backend/evals/regression/reference_measurements/sec_retrieval/). Any
+    intentional change must go through re-derivation per the recorded
+    derivation (backend/evals/regression/sec_retrieval-metric-floors.md),
+    not an in-place edit."""
     config = load_scenario_config(
         REAL_SCENARIOS_DIR / "sec_retrieval" / "eval_spec.yaml"
     )
 
-    assert config.regression.enabled is False
+    assert config.regression.enabled is True
+    expected_floors = {
+        "header_path_recall_at_5": 0.75,
+        "header_path_recall_at_10": 0.75,
+        "mrr": 0.60,
+        "map": 0.55,
+    }
+    assert {s.name for s in config.scorers} == set(expected_floors)
+    for scorer in config.scorers:
+        assert scorer.type is None
+        assert scorer.gate is True
+        assert scorer.metric_floor == expected_floors[scorer.name]
 
 
 def test_real_on_target_company_spec_matches_gate_contract() -> None:

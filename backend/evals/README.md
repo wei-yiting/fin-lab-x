@@ -26,13 +26,16 @@ ADR-0016. Burns real LLM/API calls; deliberately kept out of CI (a manual pre-me
 behind the `eval` marker on top of the `backend/evals/regression/` path exclusion so a bare
 `pytest backend/` never touches it by accident.
 
-Floors catch **collapse**, not slow **erosion** — a scorer's `metric_floor` carries margin
-deliberately wide enough to absorb normal measurement noise. Catching a quality trend that is
-slowly eroding but hasn't collapsed is the Quality Track's job, not the gate's. This is the
-current operating stance, not a permanent ceiling: as a scenario's pipeline or prompt stabilizes
-and more measurement data accumulates, its floor may be tightened. See a scenario's own
-metric-floor decision record (e.g. `regression/sec_retrieval-metric-floors.md`) for the specific
-derivation behind its numbers.
+A floor's margin reflects how settled *that scenario's* own behavior determinants (pipeline,
+prompt, model) currently are — not a single project-wide phase. A scenario whose pipeline or
+prompt is still actively changing keeps a wide margin that catches only **collapse**; trying to
+catch slow **erosion** there would just turn normal development churn into false reds. A scenario
+that has already stabilized can tighten its floor to also guard against erosion right now,
+independently of where any other scenario sits on the same spectrum — maturity is judged per
+scenario, not on a shared timeline. Erosion a scenario's floor doesn't yet cover is the Quality
+Track's job in the meantime. See a scenario's own metric-floor decision record (e.g.
+`regression/sec_retrieval-metric-floors.md`) for the specific derivation and current margin
+behind its numbers.
 
 ```bash
 # Run the gate (only enabled scenarios execute; the rest report SKIPPED instantly)

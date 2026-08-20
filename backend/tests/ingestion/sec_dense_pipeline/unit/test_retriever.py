@@ -152,6 +152,20 @@ def test_point_to_chunk_raises_keyerror_on_missing_ingested_at():
         _point_to_chunk(point)
 
 
+@pytest.mark.parametrize("field", ["block_heading", "prelude"])
+def test_point_to_chunk_raises_keyerror_on_missing_nullable_field(field):
+    """block_heading and prelude are written onto every payload by
+    build_chunk_payloads (their value is legitimately None on plenty of
+    chunks, but the key itself is always present). A point missing the key
+    entirely is vector-store corruption distinct from a present key holding
+    None, so it must raise KeyError like every other required Chunk field
+    instead of silently collapsing both states into the same None."""
+    point = _make_point()
+    del point.payload[field]
+    with pytest.raises(KeyError):
+        _point_to_chunk(point)
+
+
 # --- _ensure_ingested: cache_hit return value, asserted directly ---
 
 
@@ -844,6 +858,42 @@ async def test_search_maps_missing_ingested_at_to_corpus_unavailable():
     Chunk with ingested_at silently defaulted to an empty string."""
     point = _make_point()
     del point.payload["ingested_at"]
+    client = _mock_client(points=[point])
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
+            return_value=client,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
+            new=AsyncMock(),
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
+            new=AsyncMock(return_value=[[0.1] * 3072]),
+        ),
+    ):
+        with pytest.raises(CorpusUnavailableError):
+            await search(
+                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+            )
+
+
+@pytest.mark.parametrize("field", ["block_heading", "prelude"])
+@pytest.mark.asyncio
+async def test_search_maps_missing_nullable_field_to_corpus_unavailable(field):
+    """block_heading and prelude are written onto every payload at chunk-build
+    time (see chunking.build_chunk_payloads) — a point missing the key
+    represents vector-store corruption, not a legitimate None value, so it
+    must surface the same way as any other missing required field:
+    CorpusUnavailableError, never a Chunk silently built with the key's
+    absence and its stored-None value treated as the same thing."""
+    point = _make_point()
+    del point.payload[field]
     client = _mock_client(points=[point])
     with (
         patch(

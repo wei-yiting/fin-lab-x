@@ -2,9 +2,22 @@
 
 How a `metric_floor` gets its number. Applies to every scenario with
 `regression.enabled: true`; the gate mechanics themselves are governed by
-ADR-0008 (declaration contract) and ADR-0015 (absence semantics).
+ADR-0008 (declaration contract) and ADR-0016 (absence semantics).
 
-## Derivation
+## Classify the gate first
+
+Derivation depends on what the gate monitors:
+
+- **Correctness gates** — behavior that must never be wrong (e.g.
+  `language_policy`'s language discipline). The floor is the ADR-0008
+  strict default `1.0`, taken implicitly by writing no `metric_floor`
+  keys. It is a contract default, not a measured floor — no reference
+  measurement is involved or required.
+- **Quality gates** — metrics measuring degrees of quality (e.g.
+  `sec_retrieval`'s recall/MRR/MAP). Floors MUST derive from a recorded
+  reference measurement. Everything below applies to this class.
+
+## Derivation (quality gates)
 
 Floors derive from a recorded **reference measurement** (see `CONTEXT.md`),
 never from aspirational targets:

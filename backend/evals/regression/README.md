@@ -11,6 +11,6 @@ profile selection and single-case debugging).
 | --- | --- |
 | `test_regression.py` | Pytest wrapper: discovers enabled scenarios, runs each through the unified profile path, asserts the gate verdict |
 | `conftest.py` | Eval-marker wiring and `EVAL_PROFILE` resolution (read only here) |
-| `verdict.py` | Gate evaluation: aggregates per-case scores per gated scorer and compares against each `metric_floor` (semantics: ADR-0008, ADR-0015) |
+| `verdict.py` | Gate evaluation: aggregates per-case scores per gated scorer and compares against each `metric_floor` (semantics: ADR-0008, ADR-0016) |
 | `metric-floor-policy.md` | How floor numbers are derived and recorded: formula, margin rationale, measurement count, gate membership, re-derivation triggers |
 | `reference_measurements/<scenario>/` | The recorded reference measurements backing each scenario's floors — one dated `.md` record + raw per-case `.csv` per measurement |

@@ -26,6 +26,17 @@ ADR-0016. Burns real LLM/API calls; deliberately kept out of CI (a manual pre-me
 behind the `eval` marker on top of the `backend/evals/regression/` path exclusion so a bare
 `pytest backend/` never touches it by accident.
 
+A floor's margin reflects how settled *that scenario's* own behavior determinants (pipeline,
+prompt, model) currently are — not a single project-wide phase. A scenario whose pipeline or
+prompt is still actively changing keeps a wide margin that catches only **collapse**; trying to
+catch slow **erosion** there would just turn normal development churn into false reds. A scenario
+that has already stabilized can tighten its floor to also guard against erosion right now,
+independently of where any other scenario sits on the same spectrum — maturity is judged per
+scenario, not on a shared timeline. Erosion a scenario's floor doesn't yet cover is the Quality
+Track's job in the meantime. See a scenario's own metric-floor decision record (e.g.
+`regression/sec_retrieval-metric-floors.md`) for the specific derivation and current margin
+behind its numbers.
+
 ```bash
 # Run the gate (only enabled scenarios execute; the rest report SKIPPED instantly)
 uv run pytest backend/evals/regression/ -m eval
@@ -181,12 +192,13 @@ scenarios/
 |------|------|
 | `conftest.py` | pytest fixtures for eval-path tests. |
 | `results/` | Output directory for result CSVs (git-ignored). |
+| `regression/` | The Regression Suite gate itself — wrapper, verdict logic, and per-scenario metric-floor decision records. See [regression/README.md](./regression/README.md) for its internal layout. |
 
 ### Design guidelines
 
 - Prefer programmatic scorers when checks are structurally decidable.
 - Use LLM-as-judge only when semantic judgment is required.
-- Keep regression-suite tests (`test_*.py`) compact and stable — they are not the vehicle for broad quality analysis.
+- Keep the regression-suite wrapper (`regression/test_regression.py`) compact and stable — it is not the vehicle for broad quality analysis. Gate membership is declared per scenario in `eval_spec.yaml`, not in separate `test_*.py` files.
 
 ## Eval Spec YAML Schema
 
@@ -279,6 +291,21 @@ graph TD
 3. Add/update task functions in `backend/evals/eval_tasks.py`.
 4. Add/update scoring functions in `backend/evals/scenarios/<scenario_name>/scorer.py`.
 5. Run `uv run python -m backend.evals.eval_runner <scenario_name>`.
+
+### Add a scenario to the regression gate
+
+Gate membership is a spec-only change — no separate test file needed; the `regression/`
+wrapper auto-collects any scenario declaring `regression.enabled: true`.
+
+1. In the scenario's `eval_spec.yaml`, add a `regression:` block: `enabled: true`.
+2. Per scorer, `gate` and `metric_floor` default to the fail-safe values (`true` / `1.0` —
+   every case must pass). Leave them at the default for binary pass/fail scorers.
+3. If a scorer measures a degree of quality rather than pass/fail correctness (recall, MRR,
+   a graded rubric), a `1.0` floor is meaningless — derive a measured floor instead and
+   record how, following the pattern in `regression/sec_retrieval-metric-floors.md` (a
+   worked example, not a repo-wide formula — each scenario's measurement noise is its own).
+4. Run `uv run pytest backend/evals/regression/ -m eval -k "<scenario_name>"` to confirm the
+   new gate item is collected and passes.
 
 ### Separation rule (important)
 

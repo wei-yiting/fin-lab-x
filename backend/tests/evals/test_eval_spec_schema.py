@@ -756,8 +756,9 @@ def test_real_sec_retrieval_spec_matches_gate_contract() -> None:
     """The floors are pinned because they derive from a recorded reference
     measurement (see the scenario README and the measurement record under
     backend/evals/regression/reference_measurements/sec_retrieval/). Any
-    intentional change must go through re-derivation per the metric floor
-    policy, not an in-place edit."""
+    intentional change must go through re-derivation per the recorded
+    derivation (backend/evals/regression/sec_retrieval-metric-floors.md),
+    not an in-place edit."""
     config = load_scenario_config(
         REAL_SCENARIOS_DIR / "sec_retrieval" / "eval_spec.yaml"
     )

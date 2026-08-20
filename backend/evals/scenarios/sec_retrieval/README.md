@@ -27,7 +27,7 @@ dataset, and expire on retriever cutover or dataset replacement — DEV-164
 re-measures and re-derives them.
 How the numbers were derived — and the recorded reference measurement
 backing them (setup, per-case results, raw run CSV, expiry conditions) —
-lives with the Regression Suite: `../../regression/metric-floor-policy.md`
+lives with the Regression Suite: `../../regression/sec_retrieval-metric-floors.md`
 and `../../regression/reference_measurements/sec_retrieval/`.
 
 Key notes for dataset maintenance:

@@ -14,7 +14,6 @@ from qdrant_client import QdrantClient, models
 
 from backend.common.errors import TransientError
 from backend.ingestion.sec_dense_pipeline.common import (
-    check_commit_marker_complete,
     commit_marker_id,
     marker_status_condition,
 )
@@ -89,7 +88,6 @@ async def test_ingest_writes_full_payload_and_completes_marker(
     assert item7_leading and all(p["prelude"] is None for p in item7_leading)
 
     assert _marker_status(qdrant_client, "AAPL", 2024) == "complete"
-    assert check_commit_marker_complete(qdrant_client, TEST_COLLECTION, "AAPL", 2024)
 
 
 @pytest.mark.integration
@@ -106,13 +104,10 @@ async def test_mid_ingest_failure_is_absent_to_readers(
         with pytest.raises(TransientError):
             await ingest_filing(toy_filing)
 
-    # Committed or absent: no content points, marker stuck at pending,
-    # retrieval-side check treats the filing as not ingested.
+    # Committed or absent: no content points, marker stuck at pending — the
+    # retrieval side treats anything but "complete" as not ingested.
     assert _content_count(qdrant_client) == 0
     assert _marker_status(qdrant_client, "AAPL", 2024) == "pending"
-    assert not check_commit_marker_complete(
-        qdrant_client, TEST_COLLECTION, "AAPL", 2024
-    )
 
 
 @pytest.mark.integration
@@ -139,11 +134,11 @@ async def test_empty_filing_raises_and_leaves_no_trace(
     with pytest.raises(EmptyIngestError):
         await ingest_filing(empty_filing)
 
-    # No mutation happened at all: the collection was never even created.
+    # No mutation happened at all: the collection was never even created
+    # (async_check_commit_marker_complete itself requires an existing collection
+    # to check — it is always called downstream of
+    # async_ensure_collection_and_indexes() in the real search() flow).
     assert not qdrant_client.collection_exists(TEST_COLLECTION)
-    assert not check_commit_marker_complete(
-        qdrant_client, TEST_COLLECTION, "AAPL", 2024
-    )
 
 
 @pytest.mark.integration
@@ -169,9 +164,6 @@ async def test_wipe_before_rerun_clears_chunks_and_resets_marker(
 
     assert _content_count(qdrant_client) == 0
     assert _marker_status(qdrant_client, "AAPL", 2024) == "pending"
-    assert not check_commit_marker_complete(
-        qdrant_client, TEST_COLLECTION, "AAPL", 2024
-    )
 
 
 @pytest.mark.integration

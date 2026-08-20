@@ -1,0 +1,3 @@
+candidate_id,in_draft,ticker,items,query_type,generation_mode,question,snippet_preview,approved,reviewer_comment
+p02,yes,DDOG,1a,multi_passage,passage_first,Which European operational resilience and AI rules affect Datadog?,"If we fail to materially comply with these contractual requirements, we may be s",,
+p03,yes,LLY,1a,multi_passage,passage_first,Trulicity patent expiry and manufacturing scale-up timing risks,"For example, Trulicity will lose significant patent and remaining data protectio",,

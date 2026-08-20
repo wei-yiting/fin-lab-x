@@ -131,9 +131,7 @@ def _item_label(item: StructuredItem | FlatItem) -> str:
     return f"Item {item.item.strip().upper()}. {item.title}"
 
 
-def _find_item(
-    filing: ParsedFiling, item_key: str
-) -> StructuredItem | FlatItem | None:
+def _find_item(filing: ParsedFiling, item_key: str) -> StructuredItem | FlatItem | None:
     for item in filing.items:
         if item.item.strip().lower() == item_key:
             return item
@@ -315,17 +313,14 @@ def _check_multi_passage_placement(
                         Issue(
                             row.row_id,
                             "multi_passage_same_block",
-                            f"spans {i} and {j} share one block of "
-                            f"Item {a.item_key}",
+                            f"spans {i} and {j} share one block of Item {a.item_key}",
                         )
                     )
                 continue
             filing = filings[(a.ticker, a.fiscal_year)]
             item = _find_item(filing, a.item_key)
             assert isinstance(item, FlatItem)
-            first, second = sorted(
-                (a, b), key=lambda entry: entry.flat_char_pos
-            )
+            first, second = sorted((a, b), key=lambda entry: entry.flat_char_pos)
             gap_start = first.flat_char_pos + len(first.span)
             gap_text = item.text[gap_start : second.flat_char_pos]
             if second.flat_char_pos < gap_start or (

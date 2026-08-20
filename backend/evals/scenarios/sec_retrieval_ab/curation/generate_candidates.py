@@ -25,6 +25,7 @@ import argparse
 import json
 import re
 import sys
+import threading
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -536,8 +537,9 @@ def generate(limit: int | None) -> list[Candidate]:
     candidates: list[Candidate] = []
     used_snippets: set[str] = set()
     used_by_item: dict[tuple[str, str], list[str]] = {}
+    state_lock = threading.Lock()
 
-    for plan in plans:
+    def run_plan(plan: Plan) -> Candidate | None:
         filing = _filing_for(filings, plan.ticker)
         assert filing is not None
         meta = filing.metadata
@@ -553,20 +555,18 @@ def generate(limit: int | None) -> list[Candidate]:
             key: next(i.title for i in filing.items if i.item.strip().lower() == key)
             for key in plan.item_keys
         }
+        with state_lock:
+            snapshot = [
+                s
+                for key in plan.item_keys
+                for s in used_by_item.get((plan.ticker, key), [])
+            ]
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
-                "content": build_user_prompt(
-                    plan,
-                    items,
-                    [
-                        s
-                        for key in plan.item_keys
-                        for s in used_by_item.get((plan.ticker, key), [])
-                    ],
-                ),
+                "content": build_user_prompt(plan, items, snapshot),
             },
         ]
 
@@ -618,9 +618,10 @@ def generate(limit: int | None) -> list[Candidate]:
                         snippet=snippet,
                     )
                 )
-            reasons = index_errors + check_candidate(
-                plan, payload["query"], evidences, filings, used_snippets
-            )
+            with state_lock:
+                reasons = index_errors + check_candidate(
+                    plan, payload["query"], evidences, filings, used_snippets
+                )
             if not reasons:
                 accepted = Candidate(
                     candidate_id=plan.plan_id,
@@ -650,17 +651,35 @@ def generate(limit: int | None) -> list[Candidate]:
             print(f"[retry {attempt + 1}] {plan.plan_id}: {reasons}", flush=True)
 
         if accepted is None:
-            print(f"[DROP] {plan.plan_id} ({plan.ticker} {plan.item_keys})")
-            continue
-        candidates.append(accepted)
-        for ev in accepted.evidences:
-            used_snippets.add(ev.snippet.lower())
-            used_by_item.setdefault((plan.ticker, ev.item_key), []).append(ev.snippet)
+            print(f"[DROP] {plan.plan_id} ({plan.ticker} {plan.item_keys})", flush=True)
+            return None
+        with state_lock:
+            # Re-check uniqueness against rows accepted while this one was in
+            # flight, then claim the snippets atomically.
+            clash = any(
+                ev.snippet.lower() in used_snippets for ev in accepted.evidences
+            )
+            if clash:
+                print(f"[DROP] {plan.plan_id} (post-flight snippet clash)", flush=True)
+                return None
+            for ev in accepted.evidences:
+                used_snippets.add(ev.snippet.lower())
+                used_by_item.setdefault((plan.ticker, ev.item_key), []).append(
+                    ev.snippet
+                )
+            candidates.append(accepted)
         print(
             f"[GEN]  {plan.plan_id} {plan.ticker} {'/'.join(plan.item_keys)} "
             f"{plan.query_type} ({plan.mode}, {plan.role})",
             flush=True,
         )
+        return accepted
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        list(pool.map(run_plan, plans))
+    candidates.sort(key=lambda c: (c.plan.role != "primary", c.candidate_id))
 
     CANDIDATES_JSON.write_text(
         json.dumps([asdict(c) for c in candidates], indent=2, ensure_ascii=False),

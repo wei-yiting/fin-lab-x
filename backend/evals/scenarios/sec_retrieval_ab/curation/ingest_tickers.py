@@ -25,7 +25,7 @@ from backend.common.errors import FinLabError
 # helper: the public parse path requires an explicit year, and duplicating
 # the "latest 10-K period_of_report" lookup here would just drift. Read-only
 # use from a one-shot curation script; not part of the frozen data contract.
-from backend.common.sec_core import FilingType, _resolve_latest_fiscal_year
+from backend.common.sec_core import _resolve_latest_fiscal_year
 from backend.ingestion.sec_text_pipeline.filing_models import (
     ParsedFiling,
     StructuredItem,
@@ -98,11 +98,7 @@ def main() -> int:
     for ticker, filing in sorted(parsed.items()):
         cells = []
         for item in filing.items:
-            path = (
-                item.detection_source
-                if isinstance(item, StructuredItem)
-                else "flat"
-            )
+            path = item.detection_source if isinstance(item, StructuredItem) else "flat"
             path_totals[path] += 1
             cells.append(f"{item.item}:{path}")
         print(f"{ticker:6} {' '.join(cells)}")

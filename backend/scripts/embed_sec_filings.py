@@ -25,10 +25,12 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
+from backend.common.sec_core import resolve_latest_fiscal_year  # noqa: E402
 from backend.ingestion.sec_dense_pipeline.vectorizer import (  # noqa: E402
     ingest_filing_with_retry,
+)
+from backend.ingestion.sec_text_pipeline.parser import (  # noqa: E402
     parse_filing_with_retry,
-    resolve_latest_fiscal_year_with_retry,
 )
 
 
@@ -77,9 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         resolved_fiscal_year: int | None = args.fiscal_year
         try:
             if resolved_fiscal_year is None:
-                resolved_fiscal_year = resolve_latest_fiscal_year_with_retry(
-                    ticker_upper
-                )
+                resolved_fiscal_year = resolve_latest_fiscal_year(ticker_upper)
             asyncio.run(_parse_and_ingest(ticker_upper, resolved_fiscal_year))
             results.append(
                 {

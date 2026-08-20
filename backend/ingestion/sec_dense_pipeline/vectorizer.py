@@ -28,9 +28,9 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from qdrant_client import AsyncQdrantClient, models
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
-from backend.common.errors import TransientError
+from backend.common.errors import FinLabError, TransientError
 from backend.common.retry import retry_transient
-from backend.common.sec_core import SECError, _resolve_latest_fiscal_year
+from backend.common.sec_core import SECError
 from backend.ingestion.sec_dense_pipeline.chunking import (
     build_chunk_payloads,
     chunk_point_id,
@@ -39,12 +39,12 @@ from backend.ingestion.sec_dense_pipeline.collection_schema import (
     async_ensure_collection_and_indexes,
 )
 from backend.ingestion.sec_dense_pipeline.common import (
+    EmbeddingServiceError,
     canonicalize_ticker,
     commit_marker_id,
     marker_status_condition,
 )
 from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
-from backend.ingestion.sec_text_pipeline.parser import parse_filing
 
 # Fixed embedding configuration — not runtime knobs: the A/B experiment
 # holds the embedding model constant across both pipelines, and changing the
@@ -158,7 +158,16 @@ async def ingest_filing(filing: ParsedFiling) -> None:
         for payload in payloads:
             payload["ingested_at"] = ingested_at
 
-        embeddings = await _embed_texts([p["text"] for p in payloads])
+        try:
+            embeddings = await _embed_texts([p["text"] for p in payloads])
+        except FinLabError:
+            raise
+        except Exception as e:
+            # Same taxonomy label as the retriever's query-embed step: an
+            # embedding-provider failure is an embedding failure wherever it
+            # happens, never corpus unavailability (and never a raw SDK
+            # exception for search()'s generic handler to mislabel).
+            raise EmbeddingServiceError(f"Embedding failed during ingest: {e}") from e
 
         points = [
             models.PointStruct(
@@ -193,101 +202,22 @@ async def ingest_filing(filing: ParsedFiling) -> None:
 
 
 @retry_transient
-def parse_filing_with_retry(
-    ticker: str, fiscal_year: int, force: bool = False
-) -> ParsedFiling:
-    """``parse_filing`` with a single retry on ``TransientError``.
-
-    The JIT and batch-ingest callers are the first production users of
-    ``retry_transient`` (ADR-0013) — the EDGAR fetch inside ``parse_filing``
-    is the one genuinely retryable step in the cold path. Wraps the sync
-    ``parse_filing`` directly; async callers run this via
-    ``asyncio.to_thread``.
-    """
-    return parse_filing(ticker, fiscal_year, force)
-
-
-@retry_transient
-def resolve_latest_fiscal_year_with_retry(ticker: str) -> int:
-    """``_resolve_latest_fiscal_year`` with a single retry on ``TransientError``.
-
-    Latest-year resolution is itself an EDGAR metadata call (see
-    :func:`backend.common.sec_core._resolve_latest_fiscal_year`) and can
-    raise ``TransientError`` on a 5xx blip, exactly like ``parse_filing``.
-    The JIT retriever and the batch script both resolve an omitted fiscal
-    year through this wrapper instead of calling the unretried resolver
-    directly, so the cold path's single-retry policy (design-envelope §2)
-    covers this EDGAR call too.
-    """
-    return _resolve_latest_fiscal_year(ticker)
-
-
-# Qdrant's default REST transport (qdrant_client.http.api_client.ApiClient
-# .send_inner / AsyncApiClient.send_inner, verified against the installed
-# 1.17.1 package) wraps every exception the underlying httpx client raises
-# while sending a request — including connection, timeout, and protocol
-# failures — into ResponseHandlingException(source=original_exc) before it
-# can reach caller code. A bare `except httpx.ConnectError` etc. here would
-# therefore be unreachable: this tuple is what ResponseHandlingException
-# .source is checked against instead.
-#
-# httpx's own exception hierarchy (the module docstring in the installed
-# 0.28.1 package's _exceptions.py) groups TimeoutException, NetworkError,
-# and ProtocolError as sibling branches under the common TransportError —
-# all three mean "no usable request/response cycle completed," as opposed
-# to the separate DecodingError branch ("a response was received but
-# couldn't be decoded"). httpx.RemoteProtocolError (a ProtocolError
-# subclass) fires when a connection breaks mid-response-stream — the peer
-# closed the connection before finishing sending the body — which is a
-# transport-level reliability failure, not a schema/content one. Qdrant
-# ingest here uses deterministic point IDs with wipe-before-upsert, so a
-# retry after a mid-stream disconnect is safe.
-#
-# httpx.LocalProtocolError (the other ProtocolError subclass) is
-# deliberately excluded: it represents client-side protocol misuse — a real
-# bug in how the request was built — which retrying will not fix.
-_TRANSIENT_SOURCE_TYPES = (
-    httpx.TimeoutException,
-    httpx.NetworkError,
-    httpx.RemoteProtocolError,
-)
-
-
-@retry_transient
 async def ingest_filing_with_retry(filing: ParsedFiling) -> None:
-    """``ingest_filing`` with a single retry on transient Qdrant failures.
+    """``ingest_filing`` with a single blanket retry on Qdrant-side failures.
 
-    ``ingest_filing`` itself deliberately carries no retry wrapper — the
-    embedding client already retries transient OpenAI failures internally,
-    and wrapping the whole call would double up on that (the stacked-retry
-    anti-pattern ADR-0013 exists to rule out). This wrapper targets Qdrant-
-    side failure surfaces that ``ingest_filing`` does not classify itself:
-
-    - ``ResponseHandlingException``: Qdrant's REST transport wraps *both*
-      connection/timeout/protocol failures and successful-response schema
-      validation failures (a wrapped ``pydantic.ValidationError``) in this
-      same exception type. Only the former is retryable — a validation
-      failure means the response was received but doesn't match the
-      expected shape, a permanent problem retrying cannot fix — so
-      ``exc.source`` is inspected and only transport-shaped causes
-      (``_TRANSIENT_SOURCE_TYPES``) are reclassified as ``TransientError``;
-      anything else (e.g. a wrapped ``ValidationError``) propagates
-      unchanged.
-    - ``UnexpectedResponse``: an HTTP error status from Qdrant. Only 5xx
-      (server-side) is retried; 4xx propagates unchanged as a permanent
-      failure (bad request shape, not a transient blip).
-
-    Everything else (e.g. ``EmptyIngestError``) propagates unchanged on the
-    first attempt.
+    qdrant-client wraps every transport error (connection, timeout,
+    protocol) into ``ResponseHandlingException`` and ships zero built-in
+    retry, so any such exception gets one blanket retry (single retry per
+    design-envelope §2) — a permanent failure wasting that one retry is an
+    accepted cost of not maintaining a wrapped-source-type taxonomy.
+    ``UnexpectedResponse`` retries on 5xx only; 4xx and everything else
+    (``EmptyIngestError``, ``EmbeddingServiceError``) propagates unchanged
+    on the first attempt.
     """
     try:
         await ingest_filing(filing)
     except ResponseHandlingException as exc:
-        if isinstance(exc.source, _TRANSIENT_SOURCE_TYPES):
-            raise TransientError(
-                f"Qdrant connection failure during ingest: {exc}"
-            ) from exc
-        raise
+        raise TransientError(f"Qdrant transport failure during ingest: {exc}") from exc
     except UnexpectedResponse as exc:
         if exc.status_code is not None and 500 <= exc.status_code < 600:
             raise TransientError(f"Qdrant server error during ingest: {exc}") from exc

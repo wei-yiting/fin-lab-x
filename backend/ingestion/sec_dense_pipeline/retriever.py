@@ -23,11 +23,12 @@ from qdrant_client import AsyncQdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from backend.common.errors import FinLabError
-from backend.common.sec_core import SECError
+from backend.common.sec_core import SECError, resolve_latest_fiscal_year
 from backend.ingestion.sec_dense_pipeline.collection_schema import (
     async_ensure_collection_and_indexes,
 )
 from backend.ingestion.sec_dense_pipeline.common import (
+    EmbeddingServiceError,
     async_check_commit_marker_complete,
     canonicalize_ticker,
     marker_status_condition,
@@ -37,9 +38,8 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import (
     _EMBED_DIM,
     get_collection_name,
     ingest_filing_with_retry,
-    parse_filing_with_retry,
-    resolve_latest_fiscal_year_with_retry,
 )
+from backend.ingestion.sec_text_pipeline.parser import parse_filing_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -96,10 +96,6 @@ class IngestionInProgressError(SECError):
     """A JIT ingest for this (ticker, fiscal_year) is already running in
     this process. Envelope §1 concurrent-JIT resolution: legible rejection,
     not coalescing or waiting."""
-
-
-class EmbeddingServiceError(SECError):
-    """Query embedding failed."""
 
 
 class CorpusUnavailableError(SECError):
@@ -209,31 +205,17 @@ def _point_to_chunk(point: models.ScoredPoint) -> Chunk:
     ``models.ScoredPoint.payload`` is typed ``dict[str, Any] | None`` by
     qdrant-client (verified against the installed 1.17.1 package) — Qdrant
     does not guarantee every point carries a payload. Raises ``ValueError``
-    (not a bare ``TypeError``/``KeyError``) on a missing payload, and lets
+    (not a bare ``TypeError``) on a missing payload, and lets
     ``pydantic.ValidationError`` (itself a ``ValueError`` subclass) surface
-    when the payload doesn't match :class:`Chunk`'s shape — both are caught
-    by the caller and mapped to :class:`CorpusUnavailableError`.
+    when the payload doesn't match :class:`Chunk`'s shape — missing or
+    wrong-typed required fields alike; extra payload keys are ignored
+    (pydantic v2 default) — both are caught by the caller and mapped to
+    :class:`CorpusUnavailableError`.
     """
     payload = point.payload
     if payload is None:
         raise ValueError(f"Qdrant point {point.id!r} has no payload")
-    return Chunk(
-        ticker=payload["ticker"],
-        fiscal_year=payload["fiscal_year"],
-        filing_date=payload["filing_date"],
-        filing_type=payload["filing_type"],
-        accession_number=payload["accession_number"],
-        cik=payload["cik"],
-        primary_document=payload["primary_document"],
-        item=payload["item"],
-        block_heading=payload["block_heading"],
-        prelude=payload["prelude"],
-        header_path=payload["header_path"],
-        chunk_index=payload["chunk_index"],
-        text=payload["text"],
-        ingested_at=payload["ingested_at"],
-        score=point.score,
-    )
+    return Chunk(**payload, score=point.score)
 
 
 async def _ensure_ingested(
@@ -367,7 +349,7 @@ async def search(query: str, filters: SearchFilters, top_k: int = 10) -> list[Ch
 
         if fiscal_year_filter is None:
             resolved_fiscal_year = await asyncio.to_thread(
-                resolve_latest_fiscal_year_with_retry, ticker
+                resolve_latest_fiscal_year, ticker
             )
         else:
             resolved_fiscal_year = fiscal_year_filter
@@ -404,18 +386,16 @@ async def search(query: str, filters: SearchFilters, top_k: int = 10) -> list[Ch
         for point in results.points:
             try:
                 chunks.append(_point_to_chunk(point))
-            except (ValueError, KeyError) as e:
+            except ValueError as e:
                 # _point_to_chunk raises plain ValueError for a missing
-                # payload, lets pydantic.ValidationError (a ValueError
+                # payload and lets pydantic.ValidationError (a ValueError
                 # subclass) through for a payload that doesn't match
-                # Chunk's shape, and raises KeyError for a payload missing
-                # one of Chunk's required fields (e.g. ingested_at) —
-                # catching both exception types here covers all three.
-                # Either way this is malformed vector-store data, not a
+                # Chunk's shape — including missing required fields. Either
+                # way this is malformed vector-store data, not a
                 # caller-input problem, so it must be mapped to
                 # CorpusUnavailableError here, before the except (ValueError,
                 # FinLabError) passthrough below would otherwise let a raw
-                # pydantic.ValidationError or KeyError escape unwrapped.
+                # pydantic.ValidationError escape unwrapped.
                 raise CorpusUnavailableError(
                     f"Malformed Qdrant payload on point {point.id!r}: {e}"
                 ) from e

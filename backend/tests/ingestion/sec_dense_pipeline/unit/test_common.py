@@ -1,4 +1,4 @@
-"""Unit tests for the marker-check helpers in common.py: a Qdrant lookup
+"""Unit test for the marker-check helper in common.py: a Qdrant lookup
 failure must propagate to the caller, never be folded into a False (which
 would look identical to a genuine "not ingested yet" miss).
 
@@ -7,21 +7,13 @@ contract is already covered end-to-end against a real Qdrant instance in
 integration/test_ingest.py and integration/test_search.py.
 """
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
 from backend.ingestion.sec_dense_pipeline.common import (
     async_check_commit_marker_complete,
-    check_commit_marker_complete,
 )
-
-
-def test_check_commit_marker_complete_propagates_retrieve_failure():
-    client = MagicMock()
-    client.retrieve = MagicMock(side_effect=RuntimeError("Qdrant unreachable"))
-    with pytest.raises(RuntimeError, match="Qdrant unreachable"):
-        check_commit_marker_complete(client, "collection", "AAPL", 2024)
 
 
 @pytest.mark.asyncio

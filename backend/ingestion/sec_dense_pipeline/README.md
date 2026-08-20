@@ -10,9 +10,9 @@ shares no code with it — the frozen tree is deleted whole at sunset.
 | --- | --- |
 | `chunking.py` | `build_chunk_payloads(filing)` — pure, per-block token chunking (512/50, boundaries never cross a block) into full payload dicts; global `chunk_index`; deterministic `chunk_point_id`. |
 | `vectorizer.py` | `ingest_filing(filing: ParsedFiling)` — commit-marker lifecycle (`pending` → wipe → embed → upsert → `complete`), OpenAI embeddings, direct `PointStruct` upserts. |
-| `retriever.py` | `search(query, filters, top_k)` — the single JIT query entry point: commit-marker check, in-process concurrency claim, parse/ingest on a miss, then a filtered Qdrant query. See [JIT retrieval](#jit-retrieval-retrieverpy) below. |
+| `retriever.py` | `search(query, filters, top_k)` — the JIT query entry point for the structured-contract pipeline (production consumer switch tracked separately): commit-marker check, in-process concurrency claim, parse/ingest on a miss, then a filtered Qdrant query. See [JIT retrieval](#jit-retrieval-retrieverpy) below. |
 | `collection_schema.py` | Race-safe collection + payload-index bootstrap (`ticker` tenant / `fiscal_year` / `item`). |
-| `common.py` | Marker helpers (`commit_marker_id`, `check_commit_marker_complete`, `marker_status_condition`) + `canonicalize_ticker` — the primitives the retrieval side builds on. |
+| `common.py` | Marker helpers (`commit_marker_id`, `async_check_commit_marker_complete`, `marker_status_condition`) + `canonicalize_ticker` and the shared `EmbeddingServiceError` — the primitives the ingest and retrieval sides build on. |
 
 ## Payload schema (per chunk)
 
@@ -103,13 +103,15 @@ redundant re-ingest.
 | `ValueError` | Bad `top_k`, or a `filters` shape/type rejected by `_validate_filters()` |
 | `JITDisabledError` | `SEC_DISABLE_JIT=1` blocks a genuine marker miss or latest-year resolution |
 | `IngestionInProgressError` | Another in-process JIT ingest already holds this (ticker, fiscal_year) |
-| `EmbeddingServiceError` | Query embedding failed |
+| `EmbeddingServiceError` | Embedding failed — at the query-embed step or inside a JIT ingest |
 | `CorpusUnavailableError` | Qdrant/vector-store failure, including a missing collection |
 | `FinLabError` subclasses (`TickerNotFoundError`, `FilingNotFoundError`, `EmptyFilingError`, etc.) | Propagated unwrapped from `parse_filing`/EDGAR — never swallowed into a generic error |
 
-**Retry boundaries:** `parse_filing_with_retry` and
-`resolve_latest_fiscal_year_with_retry` each carry one `retry_transient`
-retry around their EDGAR call; Qdrant connection/timeout failures and 5xx
-responses get one retry inside `ingest_filing_with_retry` (see
-`vectorizer.py`'s `_TRANSIENT_SOURCE_TYPES`). Embedding relies on the OpenAI
-SDK's own internal retry — no additional wrapper.
+**Retry boundaries:** `parse_filing_with_retry` (in
+`sec_text_pipeline.parser`) and `resolve_latest_fiscal_year` (in
+`backend.common.sec_core`) each carry one `retry_transient` retry around
+their EDGAR call; Qdrant transport failures (`ResponseHandlingException`)
+and 5xx responses get one blanket retry inside `ingest_filing_with_retry`.
+Embedding relies on the OpenAI SDK's own internal retry — no additional
+wrapper; an embedding failure surfaces as `EmbeddingServiceError` from both
+the query-embed and JIT-ingest steps.

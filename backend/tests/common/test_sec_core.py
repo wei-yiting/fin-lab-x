@@ -1,9 +1,10 @@
 import re
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
+from tenacity import wait_none
 
 from backend.common.errors import (
     ConfigurationError,
@@ -26,6 +27,7 @@ from backend.common.sec_core import (
     fetch_filing_obj,
     is_stub_section,
     parse_item_number,
+    resolve_latest_fiscal_year,
     trim_text_to_item_boundary,
 )
 
@@ -611,6 +613,39 @@ def test_resolve_latest_fiscal_year_fpi(mock_edgar):
     mock_edgar["set_filings"]("20-F", [_make_filing("2024-12-31", tenk_cls)])
     with pytest.raises(UnsupportedFilingTypeError):
         _resolve_latest_fiscal_year("TSM")
+
+
+def test_resolve_latest_fiscal_year_public_retries_transient_then_succeeds():
+    calls = {"count": 0}
+
+    def flaky(ticker):
+        calls["count"] += 1
+        if calls["count"] < 2:
+            raise TransientError("EDGAR 5xx")
+        return 2025
+
+    with patch(
+        "backend.common.sec_core._resolve_latest_fiscal_year", side_effect=flaky
+    ):
+        result = resolve_latest_fiscal_year.retry_with(wait=wait_none())("AAPL")
+    assert result == 2025
+    assert calls["count"] == 2
+
+
+def test_resolve_latest_fiscal_year_public_does_not_retry_permanent_failure():
+    calls = {"count": 0}
+
+    def always_not_found(ticker):
+        calls["count"] += 1
+        raise TickerNotFoundError("ZZZZ not found")
+
+    with patch(
+        "backend.common.sec_core._resolve_latest_fiscal_year",
+        side_effect=always_not_found,
+    ):
+        with pytest.raises(TickerNotFoundError):
+            resolve_latest_fiscal_year.retry_with(wait=wait_none())("ZZZZ")
+    assert calls["count"] == 1
 
 
 def test_fetch_filing_obj_cache_key_normalizes_ticker(mock_edgar):

@@ -10,7 +10,7 @@ import pytest
 from qdrant_client import models
 
 from backend.ingestion.sec_dense_pipeline.common import (
-    check_commit_marker_complete,
+    commit_marker_id,
     marker_status_condition,
 )
 from backend.ingestion.sec_dense_pipeline.retriever import (
@@ -25,6 +25,17 @@ from backend.tests.ingestion.sec_dense_pipeline.integration.conftest import (
 )
 
 pytestmark = pytest.mark.integration
+
+
+def _marker_complete(client, ticker: str, fiscal_year: int) -> bool:
+    """Assert marker state via the raw sync qdrant client — the production
+    marker check is async-only and mock-covered in the unit suite."""
+    points = client.retrieve(
+        collection_name=TEST_COLLECTION,
+        ids=[commit_marker_id(ticker, fiscal_year)],
+        with_payload=True,
+    )
+    return bool(points) and points[0].payload["status"] == "complete"
 
 
 def _content_count(client, ticker: str) -> int:
@@ -46,7 +57,7 @@ async def test_hot_path_returns_results_without_parsing(
     clean_collection, mock_openai_embed, toy_filing, qdrant_client
 ):
     await ingest_filing(toy_filing)
-    assert check_commit_marker_complete(qdrant_client, TEST_COLLECTION, "AAPL", 2024)
+    assert _marker_complete(qdrant_client, "AAPL", 2024)
 
     with patch(
         "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry"
@@ -65,7 +76,7 @@ async def test_cold_path_ingests_then_serves_from_the_same_call(
 ):
     # clean_collection already guarantees the collection doesn't exist yet
     # at this point (a stronger, more direct precondition than checking the
-    # marker — check_commit_marker_complete requires an existing collection
+    # marker — async_check_commit_marker_complete requires an existing collection
     # to check, matching how it's always called downstream of
     # async_ensure_collection_and_indexes() in the real search() flow).
     toy = make_toy_filing()
@@ -80,7 +91,7 @@ async def test_cold_path_ingests_then_serves_from_the_same_call(
 
     mock_parse.assert_called_once_with("AAPL", 2024, False)
     assert chunks
-    assert check_commit_marker_complete(qdrant_client, TEST_COLLECTION, "AAPL", 2024)
+    assert _marker_complete(qdrant_client, "AAPL", 2024)
     assert _content_count(qdrant_client, "AAPL") > 0
 
 
@@ -226,4 +237,4 @@ async def test_concurrent_jit_for_same_ticker_year_one_wins_one_gets_legible_err
         first_result = await first_call
 
     assert first_result
-    assert check_commit_marker_complete(qdrant_client, TEST_COLLECTION, "AAPL", 2024)
+    assert _marker_complete(qdrant_client, "AAPL", 2024)

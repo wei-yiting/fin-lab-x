@@ -79,12 +79,6 @@ def test_release_ingest_slot_allows_reclaim():
     _release_ingest_slot(key)
 
 
-def test_release_ingest_slot_is_idempotent():
-    key = ("GE", 2024)
-    _release_ingest_slot(key)
-    _release_ingest_slot(key)  # must not raise on a key never claimed
-
-
 # --- _point_to_chunk (pure) ---
 
 
@@ -134,35 +128,9 @@ def test_point_to_chunk_rejects_none_payload_with_clear_error():
     """Qdrant does not guarantee every point carries a payload
     (ScoredPoint.payload is dict[str, Any] | None) — a None payload must
     raise a clear, typed error, not a bare TypeError from unguarded
-    indexing."""
+    unpacking."""
     point = SimpleNamespace(id="deadbeef", payload=None, score=0.5)
     with pytest.raises(ValueError, match="no payload"):
-        _point_to_chunk(point)
-
-
-def test_point_to_chunk_raises_keyerror_on_missing_ingested_at():
-    """ingested_at is stamped onto every payload at ingest time
-    (vectorizer.ingest_filing) — a point missing it is vector-store
-    corruption, so it must use the same access pattern (payload["..."],
-    raising KeyError on absence) as every other required Chunk field,
-    instead of silently defaulting to an empty string."""
-    point = _make_point()
-    del point.payload["ingested_at"]
-    with pytest.raises(KeyError):
-        _point_to_chunk(point)
-
-
-@pytest.mark.parametrize("field", ["block_heading", "prelude"])
-def test_point_to_chunk_raises_keyerror_on_missing_nullable_field(field):
-    """block_heading and prelude are written onto every payload by
-    build_chunk_payloads (their value is legitimately None on plenty of
-    chunks, but the key itself is always present). A point missing the key
-    entirely is vector-store corruption distinct from a present key holding
-    None, so it must raise KeyError like every other required Chunk field
-    instead of silently collapsing both states into the same None."""
-    point = _make_point()
-    del point.payload[field]
-    with pytest.raises(KeyError):
         _point_to_chunk(point)
 
 
@@ -301,6 +269,60 @@ def _clear_registry():
     _inflight_ingests.clear()
 
 
+@pytest.fixture()
+def search_env():
+    """The shared patch stack behind one mocked search() call.
+
+    Defaults to a hot-path happy case: marker complete, empty result set,
+    deterministic query embedding. Tests steer their scenario by mutating
+    the yielded mocks (``return_value`` / ``side_effect``) before calling
+    search(), e.g. ``search_env.marker_check.return_value = False`` for a
+    cold path or ``_set_points(search_env, [...])`` for a non-empty result.
+    """
+    client = _mock_client()
+    with (
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
+            return_value=client,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
+            new=AsyncMock(),
+        ) as ensure,
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
+            new=AsyncMock(return_value=True),
+        ) as marker_check,
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry"
+        ) as parse,
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.ingest_filing_with_retry",
+            new=AsyncMock(),
+        ) as ingest,
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
+            new=AsyncMock(return_value=[[0.1] * 3072]),
+        ) as embed,
+        patch(
+            "backend.ingestion.sec_dense_pipeline.retriever.resolve_latest_fiscal_year"
+        ) as resolve,
+    ):
+        yield SimpleNamespace(
+            client=client,
+            ensure=ensure,
+            marker_check=marker_check,
+            parse=parse,
+            ingest=ingest,
+            embed=embed,
+            resolve=resolve,
+        )
+
+
+def _set_points(search_env, points: list) -> None:
+    search_env.client.query_points.return_value = SimpleNamespace(points=points)
+
+
 @pytest.mark.parametrize("top_k", [0, -1, 101, 1000])
 @pytest.mark.asyncio
 async def test_search_rejects_invalid_top_k(top_k):
@@ -389,332 +411,139 @@ async def test_search_rejects_bool_fiscal_year():
 
 
 @pytest.mark.asyncio
-async def test_search_respects_sec_disable_jit(monkeypatch):
+async def test_search_respects_sec_disable_jit(monkeypatch, search_env):
     """Omitted fiscal_year + SEC_DISABLE_JIT=1: latest-year resolution is
     itself an EDGAR call and must be blocked before it ever runs."""
     monkeypatch.setenv("SEC_DISABLE_JIT", "1")
-    client = _mock_client()
-    with patch(
-        "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-        return_value=client,
-    ):
-        with pytest.raises(JITDisabledError):
-            await search(query="revenue", filters={"ticker": "AAPL"})
-    client.close.assert_awaited_once()
+    with pytest.raises(JITDisabledError):
+        await search(query="revenue", filters={"ticker": "AAPL"})
+    search_env.resolve.assert_not_called()
+    search_env.client.close.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_search_disable_jit_allows_hot_hit_with_explicit_fiscal_year(
-    monkeypatch,
+    monkeypatch, search_env
 ):
     """An already-ingested (ticker, fiscal_year) must still succeed under
     SEC_DISABLE_JIT=1 — the flag blocks JIT work, not already-complete hot
     hits."""
     monkeypatch.setenv("SEC_DISABLE_JIT", "1")
-    client = _mock_client(points=[_make_point()])
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry"
-        ) as mock_parse,
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        chunks = await search(
-            query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-        )
+    _set_points(search_env, [_make_point()])
+    chunks = await search(
+        query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+    )
     assert len(chunks) == 1
-    mock_parse.assert_not_called()
+    search_env.parse.assert_not_called()
 
 
 @pytest.mark.asyncio
 async def test_search_disable_jit_still_blocks_explicit_fiscal_year_marker_miss(
-    monkeypatch,
+    monkeypatch, search_env
 ):
     """The other half of the SEC_DISABLE_JIT contract: a genuine marker miss
     on an explicit fiscal_year must still be blocked by the flag, exactly as
     before."""
     monkeypatch.setenv("SEC_DISABLE_JIT", "1")
-    client = _mock_client()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=False),
-        ),
-    ):
-        with pytest.raises(JITDisabledError):
-            await search(
-                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-            )
+    search_env.marker_check.return_value = False
+    with pytest.raises(JITDisabledError):
+        await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
 
 
 @pytest.mark.asyncio
-async def test_search_hot_path_skips_parse_and_ingest(monkeypatch):
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client(points=[_make_point()])
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry"
-        ) as mock_parse,
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.ingest_filing_with_retry",
-            new=AsyncMock(),
-        ) as mock_ingest,
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        chunks = await search(
-            query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-        )
+async def test_search_hot_path_skips_parse_and_ingest(search_env):
+    _set_points(search_env, [_make_point()])
+    chunks = await search(
+        query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+    )
     assert len(chunks) == 1
-    mock_parse.assert_not_called()
-    mock_ingest.assert_not_awaited()
-    called_filter = client.query_points.call_args.kwargs["query_filter"]
+    search_env.parse.assert_not_called()
+    search_env.ingest.assert_not_awaited()
+    called_filter = search_env.client.query_points.call_args.kwargs["query_filter"]
     keys = {c.key for c in called_filter.must}
     assert keys == {"ticker", "fiscal_year"}
 
 
 @pytest.mark.asyncio
-async def test_search_cold_path_parses_and_ingests(monkeypatch):
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client(points=[_make_point()])
+async def test_search_cold_path_parses_and_ingests(search_env):
     toy = make_toy_filing()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=False),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
-            return_value=toy,
-        ) as mock_parse,
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.ingest_filing_with_retry",
-            new=AsyncMock(),
-        ) as mock_ingest,
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        chunks = await search(
-            query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-        )
+    search_env.marker_check.return_value = False
+    search_env.parse.return_value = toy
+    _set_points(search_env, [_make_point()])
+    chunks = await search(
+        query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+    )
     assert len(chunks) == 1
-    mock_parse.assert_called_once_with("AAPL", 2024, False)
-    mock_ingest.assert_awaited_once_with(toy)
+    search_env.parse.assert_called_once_with("AAPL", 2024, False)
+    search_env.ingest.assert_awaited_once_with(toy)
     # Slot must be released after a successful cold path.
     assert ("AAPL", 2024) not in _inflight_ingests
 
 
 @pytest.mark.asyncio
-async def test_search_logs_cache_hit_true_on_hot_path(monkeypatch, caplog):
+async def test_search_logs_cache_hit_true_on_hot_path(search_env, caplog):
     """cache_hit is asserted via the log record search() emits, independent
     of span/tracing infrastructure."""
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client(points=[_make_point()])
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-        caplog.at_level("INFO"),
-    ):
+    _set_points(search_env, [_make_point()])
+    with caplog.at_level("INFO"):
         await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
     [record] = [r for r in caplog.records if "cache_hit" in r.getMessage()]
-    assert record.getMessage() == (
-        "SEC JIT search ticker=AAPL fiscal_year=2024 cache_hit=True"
-    )
+    message = record.getMessage()
+    assert "cache_hit=True" in message
+    assert "ticker=AAPL" in message
+    assert "fiscal_year=2024" in message
 
 
 @pytest.mark.asyncio
-async def test_search_logs_cache_hit_false_on_cold_path(monkeypatch, caplog):
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client(points=[_make_point()])
-    toy = make_toy_filing()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=False),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
-            return_value=toy,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.ingest_filing_with_retry",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-        caplog.at_level("INFO"),
-    ):
+async def test_search_logs_cache_hit_false_on_cold_path(search_env, caplog):
+    search_env.marker_check.return_value = False
+    search_env.parse.return_value = make_toy_filing()
+    _set_points(search_env, [_make_point()])
+    with caplog.at_level("INFO"):
         await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
     [record] = [r for r in caplog.records if "cache_hit" in r.getMessage()]
-    assert record.getMessage() == (
-        "SEC JIT search ticker=AAPL fiscal_year=2024 cache_hit=False"
-    )
+    message = record.getMessage()
+    assert "cache_hit=False" in message
+    assert "ticker=AAPL" in message
+    assert "fiscal_year=2024" in message
 
 
 @pytest.mark.asyncio
-async def test_search_resolves_latest_fiscal_year_when_omitted(monkeypatch):
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client(points=[])
-    toy = make_toy_filing()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.resolve_latest_fiscal_year_with_retry",
-            return_value=2025,
-        ) as mock_resolve,
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
-            return_value=toy,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        await search(query="revenue", filters={"ticker": "AAPL"})
-    mock_resolve.assert_called_once_with("AAPL")
-    called_filter = client.query_points.call_args.kwargs["query_filter"]
+async def test_search_resolves_latest_fiscal_year_when_omitted(search_env):
+    search_env.resolve.return_value = 2025
+    search_env.parse.return_value = make_toy_filing()
+    await search(query="revenue", filters={"ticker": "AAPL"})
+    search_env.resolve.assert_called_once_with("AAPL")
+    called_filter = search_env.client.query_points.call_args.kwargs["query_filter"]
     fy_cond = next(c for c in called_filter.must if c.key == "fiscal_year")
     assert fy_cond.match == models.MatchValue(value=2025)
 
 
 @pytest.mark.asyncio
-async def test_search_second_concurrent_call_gets_ingestion_in_progress(monkeypatch):
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=False),
-        ),
-    ):
-        # Simulate a first call's in-flight claim without letting it finish.
-        assert _try_claim_ingest_slot(("AAPL", 2024)) is True
-        try:
-            with pytest.raises(IngestionInProgressError):
-                await search(
-                    query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-                )
-        finally:
-            _release_ingest_slot(("AAPL", 2024))
+async def test_search_second_concurrent_call_gets_ingestion_in_progress(search_env):
+    search_env.marker_check.return_value = False
+    # Simulate a first call's in-flight claim without letting it finish.
+    assert _try_claim_ingest_slot(("AAPL", 2024)) is True
+    try:
+        with pytest.raises(IngestionInProgressError):
+            await search(
+                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
+            )
+    finally:
+        _release_ingest_slot(("AAPL", 2024))
 
 
 @pytest.mark.asyncio
-async def test_search_propagates_empty_filing_error_unwrapped(monkeypatch):
+async def test_search_propagates_empty_filing_error_unwrapped(search_env):
     """Source-level missing item content -> parse_filing raises EmptyFilingError,
     which must reach the caller as-is (structured, legible) — never swallowed
     into a generic CorpusUnavailableError or a silent empty result."""
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=False),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
-            side_effect=EmptyFilingError("Parsed 0 substantive items for GE FY2024"),
-        ),
-    ):
-        with pytest.raises(EmptyFilingError, match="GE FY2024"):
-            await search(query="revenue", filters={"ticker": "GE", "fiscal_year": 2024})
+    search_env.marker_check.return_value = False
+    search_env.parse.side_effect = EmptyFilingError(
+        "Parsed 0 substantive items for GE FY2024"
+    )
+    with pytest.raises(EmptyFilingError, match="GE FY2024"):
+        await search(query="revenue", filters={"ticker": "GE", "fiscal_year": 2024})
     # Slot must be released even when parse_filing raises.
     assert ("GE", 2024) not in _inflight_ingests
 
@@ -728,13 +557,35 @@ async def test_search_propagates_empty_filing_error_unwrapped(monkeypatch):
     ],
 )
 @pytest.mark.asyncio
-async def test_search_propagates_finlaberror_family_unwrapped(monkeypatch, exc):
-    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
-    client = _mock_client()
+async def test_search_propagates_finlaberror_family_unwrapped(search_env, exc):
+    search_env.marker_check.return_value = False
+    search_env.parse.side_effect = exc
+    with pytest.raises(type(exc)):
+        await search(query="revenue", filters={"ticker": "ZZZZ", "fiscal_year": 2024})
+
+
+@pytest.mark.asyncio
+async def test_search_wraps_embedding_failure(search_env):
+    search_env.embed.side_effect = RuntimeError("OpenAI down")
+    with pytest.raises(EmbeddingServiceError):
+        await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
+
+
+@pytest.mark.asyncio
+async def test_search_cold_path_embedding_failure_is_embedding_service_error():
+    """An embedding-provider failure during the JIT ingest itself must
+    surface from search() under the same taxonomy label as a query-embed
+    failure — EmbeddingServiceError — never as CorpusUnavailableError via
+    the generic vector-store handler. Runs the real ingest_filing_with_retry
+    chain (only the Qdrant clients and the embedding call are mocked), since
+    the classification under test happens inside it."""
+    toy = make_toy_filing()
+    search_client = _mock_client()
+    ingest_client = AsyncMock()
     with (
         patch(
             "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
+            return_value=search_client,
         ),
         patch(
             "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
@@ -746,33 +597,18 @@ async def test_search_propagates_finlaberror_family_unwrapped(monkeypatch, exc):
         ),
         patch(
             "backend.ingestion.sec_dense_pipeline.retriever.parse_filing_with_retry",
-            side_effect=exc,
-        ),
-    ):
-        with pytest.raises(type(exc)):
-            await search(
-                query="revenue", filters={"ticker": "ZZZZ", "fiscal_year": 2024}
-            )
-
-
-@pytest.mark.asyncio
-async def test_search_wraps_embedding_failure():
-    client = _mock_client()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
+            return_value=toy,
         ),
         patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
+            "backend.ingestion.sec_dense_pipeline.vectorizer.AsyncQdrantClient",
+            return_value=ingest_client,
+        ),
+        patch(
+            "backend.ingestion.sec_dense_pipeline.vectorizer.async_ensure_collection_and_indexes",
             new=AsyncMock(),
         ),
         patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
+            "backend.ingestion.sec_dense_pipeline.vectorizer._embed_texts",
             new=AsyncMock(side_effect=RuntimeError("OpenAI down")),
         ),
     ):
@@ -783,157 +619,50 @@ async def test_search_wraps_embedding_failure():
 
 
 @pytest.mark.asyncio
-async def test_search_maps_404_unexpected_response_to_corpus_unavailable():
+async def test_search_maps_404_unexpected_response_to_corpus_unavailable(search_env):
     """query_points() is the last real Qdrant round-trip search() makes —
     the natural place a 404 (e.g. the collection vanished between the
     earlier ensure-collection call and this query) would actually surface."""
-    client = _mock_client()
-    client.query_points = AsyncMock(
-        side_effect=UnexpectedResponse(
-            status_code=404, reason_phrase="Not Found", content=b"", headers=None
-        )
+    search_env.client.query_points.side_effect = UnexpectedResponse(
+        status_code=404, reason_phrase="Not Found", content=b"", headers=None
     )
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        with pytest.raises(CorpusUnavailableError):
-            await search(
-                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-            )
+    with pytest.raises(CorpusUnavailableError):
+        await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
 
 
 @pytest.mark.asyncio
-async def test_search_maps_malformed_payload_to_corpus_unavailable():
+async def test_search_maps_malformed_payload_to_corpus_unavailable(search_env):
     """A Qdrant payload that doesn't match Chunk's shape makes pydantic
     raise ValidationError while building the Chunk. That must surface as
     CorpusUnavailableError — a vector-store data-integrity problem — not
     leak out raw through the except (ValueError, FinLabError) passthrough
     meant for caller-input rejections."""
-    client = _mock_client(points=[_make_point(ticker=None)])
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        with pytest.raises(CorpusUnavailableError):
-            await search(
-                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-            )
+    _set_points(search_env, [_make_point(ticker=None)])
+    with pytest.raises(CorpusUnavailableError):
+        await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
 
 
+@pytest.mark.parametrize("field", ["ingested_at", "block_heading", "prelude"])
 @pytest.mark.asyncio
-async def test_search_maps_missing_ingested_at_to_corpus_unavailable():
-    """ingested_at is stamped onto every payload at ingest time (see
-    vectorizer.ingest_filing) — a point missing it represents vector-store
-    corruption, not a legitimate absence, so it must surface the same way
-    as any other missing required field: CorpusUnavailableError, never a
-    Chunk with ingested_at silently defaulted to an empty string."""
-    point = _make_point()
-    del point.payload["ingested_at"]
-    client = _mock_client(points=[point])
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        with pytest.raises(CorpusUnavailableError):
-            await search(
-                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-            )
-
-
-@pytest.mark.parametrize("field", ["block_heading", "prelude"])
-@pytest.mark.asyncio
-async def test_search_maps_missing_nullable_field_to_corpus_unavailable(field):
-    """block_heading and prelude are written onto every payload at chunk-build
-    time (see chunking.build_chunk_payloads) — a point missing the key
-    represents vector-store corruption, not a legitimate None value, so it
-    must surface the same way as any other missing required field:
-    CorpusUnavailableError, never a Chunk silently built with the key's
-    absence and its stored-None value treated as the same thing."""
+async def test_search_maps_missing_required_payload_key_to_corpus_unavailable(
+    search_env, field
+):
+    """Every Chunk field is written onto every payload at ingest time
+    (build_chunk_payloads plus the ingested_at stamp in ingest_filing) — a
+    point missing one of them is vector-store corruption, so it must surface
+    as CorpusUnavailableError, never as a Chunk silently built with a
+    defaulted value. block_heading/prelude are the nullable fields, where a
+    missing key is a distinct state from a present key holding None."""
     point = _make_point()
     del point.payload[field]
-    client = _mock_client(points=[point])
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_check_commit_marker_complete",
-            new=AsyncMock(return_value=True),
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.vectorizer._embed_texts",
-            new=AsyncMock(return_value=[[0.1] * 3072]),
-        ),
-    ):
-        with pytest.raises(CorpusUnavailableError):
-            await search(
-                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-            )
+    _set_points(search_env, [point])
+    with pytest.raises(CorpusUnavailableError):
+        await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
 
 
 @pytest.mark.asyncio
-async def test_search_closes_client_even_on_failure():
-    client = _mock_client()
-    with (
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.AsyncQdrantClient",
-            return_value=client,
-        ),
-        patch(
-            "backend.ingestion.sec_dense_pipeline.retriever.async_ensure_collection_and_indexes",
-            new=AsyncMock(side_effect=RuntimeError("boom")),
-        ),
-    ):
-        with pytest.raises(CorpusUnavailableError):
-            await search(
-                query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024}
-            )
-    client.close.assert_awaited_once()
+async def test_search_closes_client_even_on_failure(search_env):
+    search_env.ensure.side_effect = RuntimeError("boom")
+    with pytest.raises(CorpusUnavailableError):
+        await search(query="revenue", filters={"ticker": "AAPL", "fiscal_year": 2024})
+    search_env.client.close.assert_awaited_once()

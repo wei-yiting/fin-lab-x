@@ -177,11 +177,21 @@ def _item_text_len(item: StructuredItem | FlatItem) -> int:
     return len(item.prelude) + sum(len(b.text) for b in item.blocks)
 
 
+# (ticker, item) pairs found unusable during generation — every candidate
+# sentence failed corpus-uniqueness or snippet-length limits: JPM's Item 1
+# is largely incorporated-by-reference boilerplate that repeats elsewhere;
+# NEE's Item 7A sentences run past 200 chars. Swapped within the grid per
+# the DEV-162 sampling rule.
+GENERATION_EXCLUSIONS: set[tuple[str, str]] = {("JPM", "1"), ("NEE", "7a")}
+
+
 def _eligible_tickers(
     filings: dict[tuple[str, int], ParsedFiling], item_key: str
 ) -> list[str]:
     out = []
     for ticker in TICKER_GRID:
+        if (ticker, item_key) in GENERATION_EXCLUSIONS:
+            continue
         filing = _filing_for(filings, ticker)
         if filing is None:
             continue

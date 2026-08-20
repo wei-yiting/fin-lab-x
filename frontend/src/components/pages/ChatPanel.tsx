@@ -77,7 +77,7 @@ export function ChatPanel() {
     },
   });
   const [abortedTools, setAbortedTools] = useState<Set<ToolCallId>>(() => new Set());
-  // Turn-level interruption record (DEV-109 ruling 11): message ids whose
+  // Turn-level interruption record: message ids whose
   // turn the user stopped. Companion to abortedTools — same capture point,
   // message-granular instead of tool-granular, so the transcript always
   // carries an explicit "Interrupted" row even when no chip or tool card

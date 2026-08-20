@@ -313,7 +313,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
       { timeout: 10000 },
     );
 
-    // Turn-level marker (DEV-109 ruling 11): every user Stop leaves an
+    // Turn-level marker: every user Stop leaves an
     // explicit "Interrupted" row under the cut turn.
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
     expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");

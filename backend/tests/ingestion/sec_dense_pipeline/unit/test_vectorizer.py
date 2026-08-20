@@ -5,7 +5,6 @@ and 5xx responses, first-attempt propagation for everything else.
 
 from unittest.mock import AsyncMock, patch
 
-import httpx
 import pytest
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 from tenacity import wait_none
@@ -24,7 +23,7 @@ async def test_ingest_filing_with_retry_retries_response_handling_exception():
     async def flaky(filing):
         calls["count"] += 1
         if calls["count"] < 2:
-            raise ResponseHandlingException(httpx.ConnectError("connection refused"))
+            raise ResponseHandlingException(RuntimeError("transport failure"))
 
     with patch(
         "backend.ingestion.sec_dense_pipeline.vectorizer.ingest_filing",

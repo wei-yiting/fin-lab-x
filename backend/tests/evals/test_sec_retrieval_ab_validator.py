@@ -14,6 +14,7 @@ import pytest
 
 from backend.common.sec_core import FilingType
 from backend.evals.scenarios.sec_retrieval_ab.curation.validate_dataset import (
+    Issue,
     Row,
     load_filings,
     validate_rows,
@@ -176,18 +177,18 @@ def _row(**overrides: object) -> Row:
     return Row(**base)  # type: ignore[arg-type]
 
 
-def _issues(store_dir: Path, *rows: Row):
+def _issues(store_dir: Path, *rows: Row) -> list[Issue]:
     return validate_rows(list(rows), load_filings(store_dir))
 
 
-def _rules(issues) -> set[str]:
+def _rules(issues: list[Issue]) -> set[str]:
     return {issue.rule for issue in issues}
 
 
 # --- passing cases ---
 
 
-def test_valid_factoid_passage_and_multi_passage_rows_pass(store_dir):
+def test_valid_factoid_passage_and_multi_passage_rows_pass(store_dir: Path) -> None:
     factoid = _row()
     passage = _row(
         row_id="r2",
@@ -217,7 +218,7 @@ def test_valid_factoid_passage_and_multi_passage_rows_pass(store_dir):
     assert _issues(store_dir, factoid, passage, multi) == []
 
 
-def test_multi_passage_far_apart_in_flat_item_passes(store_dir):
+def test_multi_passage_far_apart_in_flat_item_passes(store_dir: Path) -> None:
     flat_path = (
         "AAA / 2025 / Item 7A. Quantitative and Qualitative Disclosures "
         "About Market Risk"
@@ -231,7 +232,7 @@ def test_multi_passage_far_apart_in_flat_item_passes(store_dir):
     assert _issues(store_dir, row) == []
 
 
-def test_span_in_prelude_passes(store_dir):
+def test_span_in_prelude_passes(store_dir: Path) -> None:
     row = _row(
         spans=["The following prelude summarizes principal risks."],
         snippets=["The following prelude summarizes principal risks."],
@@ -245,17 +246,17 @@ def test_span_in_prelude_passes(store_dir):
 # --- rule (a): exact substring ---
 
 
-def test_span_absent_from_item_fails(store_dir):
+def test_span_absent_from_item_fails(store_dir: Path) -> None:
     row = _row(spans=["This sentence is nowhere in the filing store text."])
     assert "span_not_in_block" in _rules(_issues(store_dir, row))
 
 
-def test_snippet_not_inside_span_fails(store_dir):
+def test_snippet_not_inside_span_fails(store_dir: Path) -> None:
     row = _row(snippets=[CONCENTRATION_SENT])
     assert "snippet_not_in_span" in _rules(_issues(store_dir, row))
 
 
-def test_span_crossing_two_blocks_fails(store_dir):
+def test_span_crossing_two_blocks_fails(store_dir: Path) -> None:
     crossing = (
         "We continue to seek licenses where they are available to us. "
         f"{CONCENTRATION_SENT}"
@@ -267,7 +268,7 @@ def test_span_crossing_two_blocks_fails(store_dir):
 # --- rule (b): span length ---
 
 
-def test_span_over_token_budget_fails(store_dir):
+def test_span_over_token_budget_fails(store_dir: Path) -> None:
     md_and_a = (
         "AAA / 2025 / Item 7. Management's Discussion and Analysis of "
         "Financial Condition and Results of Operations"
@@ -284,14 +285,14 @@ def test_span_over_token_budget_fails(store_dir):
 # --- rule (c): snippet length and corpus uniqueness ---
 
 
-def test_snippet_too_short_fails(store_dir):
+def test_snippet_too_short_fails(store_dir: Path) -> None:
     short = "The following prelude summarizes principal risks."
     assert len(short) < 50
     row = _row(spans=[short], snippets=[short])
     assert "snippet_length" in _rules(_issues(store_dir, row))
 
 
-def test_snippet_duplicated_across_corpus_fails(store_dir):
+def test_snippet_duplicated_across_corpus_fails(store_dir: Path) -> None:
     row = _row(
         spans=[
             f"{CONCENTRATION_SENT} The loss of any such customer could "
@@ -305,7 +306,7 @@ def test_snippet_duplicated_across_corpus_fails(store_dir):
 # --- rule (d): multi_passage span placement ---
 
 
-def test_multi_passage_spans_in_same_block_fails(store_dir):
+def test_multi_passage_spans_in_same_block_fails(store_dir: Path) -> None:
     same_block_sent = "We continue to seek licenses where they are available to us."
     row = _row(
         header_paths=[
@@ -319,7 +320,7 @@ def test_multi_passage_spans_in_same_block_fails(store_dir):
     assert "multi_passage_same_block" in _rules(_issues(store_dir, row))
 
 
-def test_multi_passage_flat_spans_too_close_fails(store_dir):
+def test_multi_passage_flat_spans_too_close_fails(store_dir: Path) -> None:
     flat_path = (
         "AAA / 2025 / Item 7A. Quantitative and Qualitative Disclosures "
         "About Market Risk"
@@ -336,22 +337,22 @@ def test_multi_passage_flat_spans_too_close_fails(store_dir):
 # --- rule (e): header_path contract ---
 
 
-def test_header_path_with_part_segment_fails(store_dir):
+def test_header_path_with_part_segment_fails(store_dir: Path) -> None:
     row = _row(header_paths=["AAA / 2025 / Part I / Item 1A. Risk Factors"])
     assert "header_path_format" in _rules(_issues(store_dir, row))
 
 
-def test_header_path_title_mismatch_fails(store_dir):
+def test_header_path_title_mismatch_fails(store_dir: Path) -> None:
     row = _row(header_paths=["AAA / 2025 / Item 1A. Risks"])
     assert "header_path_format" in _rules(_issues(store_dir, row))
 
 
-def test_header_path_item_missing_from_filing_fails(store_dir):
+def test_header_path_item_missing_from_filing_fails(store_dir: Path) -> None:
     row = _row(header_paths=["AAA / 2025 / Item 3. Legal Proceedings"])
     assert "item_missing" in _rules(_issues(store_dir, row))
 
 
-def test_filing_missing_from_store_fails(store_dir):
+def test_filing_missing_from_store_fails(store_dir: Path) -> None:
     row = _row(header_paths=["ZZZ / 2025 / Item 1A. Risk Factors"], tickers=["ZZZ"])
     assert "filing_missing" in _rules(_issues(store_dir, row))
 
@@ -359,7 +360,7 @@ def test_filing_missing_from_store_fails(store_dir):
 # --- structural rules ---
 
 
-def test_misaligned_list_lengths_fail(store_dir):
+def test_misaligned_list_lengths_fail(store_dir: Path) -> None:
     row = _row(
         header_paths=[
             "AAA / 2025 / Item 1A. Risk Factors",
@@ -370,7 +371,7 @@ def test_misaligned_list_lengths_fail(store_dir):
     assert "list_alignment" in _rules(_issues(store_dir, row))
 
 
-def test_single_passage_types_require_exactly_one_entry(store_dir):
+def test_single_passage_types_require_exactly_one_entry(store_dir: Path) -> None:
     row = _row(
         header_paths=[
             "AAA / 2025 / Item 1A. Risk Factors",
@@ -383,11 +384,22 @@ def test_single_passage_types_require_exactly_one_entry(store_dir):
     assert "entry_count" in _rules(_issues(store_dir, row))
 
 
-def test_multi_passage_requires_at_least_two_entries(store_dir):
+def test_multi_passage_requires_at_least_two_entries(store_dir: Path) -> None:
     row = _row(query_type="multi_passage")
     assert "entry_count" in _rules(_issues(store_dir, row))
 
 
-def test_ticker_mismatch_with_header_path_fails(store_dir):
+def test_multi_passage_rejects_more_than_three_entries(store_dir: Path) -> None:
+    path = "AAA / 2025 / Item 1A. Risk Factors"
+    row = _row(
+        header_paths=[path] * 4,
+        spans=[EXPORT_SENT] * 4,
+        snippets=[EXPORT_SENT] * 4,
+        query_type="multi_passage",
+    )
+    assert "entry_count" in _rules(_issues(store_dir, row))
+
+
+def test_ticker_mismatch_with_header_path_fails(store_dir: Path) -> None:
     row = _row(tickers=["BBB"])
     assert "ticker_mismatch" in _rules(_issues(store_dir, row))

@@ -1,4 +1,4 @@
-"""One-shot ingest for the DEV-162 ticker grid.
+"""One-shot ingest for the sec_retrieval_ab ticker grid.
 
 Parses the latest 10-K of every ticker in ``TICKER_GRID`` into the filing
 store via ``sec_text_pipeline.parse_filing`` (cache-first), then prints a
@@ -6,7 +6,7 @@ per-(ticker, item) detection-path table so the sampling step can verify all
 four detection paths (markdown_h3 / markdown_h4 / text_fallback / flat)
 have natural samples before the grid is finalized.
 
-The grid is the sector x market-cap selection tool from the DEV-162 spec —
+The grid is the sector x market-cap selection tool from the issue spec —
 NOT a sampling axis. Swapping a ticker (parse failure, or a detection path
 with zero samples) must stay within the same grid cell.
 
@@ -30,7 +30,6 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
     ParsedFiling,
     StructuredItem,
 )
-from backend.ingestion.sec_text_pipeline.filing_store import LocalFilingStore
 from backend.ingestion.sec_text_pipeline.parser import parse_filing
 
 
@@ -62,7 +61,7 @@ TICKER_GRID: dict[str, GridCell] = {
 
 
 def item_detection_path(filing: ParsedFiling, item_key: str) -> str | None:
-    """The DEV-162 detection-path bucket of one Item (None if absent)."""
+    """The detection-path bucket of one Item (None if absent)."""
     for item in filing.items:
         if item.item.strip().lower() == item_key.strip().lower():
             if isinstance(item, StructuredItem):
@@ -72,7 +71,6 @@ def item_detection_path(filing: ParsedFiling, item_key: str) -> str | None:
 
 
 def main() -> int:
-    store = LocalFilingStore()
     parsed: dict[str, ParsedFiling] = {}
     failures: dict[str, str] = {}
 
@@ -110,8 +108,6 @@ def main() -> int:
         print("\n=== failures (swap within the same grid cell) ===")
         for ticker, msg in failures.items():
             print(f"{ticker}: {msg}")
-    # Reuse store to silence unused warnings if grid is empty (never in practice).
-    _ = store
     return 0 if parsed else 1
 
 

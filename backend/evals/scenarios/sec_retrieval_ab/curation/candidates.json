@@ -491,7 +491,7 @@
       "query_type": "multi_passage",
       "mode": "passage_first",
       "intent": null,
-      "role": "primary"
+      "role": "alternate"
     },
     "question": "How do public policies intensify competitive threats to ExxonMobil?",
     "curation_note": "This pairing links sanctions-based disadvantages with subsidized alternative-energy rivalry, testing retrieval across separate regulatory and competitive-risk passages.",
@@ -1892,7 +1892,7 @@
       "query_type": "multi_passage",
       "mode": "passage_first",
       "intent": null,
-      "role": "alternate"
+      "role": "primary"
     },
     "question": "How could artificial intelligence reshape staffing needs and employee capabilities?",
     "curation_note": "These passages connect AI adoption risks with staff shortages, skill erosion, displacement, retraining costs, and demand for advanced technical talent.",

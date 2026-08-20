@@ -1,4 +1,4 @@
-"""Dataset validator for the sec_retrieval_ab curated dataset (DEV-162).
+"""Dataset validator for the sec_retrieval_ab curated dataset.
 
 Validates ground truth against the filing store ONLY (ADR-0016): no Qdrant,
 no network, no LLM. Pure functions over dataset rows + ParsedFiling JSON, so
@@ -6,7 +6,7 @@ the whole contract is unit-testable with fixtures.
 
 Contract rules (one issue `rule` string each):
 - list_alignment          header_paths / spans / snippets same length
-- entry_count             factoid/passage exactly 1 entry, multi_passage >= 2
+- entry_count             factoid/passage exactly 1 entry, multi_passage 2-3
 - ticker_mismatch         every header_path ticker == expected_tickers[0]
 - header_path_format      `TICKER / FY / Item N. Title`, no Part, title match
 - filing_missing          (ticker, fiscal year) not in the filing store
@@ -34,6 +34,10 @@ import sys
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import tiktoken
 
 from backend.common.data_paths import get_sec_text_dir
 from backend.ingestion.sec_text_pipeline.filing_models import (
@@ -73,7 +77,6 @@ class _Unit:
     """One span-addressable text unit: prelude, a block, or the flat body."""
 
     index: int
-    heading: str | None
     text: str
 
 
@@ -92,7 +95,7 @@ class _Entry:
 
 
 @lru_cache(maxsize=1)
-def _encoder():
+def _encoder() -> "tiktoken.Encoding":
     # Lazy: tiktoken loads (and on cold cache, fetches) the BPE table.
     import tiktoken
 
@@ -116,12 +119,12 @@ def load_filings(store_dir: Path | None = None) -> dict[tuple[str, int], ParsedF
 
 def _units(item: StructuredItem | FlatItem) -> list[_Unit]:
     if isinstance(item, FlatItem):
-        return [_Unit(index=0, heading=None, text=item.text)]
+        return [_Unit(index=0, text=item.text)]
     units: list[_Unit] = []
     if item.prelude:
-        units.append(_Unit(index=0, heading=None, text=item.prelude))
+        units.append(_Unit(index=0, text=item.prelude))
     units.extend(
-        _Unit(index=len(units) + i, heading=block.heading, text=block.text)
+        _Unit(index=len(units) + i, text=block.text)
         for i, block in enumerate(item.blocks)
     )
     return units
@@ -364,12 +367,12 @@ def validate_rows(
                 )
                 continue
         elif row.query_type == "multi_passage":
-            if n < 2:
+            if not 2 <= n <= 3:
                 issues.append(
                     Issue(
                         row.row_id,
                         "entry_count",
-                        f"multi_passage requires >= 2 entries, got {n}",
+                        f"multi_passage requires 2-3 entries, got {n}",
                     )
                 )
                 continue

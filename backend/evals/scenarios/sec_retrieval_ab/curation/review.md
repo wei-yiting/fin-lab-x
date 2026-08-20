@@ -194,7 +194,7 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## p13 — XOM Item 1A (multi_passage, passage_first)
+## p13 — XOM Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Energy / cap: large / FY2025 / detection: markdown_h4, markdown_h4
 - **query**: How do public policies intensify competitive threats to ExxonMobil?
@@ -736,7 +736,7 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## a05 — JPM Item 1A (multi_passage, passage_first, ALTERNATE)
+## a05 — JPM Item 1A (multi_passage, passage_first)
 
 - sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
 - **query**: How could artificial intelligence reshape staffing needs and employee capabilities?

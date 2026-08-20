@@ -65,7 +65,11 @@ do not read empty cross-cells as gaps):
    financial-statement content belongs to the fundamentals path, not RAG).
    Item 3 carries a single row: in this grid only one filing has
    substantive litigation text in the 10-K body; the rest point to the
-   notes.
+   notes. Two (ticker, item) cells were swapped out during generation
+   (`GENERATION_EXCLUSIONS`): JPM Item 1 (mostly incorporated-by-reference
+   boilerplate whose sentences recur elsewhere, so no corpus-unique snippet
+   exists) and NEE Item 7A (sentences exceed the 200-char snippet cap);
+   JPM keeps 2 rows via an Item 1A alternate.
 3. **Query type** — table above.
 4. **Sector** (with market-cap bucket as provenance) — controlled at ticker
    selection via a GICS sector × cap grid, ~16 tickers, every sector ≥1
@@ -175,12 +179,12 @@ loader: `answer_spans`, `block_heading`, `detection_source`, `sector`,
 |---|---|
 | Information Technology | 8 |
 | Consumer Discretionary | 7 |
+| Financials | 6 |
 | Health Care | 6 |
 | Industrials | 6 |
-| Financials | 5 |
-| Energy | 4 |
 | Communication Services | 3 |
 | Consumer Staples | 3 |
+| Energy | 3 |
 | Materials | 3 |
 | Real Estate | 3 |
 | Utilities | 2 |
@@ -214,12 +218,11 @@ loader: `answer_spans`, `block_heading`, `detection_source`, `sector`,
 | DDOG | Information Technology | mid | 4 | 2025 | 0001628280-26-008819 |
 | DECK | Consumer Discretionary | mid | 3 | 2026 | 0001628280-26-037664 |
 | GOOGL | Communication Services | large | 3 | 2025 | 0001652044-26-000018 |
-| JPM | Financials | large | 1 | 2025 | 0001628280-26-008131 |
+| JPM | Financials | large | 2 | 2025 | 0001628280-26-008131 |
 | LIN | Materials | large | 3 | 2025 | 0001628280-26-011430 |
 | LLY | Health Care | large | 3 | 2025 | 0000059478-26-000013 |
 | NEE | Utilities | large | 2 | 2025 | 0000753308-26-000015 |
 | NVDA | Information Technology | large | 4 | 2026 | 0001045810-26-000021 |
 | PLD | Real Estate | large | 3 | 2025 | 0001193125-26-051453 |
 | PODD | Health Care | mid | 3 | 2025 | 0001145197-26-000028 |
-| XOM | Energy | large | 4 | 2025 | 0000034088-26-000045 |
-
+| XOM | Energy | large | 3 | 2025 | 0000034088-26-000045 |

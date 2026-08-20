@@ -1,4 +1,4 @@
-"""One-shot candidate generation for the sec_retrieval_ab dataset (DEV-162).
+"""One-shot candidate generation for the sec_retrieval_ab dataset.
 
 Passage-first (and ~10 intent-first) generation with the sentence-index
 technique: each Item's text is pre-split into numbered sentences, the model
@@ -22,16 +22,18 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 import sys
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from collections import Counter
 from dataclasses import asdict, dataclass, field
-from typing import Any
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from backend.evals.scenarios.sec_retrieval_ab.curation.ingest_tickers import (
     TICKER_GRID,
@@ -79,7 +81,8 @@ FACTOID_QUOTA = 10
 MULTI_QUOTA = 15  # remainder of the 50 rows is `passage`
 INTENT_FIRST_QUOTA = 10
 
-# Lay-user intents (style informed by the DEV-113 zh question set — supply
+# Lay-user intents (style informed by the earlier zh metadata-filter
+# experiment's question set — supply
 # chain, customer concentration, export controls, competition, regulation —
 # rewritten as English intents; never copied verbatim into the dataset).
 INTENT_POOL = [
@@ -109,7 +112,6 @@ def sentence_ranges(text: str) -> list[tuple[int, int]]:
     the ORIGINAL text, so any [start:end] slice is an exact substring.
     """
     ranges: list[tuple[int, int]] = []
-    pos = 0
     for match in _SENTENCE_RE.finditer(text):
         if not match.group().strip():
             continue
@@ -121,8 +123,6 @@ def sentence_ranges(text: str) -> list[tuple[int, int]]:
             ranges[-1] = (ranges[-1][0], end)
         else:
             ranges.append((start, end))
-        pos = end
-    _ = pos
     return ranges
 
 
@@ -180,8 +180,8 @@ def _item_text_len(item: StructuredItem | FlatItem) -> int:
 # (ticker, item) pairs found unusable during generation — every candidate
 # sentence failed corpus-uniqueness or snippet-length limits: JPM's Item 1
 # is largely incorporated-by-reference boilerplate that repeats elsewhere;
-# NEE's Item 7A sentences run past 200 chars. Swapped within the grid per
-# the DEV-162 sampling rule.
+# NEE's Item 7A sentences run past 200 chars. Swapped within the same
+# grid cell per the sampling rule.
 GENERATION_EXCLUSIONS: set[tuple[str, str]] = {("JPM", "1"), ("NEE", "7a")}
 
 
@@ -719,8 +719,6 @@ def generate(limit: int | None) -> list[Candidate]:
         )
         return accepted
 
-    from concurrent.futures import ThreadPoolExecutor
-
     with ThreadPoolExecutor(max_workers=3) as pool:
         list(pool.map(run_plan, plans))
     candidates.sort(key=lambda c: (c.plan.role != "primary", c.candidate_id))
@@ -746,7 +744,10 @@ def _load_candidates() -> list[Candidate]:
 
 def _dataset_row(c: Candidate) -> dict[str, str]:
     grid = TICKER_GRID[c.plan.ticker]
-    j = lambda values: json.dumps(values, ensure_ascii=False)  # noqa: E731
+
+    def j(values: list[str] | list[str | None]) -> str:
+        return json.dumps(values, ensure_ascii=False)
+
     return {
         "question": c.question,
         "expected_header_paths": j([e.header_path for e in c.evidences]),
@@ -769,8 +770,6 @@ def _dataset_row(c: Candidate) -> dict[str, str]:
 
 
 def emit() -> int:
-    import csv as csv_module
-
     candidates = _load_candidates()
     primaries = [c for c in candidates if c.plan.role == "primary"]
     if not primaries:
@@ -779,13 +778,13 @@ def emit() -> int:
 
     fieldnames = list(_dataset_row(primaries[0]).keys())
     with DATASET_CSV.open("w", encoding="utf-8", newline="") as f:
-        writer = csv_module.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for c in primaries:
             writer.writerow(_dataset_row(c))
 
     with REVIEW_CSV.open("w", encoding="utf-8", newline="") as f:
-        writer = csv_module.DictWriter(
+        writer = csv.DictWriter(
             f,
             fieldnames=[
                 "candidate_id",

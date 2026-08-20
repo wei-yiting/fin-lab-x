@@ -29,6 +29,7 @@ from backend.common.errors import (
     TickerNotFoundError,
     TransientError,
 )
+from backend.common.retry import retry_transient
 
 if TYPE_CHECKING:
     from edgar.company_reports.ten_k import TenK  # noqa: F401
@@ -371,6 +372,20 @@ def _resolve_latest_fiscal_year(ticker: str) -> int:
     inner function so the cache key space is canonical.
     """
     return _resolve_latest_fiscal_year_cached(ticker.strip().upper())
+
+
+@retry_transient
+def resolve_latest_fiscal_year(ticker: str) -> int:
+    """Public :func:`_resolve_latest_fiscal_year` with a single retry on
+    ``TransientError`` (design-envelope §2 single-retry policy for external
+    APIs).
+
+    Latest-year resolution is an EDGAR metadata call and can fail on a 5xx
+    blip exactly like a filing fetch; callers that need the retry policy
+    (JIT retriever, batch ingest) resolve through this wrapper so the one
+    policy point lives next to the EDGAR call it covers.
+    """
+    return _resolve_latest_fiscal_year(ticker)
 
 
 @dataclass(frozen=True)

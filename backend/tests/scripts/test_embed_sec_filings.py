@@ -63,7 +63,7 @@ def test_main_reports_resolved_fiscal_year_when_flag_omitted(capsys):
     toy = make_toy_filing()
     with (
         patch(
-            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry",
+            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year",
             return_value=2025,
         ) as mock_resolve,
         patch(
@@ -118,7 +118,7 @@ def test_main_reports_resolved_year_when_ingest_fails_after_resolution(capsys):
     toy = make_toy_filing()
     with (
         patch(
-            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year_with_retry",
+            "backend.scripts.embed_sec_filings.resolve_latest_fiscal_year",
             return_value=2025,
         ) as mock_resolve,
         patch(

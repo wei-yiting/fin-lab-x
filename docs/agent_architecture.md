@@ -189,6 +189,6 @@ Subsystem fetchers (yfinance and SEC XBRL) consume this foundation and are out o
 All agent and pipeline operations are traced via Langfuse. Span naming uses `snake_case` with a `sec_` prefix for SEC-specific operations.
 
 - **JIT path** through `search()` produces a full trace tree (cache check → EDGAR download → Markdown conversion → embedding → vector search).
-- **Batch CLI** (`embed_sec_filings.py`) intentionally runs without tracing — pipeline modules emit no spans on their own; spans are created by the calling layer (retriever) only when needed.
+- **Batch CLIs** (`embed_sec_filings_html.py` for the frozen `_html` collection, `embed_sec_filings.py` for the structured-contract one) intentionally run without tracing — pipeline modules emit no spans on their own; spans are created by the calling layer (retriever) only when needed.
 
 For trace hierarchy, span definitions, and the rationale behind `@observe` vs. context-manager choices, see [`docs/observability.md`](./observability.md).

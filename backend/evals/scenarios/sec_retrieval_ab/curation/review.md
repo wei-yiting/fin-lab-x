@@ -2,6 +2,22 @@
 
 Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`). Snippet is **bold** inside its span; one sentence of context shown on each side.
 
+## a05 — JPM Item 1A (multi_passage, passage_first)
+
+- sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
+- **query**: How could artificial intelligence reshape staffing needs and employee capabilities?
+- curation_note: These passages connect AI adoption risks with staff shortages, skill erosion, displacement, retraining costs, and demand for advanced technical talent.
+
+**Evidence 1** — `JPM / 2025 / Item 1A. Risk Factors` / block: Strategic
+
+> …rs, or  •replacement or disintermediation of direct customer relationships if AI agents autonomously manage or intermediate financial decisions and product selection or other services for customers. **It is also possible that JPMorganChase could miscalibrate its workforce planning and employee training efforts either because of over-reliance on AI or the failure to appropriately adopt AI.** Over-reliance on AI could cause JPMorganChase to experience shortages in qualified staff due to reduced hiring or retention of employees, or could hinder the development or enhancement of important skills among its employees, including critical thinking, problem-solving, judgment, creativity and adaptability. On the other hand, any efficiencies or competitive advantages that AI may offer could be squandered if JPMorganChase fails to adopt AI in a timely and judicious manner and to make related adjustments to its workforce. Any of these factors could materially and adversely affect JPMorganChase’s business and operations, results of operations, competitive position or reputation.  The effects of climate change could ad…
+
+**Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: People
+
+> …countries could inhibit JPMorganChase’s ability to attract and retain qualified employees, or necessitate adjustments to operating models that could reduce operational efficiency or increase costs. **Advances in technology, such as automation, AI and data science, could lead to workforce displacement.** This could require JPMorganChase to invest in additional employee training, manage impacts on morale and retention, and compete for employment candidates who possess more advanced technological skills, all of which could have a negative impact on JPMorganChase’s business and operations.
+
+---
+
 ## p01 — NVDA Item 1A/Item 7 (multi_passage, passage_first)
 
 - sector: Information Technology / cap: large / FY2026 / detection: markdown_h3, markdown_h3
@@ -21,32 +37,32 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## p02 — DDOG Item 1A (multi_passage, passage_first)
 
 - sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: Datadog 2025 repository intrusion and EU AI law timing
-- curation_note: This evidence pairs a specific credential-related source-code incident with the effective date of a named AI regulation, testing retrieval across operational and regulatory risk units.
+- **query**: Why do outsourced hosting failures threaten Datadog's contractual availability promises?
+- curation_note: These passages connect Datadog’s near-total infrastructure outsourcing with the customer availability commitments that make provider disruptions consequential.
 
 **Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Strategic and Operational Risks
 
-> …ties fraudulently induce our employees or our members to disclose information or user names and/or passwords, or otherwise compromise the security of our networks, systems and/or physical facilities. **For example, in April 2025, we notified customers of access by an unauthorized third party to a number of Datadog source code repositories arising from compromised employee account credentials.** After discovering the access, we revoked the credentials and terminated the unauthorized access. However, such unauthorized access may increase our vulnerability to certain attacks at a later date th…
+> …nd improvements to our internal infrastructure will be effectively implemented on a timely basis, if at all, and such failures could harm our business, financial condition and results of operations. We rely upon third-party providers of cloud-based infrastructure to host our products. Any disruption in the operations of these third-party providers, limitations on capacity or interference with our use could adversely affect our business, financial condition and results of operations.  **We outsource substantially all of the infrastructure relating to our cloud solution to third-party hosting services.** Customers of our cloud-based products need to be able to access our platform at any time, without interruption or degradation of performance, and we provide them with service-level commitments with respect to uptime. Our cloud-based products depend on protecting the virtual cloud infrastructure hosted by third-party hosting services by maintaining its configuration, architecture, features and interconnection spec…
 
-**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Industry and Competitive Risks
+**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
 
-> …l jurisdictions around the globe, including Europe and certain U.S. states, have proposed, enacted, or are considering laws governing the development and use of AI and machine learning technologies. **For example, the European Union's Artificial Intelligence Act, which would apply beyond the European Union’s borders, came into effect in August 2024.** It contains numerous requirements regarding the development and use of AI and imposes significant monetary fines. Further, countries and states are applying their data and consumer protection laws to…
+> **We typically provide service-level commitments under our subscription agreements.** If we fail to meet these contractual commitments, we could be obligated to provide credits for future service or face subscription termination with refunds of prepaid amounts, which would lower our revenue and harm our business, financial condition and results of operations.  Our subscription agreements typically contain service-level commitments. If we are unable to meet the stated service-level commitments, including failure to meet the uptime and response time requirements under our customer subscription agreements, we may be contractually…
 
 ---
 
 ## p03 — LLY Item 1A (multi_passage, passage_first)
 
 - sector: Health Care / cap: large / FY2025 / detection: markdown_h3, markdown_h3
-- **query**: orforglipron regulatory submission and AI-assisted research collaborations
-- curation_note: This pairing tests cross-unit retrieval of a named pipeline candidate and Lilly’s technology partnerships supporting medicine research.
+- **query**: Why do enforcement gaps around illicit incretins threaten Lilly?
+- curation_note: These passages connect counterfeit and mass-compounded incretins with the business and reputational consequences of inadequate industry oversight, testing cross-unit causal retrieval.
 
 **Evidence 1** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Our Business and Industry
 
-> …il to pursue or invest sufficiently in product candidates or indications that may have been successful, or fail to optimally balance trial design, conduct, and speed to accomplish desired outcomes. **We regularly submit new product candidates and indications to regulatory agencies for approval, including highly anticipated candidates such as orforglipron.** Regulatory agencies establish high hurdles for the efficacy and safety of new products and indications. Delay, uncertainty, unpredictability, and inconsistency in drug approval processes across marke…
+> …ess depends on a market that is observant of intellectual property rights and regulatory requirements. Developments that undermine that landscape can significantly impact our business and reputation. For example, we continue to see the production, marketing, and sale of counterfeit, misbranded, adulterated, and mass-compounded incretins in the U.S. and other markets that could materially impact us. In addition to patient safety concerns, improper commercialization and dispensation practices by these actors may inappropriately condition consumer expectations or otherwise disadvantage compliant market participants. Our actions intended to stop or prevent illegal sales of such medicines are costly and may be ineffective. See Item 1, "Business—Government Regulation of Our Operations and Products," for additional information on market risks related to counterfeit, misbranded, adulterated, and mass-compounded medicines. If inadequately regulated, e-commerce may increase the prevalence of dangerous counterfeit or mass-compounded products and scams, potentially exposing patients to significant risks. **Our reputation and business could suffer harm as a result of counterfeit or mass-compounded drugs sold under our brand name, which may also impact our business and financial results.** In addition, we rely on our ability to attract and retain highly qualified and skilled scientific, technical, management, and other personnel in order to compete effectively. To capitalize on the ra…
 
-**Evidence 2** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Our Operations
+**Evidence 2** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Doing Business Internationally
 
-> …rging technologies could adversely impact us.   We deploy AI and other emerging technologies in various facets of our operations and we continue to explore the development and use of AI technologies. **We have also entered into, and may continue to enter into, partnerships and collaborations relating to the use of AI technology to aid in drug discovery and other efforts.** The rapid advancement of these technologies presents opportunities for us in research, manufacturing, commercialization, and other business endeavors but also entails risks, including that AI-generat…
+> …on in such programs, notwithstanding the review processes involved and our adherence to applicable requirements and procedures, may expose us to legal, regulatory, political, and reputational risks. We rely on the FDA and other global regulatory bodies for appropriate oversight, administration and enforcement across our industry, anyone marketing or purporting to market medicines, and public health. **Oversight, administrative, and enforcement changes, delays, inconsistencies, lapses, and failures could materially impact our business and reputation.** See Item 1, "Business—Government Regulation of Our Operations and Products," for additional information on regulatory risks, including as related to counterfeit, misbranded, adulterated, and mass-compounded drugs. Regulatory oversight and compliance processes in jurisdictions outside the U.S. may be particularly unpredictable and result in additional costs, uncertainties, and risks.  Furthermore, there is a su…
 
 ---
 
@@ -69,32 +85,32 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## p05 — JPM Item 1A (multi_passage, passage_first)
 
 - sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: JPMorganChase breach history and drivers of intensifying technology competition
-- curation_note: These passages test retrieval across operational and strategic risks by linking prior security incidents with technology-driven competitive pressure.
+- **query**: How can rising rates trigger loan losses and capital constraints?
+- curation_note: These passages connect variable-rate borrower distress to losses and higher risk-weighted assets that may restrict JPMorganChase’s capital deployment.
 
-**Evidence 1** — `JPM / 2025 / Item 1A. Risk Factors` / block: Operational
+**Evidence 1** — `JPM / 2025 / Item 1A. Risk Factors` / block: Market
 
-> …•sponsored by, or acting on behalf of, hostile countries or terrorist organizations  •cyber-criminals, or  •engaged in using technology to promote a political or social agenda (i.e., “hacktivists”). **JPMorganChase has experienced security breaches due to cyber attacks in the past, and future breaches are inevitable.** Any such breach could result in serious and harmful consequences for JPMorganChase or its clients and customers. JPMorganChase cannot guarantee that it will always detect cybersecurity threats to its systems or implement effective preventive measures against those threats. The reasons for this include:  •the t…
+> …gher funding costs.  All of these outcomes could adversely affect JPMorganChase’s earnings or its liquidity and capital levels, with more severe impacts in a prolonged period of high interest rates. **Higher interest rates could also negatively affect the payment performance on loans within JPMorganChase’s consumer and wholesale loan portfolios that are linked to variable interest rates.** If borrowers of variable rate loans reduce or stop making payments at higher interest rates, JPMorganChase could incur losses as well as increased operational costs related to servicing a higher volume of delinquent loans. On the other hand, a low or negative interest rate environment could cause:  •compressed net interest margins, which could result in lower earnings on JPMorganChase’s investment securities portfolio…
 
-**Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: Strategic
+**Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: Capital
 
-> …ssing and other products and services from the use of new technologies that may not require intermediation, such as tokenized securities or other products that leverage distributed ledger technology. New technologies have required and could require JPMorganChase to increase expenditures to modify its products to attract and retain clients and customers or to match products and services offered by its competitors, including technology companies. If JPMorganChase does not keep pace with rapidly changing technological advances, including the adoption of generative AI, it risks losing clients and market share to competitors, which could negatively impact revenues, operating costs and its competitive position. **Competition could be intensified as the feasibility, capability and scalability of new technologies improves.** In addition, new technologies (including generative AI) could be used by customers or bad actors in unexpected or disruptive ways, or could be breached or infiltrated by third parties, which could in…
+> **JPMorganChase’s ability to distribute capital to shareholders, and to support its business activities could be limited if it does not satisfy applicable regulatory capital requirements.**  JPMorganChase is subject to various regulatory capital requirements, and the amount of capital that it is required to hold under those requirements could increase at any given time due to factors such as:  19  Part I  •actions by banking regulators, as well as changes in applicable law or how applicable law is implemented by banking regulators  •changes in the composition of JPMorganChase’s balance sheet or developments that could increase RWA, such as increased market risk, customer delinquencies, client credit rating downgrades or other factors, and  •increases in estimated stress losses as determined by the Federal Reserve under CCAR, which could increase JPMorganChase’s SCB. Although more likely in times of stress, JPMorganChase may use its regulatory capital buffers allowing capital ratios to decline below regulatory requirements, subjecting it to restrictions on capit…
 
 ---
 
 ## p06 — COIN Item 1A (multi_passage, passage_first)
 
 - sector: Financials / cap: mid / FY2025 / detection: text_fallback, text_fallback
-- **query**: Coinbase 2025 outage frequency and Apple's decentralized-app feature restriction
-- curation_note: This pair tests retrieval of a quantified platform-reliability metric and a specific Apple-imposed limitation on Coinbase’s mobile application.
+- **query**: How did Deribit deepen Coinbase's vulnerability to cyberattacks?
+- curation_note: This pair connects Deribit’s addition of derivatives offerings to the heightened third-party attack surface created as Coinbase expands those products.
 
 **Evidence 1** — `COIN / 2025 / Item 1A. Risk Factors` / block: •place us at a competitive disadvantage compared to our less leveraged competitors; and
 
-> …n crypto assets may become more volatile and less liquid in a very short period of time, resulting in market prices being subject to erratic and abrupt market movement, which could harm our business. For instance, abrupt changes in volatility or market movement can lead to extreme pressures on our platform and infrastructure that can lead to inadvertent suspension of services across parts of the platform or the entire platform. As a result, from time to time we experience outages. **For example, in 2025, we experienced approximately 10 outages, with an average outage duration of 74.2 minutes.** Outages can lead to increased customer service expense, can cause customer loss and reputational damage, result in inquiries and actions by regulators, and can lead to other damages for which we may be responsible.
+> …have made, and may continue to make, acquisitions of and investments in, among other   51   things, specialized employees and complementary companies, products, services, licenses, or technologies. **For example, as a result of our acquisition of Deribit in August 2025, we now provide additional cryptocurrency products and services internationally, including options and perpetual swaps.** If we are unable to successfully integrate Deribit or comply with evolving U.S. and international crypto and derivatives regulations applicable to our expanded operations and products, we could be required to modify or discontinue certain offerings, face limitations on our ability to onboard or serve customers in key markets, incur substantial compliance and remediation costs, or be subject to penalties and other enforcement actions, any of which could adversely affect our business, operating results, and financial condition. In the future, the pace and scale of our acquisitions may increase and may include larger acquisitions than we have done historically. We also invest in companies and technologies, many of which are…
 
-**Evidence 2** — `COIN / 2025 / Item 1A. Risk Factors` / block: Risks Related to Third Parties
+**Evidence 2** — `COIN / 2025 / Item 1A. Risk Factors` / block: The Most Material Risks Related to Our Business and Financial Position
 
-> …tions related to crypto assets have disrupted the proposed launch of many features within the Coinbase and the Base App apps, including NFT transfer services and access to decentralized applications. If our products are found to be in violation of any such terms and conditions, we may no longer be able to offer our products through such third-party platforms. There can be no guarantee that third-party platforms will continue to support our product offerings, or that customers will be able to continue to use our products. **For example, in December 2019, we were instructed by Apple to remove certain features relating to decentralized applications from our application to comply with the Apple App Store’s policies.** Any changes, bugs, technical or regulatory issues with third-party platforms, our relationships with mobile manufacturers and carriers, or changes to their terms of service or policies could degrade our products’ functionalities, reduce or eliminate our ability to distribute our products, give preferential treatment to competitive products, limit our ability to deliver high quality offerings, or impose fees or other charges, any of which could affect our product usage and adversely affect our business, operating results, and financial condition.
+> …disclosing usernames, passwords, payment card information, or other sensitive information, which may in turn be   28   used to access our information technology systems and customers’ crypto assets. **As we grow our offering of products and services, including options and perpetual swaps, we face increased exposure to cyberattacks through third parties.** Threats can come from a variety of sources, including criminal hackers, hacktivists, state-sponsored intrusions, industrial espionage, and insiders. Certain threat actors may be supported by significant financial and technological resources, making them even more sophisticated and difficult to detect. We may also acquire other companies that expo…
 
 ---
 
@@ -133,16 +149,16 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## p09 — GOOGL Item 1A (multi_passage, passage_first)
 
 - sector: Communication Services / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: What compute bottlenecks and European AI-law deadlines does Alphabet disclose?
-- curation_note: This evidence pairs concrete infrastructure constraints with a dated European regulatory rollout, testing cross-unit retrieval of operational and legal AI risks.
+- **query**: How laws complicate Alphabet's content and youth-safety controls
+- curation_note: The evidence links legal constraints on filtering poor-quality material with child-safety mandates requiring product changes and monitoring, testing cross-unit retrieval of regulatory effects on platform governance.
 
-**Evidence 1** — `GOOGL / 2025 / Item 1A. Risk Factors` / block: Risks Specific to our Company
+**Evidence 1** — `GOOGL / 2025 / Item 1A. Risk Factors` / block: Risks Related to our Industry
 
-> …sruption. A significant supply interruption that affects us or our vendors could delay critical data center or network infrastructure upgrades or expansions and delay consumer product availability. Our ability to scale our technical infrastructure is increasingly constrained by the availability of power, water, and land. For example, energy supply is constrained globally due to the significant increase in demand for and limited availability of energy to power AI compute. Securing this capacity involves entering into complex, long-lead-time arrangements. **Additionally, manufacturing and supply of servers and network equipment for our technical infrastructure, particularly for specialized AI chips, is limited to a small number of qualified suppliers.** Extended or unforeseen disruptions at these suppliers could impact our ability to meet customer demand. Failure to secure sufficient capacity in a timely manner would limit our ability to train models and serve Cloud customers. We may enter into long-term contracts for materials and products that commit us to significant terms and conditions. We may face costs for materials and products that are not consumed due to market…
+> …rging threats, there is no guarantee that our technology and policy enforcement will always be successful, and our users may have negative experiences that make them less likely to use our platforms. **We face legal and regulatory challenges to our efforts to address low-quality content, and our ability to address it may be constrained or made more costly through added compliance requirements.** We also face other challenges to the quality of our search results from low-quality and irrelevant content websites, including content farms, which are websites that generate large quantities of low-…
 
 **Evidence 2** — `GOOGL / 2025 / Item 1A. Risk Factors` / block: Risks Related to Laws, Regulations, and Policies
 
-> …: Laws and regulations focused on the development, use, and provision of AI technologies and other digital products and services, which could result in monetary penalties or other regulatory actions. **For example, the EU AI Act came into force on August 1, 2024, and will generally become fully applicable after a two-year transitional period (although certain obligations have already taken effect).** The EU AI Act introduces various requirements for AI systems and models placed on the market in the EU, including specific transparency, safety, and copyright requirements for general purpose AI systems and the models on which those systems are based. Various countries, including Brazil, India, Japan, South Korea, Singapore, and Vietnam, have also enacted or are considering enacting regulations focused on AI. In the US, an increasing amount of leg…
+> …for services like Google Search and YouTube to detect and limit low-quality, deceptive, or harmful content, or, on the other hand, may impinge on the rights of free expression and access to content. Additionally, new regulations apply to online child safety, including access and content restrictions as well as other limitations for minors, which may also conflict with rights of free expression and access to information. **These regulations could result in our having to modify our products and services and monitor minors' experiences on our products and services.** •Consumer protection: Consumer protection laws, including the EU's New Deal for Consumers, which could result in monetary penalties and create a range of new compliance obligations.  In addition, th…
 
 ---
 
@@ -186,27 +202,11 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 **Evidence 1** — `COST / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
 
-> …unting, regulatory, political and economic factors specific to the countries or regions in which we operate, which could adversely affect our business, financial condition and results of operations. At the end of 2025, we operated 285 warehouses outside of the U.S. **(31% of all warehouse locations), and we plan to continue expanding our international operations.** Future operating results internationally could be negatively affected by a variety of factors, many similar to those we face in the U.S., certain of which are beyond our control. These factors include political and economic conditions, regulatory constraints, currency regulations, policy changes, and other matters in any of the countries or regions in which we operate, now or…
+> …unting, regulatory, political and economic factors specific to the countries or regions in which we operate, which could adversely affect our business, financial condition and results of operations. **At the end of 2025, we operated 285 warehouses outside of the U.S. (31% of all warehouse locations), and we plan to continue expanding our international operations.** Future operating results internationally could be negatively affected by a variety of factors, many similar to those we face in the U.S., certain of which are beyond our control. These factors include political and economic conditions, regulatory constraints, currency regulations, policy changes, and other matters in any of the countries or regions in which we operate, now or…
 
 **Evidence 2** — `COST / 2025 / Item 1A. Risk Factors` / block: Market and Other External Risks
 
 > …da, generated 27% and 34% of our net sales and operating income. Our international operations have accounted for an increasing portion of our warehouses, and we plan to continue international growth. To prepare our consolidated financial statements, we translate the financial statements of our international operations from local currencies into U.S. dollars using current exchange rates. Future fluctuations in exchange rates that are unfavorable to us may adversely affect the financial performance of our Canadian and Other International operations and have a corresponding adverse period-over-period effect on our results of operations. **As we continue to expand internationally, our exposure to fluctuations in foreign-exchange rates may increase.** A portion of the products we purchase is paid for in a currency other than the local currency of the country in which the goods are sold. Currency fluctuations may increase our merchandise costs and…
-
----
-
-## p13 — XOM Item 1A (multi_passage, passage_first, ALTERNATE)
-
-- sector: Energy / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: How do public policies intensify competitive threats to ExxonMobil?
-- curation_note: This pairing links sanctions-based disadvantages with subsidized alternative-energy rivalry, testing retrieval across separate regulatory and competitive-risk passages.
-
-**Evidence 1** — `XOM / 2025 / Item 1A. Risk Factors` / block: Government and Political Factors
-
-> …ict the import or export of certain products based on point of origin, and such restrictions may increase during periods of escalating geopolitical or trade tensions.  Restrictions on doing business. ExxonMobil is subject to laws and sanctions imposed by the United States and by other jurisdictions where we do business that may prohibit ExxonMobil or its affiliates from doing business in certain countries or with certain counterparties or restrict or impede the kind of business that may be conducted, including acquiring and divesting certain assets or importing or exporting certain materials or products. **Such restrictions may provide a competitive advantage to competitors who may not be subject to comparable restrictions.** Lack of legal certainty. Some countries in which we do, or seek to do, business lack well-developed legal systems, lack political or governmental stability, may be subject to regime changes, have no…
-
-**Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Operational and Other Factors
-
-> …ve the internal resources and capabilities of ExxonMobil or reduce the need for resource-owning countries to partner with private-sector oil and gas companies in order to monetize national resources. **As described in more detail above, our hydrocarbon-based energy products are also subject to growing and, in many cases, government-supported competition from alternative energy sources.** In addition, as we enter new markets in pursuit of lower-emission and other new business opportunities, we will need to compete effectively with established competitors in these markets, as well as with new market entrants seeking to capitalize on these opportunities, while successfully navigating changing market conditions or technologies. Reputation. Our reputation is an important corporate asset. Factors that could have a negative impact on our reputation include an operating incident or significant cybersecurity disruption; changes…
 
 ---
 
@@ -229,16 +229,16 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## p15 — PLD Item 1A (multi_passage, passage_first)
 
 - sector: Real Estate / cap: large / FY2025 / detection: text_fallback, text_fallback
-- **query**: What were overseas revenue and top-ten customer rent concentrations?
-- curation_note: This pair tests retrieval of two distinct, company-specific concentration metrics spanning international operations and customer exposure.
+- **query**: Which portfolio region faces both business slowdowns and earthquake exposure?
+- curation_note: This pair tests retrieval across disclosures linking California’s economic vulnerability with the seismic exposure of Prologis properties there.
 
-**Evidence 1** — `PLD / 2025 / Item 1A. Risk Factors` / block: Risks Related to our Global Operations
+**Evidence 1** — `PLD / 2025 / Item 1A. Risk Factors` / block: Risks Related to our Business
 
-> …esults of operations and financial condition may be materially and adversely affected.   We conduct a significant portion of our business and employ a substantial number of people outside of the U.S. **During 2025, we generated approximately $788 million, or 9.0% of our consolidated revenues, from operations outside the U.S.** Circumstances and developments related to international operations that could negatively impact us include, but are not limited to, the following factors:  •difficulties and costs of staffing and man…
+> …international geographies in which we own properties. Our operating performance is further impacted by the economic conditions of the specific markets in which we have concentrations of properties. At December 31, 2025, 30.6% of our consolidated operating properties or $24.7 billion (based on consolidated gross book value, or investment before depreciation) were located in California (Central Valley, San Francisco Bay Area and Southern California markets), which represented 23.6% of the aggregate square footage of our operating properties and 31.9% of our consolidated operating property NOI. Our revenues from, and the value of, our properties located in California may be affected by local real estate conditions (such as an oversupply of or reduced demand for logistics properties) and the local economic climate. **Business layoffs, downsizing, industry slowdowns, changing demographics and other factors may adversely impact California’s economic climate.** Because of the investment we have located in California, a downturn in California’s economy or real estate conditions, including state income tax and property tax laws, could adversely affect our business. In addition to California, we also have significant holdings (defined as more than 3% of total consolidated investment before depreciation) in operating properties in certain markets located in Atl…
 
-**Evidence 2** — `PLD / 2025 / Item 1A. Risk Factors` / block: •our ability to lease the properties at favorable rates and control variable operating costs; and
+**Evidence 2** — `PLD / 2025 / Item 1A. Risk Factors` / block: •we may experience delays (temporary or permanent) if there is public or government opposition to our activities; and
 
-> …favorable terms as leases expire.  Our operating results and distributable cash flow would be adversely affected if a significant number of our customers were unable to meet their lease obligations. **At December 31, 2025, our top 10 customers accounted for 16.3% of our consolidated NER and 15.2% of our O&M NER.** In the event of default by a significant number of customers, we may experience delays and incur substantial costs in enforcing our rights as landlord, and we may be unable to re-lease spaces. A cust…
+> …debt, then we would remain obligated for any mortgage debt or other financial obligations related to the properties. Any such losses or higher insurance costs could adversely affect our business. 19     A number of our investments, both wholly owned and owned through co-investment ventures, are located in areas that are known to be subject to earthquake activity. **U.S. properties located in active seismic areas include properties in our markets in California and Washington.** International properties located in active seismic areas include Japan and Mexico. We generally carry earthquake insurance on our properties located in areas historically subject to seismic activity, subject to coverage limitations and deductibles, if we believe it is commercially…
 
 ---
 
@@ -271,13 +271,13 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## p18 — DDOG Item 7 (passage, intent_first)
 
 - sector: Information Technology / cap: mid / FY2025 / detection: markdown_h3
-- **query**: How could tariffs and cross-border commerce barriers harm Datadog?
+- **query**: How can trade barriers affect Datadog’s growth and results?
 - user_intent: how do export controls or trade restrictions affect the business
-- curation_note: This passage links shifting trade policy to economic uncertainty, reduced technology spending, delayed subscription effects, and potential harm to Datadog’s results.
+- curation_note: This passage links restrictive trade policies to economic uncertainty that may weaken Datadog’s growth and operating performance.
 
 **Evidence 1** — `DDOG / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Overview
 
-> …illion, $775.1 million and $597.5 million for the years ended December 31, 2025, 2024 and 2023, respectively. See the section titled “—Liquidity and Capital Resources—Non-GAAP Free Cash Flow” below. Unfavorable conditions in the economy both in the United States and abroad may negatively affect the growth of our business and our results of operations. For example, macroeconomic events including changes in trade policies, such as trade wars, tariffs or other trade restrictions or the threat of such actions, fluctuating inflation and interest rates, and the conflicts in Ukraine and the Middle East have led to economic uncertainty. **Historically, during periods of economic uncertainty and downturns, businesses may slow spending on information technology, which may impact our business and our customers’ businesses.**  Due to our subscription model, the effect of macroeconomic conditions may not be fully reflected in our results of operations until future periods. However, if economic uncertainty increases or the global economy worsens, our business, financial condition and results of operations may be harmed. For further discussion of the potential impacts of macroeconomic events on our business, financial condition, and operating results, see “Risk Factors” included in Part I, Item 1A of this report.  Fa…
+> …illion, $775.1 million and $597.5 million for the years ended December 31, 2025, 2024 and 2023, respectively. See the section titled “—Liquidity and Capital Resources—Non-GAAP Free Cash Flow” below. **Unfavorable conditions in the economy both in the United States and abroad may negatively affect the growth of our business and our results of operations.** For example, macroeconomic events including changes in trade policies, such as trade wars, tariffs or other trade restrictions or the threat of such actions, fluctuating inflation and interest rates, and the conflicts in Ukraine and the Middle East have led to economic uncertainty. Historically, during periods of economic uncertainty and downturns, businesses may slow spending on information technology, which may impact our business and our customers’ businesses.  Due to our su…
 
 ---
 
@@ -316,7 +316,7 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 **Evidence 1** — `COIN / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Results of Operations
 
-> Comparison of the years ended December 31, 2025 and 2024  Revenue  For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respectively, of total revenue in the U.S., with no other country contributing over 10%. **International revenue comprised mainly transaction revenue.** Transaction revenue  Year Ended December 31,Change  (in thousands, except %)  20252024$%  Consumer, net$3,322,835 $3,430,322 $(107,487)(3)  Institutional, net479,667 345,598 134,069 39   Other trans…
+> Comparison of the years ended December 31, 2025 and 2024  Revenue  **For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respectively, of total revenue in the U.S., with no other country contributing over 10%.** International revenue comprised mainly transaction revenue. Transaction revenue  Year Ended December 31,Change  (in thousands, except %)  20252024$%  Consumer, net$3,322,835 $3,430,322 $(107,487)(3)  Institutional, net479,667 345,598 134,069 39   Other trans…
 
 ---
 
@@ -333,16 +333,15 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## p23 — DECK Item 7 (passage, intent_first)
+## p23 — DECK Item 7 (passage, passage_first)
 
 - sector: Consumer Discretionary / cap: mid / FY2026 / detection: text_fallback
-- **query**: Deckers expected spending for capital projects and cloud implementations
-- user_intent: what risks does the company see around AI
-- curation_note: This is the closest technology-related disclosure available, testing retrieval of Deckers’ quantified planned investment in cloud and capital projects rather than AI-specific risks.
+- **query**: Deckers fiscal 2026 supplemental sales growth and unit-volume metrics
+- curation_note: This passage consolidates constant-currency growth, comparable direct-channel performance, and unit-volume data, testing retrieval of related supplemental operating metrics.
 
-**Evidence 1** — `DECK / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: certain implementation costs for cloud computing arrangements to be made before the end of our next fiscal year
+**Evidence 1** — `DECK / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Supplemental Disclosure
 
-> **will range from approximately $145,000 to $155,000.** We anticipate these expenditures will primarily relate to
+> •On a constant currency basis, net sales increased by 9.0%, compared to the prior period.  •Comparable DTC channel net sales for the 52 weeks ended March 29, 2026, increased by 4.6%,   compared to the prior period.  **•We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,   compared to the prior period.** Units sold include all categories such as footwear, apparel,   accessories, home goods, and care kits across all brands. Percentages may not calculate on   rounded units. Table of Contents                                                                                                                                                         38  Gross Profit. Gross marg…
 
 ---
 
@@ -359,16 +358,15 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## p25 — CAT Item 7 (passage, intent_first)
+## p25 — CAT Item 7 (passage, passage_first)
 
 - sector: Industrials / cap: large / FY2025 / detection: markdown_h3
-- **query**: Caterpillar cybersecurity threats and board oversight disclosures
-- user_intent: what cybersecurity threats and governance does the company describe
-- curation_note: This cross-reference directs retrieval toward Item 1A, where the filing indicates its significant business risks are discussed.
+- **query**: How much could tariffs cost without planned mitigation?
+- curation_note: This passage quantifies Caterpillar’s 2026 tariff exposure and the additional downside if its countermeasures are not implemented.
 
-**Evidence 1** — `CAT / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations`
+**Evidence 1** — `CAT / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: OVERVIEW
 
-> …ng principles, policies and critical estimates affect our Consolidated Financial Statements. Our discussion also contains certain forward-looking statements related to future events and expectations. **This MD&A should be read in conjunction with our discussion of cautionary statements and significant risks to the company’s business under Item 1A.** Risk Factors of the 2025 Form 10-K. Highlights for the full-year 2025 include:  •Sales and revenues for 2025 were $67.589 billion, an increase of $2.780 billion, or 4 percent, compared with $64.809 billion for 2024. Sales were higher…
+> …t of sales and revenues. We expect machine dealer inventory to increase in 2026 and offset the $500 million decrease in 2025. Services revenues are also expected to grow in 2026 as compared to 2025. Based on the incremental tariffs announced in 2025 and in place by January 29, 2026, we expect the impact from tariffs to be around $2.6 billion in 2026, which is $800 million higher than incurred in 2025. **If we do not take the mitigating actions we plan to take in 2026, the impact from tariffs could be around 20 percent higher.** We remain confident that we will manage the impact of tariffs over time. In 2026, we expect restructuring costs of approximately $300 million to $350 million and capital expenditures of around $3.5 billion. We anticipate our 2026 estimated annual effective tax rate to b…
 
 ---
 
@@ -480,15 +478,15 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## p35 — LLY Item 1 (passage, passage_first)
+## p35 — PODD Item 1 (passage, passage_first)
 
-- sector: Health Care / cap: large / FY2025 / detection: markdown_h3
-- **query**: What access measures accompany Lilly's tentative federal pricing pact?
-- curation_note: This passage details Lilly-specific Medicaid, Medicare, and direct-purchase measures and tests retrieval of concrete commitments under a tentative government agreement.
+- sector: Health Care / cap: mid / FY2025 / detection: markdown_h3
+- **query**: Insulet next-generation insulin automation development milestones
+- curation_note: This evidence captures named pipeline programs, completed studies, enrollment progress, and a planned pivotal trial, testing retrieval of product-development status across a compact passage.
 
-**Evidence 1** — `LLY / 2025 / Item 1. Business` / block: Government Regulation of Our Operations and Products
+**Evidence 1** — `PODD / 2025 / Item 1. Business` / block: Data Management
 
-> …rnment actions to reduce federal spending on entitlement programs, including Medicare and Medicaid, affects reimbursement for our products or services associated with the provision of our products. In November 2025, we announced preliminary voluntary agreements with the U.S. government in which, among other arrangements, we agreed to implement measures to lower Medicaid and certain other drug prices for U.S. patients and to launch new medicines with a more balanced pricing approach across developed nations. As part of these agreements, we expect Medicare beneficiaries will have access to discounted Lilly obesity medicines by July 1, 2026, and States will have the option to expand access to these discounted medicines through Medicaid. **We will also participate in a government direct-to-patient purchasing platform that will direct people in the U.S.** to offerings to purchase certain medicines from us at significant discounts to current list prices. The preliminary agreements also provide a three-year grace period during which time our products under a Section 232 investigation will not face tariffs, provided that we meet U.S. manufacturing inve…
+> …to the Omnipod 5 algorithm to include a lower target glucose set point.   We also continue to advance work to improve the Omnipod 5 algorithm and simplify the data and insights provided to customers. In addition, we are working to integrate Omnipod 5 with Libre 3 Plus and developing Omnipod 6, our next-generation AID product. In 2025, we completed STRIVE, our pivotal study for the next generation hybrid closed loop system. Further, we continue to develop a fully closed loop AID system for type 2 diabetes (“FCL (T2)”). **In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.** Manufacturing and Quality Assurance   We produce our products at our two highly automated manufacturing facilities in Acton, Massachusetts and Johor, Malaysia. Additionally, we are investing in a th…
 
 ---
 
@@ -615,12 +613,12 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## p46 — COIN Item 3 (factoid, passage_first)
 
 - sector: Financials / cap: mid / FY2025 / detection: flat
-- **query**: How will Coinbase respond to regulatory investigations?
-- curation_note: This sentence captures Coinbase’s stated response to investigations and tests retrieval of a specific legal-proceedings commitment.
+- **query**: Where does Coinbase cross-reference its significant litigation disclosures?
+- curation_note: This evidence identifies the precise financial-statement note containing Coinbase's material litigation disclosures, testing cross-reference retrieval.
 
 **Evidence 1** — `COIN / 2025 / Item 3. Legal Proceedings`
 
-> …existing and intended future products, including our processes for listing assets, the classification of certain listed assets, our staking programs, and our stablecoin and yield-generating products. **We intend to cooperate fully with such investigations.** These examples are not exhaustive.…
+> **ITEM 3. LEGAL PROCEEDINGS  For a description of material legal proceedings in which we are involved, see Note 21.** Commitments and Contingencies of the Notes to our Consolidated Financial Statements included in Part II, Item 8 of this Annual Report on Form 10-K, which is incorporated herein by reference.   We are…
 
 ---
 
@@ -691,80 +689,64 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## a02 — DDOG Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: Datadog 2025 revenue and overseas full-time employee distribution
-- curation_note: This row tests retrieval of a revenue figure and international workforce percentages from separate risk-factor units.
+- **query**: Contractual exposure arising from Datadog's platform outage history
+- curation_note: These passages connect Datadog’s documented March 2023 outage with customer credits, terminations, reduced renewals, and reputational consequences under its service commitments.
 
-**Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Risks Associated with our Growth
+**Evidence 1** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Strategic and Operational Risks
 
-> …ur recent rapid growth may not be indicative of our future growth. Our rapid growth also makes it difficult to evaluate our future prospects and may increase the risk that we will not be successful. **Our revenue was $3,427.2 million, $2,684.3 million and $2,128.4 million for the years ended December 31, 2025, 2024 and 2023, respectively.** You should not rely on the revenue growth of any prior quarterly or annual period as an indication of our future performance. Even if our revenue continues to increase, we expect that our revenue gro…
+> …19  Our continued growth depends in part on the ability of our existing and potential customers to access our products and platform capabilities at any time and within an acceptable amount of time. We have experienced, and may in the future experience, disruptions, outages, and other performance problems due to a variety of factors, including infrastructure changes, introductions of new functionality, human or software errors, capacity constraints due to an overwhelming number of users accessing our products and platform capabilities simultaneously, denial of service attacks, or other security-related incidents. **For example, in March 2023, our platform experienced widespread outages across multiple products and regions, which was substantially resolved in approximately a day.** It may become increasingly difficult to maintain and improve our performance, especially during peak usage times and as our products and platform capabilities become more complex and our user traffi…
 
-**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Risks Related to Intellectual Property
+**Evidence 2** — `DDOG / 2025 / Item 1A. Risk Factors` / block: Legal and Regulatory Risks
 
-> …h relationships with new partners in order to expand into certain countries, and if we fail to identify, establish and maintain such relationships, we may be unable to execute on our expansion plans. **As of December 31, 2025, approximately 44% of our full-time employees were located outside of the United States, 34% of whom were located in France.** We expect that our international activities will continue to grow for the foreseeable future as we continue to pursue opportunities in existing and new international markets, which will require signi…
+> …ovide credits for future service or face subscription termination with refunds of prepaid amounts, which would lower our revenue and harm our business, financial condition and results of operations. Our subscription agreements typically contain service-level commitments. If we are unable to meet the stated service-level commitments, including failure to meet the uptime and response time requirements under our customer subscription agreements, we may be contractually obligated to provide these customers with service credits which could significantly affect our revenue in the periods in which the failure occurs and the credits are applied. **We could also face subscription terminations and a reduction in renewals, which could significantly affect both our current and future revenue.** Any service-level failures could also damage our reputation, which could also adversely affect our business, financial condition and results of operations. 26  Indemnity provisions in various agreements to which we are party potentially expose us to substantial liability for infringement, misappropriation or other violation of intellectual property rig…
 
 ---
 
 ## a03 — LLY Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Health Care / cap: large / FY2025 / detection: markdown_h3, markdown_h3
-- **query**: Trulicity patent expiry and manufacturing ramp execution risks
-- curation_note: This evidence pairs Trulicity’s approaching protection loss with delays in activating added production capacity, testing retrieval across distinct product-lifecycle and supply-growth risks.
+- **query**: Why are trade levies especially difficult for Lilly to absorb?
+- curation_note: The passages connect concentrated sourcing exposure with pharmaceutical-sector limits on recovering higher trade costs, testing causal retrieval across operational and international risks.
 
-**Evidence 1** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Our Business and Industry
+**Evidence 1** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Our Operations
 
-> …f effective intellectual property protection for certain of our products has resulted, and in the future is likely to continue to result, in rapid and severe declines in revenues for those products. In the ordinary course of their lifecycles, our products lose significant patent protection and/or data protection after a specified period of time. **For example, Trulicity will lose significant patent and remaining data protections in the next few years.** Some products also lose patent protection as a result of successful third-party challenges. We have faced, and remain exposed to, generic or biosimilar competition following the expiration or loss of such intellectual property protection. Patent expirations of competitive products may also shift market conditions for our products by contracting the market for branded products, impacting product access, or otherwise intensifying pricin…
+> …auses, discontinuations, or other product availability issues in one or more markets, which could have a material adverse effect on our consolidated results of operations, cash flows, and reputation. Challenges and disruptions may include (i) actual or perceived quality, oversight, or regulatory compliance problems; (ii) equipment, mechanical, data, or IT system vulnerabilities, such as system inadequacies, inadequate controls or procedures, operating failures, unauthorized access, service interruptions or failures, security breaches, malicious intrusions, theft, exfiltration, ransomware or other cyber-attacks from a variety of sources; (iii) labor deficiencies; (iv) inability to obtain single-source or other raw or intermediate materials; or (v) issues related to contractors and suppliers, including the failure, inability, or refusal of a supplier or contract manufacturer to supply contracted quantities in a timely or compliant manner or at all, increases in demand on a supplier with constrained capacity, contractual disputes with our suppliers and contract manufacturers, and vertical integration by competitors within our supply chain.   **Regional or single-source dependencies may in some cases accentuate risks and costs (e.g., tariffs) related to manufacturing and supply.** For example, we, and the pharmaceutical industry generally, depend on China-based suppliers for portions of our supply chain, including integral chemical synthesis, reagents, starting materials, and…
 
-**Evidence 2** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Our Operations
+**Evidence 2** — `LLY / 2025 / Item 1A. Risk Factors` / block: Risks Related to Doing Business Internationally
 
-> …public health outbreaks, epidemics, or pandemics; (vi) periods of uneven economic growth or downturns; and (vii) the emergence or escalation of, or responses to international tension and conflicts. Difficulties in predicting or variability in demand and supply for our products and those of our competitors and the very long lead times necessary for the expansion and regulatory qualification of pharmaceutical manufacturing capacity have resulted, and in the future may result, in difficulty meeting demand, causing disruptions, shortages, or higher costs in the supply of our products. Despite our ongoing efforts to meet projected worldwide demand for our products by obtaining additional internal and contracted manufacturing capacity, there can be no assurances that such capacity increases that we expect will be needed to meet   33  future demand will be realized as expected or that we will meet demand in launched markets in the future. **Delays or challenges in operationalizing additional manufacturing capacity could limit our ability to capitalize on demand for our products.** Conversely, overestimation of demand or events that limit demand for our products or anticipated demand for product candidates would undermine our ability to realize the full benefit of significant c…
+> …ctions. See Item 1A, "Risk Factors—Risks Related to Our Operations—Reliance on third-party relationships and outsourcing arrangements could adversely affect our business," for additional information. The precise impact of tariffs, trade protection measures, and other restrictions may depend on their ultimate scope, timing, and other factors. If enacted, additional restrictions could result in supply disruptions or delays, further increase costs, or otherwise have a negative impact on our business. **Given the nature of pharmaceutical regulation and commercialization, we may not be able to offset the burden of increased costs from tariffs and related impacts to any meaningful degree.** In most international markets, we operate in an environment of government-mandated cost-containment programs. In some markets, including the EU, Japan, and China, governments have significant power…
 
 ---
 
 ## a04 — PODD Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Health Care / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: What rival delivery formats and sensor partnerships affect Omnipod?
-- curation_note: This pair tests cross-unit retrieval of competing diabetes-treatment formats and named CGM collaborators supporting Omnipod 5.
+- **query**: Why does Omnipod expansion heighten component sourcing vulnerability?
+- curation_note: The passages connect demand-led organizational strain with sole-source components and regulatory obstacles to qualifying replacements.
 
 **Evidence 1** — `PODD / 2025 / Item 1A. Risk Factors`
 
-> …apy to pump therapy, which could result in price pressure and decreased revenue.  Our current competitors or other companies may at any time develop additional products for the treatment of diabetes. **Several companies are working to develop and market new insulin “patch” pumps, smart pens, and other methods for the treatment of insulin-dependent diabetes.** If an existing or future competitor develops a product that competes with or is superior to our Omnipod products, we risk losing our position as the perceived technology leader in our field, and our…
+> …tively manage our rapid growth, our business resources may become strained and we may not be able to deliver our products in a timely manner, which could adversely affect our results of operations. As we continue to expand the number of customers we serve, driven by increasing demand for Omnipod 5, our international expansion and entrance into the insulin-requiring type 2 diabetes market, we expect to continue to increase our manufacturing capacity, our personnel, and the scope of our sales and marketing efforts. **Our growth will create challenges for our organization and may strain our management, operations, and customer service resources.** We may misjudge the amount of time or resources that will be required to effectively manage any anticipated or unanticipated growth in our business, we may not be able to manufacture sufficient inven…
 
 **Evidence 2** — `PODD / 2025 / Item 1A. Risk Factors` / block: Risks Related to our Intellectual Property
 
-> …ell our current products and commercialize new products. If we cannot obtain or retain these agreements, licenses, or other rights, we may not be able to sell, develop, or commercialize our products. **For example, we have commercial agreements with Dexcom and Abbott that allow us to sell Omnipod 5 with integration to Dexcom’s and Abbott’s CGM sensors.** The loss of any of these rights could impair the functionality of our products or prevent us from selling our products without significant development activities and regulatory approvals that may not…
-
----
-
-## a05 — JPM Item 1A (multi_passage, passage_first)
-
-- sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: How could artificial intelligence reshape staffing needs and employee capabilities?
-- curation_note: These passages connect AI adoption risks with staff shortages, skill erosion, displacement, retraining costs, and demand for advanced technical talent.
-
-**Evidence 1** — `JPM / 2025 / Item 1A. Risk Factors` / block: Strategic
-
-> …rs, or  •replacement or disintermediation of direct customer relationships if AI agents autonomously manage or intermediate financial decisions and product selection or other services for customers. **It is also possible that JPMorganChase could miscalibrate its workforce planning and employee training efforts either because of over-reliance on AI or the failure to appropriately adopt AI.** Over-reliance on AI could cause JPMorganChase to experience shortages in qualified staff due to reduced hiring or retention of employees, or could hinder the development or enhancement of important skills among its employees, including critical thinking, problem-solving, judgment, creativity and adaptability. On the other hand, any efficiencies or competitive advantages that AI may offer could be squandered if JPMorganChase fails to adopt AI in a timely and judicious manner and to make related adjustments to its workforce. Any of these factors could materially and adversely affect JPMorganChase’s business and operations, results of operations, competitive position or reputation.  The effects of climate change could ad…
-
-**Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: People
-
-> …countries could inhibit JPMorganChase’s ability to attract and retain qualified employees, or necessitate adjustments to operating models that could reduce operational efficiency or increase costs. **Advances in technology, such as automation, AI and data science, could lead to workforce displacement.** This could require JPMorganChase to invest in additional employee training, manage impacts on morale and retention, and compete for employment candidates who possess more advanced technological skills, all of which could have a negative impact on JPMorganChase’s business and operations.
+> …of supply, but we cannot guarantee these efforts will always be successful. We have also seen significant price increases for various components and raw materials, including for semiconductor chips. We do not have long-term supply agreements with all of our suppliers, and, in many cases, we, or our contract manufacturer, make purchases based on individual purchase orders. In some cases, our agreements with suppliers can be terminated by either party upon short notice. **Additionally, while efforts are made to diversify our sources of components and materials, in certain instances we acquire components and materials from a sole supplier.** Also, due to the stringent regulations and requirements of the FDA and similar regulatory agencies in other countries regarding the manufacture of our products, we may not be able to quickly establish additional or replacement sources for some components or materials. Our reliance on third-party suppliers subjects us to other risks that could harm our business, including:  •our suppliers may give other customers’ needs higher priority than ours, impacting their…
 
 ---
 
 ## a06 — COIN Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Financials / cap: mid / FY2025 / detection: text_fallback, text_fallback
-- **query**: Coinbase hot-wallet allocation cap and Bitcoin address compatibility
-- curation_note: This pair tests retrieval of Coinbase’s 2% hot-wallet target alongside the network-specific limitation governing Bitcoin addresses.
+- **query**: How can crypto-sector contagion reduce Coinbase revenue?
+- curation_note: This evidence traces a causal chain from crypto-firm distress and forced asset sales to lower prices and activity, then links those conditions to Coinbase’s revenue dependence.
 
 **Evidence 1** — `COIN / 2025 / Item 1A. Risk Factors` / block: The Most Material Risks Related to Our Business and Financial Position
 
-> …duct or error, or other compromise by third parties could hurt our brand and reputation, result in significant losses, and adversely affect our business, operating results, and financial condition. To mitigate the risks associated with the loss or theft of keys, we utilize both hot wallets and cold wallets in our custodial solutions. **We actively manage wallet balances and generally seek to hold no more than 2% of custodied assets in hot wallets at any given time.** Cold wallet private key materials are   43   stored and secured at facilities within the United States and internationally. We store the substantial majority of our own crypto asset holdings utilizin…
+> …n one or more future quarters may fall below the expectations of securities analysts and investors. As a result, the trading price of our Class A common stock may increase or decrease significantly. **Our total revenue is substantially dependent on the prices of crypto assets and volume of transactions conducted on our platform.** If such price or volume declines, our business, operating results, and financial condition would be adversely affected and the price of our Class A common stock could decline.  We generate a large portion of our total revenue from transaction fees on our platform in connection with the purchase, sale, and trading of crypto assets by our customers. Transaction revenue is based on transaction fees that are either a flat fee or a percentage of the value of each transaction. For our consumer trading product, we also charge a spread to ensure that…
 
-**Evidence 2** — `COIN / 2025 / Item 1A. Risk Factors` / block: Risks Related to Crypto Assets
+**Evidence 2** — `COIN / 2025 / Item 1A. Risk Factors` / block: Risks Related to Our Employees and Other Service Providers
 
-> …when depositing and withdrawing from our platforms, respectively. Alternatively, a user may transfer crypto assets to a wallet address that the user does not own, control or hold the private keys to. In addition, each wallet address is only compatible with the underlying blockchain network on which it is created. **For instance, a Bitcoin wallet address can only be used to send and receive Bitcoins.** If any Ethereum or other crypto assets are sent to a Bitcoin wallet address, or if any of the foregoing errors occur, all of the customer’s sent crypto assets will be permanently and irretrievably lost with no means of recovery. We have encountered and expect to continue to encounter similar incidents with our customers. Such incidents could result in customer disputes, damage to our brand and reputation, legal claims agains…
+> …ome of which are alleged or have been held to be the result of fraudulent activity by insiders, including misappropriation of customer funds and other illicit activity and internal controls failures. In connection with these failures, concerns were raised about the potential for a market condition where the failure of one company leads to the financial distress of other companies, which has the potential to depress the prices of assets used as collateral by other firms. If such a market condition were to become widespread in the onchain economy, we could suffer from increased counterparty risk, including defaults or bankruptcies of major customers or counterparties, which could lead to significantly reduced activity on our platform and fewer available crypto market opportunities in general. **Further, forced selling of crypto assets by distressed companies could lead to lower crypto asset prices and may lead to a reduction in our revenue.** To the extent that conditions in the general economic and crypto asset markets were to materially deteriorate, our ability to attract and retain customers may suffer.  Actual events involving limited…
 
 ---
 
@@ -787,16 +769,16 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## a08 — DECK Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Consumer Discretionary / cap: mid / FY2026 / detection: markdown_h4, markdown_h4
-- **query**: DECK customer concentration and international revenue exposure
-- curation_note: This pair tests retrieval of quantitative sales exposure across major customers and non-US markets.
+- **query**: How can overseas distribution transitions impede Deckers growth?
+- curation_note: The passages connect an ongoing international logistics-provider change with broader risks from switching distribution models during overseas expansion.
 
 **Evidence 1** — `DECK / 2026 / Item 1A. Risk Factors` / block: have a material adverse effect on our business.
 
-> …or improved results.   We face the risk that key customers may not increase their business with us as anticipated, may significantly reduce   purchases, or may terminate their relationships with us. **However, no single customer accounted for 10.0% or more   of our total net sales during fiscal year 2026.** The failure to increase sales to these customers could negatively affect   our growth prospects, and any reduction or loss of their business could materially and adversely affect our net sales   and…
+> …ly, which could similarly have a material adverse effect on our business.  Internationally, we distribute our products through warehouses and DCs managed by 3PLs in certain international   locations. **For example, we are currently transitioning certain international 3PL operations to a new partner.** While   we conduct diligence prior to entering into service agreements with 3PLs, we depend on these providers to operate   their warehouses and DCs in a manner that meets our business and performance requirements, including with   respect to data security and compliance with applicable data protection and privacy laws, and the provision of   quality services on a timely basis at the prices we expect. If our 3PLs fail to manage these responsibilities, including   during or following an operational transition, system cutover, or data migration, or if their operations are disrupted as   a result of factors outside of their control, such as sanctions that could in the future be imposed by the US   government, or broader disruptions or inefficiencies in global logistics and transportation networks, our distribution   operations could face delays, reduced reliability, or increased costs. The loss of or disruption to the operations of   any one or more of these facilities could materially and adversely affect our sales, business performance, and   results of operations. Although we be…
 
-**Evidence 2** — `DECK / 2026 / Item 1A. Risk Factors` / block: financial condition.
+**Evidence 2** — `DECK / 2026 / Item 1A. Risk Factors` / block: adversely affected.
 
-> …ightened volatility in global markets.   We conduct business outside the US, which exposes us to foreign currency exchange rate risk, and could   have a negative effect on our results of operations. **We operate on a global basis, with 41.7% of our total net sales for the year ended March 31, 2026, generated from   operations outside the US.** As we continue to expand our international operations, our sales and expenditures in   foreign currencies are expected to become increasingly material and subject to foreign currency exchange rate…
+> …ird parties to operate the stores in a manner consistent with our standards or our failure to adequately   monitor these third parties, which could result in reduced sales and harm our brand image. **As part of our international growth strategy, we may transition certain brands in certain geographies from a third-  party distribution model to a direct distribution model or vice versa.** Failure to effectively implement our growth   strategies, including transitioning between distribution models or developing our business in international markets,   or disappointing growth within existing markets, could negatively affect our sales growth rate. In addition, taking   steps to implement our growth strategies could have a number of negative effects, including increasing our working   capital needs, causing us to incur costs without correspondi…
 
 ---
 
@@ -835,16 +817,16 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## a11 — AXON Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Industrials / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: ATF oversight and active injury lawsuits involving Axon CEDs
-- curation_note: This pair tests cross-unit retrieval of product-specific regulatory oversight and existing litigation tied to Axon’s conducted-energy devices.
+- **query**: How can fast-moving AI competition undermine Axon's offerings?
+- curation_note: These passages connect AI-driven technological acceleration and obsolescence with competitive pressure to release insufficiently tested features, testing cross-location causal retrieval.
 
-**Evidence 1** — `AXON / 2025 / Item 1A. Risk Factors` / block: Operational Risks
+**Evidence 1** — `AXON / 2025 / Item 1A. Risk Factors` / block: Strategic Risks
 
-> …ations applicable to our firearm product, the TASER 10 CED, could result in governmental actions or litigation, potentially harming our business prospects, operating results and financial condition. The TASER 10 CED is primarily regulated by the Bureau of Alcohol, Tobacco, Firearms and Explosives (the “ATF”), which regulates the manufacture, sale and import of firearms in the United States primarily under the National Firearms Act of 1934, the Gun Control Act of 1968, and the Firearms Owners’ Protection Act of 1986, each as amended from time to time.   **The ATF conducts periodic audits of our facilities that hold federal firearms licenses.** If we fail to comply with ATF rules and regulations, the ATF may limit our activities or growth related to the TASER 10 CED, fine us, or, ultimately, suspend our ability to produce and sell the TASER 10 CED product line. Such audits may also expose operational inefficiencies or cause delays affecting production timelines or permitting. Also, various state and local laws, regulations, and ordinances relating to firear…
+> …achieve market acceptance, our business, financial results and competitive position could be adversely affected.  We face risks associated with rapid technological change and new competing products. The technology associated with law enforcement devices and software is rapidly evolving. **The introduction of products embodying new technologies and the emergence of new industry standards can render existing products obsolete.** In particular, AI and machine learning technologies are rapidly developing and as these technologies are incorporated into our products and the operations of our customers, the pace of change has in the past and may in the future continue to accelerate. Additionally, we expect our products to meet and keep pace with evolving security standards and requirements of our industry and customers, including those of the U.S. federal government and internat…
 
-**Evidence 2** — `AXON / 2025 / Item 1A. Risk Factors` / block: Legal and Compliance Risks
+**Evidence 2** — `AXON / 2025 / Item 1A. Risk Factors` / block: Operational Risks
 
-> …e personal injury, wrongful death, product liability and other liability claims that could harm our reputation and adversely affect our business prospects, operating results and financial condition. Third parties often use our CED products in aggressive confrontations that may result in serious, permanent bodily injury or death. Our CED products may be associated with these injuries. A person, or the family members of a person, injured or killed in a confrontation or otherwise in connection with the use of our products, may bring legal action against us to recover damages on the basis of a number of theories, including wrongful death, personal injury, negligent design, defective product, product performance issues, or inadequate warnings or training. **We are currently subject to a number of such lawsuits and have been and may be in the future subject to significant adverse judgments and settlements.** We may also be subject to lawsuits alleging criminal misuse of our products. We have no control over how our products are used by our customers or other end-users and cannot ensure they are used cons…
+> …rors may be costly and time-consuming and could harm our business. Failure to adequately train customers or employees on the use and limitations of AI-driven features could also compound these risks. Thoroughly testing generative AI models is challenging due to their complexity and the unpredictability of their outputs. Developing, testing, and deploying resource-intensive AI systems may require additional investment and increase our costs. There also may be real or perceived social harm, environmental harm, unfairness or other outcomes that undermine public confidence in the deployment and use of AI. Furthermore, third parties may deploy AI technologies in a manner that reduces customer demand for our products and services. **Competitive pressures may also drive rapid AI development or deployment, increasing the risk of releasing inadequately tested or unreliable features.** Any of the foregoing may result in decreased demand for our products and services or harm to our business, financial results, or reputation. The legal and regulatory landscape surrounding AI technologies is rapidly evolving and uncertain, particularly in areas of intellectual property, cybersecurity, privacy, and data protection. For exa…
 
 ---
 
@@ -867,48 +849,48 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## a13 — XOM Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Energy / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: Which dependencies threaten oil output growth and emerging-energy investment timing?
-- curation_note: This pair links ExxonMobil’s production dependence on exploration success with its emerging-business dependence on durable policy and market support.
+- **query**: How can hydrocarbon supply curbs ultimately hurt ExxonMobil through economic contraction?
+- curation_note: These passages form a company-specific causal chain from policy-driven supply constraints to macroeconomic weakness and then lower ExxonMobil results.
 
-**Evidence 1** — `XOM / 2025 / Item 1A. Risk Factors` / block: Operational and Other Factors
+**Evidence 1** — `XOM / 2025 / Item 1A. Risk Factors` / block: Climate Change and Energy Transition
 
-> …tive to competition. For projects in which we are not the operator, we depend on the management effectiveness of one or more co-venturers whom we do not control.  Exploration and development program. **Our ability to maintain and grow our oil and gas production depends on the success of our exploration and development efforts.** Among other factors, we must continuously improve our ability to identify the most promising resource prospects and apply our project management expertise to bring discovered resources online as sche…
+> …development of stable and supportive government policies and markets. Failure or delay of these policies or markets to materialize or be maintained could adversely impact or delay these investments. Policy and other actions that result in restricting the availability of hydrocarbon products without a commensurate reduction in demand may have unpredictable adverse effects, including increased commodity price volatility; periods of significantly higher commodity prices and resulting inflationary pressures; and local or regional energy shortages. **Such effects in turn may depress economic growth or lead to rapid or conflicting shifts in policy by different actors, with resulting adverse effects on our businesses.** In addition, the existence of supportive policies in any jurisdiction is not a guarantee that those policies will continue in the future. See also the discussion of “Supply and Demand,” “Government a…
 
-**Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Climate Change and Energy Transition
+**Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Supply and Demand
 
-> …s in technology as discussed above, meeting society's needs for energy and reducing emissions will require appropriate support from governments and private participants throughout the global economy. Our ability to develop and deploy CCS and other new energy technologies at commercial scale, and the growth and future returns of LCS and other emerging businesses in which we invest, will depend in part on the development of stable and supportive government policies and markets. **Failure or delay of these policies or markets to materialize or be maintained could adversely impact or delay these investments.** Policy and other actions that result in restricting the availability of hydrocarbon products without a commensurate reduction in demand may have unpredictable adverse effects, including increased com…
+> …nd new technology to enable those products and services to be provided on a cost-effective basis at commercial scale. See “Climate Change and Energy Transition” in this Item 1A.  Economic conditions. The demand for energy and petrochemicals is generally linked closely with broad-based economic activities and levels of prosperity. **The occurrence of economic downturns, recessions or other periods of low or negative economic growth will typically have a direct adverse impact on our results.** Other factors that affect general economic conditions in the world or in a major region, such as changes in population growth rates or living standards, periods of civil unrest or armed hostilities,…
 
 ---
 
 ## a14 — NEE Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Utilities / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: 2021 campaign-finance accusations and uninsured transmission infrastructure
-- curation_note: This pair tests cross-unit retrieval of a dated FPL legal allegation and NEE’s specific gap in property insurance coverage.
+- **query**: How an overseas reactor accident could block a planned restart
+- curation_note: The passages form a causal chain from a global nuclear incident prompting NRC licensing restrictions to failed restart approvals and possible asset impairment.
 
-**Evidence 1** — `NEE / 2025 / Item 1A. Risk Factors` / block: Regulatory, Legislative and Legal Risks
+**Evidence 1** — `NEE / 2025 / Item 1A. Risk Factors` / block: Development and Operational Risks
 
-> …could be adversely affected by allegations that FPL or NEE has violated laws, by any investigations or proceedings that arise from such allegations, or by ultimate determinations of legal violations. **For example, media articles were first published in 2021 that alleged, among other things, Florida state and federal campaign finance law violations by FPL.** FPL and NEE cannot provide assurance that the outcome of any allegations of violations of law will not result in the imposition of material fines, penalties, or otherwise result in other sanctions or…
+> …E and FPL to acquire certain generation equipment and batteries on time and at acceptable costs.   Additionally, NEER is actively pursuing the restart of the Duane Arnold nuclear generation facility. The restart is subject to certain regulatory approvals, including NRC safety and environmental reviews, as well as permits from relevant state and local agencies. **NEER has applied to the NRC to reinstate the operating license and to MISO for an interconnection agreement.** Failure to obtain the necessary approvals could result in the impairment of amounts capitalized. Further, NEE could encounter difficulty in procuring or restoring specialized components which could impact the restart timeline. NEE could incur costs greater than expected or encounter unforeseen i…
 
-**Evidence 2** — `NEE / 2025 / Item 1A. Risk Factors` / block: Development and Operational Risks
+**Evidence 2** — `NEE / 2025 / Item 1A. Risk Factors` / block: Nuclear Generation Risks
 
-> …rance coverage, NEE may be required to pay costs associated with losses or adverse future events involving these entities.  NEE and FPL generally are not fully insured against all significant losses. **For example, NEE, including FPL, does not have property insurance coverage for a substantial portion of its transmission and distribution property and natural gas pipeline assets.** A loss for which NEE or FPL is not fully insured could have a material adverse effect on NEE's and FPL's business, financial condition, results of operations and prospects.  NEE invests in natural ga…
+> …nt of the severity of the situation, until compliance is achieved. Any of the foregoing events could require NEE and FPL to incur increased costs and capital expenditures, and could reduce revenues. Any serious nuclear incident occurring at a NEE or FPL plant could result in substantial remediation costs and other expenses. **A major incident at a nuclear facility anywhere in the world could cause the NRC to limit or prohibit the operation or licensing of any domestic nuclear generation facility.** An incident at a nuclear facility anywhere in the world also could cause the NRC to impose additional conditions or other requirements on the industry, or on certain types of nuclear generation units, which could increase costs, reduce revenues and result in additional capital expenditures for NEE and FPL. The inability to operate any of NEE's or FPL's nuclear generation units through the end of their respective operating licenses or planned license extensions could have a material adverse effect on N…
 
 ---
 
 ## a15 — PLD Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Real Estate / cap: large / FY2025 / detection: text_fallback, text_fallback
-- **query**: Prologis foreign-currency exposure and major U.S. market concentrations
-- curation_note: This pair tests retrieval across quantitative overseas asset exposure and named domestic logistics markets with significant holdings.
+- **query**: Why can acquired sites leave Prologis paying cleanup costs without seller recourse?
+- curation_note: This evidence links limited recourse for unknown acquisition liabilities with strict environmental cleanup obligations, testing retrieval across acquisition and contamination risk disclosures.
 
-**Evidence 1** — `PLD / 2025 / Item 1A. Risk Factors` / block: •foreign ownership restrictions in operations with the respective countries; and
+**Evidence 1** — `PLD / 2025 / Item 1A. Risk Factors` / block: •our ability to lease the properties at favorable rates and control variable operating costs; and
 
-> …ment may adversely affect our results of operations and financial position.  We hold significant real estate investments in international markets where the U.S. dollar is not the functional currency. **At December 31, 2025, approximately $13.7 billion, or 13.8% of our total consolidated assets, were invested in a currency other than the U.S.** dollar, principally the British pound sterling, Canadian dollar, euro and Japanese yen. For the year ended December 31, 2025, $432.8 million, or 6.6% of our total consolidated segment NOI, was denominated in a currency other than the U.S. dollar. See Note 16 to the Consolidated Financial Statements in Item 8. Financial Statements and Supplementary Data for more information on these amounts. As a result, we are exposed to foreign curre…
+> …and we expect that there will continue to be, significant competition for properties that meet our investment criteria as well as risks associated with obtaining financing for acquisition activities. **The acquired properties or entities may be subject to liabilities, including tax liabilities, which may be without any recourse, or with only limited recourse, with respect to unknown liabilities.** As a result, if a liability were asserted against us based on our new ownership of any of these entities or properties, then we may have to pay substantial sums to settle it. We may be unable to integrate the operations of newly acquired companies and realize the anticipated synergies and other benefits or do so within the anticipated timeframe. Potential difficulties w…
 
-**Evidence 2** — `PLD / 2025 / Item 1A. Risk Factors` / block: Risks Related to our Business
+**Evidence 2** — `PLD / 2025 / Item 1A. Risk Factors` / block: •we may experience delays (temporary or permanent) if there is public or government opposition to our activities; and
 
-> …of the investment we have located in California, a downturn in California’s economy or real estate conditions, including state income tax and property tax laws, could adversely affect our business. In addition to California, we also have significant holdings (defined as more than 3% of total consolidated investment before depreciation) in operating properties in certain markets located in Atlanta, Chicago, Dallas/Fort Worth, Houston, Lehigh Valley, New Jersey/New York City, Seattle and South Florida. **Of these markets, no single market contributed more than 10% of our total consolidated investment before depreciation in operating properties.** Our operating performance could be adversely affected if conditions become less favorable in any of the markets in which we have a concentration of properties. Conditions such as an oversupply of logistics space or a reduction in demand for logistics space, among other factors, may impact operating conditions. Any material oversupply of logistics space or m…
+> …rent than investing in our core real estate business.  We are exposed to various environmental risks, which may result in unanticipated losses that could affect our business and financial condition. Under various federal, state and local laws, ordinances and regulations, a current or previous owner, developer or operator of real estate may be liable for the costs of removal or remediation of certain hazardous or toxic substances. The costs of removal or remediation of such substances could be substantial. **Such laws often impose liability without regard to whether the owner or operator knew of, or was responsible for, the release or presence of such hazardous substances.** In addition, third parties may sue the owner or operator of a site for damages based on personal injury, property damage or other costs, including investigation and clean-up costs, resulting from the…
 
 ---
 
@@ -920,7 +902,7 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 **Evidence 1** — `LIN / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: APAC
 
-> …vestitures2 %  — %  The APAC segment includes Linde's industrial gases operations in approximately 15 Asian and South Pacific countries and regions including China, Australia, India and South Korea. Sales  Sales for the APAC segment were flat in 2025 versus 2024. Acquisitions increased sales by 2%. Volumes decreased sales by 1%. **Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S.** dollar. Cost pass-through and pricing were flat. Operating Profit  Operating profit in the APAC segment increased $15 million, or 1%, in 2025 versus 2024. The increase was primarily driven by productivity initiatives and acquisitions, partially of…
+> …vestitures2 %  — %  The APAC segment includes Linde's industrial gases operations in approximately 15 Asian and South Pacific countries and regions including China, Australia, India and South Korea. Sales  Sales for the APAC segment were flat in 2025 versus 2024. Acquisitions increased sales by 2%. Volumes decreased sales by 1%. **Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.** Cost pass-through and pricing were flat. Operating Profit  Operating profit in the APAC segment increased $15 million, or 1%, in 2025 versus 2024. The increase was primarily driven by productivity initiatives and acquisitions, partially of…
 
 ---
 
@@ -999,12 +981,12 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 ## a23 — DECK Item 7 (passage, passage_first, ALTERNATE)
 
 - sector: Consumer Discretionary / cap: mid / FY2026 / detection: text_fallback
-- **query**: Deckers fiscal year-end buyback capacity and purchase obligation
-- curation_note: This evidence combines the remaining repurchase authorization with management’s discretion, testing retrieval of both a concrete capital-allocation amount and its nonbinding terms.
+- **query**: Deckers currency-neutral revenue and comparable direct-sales growth rates
+- curation_note: This passage provides two related supplemental sales-growth measures, testing retrieval of adjusted revenue performance metrics.
 
-**Evidence 1** — `DECK / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: objectives, and drive stockholder value, including by potentially repurchasing additional shares of our common
+**Evidence 1** — `DECK / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Supplemental Disclosure
 
-> **stock. As of March 31, 2026, the aggregate remaining approved amount under our stock repurchase program is   $1,549,602.** Our stock repurchase program does not obligate us to acquire any amount of common stock and may   be suspended at any time at our discretion. On May 20, 2026, our Board approved an additional authorization of $3,500,000 to repurchase shares of our   common stock under the same conditions as the prior stock repurchase program, resulting i…
+> •On a constant currency basis, net sales increased by 9.0%, compared to the prior period.  **•Comparable DTC channel net sales for the 52 weeks ended March 29, 2026, increased by 4.6%,   compared to the prior period.** •We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,   compared to the prior period. Units sold include all categories such as footwear, apparel,   accessorie…
 
 ---
 
@@ -1029,5 +1011,21 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 1** — `CAT / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Financial Products Segment
 
 > …lence, advanced technology leadership and transforming how we work. These pillars work together to drive sustainable growth, innovation and operational efficiency for Caterpillar and our customers. On February 3, 2026, the Federal Court of Australia approved Caterpillar's acquisition of RPMGlobal Holdings Limited, an Australian based software company. **The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired.** RPMGlobal is a leading provider of mining software solutions with deep domain expertise in mining technology enablement and data-driven software solutions at every stage of the mining lifecycle. Return to shareholders — Our goal is to return substantially all MP&E free cash flow to shareholders over time in the form of dividends and share repurchases, while maintaining our mid-A rating.…
+
+---
+
+## p13 — XOM Item 1A (multi_passage, passage_first, ALTERNATE)
+
+- sector: Energy / cap: large / FY2025 / detection: markdown_h4, markdown_h4
+- **query**: How do public policies intensify competitive threats to ExxonMobil?
+- curation_note: This pairing links sanctions-based disadvantages with subsidized alternative-energy rivalry, testing retrieval across separate regulatory and competitive-risk passages.
+
+**Evidence 1** — `XOM / 2025 / Item 1A. Risk Factors` / block: Government and Political Factors
+
+> …ict the import or export of certain products based on point of origin, and such restrictions may increase during periods of escalating geopolitical or trade tensions.  Restrictions on doing business. ExxonMobil is subject to laws and sanctions imposed by the United States and by other jurisdictions where we do business that may prohibit ExxonMobil or its affiliates from doing business in certain countries or with certain counterparties or restrict or impede the kind of business that may be conducted, including acquiring and divesting certain assets or importing or exporting certain materials or products. **Such restrictions may provide a competitive advantage to competitors who may not be subject to comparable restrictions.** Lack of legal certainty. Some countries in which we do, or seek to do, business lack well-developed legal systems, lack political or governmental stability, may be subject to regime changes, have no…
+
+**Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Operational and Other Factors
+
+> …ve the internal resources and capabilities of ExxonMobil or reduce the need for resource-owning countries to partner with private-sector oil and gas companies in order to monetize national resources. **As described in more detail above, our hydrocarbon-based energy products are also subject to growing and, in many cases, government-supported competition from alternative energy sources.** In addition, as we enter new markets in pursuit of lower-emission and other new business opportunities, we will need to compete effectively with established competitors in these markets, as well as with new market entrants seeking to capitalize on these opportunities, while successfully navigating changing market conditions or technologies. Reputation. Our reputation is an important corporate asset. Factors that could have a negative impact on our reputation include an operating incident or significant cybersecurity disruption; changes…
 
 ---

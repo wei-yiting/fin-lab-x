@@ -52,7 +52,7 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
 )
 
 MODEL_ID = "gpt-5.6-sol"
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 CURATION_DIR = Path(__file__).parent
 DATASET_CSV = CURATION_DIR.parent / "dataset.csv"
 CANDIDATES_JSON = CURATION_DIR / "candidates.json"
@@ -101,6 +101,9 @@ INTENT_POOL = [
 ]
 
 _SENTENCE_RE = re.compile(r".+?(?:[.!?][\"')\]]*(?:\s+|$)|$)", re.DOTALL)
+_ABBREV_END_RE = re.compile(
+    r"\b(?:U\.S|U\.K|No|Inc|Corp|Ltd|Mr|Ms|Dr|vs|e\.g|i\.e|Jr|Sr|St)\.$"
+)
 
 
 def sentence_ranges(text: str) -> list[tuple[int, int]]:
@@ -111,7 +114,7 @@ def sentence_ranges(text: str) -> list[tuple[int, int]]:
     ("U.S.", "Inc.") don't produce unusable one-word sentences. Ranges index
     the ORIGINAL text, so any [start:end] slice is an exact substring.
     """
-    ranges: list[tuple[int, int]] = []
+    raw_ranges: list[tuple[int, int]] = []
     for match in _SENTENCE_RE.finditer(text):
         if not match.group().strip():
             continue
@@ -119,7 +122,15 @@ def sentence_ranges(text: str) -> list[tuple[int, int]]:
         # keep trailing whitespace out of the sentence
         while end > start and text[end - 1].isspace():
             end -= 1
-        if ranges and (ranges[-1][1] - ranges[-1][0]) < 20:
+        if raw_ranges and (raw_ranges[-1][1] - raw_ranges[-1][0]) < 20:
+            raw_ranges[-1] = (raw_ranges[-1][0], end)
+        else:
+            raw_ranges.append((start, end))
+    # Abbreviation guard: a "sentence" ending in a known abbreviation was cut
+    # mid-sentence (e.g. "outside of the U.S. (31% ...") — merge it forward.
+    ranges: list[tuple[int, int]] = []
+    for start, end in raw_ranges:
+        if ranges and _ABBREV_END_RE.search(text[ranges[-1][0] : ranges[-1][1]]):
             ranges[-1] = (ranges[-1][0], end)
         else:
             ranges.append((start, end))
@@ -332,6 +343,8 @@ Select evidence by SENTENCE INDEX ONLY (never quote text):
 
 Hard rules:
 1. factoid: span is exactly 1 sentence (snippet == span). passage: 2-6 contiguous sentences. multi_passage: 2 evidences in DIFFERENT units (or different items).
+1b. multi_passage queries must express ONE information need whose complete answer requires both locations together (a causal chain, or the same event/topic elaborated in two places). NEVER join two independent facts with "and" — if the two best passages do not serve a single need, pick different passages that do.
+1c. intent mode only: if nothing in the provided Item(s) substantively answers the intent, return an empty evidences array instead of forcing loosely related text.
 2. The query must be answerable from the selected span alone, and NOT answerable from the other sentences shown.
 3. Paraphrase: the query must not reuse any 3 consecutive words that appear in the evidence text. Use synonyms and different phrasing.
 4. Pick company-specific, substantive sentences (concrete facts, named products, numbers, named risks). Never pick boilerplate that could appear in any 10-K.
@@ -476,6 +489,12 @@ def check_candidate(
         reasons.append(f"expected {expected_n} evidences, got {len(evidences)}")
         return reasons
     for ev in evidences:
+        first_word = re.match(r"[^\s]+", ev.span.lstrip())
+        if first_word and first_word.group().isalpha() and first_word.group().islower():
+            # An all-lowercase first word means the span starts mid-sentence —
+            # usually a source block that is itself fragmented (mixed-case
+            # proper nouns like "cbETH" stay legal).
+            reasons.append("span starts mid-sentence; pick a different location")
         if _token_len(ev.span) > 300:
             reasons.append(f"span too long ({_token_len(ev.span)} tokens > 300)")
         if not 50 <= len(ev.snippet) <= 200:
@@ -559,6 +578,11 @@ def generate(limit: int | None) -> list[Candidate]:
     used_snippets: set[str] = {
         ev.snippet.lower() for c in candidates for ev in c.evidences
     }
+    # Snippets from human/agent-rejected candidates: seeded into the used set
+    # so regeneration cannot pick the same rejected sentence again.
+    rejected_path = CURATION_DIR / "rejected_snippets.json"
+    if rejected_path.exists():
+        used_snippets |= {s.lower() for s in json.loads(rejected_path.read_text())}
     used_by_item: dict[tuple[str, str], list[str]] = {}
     for c in candidates:
         for ev in c.evidences:
@@ -623,6 +647,24 @@ def generate(limit: int | None) -> list[Candidate]:
             if content is None:
                 raise ValueError(f"empty completion for plan {plan.plan_id}")
             payload = json.loads(content)
+            if plan.mode == "intent_first" and not payload["evidences"]:
+                # Model reports the Item has no evidence for this intent:
+                # fall back to passage-first on the same cell.
+                plan.mode = "passage_first"
+                plan.intent = None
+                print(
+                    f"[FALLBACK] {plan.plan_id}: intent unanswerable, "
+                    "switching to passage_first",
+                    flush=True,
+                )
+                messages = [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": build_user_prompt(plan, items, snapshot),
+                    },
+                ]
+                continue
             evidences: list[Evidence] = []
             index_errors: list[str] = []
             for ev in payload["evidences"]:

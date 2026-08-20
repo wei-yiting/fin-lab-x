@@ -89,14 +89,20 @@ Distribution tables: see below (generated from the draft dataset).
   cliff; `claude-opus-5` was the runner-up (would add a first Anthropic
   SDK dependency for a one-shot script). Per-row `system_fingerprint` is
   recorded in `curation/candidates.json`.
-- Prompt: `curation/generate_candidates.py` (`PROMPT_VERSION` constant);
+- Prompt: `curation/generate_candidates.py` (`PROMPT_VERSION` constant).
+  Rows carry the version that generated them: v1, or v2 — which added the
+  multi_passage single-information-need constraint, an intent-infeasible
+  escape hatch (two intent rows fell back to passage-first when their Item
+  had no evidence for the intent), an abbreviation guard in sentence
+  splitting, and a rejected-snippet exclusion list
+  (`curation/rejected_snippets.json`);
   sentence-index technique — the model returns sentence indices, span and
   snippet strings are reconstructed from the original text, so
   exact-substring correctness holds by construction.
 - Anti-lexical-overlap: queries may not reuse any 3-gram from the evidence
   span and are capped at 0.5 Jaccard vs the snippet (forces paraphrase, so
   dense retrieval is measured rather than term matching).
-- Modes: ~40 rows passage-first (evidence → query), ~10 rows intent-first
+- Modes: passage-first (evidence → query) with 8 intent-first rows
   (lay user intent, recorded in `user_intent` → evidence). The 18 zh
   questions from the DEV-113 experiment informed intent style only; none
   were copied.
@@ -194,16 +200,16 @@ loader: `answer_spans`, `block_heading`, `detection_source`, `sector`,
 
 | value | rows |
 |---|---|
-| large | 33 |
-| mid | 17 |
+| large | 32 |
+| mid | 18 |
 | **total (rows)** | **50** |
 
 ### Generation mode
 
 | value | rows |
 |---|---|
-| passage_first | 40 |
-| intent_first | 10 |
+| passage_first | 42 |
+| intent_first | 8 |
 | **total (rows)** | **50** |
 
 ### Ticker grid (rows / FY / accession)
@@ -220,9 +226,9 @@ loader: `answer_spans`, `block_heading`, `detection_source`, `sector`,
 | GOOGL | Communication Services | large | 3 | 2025 | 0001652044-26-000018 |
 | JPM | Financials | large | 2 | 2025 | 0001628280-26-008131 |
 | LIN | Materials | large | 3 | 2025 | 0001628280-26-011430 |
-| LLY | Health Care | large | 3 | 2025 | 0000059478-26-000013 |
+| LLY | Health Care | large | 2 | 2025 | 0000059478-26-000013 |
 | NEE | Utilities | large | 2 | 2025 | 0000753308-26-000015 |
 | NVDA | Information Technology | large | 4 | 2026 | 0001045810-26-000021 |
 | PLD | Real Estate | large | 3 | 2025 | 0001193125-26-051453 |
-| PODD | Health Care | mid | 3 | 2025 | 0001145197-26-000028 |
+| PODD | Health Care | mid | 4 | 2025 | 0001145197-26-000028 |
 | XOM | Energy | large | 3 | 2025 | 0000034088-26-000045 |

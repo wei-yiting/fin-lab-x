@@ -403,3 +403,22 @@ def test_multi_passage_rejects_more_than_three_entries(store_dir: Path) -> None:
 def test_ticker_mismatch_with_header_path_fails(store_dir: Path) -> None:
     row = _row(tickers=["BBB"])
     assert "ticker_mismatch" in _rules(_issues(store_dir, row))
+
+
+# --- generation helper: sentence splitter abbreviation guard ---
+
+
+def test_sentence_ranges_do_not_break_after_abbreviations() -> None:
+    from backend.evals.scenarios.sec_retrieval_ab.curation.generate_candidates import (
+        sentence_ranges,
+    )
+
+    text = (
+        "We operated 285 warehouses outside of the U.S. (31% of all "
+        "locations), and we plan to expand. A second sentence follows here."
+    )
+    ranges = sentence_ranges(text)
+    sentences = [text[a:b] for a, b in ranges]
+    assert len(sentences) == 2
+    assert "(31%" in sentences[0]  # not split at the "U.S." abbreviation
+    assert sentences[1] == "A second sentence follows here."

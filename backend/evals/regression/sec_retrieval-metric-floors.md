@@ -50,5 +50,6 @@ which recall@K cannot see.
 These floors are invalidated — never adjusted in place — by any change to
 what they measured: retriever/pipeline cutover, dataset replacement, or
 embedding model change. Re-derivation means a new measurement and a new
-record pair under `reference_measurements/sec_retrieval/`; old records stay
-as history.
+record pair under `reference_measurements/sec_retrieval/`; a multi-run
+re-measurement's record documents all runs and the per-metric minimum used
+for derivation. Old records stay as history.

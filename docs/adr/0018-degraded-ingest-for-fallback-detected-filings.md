@@ -6,10 +6,11 @@ upstream `Section.detection_method`) falls outside {`toc`, `heading`} is ingeste
 markdown is stored as `ParsedFiling.degraded_text` with `items=[]`. The detection method is
 recorded in `FilingMetadata.section_detection_method` for every parse (standard included).
 Both fields are additive with defaults — a ratified change to the frozen `ParsedFiling`
-schema (DEV-172) — so stored JSON from before the change still validates. A structured
-parse that yields zero substantive items falls through to the same degraded path: a trusted
-structure that produced nothing was not trustworthy. `EmptyFilingError` therefore converges
-to a single meaning — even the degraded path's full text came out empty after cleaning.
+schema (degraded-ingest spec, DEV-172) — so stored JSON from before the change still
+validates. A structured parse that yields zero substantive items falls through to the same
+degraded path: a trusted structure that produced nothing was not trustworthy.
+`EmptyFilingError` therefore converges to a single meaning — even the degraded path's full
+text came out empty after cleaning.
 
 **Rejected**:
 
@@ -25,22 +26,22 @@ to a single meaning — even the degraded path's full text came out empty after 
   citation, and inspection, out of proportion to the marginal structure it preserves.
 - **A self-built markdown Item splitter** — recovering structure with heading regexes over
   the markdown would be a fourth section detector, exactly the fragile hand-rolled work
-  DEV-127 adopted edgartools' structured API to escape.
+  the rewrite onto edgartools' structured API (DEV-127) was adopted to escape.
 
 **Why**: section detection is the upstream's competence and it degrades nondeterministically
 (the AMD FY2025 repro parsed as `pattern`/1-section one day and `toc`/27-sections the next);
 the parser's job on a degraded filing is to keep every word retrievable and the degradation
 legible, not to reconstruct structure it cannot verify. Storing the cleaned full text makes
 retrieval possible; the metadata marker makes "parse degraded, structure absent" permanently
-distinguishable from source-level missing (DEV-171) and permanently observable (DEV-176
-sweep).
+distinguishable from source-level missing (DEV-171) and permanently observable via the
+section-detection sweep (DEV-176).
 
 **Noise cleaning is conservative by construction**: every rule is an opt-in cut anchored on
 an observed render shape (cover page + INDEX before the first part heading, trailing
 signature block, page-break artifacts); a document matching no anchor passes through
 untouched. Leftover noise is acceptable; deleted content is not.
 
-**Re-evaluate if**: edgartools v6.0 removes the legacy fallback detectors (rerun the DEV-176
-sweep after any upgrade), or the DEV-138 A/B evidence shows degraded chunks need retrieval
-scoring compensation (deferred until evidence), or 10-Q support arrives with different
-degradation semantics.
+**Re-evaluate if**: edgartools v6.0 removes the legacy fallback detectors (rerun the
+section-detection sweep (DEV-176) after any upgrade), or the A/B retrieval evaluation's
+evidence (DEV-138) shows degraded chunks need retrieval scoring compensation (deferred
+until evidence), or 10-Q support arrives with different degradation semantics.

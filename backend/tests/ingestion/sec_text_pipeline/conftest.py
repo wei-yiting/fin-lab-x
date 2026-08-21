@@ -64,6 +64,10 @@ class FakeSection:
     #: edgartools section name — "part_ii_item_7a" (part-aware shape) or
     #: "Item 7A" (spaced shape, where the real library leaves item=None).
     name: str = ""
+    #: edgartools Section.detection_method — real sections always carry it
+    #: ("toc" / "heading" / "pattern" / "unknown"). Defaults to "toc" so
+    #: fixtures model the standard path unless a test says otherwise.
+    detection_method: str = "toc"
 
     def text(self) -> str:
         return self._text
@@ -79,7 +83,10 @@ class FakeTenK:
         data = RECORDED_FILING["sections"] if sections_data is None else sections_data
         self.sections = {
             name: FakeSection(
-                item=entry["item"] or None, _text=entry["text"], name=name
+                item=entry["item"] or None,
+                _text=entry["text"],
+                name=name,
+                detection_method=entry.get("detection_method", "toc"),
             )
             for name, entry in data.items()
         }

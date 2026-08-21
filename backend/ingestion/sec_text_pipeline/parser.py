@@ -6,6 +6,12 @@ Non-stub Items run through the block detection chain
 fallback): a plausibly-anchored Item becomes a :class:`StructuredItem`
 (prelude + blocks + detection_source), everything else stays a
 :class:`FlatItem`.
+
+Degraded ingest (DEV-172): when upstream section detection ran a fallback
+strategy (filing-level detection method outside {toc, heading}), the
+section structure is not trusted — the filing ingests as the noise-cleaned
+full-document markdown (:mod:`degraded`) with ``items=[]`` and the
+detection method recorded in metadata.
 """
 
 from __future__ import annotations
@@ -27,6 +33,7 @@ from backend.ingestion.sec_text_pipeline.block_detection import (
     collect_heading_candidates,
     detect_blocks,
 )
+from backend.ingestion.sec_text_pipeline.degraded import clean_degraded_markdown
 from backend.ingestion.sec_text_pipeline.filing_models import (
     FilingMetadata,
     FlatItem,
@@ -46,11 +53,14 @@ if TYPE_CHECKING:
 
 
 class EmptyFilingError(SECError):
-    """A filing parsed to zero substantive items.
+    """The degraded path produced no text at all — even the full-document
+    markdown came out empty after noise cleaning.
 
-    Raised instead of caching/returning an empty ParsedFiling: a silent
-    empty ingestion would look like a successful parse to every downstream
-    consumer, so the failure must be legible at the point it happens.
+    Every zero-item parse falls through to degraded ingest first, so this
+    is the single truly-empty case left. Raised instead of caching/returning
+    an empty ParsedFiling: a silent empty ingestion would look like a
+    successful parse to every downstream consumer, so the failure must be
+    legible at the point it happens.
     """
 
 
@@ -81,8 +91,8 @@ def parse_filing(
     ``RateLimitError``, ``TransientError``, ``ConfigurationError``) and
     SEC-specific ones via :class:`backend.common.sec_core.SECError`
     (``FilingNotFoundError``, ``UnsupportedFilingTypeError``) — plus
-    :class:`EmptyFilingError` when the filing parses to zero substantive
-    items (nothing is saved to the store in that case).
+    :class:`EmptyFilingError` when even the degraded path's full-document
+    text comes out empty (nothing is saved to the store in that case).
     """
     store = store if store is not None else LocalFilingStore()
     ticker_norm = ticker.strip().upper()
@@ -95,15 +105,64 @@ def parse_filing(
     bundle = fetch_filing_bundle(ticker_norm, FilingType.TEN_K, fiscal_year)
     metadata = _build_metadata(bundle, ticker_norm, fiscal_year)
     markdown = fetch_filing_markdown(ticker_norm, FilingType.TEN_K, fiscal_year)
+
+    if _is_degraded_method(metadata.section_detection_method):
+        return _ingest_degraded(metadata, markdown, store)
+
     candidates = collect_heading_candidates(markdown, bundle.company_name)
     items = _parse_items(bundle.tenk, candidates)
     if not items:
-        raise EmptyFilingError(
-            f"Parsed 0 substantive items for {ticker_norm} FY{fiscal_year} "
-            f"(accession {metadata.accession_number}); refusing to cache "
-            f"an empty filing."
-        )
+        # Zero substantive items under a nominally trusted structure means
+        # the structure was not trustworthy after all — same remedy as a
+        # fallback detection: ingest the full document.
+        return _ingest_degraded(metadata, markdown, store)
     filing = ParsedFiling(metadata=metadata, items=items)
+    store.save(filing)
+    return filing
+
+
+#: Upstream detection strategies whose section structure the item parser
+#: trusts. Anything else ("pattern", "html_fallback", "unknown", future
+#: values) is a degraded detection: its sections carry semantic names with
+#: empty item metadata and cover only a fraction of the filing.
+_STANDARD_DETECTION_METHODS = frozenset({"toc", "heading"})
+
+
+def _filing_detection_method(tenk: TenK) -> str:
+    """The filing-level section detection method, passed through upstream.
+
+    Upstream runs a single strategy per filing, so one unique value is the
+    norm; a mixed filing (contract broken upstream) reports every method
+    in first-seen order, comma-joined, and reads as degraded. No sections
+    at all is "unknown".
+    """
+    methods: list[str] = []
+    for section in tenk.sections.values():
+        method = getattr(section, "detection_method", None) or "unknown"
+        if method not in methods:
+            methods.append(method)
+    if not methods:
+        return "unknown"
+    return ",".join(methods)
+
+
+def _is_degraded_method(method: str) -> bool:
+    return not all(m in _STANDARD_DETECTION_METHODS for m in method.split(","))
+
+
+def _ingest_degraded(
+    metadata: FilingMetadata, markdown: str, store: FilingStore
+) -> ParsedFiling:
+    """Ingest the noise-cleaned full-document markdown as a degraded filing."""
+    text = clean_degraded_markdown(markdown)
+    if not text:
+        raise EmptyFilingError(
+            f"Degraded ingest for {metadata.ticker} FY{metadata.fiscal_year} "
+            f"(accession {metadata.accession_number}, section detection "
+            f"method {metadata.section_detection_method!r}) produced no text "
+            f"after noise cleaning; refusing to cache an empty filing."
+        )
+    filing = ParsedFiling(metadata=metadata, items=[], degraded_text=text)
     store.save(filing)
     return filing
 
@@ -276,4 +335,5 @@ def _build_metadata(
         accession_number=bundle.accession_number,
         primary_document=bundle.primary_document,
         parsed_at=datetime.now(UTC).isoformat(),
+        section_detection_method=_filing_detection_method(bundle.tenk),
     )

@@ -485,6 +485,198 @@ class TestStoreInteraction:
         assert (target_dir / "AAPL" / "10-K" / "2025.json").exists()
 
 
+#: Filing-level markdown for degraded-ingest tests: cover page + INDEX
+#: before the body, page artifacts inside it, signature block at the end.
+DEGRADED_MARKDOWN = (
+    "### UNITED STATES SECURITIES AND EXCHANGE COMMISSION\n"
+    "#### FORM 10-K\n"
+    "#### INDEX\n"
+    "| ITEM 1. |  | Business |  | 1 |\n"
+    "# PART I\n"
+    "## ITEM 1. BUSINESS\n"
+    "We design high-performance processors.\n"
+    "Table of Conten t s\n"
+    "## ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS\n"
+    "Revenue grew across all segments this year.\n"
+    "### SIGNATURES\n"
+    "| /s/Jane Doe | CEO |\n"
+)
+
+
+def make_pattern_tenk() -> FakeTenK:
+    """The AMD FY2025 pattern-detection shape (DEV-172 known repro):
+    one semantically-named section, item metadata empty, detection_method
+    "pattern" — the shape the item parser cannot trust."""
+    return FakeTenK(
+        sections_data={
+            "mda": {
+                "item": "",
+                "text": "Revenue grew across all segments this year. " * 40,
+                "detection_method": "pattern",
+            }
+        }
+    )
+
+
+class TestDegradedIngest:
+    """Detection-method-triggered degraded path (DEV-172): fallback-detected
+    filings ingest the noise-cleaned full markdown instead of items."""
+
+    def _patch(self, monkeypatch, tenk, markdown=DEGRADED_MARKDOWN):
+        monkeypatch.setattr(
+            parser, "fetch_filing_bundle", lambda *a, **k: make_bundle(tenk)
+        )
+        monkeypatch.setattr(parser, "fetch_filing_markdown", lambda *a, **k: markdown)
+
+    def test_pattern_detection_shape_ingests_degraded(self, store, monkeypatch):
+        self._patch(monkeypatch, make_pattern_tenk())
+        result = parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        assert result.items == []
+        assert result.is_degraded
+        assert result.degraded_text is not None
+        assert result.degraded_text.startswith("# PART I")
+        assert "Revenue grew across all segments" in result.degraded_text
+        assert "FORM 10-K" not in result.degraded_text
+        assert "/s/Jane Doe" not in result.degraded_text
+        assert result.metadata.section_detection_method == "pattern"
+
+    @pytest.mark.parametrize("method", ["pattern", "html_fallback", "unknown"])
+    def test_degraded_methods_trigger_degraded_path(self, store, monkeypatch, method):
+        tenk = FakeTenK(
+            sections_data={
+                "mda": {
+                    "item": "",
+                    "text": "Substantive discussion. " * 40,
+                    "detection_method": method,
+                }
+            }
+        )
+        self._patch(monkeypatch, tenk)
+        result = parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        assert result.is_degraded
+        assert result.metadata.section_detection_method == method
+
+    @pytest.mark.parametrize("method", ["toc", "heading"])
+    def test_standard_methods_take_the_structured_path(
+        self, store, monkeypatch, method
+    ):
+        prose = "The company operates in many segments worldwide. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_1": {
+                    "item": "1",
+                    "text": f"Item 1. Business\n{prose}",
+                    "detection_method": method,
+                }
+            }
+        )
+        self._patch(monkeypatch, tenk, markdown="")
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert not result.is_degraded
+        assert result.degraded_text is None
+        assert [item.item for item in result.items] == ["1"]
+        assert result.metadata.section_detection_method == method
+
+    def test_recorded_standard_filing_records_detection_method(
+        self, store, fetch_calls
+    ):
+        # The recorded AAPL filing (all-toc fixture default) must keep its
+        # exact pre-change items output — only metadata gains the method.
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert result.metadata.section_detection_method == "toc"
+        assert not result.is_degraded
+        assert result.items
+
+    def test_section_without_detection_method_attr_is_unknown(
+        self, store, monkeypatch
+    ):
+        # Defensive passthrough: an upstream section shape missing the
+        # attribute entirely reads as "unknown" → degraded, never a crash.
+        class BareSection:
+            item = None
+            name = "mda"
+
+            def text(self) -> str:
+                return "Some body text. " * 30
+
+        tenk = FakeTenK(sections_data={})
+        tenk.sections = {"mda": BareSection()}
+        self._patch(monkeypatch, tenk)
+        result = parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        assert result.is_degraded
+        assert result.metadata.section_detection_method == "unknown"
+
+    def test_no_sections_at_all_is_unknown_degraded(self, store, monkeypatch):
+        self._patch(monkeypatch, FakeTenK(sections_data={}))
+        result = parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        assert result.is_degraded
+        assert result.metadata.section_detection_method == "unknown"
+
+    def test_mixed_methods_degrade_conservatively(self, store, monkeypatch):
+        # Upstream uses a single strategy per filing; if that assumption
+        # ever breaks, a partially-untrusted structure is still untrusted.
+        prose = "Substantive text for the section body here. " * 20
+        tenk = FakeTenK(
+            sections_data={
+                "part_i_item_1": {
+                    "item": "1",
+                    "text": f"Item 1. Business\n{prose}",
+                    "detection_method": "toc",
+                },
+                "mda": {
+                    "item": "",
+                    "text": prose,
+                    "detection_method": "pattern",
+                },
+            }
+        )
+        self._patch(monkeypatch, tenk)
+        result = parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        assert result.is_degraded
+        assert "toc" in result.metadata.section_detection_method
+        assert "pattern" in result.metadata.section_detection_method
+
+    def test_degraded_result_round_trips_through_store(self, store, monkeypatch):
+        self._patch(monkeypatch, make_pattern_tenk())
+        result = parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        assert store.get("AMD", FilingType.TEN_K, 2025) == result
+
+    def test_degraded_with_empty_markdown_raises_and_saves_nothing(
+        self, store, monkeypatch
+    ):
+        # EmptyFilingError's converged meaning: even the degraded path's
+        # full-document text came out empty after cleaning.
+        self._patch(monkeypatch, make_pattern_tenk(), markdown="")
+        with pytest.raises(parser.EmptyFilingError) as excinfo:
+            parser.parse_filing("AMD", fiscal_year=2025, store=store)
+        message = str(excinfo.value)
+        assert "AMD" in message
+        assert "2025" in message
+        assert "pattern" in message
+        assert store.get("AMD", FilingType.TEN_K, 2025) is None
+
+    def test_standard_path_with_zero_items_falls_back_to_degraded(
+        self, store, monkeypatch
+    ):
+        # A trusted (toc) detection that still yields zero substantive
+        # items means the structure was not trustworthy after all — fall
+        # through to degraded ingest rather than failing the filing.
+        tenk = FakeTenK(
+            sections_data={
+                "part_ii_item_6": {
+                    "item": "6",
+                    "text": "Item 6. [Reserved]",
+                    "detection_method": "toc",
+                }
+            }
+        )
+        self._patch(monkeypatch, tenk)
+        result = parser.parse_filing("AAPL", fiscal_year=2025, store=store)
+        assert result.is_degraded
+        assert result.metadata.section_detection_method == "toc"
+        assert "Revenue grew across all segments" in result.degraded_text
+
+
 class TestErrorPropagationThroughParseFiling:
     """Fetch-stage errors must survive parse_filing untouched.
 

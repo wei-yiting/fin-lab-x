@@ -24,13 +24,14 @@ Sweep corpus (``SWEEP_TICKERS``): DEV-162's finalized 16-ticker GICS
 sector-x-cap grid, plus AMD (DEV-172's known repro). DEV-162's curation never
 excluded a candidate via ``EmptyFilingError`` — its 2026-08-20 sync comment
 records all 16 tickers parsing successfully on the first pass — so there is
-no historical exclusion list to fold in here (DEV-176 acceptance criterion:
-"if DEV-162 curation ever excluded a candidate via EmptyFilingError, include
-and annotate it" — checked, none found).
+no historical exclusion list to fold into the corpus below.
 
 Usage:
     uv run python -m backend.scripts.sweep_section_detection
     uv run python -m backend.scripts.sweep_section_detection AMD NVDA
+
+Prints the report to stdout; posting it to the parent spec issue as a
+comment is a manual hand-off after the run, not something this script does.
 """
 
 from __future__ import annotations
@@ -90,9 +91,11 @@ SWEEP_TICKERS: tuple[str, ...] = (
     "AMD",
 )
 
-#: DEV-172's ratified trigger rule: these methods lose reliable item-key
-#: structure. toc/heading are the two reliable strategies.
-DEGRADED_METHODS: frozenset[str] = frozenset({"pattern", "html_fallback", "unknown"})
+#: DEV-172's ratified trigger rule: these are the only two methods known to
+#: keep reliable item-key structure. classify_ticker() fails closed — a
+#: method string outside this set (a degraded one, or one this sweep has
+#: never seen, e.g. after an edgartools upgrade) counts as degraded rather
+#: than being silently trusted.
 STANDARD_METHODS: frozenset[str] = frozenset({"toc", "heading"})
 
 ParseOutcome = Literal["ok", "empty_filing", "error", "not_run"]
@@ -146,27 +149,26 @@ def ticker_methods(result: TickerSweepResult) -> frozenset[str]:
 
 
 def classify_ticker(result: TickerSweepResult) -> Classification:
-    """Degraded when any section used a degraded method (DEV-172: filing-
-    level classification is inclusive — one degraded section means content
-    loss somewhere even if the rest of the filing is clean). Undetermined
-    when there is no detection-method evidence at all (fetch failed, or
-    edgartools produced zero sections)."""
+    """Standard only when every observed method is toc/heading (DEV-172:
+    filing-level classification is inclusive — one non-standard section
+    means content loss somewhere even if the rest of the filing is clean).
+    Fails closed: a method string outside STANDARD_METHODS counts as
+    degraded whether or not this sweep recognizes it, so an unfamiliar
+    future value can never be silently trusted. Undetermined when there is
+    no detection-method evidence at all (fetch failed, or edgartools
+    produced zero sections)."""
     if result.fetch_error is not None:
         return "undetermined"
     methods = ticker_methods(result)
     if not methods:
         return "undetermined"
-    if methods & DEGRADED_METHODS:
-        return "degraded"
-    return "standard"
+    if methods <= STANDARD_METHODS:
+        return "standard"
+    return "degraded"
 
 
 def degraded_tickers(results: Sequence[TickerSweepResult]) -> list[str]:
     return sorted(r.ticker for r in results if classify_ticker(r) == "degraded")
-
-
-def standard_tickers(results: Sequence[TickerSweepResult]) -> list[str]:
-    return sorted(r.ticker for r in results if classify_ticker(r) == "standard")
 
 
 def undetermined_tickers(results: Sequence[TickerSweepResult]) -> list[str]:

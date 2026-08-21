@@ -20,7 +20,6 @@ from backend.scripts.sweep_section_detection import (
     method_distribution,
     section_method_distribution,
     split_methods,
-    standard_tickers,
     ticker_methods,
     undetermined_tickers,
 )
@@ -125,6 +124,14 @@ class TestClassifyTicker:
         result = _result("MOSTLY_OK", ["toc"] * 10 + ["pattern"])
         assert classify_ticker(result) == "degraded"
 
+    def test_unrecognized_method_value_is_degraded_not_standard(self):
+        # Fails closed: a method string outside STANDARD_METHODS (e.g. a
+        # strategy name a future edgartools version introduces) must never
+        # be silently trusted just because it also isn't a known-degraded
+        # value.
+        result = _result("FUTURE_VERSION", ["some_new_strategy"])
+        assert classify_ticker(result) == "degraded"
+
 
 class TestDistributions:
     def test_method_distribution_counts_tickers_not_sections(self):
@@ -156,14 +163,13 @@ class TestDistributions:
 
 
 class TestTickerLists:
-    def test_partitions_by_classification(self):
+    def test_excludes_standard_and_undetermined_tickers(self):
         results = [
             _result("STD", ["toc"]),
             _result("DEG", ["pattern"]),
             _result("BAD", [], fetch_error="boom"),
         ]
         assert degraded_tickers(results) == ["DEG"]
-        assert standard_tickers(results) == ["STD"]
         assert undetermined_tickers(results) == ["BAD"]
 
     def test_lists_are_sorted_alphabetically(self):

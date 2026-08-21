@@ -122,9 +122,13 @@ class TickerSweepResult:
     fiscal_year: int | None = None
     accession_number: str | None = None
     sections: tuple[SectionObservation, ...] = ()
-    #: Set when resolving the fiscal year or fetching the bundle fails —
-    #: no section evidence exists for this ticker at all.
+    #: Set when resolving the fiscal year or fetching the bundle fails — a
+    #: ticker-lookup / network problem, not evidence about this filing.
     fetch_error: str | None = None
+    #: Set when the bundle fetch succeeds but edgartools produces zero
+    #: sections — a problem with THIS filing's own structure/parseability
+    #: (its document likely failed to parse), distinct from fetch_error.
+    filing_error: str | None = None
     parse_outcome: ParseOutcome = "not_run"
     parse_item_count: int | None = None
     parse_error: str | None = None
@@ -155,8 +159,10 @@ def classify_ticker(result: TickerSweepResult) -> Classification:
     Fails closed: a method string outside STANDARD_METHODS counts as
     degraded whether or not this sweep recognizes it, so an unfamiliar
     future value can never be silently trusted. Undetermined when there is
-    no detection-method evidence at all (fetch failed, or edgartools
-    produced zero sections)."""
+    no detection-method evidence at all — either a fetch_error (ticker
+    lookup / network problem) or a filing_error (this specific filing's
+    document produced zero sections); the two are recorded separately on
+    the result even though both classify the same way here for now."""
     if result.fetch_error is not None:
         return "undetermined"
     methods = ticker_methods(result)
@@ -236,11 +242,20 @@ def sweep_ticker(ticker: str) -> TickerSweepResult:
     sections = tuple(
         _observe_section(section) for section in bundle.tenk.sections.values()
     )
+    filing_error = None
+    if not sections:
+        filing_error = (
+            f"fetched {ticker_norm} FY{fiscal_year} successfully but edgartools "
+            f"produced 0 sections — a problem with this filing's own document "
+            f"(it likely failed to parse inside edgartools), not a ticker "
+            f"lookup problem."
+        )
     result = TickerSweepResult(
         ticker=ticker_norm,
         fiscal_year=fiscal_year,
         accession_number=bundle.accession_number,
         sections=sections,
+        filing_error=filing_error,
     )
 
     try:
@@ -260,6 +275,8 @@ def sweep_ticker(ticker: str) -> TickerSweepResult:
 def _parse_outcome_cell(result: TickerSweepResult) -> str:
     if result.fetch_error is not None:
         return f"fetch failed: {result.fetch_error}"
+    if result.filing_error is not None:
+        return f"filing error: {result.filing_error}"
     if result.parse_outcome == "ok":
         return f"ok ({result.parse_item_count} items)"
     if result.parse_outcome == "empty_filing":
@@ -341,7 +358,7 @@ def render_report(results: Sequence[TickerSweepResult]) -> str:
         lines.append("")
         for r in ordered:
             if r.ticker in undetermined:
-                lines.append(f"- {r.ticker}: {r.fetch_error}")
+                lines.append(f"- {r.ticker}: {r.fetch_error or r.filing_error}")
 
     lines.append("")
     lines.append(

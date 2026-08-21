@@ -15,9 +15,11 @@ from collections import Counter
 from backend.scripts.sweep_section_detection import (
     SectionObservation,
     TickerSweepResult,
+    _parse_outcome_cell,
     classify_ticker,
     degraded_tickers,
     method_distribution,
+    render_report,
     section_method_distribution,
     split_methods,
     ticker_methods,
@@ -175,3 +177,50 @@ class TestTickerLists:
     def test_lists_are_sorted_alphabetically(self):
         results = [_result("ZEBRA", ["pattern"]), _result("ALPHA", ["pattern"])]
         assert degraded_tickers(results) == ["ALPHA", "ZEBRA"]
+
+
+class TestParseOutcomeCell:
+    def test_fetch_error_takes_precedence(self):
+        result = TickerSweepResult(ticker="X", fetch_error="TickerNotFoundError: nope")
+        assert _parse_outcome_cell(result) == "fetch failed: TickerNotFoundError: nope"
+
+    def test_filing_error_shown_distinctly_from_fetch_error(self):
+        # The zero-sections case: the bundle fetch succeeded (no
+        # fetch_error), but the filing itself produced no sections. Must
+        # render its own message, not fall through to "None" or get
+        # confused with a fetch failure.
+        result = TickerSweepResult(
+            ticker="X",
+            filing_error="fetched X FY2025 successfully but edgartools produced 0 sections",
+        )
+        cell = _parse_outcome_cell(result)
+        assert cell.startswith("filing error:")
+        assert "0 sections" in cell
+
+    def test_ok_outcome_reports_item_count(self):
+        result = TickerSweepResult(ticker="X", parse_outcome="ok", parse_item_count=18)
+        assert _parse_outcome_cell(result) == "ok (18 items)"
+
+    def test_empty_filing_outcome_reports_parse_error(self):
+        result = TickerSweepResult(
+            ticker="X", parse_outcome="empty_filing", parse_error="0 substantive items"
+        )
+        assert _parse_outcome_cell(result) == "EmptyFilingError: 0 substantive items"
+
+    def test_not_run_outcome(self):
+        assert _parse_outcome_cell(TickerSweepResult(ticker="X")) == "not run"
+
+
+class TestUndeterminedSection:
+    def test_filing_error_ticker_shows_its_own_reason_not_none(self):
+        # Same bug class as _parse_outcome_cell above, in the report's
+        # "Undetermined" listing: a zero-sections ticker (filing_error set,
+        # fetch_error unset) must show its own reason, not the literal
+        # string "None" from a fetch_error fallback that was never set.
+        result = TickerSweepResult(
+            ticker="ZEROSEC",
+            filing_error="fetched ZEROSEC FY2025 successfully but edgartools produced 0 sections",
+        )
+        report = render_report([result])
+        assert "ZEROSEC: None" not in report
+        assert "ZEROSEC: fetched ZEROSEC FY2025" in report

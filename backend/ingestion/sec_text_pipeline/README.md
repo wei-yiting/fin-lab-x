@@ -7,16 +7,17 @@ Structured 10-K parsing built on edgartools' section API. Fetches a filing from 
 This pipeline is the **new parse path**. It coexists with the frozen HTML baseline:
 
 - **`sec_filing_pipeline_html/`** — the frozen HTML pipeline (A/B baseline). Its behavior does not change while the two paths coexist.
-- **`sec_text_pipeline/`** (this package) — Item boundaries come from edgartools sections instead of HTML heuristics; output is a typed `ParsedFiling`. The filing-level markdown is used **transiently** during block detection (heading candidates only) and is never persisted — there is no markdown intermediate in the output.
+- **`sec_text_pipeline/`** (this package) — Item boundaries come from edgartools sections instead of HTML heuristics; output is a typed `ParsedFiling`. On the standard path the filing-level markdown is used **transiently** during block detection (heading candidates only) and is never persisted; only the degraded path (below) persists a noise-cleaned derivative of it as `degraded_text`.
 - **`backend/common/sec_core.py`** — shared domain core. **The A/B data contract is frozen during coexistence**: existing public functions (notably `is_stub_section`) keep bit-identical data-path behavior; new needs are met by adding helpers. Error classification and error-message wording are outside the evaluated material and may be corrected in place.
 
 ## Module Map
 
 | Module | Responsibility |
 |---|---|
-| `parser.py` | `parse_filing()` — the single public entry point. Fetch (via `sec_core.fetch_filing_bundle` + `sec_core.fetch_filing_markdown`), per-Item boundary trimming, stub classification, block detection dispatch, store round-trip. Raises `EmptyFilingError` instead of caching a zero-item parse. |
+| `parser.py` | `parse_filing()` — the single public entry point. Fetch (via `sec_core.fetch_filing_bundle` + `sec_core.fetch_filing_markdown`), degraded-ingest trigger (filing-level section detection method), per-Item boundary trimming, stub classification, block detection dispatch, store round-trip. Raises `EmptyFilingError` only when even the degraded full text is empty. |
+| `degraded.py` | `clean_degraded_markdown()` — noise cleaning for the degraded path's full-document markdown: cover page + INDEX before the first part heading, the trailing signature block, page-break artifacts. Opt-in cuts anchored on observed shapes; unrecognized documents pass through untouched. |
 | `block_detection.py` | The three-path detection chain: markdown H3/H4 (`canonicalize` shared anchoring/scorer normalizer, noise-filtered heading-candidate collection, anchored search) and the Title-Case text fallback (standalone heading-shaped lines, no markdown involved), all behind the same plausibility gate and prelude validity / leading-block reclassification. |
-| `filing_models.py` | The frozen `ParsedFiling` schema (`FilingMetadata`, `FlatItem`, `StructuredItem`, `Block`). All models forbid unknown fields so stored JSON cannot drift from the schema silently. |
+| `filing_models.py` | The frozen `ParsedFiling` schema (`FilingMetadata`, `FlatItem`, `StructuredItem`, `Block`), plus the DEV-172 ratified additive fields for degraded ingest (`degraded_text`, `section_detection_method` — defaults keep pre-change stored JSON readable). All models forbid unknown fields so stored JSON cannot drift from the schema silently. |
 | `filing_store.py` | `LocalFilingStore` — schema-validated JSON cache under `data/sec_text/{TICKER}/10-K/{YEAR}.json`, written atomically. |
 | `stub_detection.py` | `is_stub_section_v2()` — v1 incorporated-by-reference detection plus pseudo-stub pointer patterns, via the shared `classify_stub_section` mechanism. |
 | `inspect_view.py` | Human-facing renders over a `ParsedFiling`: full markdown inspect view, one-screen summary table, single-Item plain text. Infers the prelude verdict (valid / reclassified leading block / absent) at render time — the schema stores no judgment. |
@@ -31,8 +32,13 @@ parse_filing(ticker, fiscal_year)
   │                                   (in-process LRU; filings are immutable
   │                                   per ticker+year, so force does not
   │                                   re-download)
-  ├─ sec_core.fetch_filing_markdown() filing-level markdown (transient —
-  │   └─ collect_heading_candidates() heading candidates only, not persisted)
+  ├─ sec_core.fetch_filing_markdown() filing-level markdown (transient on the
+  │                                   standard path — heading candidates only)
+  ├─ degraded trigger               filing-level detection method (passed
+  │                                 through from upstream sections) outside
+  │                                 {toc, heading} → degraded ingest:
+  │     clean_degraded_markdown() → empty? EmptyFilingError (nothing saved)
+  │                               → else ParsedFiling(items=[], degraded_text)
   ├─ _parse_items()                 walked in canonical Item order — the
   │                                 TENK_STANDARD_TITLES registry drives the
   │                                 sequence, not edgartools' dict order; per
@@ -40,7 +46,9 @@ parse_filing(ticker, fiscal_year)
   │     trim to own Item boundary → drop empty/stub/duplicate
   │       → detect_blocks() plausibly anchored → StructuredItem
   │                         otherwise         → FlatItem
-  ├─ EmptyFilingError               if zero substantive items (nothing saved)
+  ├─ zero substantive items         → fall through to degraded ingest (a
+  │                                 trusted structure that yields nothing
+  │                                 was not trustworthy)
   └─ FilingStore.save()             → ParsedFiling
 ```
 
@@ -51,6 +59,6 @@ The filing store is the **fetch+parse** cache; Qdrant (in `sec_dense_pipeline_ht
 ## Extension Guidelines
 
 - **Detection chain complete**: all three paths are live in `block_detection.py` — markdown H3, markdown H4, then the Title-Case text fallback, tried in that order inside `detect_blocks`. A plausibly-anchored Item becomes a `StructuredItem` (`detection_source` records which path found the blocks); only when all three fail does the Item stay `FlatItem`.
-- **Schema is frozen**: downstream stages (block detection, dense ingest, inspect view) build against `filing_models.py` without changes. Do not add or rename fields casually — stored JSON validates against this schema on every read.
+- **Schema is frozen**: downstream stages (block detection, dense ingest, inspect view) build against `filing_models.py` without changes. Do not add or rename fields casually — stored JSON validates against this schema on every read. Changes require an explicit ratified decision (precedent: the DEV-172 degraded-ingest fields, additive with defaults).
 - **New stub patterns** go into `PSEUDO_STUB_PATTERNS` in `stub_detection.py` and must run through `classify_stub_section`'s remove-then-measure mechanism — pattern presence alone must never classify a stub, because a large substantive Item can casually contain one pointer sentence.
 - **`sec_core`'s data contract stays frozen** (add-only for data-path behavior) until the HTML baseline is retired; error-handling fixes are allowed.

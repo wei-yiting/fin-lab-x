@@ -49,7 +49,7 @@ The SEC Form 10-K standard item sequence (1, 1a, 1b, 1c, 2, … 15, 16) as fixed
 _Avoid_: "filing order" / "document order" (implies a per-filing measurement the pipeline does not make)
 
 **Degraded ingest**:
-The ingestion mode for filings whose upstream section detection ran a fallback strategy (filing-level detection method outside {toc, heading}): the section structure is not trusted, and the noise-cleaned full-document markdown is stored as `degraded_text` with no items. All content stays retrievable, but without Item anchors. Distinct from source-level missing (the content genuinely absent at EDGAR) — the two are distinguishable in the data layer. `EmptyFilingError` means even the degraded full text came out empty.
+The ingestion mode for filings whose section structure cannot be trusted — triggered by a fallback detection strategy (filing-level detection method outside {toc, heading}) or by a trusted detection that still yields zero substantive items. The noise-cleaned full-document markdown is stored as `degraded_text` with no items; the degraded marker is `degraded_text` being present, not the detection method value. All content stays retrievable, but without Item anchors. Distinct from source-level missing (the content genuinely absent at EDGAR) — the two are distinguishable in the data layer. `EmptyFilingError` means even the degraded full text came out empty.
 _Avoid_: "fallback parse" (collides with block detection's text fallback); treating a degraded filing as a parse failure
 
 **Filing store**:

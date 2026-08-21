@@ -6,7 +6,7 @@ changes. Every model forbids unknown fields: the filing store persists
 these models as JSON, and a silently-discarded field would mean stored
 data and schema had drifted apart without anyone noticing.
 
-One ratified change (DEV-172 degraded ingest): ``ParsedFiling.degraded_text``
+One ratified change (ADR-0018 degraded ingest): ``ParsedFiling.degraded_text``
 and ``FilingMetadata.section_detection_method`` were added for filings whose
 upstream section detection ran degraded. Both are additive with defaults, so
 JSON stored before the change still validates.
@@ -91,7 +91,7 @@ class ParsedFiling(BaseModel):
     """Typed parse result for one filing. Stub items are already dropped.
 
     A degraded filing (section detection ran a fallback strategy the item
-    parser cannot trust — DEV-172) carries the noise-cleaned full document
+    parser cannot trust — ADR-0018) carries the noise-cleaned full document
     text in ``degraded_text`` and an empty ``items`` list; a standard
     filing has items and ``degraded_text is None``. The parser owns that
     invariant — the schema deliberately does not enforce it (failure

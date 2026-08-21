@@ -7,7 +7,7 @@ fallback): a plausibly-anchored Item becomes a :class:`StructuredItem`
 (prelude + blocks + detection_source), everything else stays a
 :class:`FlatItem`.
 
-Degraded ingest (DEV-172): when upstream section detection ran a fallback
+Degraded ingest (ADR-0018): when upstream section detection ran a fallback
 strategy (filing-level detection method outside {toc, heading}), the
 section structure is not trusted — the filing ingests as the noise-cleaned
 full-document markdown (:mod:`degraded`) with ``items=[]`` and the

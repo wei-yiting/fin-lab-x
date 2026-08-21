@@ -128,7 +128,7 @@ def make_degraded_filing(text: str = "") -> ParsedFiling:
 
 class TestDegradedRendering:
     """A degraded filing renders as marker + full-text preview — the
-    operator must see at first glance why structure is absent (DEV-172)."""
+    operator must see at first glance why structure is absent (ADR-0018)."""
 
     def test_inspect_markdown_shows_marker_and_preview(self):
         filing = make_degraded_filing()

@@ -1,7 +1,7 @@
 """Direct unit tests for the degraded-ingest noise-cleaning rules.
 
-Rule-by-rule positive/negative cases (DEV-172 testing decision #2; prior
-art: the trim-section tests in test_parser.py). Shapes mirror the real
+Rule-by-rule positive/negative cases (prior art: the trim-section tests
+in test_parser.py). Shapes mirror the real
 edgartools filing-level markdown render — see AMD FY2025, where the cover
 page runs until "#### INDEX", the body starts at "# PART I", and the
 signature block opens with "### SIGNATURES".

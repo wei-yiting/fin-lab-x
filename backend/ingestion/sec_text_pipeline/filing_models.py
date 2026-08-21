@@ -5,6 +5,11 @@ detection, dense ingest, the inspect view) build against it without
 changes. Every model forbids unknown fields: the filing store persists
 these models as JSON, and a silently-discarded field would mean stored
 data and schema had drifted apart without anyone noticing.
+
+One ratified change (DEV-172 degraded ingest): ``ParsedFiling.degraded_text``
+and ``FilingMetadata.section_detection_method`` were added for filings whose
+upstream section detection ran degraded. Both are additive with defaults, so
+JSON stored before the change still validates.
 """
 
 from typing import Annotated, Literal
@@ -34,6 +39,11 @@ class FilingMetadata(BaseModel):
     accession_number: str
     primary_document: str
     parsed_at: str
+    #: Upstream section detection method, passed through from edgartools
+    #: (single strategy per filing: "toc" / "heading" / "pattern" /
+    #: "unknown"...). "" means the filing was parsed before this field
+    #: existed — distinct from "unknown", which is a real observation.
+    section_detection_method: str = ""
 
 
 class Block(BaseModel):
@@ -78,9 +88,23 @@ ParsedItem = Annotated[StructuredItem | FlatItem, Field(discriminator="kind")]
 
 
 class ParsedFiling(BaseModel):
-    """Typed parse result for one filing. Stub items are already dropped."""
+    """Typed parse result for one filing. Stub items are already dropped.
+
+    A degraded filing (section detection ran a fallback strategy the item
+    parser cannot trust — DEV-172) carries the noise-cleaned full document
+    text in ``degraded_text`` and an empty ``items`` list; a standard
+    filing has items and ``degraded_text is None``. The parser owns that
+    invariant — the schema deliberately does not enforce it (failure
+    legibility is the parser's job, not the model's).
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     metadata: FilingMetadata
     items: list[ParsedItem]
+    degraded_text: str | None = None
+
+    @property
+    def is_degraded(self) -> bool:
+        """True when this filing was ingested via the degraded path."""
+        return self.degraded_text is not None

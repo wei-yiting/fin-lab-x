@@ -109,6 +109,42 @@ class TestParsedFilingRoundTrip:
         assert filing.items == []
 
 
+class TestDegradedFields:
+    """DEV-172 ratified additive change to the frozen schema: a degraded
+    filing stores the noise-cleaned full document text instead of items,
+    and metadata records the upstream section detection method."""
+
+    def test_degraded_text_defaults_to_none(self):
+        filing = ParsedFiling(metadata=make_metadata(), items=[make_structured_item()])
+        assert filing.degraded_text is None
+
+    def test_section_detection_method_defaults_to_empty(self):
+        # "" means "parsed before the field existed" — distinct from the
+        # upstream value "unknown", which is a real (degraded) observation.
+        assert make_metadata().section_detection_method == ""
+
+    def test_pre_degraded_stored_json_still_validates(self):
+        # Read-compatibility with stored JSON written before this change:
+        # a payload without the new fields must load, with defaults.
+        filing = ParsedFiling(metadata=make_metadata(), items=[make_structured_item()])
+        payload = filing.model_dump(mode="json")
+        del payload["degraded_text"]
+        del payload["metadata"]["section_detection_method"]
+        restored = ParsedFiling.model_validate(payload)
+        assert restored.degraded_text is None
+        assert restored.metadata.section_detection_method == ""
+
+    def test_degraded_filing_round_trips(self):
+        filing = ParsedFiling(
+            metadata=make_metadata(section_detection_method="pattern"),
+            items=[],
+            degraded_text="# PART I\nFull cleaned document text.",
+        )
+        restored = ParsedFiling.model_validate_json(filing.model_dump_json())
+        assert restored == filing
+        assert restored.metadata.section_detection_method == "pattern"
+
+
 class TestFilingMetadata:
     def test_citation_chain_fields_are_required(self):
         for field in ("accession_number", "cik", "primary_document"):

@@ -587,9 +587,7 @@ class TestDegradedIngest:
         assert not result.is_degraded
         assert result.items
 
-    def test_section_without_detection_method_attr_is_unknown(
-        self, store, monkeypatch
-    ):
+    def test_section_without_detection_method_attr_is_unknown(self, store, monkeypatch):
         # Defensive passthrough: an upstream section shape missing the
         # attribute entirely reads as "unknown" → degraded, never a crash.
         class BareSection:

@@ -778,8 +778,13 @@ def generate(limit: int | None) -> list[Candidate]:
 _ROLE_RANK = {"primary": 0, "alternate": 1, "rejected": 2}
 
 
-def _role_order(c: Candidate) -> tuple[int, str]:
-    return (_ROLE_RANK[c.plan.role], c.candidate_id)
+def _role_order(c: Candidate) -> tuple[int, int, str]:
+    # Sort by slot number first (the digits in "p05"/"a05"), not the id
+    # string — otherwise a promoted "aNN" (alphabetically before "pNN")
+    # jumps to the front of its role group instead of sitting near the
+    # slot it now fills.
+    slot = int(re.match(r"^[a-z]+(\d+)$", c.candidate_id).group(1))
+    return (_ROLE_RANK[c.plan.role], slot, c.candidate_id)
 
 
 def _load_candidates() -> list[Candidate]:

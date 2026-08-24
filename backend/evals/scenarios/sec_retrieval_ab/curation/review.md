@@ -2,6 +2,22 @@
 
 Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`). Snippet is **bold** inside its span; one sentence of context shown on each side.
 
+## a01 — NVDA Item 1A/Item 7 (multi_passage, passage_first)
+
+- sector: Information Technology / cap: large / FY2026 / detection: markdown_h3, markdown_h3
+- **query**: How much went to private startups, and what threatens recovery?
+- curation_note: This pair connects NVIDIA’s quantified fiscal 2026 startup investment with the company-specific impairment and total-loss risk of unsuccessful private holdings.
+
+**Evidence 1** — `NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Overview
+
+> …ty to ramp production supply to the required volume and on a timely basis.   We have made, and expect to continue making, investments that support our technology roadmap and the broader AI ecosystem. In fiscal year 2026, we made the following investments:  •**We invested $17.5 billion in private companies and infrastructure funds, primarily to support early‑stage startups.** These investments include AI model makers that purchase our products directly or through CSPs. Many of these investments are illiquid and non‑marketable. The related early-stage startups may not become profitable in the near term, or at all, and there can be no assurance that we will realize a return on our investments. •We made investments in publicly-held equity securities where the value may fluctuate significantly due to changes in stock prices and could adversely affect our financial results.   •To support th…
+
+**Evidence 2** — `NVDA / 2026 / Item 1A. Risk Factors` / block: Risks Related to Our Global Operating Business
+
+> …continue to invest in companies to further our strategic objectives and to support certain key business initiatives, which could be subject to delays and challenges in obtaining regulatory approvals. Our investments in private companies include early-stage companies still defining their strategic direction. Many of the securities in which we invest are non-marketable and illiquid at the time of our initial investment. **To the extent any of the companies in which we invest are not successful, we could recognize an impairment and/or lose all or part of our investment.** We are finalizing an investment and partnership agreement with OpenAI. There is no assurance that we will enter into an investment and partnership agreement with OpenAI or that a transaction will be…
+
+---
+
 ## a02 — DDOG Item 1A (multi_passage, passage_first)
 
 - sector: Information Technology / cap: mid / FY2025 / detection: markdown_h4, markdown_h4
@@ -31,22 +47,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: People
 
 > …countries could inhibit JPMorganChase’s ability to attract and retain qualified employees, or necessitate adjustments to operating models that could reduce operational efficiency or increase costs. **Advances in technology, such as automation, AI and data science, could lead to workforce displacement.** This could require JPMorganChase to invest in additional employee training, manage impacts on morale and retention, and compete for employment candidates who possess more advanced technological skills, all of which could have a negative impact on JPMorganChase’s business and operations.
-
----
-
-## p01 — NVDA Item 1A/Item 7 (multi_passage, passage_first)
-
-- sector: Information Technology / cap: large / FY2026 / detection: markdown_h3, markdown_h3
-- **query**: Blackwell production issues and causes of fiscal 2026 gross margin decline
-- curation_note: This evidence links a specific low-yield Blackwell inventory problem with the later margin effects of NVIDIA’s datacenter solution transition and H20 charge.
-
-**Evidence 1** — `NVDA / 2026 / Item 1A. Risk Factors` / block: Risks Related to Our Global Operating Business
-
-> …and future architecture transitions. Our financial results have been and may in the future be negatively impacted if we are unable to execute our architectural transitions as planned for any reason. The increased frequency and complexity of newly introduced products could result in unanticipated quality or production issues that could increase the magnitude of inventory provisions, warranty, or other costs or result in product delays. **For example, our gross margins in the second quarter of fiscal year 2025 were negatively impacted by inventory provisions for low-yielding Blackwell material.**  We incur significant engineering development resources for new products, and changes to our product roadmap may impact our ability to develop other products or adequately manage our supply chain cost. Customers may delay purchasing existing products as we increase the frequency of new products or may not be able to adopt our new   16   products as fast as forecasted, both impacting the timing of o…
-
-**Evidence 2** — `NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Overview
-
-> …onal demand for Blackwell as well as the launch of our new DGX Spark.  Automotive revenue for fiscal year 2026 was up 39% from a year ago, driven by continued adoption of our self-driving platforms. **Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions.** The gross margin decrease was also impacted by a $4.5 billion charge associated with H20 excess inventory and purchase obligations. Operating expenses for fiscal year 2026 were up 41% from a year ago, driven by higher compensation and benefits expenses due to employee growth and compute and infrastructure costs.   37   Critical…
 
 ---
 
@@ -670,22 +670,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## a01 — NVDA Item 1A/Item 7 (multi_passage, passage_first, ALTERNATE)
-
-- sector: Information Technology / cap: large / FY2026 / detection: markdown_h3, markdown_h3
-- **query**: How much went to private startups, and what threatens recovery?
-- curation_note: This pair connects NVIDIA’s quantified fiscal 2026 startup investment with the company-specific impairment and total-loss risk of unsuccessful private holdings.
-
-**Evidence 1** — `NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Overview
-
-> …ty to ramp production supply to the required volume and on a timely basis.   We have made, and expect to continue making, investments that support our technology roadmap and the broader AI ecosystem. **In fiscal year 2026, we made the following investments:  •We invested $17.5 billion in private companies and infrastructure funds, primarily to support early‑stage startups.** These investments include AI model makers that purchase our products directly or through CSPs. Many of these investments are illiquid and non‑marketable. The related early-stage startups may not become profitable in the near term, or at all, and there can be no assurance that we will realize a return on our investments. •We made investments in publicly-held equity securities where the value may fluctuate significantly due to changes in stock prices and could adversely affect our financial results.   •To support th…
-
-**Evidence 2** — `NVDA / 2026 / Item 1A. Risk Factors` / block: Risks Related to Our Global Operating Business
-
-> …continue to invest in companies to further our strategic objectives and to support certain key business initiatives, which could be subject to delays and challenges in obtaining regulatory approvals. Our investments in private companies include early-stage companies still defining their strategic direction. Many of the securities in which we invest are non-marketable and illiquid at the time of our initial investment. **To the extent any of the companies in which we invest are not successful, we could recognize an impairment and/or lose all or part of our investment.** We are finalizing an investment and partnership agreement with OpenAI. There is no assurance that we will enter into an investment and partnership agreement with OpenAI or that a transaction will be…
-
----
-
 ## a03 — LLY Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Health Care / cap: large / FY2025 / detection: markdown_h3, markdown_h3
@@ -1018,6 +1002,23 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 # Rejected candidates
 
 Removed from the draft after quality review; kept for provenance only. No review action needed.
+
+## p01 — NVDA Item 1A/Item 7 (multi_passage, passage_first, REJECTED)
+
+- sector: Information Technology / cap: large / FY2026 / detection: markdown_h3, markdown_h3
+- **query**: Blackwell production issues and causes of fiscal 2026 gross margin decline
+- curation_note: This evidence links a specific low-yield Blackwell inventory problem with the later margin effects of NVIDIA’s datacenter solution transition and H20 charge.
+- **rejected because**: multi_passage query joins two facts from different fiscal periods with 'and'; evidence 1 (FY2025 Q2 Blackwell low-yield inventory provision) is not actually cited as a cause in evidence 2's own text (FY2026 full-year decline lists business-model transition + H20 charge as its causes) — the causal link in curation_note is the generator's inference, not textual. Prompt v1, never re-examined under rule 1b. Replaced by a01 (same ticker/items/query type).
+
+**Evidence 1** — `NVDA / 2026 / Item 1A. Risk Factors` / block: Risks Related to Our Global Operating Business
+
+> …and future architecture transitions. Our financial results have been and may in the future be negatively impacted if we are unable to execute our architectural transitions as planned for any reason. The increased frequency and complexity of newly introduced products could result in unanticipated quality or production issues that could increase the magnitude of inventory provisions, warranty, or other costs or result in product delays. **For example, our gross margins in the second quarter of fiscal year 2025 were negatively impacted by inventory provisions for low-yielding Blackwell material.**  We incur significant engineering development resources for new products, and changes to our product roadmap may impact our ability to develop other products or adequately manage our supply chain cost. Customers may delay purchasing existing products as we increase the frequency of new products or may not be able to adopt our new   16   products as fast as forecasted, both impacting the timing of o…
+
+**Evidence 2** — `NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Overview
+
+> …onal demand for Blackwell as well as the launch of our new DGX Spark.  Automotive revenue for fiscal year 2026 was up 39% from a year ago, driven by continued adoption of our self-driving platforms. **Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions.** The gross margin decrease was also impacted by a $4.5 billion charge associated with H20 excess inventory and purchase obligations. Operating expenses for fiscal year 2026 were up 41% from a year ago, driven by higher compensation and benefits expenses due to employee growth and compute and infrastructure costs.   37   Critical…
+
+---
 
 ## p02 — DDOG Item 1A (multi_passage, passage_first, REJECTED)
 

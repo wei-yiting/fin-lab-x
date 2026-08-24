@@ -1,5 +1,46 @@
 [
   {
+    "candidate_id": "a01",
+    "plan": {
+      "plan_id": "a01",
+      "ticker": "NVDA",
+      "item_keys": [
+        "1a",
+        "7"
+      ],
+      "query_type": "multi_passage",
+      "mode": "passage_first",
+      "intent": null,
+      "role": "primary"
+    },
+    "question": "How much went to private startups, and what threatens recovery?",
+    "curation_note": "This pair connects NVIDIA’s quantified fiscal 2026 startup investment with the company-specific impairment and total-loss risk of unsuccessful private holdings.",
+    "evidences": [
+      {
+        "item_key": "7",
+        "header_path": "NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations",
+        "block_heading": "Overview",
+        "detection_source": "markdown_h3",
+        "span": "In fiscal year 2026, we made the following investments:\n\n•We invested $17.5 billion in private companies and infrastructure funds, primarily to support early‑stage startups. These investments include AI model makers that purchase our products directly or through CSPs. Many of these investments are illiquid and non‑marketable. The related early-stage startups may not become profitable in the near term, or at all, and there can be no assurance that we will realize a return on our investments.",
+        "snippet": "We invested $17.5 billion in private companies and infrastructure funds, primarily to support early‑stage startups."
+      },
+      {
+        "item_key": "1a",
+        "header_path": "NVDA / 2026 / Item 1A. Risk Factors",
+        "block_heading": "Risks Related to Our Global Operating Business",
+        "detection_source": "markdown_h3",
+        "span": "Our investments in private companies include early-stage companies still defining their strategic direction. Many of the securities in which we invest are non-marketable and illiquid at the time of our initial investment. To the extent any of the companies in which we invest are not successful, we could recognize an impairment and/or lose all or part of our investment.",
+        "snippet": "To the extent any of the companies in which we invest are not successful, we could recognize an impairment and/or lose all or part of our investment."
+      }
+    ],
+    "fiscal_year": 2026,
+    "accession_number": "0001045810-26-000021",
+    "model": "gpt-5.6-sol",
+    "system_fingerprint": null,
+    "prompt_version": "v1",
+    "generated_at": "2026-08-20T04:09:08+00:00"
+  },
+  {
     "candidate_id": "a02",
     "plan": {
       "plan_id": "a02",
@@ -78,47 +119,6 @@
     "system_fingerprint": null,
     "prompt_version": "v1",
     "generated_at": "2026-08-20T04:09:13+00:00"
-  },
-  {
-    "candidate_id": "p01",
-    "plan": {
-      "plan_id": "p01",
-      "ticker": "NVDA",
-      "item_keys": [
-        "1a",
-        "7"
-      ],
-      "query_type": "multi_passage",
-      "mode": "passage_first",
-      "intent": null,
-      "role": "primary"
-    },
-    "question": "Blackwell production issues and causes of fiscal 2026 gross margin decline",
-    "curation_note": "This evidence links a specific low-yield Blackwell inventory problem with the later margin effects of NVIDIA’s datacenter solution transition and H20 charge.",
-    "evidences": [
-      {
-        "item_key": "1a",
-        "header_path": "NVDA / 2026 / Item 1A. Risk Factors",
-        "block_heading": "Risks Related to Our Global Operating Business",
-        "detection_source": "markdown_h3",
-        "span": "The increased frequency and complexity of newly introduced products could result in unanticipated quality or production issues that could increase the magnitude of inventory provisions, warranty, or other costs or result in product delays. For example, our gross margins in the second quarter of fiscal year 2025 were negatively impacted by inventory provisions for low-yielding Blackwell material.\n\nWe incur significant engineering development resources for new products, and changes to our product roadmap may impact our ability to develop other products or adequately manage our supply chain cost.",
-        "snippet": "For example, our gross margins in the second quarter of fiscal year 2025 were negatively impacted by inventory provisions for low-yielding Blackwell material."
-      },
-      {
-        "item_key": "7",
-        "header_path": "NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations",
-        "block_heading": "Overview",
-        "detection_source": "markdown_h3",
-        "span": "Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions. The gross margin decrease was also impacted by a $4.5 billion charge associated with H20 excess inventory and purchase obligations.",
-        "snippet": "Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions."
-      }
-    ],
-    "fiscal_year": 2026,
-    "accession_number": "0001045810-26-000021",
-    "model": "gpt-5.6-sol",
-    "system_fingerprint": null,
-    "prompt_version": "v1",
-    "generated_at": "2026-08-20T04:04:43+00:00"
   },
   {
     "candidate_id": "p03",
@@ -1721,47 +1721,6 @@
     "generated_at": "2026-08-20T04:08:37+00:00"
   },
   {
-    "candidate_id": "a01",
-    "plan": {
-      "plan_id": "a01",
-      "ticker": "NVDA",
-      "item_keys": [
-        "1a",
-        "7"
-      ],
-      "query_type": "multi_passage",
-      "mode": "passage_first",
-      "intent": null,
-      "role": "alternate"
-    },
-    "question": "How much went to private startups, and what threatens recovery?",
-    "curation_note": "This pair connects NVIDIA’s quantified fiscal 2026 startup investment with the company-specific impairment and total-loss risk of unsuccessful private holdings.",
-    "evidences": [
-      {
-        "item_key": "7",
-        "header_path": "NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations",
-        "block_heading": "Overview",
-        "detection_source": "markdown_h3",
-        "span": "In fiscal year 2026, we made the following investments:\n\n•We invested $17.5 billion in private companies and infrastructure funds, primarily to support early‑stage startups. These investments include AI model makers that purchase our products directly or through CSPs. Many of these investments are illiquid and non‑marketable. The related early-stage startups may not become profitable in the near term, or at all, and there can be no assurance that we will realize a return on our investments.",
-        "snippet": "In fiscal year 2026, we made the following investments:\n\n•We invested $17.5 billion in private companies and infrastructure funds, primarily to support early‑stage startups."
-      },
-      {
-        "item_key": "1a",
-        "header_path": "NVDA / 2026 / Item 1A. Risk Factors",
-        "block_heading": "Risks Related to Our Global Operating Business",
-        "detection_source": "markdown_h3",
-        "span": "Our investments in private companies include early-stage companies still defining their strategic direction. Many of the securities in which we invest are non-marketable and illiquid at the time of our initial investment. To the extent any of the companies in which we invest are not successful, we could recognize an impairment and/or lose all or part of our investment.",
-        "snippet": "To the extent any of the companies in which we invest are not successful, we could recognize an impairment and/or lose all or part of our investment."
-      }
-    ],
-    "fiscal_year": 2026,
-    "accession_number": "0001045810-26-000021",
-    "model": "gpt-5.6-sol",
-    "system_fingerprint": null,
-    "prompt_version": "v1",
-    "generated_at": "2026-08-20T04:09:08+00:00"
-  },
-  {
     "candidate_id": "a03",
     "plan": {
       "plan_id": "a03",
@@ -2600,6 +2559,48 @@
     "system_fingerprint": null,
     "prompt_version": "v1",
     "generated_at": "2026-08-20T04:06:01+00:00"
+  },
+  {
+    "candidate_id": "p01",
+    "plan": {
+      "plan_id": "p01",
+      "ticker": "NVDA",
+      "item_keys": [
+        "1a",
+        "7"
+      ],
+      "query_type": "multi_passage",
+      "mode": "passage_first",
+      "intent": null,
+      "role": "rejected"
+    },
+    "question": "Blackwell production issues and causes of fiscal 2026 gross margin decline",
+    "curation_note": "This evidence links a specific low-yield Blackwell inventory problem with the later margin effects of NVIDIA’s datacenter solution transition and H20 charge.",
+    "evidences": [
+      {
+        "item_key": "1a",
+        "header_path": "NVDA / 2026 / Item 1A. Risk Factors",
+        "block_heading": "Risks Related to Our Global Operating Business",
+        "detection_source": "markdown_h3",
+        "span": "The increased frequency and complexity of newly introduced products could result in unanticipated quality or production issues that could increase the magnitude of inventory provisions, warranty, or other costs or result in product delays. For example, our gross margins in the second quarter of fiscal year 2025 were negatively impacted by inventory provisions for low-yielding Blackwell material.\n\nWe incur significant engineering development resources for new products, and changes to our product roadmap may impact our ability to develop other products or adequately manage our supply chain cost.",
+        "snippet": "For example, our gross margins in the second quarter of fiscal year 2025 were negatively impacted by inventory provisions for low-yielding Blackwell material."
+      },
+      {
+        "item_key": "7",
+        "header_path": "NVDA / 2026 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations",
+        "block_heading": "Overview",
+        "detection_source": "markdown_h3",
+        "span": "Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions. The gross margin decrease was also impacted by a $4.5 billion charge associated with H20 excess inventory and purchase obligations.",
+        "snippet": "Gross margin decreased in fiscal year 2026 as our business model transitioned from offering Hopper HGX systems to Blackwell full-scale datacenter solutions."
+      }
+    ],
+    "fiscal_year": 2026,
+    "accession_number": "0001045810-26-000021",
+    "model": "gpt-5.6-sol",
+    "system_fingerprint": null,
+    "prompt_version": "v1",
+    "generated_at": "2026-08-20T04:04:43+00:00",
+    "rejection_reason": "multi_passage query joins two facts from different fiscal periods with 'and'; evidence 1 (FY2025 Q2 Blackwell low-yield inventory provision) is not actually cited as a cause in evidence 2's own text (FY2026 full-year decline lists business-model transition + H20 charge as its causes) — the causal link in curation_note is the generator's inference, not textual. Prompt v1, never re-examined under rule 1b. Replaced by a01 (same ticker/items/query type)."
   },
   {
     "candidate_id": "p02",

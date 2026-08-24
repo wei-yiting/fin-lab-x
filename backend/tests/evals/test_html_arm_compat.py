@@ -2,7 +2,8 @@
 
 Fixtures are real chunks recorded from the frozen HTML pipeline's Qdrant output
 (backend/evals/regression/reference_measurements/sec_retrieval/2026-08-19_73faf5f.csv),
-not invented strings.
+not invented strings — except the one test that exercises an item value never actually
+observed in that data, which says so in its own docstring.
 """
 
 from backend.evals.scenarios.sec_retrieval_ab.html_arm_compat import (

@@ -39,7 +39,7 @@ compatibility logic is isolated here instead of branching inside code other scen
 on. It has no dependency on the sec_retrieval_ab scenario's dataset or eval_spec.yaml existing.
 
 This module is scoped to the frozen HTML pipeline's lifetime and is deleted alongside it at
-sunset (DEV-139) — see AGENTS.md's "Ingestion Rewrite Coexistence" section. Its design
+sunset — see AGENTS.md's "Ingestion Rewrite Coexistence" section. Its design
 rationale lives here rather than in an ADR or a CONTEXT.md glossary entry precisely because
 both are meant to outlive the thing they describe, and this doesn't.
 """

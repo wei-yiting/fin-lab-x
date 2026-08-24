@@ -34,6 +34,22 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
+## a05 — JPM Item 1A (multi_passage, passage_first)
+
+- sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
+- **query**: How could artificial intelligence reshape staffing needs and employee capabilities?
+- curation_note: These passages connect AI adoption risks with staff shortages, skill erosion, displacement, retraining costs, and demand for advanced technical talent.
+
+**Evidence 1** — `JPM / 2025 / Item 1A. Risk Factors` / block: Strategic
+
+> …rs, or  •replacement or disintermediation of direct customer relationships if AI agents autonomously manage or intermediate financial decisions and product selection or other services for customers. **It is also possible that JPMorganChase could miscalibrate its workforce planning and employee training efforts either because of over-reliance on AI or the failure to appropriately adopt AI.** Over-reliance on AI could cause JPMorganChase to experience shortages in qualified staff due to reduced hiring or retention of employees, or could hinder the development or enhancement of important skills among its employees, including critical thinking, problem-solving, judgment, creativity and adaptability. On the other hand, any efficiencies or competitive advantages that AI may offer could be squandered if JPMorganChase fails to adopt AI in a timely and judicious manner and to make related adjustments to its workforce. Any of these factors could materially and adversely affect JPMorganChase’s business and operations, results of operations, competitive position or reputation.  The effects of climate change could ad…
+
+**Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: People
+
+> …countries could inhibit JPMorganChase’s ability to attract and retain qualified employees, or necessitate adjustments to operating models that could reduce operational efficiency or increase costs. **Advances in technology, such as automation, AI and data science, could lead to workforce displacement.** This could require JPMorganChase to invest in additional employee training, manage impacts on morale and retention, and compete for employment candidates who possess more advanced technological skills, all of which could have a negative impact on JPMorganChase’s business and operations.
+
+---
+
 ## p03 — LLY Item 1A (multi_passage, passage_first)
 
 - sector: Health Care / cap: large / FY2025 / detection: markdown_h3, markdown_h3
@@ -63,22 +79,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 2** — `PODD / 2025 / Item 1A. Risk Factors` / block: The price of our common stock may be volatile.
 
 > …the U.S. equity markets have at times experienced significant price and volume fluctuations that have affected the market prices of equity securities of many medical device and technology companies. Also, in 2023, ongoing adoption of the GLP-1 class of drugs in diabetes and news surrounding the expansion of use of GLP-1 drugs in obesity led to speculation regarding the impact of GLP-1 drugs on the insulin therapy market. **We believe this negatively impacted the stock prices of companies in the medical device industry, including ours.** Broad market and industry factors such as these could materially and adversely affect the market price of our stock, regardless of our actual operating performance.  Changes in tax laws or exposures…
-
----
-
-## a05 — JPM Item 1A (multi_passage, passage_first)
-
-- sector: Financials / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: How could artificial intelligence reshape staffing needs and employee capabilities?
-- curation_note: These passages connect AI adoption risks with staff shortages, skill erosion, displacement, retraining costs, and demand for advanced technical talent.
-
-**Evidence 1** — `JPM / 2025 / Item 1A. Risk Factors` / block: Strategic
-
-> …rs, or  •replacement or disintermediation of direct customer relationships if AI agents autonomously manage or intermediate financial decisions and product selection or other services for customers. **It is also possible that JPMorganChase could miscalibrate its workforce planning and employee training efforts either because of over-reliance on AI or the failure to appropriately adopt AI.** Over-reliance on AI could cause JPMorganChase to experience shortages in qualified staff due to reduced hiring or retention of employees, or could hinder the development or enhancement of important skills among its employees, including critical thinking, problem-solving, judgment, creativity and adaptability. On the other hand, any efficiencies or competitive advantages that AI may offer could be squandered if JPMorganChase fails to adopt AI in a timely and judicious manner and to make related adjustments to its workforce. Any of these factors could materially and adversely affect JPMorganChase’s business and operations, results of operations, competitive position or reputation.  The effects of climate change could ad…
-
-**Evidence 2** — `JPM / 2025 / Item 1A. Risk Factors` / block: People
-
-> …countries could inhibit JPMorganChase’s ability to attract and retain qualified employees, or necessitate adjustments to operating models that could reduce operational efficiency or increase costs. **Advances in technology, such as automation, AI and data science, could lead to workforce displacement.** This could require JPMorganChase to invest in additional employee training, manage impacts on morale and retention, and compete for employment candidates who possess more advanced technological skills, all of which could have a negative impact on JPMorganChase’s business and operations.
 
 ---
 
@@ -830,22 +830,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## p13 — XOM Item 1A (multi_passage, passage_first, ALTERNATE)
-
-- sector: Energy / cap: large / FY2025 / detection: markdown_h4, markdown_h4
-- **query**: How do public policies intensify competitive threats to ExxonMobil?
-- curation_note: This pairing links sanctions-based disadvantages with subsidized alternative-energy rivalry, testing retrieval across separate regulatory and competitive-risk passages.
-
-**Evidence 1** — `XOM / 2025 / Item 1A. Risk Factors` / block: Government and Political Factors
-
-> …ict the import or export of certain products based on point of origin, and such restrictions may increase during periods of escalating geopolitical or trade tensions.  Restrictions on doing business. ExxonMobil is subject to laws and sanctions imposed by the United States and by other jurisdictions where we do business that may prohibit ExxonMobil or its affiliates from doing business in certain countries or with certain counterparties or restrict or impede the kind of business that may be conducted, including acquiring and divesting certain assets or importing or exporting certain materials or products. **Such restrictions may provide a competitive advantage to competitors who may not be subject to comparable restrictions.** Lack of legal certainty. Some countries in which we do, or seek to do, business lack well-developed legal systems, lack political or governmental stability, may be subject to regime changes, have no…
-
-**Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Operational and Other Factors
-
-> …ve the internal resources and capabilities of ExxonMobil or reduce the need for resource-owning countries to partner with private-sector oil and gas companies in order to monetize national resources. **As described in more detail above, our hydrocarbon-based energy products are also subject to growing and, in many cases, government-supported competition from alternative energy sources.** In addition, as we enter new markets in pursuit of lower-emission and other new business opportunities, we will need to compete effectively with established competitors in these markets, as well as with new market entrants seeking to capitalize on these opportunities, while successfully navigating changing market conditions or technologies. Reputation. Our reputation is an important corporate asset. Factors that could have a negative impact on our reputation include an operating incident or significant cybersecurity disruption; changes…
-
----
-
 ## a14 — NEE Item 1A (multi_passage, passage_first, ALTERNATE)
 
 - sector: Utilities / cap: large / FY2025 / detection: markdown_h4, markdown_h4
@@ -995,6 +979,22 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 1** — `CAT / 2025 / Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations` / block: Financial Products Segment
 
 > …lence, advanced technology leadership and transforming how we work. These pillars work together to drive sustainable growth, innovation and operational efficiency for Caterpillar and our customers. On February 3, 2026, the Federal Court of Australia approved Caterpillar's acquisition of RPMGlobal Holdings Limited, an Australian based software company. **The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired.** RPMGlobal is a leading provider of mining software solutions with deep domain expertise in mining technology enablement and data-driven software solutions at every stage of the mining lifecycle. Return to shareholders — Our goal is to return substantially all MP&E free cash flow to shareholders over time in the form of dividends and share repurchases, while maintaining our mid-A rating.…
+
+---
+
+## p13 — XOM Item 1A (multi_passage, passage_first, ALTERNATE)
+
+- sector: Energy / cap: large / FY2025 / detection: markdown_h4, markdown_h4
+- **query**: How do public policies intensify competitive threats to ExxonMobil?
+- curation_note: This pairing links sanctions-based disadvantages with subsidized alternative-energy rivalry, testing retrieval across separate regulatory and competitive-risk passages.
+
+**Evidence 1** — `XOM / 2025 / Item 1A. Risk Factors` / block: Government and Political Factors
+
+> …ict the import or export of certain products based on point of origin, and such restrictions may increase during periods of escalating geopolitical or trade tensions.  Restrictions on doing business. ExxonMobil is subject to laws and sanctions imposed by the United States and by other jurisdictions where we do business that may prohibit ExxonMobil or its affiliates from doing business in certain countries or with certain counterparties or restrict or impede the kind of business that may be conducted, including acquiring and divesting certain assets or importing or exporting certain materials or products. **Such restrictions may provide a competitive advantage to competitors who may not be subject to comparable restrictions.** Lack of legal certainty. Some countries in which we do, or seek to do, business lack well-developed legal systems, lack political or governmental stability, may be subject to regime changes, have no…
+
+**Evidence 2** — `XOM / 2025 / Item 1A. Risk Factors` / block: Operational and Other Factors
+
+> …ve the internal resources and capabilities of ExxonMobil or reduce the need for resource-owning countries to partner with private-sector oil and gas companies in order to monetize national resources. **As described in more detail above, our hydrocarbon-based energy products are also subject to growing and, in many cases, government-supported competition from alternative energy sources.** In addition, as we enter new markets in pursuit of lower-emission and other new business opportunities, we will need to compete effectively with established competitors in these markets, as well as with new market entrants seeking to capitalize on these opportunities, while successfully navigating changing market conditions or technologies. Reputation. Our reputation is an important corporate asset. Factors that could have a negative impact on our reputation include an operating incident or significant cybersecurity disruption; changes…
 
 ---
 

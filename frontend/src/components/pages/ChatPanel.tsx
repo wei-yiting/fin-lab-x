@@ -16,6 +16,7 @@ import { ActivityPlaceholder } from "@/components/atoms/ActivityPlaceholder";
 import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
+import { apiUrl } from "@/lib/api";
 import { ChatHttpError, statusAwareFetch } from "@/lib/chat-http";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
@@ -35,9 +36,7 @@ export function ChatPanel() {
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
-        // Unset in dev/tests so the relative path keeps the Vite proxy and
-        // MSW handlers working; set on Vercel to reach the backend directly.
-        api: `${import.meta.env.VITE_API_BASE_URL ?? ""}/api/v1/chat`,
+        api: apiUrl("/api/v1/chat"),
         fetch: statusAwareFetch,
       }),
     [],

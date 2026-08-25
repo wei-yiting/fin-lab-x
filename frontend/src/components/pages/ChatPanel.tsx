@@ -35,7 +35,9 @@ export function ChatPanel() {
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
-        api: "/api/v1/chat",
+        // Unset in dev/tests so the relative path keeps the Vite proxy and
+        // MSW handlers working; set on Vercel to reach the backend directly.
+        api: `${import.meta.env.VITE_API_BASE_URL ?? ""}/api/v1/chat`,
         fetch: statusAwareFetch,
       }),
     [],

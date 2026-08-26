@@ -71,7 +71,8 @@ def normalize_chunk(chunk: dict) -> dict:
         (
             i
             for i, segment in enumerate(segments)
-            if (match := _ITEM_SEGMENT_RE.match(segment)) and match.group(1) == item
+            if (match := _ITEM_SEGMENT_RE.match(segment.strip()))
+            and match.group(1) == item
         ),
         None,
     )

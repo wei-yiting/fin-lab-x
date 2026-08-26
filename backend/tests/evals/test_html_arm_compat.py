@@ -28,8 +28,13 @@ def test_normalize_chunk_passes_through_unchanged_when_item_is_unknown() -> None
         "text": "We are subject to numerous risks associated with the evolving market "
         "for products with AI capabilities.",
     }
+    original = dict(chunk)
 
-    assert normalize_chunk(chunk) == chunk
+    normalized = normalize_chunk(chunk)
+
+    assert normalized == chunk
+    assert normalized is not chunk
+    assert chunk == original
 
 
 def test_normalize_chunks_maps_normalize_chunk_over_a_list() -> None:
@@ -55,6 +60,8 @@ def test_normalize_chunks_maps_normalize_chunk_over_a_list() -> None:
         "also imposed worldwide export controls impacting our products, and may impose "
         "additional controls in the future.",
     }
+    original_unknown_chunk = dict(unknown_chunk)
+    original_known_chunk = dict(known_chunk)
 
     result = normalize_chunks([unknown_chunk, known_chunk])
 
@@ -62,6 +69,10 @@ def test_normalize_chunks_maps_normalize_chunk_over_a_list() -> None:
         unknown_chunk,
         {**known_chunk, "header_path": "NVDA / 2026 / Item 1. Business"},
     ]
+    assert unknown_chunk == original_unknown_chunk
+    assert known_chunk == original_known_chunk
+    assert result[0] is not unknown_chunk
+    assert result[1] is not known_chunk
 
 
 def test_normalize_chunk_drops_part_segment_when_title_already_matches_canonical() -> (
@@ -83,10 +94,13 @@ def test_normalize_chunk_drops_part_segment_when_title_already_matches_canonical
         "also imposed worldwide export controls impacting our products, and may impose "
         "additional controls in the future.",
     }
+    original = dict(chunk)
 
     normalized = normalize_chunk(chunk)
 
     assert normalized == {**chunk, "header_path": "NVDA / 2026 / Item 1. Business"}
+    assert normalized is not chunk
+    assert chunk == original
 
 
 def test_normalize_chunk_replaces_curly_apostrophe_title_with_canonical_straight_form() -> (
@@ -112,6 +126,7 @@ def test_normalize_chunk_replaces_curly_apostrophe_title_with_canonical_straight
         "text": "### Overview\n\nIn 2025, we delivered strong annual revenue growth with net "
         "revenue increasing 34% to $34.6 billion, compared to $25.8 billion in 2024.",
     }
+    original = dict(chunk)
 
     normalized = normalize_chunk(chunk)
 
@@ -122,6 +137,8 @@ def test_normalize_chunk_replaces_curly_apostrophe_title_with_canonical_straight
             "of Financial Condition and Results of Operations / Overview"
         ),
     }
+    assert normalized is not chunk
+    assert chunk == original
 
 
 def test_normalize_chunk_replaces_wording_divergent_title_with_canonical_form() -> None:
@@ -143,6 +160,7 @@ def test_normalize_chunk_replaces_wording_divergent_title_with_canonical_form() 
         "Taiwan-headquartered customers was attributed to end customers based in the "
         "United States and Europe.",
     }
+    original = dict(chunk)
 
     normalized = normalize_chunk(chunk)
 
@@ -150,6 +168,8 @@ def test_normalize_chunk_replaces_wording_divergent_title_with_canonical_form() 
         **chunk,
         "header_path": "NVDA / 2026 / Item 15. Exhibits, Financial Statement Schedules",
     }
+    assert normalized is not chunk
+    assert chunk == original
 
 
 def test_normalize_chunk_preserves_nested_block_heading_tail() -> None:
@@ -175,6 +195,7 @@ def test_normalize_chunk_preserves_nested_block_heading_tail() -> None:
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- "
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     }
+    original = dict(chunk)
 
     normalized = normalize_chunk(chunk)
 
@@ -186,6 +207,8 @@ def test_normalize_chunk_preserves_nested_block_heading_tail() -> None:
             "Operating Income by Reportable Segments"
         ),
     }
+    assert normalized is not chunk
+    assert chunk == original
 
 
 def test_normalize_chunk_passes_through_unchanged_when_item_key_is_unrecognized() -> (
@@ -208,8 +231,13 @@ def test_normalize_chunk_passes_through_unchanged_when_item_key_is_unrecognized(
         "ingested_at": "2025-01-01T00:00:00+00:00",
         "score": 0.1,
     }
+    original = dict(chunk)
 
-    assert normalize_chunk(chunk) == chunk
+    normalized = normalize_chunk(chunk)
+
+    assert normalized == chunk
+    assert normalized is not chunk
+    assert chunk == original
 
 
 def test_normalize_chunk_strips_temporary_suffix_before_canonical_title_lookup() -> (
@@ -237,6 +265,7 @@ def test_normalize_chunk_strips_temporary_suffix_before_canonical_title_lookup()
         "ingested_at": "2025-01-01T00:00:00+00:00",
         "score": 0.1,
     }
+    original = dict(chunk)
 
     normalized = normalize_chunk(chunk)
 
@@ -244,3 +273,41 @@ def test_normalize_chunk_strips_temporary_suffix_before_canonical_title_lookup()
         **chunk,
         "header_path": "ZZZZ / 2009 / Item 9A(T). Controls and Procedures",
     }
+    assert normalized is not chunk
+    assert chunk == original
+
+
+def test_normalize_chunk_strips_whitespace_padded_item_segment_before_matching() -> (
+    None
+):
+    """Defensive path, not an observed real case: no real chunk in the reference CSV has a
+    whitespace-padded Item segment in header_path (the chunk's own `item` field is always
+    clean). _build_header_path() (backend/ingestion/sec_dense_pipeline_html/vectorizer.py)
+    does not individually strip every segment it joins into header_path — only parse_item()
+    strips each segment (via `level.strip()`) before its own regex match. So a header_path
+    segment could in principle carry stray whitespace before "Item" even though the
+    separately-stored `item` field doesn't. _ITEM_SEGMENT_RE.match is anchored at position 0
+    (`^`), so without stripping the segment first, this would silently fail to find the Item
+    segment and fall through to the "item_index is None" passthrough instead of rebuilding
+    header_path — a false scoring miss.
+    """
+    chunk = {
+        "ticker": "ZZZZ",
+        "year": 2025,
+        "filing_date": "2025-01-01",
+        "filing_type": "10-K",
+        "accession_number": "0000000000-25-000000",
+        "item": "Item 1",
+        "header_path": "ZZZZ / 2025 / Part I /   Item 1. Business",
+        "chunk_index": 0,
+        "text": "placeholder",
+        "ingested_at": "2025-01-01T00:00:00+00:00",
+        "score": 0.1,
+    }
+    original = dict(chunk)
+
+    normalized = normalize_chunk(chunk)
+
+    assert normalized == {**chunk, "header_path": "ZZZZ / 2025 / Item 1. Business"}
+    assert normalized is not chunk
+    assert chunk == original

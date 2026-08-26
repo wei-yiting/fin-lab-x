@@ -3,6 +3,7 @@ import { chipHeaderLabel } from "@/lib/reasoning-chips";
 import type { ChipState } from "@/lib/reasoning-chips";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { copy } from "@/lib/copy";
 
 interface ReasoningChipProps {
   chipState: ChipState;
@@ -72,7 +73,7 @@ export function ReasoningChip({
         data-testid="reasoning-chip-header"
         aria-expanded={showBody}
         aria-live="polite"
-        aria-label={`${headerLabel} — ${showBody ? "collapse" : "expand"} reasoning`}
+        aria-label={copy.reasoningChip.toggleAriaLabel(headerLabel, showBody)}
         onClick={onToggle}
         className={cn(
           "flex w-full items-center gap-1.5 px-3 py-2 text-left text-sm",

@@ -1,4 +1,5 @@
 import { Badge } from "@/components/primitives/badge";
+import { copy } from "@/lib/copy";
 
 export function ChatHeader({
   onClear,
@@ -20,12 +21,12 @@ export function ChatHeader({
       </div>
       <button
         data-testid="composer-clear-btn"
-        aria-label="Clear conversation"
+        aria-label={copy.chatHeader.clearConversationAriaLabel}
         disabled={messagesEmpty}
         onClick={onClear}
         className="rounded-md border border-[oklch(0.7282_0.1610_27.12/0.2)] bg-[oklch(0.7282_0.1610_27.12/0.08)] px-3.5 py-1.5 text-xs font-medium text-[oklch(0.7282_0.1610_27.12)] transition-all hover:border-[oklch(0.7282_0.1610_27.12/0.35)] hover:bg-[oklch(0.7282_0.1610_27.12/0.14)] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Clear conversation
+        {copy.chatHeader.clearConversation}
       </button>
     </header>
   );

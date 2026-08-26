@@ -316,7 +316,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
     // Turn-level marker: every user Stop leaves an
     // explicit "Interrupted" row under the cut turn.
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
-    expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
+    expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("已中斷");
   }, 20000);
 
   test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {
@@ -551,7 +551,7 @@ describe("ChatPanel integration — placeholder stall degradation (the single st
 
     await waitFor(
       () => {
-        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Still working");
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("仍在處理中");
       },
       { timeout: 5000 },
     );
@@ -562,7 +562,7 @@ describe("ChatPanel integration — placeholder stall degradation (the single st
     // would pass even with notifyActivity disconnected from part arrival.
     await waitFor(
       () => {
-        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("Thinking");
+        expect(screen.getByTestId("activity-placeholder")).toHaveTextContent("思考中");
       },
       { timeout: 5000 },
     );
@@ -724,7 +724,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
     // The aria-live polite region must not announce "Response complete" on
     // a user-initiated abort — that text is reserved for natural completion.
     const announcer = screen.getByRole("status");
-    expect(announcer).not.toHaveTextContent("Response complete");
+    expect(announcer).not.toHaveTextContent("回覆已完成");
   }, 15000);
 
   test("natural stream completion → SR announcer says 'Response complete'", async () => {
@@ -744,7 +744,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
 
       await waitFor(
         () => {
-          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+          expect(screen.getByRole("status")).toHaveTextContent("回覆已完成");
         },
         { timeout: 5000 },
       );
@@ -796,7 +796,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
 
       await waitFor(
         () => {
-          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+          expect(screen.getByRole("status")).toHaveTextContent("回覆已完成");
         },
         { timeout: 5000 },
       );
@@ -805,7 +805,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
 
       await waitFor(
         () => {
-          expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+          expect(screen.getByRole("status")).not.toHaveTextContent("回覆已完成");
         },
         { timeout: 5000 },
       );
@@ -818,7 +818,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
       );
       await waitFor(
         () => {
-          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+          expect(screen.getByRole("status")).toHaveTextContent("回覆已完成");
         },
         { timeout: 5000 },
       );
@@ -874,7 +874,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
 
       // Negative assertion: under any onFinish path with isError=true the
       // SR announcer must not read "Response complete".
-      expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+      expect(screen.getByRole("status")).not.toHaveTextContent("回覆已完成");
     } finally {
       errorServer.close();
     }
@@ -907,7 +907,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
         { timeout: 5000 },
       );
 
-      expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+      expect(screen.getByRole("status")).not.toHaveTextContent("回覆已完成");
     } finally {
       disconnectServer.close();
     }
@@ -975,7 +975,7 @@ describe("ChatPanel integration — reasoning chips golden path", () => {
       },
       { timeout: 5000 },
     );
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Thought for \d+s/);
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/思考了 \d+ 秒/);
     expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
 
     // Post-hoc expand: clicking the collapsed header re-opens it via the user override.
@@ -1043,7 +1043,7 @@ describe("ChatPanel integration — abort keeps a collapsed half-chip", () => {
         const chip = screen.getByTestId("reasoning-chip");
         expect(chip).toHaveAttribute("data-state", "collapsed");
         expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
-          /Stopped — thought for \d+s/,
+          /已停止 — 思考了 \d+ 秒/,
         );
       },
       { timeout: 5000 },
@@ -1101,7 +1101,7 @@ describe("ChatPanel integration — chip header stall degradation (shares the fi
 
     await waitFor(
       () => {
-        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Still working…");
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("仍在處理中…");
       },
       { timeout: 5000 },
     );
@@ -1196,7 +1196,7 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
     await user.click(screen.getByTestId("composer-stop-btn"));
     await waitFor(
       () => {
-        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Stopped/);
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/已停止/);
       },
       { timeout: 5000 },
     );
@@ -1207,7 +1207,7 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
     // require an exact match after the second send.
     const firstHeaderTextBeforeSecondTurn =
       screen.getByTestId("reasoning-chip-header").textContent ?? "";
-    expect(firstHeaderTextBeforeSecondTurn).toMatch(/Stopped — thought for [1-9]\d*s/);
+    expect(firstHeaderTextBeforeSecondTurn).toMatch(/已停止 — 思考了 [1-9]\d* 秒/);
 
     await user.type(screen.getByTestId("composer-textarea"), "second");
     await user.click(screen.getByTestId("composer-send-btn"));
@@ -1225,13 +1225,13 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
     const headers = screen
       .getAllByTestId("reasoning-chip-header")
       .map((el) => el.textContent ?? "");
-    expect(headers.some((h) => /Stopped — thought for \d+s/.test(h))).toBe(true);
-    expect(headers.some((h) => /^Thought for \d+s/.test(h))).toBe(true);
+    expect(headers.some((h) => /已停止 — 思考了 \d+ 秒/.test(h))).toBe(true);
+    expect(headers.some((h) => /^思考了 \d+ 秒/.test(h))).toBe(true);
     // The first chip's duration must be byte-for-byte unchanged by the
     // second turn's send — this is the exact assertion the old loose regex
     // could not catch (it also matches "Stopped — thought for 0s").
     expect(headers).toContain(firstHeaderTextBeforeSecondTurn);
     // No degraded copy leaked into the resent turn (stopwatch reset).
-    expect(screen.queryByText("Still working…")).not.toBeInTheDocument();
+    expect(screen.queryByText("仍在處理中…")).not.toBeInTheDocument();
   }, 20000);
 });

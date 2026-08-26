@@ -1,3 +1,5 @@
+import { copy } from "@/lib/copy";
+
 interface ActivityPlaceholderProps {
   /** Swaps in the degraded copy; driven by the global stall stopwatch. */
   stalled: boolean;
@@ -20,7 +22,7 @@ export function ActivityPlaceholder({ stalled }: ActivityPlaceholderProps) {
       aria-live="polite"
       className="streaming-shimmer px-3 text-sm text-muted-foreground"
     >
-      {stalled ? "Still working" : "Thinking"}
+      {stalled ? copy.activityIndicator.stalled : copy.activityIndicator.thinking}
       {/* aria-hidden so the CSS content cycler never spams the polite queue. */}
       <span aria-hidden="true" className="thinking-dots" />
     </div>

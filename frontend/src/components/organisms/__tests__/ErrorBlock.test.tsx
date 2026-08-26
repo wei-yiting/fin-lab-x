@@ -2,6 +2,7 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ErrorBlock } from "../ErrorBlock";
+import { copy } from "@/lib/copy";
 
 describe("ErrorBlock", () => {
   test("displays friendly title only, raw detail hidden by default", () => {
@@ -35,7 +36,7 @@ describe("ErrorBlock", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /show details/i }));
+    await user.click(screen.getByRole("button", { name: copy.errorBlock.showDetails }));
     expect(screen.getByTestId("error-raw-detail")).toHaveTextContent("stack trace ...");
   });
 
@@ -51,7 +52,7 @@ describe("ErrorBlock", () => {
         errorClass="pre-stream-404"
       />,
     );
-    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: copy.errorBlock.retry })).not.toBeInTheDocument();
   });
 
   test("long detail (>200 chars) is truncated with show-more affordance", async () => {
@@ -66,7 +67,7 @@ describe("ErrorBlock", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /show details/i }));
+    await user.click(screen.getByRole("button", { name: copy.errorBlock.showDetails }));
     const detail = screen.getByTestId("error-raw-detail");
     expect(detail.textContent!.length).toBeLessThan(longDetail.length);
   });
@@ -109,7 +110,7 @@ describe("ErrorBlock", () => {
       />,
     );
     expect(screen.getByTestId("error-title")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /details/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /詳情/ })).not.toBeInTheDocument();
     expect(screen.queryByTestId("error-raw-detail")).not.toBeInTheDocument();
   });
 });

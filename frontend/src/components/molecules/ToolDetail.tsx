@@ -1,4 +1,5 @@
 import { Badge } from "@/components/primitives/badge";
+import { copy } from "@/lib/copy";
 
 export function ToolDetail({
   input,
@@ -16,7 +17,7 @@ export function ToolDetail({
           variant="outline"
           className="mb-1 text-[10px] uppercase text-[var(--chat-fg-subtle)]"
         >
-          Input
+          {copy.toolDetail.input}
         </Badge>
         <pre
           data-testid="tool-input-json"
@@ -31,7 +32,7 @@ export function ToolDetail({
             variant="outline"
             className="mb-1 text-[10px] uppercase text-[var(--chat-fg-subtle)]"
           >
-            Output
+            {copy.toolDetail.output}
           </Badge>
           <pre
             data-testid="tool-output-json"
@@ -47,7 +48,7 @@ export function ToolDetail({
             variant="outline"
             className="mb-1 text-[10px] uppercase text-[var(--chat-fg-subtle)]"
           >
-            Error
+            {copy.toolDetail.error}
           </Badge>
           <pre
             data-testid="tool-error-detail"

@@ -1,3 +1,5 @@
+import { copy } from "@/lib/copy";
+
 /**
  * Turn-level interruption marker: every user-initiated
  * Stop leaves an explicit "Interrupted" row at the cut point, Claude
@@ -16,7 +18,7 @@ export function InterruptedMarker() {
         aria-hidden="true"
         className="inline-block h-2 w-2 rounded-full bg-[var(--status-aborted)]"
       />
-      Interrupted
+      {copy.interruptedMarker.label}
     </div>
   );
 }

@@ -13,7 +13,7 @@ test(
     await expect(page.getByTestId("activity-placeholder")).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });
-    await expect(page.getByTestId("activity-placeholder")).toHaveText("Thinking");
+    await expect(page.getByTestId("activity-placeholder")).toHaveText("思考中");
 
     // After content streams in, the placeholder yields to the answer.
     await chat.waitReady();

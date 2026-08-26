@@ -9,6 +9,7 @@ import {
   chipHeaderLabel,
   chipKey,
 } from "@/lib/reasoning-chips";
+import { copy } from "@/lib/copy";
 
 /**
  * Owner of the part-shape enumeration. `useDeadAirPlaceholder` consumes these
@@ -173,13 +174,13 @@ describe("isChipExpanded — tail-only derivation with user override", () => {
 
 describe("chipHeaderLabel", () => {
   test("streaming: Thinking…, degraded to Still working… on stall", () => {
-    expect(chipHeaderLabel("streaming", 0, false)).toBe("Thinking…");
-    expect(chipHeaderLabel("streaming", 0, true)).toBe("Still working…");
+    expect(chipHeaderLabel("streaming", 0, false)).toBe(copy.reasoningChip.thinkingLive);
+    expect(chipHeaderLabel("streaming", 0, true)).toBe(copy.reasoningChip.stalledLive);
   });
 
   test("done / aborted carry the measured seconds; stall has no effect", () => {
-    expect(chipHeaderLabel("done", 7, true)).toBe("Thought for 7s");
-    expect(chipHeaderLabel("aborted", 3, false)).toBe("Stopped — thought for 3s");
+    expect(chipHeaderLabel("done", 7, true)).toBe(copy.reasoningChip.thoughtFor(7));
+    expect(chipHeaderLabel("aborted", 3, false)).toBe(copy.reasoningChip.stoppedThoughtFor(3));
   });
 });
 

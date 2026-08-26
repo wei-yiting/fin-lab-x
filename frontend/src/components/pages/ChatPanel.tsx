@@ -17,6 +17,7 @@ import { findOriginalUserText } from "@/lib/message-helpers";
 import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
 import { ChatHttpError, statusAwareFetch } from "@/lib/chat-http";
+import { copy } from "@/lib/copy";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
 
@@ -330,7 +331,7 @@ export function ChatPanel() {
         status={status as ChatStatus}
       />
       <div role="status" aria-live="polite" className="sr-only">
-        {responseComplete ? "Response complete" : ""}
+        {responseComplete ? copy.chatPanel.responseComplete : ""}
       </div>
     </div>
   );

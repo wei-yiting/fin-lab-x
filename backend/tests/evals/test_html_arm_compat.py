@@ -44,7 +44,8 @@ def test_normalize_chunks_maps_normalize_chunk_over_a_list() -> None:
         "item": "_unknown",
         "header_path": "INTC / 2025",
         "chunk_index": 134,
-        "text": "unchanged",
+        "text": "We are subject to numerous risks associated with the evolving market "
+        "for products with AI capabilities.",
     }
     known_chunk = {
         "ticker": "NVDA",
@@ -52,7 +53,8 @@ def test_normalize_chunks_maps_normalize_chunk_over_a_list() -> None:
         "item": "Item 1",
         "header_path": "NVDA / 2026 / Part I / Item 1. Business",
         "chunk_index": 25,
-        "text": "unchanged",
+        "text": "In addition to controls targeting D:1, D:4 and D:5 countries, the USG has "
+        "also imposed worldwide export controls impacting our products.",
     }
 
     result = normalize_chunks([unknown_chunk, known_chunk])
@@ -141,7 +143,8 @@ def test_normalize_chunk_replaces_wording_divergent_title_with_canonical_form() 
         "header_path": "NVDA / 2026 / Part IV / Item 15. Exhibits and Financial Statement Schedules",
         "chunk_index": 308,
         "text": "(2)In fiscal year 2026, we estimate 76% of Data Center revenue from "
-        "Taiwan-headquartered suppliers.",
+        "Taiwan-headquartered customers was attributed to end customers based in the "
+        "United States and Europe.",
         "ingested_at": "2026-08-19T11:27:20.472400+00:00",
         "score": 0.49,
     }
@@ -172,8 +175,10 @@ def test_normalize_chunk_preserves_nested_block_heading_tail() -> None:
             "Operating Income by Reportable Segments"
         ),
         "chunk_index": 128,
-        "text": "#### Operating Income by Reportable Segments\n\n| Compute & Networking | "
-        "$ | 130,141 |",
+        "text": "#### Operating Income by Reportable Segments\n\n"
+        "|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n"
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- "
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         "ingested_at": "2026-08-19T11:27:20.472400+00:00",
         "score": 0.42,
     }

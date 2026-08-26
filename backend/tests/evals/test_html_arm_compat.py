@@ -2,8 +2,8 @@
 
 Fixtures are real chunks recorded from the frozen HTML pipeline's Qdrant output
 (backend/evals/regression/reference_measurements/sec_retrieval/2026-08-19_73faf5f.csv),
-not invented strings — except the one test that exercises an item value never actually
-observed in that data, which says so in its own docstring.
+not invented strings — except the tests that exercise defensive paths not actually
+observed in that data, each of which says so in its own docstring.
 """
 
 from backend.evals.scenarios.sec_retrieval_ab.html_arm_compat import (
@@ -27,8 +27,6 @@ def test_normalize_chunk_passes_through_unchanged_when_item_is_unknown() -> None
         "chunk_index": 134,
         "text": "We are subject to numerous risks associated with the evolving market "
         "for products with AI capabilities.",
-        "ingested_at": "2026-08-19T11:27:39.553783+00:00",
-        "score": 0.5,
     }
 
     assert normalize_chunk(chunk) == chunk
@@ -84,8 +82,6 @@ def test_normalize_chunk_drops_part_segment_when_title_already_matches_canonical
         "text": "In addition to controls targeting D:1, D:4 and D:5 countries, the USG has "
         "also imposed worldwide export controls impacting our products, and may impose "
         "additional controls in the future.",
-        "ingested_at": "2026-08-19T11:27:39.553783+00:00",
-        "score": 0.6,
     }
 
     normalized = normalize_chunk(chunk)
@@ -115,8 +111,6 @@ def test_normalize_chunk_replaces_curly_apostrophe_title_with_canonical_straight
         "chunk_index": 152,
         "text": "### Overview\n\nIn 2025, we delivered strong annual revenue growth with net "
         "revenue increasing 34% to $34.6 billion, compared to $25.8 billion in 2024.",
-        "ingested_at": "2026-08-19T11:27:39.553783+00:00",
-        "score": 0.55,
     }
 
     normalized = normalize_chunk(chunk)
@@ -148,8 +142,6 @@ def test_normalize_chunk_replaces_wording_divergent_title_with_canonical_form() 
         "text": "(2)In fiscal year 2026, we estimate 76% of Data Center revenue from "
         "Taiwan-headquartered customers was attributed to end customers based in the "
         "United States and Europe.",
-        "ingested_at": "2026-08-19T11:27:20.472400+00:00",
-        "score": 0.49,
     }
 
     normalized = normalize_chunk(chunk)
@@ -182,8 +174,6 @@ def test_normalize_chunk_preserves_nested_block_heading_tail() -> None:
         "|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n"
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- "
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-        "ingested_at": "2026-08-19T11:27:20.472400+00:00",
-        "score": 0.42,
     }
 
     normalized = normalize_chunk(chunk)

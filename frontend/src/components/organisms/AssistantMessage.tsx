@@ -47,7 +47,8 @@ interface AssistantMessageProps {
   onRegenerate?: (messageId: string) => void;
   /** Global stall stopwatch — degraded copy consumer for streaming chip headers. */
   stalled?: boolean;
-  /** Frozen "Thought for Xs" lookup keyed by chipKey (client timing map). */
+  /** Frozen seconds value (keyed by chipKey, client timing map) fed to
+   * `copy.reasoningChip.thoughtFor`/`stoppedThoughtFor`. */
   getChipSeconds?: (key: string) => number;
   /** User expand/collapse overrides — beats the tail-only derivation. */
   chipOverrides?: Map<string, boolean>;

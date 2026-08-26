@@ -8,11 +8,11 @@ import { copy } from "@/lib/copy";
 interface ReasoningChipProps {
   chipState: ChipState;
   text: string;
-  /** "Thought for Xs" seconds — frozen upstream. */
+  /** Frozen seconds value used by `copy.reasoningChip.thoughtFor`/`stoppedThoughtFor`. */
   seconds: number;
   /**
    * Whether the global stall stopwatch has fired: a streaming chip's header
-   * swaps to the degraded "Still working…" copy while it is true.
+   * swaps to the degraded `copy.reasoningChip.stalledLive` copy while it is true.
    */
   stalled: boolean;
   expanded: boolean;
@@ -24,11 +24,11 @@ interface ReasoningChipProps {
 /**
  * One reasoning part = one chip (ADR-0015). While streaming: full text in a
  * ~4-line pinned-bottom window (newest text visible, older scrolled away).
- * Collapsed: "Thought for Xs" header; aborted half-chips keep their text
- * behind a "Stopped — thought for Xs" header. Body is raw
- * `white-space: pre-wrap` (never markdown) so half-streamed markup can't
- * re-parse and jitter per delta; `overflow-wrap: anywhere` keeps the
- * pinned-scroll math valid for CJK/long tokens.
+ * Collapsed: `copy.reasoningChip.thoughtFor()` header; aborted half-chips
+ * keep their text behind a `copy.reasoningChip.stoppedThoughtFor()` header.
+ * Body is raw `white-space: pre-wrap` (never markdown) so half-streamed
+ * markup can't re-parse and jitter per delta; `overflow-wrap: anywhere`
+ * keeps the pinned-scroll math valid for CJK/long tokens.
  *
  * Body visibility follows `expanded` alone, so an explicit collapse wins even
  * over a still-streaming part. `data-state` therefore tracks the part

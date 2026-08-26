@@ -51,7 +51,7 @@ When to run:
 Pure-observation sweep: for each ticker's latest 10-K, reads edgartools' raw `Section.detection_method` (`toc`/`heading`/`pattern`/`html_fallback`/`unknown` — never surfaced by `sec_text_pipeline` itself) directly off `fetch_filing_bundle`, then cross-checks the real `parse_filing()` outcome. Never modifies pipeline code; `parse_filing()` still populates the shared `data/sec_text/` filing-store cache as a side effect, same as any other caller.
 
 ```bash
-# Default: the DEV-176 sweep corpus (DEV-162's 16-ticker grid + AMD)
+# Default: the sweep corpus (16-ticker GICS sector x cap grid + AMD)
 uv run python -m backend.scripts.sweep_section_detection
 
 # Ad hoc subset
@@ -60,9 +60,9 @@ uv run python -m backend.scripts.sweep_section_detection AMD NVDA
 
 | Argument | Required | Description |
 |---|---|---|
-| `tickers` (positional) | No | Ticker symbols to sweep (default: the 17-ticker DEV-176 sweep corpus) |
+| `tickers` (positional) | No | Ticker symbols to sweep (default: the 17-ticker sweep corpus) |
 
-Prints a per-ticker table, raw section name shapes, a detection-method distribution (ticker-level and section-level), and the degraded-ticker list. Exits 1 if any ticker's detection method could not be determined (fetch failure).
+Prints a per-ticker table, raw section name shapes, a detection-method distribution (ticker-level and section-level), and the degraded-ticker list. Exits 1 if any ticker has no detection-method evidence, whether due to a fetch failure or a filing that produced zero sections.
 
 When to run:
 

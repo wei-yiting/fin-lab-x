@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Sweep tickers for edgartools' raw section-detection method (DEV-176).
+"""Sweep tickers for edgartools' raw section-detection method.
 
 ``edgar.documents.document.Section.detection_method`` — a plain ``str``
 edgartools sets to one of ``'toc'``, ``'heading'``, ``'pattern'``,
@@ -10,7 +10,7 @@ in ``sec_text_pipeline`` today. ``toc``/``heading`` are the two reliable
 strategies; ``pattern``/``html_fallback``/``unknown`` are degraded fallbacks
 that produce semantically-named sections (e.g. ``mda``) with no reliable
 item-key shape, which is why AMD's FY2025 10-K parses to zero substantive
-items (see DEV-172, the parent spec).
+items (see the parent degraded-ingest spec).
 
 This script is pure observation: it reads ``Section.detection_method``
 directly off ``fetch_filing_bundle``'s ``TenK`` (the same fetch seam
@@ -20,11 +20,12 @@ pipeline code. ``parse_filing()`` still populates the shared
 ``data/sec_text/`` filing-store cache as a side effect, same as any other
 caller (``ingest_tickers.py``, the ``sec_text_pipeline`` CLI).
 
-Sweep corpus (``SWEEP_TICKERS``): DEV-162's finalized 16-ticker GICS
-sector-x-cap grid, plus AMD (DEV-172's known repro). DEV-162's curation never
-excluded a candidate via ``EmptyFilingError`` — its 2026-08-20 sync comment
-records all 16 tickers parsing successfully on the first pass — so there is
-no historical exclusion list to fold into the corpus below.
+Sweep corpus (``SWEEP_TICKERS``): the finalized 16-ticker GICS
+sector-x-cap grid, plus AMD (the known degraded-ingest repro case). That
+grid's curation never excluded a candidate via ``EmptyFilingError`` — its
+2026-08-20 sync comment records all 16 tickers parsing successfully on the
+first pass — so there is no historical exclusion list to fold into the
+corpus below.
 
 Usage:
     uv run python -m backend.scripts.sweep_section_detection
@@ -67,10 +68,10 @@ from backend.ingestion.sec_text_pipeline.parser import (  # noqa: E402
 if TYPE_CHECKING:
     from edgar.documents.document import Section
 
-# DEV-162's finalized 16-ticker GICS sector x cap grid — mirrors
+# The finalized 16-ticker GICS sector x cap grid — mirrors
 # backend/evals/scenarios/sec_retrieval_ab/curation/ingest_tickers.py::TICKER_GRID
 # (branch feat/sec-retrieval-eval-dataset) — plus AMD, the known degraded-ingest
-# repro case (DEV-172).
+# repro case.
 SWEEP_TICKERS: tuple[str, ...] = (
     "NVDA",
     "DDOG",
@@ -91,7 +92,7 @@ SWEEP_TICKERS: tuple[str, ...] = (
     "AMD",
 )
 
-#: DEV-172's ratified trigger rule: these are the only two methods known to
+#: The ratified trigger rule: these are the only two methods known to
 #: keep reliable item-key structure. classify_ticker() fails closed — a
 #: method string outside this set (a degraded one, or one this sweep has
 #: never seen, e.g. after an edgartools upgrade) counts as degraded rather
@@ -120,7 +121,6 @@ class TickerSweepResult:
 
     ticker: str
     fiscal_year: int | None = None
-    accession_number: str | None = None
     sections: tuple[SectionObservation, ...] = ()
     #: Set when resolving the fiscal year or fetching the bundle fails — a
     #: ticker-lookup / network problem, not evidence about this filing.
@@ -153,8 +153,8 @@ def ticker_methods(result: TickerSweepResult) -> frozenset[str]:
 
 
 def classify_ticker(result: TickerSweepResult) -> Classification:
-    """Standard only when every observed method is toc/heading (DEV-172:
-    filing-level classification is inclusive — one non-standard section
+    """Standard only when every observed method is toc/heading (filing-level
+    classification is inclusive — one non-standard section
     means content loss somewhere even if the rest of the filing is clean).
     Fails closed: a method string outside STANDARD_METHODS counts as
     degraded whether or not this sweep recognizes it, so an unfamiliar
@@ -253,13 +253,12 @@ def sweep_ticker(ticker: str) -> TickerSweepResult:
     result = TickerSweepResult(
         ticker=ticker_norm,
         fiscal_year=fiscal_year,
-        accession_number=bundle.accession_number,
         sections=sections,
         filing_error=filing_error,
     )
 
     try:
-        parsed = parse_filing(ticker_norm, fiscal_year)
+        parsed = parse_filing(ticker_norm, fiscal_year, force=True)
         result.parse_outcome = "ok"
         result.parse_item_count = len(parsed.items)
     except EmptyFilingError as exc:
@@ -272,11 +271,10 @@ def sweep_ticker(ticker: str) -> TickerSweepResult:
     return result
 
 
-def _parse_outcome_cell(result: TickerSweepResult) -> str:
-    if result.fetch_error is not None:
-        return f"fetch failed: {result.fetch_error}"
-    if result.filing_error is not None:
-        return f"filing error: {result.filing_error}"
+def _render_parse_outcome(result: TickerSweepResult) -> str:
+    """The ``parse_filing()`` cross-check result alone — independent of
+    ``fetch_error``/``filing_error`` — so a filing-error ticker can still
+    show it instead of having its cross-check outcome hidden."""
     if result.parse_outcome == "ok":
         return f"ok ({result.parse_item_count} items)"
     if result.parse_outcome == "empty_filing":
@@ -286,12 +284,23 @@ def _parse_outcome_cell(result: TickerSweepResult) -> str:
     return "not run"
 
 
+def _parse_outcome_cell(result: TickerSweepResult) -> str:
+    if result.fetch_error is not None:
+        return f"fetch failed: {result.fetch_error}"
+    if result.filing_error is not None:
+        return (
+            f"filing error: {result.filing_error} "
+            f"| parse_filing(): {_render_parse_outcome(result)}"
+        )
+    return _render_parse_outcome(result)
+
+
 def render_report(results: Sequence[TickerSweepResult]) -> str:
     """Markdown report: per-ticker table, raw section name shapes, detection
-    method distribution, and the degraded ticker list — the DEV-176 deliverable
-    for the DEV-172 comment."""
+    method distribution, and the degraded ticker list — the deliverable for
+    the parent degraded-ingest spec's tracking comment."""
     ordered = sorted(results, key=lambda r: r.ticker)
-    lines: list[str] = ["# Section-detection sweep (DEV-176)", ""]
+    lines: list[str] = ["# Section-detection sweep", ""]
 
     lines.append("## Per-ticker")
     lines.append("")
@@ -362,9 +371,9 @@ def render_report(results: Sequence[TickerSweepResult]) -> str:
 
     lines.append("")
     lines.append(
-        "DEV-162 curation exclusions: none — its 2026-08-20 sync comment records "
-        "all 16 grid tickers parsing successfully on the first pass, so no "
-        "candidate was ever swapped out for `EmptyFilingError`."
+        "Sweep-corpus curation exclusions: none — the grid's 2026-08-20 sync "
+        "comment records all 16 tickers parsing successfully on the first "
+        "pass, so no candidate was ever swapped out for `EmptyFilingError`."
     )
 
     return "\n".join(lines)
@@ -382,7 +391,7 @@ def main(argv: list[str] | None = None) -> int:
         "tickers",
         nargs="*",
         help=f"Ticker symbols to sweep (default: the {len(SWEEP_TICKERS)}-ticker "
-        "DEV-176 sweep corpus)",
+        "sweep corpus)",
     )
     args = arg_parser.parse_args(argv)
     tickers = tuple(t.strip().upper() for t in args.tickers) or SWEEP_TICKERS

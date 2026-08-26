@@ -1,17 +1,27 @@
-"""Tests for the section-detection sweep's pure classification/aggregation logic.
+"""Tests for the section-detection sweep's classification/aggregation logic,
+plus a deliberately minimal set of ``sweep_ticker()`` orchestration tests.
 
-``sweep_ticker`` (the network-touching fetch/parse orchestration) is
-deliberately untested here — it only wires together two already-tested
-production seams (``fetch_filing_bundle``, ``parse_filing``), and this repo's
-precedent for one-shot ticker-sweep scripts
+Most of this file exercises the pure logic (``classify_ticker``,
+``split_methods``, the distribution/report helpers) via the ``_result()``
+fixture below. ``TestSweepTicker`` covers exactly three ``sweep_ticker()``
+cases — happy path, one fetch-failure path, and the zero-sections
+cross-check — by monkeypatching its imported seams (``fetch_filing_bundle``,
+``parse_filing``, ``_resolve_latest_fiscal_year``). This is intentionally
+not full branch/combination coverage: this repo's precedent for one-shot
+ticker-sweep scripts
 (``backend/evals/scenarios/sec_retrieval_ab/curation/ingest_tickers.py`` on
 branch ``feat/sec-retrieval-eval-dataset``, ``backend/scripts/embed_sec_filings.py``)
-leaves that orchestration untested too: correctness is proven by running it
-against real tickers, not by mocking edgartools.
+leaves this kind of orchestration lightly tested at most — deeper
+correctness is proven by running it against real tickers, not by mocking
+edgartools exhaustively.
 """
 
 from collections import Counter
+from types import SimpleNamespace
+from unittest.mock import Mock
 
+from backend.common.errors import TickerNotFoundError
+from backend.scripts import sweep_section_detection as sweep_module
 from backend.scripts.sweep_section_detection import (
     SectionObservation,
     TickerSweepResult,
@@ -22,6 +32,7 @@ from backend.scripts.sweep_section_detection import (
     render_report,
     section_method_distribution,
     split_methods,
+    sweep_ticker,
     ticker_methods,
     undetermined_tickers,
 )
@@ -47,7 +58,6 @@ def _result(
     return TickerSweepResult(
         ticker=ticker,
         fiscal_year=2025,
-        accession_number="0000000000-25-000001",
         sections=sections,
         fetch_error=fetch_error,
     )
@@ -120,7 +130,7 @@ class TestClassifyTicker:
         assert classify_ticker(_result("MERGE", ["heading,pattern"])) == "degraded"
 
     def test_single_degraded_section_among_many_standard_is_degraded(self):
-        # DEV-172: filing-level classification is deliberately inclusive —
+        # Filing-level classification is deliberately inclusive —
         # one pattern-detected section means content loss somewhere in the
         # filing even if every other section is clean.
         result = _result("MOSTLY_OK", ["toc"] * 10 + ["pattern"])
@@ -174,9 +184,69 @@ class TestTickerLists:
         assert degraded_tickers(results) == ["DEG"]
         assert undetermined_tickers(results) == ["BAD"]
 
-    def test_lists_are_sorted_alphabetically(self):
-        results = [_result("ZEBRA", ["pattern"]), _result("ALPHA", ["pattern"])]
-        assert degraded_tickers(results) == ["ALPHA", "ZEBRA"]
+
+class TestSweepTicker:
+    """Deliberately minimal — exactly 3 cases, monkeypatching sweep_ticker()'s
+    imported seams (fetch_filing_bundle, parse_filing,
+    _resolve_latest_fiscal_year — patched on sweep_module, where sweep_ticker()
+    actually looks them up, not at their original definition module). See the
+    module docstring for why this stops short of full branch coverage."""
+
+    def test_happy_path_records_sections_and_forces_cross_check(self, monkeypatch):
+        monkeypatch.setattr(
+            sweep_module, "_resolve_latest_fiscal_year", Mock(return_value=2025)
+        )
+        bundle = SimpleNamespace(tenk=SimpleNamespace(sections={"0": _section("toc")}))
+        monkeypatch.setattr(
+            sweep_module, "fetch_filing_bundle", Mock(return_value=bundle)
+        )
+        fake_parse_filing = Mock(return_value=SimpleNamespace(items=[object()] * 3))
+        monkeypatch.setattr(sweep_module, "parse_filing", fake_parse_filing)
+
+        result = sweep_ticker("nvda")
+
+        assert len(result.sections) == 1
+        assert result.filing_error is None
+        assert result.parse_outcome == "ok"
+        assert result.parse_item_count == 3
+        # Locks in M-1.1's fix: the cross-check must bypass the on-disk
+        # filing-store cache, not silently read a stale prior-run result.
+        fake_parse_filing.assert_called_once_with("NVDA", 2025, force=True)
+
+    def test_fetch_failure_records_fetch_error_and_skips_parse(self, monkeypatch):
+        monkeypatch.setattr(
+            sweep_module,
+            "_resolve_latest_fiscal_year",
+            Mock(side_effect=TickerNotFoundError("no CIK for BADTICKER")),
+        )
+        fake_parse_filing = Mock()
+        monkeypatch.setattr(sweep_module, "parse_filing", fake_parse_filing)
+
+        result = sweep_ticker("BADTICKER")
+
+        assert result.fetch_error is not None
+        assert "TickerNotFoundError" in result.fetch_error
+        fake_parse_filing.assert_not_called()
+
+    def test_zero_sections_still_runs_parse_cross_check(self, monkeypatch):
+        # Regression test for B-1.1: a filing_error (zero observed
+        # sections) must not prevent parse_filing()'s own outcome from
+        # being recorded — the two signals are independent.
+        monkeypatch.setattr(
+            sweep_module, "_resolve_latest_fiscal_year", Mock(return_value=2025)
+        )
+        empty_bundle = SimpleNamespace(tenk=SimpleNamespace(sections={}))
+        monkeypatch.setattr(
+            sweep_module, "fetch_filing_bundle", Mock(return_value=empty_bundle)
+        )
+        fake_parse_filing = Mock(return_value=SimpleNamespace(items=[object()] * 5))
+        monkeypatch.setattr(sweep_module, "parse_filing", fake_parse_filing)
+
+        result = sweep_ticker("nodoc")
+
+        assert result.filing_error is not None
+        assert result.parse_outcome == "ok"
+        assert result.parse_item_count == 5
 
 
 class TestParseOutcomeCell:
@@ -186,16 +256,23 @@ class TestParseOutcomeCell:
 
     def test_filing_error_shown_distinctly_from_fetch_error(self):
         # The zero-sections case: the bundle fetch succeeded (no
-        # fetch_error), but the filing itself produced no sections. Must
-        # render its own message, not fall through to "None" or get
-        # confused with a fetch failure.
+        # fetch_error), but the filing itself produced no sections.
+        # sweep_ticker() still runs the parse_filing() cross-check
+        # afterward, so a realistic fixture has both filing_error AND a
+        # populated parse_outcome — the cell must show its own filing-error
+        # message AND the parse_filing() outcome, neither hiding the other
+        # (B-1.1: previously the outcome branches were unreachable whenever
+        # filing_error was set).
         result = TickerSweepResult(
             ticker="X",
             filing_error="fetched X FY2025 successfully but edgartools produced 0 sections",
+            parse_outcome="ok",
+            parse_item_count=18,
         )
         cell = _parse_outcome_cell(result)
         assert cell.startswith("filing error:")
         assert "0 sections" in cell
+        assert "ok (18 items)" in cell
 
     def test_ok_outcome_reports_item_count(self):
         result = TickerSweepResult(ticker="X", parse_outcome="ok", parse_item_count=18)

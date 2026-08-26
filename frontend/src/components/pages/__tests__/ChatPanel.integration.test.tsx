@@ -314,7 +314,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
     );
 
     // Turn-level marker: every user Stop leaves an
-    // explicit "Interrupted" row under the cut turn.
+    // explicit copy.interruptedMarker.label row under the cut turn.
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
     expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("已中斷");
   }, 20000);
@@ -413,10 +413,10 @@ describe("ChatPanel integration — aborted tools via stop", () => {
 //
 // A Stop that lands before the assistant message has anything renderable
 // (the placeholder is the only visible content — no chip, no tool card)
-// must still leave an "Interrupted" row. This is the window abortedTools
-// cannot cover (no tool call exists yet) and the earlier "no chip/tool
-// carrier" case above cannot cover either (that one has reply text already
-// streaming).
+// must still leave a copy.interruptedMarker.label row. This is the window
+// abortedTools cannot cover (no tool call exists yet) and the earlier "no
+// chip/tool carrier" case above cannot cover either (that one has reply
+// text already streaming).
 // ---------------------------------------------------------------------------
 
 describe("ChatPanel integration — stop during placeholder phase", () => {
@@ -492,10 +492,11 @@ describe("ChatPanel integration — stop during placeholder phase", () => {
 // Dead-air placeholder stall degradation
 //
 // The global stall stopwatch (useStallTimer) also degrades the placeholder's
-// copy from "Thinking" to "Still working" when the wire goes silent past the
-// threshold, and any arriving stream part must zero it again. Mocked small
-// threshold + real MSW time — the 10s production default is locked by the
-// useStallTimer fake-timer unit test instead.
+// copy from copy.activityIndicator.thinking to copy.activityIndicator.stalled
+// when the wire goes silent past the threshold, and any arriving stream part
+// must zero it again. Mocked small threshold + real MSW time — the 10s
+// production default is locked by the useStallTimer fake-timer unit test
+// instead.
 // ---------------------------------------------------------------------------
 
 describe("ChatPanel integration — placeholder stall degradation (the single stall-wiring case)", () => {
@@ -695,7 +696,7 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
   afterEach(() => announcerServer.resetHandlers());
   afterAll(() => announcerServer.close());
 
-  test("clicking stop while streaming → SR announcer does not say 'Response complete'", async () => {
+  test("clicking stop while streaming → SR announcer does not say copy.chatPanel.responseComplete", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -721,13 +722,13 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
       { timeout: 5000 },
     );
 
-    // The aria-live polite region must not announce "Response complete" on
-    // a user-initiated abort — that text is reserved for natural completion.
+    // The aria-live polite region must not announce copy.chatPanel.responseComplete
+    // on a user-initiated abort — that text is reserved for natural completion.
     const announcer = screen.getByRole("status");
     expect(announcer).not.toHaveTextContent("回覆已完成");
   }, 15000);
 
-  test("natural stream completion → SR announcer says 'Response complete'", async () => {
+  test("natural stream completion → SR announcer says copy.chatPanel.responseComplete", async () => {
     // Regression guard for the abort branch: make sure we did not regress
     // the happy-path announcement by accident.
     const happyServer = setupServer(
@@ -756,8 +757,9 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
   test("Regenerate clears the live region so a second natural completion announces again", async () => {
     // handleRegenerate must clear the completion flag the same way handleSend
     // does — otherwise the live region still holds the first turn's
-    // "Response complete" and the second onFinish writes identical text,
-    // which is not a DOM mutation a screen reader would pick up.
+    // copy.chatPanel.responseComplete and the second onFinish writes
+    // identical text, which is not a DOM mutation a screen reader would pick
+    // up.
     let call = 0;
     const regenServer = setupServer(
       http.post("/api/v1/chat", () => {
@@ -827,12 +829,12 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
     }
   }, 15000);
 
-  test("mid-stream SSE error (isError=true) → SR announcer does not say 'Response complete'", async () => {
+  test("mid-stream SSE error (isError=true) → SR announcer does not say copy.chatPanel.responseComplete", async () => {
     // SSE `error` chunk → useChat catches the rethrown error → onFinish
     // fires with isError=true (isAbort=false). The ChatPanel must NOT mark
     // the completion flag on this branch — disconnect and error paths are
     // announced separately by ErrorBlock's role="alert", not this region.
-    // Verifying the negative: announcer never reads "Response complete".
+    // Verifying the negative: announcer never reads copy.chatPanel.responseComplete.
     const errorServer = setupServer(
       http.post("/api/v1/chat", () => {
         const encoder = new TextEncoder();
@@ -873,21 +875,21 @@ describe("ChatPanel integration — onFinish does not announce non-normal comple
       );
 
       // Negative assertion: under any onFinish path with isError=true the
-      // SR announcer must not read "Response complete".
+      // SR announcer must not read copy.chatPanel.responseComplete.
       expect(screen.getByRole("status")).not.toHaveTextContent("回覆已完成");
     } finally {
       errorServer.close();
     }
   }, 15000);
 
-  test("transport network failure (isDisconnect=true) → SR announcer does not say 'Response complete'", async () => {
+  test("transport network failure (isDisconnect=true) → SR announcer does not say copy.chatPanel.responseComplete", async () => {
     // HttpResponse.error() in MSW translates to a TypeError("fetch failed")
     // at the fetch layer. In useChat's catch block:
     //     err instanceof TypeError && err.message.includes("fetch")
     // → isError=true AND isDisconnect=true. The ChatPanel must short-circuit
     // on isDisconnect too — otherwise the "finish" event leaks and the
-    // completion announcer region could announce "Response complete" before
-    // the status flips to "error".
+    // completion announcer region could announce copy.chatPanel.responseComplete
+    // before the status flips to "error".
     const disconnectServer = setupServer(http.post("/api/v1/chat", () => HttpResponse.error()));
     disconnectServer.listen({ onUnhandledRequest: "bypass" });
 
@@ -949,7 +951,7 @@ describe("ChatPanel integration — reasoning chips golden path", () => {
   afterEach(() => chipServer.resetHandlers());
   afterAll(() => chipServer.close());
 
-  test("chip streams its text, then collapses to Thought for Xs when the answer lands", async () => {
+  test("chip streams its text, then collapses to copy.reasoningChip.thoughtFor when the answer lands", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -1229,7 +1231,7 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
     expect(headers.some((h) => /^思考了 \d+ 秒/.test(h))).toBe(true);
     // The first chip's duration must be byte-for-byte unchanged by the
     // second turn's send — this is the exact assertion the old loose regex
-    // could not catch (it also matches "Stopped — thought for 0s").
+    // could not catch (it also matches copy.reasoningChip.stoppedThoughtFor(0)).
     expect(headers).toContain(firstHeaderTextBeforeSecondTurn);
     // No degraded copy leaked into the resent turn (stopwatch reset).
     expect(screen.queryByText("仍在處理中…")).not.toBeInTheDocument();

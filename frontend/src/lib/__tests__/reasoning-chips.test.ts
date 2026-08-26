@@ -172,7 +172,7 @@ describe("isChipExpanded — tail-only derivation with user override", () => {
 });
 
 describe("chipHeaderLabel", () => {
-  test("streaming: Thinking…, degraded to Still working… on stall", () => {
+  test("streaming: copy.reasoningChip.thinkingLive, degraded to copy.reasoningChip.stalledLive on stall", () => {
     expect(chipHeaderLabel("streaming", 0, false)).toBe("思考中…");
     expect(chipHeaderLabel("streaming", 0, true)).toBe("仍在處理中…");
   });

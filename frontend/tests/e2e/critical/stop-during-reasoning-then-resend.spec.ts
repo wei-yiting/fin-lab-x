@@ -2,7 +2,7 @@
 //
 // Validates that:
 // 1. Pressing Stop while a chip is streaming aborts cleanly: the half-chip
-//    collapses to a "Stopped — thought for Xs" header, its text preserved.
+//    collapses to a copy.reasoningChip.stoppedThoughtFor header, its text preserved.
 // 2. Sending a fresh prompt runs a full clean turn — the aborted chip's
 //    Stopped header persists on the prior bubble while the new turn streams
 //    and collapses its own chip normally (no cross-turn contamination).

@@ -16,8 +16,8 @@ interface MessageListProps {
   status: ChatStatus;
   toolProgress: Record<string, string>;
   abortedTools: Set<string>;
-  /** Message ids whose turn the user interrupted — an
-   * "Interrupted" row renders right under each. */
+  /** Message ids whose turn the user interrupted — a
+   * copy.interruptedMarker.label row renders right under each. */
   interruptedMessages?: Set<string>;
   onRegenerate: (id: string) => void;
   /** Rendered below the transcript during the dead-air windows. */

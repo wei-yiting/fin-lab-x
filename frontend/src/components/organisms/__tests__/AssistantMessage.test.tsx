@@ -309,7 +309,7 @@ describe("AssistantMessage — reasoning chips", () => {
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("思考中…");
   });
 
-  test("done reasoning part collapses to Thought for Xs", () => {
+  test("done reasoning part collapses to copy.reasoningChip.thoughtFor", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,

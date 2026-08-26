@@ -16,11 +16,17 @@ import os
 import re
 import time
 import uuid
-from collections.abc import AsyncGenerator, Mapping
+from collections.abc import AsyncGenerator, Awaitable, Callable, Mapping
+from dataclasses import dataclass
 from typing import Any, Literal, cast
 
 from langchain.agents import create_agent
-from langchain.agents.middleware import AgentMiddleware, ToolCallLimitMiddleware
+from langchain.agents.middleware import (
+    AgentMiddleware,
+    ModelRequest,
+    ModelResponse,
+    ToolCallLimitMiddleware,
+)
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitState
 from langchain.agents.middleware.types import ResponseT, hook_config
 from langchain.chat_models import init_chat_model
@@ -38,6 +44,11 @@ from typing_extensions import NotRequired, TypedDict
 from backend.agent_engine.agents.config_loader import (
     ModelConfig,
     WorkflowProfileConfig,
+)
+from backend.agent_engine.byok import (
+    BYOK_KEY_REJECTED_MESSAGE,
+    ByokKeyRejectedError,
+    is_byok_auth_rejection,
 )
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
@@ -92,7 +103,7 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
 _PROMPT_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
-def _init_model(config: ModelConfig) -> BaseChatModel:
+def _init_model(config: ModelConfig, *, api_key: str | None = None) -> BaseChatModel:
     """Build a chat model with provider-aware reasoning kwargs.
 
     Translates the admin-declared ``ModelConfig.reasoning`` three-state
@@ -111,9 +122,20 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
     through untouched for LangChain's own, broader inference —
     ``reasoning="on"`` on such a provider raises instead, since no kwarg
     mapping exists for it here.
+
+    ``api_key`` is the BYOK per-request override (DEV-189, ADR-0018):
+    omitted entirely for the server-key path (unchanged construction), or
+    forwarded as the ``api_key`` kwarg when a caller supplies one.
+    ``init_chat_model`` passes it straight through to the underlying
+    provider class, which every mapped provider (ChatOpenAI/ChatAnthropic/
+    ChatGoogleGenerativeAI) aliases onto its own ``SecretStr`` credential
+    field — so this one kwarg is provider-agnostic, the seam DEV-193
+    (provider switching) reuses for non-OpenAI keys.
     """
     provider = config.provider
     kwargs: dict[str, Any] = {"temperature": config.temperature}
+    if api_key is not None:
+        kwargs["api_key"] = api_key
 
     if provider in ("openai", "anthropic", "google_genai"):
         kwargs["model_provider"] = provider
@@ -336,6 +358,58 @@ class RunBudgetMiddleware(ToolCallLimitMiddleware[Any, Any]):
         return self._rewrite_messages(super().after_model(state, runtime))
 
 
+@dataclass
+class BYOKContext:
+    """LangGraph Runtime Context carrying a per-request BYOK model
+    (DEV-189, ADR-0018). ``byok_model`` is ``None`` for the server-key
+    path — every field defaults to that so omitting ``context=`` entirely
+    (the eval runner's sync ``run()`` path) leaves ``runtime.context`` as
+    plain ``None``, never an implicitly-constructed ``BYOKContext()``.
+    """
+
+    byok_model: BaseChatModel | None = None
+
+
+class ByokModelOverrideMiddleware(AgentMiddleware):
+    """Overrides the bound model with a per-request BYOK model when one is
+    present in Runtime Context (DEV-189).
+
+    No-op whenever context is absent or carries no ``byok_model`` — this is
+    what makes "a request with no BYOK header behaves identically to today"
+    a structural guarantee rather than a tested convention. Implements both
+    the sync and async hooks (mirroring ``_HandleToolErrors`` above) since
+    ``astream_run`` uses ``astream()`` and ``arun``/eval's ``run()`` use the
+    sync/async invoke paths respectively.
+    """
+
+    def wrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ) -> ModelResponse:
+        byok_model = self._byok_model(request)
+        if byok_model is None:
+            return handler(request)
+        return handler(request.override(model=byok_model))
+
+    async def awrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
+    ) -> ModelResponse:
+        byok_model = self._byok_model(request)
+        if byok_model is None:
+            return await handler(request)
+        return await handler(request.override(model=byok_model))
+
+    @staticmethod
+    def _byok_model(request: ModelRequest) -> BaseChatModel | None:
+        context = request.runtime.context
+        if context is None:
+            return None
+        return context.byok_model
+
+
 class ToolOutput(TypedDict):
     tool: str
     args: dict[str, object]
@@ -384,7 +458,7 @@ class Orchestrator:
         )
         middleware = cast(
             list[AgentMiddleware[Any, Any, Any]],
-            [tool_call_limit, handle_tool_errors],
+            [tool_call_limit, handle_tool_errors, ByokModelOverrideMiddleware()],
         )
         self.agent = create_agent(
             model=model,
@@ -392,6 +466,7 @@ class Orchestrator:
             system_prompt=self.system_prompt,
             middleware=middleware,
             checkpointer=checkpointer,
+            context_schema=BYOKContext,
         )
 
     @staticmethod
@@ -473,10 +548,24 @@ class Orchestrator:
         *,
         session_id: str | None = None,
         request_id: str | None = None,
+        api_key: str | None = None,
     ) -> OrchestratorResult:
         """Execute the agent asynchronously (non-blocking).
 
         Use this from async FastAPI endpoints to avoid blocking the event loop.
+
+        ``api_key`` is the per-request BYOK override (DEV-189): when given,
+        a model built from it is threaded through ``context=`` for
+        ``ByokModelOverrideMiddleware`` to swap in; when omitted, the
+        context carries no model and the call is byte-for-byte the
+        server-key path that existed before BYOK.
+
+        Raises :class:`~backend.agent_engine.byok.ByokKeyRejectedError`
+        when the provider rejects a BYOK-supplied key mid-run (decrypted
+        fine, but revoked/exhausted) — never for a server-key failure,
+        which propagates as whatever the provider SDK raised. Callers only
+        ever need to catch this one domain exception, never a provider
+        SDK's own exception type.
         """
         config, propagation = self._build_langfuse_config(
             mode="invoke",
@@ -489,11 +578,20 @@ class Orchestrator:
             else str(uuid.uuid4())
         )
         config["configurable"] = {"thread_id": thread_id}
+        byok_model = (
+            _init_model(self.config.model, api_key=api_key) if api_key else None
+        )
         with propagate_attributes(**propagation):
-            result = await self.agent.ainvoke(
-                {"messages": [{"role": "user", "content": prompt}]},
-                config=config,
-            )
+            try:
+                result = await self.agent.ainvoke(
+                    {"messages": [{"role": "user", "content": prompt}]},
+                    config=config,
+                    context=BYOKContext(byok_model=byok_model),
+                )
+            except Exception as e:
+                if is_byok_auth_rejection(e, api_key=api_key):
+                    raise ByokKeyRejectedError() from e
+                raise
         return self._extract_result(result)
 
     async def astream_run(
@@ -505,7 +603,11 @@ class Orchestrator:
         message_id: str | None = None,
         request_id: str | None = None,
         trace_metadata: Mapping[str, object] | None = None,
+        api_key: str | None = None,
     ) -> AsyncGenerator[DomainEvent, None]:
+        """``api_key`` is the per-request BYOK override (DEV-189) — see
+        ``arun``'s docstring for the same contract; both async entry points
+        thread it through identically."""
         config, propagation = self._build_langfuse_config(
             mode="stream",
             session_id=session_id,
@@ -516,6 +618,10 @@ class Orchestrator:
         )
         config["configurable"] = {"thread_id": session_id}
         mapper = StreamEventMapper(session_id=session_id)
+        byok_model = (
+            _init_model(self.config.model, api_key=api_key) if api_key else None
+        )
+        context = BYOKContext(byok_model=byok_model)
 
         with propagate_attributes(**propagation):
             try:
@@ -529,6 +635,7 @@ class Orchestrator:
                 async for raw_chunk in agent.astream(
                     input_data,
                     config=config,
+                    context=context,
                     stream_mode=["messages", "updates", "custom"],
                     version="v2",
                 ):
@@ -545,7 +652,19 @@ class Orchestrator:
                 for event in mapper.finalize():
                     if not isinstance(event, Finish):
                         yield event
-                yield StreamError(error_text=sanitize_tool_error(str(e)))
+                if is_byok_auth_rejection(e, api_key=api_key):
+                    # The provider's own message can contain a fragment of
+                    # the rejected key (e.g. "sk-proj-***xyz") in a partial-
+                    # mask format sanitize_tool_error's generic regex isn't
+                    # guaranteed to catch. A known BYOK auth rejection gets
+                    # a fully custom message instead of a scrub attempt —
+                    # ADR-0018 requires never transmitting provider text for
+                    # this case. Only for BYOK requests: a rejected server
+                    # key is an operator problem, not a signal to tell a
+                    # free-tier user their key is invalid.
+                    yield StreamError(error_text=BYOK_KEY_REJECTED_MESSAGE)
+                else:
+                    yield StreamError(error_text=sanitize_tool_error(str(e)))
                 yield Finish(finish_reason="error")
 
     @staticmethod

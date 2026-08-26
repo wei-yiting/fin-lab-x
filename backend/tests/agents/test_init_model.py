@@ -13,18 +13,18 @@ from backend.agent_engine.agents.base import _init_model
 from backend.agent_engine.agents.config_loader import ModelConfig
 
 
-def _call(cfg: ModelConfig) -> tuple[tuple, dict]:
+def _call(cfg: ModelConfig, **extra) -> tuple[tuple, dict]:
     """Run ``_init_model`` against a mocked ``init_chat_model`` and return
     the ``(args, kwargs)`` it was called with."""
     with patch("backend.agent_engine.agents.base.init_chat_model") as mock_init:
-        _init_model(cfg)
+        _init_model(cfg, **extra)
         mock_init.assert_called_once()
         return mock_init.call_args.args, mock_init.call_args.kwargs
 
 
-def _kwargs(cfg: ModelConfig) -> dict:
+def _kwargs(cfg: ModelConfig, **extra) -> dict:
     """Convenience wrapper around ``_call`` for tests that only need kwargs."""
-    return _call(cfg)[1]
+    return _call(cfg, **extra)[1]
 
 
 class TestInitModelGemini:
@@ -364,6 +364,36 @@ class TestInitModelDefaults:
         args, kwargs = _call(cfg)
         assert args[0] == "gpt-5-nano"
         assert kwargs["reasoning_effort"] == "minimal"
+
+
+class TestInitModelApiKeyOverride:
+    """BYOK per-request key injection (DEV-189) — ``api_key`` must reach
+    ``init_chat_model`` via the same kwarg every mapped provider's LangChain
+    class accepts (verified: ChatOpenAI/ChatAnthropic/ChatGoogleGenerativeAI
+    all alias it to their provider-specific SecretStr field), and must be
+    fully absent when not supplied so free-tier construction is unchanged."""
+
+    def test_api_key_passed_through_to_init_chat_model(self):
+        cfg = ModelConfig(name="openai:gpt-5-nano", temperature=0.0, reasoning="off")
+        kwargs = _kwargs(cfg, api_key="sk-proj-user-key")
+        assert kwargs["api_key"] == "sk-proj-user-key"
+
+    def test_no_api_key_omits_the_kwarg_entirely(self):
+        cfg = ModelConfig(name="openai:gpt-5-nano", temperature=0.0, reasoning="off")
+        kwargs = _kwargs(cfg)
+        assert "api_key" not in kwargs
+
+    @pytest.mark.parametrize(
+        "name",
+        ["anthropic:claude-haiku-4-5", "google_genai:gemini-3.1-flash-lite"],
+        ids=["anthropic", "gemini"],
+    )
+    def test_api_key_passthrough_is_provider_agnostic(self, name):
+        """Not OpenAI-specific: the injection point is meant to be the seam
+        DEV-193 (provider switching) reuses for Anthropic/Gemini keys."""
+        cfg = ModelConfig(name=name, temperature=0.0, reasoning="off")
+        kwargs = _kwargs(cfg, api_key="user-supplied-key")
+        assert kwargs["api_key"] == "user-supplied-key"
 
 
 class TestInitModelTemperature:

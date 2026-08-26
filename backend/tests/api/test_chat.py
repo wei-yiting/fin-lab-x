@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock
 
-
+from backend.api import byok
 from backend.api.main import app
 from backend.api.routers.chat import get_orchestrator, _active_sessions
 from backend.agent_engine.streaming.domain_events_schema import (
@@ -13,6 +13,9 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextStart,
     Usage,
 )
+from backend.scripts.generate_byok_keypair import generate_keypair
+from backend.tests.api.conftest import encrypt_with_public_pem as _encrypt_with
+
 
 # --- helpers ---
 
@@ -299,6 +302,91 @@ class TestStreamChatOrchestratorError:
             assert "messageId does not match" in body
             assert '"type": "finish"' in body
             assert '"finishReason": "error"' in body
+        finally:
+            _clear_overrides()
+
+
+class TestStreamChatByokWiring:
+    def test_no_byok_header_passes_none_api_key(self, client):
+        captured = {}
+
+        mock = MagicMock()
+
+        async def _astream_run(**kwargs):
+            captured.update(kwargs)
+            yield MessageStart(message_id="msg-1", session_id=kwargs["session_id"])
+            yield Finish(finish_reason="stop", usage=Usage())
+
+        mock.astream_run = _astream_run
+        _override_orchestrator(mock)
+
+        try:
+            response = client.post(
+                "/api/v1/chat",
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
+            )
+            assert response.status_code == 200
+            assert captured["api_key"] is None
+        finally:
+            _clear_overrides()
+
+    def test_byok_header_decrypted_key_passed_to_astream_run(self, client, monkeypatch):
+        private_pem, public_pem = generate_keypair()
+        monkeypatch.setenv(byok._PRIVATE_KEY_ENV_VAR, private_pem.replace("\n", "\\n"))
+        encrypted = _encrypt_with(public_pem, b"sk-proj-user-key")
+
+        captured = {}
+        mock = MagicMock()
+
+        async def _astream_run(**kwargs):
+            captured.update(kwargs)
+            yield MessageStart(message_id="msg-1", session_id=kwargs["session_id"])
+            yield Finish(finish_reason="stop", usage=Usage())
+
+        mock.astream_run = _astream_run
+        _override_orchestrator(mock)
+
+        try:
+            response = client.post(
+                "/api/v1/chat",
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
+                headers={byok.BYOK_KEY_HEADER: encrypted},
+            )
+            assert response.status_code == 200
+            assert captured["api_key"] == "sk-proj-user-key"
+        finally:
+            _clear_overrides()
+
+    def test_malformed_byok_header_returns_401_json_not_sse(self, client, monkeypatch):
+        """The BYOK dependency runs before the route body (and therefore
+        before StreamingResponse is ever constructed), so a bad header
+        must produce a clean JSON 401 — not a 200 SSE stream carrying an
+        error frame."""
+        private_pem, _ = generate_keypair()
+        monkeypatch.setenv(byok._PRIVATE_KEY_ENV_VAR, private_pem.replace("\n", "\\n"))
+        _override_orchestrator(_make_mock_orchestrator())
+
+        try:
+            response = client.post(
+                "/api/v1/chat",
+                json={
+                    "id": "s1",
+                    "messages": [_msg("user", "hi")],
+                    "trigger": "submit-message",
+                },
+                headers={byok.BYOK_KEY_HEADER: "not-valid-base64!!!"},
+            )
+            assert response.status_code == 401
+            assert response.json()["detail"]["code"] == "byok_key_invalid"
+            assert not response.headers["content-type"].startswith("text/event-stream")
         finally:
             _clear_overrides()
 

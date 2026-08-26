@@ -110,6 +110,7 @@ A Vite + React 19 single-page chat application speaking the Vercel AI SDK UIMess
 - **`adr/`**: Architecture Decision Records.
 - **`agent_architecture.md`**: Single Orchestrator pattern, Workflow Profiles, data pipeline architecture.
 - **`observability.md`**: Tracing conventions.
+- **`byok_key_rotation.md`**: Operational runbook for rotating the BYOK RSA keypair (ADR-0018).
 - **`frontend_chat_architecture.md`** / **`frontend_dom_contract.md`** / **`ai_sdk_v6_contract_findings.md`**: Frontend architecture and contracts.
 - **`agents/`**: Agent-facing docs (issue tracker, domain docs conventions).
 

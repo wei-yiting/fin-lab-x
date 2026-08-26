@@ -12,6 +12,7 @@ from backend.agent_engine.agents.base import Orchestrator
 from backend.agent_engine.streaming.domain_events_schema import Finish, StreamError
 from backend.agent_engine.streaming.sse_serializer import serialize_event
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
+from backend.api.byok import get_byok_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,7 @@ async def stream_chat(
     body: StreamChatRequest,
     request: Request,
     orchestrator: Orchestrator = Depends(get_orchestrator),
+    api_key: str | None = Depends(get_byok_api_key),
 ):
     """Stream financial analysis chat response via SSE."""
     if body.normalized_trigger == "regenerate":
@@ -113,6 +115,7 @@ async def stream_chat(
                 trigger=body.normalized_trigger,
                 message_id=body.messageId,
                 request_id=request_id,
+                api_key=api_key,
             ):
                 if await request.is_disconnected():
                     break

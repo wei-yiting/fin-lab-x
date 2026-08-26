@@ -4,13 +4,13 @@
 // 1. Pressing Stop while a chip is streaming aborts cleanly: the half-chip
 //    collapses to a copy.reasoningChip.stoppedThoughtFor header, its text preserved.
 // 2. Sending a fresh prompt runs a full clean turn — the aborted chip's
-//    Stopped header persists on the prior bubble while the new turn streams
+//    copy.reasoningChip.stoppedThoughtFor header persists on the prior bubble while the new turn streams
 //    and collapses its own chip normally (no cross-turn contamination).
 import { test, expect } from "../fixtures";
 import { E2E_TIMEOUTS } from "../constants";
 
 test(
-  "stop during reasoning collapses to a Stopped half-chip, resend runs clean",
+  "stop during reasoning collapses to a copy.reasoningChip.stoppedThoughtFor half-chip, resend runs clean",
   { tag: ["@critical", "@regression"] },
   async ({ chat, page }) => {
     await chat.gotoFixture("long-reasoning-then-text");
@@ -37,7 +37,7 @@ test(
     await chat.sendMessage("second prompt after abort");
     await chat.waitReady();
 
-    // Both bubbles coexist; the prior Stopped chip is untouched; the new
+    // Both bubbles coexist; the prior copy.reasoningChip.stoppedThoughtFor chip is untouched; the new
     // chip collapsed to a clean header.
     await expect(page.getByTestId("assistant-message")).toHaveCount(2);
     await expect(

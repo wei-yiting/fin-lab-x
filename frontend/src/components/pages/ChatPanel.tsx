@@ -92,7 +92,7 @@ export function ChatPanel() {
   // Four of the five allowed non-derived stores of the chips system live
   // here (the fifth, the placeholder grace timer, lives inside
   // useDeadAirPlaceholder — see hooks/README.md for the full budget):
-  //   1. chip timing map (Thought-for-Xs measurement),
+  //   1. chip timing map (copy.reasoningChip.thoughtFor measurement),
   //   2. global stall stopwatch,
   //   3. user expand/collapse overrides (cleared each turn),
   //   4. turn interruption record (interruptedMessages — set whenever the user stops a turn).

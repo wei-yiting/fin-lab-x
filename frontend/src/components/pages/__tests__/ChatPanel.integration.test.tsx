@@ -1024,7 +1024,7 @@ describe("ChatPanel integration — abort keeps a collapsed half-chip", () => {
   afterEach(() => abortServer.resetHandlers());
   afterAll(() => abortServer.close());
 
-  test("stop mid-reasoning → chip collapses with Stopped header, text kept", async () => {
+  test("stop mid-reasoning → chip collapses with copy.reasoningChip.stoppedThoughtFor header, text kept", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -1177,7 +1177,7 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
     call = 0;
   });
 
-  test("stop first turn → resend → both bubbles coexist; Stopped chip persists; new chip untainted", async () => {
+  test("stop first turn → resend → both bubbles coexist; copy.reasoningChip.stoppedThoughtFor chip persists; new chip untainted", async () => {
     const user = userEvent.setup();
     render(<ChatPanel />);
 
@@ -1221,7 +1221,7 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
       { timeout: 5000 },
     );
 
-    // Two assistant bubbles; the aborted chip's Stopped header persists on
+    // Two assistant bubbles; the aborted chip's copy.reasoningChip.stoppedThoughtFor header persists on
     // the first while the second collapsed cleanly.
     expect(screen.getAllByTestId("assistant-message")).toHaveLength(2);
     const headers = screen

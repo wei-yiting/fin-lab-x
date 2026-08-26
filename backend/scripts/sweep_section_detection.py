@@ -52,10 +52,10 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 from backend.common.errors import FinLabError  # noqa: E402
 
-# Latest-fiscal-year resolution deliberately reuses sec_core's private helper —
-# same justification and precedent as ingest_tickers.py: the public parse path
-# requires an explicit year, and duplicating the "latest 10-K period_of_report"
-# lookup here would just drift. Read-only use from a one-shot sweep script.
+# Latest-fiscal-year resolution deliberately reuses sec_core's private helper:
+# the public parse path requires an explicit year, and duplicating the
+# "latest 10-K period_of_report" lookup here would just drift. Read-only use
+# from a one-shot sweep script.
 from backend.common.sec_core import (  # noqa: E402
     FilingType,
     _resolve_latest_fiscal_year,

@@ -48,7 +48,7 @@ When to run:
 
 ### `sweep_section_detection.py`
 
-Pure-observation sweep: for each ticker's latest 10-K, reads edgartools' raw `Section.detection_method` (`toc`/`heading`/`pattern`/`html_fallback`/`unknown` — never surfaced by `sec_text_pipeline` itself) directly off `fetch_filing_bundle`, then cross-checks the real `parse_filing()` outcome. Never modifies pipeline code; `parse_filing()` still populates the shared `data/sec_text/` filing-store cache as a side effect, same as any other caller.
+Pure-observation sweep: for each ticker's latest 10-K, reads edgartools' raw `Section.detection_method` (`toc`/`heading`/`pattern`/`html_fallback`/`unknown` — never surfaced by `sec_text_pipeline` itself) directly off `fetch_filing_bundle`, then cross-checks the real `parse_filing()` outcome. Never modifies pipeline code; the cross-check passes `parse_filing()` a local no-op store, so it does not touch the shared `data/sec_text/` filing-store cache at all.
 
 ```bash
 # Default: the sweep corpus (16-ticker GICS sector x cap grid + AMD)

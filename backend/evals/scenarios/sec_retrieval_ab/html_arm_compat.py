@@ -61,7 +61,8 @@ def normalize_chunk(chunk: dict) -> dict:
     if item == "_unknown":
         return dict(chunk)
 
-    canonical_title = TENK_STANDARD_TITLES.get(item[len("Item ") :].lower())
+    item_key = item[len("Item ") :].lower().removesuffix("(t)")
+    canonical_title = TENK_STANDARD_TITLES.get(item_key)
     if canonical_title is None:
         return dict(chunk)
 

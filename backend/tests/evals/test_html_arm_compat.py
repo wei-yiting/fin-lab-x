@@ -54,7 +54,8 @@ def test_normalize_chunks_maps_normalize_chunk_over_a_list() -> None:
         "header_path": "NVDA / 2026 / Part I / Item 1. Business",
         "chunk_index": 25,
         "text": "In addition to controls targeting D:1, D:4 and D:5 countries, the USG has "
-        "also imposed worldwide export controls impacting our products.",
+        "also imposed worldwide export controls impacting our products, and may impose "
+        "additional controls in the future.",
     }
 
     result = normalize_chunks([unknown_chunk, known_chunk])
@@ -81,7 +82,8 @@ def test_normalize_chunk_drops_part_segment_when_title_already_matches_canonical
         "header_path": "NVDA / 2026 / Part I / Item 1. Business",
         "chunk_index": 25,
         "text": "In addition to controls targeting D:1, D:4 and D:5 countries, the USG has "
-        "also imposed worldwide export controls impacting our products.",
+        "also imposed worldwide export controls impacting our products, and may impose "
+        "additional controls in the future.",
         "ingested_at": "2026-08-19T11:27:39.553783+00:00",
         "score": 0.6,
     }
@@ -108,10 +110,11 @@ def test_normalize_chunk_replaces_curly_apostrophe_title_with_canonical_straight
         "item": "Item 7",
         "header_path": (
             "AMD / 2025 / Part II / Item 7. Management’s Discussion and Analysis "
-            "of Financial Condition and Results of Operations"
+            "of Financial Condition and Results of Operations / Overview"
         ),
         "chunk_index": 152,
-        "text": "### Overview\n\nIn 2025, we delivered strong annual revenue growth.",
+        "text": "### Overview\n\nIn 2025, we delivered strong annual revenue growth with net "
+        "revenue increasing 34% to $34.6 billion, compared to $25.8 billion in 2024.",
         "ingested_at": "2026-08-19T11:27:39.553783+00:00",
         "score": 0.55,
     }
@@ -122,7 +125,7 @@ def test_normalize_chunk_replaces_curly_apostrophe_title_with_canonical_straight
         **chunk,
         "header_path": (
             "AMD / 2025 / Item 7. Management's Discussion and Analysis "
-            "of Financial Condition and Results of Operations"
+            "of Financial Condition and Results of Operations / Overview"
         ),
     }
 
@@ -217,3 +220,37 @@ def test_normalize_chunk_passes_through_unchanged_when_item_key_is_unrecognized(
     }
 
     assert normalize_chunk(chunk) == chunk
+
+
+def test_normalize_chunk_strips_temporary_suffix_before_canonical_title_lookup() -> (
+    None
+):
+    """Clearly-synthetic fixture: no real 'Item 9A(T)' chunk exists in the reference CSV
+    (checked via `grep -o "'item': '[^']*'"` over 2026-08-19_73faf5f.csv). "Item 9A(T)" is a
+    real historical SEC form (~2008-2010, temporary internal-control-attestation exemption)
+    that the frozen pipeline's own item-anchor regex
+    (backend/ingestion/sec_dense_pipeline_html/vectorizer.py) recognizes and can emit, and
+    that this module's own _ITEM_SEGMENT_RE anticipates matching. The canonical-title lookup
+    must strip the trailing "(T)" so this resolves the same as a plain "Item 9A" instead of
+    silently falling through to the "no canonical title found" passthrough.
+    """
+    chunk = {
+        "ticker": "ZZZZ",
+        "year": 2009,
+        "filing_date": "2010-02-01",
+        "filing_type": "10-K",
+        "accession_number": "0000000000-10-000000",
+        "item": "Item 9A(T)",
+        "header_path": "ZZZZ / 2009 / Part II / Item 9A(T). Controls and Procedures (Temporary)",
+        "chunk_index": 0,
+        "text": "placeholder",
+        "ingested_at": "2025-01-01T00:00:00+00:00",
+        "score": 0.1,
+    }
+
+    normalized = normalize_chunk(chunk)
+
+    assert normalized == {
+        **chunk,
+        "header_path": "ZZZZ / 2009 / Item 9A(T). Controls and Procedures",
+    }

@@ -1,7 +1,9 @@
 import re
 
 import pytest
+from tenacity import wait_none
 
+from backend.common.errors import TickerNotFoundError, TransientError
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
     FetchedFiling,
@@ -585,3 +587,52 @@ class TestForceRerunFailureLeavesStoreIntact:
 
         assert saved_file.read_bytes() == bytes_before
         assert store.get("AAPL", FilingType.TEN_K, 2025) == first
+
+
+# ---------------------------------------------------------------------------
+# parse_filing_with_retry
+# ---------------------------------------------------------------------------
+
+
+def test_parse_filing_with_retry_retries_transient_then_succeeds(monkeypatch):
+    calls = {"count": 0}
+    sentinel = object()
+
+    def flaky(ticker, fiscal_year, force):
+        calls["count"] += 1
+        if calls["count"] < 2:
+            raise TransientError("EDGAR 5xx")
+        return sentinel
+
+    monkeypatch.setattr(parser, "parse_filing", flaky)
+    result = parser.parse_filing_with_retry.retry_with(wait=wait_none())(
+        "AAPL", 2024, False
+    )
+    assert result is sentinel
+    assert calls["count"] == 2
+
+
+def test_parse_filing_with_retry_does_not_retry_permanent_failure(monkeypatch):
+    calls = {"count": 0}
+
+    def always_not_found(ticker, fiscal_year, force):
+        calls["count"] += 1
+        raise TickerNotFoundError("ZZZZ not found")
+
+    monkeypatch.setattr(parser, "parse_filing", always_not_found)
+    with pytest.raises(TickerNotFoundError):
+        parser.parse_filing_with_retry.retry_with(wait=wait_none())("ZZZZ", 2024, False)
+    assert calls["count"] == 1
+
+
+def test_parse_filing_with_retry_passes_force_through(monkeypatch):
+    calls: list[tuple[str, int, bool]] = []
+    sentinel = object()
+
+    def record(ticker, fiscal_year, force):
+        calls.append((ticker, fiscal_year, force))
+        return sentinel
+
+    monkeypatch.setattr(parser, "parse_filing", record)
+    parser.parse_filing_with_retry.retry_with(wait=wait_none())("AAPL", 2024, True)
+    assert calls == [("AAPL", 2024, True)]

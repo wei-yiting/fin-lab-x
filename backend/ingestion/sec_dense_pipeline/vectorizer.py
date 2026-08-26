@@ -9,9 +9,15 @@ Integrity is the per-(ticker, fiscal_year) commit-marker lifecycle: a
 ``pending`` marker is (over)written first, all chunk points are upserted,
 and only then does the marker flip to ``complete``. The retrieval side
 treats anything but ``complete`` as absent, so a failed ingest is
-indistinguishable from no ingest (committed or absent). No retry wrapper
-here: the embedding client retries transient upstream failures internally,
-and re-running a failed ingest is the recovery path.
+indistinguishable from no ingest (committed or absent).
+
+Three separate retry surfaces exist in this module, not one: bare
+``ingest_filing`` itself carries no retry wrapper; ``ingest_filing_with_retry``
+adds a single retry around it for transient Qdrant-side failures
+(connection/timeout/5xx); and the embedding client (``_embed_texts``, the
+OpenAI SDK) separately retries transient upstream failures internally.
+Re-running a failed ingest remains the recovery path for anything outside
+those two retry surfaces.
 """
 
 import os
@@ -20,7 +26,10 @@ from datetime import UTC, datetime
 import httpx
 from llama_index.embeddings.openai import OpenAIEmbedding
 from qdrant_client import AsyncQdrantClient, models
+from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
+from backend.common.errors import FinLabError, TransientError
+from backend.common.retry import retry_transient
 from backend.common.sec_core import SECError
 from backend.ingestion.sec_dense_pipeline.chunking import (
     build_chunk_payloads,
@@ -30,6 +39,7 @@ from backend.ingestion.sec_dense_pipeline.collection_schema import (
     async_ensure_collection_and_indexes,
 )
 from backend.ingestion.sec_dense_pipeline.common import (
+    EmbeddingServiceError,
     canonicalize_ticker,
     commit_marker_id,
     marker_status_condition,
@@ -148,7 +158,16 @@ async def ingest_filing(filing: ParsedFiling) -> None:
         for payload in payloads:
             payload["ingested_at"] = ingested_at
 
-        embeddings = await _embed_texts([p["text"] for p in payloads])
+        try:
+            embeddings = await _embed_texts([p["text"] for p in payloads])
+        except FinLabError:
+            raise
+        except Exception as e:
+            # Same taxonomy label as the retriever's query-embed step: an
+            # embedding-provider failure is an embedding failure wherever it
+            # happens, never corpus unavailability (and never a raw SDK
+            # exception for search()'s generic handler to mislabel).
+            raise EmbeddingServiceError(f"Embedding failed during ingest: {e}") from e
 
         points = [
             models.PointStruct(
@@ -180,3 +199,26 @@ async def ingest_filing(filing: ParsedFiling) -> None:
         )
     finally:
         await client.close()
+
+
+@retry_transient
+async def ingest_filing_with_retry(filing: ParsedFiling) -> None:
+    """``ingest_filing`` with a single blanket retry on Qdrant-side failures.
+
+    qdrant-client wraps every transport error (connection, timeout,
+    protocol) into ``ResponseHandlingException`` and ships zero built-in
+    retry, so any such exception gets one blanket retry (single retry per
+    design-envelope §2) — a permanent failure wasting that one retry is an
+    accepted cost of not maintaining a wrapped-source-type taxonomy.
+    ``UnexpectedResponse`` retries on 5xx only; 4xx and everything else
+    (``EmptyIngestError``, ``EmbeddingServiceError``) propagates unchanged
+    on the first attempt.
+    """
+    try:
+        await ingest_filing(filing)
+    except ResponseHandlingException as exc:
+        raise TransientError(f"Qdrant transport failure during ingest: {exc}") from exc
+    except UnexpectedResponse as exc:
+        if exc.status_code is not None and 500 <= exc.status_code < 600:
+            raise TransientError(f"Qdrant server error during ingest: {exc}") from exc
+        raise

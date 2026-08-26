@@ -1,9 +1,11 @@
 """SEC filing dense-retrieval search tool for the FinLab-X agent.
 
-Wraps the sec_dense_pipeline retriever (JIT ingestion, caching, and the
-`sec_retrieval` trace span all included) and returns structured evidence
-chunks with stable citation IDs, per ADR-0019. Pinpoint questions route
-here; synoptic section reading stays on sec_filing_get_section (ADR-0010).
+Wraps the sec_dense_pipeline retriever (JIT ingestion + caching included;
+tracing is the tool-level `sec_filing_search` span only — the retriever
+itself logs cache hits via plain logging, not a nested Langfuse span) and
+returns structured evidence chunks with stable citation IDs, per ADR-0019.
+Pinpoint questions route here; synoptic section reading stays on
+sec_filing_get_section (ADR-0010).
 
 The tool returns ``(content, artifact)``: ``content`` is what the model reads
 (evidence chunks + fiscal-year identity); ``artifact`` carries UI-only
@@ -12,11 +14,8 @@ the model is forbidden from writing SEC URLs, so it should not see one.
 """
 
 import asyncio
-import logging
-import re
 from typing import Annotated, Any, NotRequired, TypedDict
 
-import yaml
 from langchain.tools import tool
 from langchain_core.tools import InjectedToolCallId
 from langfuse import observe
@@ -32,10 +31,7 @@ from backend.common.sec_core import (
     FilingType,
     locate_filing_ref,
 )
-from backend.ingestion.sec_dense_pipeline_html.retriever import Chunk, search
-from backend.ingestion.sec_filing_pipeline_html.filing_store import LocalFilingStore
-
-logger = logging.getLogger(__name__)
+from backend.ingestion.sec_dense_pipeline.retriever import Chunk, search
 
 _TOP_K = 10
 
@@ -62,11 +58,6 @@ class EvidenceGroup(TypedDict):
     item: str
     prelude: str
     chunks: list[EvidenceChunk]
-
-
-# Matches the vectorizer's item format ("Item 1A", "Item 7") and captures the
-# number for normalization into the sec_core key space ("1a", "7").
-_ITEM_KEY_RE = re.compile(r"^Item\s+(\d{1,2}[A-Za-z]?(?:\(T\))?)$")
 
 
 class SecFilingSearchInput(BaseModel):
@@ -111,21 +102,8 @@ class SecFilingSearchInput(BaseModel):
         return stripped
 
 
-def _item_key(item: str) -> str:
-    """Normalize the vectorizer's item label ("Item 1A") to the sec_core key
-    space ("1a"). The vectorizer's `_unknown` sentinel maps to "unknown"."""
-    match = _ITEM_KEY_RE.match(item.strip())
-    if match:
-        return match.group(1).lower()
-    return "unknown"
-
-
-def _citation_id(chunk: Chunk, fallback_accession_number: str) -> str:
-    # Chunk's own accession number wins when present; fallback_accession_number
-    # (already resolved and always valid by the time this runs) covers
-    # older/legacy-ingested chunks missing their own.
-    filing_key = chunk.accession_number or fallback_accession_number
-    return f"sec://{filing_key}/{_item_key(chunk.item)}#{chunk.chunk_index}"
+def _citation_id(chunk: Chunk) -> str:
+    return f"sec://{chunk.accession_number}/{chunk.item}#{chunk.chunk_index}"
 
 
 def _subsection(chunk: Chunk) -> str | None:
@@ -144,57 +122,50 @@ def _subsection(chunk: Chunk) -> str | None:
 
 
 def _item_display(item: str) -> str:
-    key = _item_key(item)
-    title = TENK_STANDARD_TITLES.get(key)
-    if title:
-        return f"{item} ({title})"
-    return item
+    """Human-readable item label ("1a" -> "Item 1A (Risk Factors)"). Matches
+    the ``f"Item {key.upper()}. {title}"`` convention already established by
+    sec_filing_tools.py and the dense-pipeline chunker itself."""
+    label = f"Item {item.upper()}"
+    title = TENK_STANDARD_TITLES.get(item)
+    return f"{label} ({title})" if title else label
 
 
 def _chunk_title(chunk: Chunk) -> str:
-    parts = [f"{chunk.ticker} FY{chunk.year} 10-K"]
-    if chunk.item != "_unknown":
-        parts.append(chunk.item)
+    parts = [f"{chunk.ticker} FY{chunk.fiscal_year} 10-K", f"Item {chunk.item.upper()}"]
     subsection = _subsection(chunk)
     if subsection:
         parts.append(subsection)
     return " · ".join(parts)
 
 
-def _edgar_filing_url(ticker: str, fiscal_year: int) -> str | None:
-    """EDGAR direct link to the 10-K primary document, from the filing store's
-    persisted metadata (written by JIT ingestion). The chunk payload carries
-    no cik/source_url (schema owned by the SEC ingestion rewrite), so this is
-    resolved out-of-band; a cold store degrades to None rather than a
-    fabricated URL.
+def _edgar_url(chunk: Chunk) -> str:
+    """EDGAR direct link to the 10-K primary document.
+
+    The new dense-pipeline payload denormalizes cik/accession_number/
+    primary_document onto every chunk, so the URL is built in-process from
+    the first result chunk — no out-of-band filing-store lookup needed
+    (unlike the frozen ``_html`` payload this tool previously read, which
+    carried none of the three). Format matches edgartools' own
+    ``Filing.filing_url`` construction (``edgar._filings.Filing``):
+    ``{SEC_ARCHIVE_URL}/data/{cik}/{accession_no_no_dashes}/{document}``.
     """
-    try:
-        filing = LocalFilingStore().get(ticker, FilingType.TEN_K, fiscal_year)
-    except (OSError, ValueError, yaml.YAMLError, TypeError) as exc:
-        logger.warning(
-            "Failed to read filing-store metadata for %s FY%s: %s",
-            ticker,
-            fiscal_year,
-            exc,
-        )
-        return None
-    if filing is None:
-        return None
-    return filing.metadata.source_url
+    accession_no_dashes = chunk.accession_number.replace("-", "")
+    return (
+        f"https://www.sec.gov/Archives/edgar/data/{chunk.cik}/"
+        f"{accession_no_dashes}/{chunk.primary_document}"
+    )
 
 
-def _build_groups(chunks: list[Chunk], accession_number: str) -> list[EvidenceGroup]:
-    """Group chunks by (ticker, year, item); groups ordered most-relevant
-    first (max score), chunks within a group in document order (chunk_index).
-
-    ``accession_number`` is the authoritative accession number for this
-    filing, already resolved by ``locate_filing_ref`` before retrieval ran.
-    It is threaded into each chunk's citation ID as the fallback for chunks
-    whose own ``accession_number`` is missing (older/legacy-ingested data).
+def _build_groups(chunks: list[Chunk]) -> list[EvidenceGroup]:
+    """Group chunks by (ticker, fiscal_year, item); groups ordered
+    most-relevant first (max score), chunks within a group in document
+    order (chunk_index).
     """
     grouped: dict[tuple[str, int, str], list[Chunk]] = {}
     for chunk in chunks:
-        grouped.setdefault((chunk.ticker, chunk.year, chunk.item), []).append(chunk)
+        grouped.setdefault((chunk.ticker, chunk.fiscal_year, chunk.item), []).append(
+            chunk
+        )
 
     ordered_keys = sorted(
         grouped, key=lambda key: max(c.score for c in grouped[key]), reverse=True
@@ -202,12 +173,12 @@ def _build_groups(chunks: list[Chunk], accession_number: str) -> list[EvidenceGr
 
     groups: list[EvidenceGroup] = []
     for key in ordered_keys:
-        ticker, year, item = key
+        ticker, fiscal_year, item = key
         members = sorted(grouped[key], key=lambda c: c.chunk_index)
         out_chunks: list[EvidenceChunk] = []
         for chunk in members:
             entry: EvidenceChunk = {
-                "source": _citation_id(chunk, accession_number),
+                "source": _citation_id(chunk),
                 "title": _chunk_title(chunk),
                 "content": chunk.text,
                 "score": round(chunk.score, 4),
@@ -219,10 +190,10 @@ def _build_groups(chunks: list[Chunk], accession_number: str) -> list[EvidenceGr
         groups.append(
             {
                 "ticker": ticker,
-                "fiscal_year": year,
+                "fiscal_year": fiscal_year,
                 "item": item,
                 "prelude": (
-                    f"Excerpts from {ticker} FY{year} 10-K, "
+                    f"Excerpts from {ticker} FY{fiscal_year} 10-K, "
                     f"{_item_display(item)} — {len(members)} passage(s) "
                     "in document order."
                 ),
@@ -283,7 +254,7 @@ async def sec_filing_search(
 
     chunks = await search(
         query=query,
-        filters={"ticker": ticker_upper, "year": resolved_fy},
+        filters={"ticker": ticker_upper, "fiscal_year": resolved_fy},
         top_k=_TOP_K,
     )
 
@@ -299,10 +270,8 @@ async def sec_filing_search(
 
     edgar_url: str | None = None
     if chunks:
-        edgar_url = await asyncio.to_thread(
-            _edgar_filing_url, ticker_upper, resolved_fy
-        )
-        out["groups"] = _build_groups(chunks, filing_ref.accession_number)
+        edgar_url = _edgar_url(chunks[0])
+        out["groups"] = _build_groups(chunks)
     else:
         out["groups"] = []
         out["message"] = (

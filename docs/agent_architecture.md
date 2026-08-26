@@ -17,7 +17,7 @@ FinLab-X utilizes a **Single Orchestrator** pattern. Instead of complex multi-ag
 The core AI runtime resides in `backend/agent_engine/`. The directory is organized as follows:
 
 - `agents/`: Central reasoning engine (profile-agnostic Orchestrator). Contains `base.py`, `config_loader.py`, and `profiles/`.
-- `tools/`: A library of atomic functions (e.g., `get_stock_price`, `search_sec_filings`).
+- `tools/`: A library of atomic functions (e.g., `get_stock_price`, `sec_filing_search`).
 - `skills/`: Complex, reusable capabilities (e.g., `perform_discounted_cash_flow_analysis`).
 - `docs/`: Observability strategy and guardrails for Langfuse tracing; tracing wiring itself lives in `agents/base.py` (`CallbackHandler` + `propagate_attributes` + LangChain `config.metadata`).
 - `mcp/`: (Planned) MCP integrations for external ecosystems.
@@ -35,8 +35,8 @@ Profiles allow for rapid experimentation and safe rollbacks. By switching a prof
 
 ### Capability Tiers
 
-1.  **baseline**: Standard RAG (Retrieval-Augmented Generation) with basic financial tool access.
-2.  **reader**: Optimized for long-context document analysis and multi-document synthesis.
+1.  **baseline**: Whole-section SEC filing reads (no vectorization) with basic financial tool access.
+2.  **reader**: Structured RAG over SEC 10-K filings (Qdrant dense retrieval) with chunk-level citations.
 3.  **quant**: Specialized in numerical reasoning, data visualization, and quantitative modeling.
 4.  **graph**: Leverages knowledge graphs to understand complex corporate relationships and supply chains.
 5.  **analyst**: The flagship profile, combining all previous capabilities into a comprehensive investment research assistant.
@@ -47,7 +47,7 @@ Each profile in `backend/agent_engine/agents/profiles/` currently contains:
 
 - `orchestrator_config.yaml`: Model selection (e.g., GPT-4o, Claude 3.5 Sonnet), temperature, and tool-specific limits.
 
-Profiles beyond `baseline` will additionally include:
+Profiles beyond `baseline` and `reader` will additionally include:
 
 - `system_prompt.md`: The core identity and behavioral instructions for the agent.
 - `README.md`: Documentation of the profile's specific use cases, strengths, and known limitations.
@@ -64,7 +64,7 @@ flowchart TB
     subgraph concept["Capability tier — concept layer: a rung on the capability ladder, baseline → reader → quant → graph → analyst (lives in the roadmap and docs)"]
         direction LR
         T1["1. baseline<br/>basic tools"]
-        T2["2. reader<br/>+ long-context filing reading"]
+        T2["2. reader<br/>+ structured RAG over 10-Ks"]
         T3["3. quant<br/>+ structured financials"]
         T4["4. graph<br/>+ knowledge graph"]
         T5["5. analyst<br/>+ multi-step synthesis"]
@@ -73,7 +73,7 @@ flowchart TB
     subgraph physical["Workflow Profile — physical layer: one config directory (lives on the filesystem, consumed by the runtime)"]
         direction LR
         P1["profiles/baseline/<br/>orchestrator_config.yaml<br/>+ system_prompt.md"]
-        P2["profiles/reader/<br/>(placeholder)"]
+        P2["profiles/reader/<br/>orchestrator_config.yaml<br/>+ system_prompt.md"]
         P3["profiles/quant/<br/>(placeholder)"]
         P4["profiles/graph/<br/>(placeholder)"]
         P5["profiles/analyst/<br/>(placeholder)"]
@@ -101,7 +101,7 @@ The five pairs are 1:1 today, but not by definition, and the diagram is drawn to
 
 - **Single Orchestrator**: Centralize decision-making to maintain control and reduce "agentic loop" overhead.
 - **Progressive Disclosure**: Only expose tools and skills to the orchestrator when they are relevant to the current task to minimize prompt noise and token usage.
-- **Observability First**: Every LLM call, tool execution, and state change must be traceable via LangSmith. If it isn't logged, it didn't happen.
+- **Observability First**: Every LLM call, tool execution, and state change must be traceable via Langfuse. If it isn't logged, it didn't happen.
 - **Code as Interface**: Tools and skills are defined as strictly typed Python functions. This makes them the "API" that the LLM interacts with.
 
 ## 5. Dependency Rules
@@ -135,7 +135,7 @@ flowchart TD
         FUND_XBRL --> FUND_DUCK
     end
 
-    Agent -->|search_sec_filings| RAG_VEC
+    Agent -->|sec_filing_search| RAG_VEC
     Agent -->|query_financial_data| FUND_DUCK
 ```
 

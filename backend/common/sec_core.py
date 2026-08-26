@@ -6,9 +6,11 @@ Helpers: :func:`parse_item_number` (agent-facing key normalization),
 :func:`is_stub_section` (incorp-by-reference / reserved detection),
 :func:`fetch_filing_obj` (LRU-cached ``edgartools.TenK`` fetch),
 :func:`fetch_filing_bundle` (same fetch plus citation metadata),
-:func:`fetch_filing_markdown` (filing-level markdown for block detection).
+:func:`fetch_filing_markdown` (filing-level markdown for block detection),
+:func:`locate_filing_ref` (index-only filing identity: FY, FY end date, accession).
 
-Shared by :mod:`backend.agent_engine.tools.sec_filing_tools` and
+Shared by :mod:`backend.agent_engine.tools.sec_filing_tools`,
+:mod:`backend.agent_engine.tools.sec_filing_search`, and
 :mod:`backend.ingestion.sec_filing_pipeline_html`. Do not add agent-layer or
 pipeline-layer concerns here — keep this module a thin, stateless core.
 """
@@ -18,6 +20,7 @@ import re
 import threading
 from concurrent.futures import Future
 from dataclasses import dataclass
+from datetime import date
 from enum import StrEnum
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -33,6 +36,7 @@ from backend.common.retry import retry_transient
 
 if TYPE_CHECKING:
     from edgar.company_reports.ten_k import TenK  # noqa: F401
+    from edgar.entity.filings import EntityFilings  # noqa: F401
 
 
 class FilingType(StrEnum):
@@ -212,7 +216,7 @@ def is_stub_section(text: str) -> tuple[bool, str | None]:
     return classify_stub_section(text)
 
 
-def _find_by_fiscal_year(filings, fiscal_year: int):
+def _find_by_fiscal_year(filings: "EntityFilings", fiscal_year: int):
     """Iterate edgartools Filings and return the filing whose
     period_of_report year matches ``fiscal_year``, else None.
     Does NOT raise — caller decides.
@@ -222,6 +226,26 @@ def _find_by_fiscal_year(filings, fiscal_year: int):
         if pr and str(pr)[:4] == str(fiscal_year):
             return filing
     return None
+
+
+def _fiscal_year_range(filings: "EntityFilings") -> tuple[int, int] | None:
+    """Return the (earliest, latest) fiscal year covered by ``filings``,
+    parsed the same way as :func:`_find_by_fiscal_year` (the first 4
+    characters of each filing's ``period_of_report``). Returns ``None`` when
+    no filing has a parseable year, so the caller can fall back to a generic
+    message.
+    """
+    years: list[int] = []
+    for filing in filings:
+        pr = getattr(filing, "period_of_report", None)
+        if not pr:
+            continue
+        year_str = str(pr)[:4]
+        if year_str.isdigit():
+            years.append(int(year_str))
+    if not years:
+        return None
+    return min(years), max(years)
 
 
 def _classify_edgar_error(
@@ -389,6 +413,87 @@ def resolve_latest_fiscal_year(ticker: str) -> int:
 
 
 @dataclass(frozen=True)
+class FilingRef:
+    """Index-level identity of one filing, captured from the EDGAR submissions
+    index without downloading the document. ``period_of_report`` is the
+    fiscal-year END date (ISO) from which ``fiscal_year`` is derived."""
+
+    fiscal_year: int
+    period_of_report: str
+    accession_number: str
+
+
+# EDGAR's accession number format: 10 digits (filer CIK), 2 digits (year),
+# 6 digits (sequence) — e.g. "0000320193-24-000123".
+_ACCESSION_NUMBER_RE = re.compile(r"^\d{10}-\d{2}-\d{6}$")
+
+
+def locate_filing_ref(
+    ticker: str,
+    filing_type: FilingType,
+    fiscal_year: int | None = None,
+) -> FilingRef:
+    """Resolve a filing's index metadata (fiscal year, FY end date, accession
+    number) for ``ticker``; ``fiscal_year=None`` picks the latest filing.
+    Index-only — never fetches the document — so callers that merely need to
+    *name* a filing (retrieval tools reporting which 10-K the evidence came
+    from) pay one cached metadata lookup.
+
+    Raises the same family as :func:`fetch_filing_obj` (``ConfigurationError``,
+    ``TickerNotFoundError``, ``UnsupportedFilingTypeError``,
+    ``FilingNotFoundError``, ``TransientError``, ``RateLimitError``), plus
+    ``SECError`` if the located filing's identity metadata is missing,
+    malformed, or unparseable.
+    """
+    ticker_upper = ticker.strip().upper()
+    filing = _locate_filing_cached(ticker_upper, filing_type, fiscal_year)
+
+    try:
+        accession_number = filing.accession_number
+        period_of_report = str(filing.period_of_report)
+        # date.fromisoformat validates the *whole* string, not just a
+        # 4-char prefix — "2025-invalid"[:4] == "2025" used to parse fine
+        # under the old int(period_of_report[:4]) check even though the
+        # full value is garbage.
+        resolved_fiscal_year = date.fromisoformat(period_of_report).year
+    except Exception as exc:
+        raise _classify_edgar_error(
+            exc,
+            ticker_upper,
+            post_locate_context=(
+                f"Failed to read filing identity metadata for the located "
+                f"{filing_type} filing of {ticker_upper}"
+            ),
+        ) from exc
+
+    # str(None) would otherwise silently become the literal "None" — a
+    # truthy string that flows straight into a citation ID as if it were
+    # real. Catch a missing accession number before it reaches FilingRef.
+    if not accession_number:
+        raise SECError(
+            f"Located {filing_type} filing for {ticker_upper} has no "
+            f"accession number on SEC EDGAR; cannot build a filing reference."
+        )
+
+    # A non-empty but malformed accession number (not matching EDGAR's
+    # NNNNNNNNNN-NN-NNNNNN format) would otherwise flow through into a
+    # citation ID just as silently as a missing one.
+    accession_number = str(accession_number)
+    if not _ACCESSION_NUMBER_RE.match(accession_number):
+        raise SECError(
+            f"Located {filing_type} filing for {ticker_upper} has a "
+            f"malformed accession number ({accession_number!r}) on SEC "
+            f"EDGAR; cannot build a filing reference."
+        )
+
+    return FilingRef(
+        fiscal_year=resolved_fiscal_year,
+        period_of_report=period_of_report,
+        accession_number=accession_number,
+    )
+
+
+@dataclass(frozen=True)
 class FetchedFiling:
     """A fetched ``TenK`` plus its citation metadata, captured from the
     public edgartools ``Filing`` API at fetch time so downstream callers
@@ -447,6 +552,26 @@ def _locate_filing_cached(
     else:
         filing = _find_by_fiscal_year(filings, fiscal_year)
         if filing is None:
+            year_range = _fiscal_year_range(filings)
+            if year_range is not None:
+                earliest_year, latest_year = year_range
+                # Not yet due: a future/current year with no filing yet —
+                # distinct from "will never exist" (must not imply the
+                # filing doesn't exist, only that it isn't available yet).
+                if fiscal_year > latest_year:
+                    raise FilingNotFoundError(
+                        f"No {filing_type} filed yet for {ticker_upper} fiscal "
+                        f"year {fiscal_year} — the most recent available is "
+                        f"FY{latest_year}."
+                    )
+                # Structurally impossible: before this company's own filing
+                # history begins — this year could never have a filing.
+                if fiscal_year < earliest_year:
+                    raise FilingNotFoundError(
+                        f"{ticker_upper} has no {filing_type} filing history "
+                        f"before FY{earliest_year}; fiscal year {fiscal_year} "
+                        "could never have one."
+                    )
             raise FilingNotFoundError(
                 f"No {filing_type} filing for {ticker_upper} in fiscal year {fiscal_year}."
             )

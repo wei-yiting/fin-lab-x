@@ -20,12 +20,14 @@ from backend.common.sec_core import (
     SECError,
     SectionNotFoundError,
     UnsupportedFilingTypeError,
+    FilingRef,
     _resolve_latest_fiscal_year,
     classify_stub_section,
     fetch_filing_bundle,
     fetch_filing_markdown,
     fetch_filing_obj,
     is_stub_section,
+    locate_filing_ref,
     parse_item_number,
     resolve_latest_fiscal_year,
     trim_text_to_item_boundary,
@@ -665,6 +667,197 @@ def test_resolve_latest_fiscal_year_public_does_not_retry_permanent_failure():
         with pytest.raises(TickerNotFoundError):
             resolve_latest_fiscal_year.retry_with(wait=wait_none())("ZZZZ")
     assert calls["count"] == 1
+
+
+def _make_indexed_filing(
+    period_of_report: str, accession: str, tenk_cls: type
+) -> MagicMock:
+    filing = _make_filing(period_of_report, tenk_cls)
+    filing.accession_number = accession
+    return filing
+
+
+def test_locate_filing_ref_latest_reads_index_only(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    older = _make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls)
+    latest = _make_indexed_filing("2025-09-27", "0000320193-25-000079", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [older, latest])
+
+    ref = locate_filing_ref("aapl", FilingType.TEN_K)
+
+    assert ref == FilingRef(
+        fiscal_year=2025,
+        period_of_report="2025-09-27",
+        accession_number="0000320193-25-000079",
+    )
+    latest.obj.assert_not_called()
+
+
+def test_locate_filing_ref_by_fiscal_year(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    older = _make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls)
+    latest = _make_indexed_filing("2025-09-27", "0000320193-25-000079", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [older, latest])
+
+    ref = locate_filing_ref("AAPL", FilingType.TEN_K, 2024)
+
+    assert ref.fiscal_year == 2024
+    assert ref.period_of_report == "2024-09-28"
+    assert ref.accession_number == "0000320193-24-000123"
+
+
+def test_locate_filing_ref_missing_year_is_legible(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"](
+        "10-K",
+        [_make_indexed_filing("2025-09-27", "0000320193-25-000079", tenk_cls)],
+    )
+    with pytest.raises(FilingNotFoundError, match="2019"):
+        locate_filing_ref("AAPL", FilingType.TEN_K, 2019)
+
+
+def test_locate_filing_ref_not_yet_due_message(mock_edgar):
+    """A fiscal_year after the most recent filed year states the filing
+    isn't available yet — distinct from the 'will never exist' case
+    below."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"](
+        "10-K",
+        [_make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls)],
+    )
+    with pytest.raises(FilingNotFoundError) as exc_info:
+        locate_filing_ref("AAPL", FilingType.TEN_K, 2026)
+    msg = str(exc_info.value)
+    assert "2026" in msg
+    assert "2024" in msg
+    assert "yet" in msg.lower()
+    assert "never" not in msg.lower()
+
+
+def test_locate_filing_ref_structurally_impossible_message(mock_edgar):
+    """A fiscal_year before the company's earliest filed year states this
+    year could never have a filing — distinct from the 'not yet due' case
+    above."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"](
+        "10-K",
+        [_make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls)],
+    )
+    with pytest.raises(FilingNotFoundError) as exc_info:
+        locate_filing_ref("AAPL", FilingType.TEN_K, 1994)
+    msg = str(exc_info.value)
+    assert "1994" in msg
+    assert "2024" in msg
+    assert "never" in msg.lower()
+
+
+def test_locate_filing_ref_not_yet_due_and_structurally_impossible_are_distinguishable(
+    mock_edgar,
+):
+    """A 'not yet due' year and a 'structurally impossible' year must not
+    collapse to one message template differing only in the year number —
+    both used to raise the identical 'No {filing_type} filing for {ticker}
+    in fiscal year {year}.' message before the underlying classification
+    logic distinguished them. This pins the real fix in
+    _locate_filing_cached (not a mocked stand-in — see
+    test_sec_filing_search.py for the tool-boundary bubble-through test)."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"](
+        "10-K",
+        [_make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls)],
+    )
+    with pytest.raises(FilingNotFoundError) as info_not_yet_due:
+        locate_filing_ref("AAPL", FilingType.TEN_K, 2026)
+    with pytest.raises(FilingNotFoundError) as info_impossible:
+        locate_filing_ref("AAPL", FilingType.TEN_K, 1994)
+
+    msg_not_yet_due = str(info_not_yet_due.value)
+    msg_impossible = str(info_impossible.value)
+    normalized_a = re.sub(r"\d{4}", "<YEAR>", msg_not_yet_due)
+    normalized_b = re.sub(r"\d{4}", "<YEAR>", msg_impossible)
+    assert normalized_a != normalized_b, (
+        f"messages are identical modulo the year: {msg_not_yet_due!r} vs "
+        f"{msg_impossible!r}"
+    )
+
+
+def test_locate_filing_ref_gap_inside_known_range_uses_generic_message(mock_edgar):
+    """A fiscal_year within the company's known filing range but with no
+    exact match (a genuine reporting gap) is neither the 'will never
+    exist' nor the 'not yet due' case — it falls back to the original
+    generic message, phrased as neither."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"](
+        "10-K",
+        [
+            _make_indexed_filing("2022-09-24", "0000320193-22-000123", tenk_cls),
+            _make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls),
+        ],
+    )
+    with pytest.raises(FilingNotFoundError, match="2023") as exc_info:
+        locate_filing_ref("AAPL", FilingType.TEN_K, 2023)
+    msg = str(exc_info.value)
+    assert "never" not in msg.lower()
+    assert "yet" not in msg.lower()
+
+
+def test_locate_filing_ref_none_accession_number_raises_sec_error(mock_edgar):
+    """``str(None)`` must never silently become the literal accession number
+    "None" — a filing with no accession number surfaces as a SECError, not a
+    usable FilingRef."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_indexed_filing("2025-09-27", None, tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError, match="accession number"):
+        locate_filing_ref("AAPL", FilingType.TEN_K)
+
+
+def test_locate_filing_ref_malformed_period_of_report_raises_classified_error(
+    mock_edgar,
+):
+    """A period_of_report that ``int(period_of_report[:4])`` cannot parse must
+    surface as a classified FinLabError (SECError), not a bare ValueError."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_indexed_filing("", "0000320193-25-000079", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError, match="AAPL") as exc_info:
+        locate_filing_ref("AAPL", FilingType.TEN_K)
+    assert isinstance(exc_info.value, FinLabError)
+    assert not isinstance(exc_info.value, ValueError)
+
+
+def test_locate_filing_ref_malformed_accession_number_raises_sec_error(mock_edgar):
+    """A non-empty accession number that doesn't match EDGAR's
+    NNNNNNNNNN-NN-NNNNNN format must surface as a SECError instead of
+    flowing straight through into a citation ID."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_indexed_filing("2025-09-27", "not-an-accession", tenk_cls)
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError, match="accession number"):
+        locate_filing_ref("AAPL", FilingType.TEN_K)
+
+
+@pytest.mark.parametrize("bad_period_of_report", ["2025-99-99", "2025-invalid"])
+def test_locate_filing_ref_invalid_full_date_raises_classified_error(
+    mock_edgar, bad_period_of_report
+):
+    """A period_of_report whose first 4 characters look like a valid year but
+    whose full value is not a valid ISO date (the old
+    ``int(period_of_report[:4])`` check let these through) must surface as a
+    classified FinLabError (SECError), not a bare ValueError."""
+    tenk_cls = mock_edgar["tenk_cls"]
+    filing = _make_indexed_filing(
+        bad_period_of_report, "0000320193-25-000079", tenk_cls
+    )
+    mock_edgar["set_filings"]("10-K", [filing])
+
+    with pytest.raises(SECError, match="AAPL") as exc_info:
+        locate_filing_ref("AAPL", FilingType.TEN_K)
+    assert isinstance(exc_info.value, FinLabError)
+    assert not isinstance(exc_info.value, ValueError)
 
 
 def test_fetch_filing_obj_cache_key_normalizes_ticker(mock_edgar):

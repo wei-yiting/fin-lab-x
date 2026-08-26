@@ -16,9 +16,10 @@ This script is pure observation: it reads ``Section.detection_method``
 directly off ``fetch_filing_bundle``'s ``TenK`` (the same fetch seam
 ``sec_text_pipeline.parser`` already uses) and separately cross-checks the
 real ``parse_filing()`` outcome for the same ticker. It does not change any
-pipeline code. ``parse_filing()`` still populates the shared
-``data/sec_text/`` filing-store cache as a side effect, same as any other
-caller (``ingest_tickers.py``, the ``sec_text_pipeline`` CLI).
+pipeline code, nor does it touch the shared ``data/sec_text/`` filing-store
+cache that other callers (``ingest_tickers.py``, the ``sec_text_pipeline``
+CLI) read and write — the cross-check passes ``parse_filing()`` a local
+no-op store built for exactly this purpose.
 
 Sweep corpus (``SWEEP_TICKERS``): the finalized 16-ticker GICS
 sector-x-cap grid, plus AMD (the known degraded-ingest repro case). That
@@ -68,10 +69,11 @@ from backend.ingestion.sec_text_pipeline.parser import (  # noqa: E402
 if TYPE_CHECKING:
     from edgar.documents.document import Section
 
-# The finalized 16-ticker GICS sector x cap grid — mirrors
-# backend/evals/scenarios/sec_retrieval_ab/curation/ingest_tickers.py::TICKER_GRID
-# (branch feat/sec-retrieval-eval-dataset) — plus AMD, the known degraded-ingest
-# repro case.
+    from backend.ingestion.sec_text_pipeline.filing_models import ParsedFiling
+
+# A 16-ticker GICS sector x market-cap grid (at least one large-cap per
+# sector, roughly half the sectors adding a mid/small-cap) — plus AMD, the
+# known degraded-ingest repro case.
 SWEEP_TICKERS: tuple[str, ...] = (
     "NVDA",
     "DDOG",
@@ -210,6 +212,19 @@ def _observe_section(section: "Section") -> SectionObservation:
     )
 
 
+class _NonPersistingStore:
+    """Satisfies FilingStore without touching disk — sweep_ticker() only
+    needs parse_filing()'s return value, never a persisted copy."""
+
+    def get(
+        self, ticker: str, filing_type: FilingType, fiscal_year: int
+    ) -> "ParsedFiling | None":
+        return None
+
+    def save(self, filing: "ParsedFiling") -> None:
+        pass
+
+
 def sweep_ticker(ticker: str) -> TickerSweepResult:
     """Fetch + observe one ticker's latest 10-K.
 
@@ -258,7 +273,9 @@ def sweep_ticker(ticker: str) -> TickerSweepResult:
     )
 
     try:
-        parsed = parse_filing(ticker_norm, fiscal_year, force=True)
+        parsed = parse_filing(
+            ticker_norm, fiscal_year, force=True, store=_NonPersistingStore()
+        )
         result.parse_outcome = "ok"
         result.parse_item_count = len(parsed.items)
     except EmptyFilingError as exc:
@@ -369,12 +386,14 @@ def render_report(results: Sequence[TickerSweepResult]) -> str:
             if r.ticker in undetermined:
                 lines.append(f"- {r.ticker}: {r.fetch_error or r.filing_error}")
 
-    lines.append("")
-    lines.append(
-        "Sweep-corpus curation exclusions: none — the grid's 2026-08-20 sync "
-        "comment records all 16 tickers parsing successfully on the first "
-        "pass, so no candidate was ever swapped out for `EmptyFilingError`."
-    )
+    if {r.ticker for r in results} == set(SWEEP_TICKERS):
+        lines.append("")
+        lines.append(
+            "Sweep-corpus curation exclusions: none — the grid's 2026-08-20 "
+            "sync comment records all 16 tickers parsing successfully on the "
+            "first pass, so no candidate was ever swapped out for "
+            "`EmptyFilingError`."
+        )
 
     return "\n".join(lines)
 

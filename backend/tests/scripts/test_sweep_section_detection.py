@@ -9,8 +9,7 @@ cross-check — by monkeypatching its imported seams (``fetch_filing_bundle``,
 ``parse_filing``, ``_resolve_latest_fiscal_year``). This is intentionally
 not full branch/combination coverage: this repo's precedent for one-shot
 ticker-sweep scripts
-(``backend/evals/scenarios/sec_retrieval_ab/curation/ingest_tickers.py`` on
-branch ``feat/sec-retrieval-eval-dataset``, ``backend/scripts/embed_sec_filings.py``)
+(``backend/scripts/embed_sec_filings.py``, which has no test file at all)
 leaves this kind of orchestration lightly tested at most — deeper
 correctness is proven by running it against real tickers, not by mocking
 edgartools exhaustively.
@@ -23,6 +22,7 @@ from unittest.mock import Mock
 from backend.common.errors import TickerNotFoundError
 from backend.scripts import sweep_section_detection as sweep_module
 from backend.scripts.sweep_section_detection import (
+    SWEEP_TICKERS,
     SectionObservation,
     TickerSweepResult,
     _parse_outcome_cell,
@@ -209,9 +209,14 @@ class TestSweepTicker:
         assert result.filing_error is None
         assert result.parse_outcome == "ok"
         assert result.parse_item_count == 3
-        # Locks in M-1.1's fix: the cross-check must bypass the on-disk
-        # filing-store cache, not silently read a stale prior-run result.
-        fake_parse_filing.assert_called_once_with("NVDA", 2025, force=True)
+        # The cross-check must bypass the on-disk filing-store cache (a
+        # fresh force=True read) and must never persist its result back to
+        # it (a non-persisting store).
+        fake_parse_filing.assert_called_once()
+        call = fake_parse_filing.call_args
+        assert call.args == ("NVDA", 2025)
+        assert call.kwargs["force"] is True
+        assert isinstance(call.kwargs["store"], sweep_module._NonPersistingStore)
 
     def test_fetch_failure_records_fetch_error_and_skips_parse(self, monkeypatch):
         monkeypatch.setattr(
@@ -229,9 +234,9 @@ class TestSweepTicker:
         fake_parse_filing.assert_not_called()
 
     def test_zero_sections_still_runs_parse_cross_check(self, monkeypatch):
-        # Regression test for B-1.1: a filing_error (zero observed
-        # sections) must not prevent parse_filing()'s own outcome from
-        # being recorded — the two signals are independent.
+        # A filing_error (zero observed sections) must not prevent
+        # parse_filing()'s own outcome from being recorded — the two
+        # signals are independent.
         monkeypatch.setattr(
             sweep_module, "_resolve_latest_fiscal_year", Mock(return_value=2025)
         )
@@ -261,7 +266,7 @@ class TestParseOutcomeCell:
         # afterward, so a realistic fixture has both filing_error AND a
         # populated parse_outcome — the cell must show its own filing-error
         # message AND the parse_filing() outcome, neither hiding the other
-        # (B-1.1: previously the outcome branches were unreachable whenever
+        # (previously the outcome branches were unreachable whenever
         # filing_error was set).
         result = TickerSweepResult(
             ticker="X",
@@ -301,3 +306,19 @@ class TestUndeterminedSection:
         report = render_report([result])
         assert "ZEROSEC: None" not in report
         assert "ZEROSEC: fetched ZEROSEC FY2025" in report
+
+
+class TestRenderReportCurationNote:
+    """The sweep-corpus curation-exclusions note describes the default
+    16-ticker corpus's own curation history — it must not print for an ad
+    hoc ticker subset, which has no such history to report."""
+
+    def test_full_default_corpus_includes_curation_note(self):
+        results = [_result(ticker, ["toc"]) for ticker in SWEEP_TICKERS]
+        report = render_report(results)
+        assert "Sweep-corpus curation exclusions" in report
+
+    def test_ad_hoc_subset_omits_curation_note(self):
+        results = [_result("AMD", ["toc"]), _result("NVDA", ["toc"])]
+        report = render_report(results)
+        assert "Sweep-corpus curation exclusions" not in report

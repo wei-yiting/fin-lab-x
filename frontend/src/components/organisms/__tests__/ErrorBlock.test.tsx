@@ -27,7 +27,11 @@ describe("ErrorBlock", () => {
     const user = userEvent.setup();
     render(
       <ErrorBlock
-        friendly={{ title: "伺服器發生錯誤，請再試一次。", detail: "stack trace ...", retriable: true }}
+        friendly={{
+          title: "伺服器發生錯誤，請再試一次。",
+          detail: "stack trace ...",
+          retriable: true,
+        }}
         onRetry={vi.fn()}
         source="pre-stream"
         errorClass="pre-stream-500"

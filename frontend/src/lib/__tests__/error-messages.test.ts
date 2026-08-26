@@ -1,14 +1,13 @@
 import { describe, test, expect } from "vitest";
 import { toFriendlyError } from "../error-messages";
-import { copy } from "@/lib/copy";
 
 describe("toFriendlyError — pre-stream HTTP errors", () => {
   test.each([
-    [422, copy.errorMessages.regenerateFailed, true],
-    [404, copy.errorMessages.conversationNotFound, false],
-    [409, copy.errorMessages.sessionBusy, true],
-    [500, copy.errorMessages.serverError, true],
-    [503, copy.errorMessages.preStreamFallback, true],
+    [422, "無法重新產生這則回覆，請再試一次。", true],
+    [404, "找不到這個對話，請重新整理頁面以開始新對話。", false],
+    [409, "系統忙碌中，請稍後再試一次。", true],
+    [500, "伺服器發生錯誤，請再試一次。", true],
+    [503, "發生錯誤，請再試一次。", true],
   ])('status %d → "%s" (retriable: %s)', (status, expectedTitle, expectedRetriable) => {
     const result = toFriendlyError({ source: "pre-stream-http", status });
     expect(result.title).toBe(expectedTitle);
@@ -21,7 +20,7 @@ test("network failure → connection-lost message", () => {
     source: "network",
     rawMessage: "Failed to fetch",
   });
-  expect(result.title).toBe(copy.errorMessages.networkError);
+  expect(result.title).toBe("連線中斷，請檢查網路連線後再試一次。");
   expect(result.retriable).toBe(true);
   expect(result.detail).toBe("Failed to fetch");
 });
@@ -40,12 +39,12 @@ describe("toFriendlyError — tool-output-error pattern matching", () => {
     "describe this to the user as a network or API failure.";
 
   test.each([
-    [BUDGET_REACHED_BACKEND_MESSAGE, copy.errorMessages.toolBudgetReached, false],
-    ["API rate limit exceeded", copy.errorMessages.tooManyRequests, true],
-    ["ticker not found", copy.errorMessages.dataNotFound, false],
-    ["Connection timeout after 30s", copy.errorMessages.toolTimeout, true],
-    ["Permission denied (403)", copy.errorMessages.accessDenied, false],
-    ["Some unknown error", copy.errorMessages.toolFailedFallback, true],
+    [BUDGET_REACHED_BACKEND_MESSAGE, "這次請求的工具呼叫次數已達上限。", false],
+    ["API rate limit exceeded", "請求過於頻繁，請稍候片刻後再試。", true],
+    ["ticker not found", "找不到相關資料。", false],
+    ["Connection timeout after 30s", "工具執行逾時，請再試一次。", true],
+    ["Permission denied (403)", "沒有權限存取這項資源。", false],
+    ["Some unknown error", "工具執行失敗，請再試一次。", true],
   ])('rawMessage "%s" → "%s"', (rawMessage, expectedTitle, expectedRetriable) => {
     const result = toFriendlyError({
       source: "tool-output-error",
@@ -59,10 +58,10 @@ describe("toFriendlyError — tool-output-error pattern matching", () => {
 
 describe("toFriendlyError — mid-stream-sse pattern matching", () => {
   test.each([
-    ["context length exceeded", copy.errorMessages.conversationTooLong, false],
-    ["token limit reached", copy.errorMessages.conversationTooLong, false],
-    ["rate limit", copy.errorMessages.sessionBusy, true],
-    ["Unknown stream error", copy.errorMessages.midStreamFallback, true],
+    ["context length exceeded", "這段對話已經太長，請開啟新對話繼續。", false],
+    ["token limit reached", "這段對話已經太長，請開啟新對話繼續。", false],
+    ["rate limit", "系統忙碌中，請稍後再試一次。", true],
+    ["Unknown stream error", "產生回覆時發生錯誤，請再試一次。", true],
   ])('mid-stream rawMessage "%s" → "%s"', (rawMessage, expectedTitle, expectedRetriable) => {
     const result = toFriendlyError({
       source: "mid-stream-sse",

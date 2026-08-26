@@ -28,25 +28,25 @@ export const copy = {
   },
 
   errorMessages: {
-    regenerateFailed: "無法重新產生這則回覆,請再試一次。",
-    conversationNotFound: "找不到這個對話,請重新整理頁面以開始新對話。",
-    sessionBusy: "系統忙碌中,請稍後再試一次。",
-    serverError: "伺服器發生錯誤,請再試一次。",
-    preStreamFallback: "發生錯誤,請再試一次。",
-    networkError: "連線中斷,請檢查網路連線後再試一次。",
+    regenerateFailed: "無法重新產生這則回覆，請再試一次。",
+    conversationNotFound: "找不到這個對話，請重新整理頁面以開始新對話。",
+    sessionBusy: "系統忙碌中，請稍後再試一次。",
+    serverError: "伺服器發生錯誤，請再試一次。",
+    preStreamFallback: "發生錯誤，請再試一次。",
+    networkError: "連線中斷，請檢查網路連線後再試一次。",
     toolBudgetReached: "這次請求的工具呼叫次數已達上限。",
-    tooManyRequests: "請求過於頻繁,請稍候片刻後再試。",
+    tooManyRequests: "請求過於頻繁，請稍候片刻後再試。",
     dataNotFound: "找不到相關資料。",
-    toolTimeout: "工具執行逾時,請再試一次。",
+    toolTimeout: "工具執行逾時，請再試一次。",
     accessDenied: "沒有權限存取這項資源。",
-    toolFailedFallback: "工具執行失敗,請再試一次。",
-    conversationTooLong: "這段對話已經太長,請開啟新對話繼續。",
-    midStreamFallback: "產生回覆時發生錯誤,請再試一次。",
+    toolFailedFallback: "工具執行失敗，請再試一次。",
+    conversationTooLong: "這段對話已經太長，請開啟新對話繼續。",
+    midStreamFallback: "產生回覆時發生錯誤，請再試一次。",
     httpStatusFallback: (status: number): string => `HTTP 錯誤 ${status}`,
   },
 
   toolStatus: {
-    running: (toolName: string): string => `執行 ${toolName} 中...`,
+    running: (toolName: string): string => `執行 ${toolName} 中…`,
     completed: (toolName: string): string => `${toolName} 已完成`,
     error: (toolName: string): string => `${toolName} 發生錯誤`,
     aborted: "已中止",
@@ -69,14 +69,14 @@ export const copy = {
 
   composer: {
     inputAriaLabel: "訊息輸入框",
-    inputPlaceholder: "詢問市場、公司或財報相關問題...",
+    inputPlaceholder: "詢問市場、公司或財報相關問題…",
     stopAriaLabel: "停止回應",
     sendAriaLabel: "傳送訊息",
-    disclaimer: "AI 生成的回覆可能不準確,重要資訊請自行查證。",
+    disclaimer: "AI 生成的回覆可能不準確，重要資訊請自行查證。",
   },
 
   emptyState: {
-    heading: "想了解什麼?",
+    heading: "想了解什麼？",
     subtext: "詢問市場、公司、財報或申報文件相關問題。",
     chips: {
       nvdaNews: "NVDA 最新市場新聞",

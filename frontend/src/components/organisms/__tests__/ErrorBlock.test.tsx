@@ -110,7 +110,9 @@ describe("ErrorBlock", () => {
       />,
     );
     expect(screen.getByTestId("error-title")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /詳情/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: copy.errorBlock.showDetails }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId("error-raw-detail")).not.toBeInTheDocument();
   });
 });

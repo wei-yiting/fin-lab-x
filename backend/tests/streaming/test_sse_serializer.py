@@ -14,6 +14,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextDelta,
     TextEnd,
     TextStart,
+    ToolArtifact,
     ToolCall,
     ToolError,
     ToolProgress,
@@ -125,6 +126,22 @@ class TestToolProgress:
         evt = ToolProgress(tool_call_id="tc-1", data={})
         payload = _parse_sse(serialize_event(evt))
         assert payload["transient"] is True
+
+
+class TestToolArtifact:
+    def test_wire_format_is_persistent_data_part(self):
+        evt = ToolArtifact(
+            tool_call_id="tc-1", artifact={"edgar_url": "https://www.sec.gov/x.htm"}
+        )
+        payload = _parse_sse(serialize_event(evt))
+        assert payload == {
+            "type": "data-tool-artifact",
+            "id": "tc-1",
+            "data": {"toolCallId": "tc-1", "edgar_url": "https://www.sec.gov/x.htm"},
+        }
+        # Unlike data-tool-progress, the artifact must survive into message
+        # parts (citation resolver reads it post-stream) — never transient.
+        assert "transient" not in payload
 
 
 class TestStreamError:

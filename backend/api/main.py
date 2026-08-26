@@ -14,6 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 # at initialization time, so .env must be loaded first.
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
+# uvicorn does not configure the root logger, so INFO-level logger.info() calls
+# (e.g. the profile/version line below) are silently dropped without this — only
+# WARNING+ reaches stderr via Python's handler of last resort. A no-op if the
+# root logger already has handlers (e.g. under pytest).
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+)
+
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver  # noqa: E402
 
 from backend.agent_engine.agents.base import Orchestrator  # noqa: E402
@@ -30,7 +38,8 @@ DEFAULT_WORKFLOW_PROFILE = "baseline"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize application-level singletons on startup."""
-    config = ProfileConfigLoader(DEFAULT_WORKFLOW_PROFILE).load()
+    profile_name = os.getenv("WORKFLOW_PROFILE", DEFAULT_WORKFLOW_PROFILE)
+    config = ProfileConfigLoader(profile_name).load()
 
     db_path = str(get_checkpoint_db_path())
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
@@ -38,7 +47,8 @@ async def lifespan(app: FastAPI):
     async with AsyncSqliteSaver.from_conn_string(db_path) as checkpointer:
         app.state.orchestrator = Orchestrator(config, checkpointer=checkpointer)
         logger.info(
-            "Orchestrator initialized: version=%s, model=%s, checkpointer=AsyncSqliteSaver(%s)",
+            "Orchestrator initialized: profile=%s, version=%s, model=%s, checkpointer=AsyncSqliteSaver(%s)",
+            config.name,
             config.version,
             config.model.name,
             db_path,

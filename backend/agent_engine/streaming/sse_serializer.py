@@ -19,6 +19,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextDelta,
     TextEnd,
     TextStart,
+    ToolArtifact,
     ToolCall,
     ToolError,
     ToolProgress,
@@ -103,6 +104,19 @@ def _(event: ToolProgress) -> str:
             "id": event.tool_call_id,
             "data": event.data,
             "transient": True,
+        }
+    )
+
+
+@serialize_event.register
+def _(event: ToolArtifact) -> str:
+    # Persistent (non-transient) data part: the citation resolver reads it
+    # back from message parts after the stream ends, keyed by toolCallId.
+    return _sse(
+        {
+            "type": "data-tool-artifact",
+            "id": event.tool_call_id,
+            "data": {"toolCallId": event.tool_call_id, **event.artifact},
         }
     )
 

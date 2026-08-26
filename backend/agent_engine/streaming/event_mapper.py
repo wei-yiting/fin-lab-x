@@ -19,6 +19,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextDelta,
     TextEnd,
     TextStart,
+    ToolArtifact,
     ToolCall,
     ToolError,
     ToolProgress,
@@ -233,6 +234,13 @@ class StreamEventMapper:
                                 tool_call_id=msg.tool_call_id, result=msg.content
                             )
                         )
+                        if isinstance(msg.artifact, dict) and msg.artifact:
+                            events.append(
+                                ToolArtifact(
+                                    tool_call_id=msg.tool_call_id,
+                                    artifact=msg.artifact,
+                                )
+                            )
                     self._pending_tool_calls.pop(msg.tool_call_id, None)
         return events
 

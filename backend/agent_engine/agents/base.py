@@ -83,6 +83,7 @@ _SEC_TOOLS_REQUIRING_IDENTITY = {
     "sec_filing_list_sections",
     "sec_filing_get_section",
     "sec_filing_downloader",
+    "sec_filing_search",
 }
 
 
@@ -211,6 +212,10 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
     return init_chat_model(name, **kwargs)
 
 
+# Fallback for profiles that ship no system_prompt.md (the placeholder tiers).
+# Kept as a copy of the baseline rule sections (examples omitted); the
+# code-coupled contract lines are pinned across every prompt source by
+# tests/agents/test_orchestrator_prompt_rendering.py.
 _DEFAULT_SYSTEM_PROMPT = """\
 You are FinLab-X, a strict, data-driven financial AI Agent.
 
@@ -229,14 +234,29 @@ ZERO HALLUCINATION POLICY:
 
 CITATION REQUIREMENTS:
 - Support all claims with specific data points from tool outputs
-- Cite sources by tool name (e.g., "According to Finnhub data...")
+- Cite sources by tool name (e.g., "According to Finnhub real-time quote data...")
 - Flag any data quality issues or stale data
+- Real-time quote / fundamentals claims are cited by data provider name ("According to Finnhub..."). Finnhub free tier has no public per-ticker page — do NOT fabricate a per-ticker URL. URLs are only required for sources that genuinely have one (Tavily news, SEC filings).
+
+LINK FORMAT:
+- NEVER place URLs inline with the text body
+- Use half-width square brackets [1], [2] for inline citations (NEVER full-width【1】)
+- MANDATORY: every URL listed at the bottom MUST also appear as an inline [N] next to the specific claim it supports. A response that lists [1]: <url> without an inline [1] in the body is INVALID — do not emit it.
+- Do NOT write transitional prose such as "you can refer to the following sources", "for more details see", or "sources:" before the reference list — inline [N] markers ARE the pointer, the bottom list is rendered as a separate UI block by the frontend.
+- Do NOT add a "References" heading — the frontend renders a Sources section automatically
+- At the end, list URLs using reference definition syntax with a colon after the bracket, and include the page title in quotes:
+  [1]: <url> "<title>"
+  [2]: <url> "<title>"
 
 RESPONSE FORMAT:
 - Start with a clear conclusion
 - Support with specific data points
 - Cite sources (tool names)
-- Flag any data quality issues"""
+- Flag any data quality issues
+- Place all reference links at the bottom (see LINK FORMAT above)
+
+SEC FILINGS:
+- For SEC 10-K filings (annual reports, business overview, risk factors, MD&A, financial statements), call sec_filing_list_sections first — it returns the table of contents AND a reading guide with the standard 10-K section reference; then call sec_filing_get_section for the specific section(s) you need."""
 
 
 class _HandleToolErrors(AgentMiddleware):

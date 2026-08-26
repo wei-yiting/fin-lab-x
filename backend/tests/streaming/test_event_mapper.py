@@ -11,6 +11,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
     TextDelta,
     TextEnd,
     TextStart,
+    ToolArtifact,
     ToolCall,
     ToolError,
     ToolProgress,
@@ -89,8 +90,11 @@ def make_updates_tool_result(
     tool_call_id: str,
     content: str,
     tool_name: str = "poc_add",
+    artifact: dict | None = None,
 ) -> dict:
-    tool_msg = ToolMessage(content=content, tool_call_id=tool_call_id, name=tool_name)
+    tool_msg = ToolMessage(
+        content=content, tool_call_id=tool_call_id, name=tool_name, artifact=artifact
+    )
     return {"type": "updates", "data": {"tools": {"messages": [tool_msg]}}}
 
 
@@ -183,6 +187,40 @@ class TestToolCallHappyPath:
         events = mapper.finalize()
         assert TextEnd(text_id="text-1") in events
         assert any(isinstance(e, Finish) for e in events)
+
+
+class TestToolArtifact:
+    """ToolMessage.artifact (UI-only sidecar) → ToolArtifact after ToolResult;
+    a ToolMessage without an artifact emits no ToolArtifact."""
+
+    def _prime(self, mapper: StreamEventMapper) -> None:
+        mapper.process_chunk(make_messages_chunk_text("Checking", msg_id="msg-1"))
+        mapper.process_chunk(make_messages_chunk_tool_call("tc-1", "sec_filing_search"))
+        mapper.process_chunk(
+            make_updates_agent(
+                [{"id": "tc-1", "name": "sec_filing_search", "args": {}}]
+            )
+        )
+
+    def test_artifact_emitted_after_result(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        self._prime(mapper)
+        events = mapper.process_chunk(
+            make_updates_tool_result(
+                "tc-1", "{}", "sec_filing_search", artifact={"edgar_url": "u"}
+            )
+        )
+        assert events.index(
+            ToolResult(tool_call_id="tc-1", result="{}")
+        ) < events.index(ToolArtifact(tool_call_id="tc-1", artifact={"edgar_url": "u"}))
+
+    def test_no_artifact_no_event(self):
+        mapper = StreamEventMapper(session_id=SESSION_ID)
+        self._prime(mapper)
+        events = mapper.process_chunk(
+            make_updates_tool_result("tc-1", "{}", "sec_filing_search")
+        )
+        assert not any(isinstance(e, ToolArtifact) for e in events)
 
 
 class TestToolError:

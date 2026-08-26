@@ -56,6 +56,15 @@ class ToolProgress:
 
 
 @dataclass(frozen=True)
+class ToolArtifact:
+    """UI-only sidecar of a tool result (``ToolMessage.artifact``): metadata
+    the frontend needs that was deliberately kept out of the model context."""
+
+    tool_call_id: str
+    artifact: dict
+
+
+@dataclass(frozen=True)
 class ReasoningStart:
     reasoning_id: str
 
@@ -97,6 +106,7 @@ DomainEvent = (
     | ToolResult
     | ToolError
     | ToolProgress
+    | ToolArtifact
     | ReasoningStart
     | ReasoningDelta
     | ReasoningEnd

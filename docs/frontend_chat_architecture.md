@@ -4,7 +4,7 @@ This document records the architecture of the streaming chat UI (`frontend/src/c
 
 ## 1. Scope
 
-- Renders the SSE wire format emitted by `backend/api/routers/chat.py` (`start`, `text-delta`, `tool-input-available`, `tool-output-available`, `tool-output-error`, `data-tool-progress`, `error`, `finish`).
+- Renders the SSE wire format emitted by `backend/api/routers/chat.py` (`start`, `text-delta`, `tool-input-available`, `tool-output-available`, `tool-output-error`, `data-tool-progress`, `data-tool-artifact`, `error`, `finish`).
 - Consumes the stream via `@ai-sdk/react` `useChat` + `DefaultChatTransport` from `ai`.
 - Owns the full chat lifecycle in a single page component (`ChatPanel`); everything below is stateless or owns only local UI concerns.
 
@@ -164,6 +164,7 @@ The backend emits AI SDK v6 `uiMessageChunkSchema`-compatible chunks. The fronte
 | -------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tool-input-available`                                  | `input-available`                          | 🟠 StatusDot running + `toolProgress[id]` or `Calling {toolName}...`                                                                                                                                                                 |
 | `data-tool-progress` (transient sidecar)                | —                                          | `toolProgress[id] = message`; re-renders the running ToolCard. Never enters `messages`.                                                                                                                                              |
+| `data-tool-artifact` (persistent sidecar)                | data part                                   | UI-only tool metadata (e.g. `sec_filing_search` EDGAR URL) kept out of the model context; stays in `messages` for the post-stream citation resolver, keyed by `toolCallId`.                                                        |
 | `tool-output-available`                                 | `output-available`                         | 🟢 StatusDot success + generic label `Completed` + expandable INPUT/OUTPUT JSON                                                                                                                                                      |
 | `tool-output-error`                                     | `output-error`                             | 🔴 StatusDot error + friendly translated title (via `lib/error-messages.ts`) + expandable raw detail                                                                                                                                 |
 | `text-start` / `text-delta` / `text-end`                | text part                                  | Markdown incremental re-render + trailing `Cursor` while streaming                                                                                                                                                                   |

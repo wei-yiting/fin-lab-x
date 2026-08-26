@@ -79,15 +79,15 @@ export const copy = {
     heading: "想了解什麼？",
     subtext: "詢問市場、公司、財報或申報文件相關問題。",
     chips: {
-      nvdaNews: "NVDA 最新市場新聞",
-      aaplQuote: "查詢 AAPL 股價",
-      compareFinancials: "比較 NVDA 和 AMD 財報",
-      msftLatest10K: "摘要 MSFT 最新的 10-K 申報文件",
+      nvdaNews: "輝達 (Nvidia) 最新市場新聞",
+      aaplQuote: "查詢蘋果 (Apple) 股價",
+      compareFinancials: "比較輝達 (Nvidia) 和超微 (AMD) 財報",
+      msftLatest10K: "摘要微軟 (Microsoft) 最新的年度財報",
     },
   },
 
   interruptedMarker: {
-    label: "已中斷",
+    label: "已終止",
   },
 
   regenerateButton: {

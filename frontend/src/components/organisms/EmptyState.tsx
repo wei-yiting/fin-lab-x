@@ -19,7 +19,7 @@ export function EmptyState({ onPickPrompt }: { onPickPrompt: (text: string) => v
         {copy.emptyState.heading}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">{copy.emptyState.subtext}</p>
-      <div className="mt-8 grid w-full max-w-md grid-cols-2 gap-2">
+      <div className="mt-8 grid w-full max-w-2xl grid-cols-2 gap-2">
         {CHIPS.map((chip, i) => (
           <PromptChip
             key={i}

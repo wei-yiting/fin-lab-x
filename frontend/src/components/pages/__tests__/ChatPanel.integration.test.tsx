@@ -316,7 +316,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
     // Turn-level marker: every user Stop leaves an
     // explicit copy.interruptedMarker.label row under the cut turn.
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
-    expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("已中斷");
+    expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("已終止");
   }, 20000);
 
   test("stop while only reply text is streaming → Interrupted marker renders (no chip/tool carrier)", async () => {

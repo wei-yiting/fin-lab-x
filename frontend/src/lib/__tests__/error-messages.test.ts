@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { toFriendlyError } from "../error-messages";
+import { toFriendlyError, type ErrorContext } from "../error-messages";
 
 describe("toFriendlyError — pre-stream HTTP errors", () => {
   test.each([
@@ -73,6 +73,21 @@ describe("toFriendlyError — mid-stream-sse pattern matching", () => {
 });
 
 describe("toFriendlyError — invariants", () => {
+  test("title is always non-empty and within a reasonable length", () => {
+    const cases: ErrorContext[] = [
+      { source: "pre-stream-http", status: 422 },
+      { source: "pre-stream-http", status: 999 },
+      { source: "network" },
+      { source: "tool-output-error", rawMessage: "random error" },
+      { source: "mid-stream-sse", rawMessage: "random" },
+    ];
+    for (const ctx of cases) {
+      const result = toFriendlyError(ctx);
+      expect(result.title.length).toBeLessThanOrEqual(80);
+      expect(result.title.length).toBeGreaterThan(0);
+    }
+  });
+
   test("detail is set only when rawMessage is provided", () => {
     expect(toFriendlyError({ source: "pre-stream-http", status: 422 }).detail).toBeUndefined();
     expect(

@@ -12,7 +12,7 @@ A versioned config directory that fully defines an Orchestrator's behavior; the 
 _Avoid_: hardcoded agent, agent subclass, workflow version (legacy code vocabulary for the config bundle, retired by the capability-tier rename — the profile's own semver still lives in the `version` field)
 
 **Capability tier**:
-One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. Only `baseline` is implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
+One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. `baseline` and `reader` are implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
 _Avoid_: v1–v5 / bare version numbers for agents (legacy naming; collides with pipeline generations, PRD phases, and external SDK versions)
 
 **Capability**:
@@ -20,6 +20,14 @@ Anything the Orchestrator can act through — Tools, Skills, MCP, Subagents. Onl
 
 **Zero Hallucination Policy**:
 Every claim in an answer must be grounded in tool output and carry a citation.
+
+**Pinpoint question / Synoptic question**:
+The two classes of SEC information need. A pinpoint question's answer lives in a few specific passages of a filing; a synoptic question needs the overview of a whole filing section ("summarize Item 1A"). The distinction drives SEC tool routing and eval question classification.
+_Avoid_: targeted question (a whole section can also be a "target" — ambiguous)
+
+**Evidence gap annotation**:
+The claim-adjacent, in-answer note stating that a sub-question found no supporting evidence in the filing. The positive form of Legible failure for partial answers; the emphasis is the lack of evidence, stated where the missing claim would have been — never a tail disclaimer covering the whole answer.
+_Avoid_: gap annotation (drops the point — what is missing is evidence)
 
 **Language Policy**:
 Tool arguments are always English; the final answer mirrors the user's language. Measured by CJK-ratio scorers.

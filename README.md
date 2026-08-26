@@ -77,7 +77,7 @@ capability surface without code changes:
 | Profile | Approach | Status |
 |---|---|---|
 | `baseline` | Tool-calling ReAct over Finnhub quotes, Tavily news, SEC filing section reads | **Live default** |
-| `reader` | Long-context synthesis + RAG over SEC 10-Ks (Qdrant dense retrieval) | In development |
+| `reader` | Structured RAG over SEC 10-Ks (Qdrant dense retrieval) with chunk-level citations | **Implemented** |
 | `quant` | Text-to-SQL over structured fundamentals (DuckDB) | In development |
 | `graph` | Knowledge-graph analysis | Planned |
 | `analyst` | Combined research assistant (all capabilities) | Planned |
@@ -87,7 +87,7 @@ capability surface without code changes:
 | Layer | Source → Store | Agent entry point |
 |---|---|---|
 | News search | Tavily (trusted-domain allowlist) | `tavily_financial_search` |
-| Unstructured RAG | SEC EDGAR 10-K → Markdown → Qdrant dense vectors | `search_sec_filings` (JIT) |
+| Unstructured RAG | SEC EDGAR 10-K → Markdown → Qdrant dense vectors | `sec_filing_search` (JIT) |
 | Structured quant | SEC XBRL / market data → DuckDB (8-table schema) | text-to-SQL (`quant` profile, in development) |
 
 The Single Orchestrator + capabilities pattern keeps every decision in one trace tree; the

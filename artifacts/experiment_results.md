@@ -209,3 +209,77 @@ Raw CSVs:
 - **Oracle ticker**:三層 scenario 假設 LLM router 完美地從 query 抽出 ticker(因 dataset 預先標好 `target_ticker`)。這個假設把 router accuracy 從實驗中 isolate 掉 —— 真實 production 中 router 抽錯 ticker 的成本是另一條獨立的議題。
 - **n=3 per ticker**:per-ticker 平均的統計力有限,本實驗的數字呈現的是 *方向性* 而非精確 effect size。
 - **語言不對稱**:中文 query → 英文 chunks。`text-embedding-3-large` 對跨語言對齊普遍良好,但這也是 entity-mismatch 容易發生的條件之一(中文「Google」跟英文 chunks 裡的 "Google / search engine / advertising" 的距離可能比英文「supply chain」跟「Google supply chain」更近)。
+
+---
+
+## 10. English-Dataset Re-run(2026-08-23,branch `experiment/rag-filter-eval-en`)
+
+> 動機:production 的 retrieval 是 LLM 把使用者問題轉成英文後才呼叫的 tool,英文 query 比原本中文 query 更貼近實際生產情境。過程中也發現 AMD 原始語料其實是 10-K/A(修訂版),不是完整 10-K——一併修正重跑。**這不是「重現同一個實驗」,是語料修正 + 換語言的獨立變體,數字不與上面章節直接比較。**
+
+### 10.1 與原實驗的差異
+
+| | 原實驗(§1–9) | 這次 |
+|---|---|---|
+| Query 語言 | 中文 | 英文 |
+| AMD 語料 | 10-K/A(83 chunks,只有 Part III/IV)—— fetch bug,當時未知 | 完整 10-K(427 chunks,Part I–IV 齊全)—— cherry-pick 主線 PR #64 / #66 修復 |
+| Qdrant collection | 共用 `sec_filings_openai_large_dense_baseline` | 獨立 `sec_filings_rag_filter_en_baseline`(避開共用 baseline 因其他 worktree 活動已漂移到 3,518 pts / 8 tickers) |
+| Total chunks | 1,844 | 2,187(全部差額來自 AMD 421→427 的修正,其餘 ticker ±1 屬正常 chunking 差異) |
+| `--upload` | 否(兩次重現都沒帶這個 flag) | 是——兩個 experiment 都是真實建立的 Braintrust experiment |
+
+### 10.2 Aggregate Summary
+
+| Metric | Naive | Metadata-filter |
+|---|---:|---:|
+| p@5 | 80.00% | 100.00% |
+| p@10 | 68.89% | 100.00% |
+
+Braintrust experiments(finlab-x project):
+- Naive: [`rag_filter_naive_20260823_085453`](https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag_filter_naive_20260823_085453)
+- Metadata-filter: [`rag_filter_metadata_filter_20260823_085458`](https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag_filter_metadata_filter_20260823_085458)
+
+（首輪跑出 94.44% 而非預期的 100% filtered——追出來是 dataset.csv 裡一題英文問句帶了沒 quote 的逗號，CSV 欄位位移導致 `target_ticker` 變成垃圾字串。修正後重新兩輪 `--upload`，上面是修正後的數字。）
+
+### 10.3 主要發現:AMD 不再是最慘的 ticker
+
+| Ticker | Naive p@10 mean(這次,AMD 已修正) | 對照原實驗(中文,AMD 未修正) |
+|---|---:|---:|
+| INTC | 0.97 | 0.80 |
+| MSFT | 0.73 | 0.87 |
+| AAPL | 0.70 | 0.73 |
+| NVDA | 0.70 | 0.67 |
+| AMD | **0.67**(中段班) | **0.13**(原本最慘) |
+| GOOGL | **0.37**(這次最慘) | 0.47 |
+
+AMD 語料修正後直接從「最慘」變中段班——原實驗 §3/§5 的核心敘事(「AMD 語料最小、被語意鄰居淹沒」)很大程度上是 10-K/A bug 的假象,不是「小公司語料天生脆弱」這個更廣論點的乾淨案例。**§3/§5/§6 保留原樣作為歷史記錄,但文章不應再以 AMD 為主案例。**
+
+### 10.4 更好的解釋:題目類型 > ticker
+
+不分 ticker,改以「題目是不是通用揭露語言」分組:
+
+| 題型 | n | mean p@10 | range |
+|---|---:|---:|---|
+| 通用風險語言(supply chain / customer concentration) | 4 | **0.40** | 0.1 – 0.5 |
+| 公司特有敘事(品牌/產品/指名競爭對手) | 14 | **0.77** | 0.4 – 1.0 |
+
+「supply chain」類題目不管問哪家公司,都是那家公司當次最慘或次慘的一題(GOOGL 0.1、AAPL 0.5、AMD 0.5;NVDA 同屬性的「customer concentration」也是 0.5)。10-K risk factor 章節受揭露規範約束,各公司用詞高度相似,embedding 分不出公版語言屬於誰;反之帶品牌名/指名對手/獨有業務線的題目,不分公司幾乎都在 0.7 以上。**這次最慘的單題是 GOOGL 的「What supply chain risks does Google's latest earnings report mention?」(p@10=0.1,top-10 只有 1 個真的是 GOOGL,其餘 AAPL×4 + 其他),原始 supply-chain 章節的公版語言比公司身份更能預測 retrieval 是否失敗。**
+
+### 10.5 重現步驟
+
+前提同 §8,唯一差異是用獨立 collection 名稱,避免共用 baseline 被其他 worktree 活動污染:
+
+```bash
+export SEC_QDRANT_COLLECTION=sec_filings_rag_filter_en_baseline
+
+uv run python -m backend.scripts.embed_sec_filings GOOGL MSFT AAPL AMD INTC --year 2025
+uv run python -m backend.scripts.embed_sec_filings NVDA --year 2026
+uv run python -m backend.scripts.setup_naive_collection
+
+uv run python -m backend.evals.eval_runner rag_filter_naive --upload
+uv run python -m backend.evals.eval_runner rag_filter_metadata_filter --upload
+```
+
+前提：`backend/.env` 除了 `OPENAI_API_KEY` 還要有 `BRAINTRUST_API_KEY`（`--upload` 需要）。banner 應顯示兩個 collection 皆 2,187 pts。
+
+Raw CSVs:
+- `backend/evals/results/rag_filter_naive_20260823_085453_599229.csv`
+- `backend/evals/results/rag_filter_metadata_filter_20260823_085508_111068.csv`

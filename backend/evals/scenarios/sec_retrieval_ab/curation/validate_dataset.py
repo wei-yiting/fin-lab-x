@@ -4,11 +4,19 @@ Validates ground truth against the filing store ONLY (ADR-0016): no Qdrant,
 no network, no LLM. Pure functions over dataset rows + ParsedFiling JSON, so
 the whole contract is unit-testable with fixtures.
 
+Round-3 semantics (ratified 2026-08-27, see curation/round3_assembly_instructions.md):
+the per-row entry lists (`header_paths` / `spans` / `snippets`, index-aligned)
+are OR alternatives — retrieval hitting ANY listed location counts as a hit.
+`multi_passage` was removed, and Item 8 is outside the retrieval scope on both
+A/B arms, so it can neither appear as an expected location nor cause a
+uniqueness failure.
+
 Contract rules (one issue `rule` string each):
 - list_alignment          header_paths / spans / snippets same length
-- entry_count             factoid/passage exactly 1 entry, multi_passage 2-3
+- entry_count             query_type must be factoid|passage, with >= 1 entry
 - ticker_mismatch         every header_path ticker == expected_tickers[0]
 - header_path_format      `TICKER / FY / Item N. Title`, no Part, title match
+- item_8_excluded         header_path targets Item 8 (outside retrieval scope)
 - filing_missing          (ticker, fiscal year) not in the filing store
 - item_missing            Item absent from the parsed filing (e.g. stub-dropped)
 - span_not_in_block       span is not a substring of any single unit
@@ -16,9 +24,10 @@ Contract rules (one issue `rule` string each):
 - span_too_long           span > SPAN_MAX_TOKENS cl100k tokens
 - snippet_not_in_span     snippet not a substring of its span
 - snippet_length          snippet outside SNIPPET_MIN/MAX_CHARS
-- snippet_not_unique      snippet occurs != 1 time across the whole corpus
-- multi_passage_same_block   two spans share one block of one structured Item
-- multi_passage_too_close    two spans in one flat Item < MIN_FLAT_GAP_TOKENS apart
+- snippet_not_unique      enumerated exemption: a snippet's occurrence count
+                          across the corpus (Item 8 excluded) must equal the
+                          number of times the row lists it; unlisted extra
+                          occurrences fail
 
 Usage:
     uv run python -m backend.evals.scenarios.sec_retrieval_ab.curation.validate_dataset \
@@ -31,7 +40,8 @@ import argparse
 import csv
 import json
 import sys
-from dataclasses import dataclass, field
+from collections import Counter
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -49,7 +59,6 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
 # Ratified contract (round-2 review, 2026-08-27): span ~half the old arm's
 # 512-token chunks so it keeps discriminative power.
 SPAN_MAX_TOKENS = 300
-MIN_FLAT_GAP_TOKENS = 600
 # The snippet is the strict-containment hit key. 200 chars (~50 tokens)
 # matches the old arm's chunk overlap, so a conforming snippet cannot
 # straddle a chunk boundary and silently kill the row on that arm.
@@ -92,11 +101,8 @@ class _Entry:
     ticker: str
     fiscal_year: int
     item_key: str
-    is_flat: bool
-    unit_index: int | None
     span: str
     snippet: str
-    flat_char_pos: int = field(default=-1)
 
 
 @lru_cache(maxsize=1)
@@ -149,9 +155,17 @@ def _find_item(filing: ParsedFiling, item_key: str) -> StructuredItem | FlatItem
 def _corpus_occurrences(
     filings: dict[tuple[str, int], ParsedFiling], needle_lower: str
 ) -> int:
+    """Occurrences across the corpus, excluding Item 8.
+
+    Item 8 is outside the retrieval scope on both A/B arms (round-3
+    decision 4), so a copy of a snippet living there can never be retrieved
+    and must not count against uniqueness.
+    """
     total = 0
     for filing in filings.values():
         for item in filing.items:
+            if item.item.strip().lower() == "8":
+                continue
             for unit in _units(item):
                 total += unit.text.lower().count(needle_lower)
     return total
@@ -192,6 +206,17 @@ def _resolve_entry(
         )
         return None
     ticker, fiscal_year, item_key, label = parsed
+
+    if item_key == "8":
+        issues.append(
+            Issue(
+                row.row_id,
+                "item_8_excluded",
+                f"header_path targets Item 8, which is outside the retrieval "
+                f"scope on both A/B arms: {path!r}",
+            )
+        )
+        return None
 
     if row.tickers and ticker != row.tickers[0].upper():
         issues.append(
@@ -273,75 +298,40 @@ def _resolve_entry(
             )
         )
         ok = False
-    occurrences = _corpus_occurrences(filings, snippet.lower())
-    if occurrences != 1:
-        issues.append(
-            Issue(
-                row.row_id,
-                "snippet_not_unique",
-                f"snippet occurs {occurrences} times across the parsed corpus",
-            )
-        )
-        ok = False
-
     if not ok:
         return None
-    is_flat = isinstance(item, FlatItem)
     return _Entry(
         ticker=ticker,
         fiscal_year=fiscal_year,
         item_key=item_key,
-        is_flat=is_flat,
-        unit_index=home.index if home is not None else None,
         span=span,
         snippet=snippet,
-        flat_char_pos=item.text.lower().find(span_lower) if is_flat else -1,
     )
 
 
-def _check_multi_passage_placement(
+def _check_snippet_enumeration(
     row: Row,
-    entries: list[_Entry],
     filings: dict[tuple[str, int], ParsedFiling],
     issues: list[Issue],
 ) -> None:
-    for i in range(len(entries)):
-        for j in range(i + 1, len(entries)):
-            a, b = entries[i], entries[j]
-            same_item = (a.ticker, a.fiscal_year, a.item_key) == (
-                b.ticker,
-                b.fiscal_year,
-                b.item_key,
-            )
-            if not same_item:
-                continue
-            if not a.is_flat:
-                if a.unit_index == b.unit_index:
-                    issues.append(
-                        Issue(
-                            row.row_id,
-                            "multi_passage_same_block",
-                            f"spans {i} and {j} share one block of Item {a.item_key}",
-                        )
-                    )
-                continue
-            filing = filings[(a.ticker, a.fiscal_year)]
-            item = _find_item(filing, a.item_key)
-            assert isinstance(item, FlatItem)
-            first, second = sorted((a, b), key=lambda entry: entry.flat_char_pos)
-            gap_start = first.flat_char_pos + len(first.span)
-            gap_text = item.text[gap_start : second.flat_char_pos]
-            if second.flat_char_pos < gap_start or (
-                _token_len(gap_text) < MIN_FLAT_GAP_TOKENS
-            ):
-                issues.append(
-                    Issue(
-                        row.row_id,
-                        "multi_passage_too_close",
-                        f"spans {i} and {j} are < {MIN_FLAT_GAP_TOKENS} "
-                        f"tokens apart in flat Item {a.item_key}",
-                    )
+    """Enumerated-exemption uniqueness (round-3 decision 6).
+
+    For each distinct snippet text in the row's OR-set, its occurrence count
+    across the corpus (Item 8 excluded) must equal the number of times the
+    row lists it — every reachable copy must be an enumerated alternative.
+    """
+    listed_counts = Counter(s.lower() for s in row.snippets)
+    for text, listed in listed_counts.items():
+        occurrences = _corpus_occurrences(filings, text)
+        if occurrences != listed:
+            issues.append(
+                Issue(
+                    row.row_id,
+                    "snippet_not_unique",
+                    f"snippet occurs {occurrences} time(s) in the corpus "
+                    f"outside Item 8 but the row lists {listed} location(s)",
                 )
+            )
 
 
 def validate_rows(
@@ -361,43 +351,29 @@ def validate_rows(
                 )
             )
             continue
-        if row.query_type in ("factoid", "passage"):
-            if n != 1:
-                issues.append(
-                    Issue(
-                        row.row_id,
-                        "entry_count",
-                        f"{row.query_type} requires exactly 1 entry, got {n}",
-                    )
-                )
-                continue
-        elif row.query_type == "multi_passage":
-            if not 2 <= n <= 3:
-                issues.append(
-                    Issue(
-                        row.row_id,
-                        "entry_count",
-                        f"multi_passage requires 2-3 entries, got {n}",
-                    )
-                )
-                continue
-        else:
+        if row.query_type not in ("factoid", "passage"):
             issues.append(
                 Issue(
                     row.row_id,
                     "entry_count",
-                    f"unknown query_type {row.query_type!r}",
+                    f"unknown query_type {row.query_type!r} "
+                    "(multi_passage was removed in round 3)",
+                )
+            )
+            continue
+        if n < 1:
+            issues.append(
+                Issue(
+                    row.row_id,
+                    "entry_count",
+                    f"{row.query_type} requires at least 1 entry, got {n}",
                 )
             )
             continue
 
-        entries = [
-            entry
-            for i in range(n)
-            if (entry := _resolve_entry(row, i, filings, issues)) is not None
-        ]
-        if row.query_type == "multi_passage" and len(entries) == n:
-            _check_multi_passage_placement(row, entries, filings, issues)
+        for i in range(n):
+            _resolve_entry(row, i, filings, issues)
+        _check_snippet_enumeration(row, filings, issues)
     return issues
 
 

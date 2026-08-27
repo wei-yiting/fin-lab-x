@@ -58,6 +58,10 @@ FLAT_FAR_SENT = (
     "Foreign currency forward contracts are used to hedge a portion of "
     "our anticipated non-dollar operating expenses."
 )
+SAME_TICKER_DUP_SENT = (
+    "Our supplier concentration in advanced packaging remains a structural "
+    "constraint on near-term capacity expansion."
+)
 
 
 def _filler(n_words: int, tag: str) -> str:
@@ -107,7 +111,8 @@ def store_dir(tmp_path: Path) -> Path:
                         heading="Customer Concentration",
                         text=(
                             f"{CONCENTRATION_SENT} The loss of any such "
-                            f"customer could harm results. {DUP_SENT}"
+                            f"customer could harm results. {DUP_SENT} "
+                            f"{SAME_TICKER_DUP_SENT}"
                         ),
                     ),
                 ],
@@ -125,10 +130,25 @@ def store_dir(tmp_path: Path) -> Path:
                         heading="Results of Operations",
                         text=(
                             f"Fiscal 2025 was a record year. {REVENUE_SENT} "
-                            "Gross margin expanded on product mix."
+                            f"Gross margin expanded on product mix. "
+                            f"{SAME_TICKER_DUP_SENT}"
                         ),
                     ),
                     Block(heading="Liquidity", text=LONG_BLOCK_SPAN),
+                ],
+            ),
+            # Item 8 copy of EXPORT_SENT: outside the retrieval scope, so it
+            # must not count against snippet uniqueness (round-3 decision 4).
+            StructuredItem(
+                item="8",
+                title="Financial Statements and Supplementary Data",
+                prelude="",
+                detection_source="markdown_h3",
+                blocks=[
+                    Block(
+                        heading="Note 1",
+                        text=f"Basis of presentation. {EXPORT_SENT}",
+                    )
                 ],
             ),
             FlatItem(
@@ -188,7 +208,7 @@ def _rules(issues: list[Issue]) -> set[str]:
 # --- passing cases ---
 
 
-def test_valid_factoid_passage_and_multi_passage_rows_pass(store_dir: Path) -> None:
+def test_valid_factoid_and_passage_rows_pass(store_dir: Path) -> None:
     factoid = _row()
     passage = _row(
         row_id="r2",
@@ -204,21 +224,11 @@ def test_valid_factoid_passage_and_multi_passage_rows_pass(store_dir: Path) -> N
         snippets=[REVENUE_SENT],
         query_type="passage",
     )
-    multi = _row(
-        row_id="r3",
-        question="key demand-side risks for the data center business",
-        header_paths=[
-            "AAA / 2025 / Item 1A. Risk Factors",
-            "AAA / 2025 / Item 1A. Risk Factors",
-        ],
-        spans=[EXPORT_SENT, CONCENTRATION_SENT],
-        snippets=[EXPORT_SENT, CONCENTRATION_SENT],
-        query_type="multi_passage",
-    )
-    assert _issues(store_dir, factoid, passage, multi) == []
+    assert _issues(store_dir, factoid, passage) == []
 
 
-def test_multi_passage_far_apart_in_flat_item_passes(store_dir: Path) -> None:
+def test_or_set_alternatives_pass(store_dir: Path) -> None:
+    """Entries are OR alternatives: several distinct locations, one row."""
     flat_path = (
         "AAA / 2025 / Item 7A. Quantitative and Qualitative Disclosures "
         "About Market Risk"
@@ -227,9 +237,30 @@ def test_multi_passage_far_apart_in_flat_item_passes(store_dir: Path) -> None:
         header_paths=[flat_path, flat_path],
         spans=[FLAT_FIRST_SENT, FLAT_FAR_SENT],
         snippets=[FLAT_FIRST_SENT, FLAT_FAR_SENT],
-        query_type="multi_passage",
+        query_type="passage",
     )
     assert _issues(store_dir, row) == []
+
+
+def test_enumerated_same_text_duplicate_passes(store_dir: Path) -> None:
+    """A snippet occurring twice passes when both locations are listed."""
+    row = _row(
+        header_paths=[
+            "AAA / 2025 / Item 1A. Risk Factors",
+            "AAA / 2025 / Item 7. Management's Discussion and Analysis of "
+            "Financial Condition and Results of Operations",
+        ],
+        spans=[SAME_TICKER_DUP_SENT, SAME_TICKER_DUP_SENT],
+        snippets=[SAME_TICKER_DUP_SENT, SAME_TICKER_DUP_SENT],
+        query_type="passage",
+    )
+    assert _issues(store_dir, row) == []
+
+
+def test_item8_copy_does_not_break_uniqueness(store_dir: Path) -> None:
+    """EXPORT_SENT also lives in the fixture's Item 8; that copy is outside
+    the retrieval scope and must not count against uniqueness."""
+    assert "snippet_not_unique" not in _rules(_issues(store_dir, _row()))
 
 
 def test_span_in_prelude_passes(store_dir: Path) -> None:
@@ -303,35 +334,29 @@ def test_snippet_duplicated_across_corpus_fails(store_dir: Path) -> None:
     assert "snippet_not_unique" in _rules(_issues(store_dir, row))
 
 
-# --- rule (d): multi_passage span placement ---
+# --- rule (d): retired query types and excluded items ---
 
 
-def test_multi_passage_spans_in_same_block_fails(store_dir: Path) -> None:
-    same_block_sent = "We continue to seek licenses where they are available to us."
+def test_multi_passage_query_type_rejected(store_dir: Path) -> None:
     row = _row(
         header_paths=[
             "AAA / 2025 / Item 1A. Risk Factors",
             "AAA / 2025 / Item 1A. Risk Factors",
         ],
-        spans=[EXPORT_SENT, same_block_sent],
-        snippets=[EXPORT_SENT, same_block_sent],
+        spans=[EXPORT_SENT, CONCENTRATION_SENT],
+        snippets=[EXPORT_SENT, CONCENTRATION_SENT],
         query_type="multi_passage",
     )
-    assert "multi_passage_same_block" in _rules(_issues(store_dir, row))
+    assert "entry_count" in _rules(_issues(store_dir, row))
 
 
-def test_multi_passage_flat_spans_too_close_fails(store_dir: Path) -> None:
-    flat_path = (
-        "AAA / 2025 / Item 7A. Quantitative and Qualitative Disclosures "
-        "About Market Risk"
-    )
+def test_item_8_header_path_rejected(store_dir: Path) -> None:
     row = _row(
-        header_paths=[flat_path, flat_path],
-        spans=[FLAT_FIRST_SENT, FLAT_NEAR_SENT],
-        snippets=[FLAT_FIRST_SENT, FLAT_NEAR_SENT],
-        query_type="multi_passage",
+        header_paths=[
+            "AAA / 2025 / Item 8. Financial Statements and Supplementary Data"
+        ],
     )
-    assert "multi_passage_too_close" in _rules(_issues(store_dir, row))
+    assert "item_8_excluded" in _rules(_issues(store_dir, row))
 
 
 # --- rule (e): header_path contract ---
@@ -366,37 +391,12 @@ def test_misaligned_list_lengths_fail(store_dir: Path) -> None:
             "AAA / 2025 / Item 1A. Risk Factors",
             "AAA / 2025 / Item 1A. Risk Factors",
         ],
-        query_type="multi_passage",
     )  # spans/snippets still length 1
     assert "list_alignment" in _rules(_issues(store_dir, row))
 
 
-def test_single_passage_types_require_exactly_one_entry(store_dir: Path) -> None:
-    row = _row(
-        header_paths=[
-            "AAA / 2025 / Item 1A. Risk Factors",
-            "AAA / 2025 / Item 1A. Risk Factors",
-        ],
-        spans=[EXPORT_SENT, CONCENTRATION_SENT],
-        snippets=[EXPORT_SENT, CONCENTRATION_SENT],
-        query_type="factoid",
-    )
-    assert "entry_count" in _rules(_issues(store_dir, row))
-
-
-def test_multi_passage_requires_at_least_two_entries(store_dir: Path) -> None:
-    row = _row(query_type="multi_passage")
-    assert "entry_count" in _rules(_issues(store_dir, row))
-
-
-def test_multi_passage_rejects_more_than_three_entries(store_dir: Path) -> None:
-    path = "AAA / 2025 / Item 1A. Risk Factors"
-    row = _row(
-        header_paths=[path] * 4,
-        spans=[EXPORT_SENT] * 4,
-        snippets=[EXPORT_SENT] * 4,
-        query_type="multi_passage",
-    )
+def test_zero_entries_fail(store_dir: Path) -> None:
+    row = _row(header_paths=[], spans=[], snippets=[])
     assert "entry_count" in _rules(_issues(store_dir, row))
 
 

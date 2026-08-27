@@ -40,6 +40,10 @@ review notes, the original DEV-162 spec text, prompt v3 wording), **this file wi
 
 ### T1 — Re-anchor whitespace-mismatched occurrences to filing-store text
 
+**Completed 2026-08-27.** The reconciled occurrences and exceptions are recorded
+in `round3_t1_t2_reconciliation.md`; the affected ticker JSON files now carry the
+store-exact strings and `store_anchor` offsets.
+
 Round-2 span/snippet strings were extracted from an independently normalized HTML
 text; 10 occurrences do not exact-match the filing store purely due to whitespace.
 For each: locate the passage in the store (whitespace-insensitive match), then
@@ -64,6 +68,11 @@ treatment. Re-verify snippet length (50–200) after re-extraction; if a re-anch
 snippet leaves the range, choose the closest conforming sentence within the same span.
 
 ### T2 — Drop Item 8 locations from OR-sets, with label-escape verification
+
+**Completed 2026-08-27 for the filing-store arm.** Drop/relabel provenance is
+recorded per candidate in the affected ticker JSON files and summarized in
+`round3_t1_t2_reconciliation.md`. Cross-arm header-path verification is owned by a
+separate issue and is intentionally outside this reconciliation.
 
 Remove every occurrence whose location is Item 8 (notes, auditor's report,
 financial statements). Known cases: p45 (Notes 2/8), a24 (Note 6), a25 (Note 25),

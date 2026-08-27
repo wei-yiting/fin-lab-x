@@ -202,11 +202,9 @@
         "query_type": "factoid",
         "item_keys": [
           "7",
-          "7a",
-          "8-note-2",
-          "8-note-8"
+          "7a"
         ],
-        "reason": "The approved Round 1 question remains unchanged. Full traversal found four distinct source occurrences that each state both the issuance timing and principal amount, so all four must be OR-hit alternatives even though they do not broaden the answer."
+        "reason": "The approved Round 1 question remains unchanged. After the Item 8 exclusion, the Item 7 and Item 7A filing-store occurrences each state both the issuance timing and principal amount."
       },
       "acceptable_occurrences": [
         {
@@ -229,43 +227,56 @@
           "window_id": "W022",
           "normalized_start": 259341,
           "normalized_end": 259427,
-          "answer_span": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.",
-          "answer_snippet": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.",
+          "answer_span": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.",
+          "answer_snippet": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.",
           "snippet_chars": 86,
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states December 2024 and $1.0 billion for the 2029 Notes issuance."
-        },
-        {
-          "occurrence_id": "DDOG-2025-286123",
-          "item_hint": "Item 8, Note 2",
-          "canonical_line": 1389,
-          "window_id": "W024",
-          "normalized_start": 286123,
-          "normalized_end": 286224,
-          "answer_span": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of the “2029 Notes”.",
-          "answer_snippet": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of the “2029 Notes”.",
-          "snippet_chars": 101,
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states the more precise December 12, 2024 date and $1.0 billion principal amount."
-        },
-        {
-          "occurrence_id": "DDOG-2025-323068",
-          "item_hint": "Item 8, Note 8",
-          "canonical_line": 1629,
-          "window_id": "W027",
-          "normalized_start": 323068,
-          "normalized_end": 323210,
-          "answer_span": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of 0.00% Convertible Senior Notes due 2029 (the “2029 Notes”)",
-          "answer_snippet": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of 0.00% Convertible Senior Notes due 2029 (the “2029 Notes”)",
-          "snippet_chars": 142,
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "This shortest self-contained clause independently states the exact date, amount, and 2029 Notes identity; the source sentence continues with placement details that are unnecessary for the answer and would exceed 200 characters."
+          "acceptance_reason": "Independently states December 2024 and $1.0 billion for the 2029 Notes issuance.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7a",
+            "item_title": "Quantitative and Qualitative Disclosures About Market Risk",
+            "unit_kind": "structured_block",
+            "block_index": 0,
+            "block_heading": "Interest Rate Risk",
+            "span_start": 733,
+            "span_end": 819,
+            "snippet_start": 733,
+            "snippet_end": 819,
+            "span_sha256": "8463ee85788f9dd347851374f6756aac701bbf4d435ea4d245c5a8bac4bc529e",
+            "snippet_sha256": "8463ee85788f9dd347851374f6756aac701bbf4d435ea4d245c5a8bac4bc529e"
+          }
         }
       ],
       "post_traversal_audit": {
         "rejected_classes": [
           "other 2029 Notes references that state maturity, carrying value, conversion terms, proceeds, or interest but omit issuance timing or principal amount",
           "the continuation of the Note 8 sentence beyond the shortest independently sufficient 142-character clause"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "DDOG-2025-259341",
+            "reason": "Re-extracted the Item 7A occurrence to preserve the filing-store non-breaking space after In."
+          }
+        ],
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "DDOG-2025-286123",
+            "original_item_hint": "Item 8, Note 2",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope."
+          },
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "DDOG-2025-323068",
+            "original_item_hint": "Item 8, Note 8",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope."
+          }
         ]
       }
     },
@@ -300,11 +311,25 @@
           "window_id": "W019",
           "normalized_start": 225945,
           "normalized_end": 226135,
-          "answer_span": "As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.",
-          "answer_snippet": "As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.",
+          "answer_span": "As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.",
+          "answer_snippet": "As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.",
           "snippet_chars": 190,
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently supplies the 2025 and 2024 values needed to describe the year-over-year increase."
+          "acceptance_reason": "Independently supplies the 2025 and 2024 values needed to describe the year-over-year increase.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 0,
+            "block_heading": "Overview",
+            "span_start": 7280,
+            "span_end": 7470,
+            "snippet_start": 7280,
+            "snippet_end": 7470,
+            "span_sha256": "966a4083f13beabc8e34f1fc71662037ed0652e9ee3eeb2ce917d5944ecdbcbd",
+            "snippet_sha256": "966a4083f13beabc8e34f1fc71662037ed0652e9ee3eeb2ce917d5944ecdbcbd"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -313,6 +338,15 @@
           "a three-sentence span containing both values and the cause, which exceeds 200 characters",
           "other ARR and customer-count disclosures that do not state the dollar-based net retention rates"
         ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "DDOG-2025-225945",
+            "reason": "Re-extracted both dates from the filing store to preserve non-breaking spaces."
+          }
+        ]
       }
     }
   ],
@@ -320,7 +354,7 @@
     "candidate_count": 4,
     "rewritten_candidate_count": 3,
     "unchanged_round1_approved_count": 1,
-    "acceptable_occurrence_count": 7,
+    "acceptable_occurrence_count": 5,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

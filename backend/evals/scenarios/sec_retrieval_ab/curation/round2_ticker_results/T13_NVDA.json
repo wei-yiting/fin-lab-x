@@ -89,7 +89,7 @@
         "item_keys": [
           "1A",
           "7",
-          "8"
+          "15"
         ],
         "answer_requirement": "One independently sufficient span must state the percentage of total fiscal 2026 revenue attributable to NVIDIA's largest direct customer; spans at distinct source offsets are OR-hit alternatives.",
         "reason": "The corrected single-intent factoid asks for the largest direct-customer share. Full-filing traversal found three distinct source occurrences that each report one direct customer at 22% of fiscal 2026 revenue and the next direct customer at 14%, making 22% the largest disclosed share."
@@ -127,8 +127,8 @@
         },
         {
           "occurrence_id": "NVDA-2026-337687",
-          "item_hint": "Item 8, Note 16",
-          "filing_location": "Segment Information / Direct Customers",
+          "item_hint": "Item 15",
+          "filing_location": "Note 16 - Segment Information / Direct Customers",
           "canonical_line": 4007,
           "window_id": "W0029",
           "normalized_start": 337687,
@@ -138,7 +138,21 @@
           "snippet_chars": 153,
           "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
           "exact_occurrences_in_normalized_text": 3,
-          "acceptance_reason": "The Note 16 occurrence independently repeats the 22% largest disclosed direct-customer share and the 14% comparison."
+          "acceptance_reason": "The filing store labels the Note 16 occurrence under Item 15; it independently repeats the 22% largest disclosed direct-customer share and the 14% comparison.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "15",
+            "item_title": "Exhibits, Financial Statement Schedules",
+            "unit_kind": "structured_block",
+            "block_index": 20,
+            "block_heading": "Note 16 - Segment Information",
+            "span_start": 5742,
+            "span_end": 5895,
+            "snippet_start": 5742,
+            "snippet_end": 5895,
+            "span_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
+            "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -149,7 +163,19 @@
           "customer accounts-receivable concentration percentages, which measure receivables rather than fiscal 2026 revenue",
           "table labels, XBRL facts, or isolated percentages that require non-contiguous context"
         ],
-        "notes": "The full-text variant audit found exactly three copies of the selected 153-character snippet and no alternate wording. They are distinct OR-hit alternatives and do not add metric denominators."
+        "notes": "The filing-store audit found the selected 153-character snippet under Item 1A, Item 7, and Item 15. They are distinct OR-hit alternatives and do not add metric denominators."
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "relabelled_store_item",
+            "occurrence_id": "NVDA-2026-337687",
+            "original_item_hint": "Item 8, Note 16",
+            "label_escape_search": "Exact non-Item-8 store copies exist under Item 1A, Item 7, and Item 15; Item 1A and Item 7 are already represented.",
+            "store_location": "Item 15 / Note 16 - Segment Information / chars 5742-5895",
+            "reason": "The actual filing-store label is Item 15, so this distinct store location remains in the OR-set."
+          }
+        ]
       }
     },
     {

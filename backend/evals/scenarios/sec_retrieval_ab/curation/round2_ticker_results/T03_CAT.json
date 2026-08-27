@@ -162,19 +162,6 @@
           "snippet_chars": 149,
           "exact_occurrences_in_normalized_text": 2,
           "acceptance_reason": "Directly states both the expected closing window and purchase price in the Item 7 liquidity discussion."
-        },
-        {
-          "occurrence_id": "CAT-2025-409946",
-          "item_hint": "Item 8 / Note 25",
-          "filing_location": "Subsequent event",
-          "window_id": "W052",
-          "normalized_start": 409946,
-          "normalized_end": 410095,
-          "answer_span": "On February 3, 2026, the Federal Court of Australia approved Caterpillar's acquisition of RPMGlobal Holdings Limited, an Australian based software company. The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired. RPMGlobal is a leading provider of mining software solutions with deep domain expertise in mining technology enablement and data-driven software solutions at every stage of the mining lifecycle.",
-          "answer_snippet": "The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired.",
-          "snippet_chars": 149,
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "The same disclosure independently answers the revised question in Note 25; distinct source provenance makes it a separate OR alternative even though the normalized text is identical."
         }
       ],
       "post_traversal_audit": {
@@ -184,6 +171,17 @@
           "RPMGlobal capabilities text that the revised question intentionally excludes"
         ],
         "pipeline_artifact_removed": "The old Financial Products Segment block label does not match the Item 7 source location and is not carried into Round 2 provenance."
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "dropped_item_8_duplicate",
+            "occurrence_id": "CAT-2025-409946",
+            "original_item_hint": "Item 8 / Note 25",
+            "label_escape_search": "The same store text is reachable under Item 7 / Financial Products Segment, already represented by CAT-2025-171845.",
+            "reason": "Item 8 is excluded and the non-Item-8 store copy is already present, so a duplicate OR alternative is not retained."
+          }
+        ]
       }
     }
   ],
@@ -191,7 +189,7 @@
     "candidate_count": 3,
     "rewritten_candidate_count": 1,
     "unchanged_round1_approved_count": 2,
-    "acceptable_occurrence_count": 4,
+    "acceptable_occurrence_count": 3,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

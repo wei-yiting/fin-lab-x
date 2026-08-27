@@ -188,12 +188,26 @@
           "window_id": "W0001",
           "normalized_start": 8365,
           "normalized_end": 8441,
-          "answer_span": "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.",
-          "answer_snippet": "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.",
+          "answer_span": "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.",
+          "answer_snippet": "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.",
           "snippet_chars": 76,
-          "snippet_sha256": "c89411df8780c97cd7cfe85fa31b0c43a4f74709e91cccc3572d4d68c68d32a4",
+          "snippet_sha256": "4ca92cef74edf48b49ce2584752883cd5ccb7c9b09a646bba5f88c8d684e21bc",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states the worldwide count and measurement date for ExxonMobil's active patent portfolio."
+          "acceptance_reason": "Independently states the worldwide count and measurement date for ExxonMobil's active patent portfolio.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "1",
+            "item_title": "Business",
+            "unit_kind": "flat_item",
+            "block_index": null,
+            "block_heading": null,
+            "span_start": 2509,
+            "span_end": 2585,
+            "snippet_start": 2509,
+            "snippet_end": 2585,
+            "span_sha256": "4ca92cef74edf48b49ce2584752883cd5ccb7c9b09a646bba5f88c8d684e21bc",
+            "snippet_sha256": "4ca92cef74edf48b49ce2584752883cd5ccb7c9b09a646bba5f88c8d684e21bc"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -201,6 +215,15 @@
           "the adjacent statement that no business segment depends on an individual intellectual-property right, which answers the removed financial-importance half",
           "research-program and proprietary-technology disclosures that do not quantify the active patent portfolio",
           "research-and-development expense disclosures that report spending rather than patent count"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "XOM-2025-008365",
+            "reason": "Re-extracted the filing-store non-breaking space between 8 and thousand."
+          }
         ]
       }
     },
@@ -221,7 +244,7 @@
         "question": "How did lower crude prices affect ExxonMobil's 2025 Upstream earnings?",
         "query_type": "passage",
         "item_keys": [
-          "7"
+          "16"
         ],
         "answer_requirement": "One independently sufficient span must explain the effect of lower crude prices on ExxonMobil's 2025 Upstream earnings.",
         "reason": "The filing reports 2025 crude-oil and natural-gas price movements together, but the independently sufficient 2025 earnings-driver disclosure attributes a $6.1 billion earnings decrease primarily to lower crude prices and does not state a 2025 natural-gas earnings effect. The revised question preserves the causal earnings intent without relaxing the global 50–200-character span limit."
@@ -229,8 +252,8 @@
       "acceptable_occurrences": [
         {
           "occurrence_id": "XOM-2025-167393",
-          "item_hint": "Item 7",
-          "filing_location": "Management's Discussion and Analysis / 2025 Upstream Earnings Driver Analysis",
+          "item_hint": "Item 16",
+          "filing_location": "Upstream Financial Results",
           "canonical_line": 1918,
           "window_id": "W0014",
           "normalized_start": 167393,
@@ -240,7 +263,21 @@
           "snippet_chars": 169,
           "snippet_sha256": "4c1bee3d3bfbecde94f2481b20d621862a9fdb99142c7fa6aa4d44d1c6f998b8",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently quantifies the 2025 Upstream earnings decrease from lower realizations and attributes it primarily to lower crude prices."
+          "acceptance_reason": "Independently quantifies the 2025 Upstream earnings decrease from lower realizations and attributes it primarily to lower crude prices.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "16",
+            "item_title": "Form 10-K Summary",
+            "unit_kind": "structured_block",
+            "block_index": 8,
+            "block_heading": "Upstream Financial Results",
+            "span_start": 478,
+            "span_end": 647,
+            "snippet_start": 478,
+            "snippet_end": 647,
+            "span_sha256": "4c1bee3d3bfbecde94f2481b20d621862a9fdb99142c7fa6aa4d44d1c6f998b8",
+            "snippet_sha256": "4c1bee3d3bfbecde94f2481b20d621862a9fdb99142c7fa6aa4d44d1c6f998b8"
+          }
         }
       ],
       "question_evidence_contract_issue": {
@@ -255,6 +292,17 @@
           "generic risk-factor statements about future commodity-price effects",
           "2026 Brent, Henry Hub, and TTF sensitivities, which are prospective benchmark scenarios rather than realized 2025 earnings effects",
           "generic cash-flow dependence on commodity prices that does not quantify or explain the 2025 result"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "relabelled_store_item",
+            "occurrence_id": "XOM-2025-167393",
+            "original_item_hint": "Item 7",
+            "store_location": "Item 16 / Upstream Financial Results / chars 478-647",
+            "reason": "The selected exact text has no Item 7 filing-store copy; the actual non-excluded filing-store label is Item 16."
+          }
         ]
       }
     }

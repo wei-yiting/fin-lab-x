@@ -63,11 +63,11 @@
         ]
       },
       "proposal": {
-        "change": "add_acceptable_occurrence",
+        "change": "unchanged",
         "question": "What threatens collection of the EOFlow trade-secret award?",
         "query_type": "passage",
-        "item_keys": ["7", "8-note-16"],
-        "reason": "The approved question remains unchanged. Item 7 and Note 16 independently state the appeal and uncertain ability to satisfy the award, so both source locations are OR-hit alternatives."
+        "item_keys": ["7"],
+        "reason": "The approved question remains unchanged. After the Item 8 exclusion, the Item 7 occurrence states both EOFlow's appeal and its uncertain ability to satisfy the award."
       },
       "acceptable_occurrences": [
         {
@@ -84,27 +84,23 @@
           "snippet_sha256": "4f9cff35b9e6cc2556ad6034b3374741b54c0f1e42056b31dcd66730e4b44ad3",
           "exact_occurrences_in_normalized_text": 1,
           "acceptance_reason": "Directly identifies both threats to collection in Item 7: EOFlow's appeal and uncertain ability to pay."
-        },
-        {
-          "occurrence_id": "PODD-2025-255412",
-          "item_hint": "Item 8 / Note 16",
-          "filing_location": "Commitments and Contingencies / Legal Proceedings",
-          "canonical_line": 1790,
-          "window_id": "W0032",
-          "normalized_start": 255412,
-          "normalized_end": 255599,
-          "answer_span": "The Company has not recorded the damages awarded in the Company’s consolidated statements of income, as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
-          "answer_snippet": "The Company has not recorded the damages awarded in the Company’s consolidated statements of income, as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
-          "snippet_chars": 187,
-          "snippet_sha256": "c361684f5103a87711dc2744b20944530d5117f75680794af0191b612b3f0f89",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "A separate Note 16 occurrence independently states the same appeal and collectability risks."
         }
       ],
       "post_traversal_audit": {
         "rejected_classes": [
           "jury-verdict, injunction, and reduced-award passages that state the award history without both collection threats",
           "the cross-appeal and partial-stay sentences, which describe litigation posture but do not independently answer what threatens collection"
+        ]
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "PODD-2025-255412",
+            "original_item_hint": "Item 8 / Note 16",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope; the Item 7 occurrence remains."
+          }
         ]
       }
     },
@@ -309,7 +305,7 @@
     "rewritten_candidate_count": 3,
     "unchanged_round1_approved_count": 1,
     "new_candidate_count": 1,
-    "acceptable_occurrence_count": 7,
+    "acceptable_occurrence_count": 6,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

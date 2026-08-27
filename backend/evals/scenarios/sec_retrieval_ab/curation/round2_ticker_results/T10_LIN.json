@@ -105,11 +105,9 @@
         "question": "Which cost components does Linde include when accounting for equipment contracts?",
         "query_type": "factoid",
         "item_keys": [
-          "7",
-          "8-auditor-report",
-          "8-note-19"
+          "7"
         ],
-        "reason": "The Round 1 question combines material and labor cost categories with technical complexity, construction duration, inflation, and scope. Those facts require multiple sentences and cannot fit in one independently sufficient 50-200 character occurrence. The revised question asks one thing and full traversal found three distinct source locations that each identify material, labor, and overhead costs."
+        "reason": "The Round 1 question combines material and labor cost categories with technical complexity, construction duration, inflation, and scope. Those facts require multiple sentences and cannot fit in one independently sufficient 50-200 character occurrence. The revised question asks one thing; after the Item 8 exclusion, the Item 7 occurrence identifies material, labor, and overhead costs."
       },
       "acceptable_occurrences": [
         {
@@ -128,40 +126,6 @@
           "snippet_sha256": "95987baf21275b9745e619e4f89dab4897a62aad7404faab8ad1b194fc9df371",
           "exact_occurrences_in_normalized_text": 1,
           "acceptance_reason": "Directly identifies material, labor, and overhead as the components of estimated costs at completion."
-        },
-        {
-          "occurrence_id": "LIN-2025-161275",
-          "item_hint": "Item 8, Report of Independent Registered Public Accounting Firm, critical audit matter",
-          "canonical_line": 2265,
-          "window_id": "W0014",
-          "window_ids": [
-            "W0014"
-          ],
-          "normalized_start": 161275,
-          "normalized_end": 161427,
-          "answer_span": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
-          "answer_snippet": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
-          "snippet_chars": 152,
-          "snippet_sha256": "1e5098a4a229bcfe58733f97d860cd7385e33cdedba1184e4aa91f1ff3d2b022",
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "The auditor's critical-audit-matter discussion independently lists the three cost components used for equipment-contract revenue recognition."
-        },
-        {
-          "occurrence_id": "LIN-2025-320932",
-          "item_hint": "Item 8, Note 19, Revenue Recognition, Engineering",
-          "canonical_line": 5221,
-          "window_id": "W0027",
-          "window_ids": [
-            "W0027"
-          ],
-          "normalized_start": 320932,
-          "normalized_end": 321084,
-          "answer_span": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
-          "answer_snippet": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
-          "snippet_chars": 152,
-          "snippet_sha256": "1e5098a4a229bcfe58733f97d860cd7385e33cdedba1184e4aa91f1ff3d2b022",
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "Note 19 repeats the same independently sufficient cost-component disclosure at a distinct source location."
         }
       ],
       "post_traversal_audit": {
@@ -169,6 +133,24 @@
           "the Round 1 compound intent, which needs both the 184-character cost-component sentence and a separate over-200-character uncertainty sentence",
           "the technical-complexity, construction-duration, inflation, and scope sentence, whose complete wording exceeds 200 characters",
           "generic project-timing, inflation, staffing, and supply-chain risks outside the equipment-contract accounting disclosure"
+        ]
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "LIN-2025-161275",
+            "original_item_hint": "Item 8, auditor critical audit matter",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope."
+          },
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "LIN-2025-320932",
+            "original_item_hint": "Item 8, Note 19",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope; the Item 7 occurrence remains."
+          }
         ]
       }
     },
@@ -241,10 +223,9 @@
         "question": "What types of information could operational security failures or breaches expose at Linde?",
         "query_type": "factoid",
         "item_keys": [
-          "1a",
-          "1c"
+          "1a"
         ],
-        "reason": "The Round 1 answer uses the unresolved antecedent 'such attempts'. In both source locations, joining the cyber-attack antecedent to the historical-impact sentence requires more than 200 characters. The revised question stays within the cybersecurity intent, is directly answered by a 146-character clause, and has two distinct OR-hit locations."
+        "reason": "The Round 1 answer uses the unresolved antecedent 'such attempts'. Joining the cyber-attack antecedent to the historical-impact sentence requires more than 200 characters. The revised question stays within the cybersecurity intent and is directly answered by a 146-character Item 1A clause; the canonical Item 1C copy maps to that same filing-store location."
       },
       "acceptable_occurrences": [
         {
@@ -263,24 +244,6 @@
           "snippet_sha256": "fcd5f40c3f3fd575ca75ab0469b1f5389d9824df2bcfa18b537265f452eb3134",
           "exact_occurrences_in_normalized_text": 2,
           "acceptance_reason": "Directly identifies confidential information and personal data as the information types exposed by operational security failures or breaches."
-        },
-        {
-          "occurrence_id": "LIN-2025-059961",
-          "item_hint": "Item 1C, Cybersecurity, Risk Management and Strategy",
-          "canonical_line": 623,
-          "window_id": "W0005-W0006",
-          "window_ids": [
-            "W0005",
-            "W0006"
-          ],
-          "normalized_start": 59961,
-          "normalized_end": 60107,
-          "answer_span": "Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data",
-          "answer_snippet": "Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data",
-          "snippet_chars": 146,
-          "snippet_sha256": "fcd5f40c3f3fd575ca75ab0469b1f5389d9824df2bcfa18b537265f452eb3134",
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "Item 1C repeats the same independently sufficient disclosure at a distinct source location; this occurrence crosses a neutral traversal-window boundary, which is recorded rather than used as an evidence boundary."
         }
       ],
       "post_traversal_audit": {
@@ -288,6 +251,17 @@
           "both historical-impact sentences beginning 'To date, such attempts', because neither is self-contained and each requires an antecedent beyond the 200-character limit",
           "cybersecurity governance and control descriptions that do not answer the revised information-exposure question",
           "generic information-technology outage language that does not identify the information at risk"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "collapsed_duplicate_store_location",
+            "occurrence_id": "LIN-2025-059961",
+            "original_item_hint": "Item 1C",
+            "store_location": "Item 1A / flat item / chars 13258-13404",
+            "reason": "The canonical Item 1C copy has no Item 1C filing-store match and maps to the same store location as LIN-2025-044684."
+          }
         ]
       }
     },
@@ -373,7 +347,7 @@
     "candidate_count": 4,
     "rewritten_candidate_count": 4,
     "unchanged_round1_approved_count": 0,
-    "acceptable_occurrence_count": 8,
+    "acceptable_occurrence_count": 5,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

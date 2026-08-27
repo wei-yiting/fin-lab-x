@@ -174,12 +174,26 @@
           "window_id": "W0018",
           "normalized_start": 208980,
           "normalized_end": 209179,
-          "answer_span": "In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.\n\nOutside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.",
-          "answer_snippet": "In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.\n\nOutside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.",
-          "snippet_chars": 199,
-          "snippet_sha256": "2cbc4713e3e1bc172a11c009ea84d9a04e252f3b5b7127580f082879324639c8",
+          "answer_span": "In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound. \n\nOutside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.",
+          "answer_snippet": "In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound. \n\nOutside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.",
+          "snippet_chars": 200,
+          "snippet_sha256": "5ef1abc574687606135ddd1011f93b3221acbe5dc47c6986d884861b04761b96",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently supplies the geographic volume and realized-price drivers and attributes them to Mounjaro and Zepbound within the 200-character cap."
+          "acceptance_reason": "Independently supplies the geographic volume and realized-price drivers and attributes them to Mounjaro and Zepbound within the 200-character cap.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 2,
+            "block_heading": "RESULTS OF OPERATIONS",
+            "span_start": 458,
+            "span_end": 658,
+            "snippet_start": 458,
+            "snippet_end": 658,
+            "span_sha256": "5ef1abc574687606135ddd1011f93b3221acbe5dc47c6986d884861b04761b96",
+            "snippet_sha256": "5ef1abc574687606135ddd1011f93b3221acbe5dc47c6986d884861b04761b96"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -188,6 +202,15 @@
           "individual Mounjaro, Zepbound, and Verzenio product-growth sentences, each of which is only a partial company-level answer",
           "the Note 2 product and geography revenue tables, which state amounts but require computation and do not narrate the growth drivers",
           "revenue-concentration disclosures stating that Mounjaro and Zepbound represented 56 percent of total revenue, which describe share rather than the drivers of year-over-year growth"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "LLY-2025-208980",
+            "reason": "Re-extracted the filing-store space before the paragraph break; the exact snippet is 200 characters and remains within the global limit."
+          }
         ]
       }
     }

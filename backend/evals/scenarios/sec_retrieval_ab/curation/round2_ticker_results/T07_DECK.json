@@ -90,12 +90,26 @@
           "window_id": "W0014",
           "normalized_start": 160539,
           "normalized_end": 160661,
-          "answer_span": "We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,\n\ncompared to the prior period.",
-          "answer_snippet": "We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,\n\ncompared to the prior period.",
-          "snippet_chars": 122,
-          "snippet_sha256": "05a1a3074bd5c0a2b1b48352d5dc0373bb0fff730b5776c32d4e64cb38747d80",
+          "answer_span": "We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100, \n\ncompared to the prior period.",
+          "answer_snippet": "We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100, \n\ncompared to the prior period.",
+          "snippet_chars": 123,
+          "snippet_sha256": "54e76db19d52207e7e7be70d9bc2caf7a812d3368ab5b3cf65038204d5b2db64",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states the 6.2% increase and both disclosed unit counts for the current and prior periods."
+          "acceptance_reason": "Independently states the 6.2% increase and both disclosed unit counts for the current and prior periods.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 123,
+            "block_heading": "Supplemental Disclosure",
+            "span_start": 217,
+            "span_end": 340,
+            "snippet_start": 217,
+            "snippet_end": 340,
+            "span_sha256": "54e76db19d52207e7e7be70d9bc2caf7a812d3368ab5b3cf65038204d5b2db64",
+            "snippet_sha256": "54e76db19d52207e7e7be70d9bc2caf7a812d3368ab5b3cf65038204d5b2db64"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -103,6 +117,15 @@
           "the adjacent 9.0% constant-currency net-sales metric, which answers a different single-intent question",
           "the adjacent 4.6% comparable DTC net-sales metric, which answers a different single-intent question",
           "the unit-category explanation, which defines the count but does not add another occurrence of the year-over-year change"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "DECK-2026-160539",
+            "reason": "Re-extracted the filing-store space before the paragraph break."
+          }
         ]
       }
     },
@@ -213,12 +236,10 @@
         "question": "Which brands does Deckers identify as its principal product brands?",
         "query_type": "factoid",
         "item_keys": [
-          "1",
-          "7",
-          "8-note-1"
+          "1"
         ],
         "answer_requirement": "One independently sufficient span must identify all brands Deckers presents as its principal product brands; a span naming only one brand is partial unless the filing states that it is the sole principal brand.",
-        "reason": "The question remains unchanged. Full traversal found three separate source occurrences that each identify HOKA, UGG, and Teva as Deckers' three proprietary or primarily marketed brands, so all three are acceptable OR alternatives."
+        "reason": "The question remains unchanged. Filing-store reconciliation retains one Item 1 occurrence identifying HOKA, UGG, and Teva; the canonical Item 7 copy maps to that same store location and the Item 8 copy is excluded."
       },
       "acceptable_occurrences": [
         {
@@ -229,42 +250,26 @@
           "window_id": "W0002",
           "normalized_start": 14599,
           "normalized_end": 14685,
-          "answer_span": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
-          "answer_snippet": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
-          "snippet_chars": 86,
-          "snippet_sha256": "bf5c1df97c1e39256716affc8fdea831ca9ef5a67155021ad789a6b961fc48aa",
+          "answer_span": "We market our products primarily \n\nunder three proprietary brands: HOKA, UGG, and Teva.",
+          "answer_snippet": "We market our products primarily \n\nunder three proprietary brands: HOKA, UGG, and Teva.",
+          "snippet_chars": 87,
+          "snippet_sha256": "1d52257191b9b7ccbc99812ef834a7d9e4e7efd1d80f65d087fd73b974150596",
           "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "The Item 1 occurrence independently identifies all three primarily marketed proprietary brands."
-        },
-        {
-          "occurrence_id": "DECK-2026-139733",
-          "item_hint": "Item 7",
-          "filing_location": "Management's Discussion and Analysis / Overview",
-          "canonical_line": 3431,
-          "window_id": "W0012",
-          "normalized_start": 139733,
-          "normalized_end": 139819,
-          "answer_span": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
-          "answer_snippet": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
-          "snippet_chars": 86,
-          "snippet_sha256": "bf5c1df97c1e39256716affc8fdea831ca9ef5a67155021ad789a6b961fc48aa",
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "The distinct Item 7 overview occurrence repeats the complete three-brand answer and must count independently despite identical text."
-        },
-        {
-          "occurrence_id": "DECK-2026-238856",
-          "item_hint": "Item 8, Note 1",
-          "filing_location": "Note 1 / General / The Company",
-          "canonical_line": 8567,
-          "window_id": "W0020",
-          "normalized_start": 238856,
-          "normalized_end": 238958,
-          "answer_span": "The Company’s three proprietary brands include\n\nthe HOKA® (HOKA), UGG® (UGG), and Teva® (Teva) brands.",
-          "answer_snippet": "The Company’s three proprietary brands include\n\nthe HOKA® (HOKA), UGG® (UGG), and Teva® (Teva) brands.",
-          "snippet_chars": 102,
-          "snippet_sha256": "37195cf48e966caf2a92f2da062e01320aaef60ed926645d4ab671e471ea88d8",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The accounting-note occurrence independently identifies the same three proprietary brands in a different source location."
+          "acceptance_reason": "The Item 1 occurrence independently identifies all three primarily marketed proprietary brands.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "1",
+            "item_title": "Business",
+            "unit_kind": "structured_block",
+            "block_index": 1,
+            "block_heading": "We are a global leader in designing, marketing, and distributing innovative footwear, apparel, and accessories",
+            "span_start": 82,
+            "span_end": 169,
+            "snippet_start": 82,
+            "snippet_end": 169,
+            "span_sha256": "1d52257191b9b7ccbc99812ef834a7d9e4e7efd1d80f65d087fd73b974150596",
+            "snippet_sha256": "1d52257191b9b7ccbc99812ef834a7d9e4e7efd1d80f65d087fd73b974150596"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -274,6 +279,31 @@
           "reportable-segment disclosures that list HOKA, UGG, and Other brands rather than directly identifying Teva as the third principal product brand",
           "historical phase-out and Sanuk-sale disclosures that describe non-principal or former standalone brands"
         ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "DECK-2026-014599",
+            "reason": "Re-extracted the filing-store space before the paragraph break."
+          },
+          {
+            "action": "collapsed_duplicate_store_location",
+            "occurrence_id": "DECK-2026-139733",
+            "original_item_hint": "Item 7",
+            "store_location": "Item 1 / structured block 1",
+            "reason": "The canonical Item 7 copy has no Item 7 filing-store match and maps to the same store location as DECK-2026-014599."
+          }
+        ],
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "DECK-2026-238856",
+            "original_item_hint": "Item 8, Note 1",
+            "label_escape_search": "No matching occurrence exists anywhere in the filing store.",
+            "reason": "Item 8 is outside retrieval scope; the Item 1 occurrence remains."
+          }
+        ]
       }
     }
   ],
@@ -281,7 +311,7 @@
     "candidate_count": 4,
     "rewritten_candidate_count": 3,
     "new_candidate_count": 1,
-    "acceptable_occurrence_count": 6,
+    "acceptable_occurrence_count": 4,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

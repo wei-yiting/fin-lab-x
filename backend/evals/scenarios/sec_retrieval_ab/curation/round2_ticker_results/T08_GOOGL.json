@@ -154,15 +154,14 @@
         ]
       },
       "proposal": {
-        "change": "add_acceptable_occurrences",
+        "change": "unchanged",
         "question": "What borrowing capacity and maturity schedule did Alphabet's unused revolvers have?",
         "query_type": "passage",
         "item_keys": [
-          "7",
-          "8-note-6"
+          "7"
         ],
         "answer_requirement": "One independently sufficient span must state the total revolving-credit capacity and how that capacity is split between the April 2026 and April 2030 expirations.",
-        "reason": "The approved Round 1 question remains unchanged. Item 7 and Note 6 separately state the full capacity and expiration split; their immediately following source sentences confirm that nothing had been borrowed or was outstanding, so both locations are acceptable OR alternatives."
+        "reason": "The approved Round 1 question remains unchanged. The Item 7 filing-store occurrence states the full capacity and expiration split; the Item 8 copy is excluded."
       },
       "acceptable_occurrences": [
         {
@@ -173,27 +172,26 @@
           "window_id": "W0015",
           "normalized_start": 172698,
           "normalized_end": 172852,
-          "answer_span": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.",
-          "answer_snippet": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.",
+          "answer_span": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.",
+          "answer_snippet": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.",
           "snippet_chars": 154,
-          "snippet_sha256": "3739869e142e18534daad545c0a45d859b823d91b17f85b125b47da40c813b12",
+          "snippet_sha256": "95b8f430d7e436786d64c05bbe17ac09b05714b3de3a72c07fc79160b852b2b1",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states the $10.0 billion capacity and its $4.0 billion April 2026 / $6.0 billion April 2030 expiration schedule."
-        },
-        {
-          "occurrence_id": "GOOGL-2025-284798",
-          "item_hint": "Item 8, Note 6",
-          "filing_location": "Note 6 / Debt / Credit Facility",
-          "canonical_line": 4017,
-          "window_id": "W0024",
-          "normalized_start": 284798,
-          "normalized_end": 284959,
-          "answer_span": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, of which $4.0 billion expires in April 2026 and $6.0 billion expires in April 2030.",
-          "answer_snippet": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, of which $4.0 billion expires in April 2026 and $6.0 billion expires in April 2030.",
-          "snippet_chars": 161,
-          "snippet_sha256": "8dffd8eee4a54c2e3a304a6cfcee3c3c237619c36d252e116f64d3edf8f43b03",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The distinct Note 6 occurrence independently repeats the complete capacity and expiration split and must count as a separate OR alternative."
+          "acceptance_reason": "Independently states the $10.0 billion capacity and its $4.0 billion April 2026 / $6.0 billion April 2030 expiration schedule.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 5,
+            "block_heading": "Liquidity and Material Cash Requirements",
+            "span_start": 4553,
+            "span_end": 4707,
+            "snippet_start": 4553,
+            "snippet_end": 4707,
+            "span_sha256": "95b8f430d7e436786d64c05bbe17ac09b05714b3de3a72c07fc79160b852b2b1",
+            "snippet_sha256": "95b8f430d7e436786d64c05bbe17ac09b05714b3de3a72c07fc79160b852b2b1"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -201,6 +199,24 @@
           "the separate $25.0 billion commercial-paper program, which is not a revolving credit facility",
           "senior-note maturity tables and lease commitments, which do not state revolving-credit capacity",
           "generic financing-risk and liquidity disclosures that omit the capacity and expiration split"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "GOOGL-2025-172698",
+            "reason": "Re-extracted the filing-store non-breaking space in the date."
+          }
+        ],
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "GOOGL-2025-284798",
+            "original_item_hint": "Item 8, Note 6",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope; the Item 7 occurrence remains."
+          }
         ]
       }
     },
@@ -223,8 +239,7 @@
         "question": "What mix of floating- and fixed-rate U.S. dollar notes did Alphabet issue in November 2025?",
         "query_type": "factoid",
         "item_keys": [
-          "7",
-          "8-note-6"
+          "7"
         ],
         "answer_requirement": "One independently sufficient span must state both the floating-rate and fixed-rate U.S. dollar note amounts issued in November 2025.",
         "reason": "The Round 1 question requires a cross-denomination and coupon-structure comparison, but no single independently sufficient 50-200 character occurrence contains that full comparison. The revision preserves the reviewer's required contrast by narrowing to the November U.S. dollar issuance: $500 million floating-rate versus $17.0 billion fixed-rate."
@@ -244,21 +259,6 @@
           "snippet_sha256": "297610cb04b6d1386241f124f10463e3e12e9e44e1d30118ac2cc4c4367f0683",
           "exact_occurrences_in_normalized_text": 1,
           "acceptance_reason": "This shortest self-contained clause directly contrasts the $500 million floating-rate and $17.0 billion fixed-rate U.S. dollar notes; the remaining maturity and coupon details are not needed for the revised question."
-        },
-        {
-          "occurrence_id": "GOOGL-2025-281729",
-          "item_hint": "Item 8, Note 6",
-          "filing_location": "Note 6 / Debt / Long-Term Debt / November 2025 issuance",
-          "canonical_line": 3919,
-          "window_id": "W0024",
-          "normalized_start": 281729,
-          "normalized_end": 281890,
-          "answer_span": "we issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes",
-          "answer_snippet": "we issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes",
-          "snippet_chars": 161,
-          "snippet_sha256": "c78c6f1f075e7e3d6e4263682f1f396b24fc72e2b1db51e84c2358bca43fd763",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The distinct Note 6 occurrence repeats the complete floating-versus-fixed amount contrast and is a separate acceptable OR alternative."
         }
       ],
       "post_traversal_audit": {
@@ -269,6 +269,17 @@
           "the November euro fixed-rate sentence, which adds denomination but exceeds the 200-character contract when combined with the U.S. dollar floating/fixed contrast",
           "the Note 6 debt table and exhibit list, which enumerate coupon or maturity series but do not independently state the requested November floating-versus-fixed issuance amounts"
         ]
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "dropped_item_8_duplicate",
+            "occurrence_id": "GOOGL-2025-281729",
+            "original_item_hint": "Item 8, Note 6",
+            "label_escape_search": "The same store text is reachable under Item 7 / Liquidity and Material Cash Requirements, already represented by GOOGL-2025-172245.",
+            "reason": "Item 8 is excluded and the non-Item-8 store copy is already present, so a duplicate OR alternative is not retained."
+          }
+        ]
       }
     }
   ],
@@ -276,7 +287,7 @@
     "candidate_count": 3,
     "rewritten_candidate_count": 1,
     "unchanged_round1_approved_count": 2,
-    "acceptable_occurrence_count": 5,
+    "acceptable_occurrence_count": 3,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "resolved_original_contract_issues": 1,

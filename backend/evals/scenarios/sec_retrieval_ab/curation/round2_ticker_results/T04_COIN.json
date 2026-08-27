@@ -149,7 +149,7 @@
         "question": "How does Coinbase approach regular trading of crypto assets it holds for investment?",
         "query_type": "passage",
         "answer_requirement": "One independently sufficient span must state Coinbase's policy or practice concerning regular trading of investment crypto assets.",
-        "reason": "The revision follows the Round 1 request to ask one question by retaining the investment-policy intent and removing liquidity constraints. Full traversal found three distinct filing locations that independently state the long-term, non-regular-trading policy."
+        "reason": "The revision follows the Round 1 request to ask one question by retaining the investment-policy intent and removing liquidity constraints. After the Item 8 exclusion, two filing-store locations independently state the long-term, non-regular-trading policy."
       },
       "acceptable_occurrences": [
         {
@@ -177,19 +177,6 @@
           "snippet_chars": 151,
           "exact_occurrences_in_normalized_text": 1,
           "acceptance_reason": "Directly states the buy-and-hold policy and lack of planned regular trading for investment crypto assets."
-        },
-        {
-          "occurrence_id": "COIN-2025-515508",
-          "item_hint": "Item 8 / Note 2",
-          "filing_location": "Summary of Significant Accounting Policies / Crypto assets held for investment",
-          "window_id": "W086",
-          "normalized_start": 515508,
-          "normalized_end": 515667,
-          "answer_span": "Crypto assets held for investment are primarily held long term. The Company does not engage in regular trading of these assets but may lend them or stake them.",
-          "answer_snippet": "Crypto assets held for investment are primarily held long term. The Company does not engage in regular trading of these assets but may lend them or stake them.",
-          "snippet_chars": 159,
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The accounting-policy occurrence independently states long-term holding and no regular trading, making it a separate OR alternative."
         }
       ],
       "post_traversal_audit": {
@@ -197,6 +184,17 @@
           "liquidity-stress sale conditions and market-instability liquidity constraints removed from the revised single-intent question",
           "market-risk sensitivity disclosure that says the assets are held long term but does not state the regular-trading policy",
           "balance, reconciliation, lending and staking disclosures that do not state the regular-trading policy"
+        ]
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "COIN-2025-515508",
+            "original_item_hint": "Item 8 / Note 2",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope; two non-Item-8 acceptable occurrences remain."
+          }
         ]
       }
     },
@@ -218,11 +216,25 @@
           "window_id": "W067",
           "normalized_start": 398200,
           "normalized_end": 398367,
-          "answer_span": "a decrease of $384.4 million attributed to a lower average blended fee rate, primarily due to changes in the mix of Trading Volume from Simple users to Advanced and Coinbase One users who pay lower average fees",
+          "answer_span": "a decrease of $384.4 million attributed to a lower average blended fee rate, primarily due to changes in the mix of Trading Volume from Simple users to Advanced and Coinbase One users who pay lower average fees",
           "answer_snippet": "a lower average blended fee rate, primarily due to changes in the mix of Trading Volume from Simple users to Advanced and Coinbase One users who pay lower average fees",
           "snippet_chars": 167,
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Identifies the lower blended fee rate and the shift toward lower-fee Advanced and Coinbase One volume as a disclosed transaction-revenue driver."
+          "acceptance_reason": "Identifies the lower blended fee rate and the shift toward lower-fee Advanced and Coinbase One volume as a disclosed transaction-revenue driver.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 5,
+            "block_heading": "Results of Operations",
+            "span_start": 786,
+            "span_end": 996,
+            "snippet_start": 829,
+            "snippet_end": 996,
+            "span_sha256": "5a24cbbcc25edf74c4e3844bf59b4728efe0a19954aa9a6ce76ed1d0df8b70dc",
+            "snippet_sha256": "3d1b0a694231c8d4ffba4fa437894d45f4b3d3ca658865e5ab9dd8994dc9965e"
+          }
         },
         {
           "occurrence_id": "COIN-2025-398388",
@@ -244,11 +256,25 @@
           "window_id": "W067",
           "normalized_start": 398500,
           "normalized_end": 398665,
-          "answer_span": "an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.",
-          "answer_snippet": "an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.",
+          "answer_span": "an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.",
+          "answer_snippet": "an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.",
           "snippet_chars": 165,
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Directly identifies derivatives trading, mainly from the Deribit acquisition, as an institutional transaction-revenue driver."
+          "acceptance_reason": "Directly identifies derivatives trading, mainly from the Deribit acquisition, as an institutional transaction-revenue driver.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 5,
+            "block_heading": "Results of Operations",
+            "span_start": 1115,
+            "span_end": 1280,
+            "snippet_start": 1115,
+            "snippet_end": 1280,
+            "span_sha256": "56fa7ddd5feaccf4784386f494bf6cc8f0bd60bb6597f85e1b20f0154d73fe55",
+            "snippet_sha256": "56fa7ddd5feaccf4784386f494bf6cc8f0bd60bb6597f85e1b20f0154d73fe55"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -256,6 +282,20 @@
           "transaction-revenue tables and summary sentences that state amounts or direction without drivers",
           "Deribit business, risk-factor and acquisition-note disclosures that do not attribute the 2025 transaction-revenue change",
           "the full 210-character consumer-fee clause, which exceeds the global snippet limit; the shortest self-contained 167-character causal subspan is used instead"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "COIN-2025-398200",
+            "reason": "Re-extracted the span from the filing store to preserve its non-breaking space after $384.4."
+          },
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "COIN-2025-398500",
+            "reason": "Re-extracted the span and snippet from the filing store to preserve its non-breaking space after $152.0."
+          }
         ]
       }
     }
@@ -265,7 +305,7 @@
     "rewritten_candidate_count": 2,
     "unchanged_round1_approved_count": 1,
     "new_candidate_count": 1,
-    "acceptable_occurrence_count": 8,
+    "acceptable_occurrence_count": 7,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

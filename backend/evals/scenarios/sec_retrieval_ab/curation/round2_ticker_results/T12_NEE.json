@@ -88,12 +88,26 @@
           "window_id": "W0021",
           "normalized_start": 240952,
           "normalized_end": 241132,
-          "answer_span": "Estimating the amount and timing of future expenditures includes, among other things, making projections of when assets will be retired and ultimately decommissioned and how costs will escalate with inflation. In addition, NEE also makes interest rate and rate of return projections on its investments in determining recommended funding requirements for nuclear decommissioning costs. Periodically, NEE is required to update these estimates and projections which can affect the annual expense amounts recognized, the liabilities recorded and the annual funding requirements for nuclear decommissioning costs. For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.",
-          "answer_snippet": "For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.",
+          "answer_span": "Estimating the amount and timing of future expenditures includes, among other things, making projections of when assets will be retired and ultimately decommissioned and how costs will escalate with inflation. In addition, NEE also makes interest rate and rate of return projections on its investments in determining recommended funding requirements for nuclear decommissioning costs. Periodically, NEE is required to update these estimates and projections which can affect the annual expense amounts recognized, the liabilities recorded and the annual funding requirements for nuclear decommissioning costs. For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.",
+          "answer_snippet": "For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.",
           "snippet_chars": 180,
-          "snippet_sha256": "abc96cb89843ae4fae6d0b0441dbc867e51f9177bf3d0157534f7c6aee57fb95",
+          "snippet_sha256": "880b4454ec3ca77e91cbfa7edd8005467e553ba5e3b5064488c34b345beb95bd",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states both the change in the cost-inflation assumption and the resulting increase in retirement obligations."
+          "acceptance_reason": "Independently states both the change in the cost-inflation assumption and the resulting increase in retirement obligations.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 19,
+            "block_heading": "Decommissioning and Dismantlement",
+            "span_start": 915,
+            "span_end": 1704,
+            "snippet_start": 1524,
+            "snippet_end": 1704,
+            "span_sha256": "c5061c5a130e9b58d190cd7ad5c73eb9e5b38d3aabb0363a7375a4f9cdf28fb8",
+            "snippet_sha256": "880b4454ec3ca77e91cbfa7edd8005467e553ba5e3b5064488c34b345beb95bd"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -101,6 +115,15 @@
           "the preceding retirement-cost methodology, which explains that inflation escalation is estimated but gives no sensitivity result",
           "Note 11 ARO balances and estimated-cash-flow revisions, which do not state the effect of changing the escalation-rate assumption",
           "nuclear decommissioning cost and funding disclosures that provide balances or ultimate costs rather than another inflation sensitivity"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "NEE-2025-240952",
+            "reason": "Re-extracted the filing-store non-breaking space in the date."
+          }
         ]
       }
     },
@@ -143,12 +166,26 @@
           "window_id": "W0016",
           "normalized_start": 183888,
           "normalized_end": 183997,
-          "answer_span": "FPL’s net income for 2025 and 2024 was $5,012 million and $4,543 million, respectively, representing an increase of $469 million. The increase was primarily driven by higher earnings from investments in plant in service and other property. Such investments grew FPL's average rate base by approximately $5.5 billion in 2025 and reflect, among other things, solar generation additions and ongoing transmission and distribution additions.",
+          "answer_span": "FPL’s net income for 2025 and 2024 was $5,012 million and $4,543 million, respectively, representing an increase of $469 million. The increase was primarily driven by higher earnings from investments in plant in service and other property. Such investments grew FPL's average rate base by approximately $5.5 billion in 2025 and reflect, among other things, solar generation additions and ongoing transmission and distribution additions.",
           "answer_snippet": "The increase was primarily driven by higher earnings from investments in plant in service and other property.",
           "snippet_chars": 109,
           "snippet_sha256": "c094d4e062e8ad6531baac73afc497625e8451a55f2d43f9f20f462a5d4b9cfa",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The continuous answer span states the $469 million net-income increase, attributes it to higher earnings from plant and property investments, and states that those investments grew average rate base by approximately $5.5 billion."
+          "acceptance_reason": "The continuous answer span states the $469 million net-income increase, attributes it to higher earnings from plant and property investments, and states that those investments grew average rate base by approximately $5.5 billion.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 5,
+            "block_heading": "FPL: Results of Operations",
+            "span_start": 183,
+            "span_end": 619,
+            "snippet_start": 313,
+            "snippet_end": 422,
+            "span_sha256": "782c89361e45f0d13547b0c8b8d636940869fe91d64fd5fa977a1f84d1f7bb7c",
+            "snippet_sha256": "c094d4e062e8ad6531baac73afc497625e8451a55f2d43f9f20f462a5d4b9cfa"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -157,6 +194,15 @@
           "the capital-expenditure table and construction-work-in-progress disclosures, which state deployment amounts without connecting them to 2025 earnings",
           "reserve-amortization and regulatory-accounting descriptions, which explain rate mechanics but do not provide another occurrence of the 2025 earnings result",
           "NEER regulated-transmission rate-base disclosures, which concern a different reportable segment"
+        ]
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_store_exact",
+            "occurrence_id": "NEE-2025-183888",
+            "reason": "Re-extracted the filing-store non-breaking space after $5.5; the selected snippet was already store-exact."
+          }
         ]
       }
     }

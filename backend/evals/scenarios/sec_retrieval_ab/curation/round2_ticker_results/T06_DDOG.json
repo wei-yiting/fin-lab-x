@@ -1,0 +1,328 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T06",
+  "ticker": "DDOG",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p18",
+      "p34",
+      "p45",
+      "a18"
+    ],
+    "excluded_candidate_ids": [
+      "a02",
+      "p02"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001561550",
+    "accession_number": "0001628280-26-008819",
+    "filing_date": "2026-02-18",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "ddog-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/0001628280-26-008819-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/0001628280-26-008819.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm",
+    "browser_dom_bytes": 200085,
+    "browser_dom_sha256": "924759a567ee4120007fb10e956d3626edaf22868aa702230e278fafece70dd9",
+    "primary_selection_check": "The SEC filing index identifies ddog-20251231.htm as sequence 1 and the primary 10-K document. The complete-submission URL was verified from the index but was blocked by the in-app browser; traversal therefore used the official accession-pinned primary document, not a third-party or repository filing copy."
+  },
+  "normalization": {
+    "method": "browser_visible_text_v1",
+    "description": "Read document.body.innerText from the official accession-pinned SEC primary document, converted NBSP to ordinary spaces, normalized line endings, collapsed horizontal whitespace per line, trimmed lines, and collapsed three or more newlines to two. No Item, heading, block, sentence, or repository-pipeline hierarchy was produced or used.",
+    "rendered_text_bytes": 392561,
+    "rendered_text_sha256": "cc5441a1a42cd4b71cb842b92d26e25913b1668a55cba043b99459561e42dbc7",
+    "normalized_bytes": 385558,
+    "normalized_chars": 383974,
+    "normalized_lines": 2422,
+    "normalized_sha256": "d77b78582e3aedf22c40638e9cb1e30281be3356e22e8b706c25ab96a51b4c02"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 32,
+    "covered_interval": [
+      0,
+      383974
+    ],
+    "complete_coverage": true,
+    "windows": [
+      {"window_id": "W001", "start": 0, "end": 12000, "sha256": "d58cd6b9046449abce21f08aa44d8e518de2c851b36249e9f1aafa47c2b0dff4", "status": "inspected"},
+      {"window_id": "W002", "start": 12000, "end": 24000, "sha256": "4f4a0a6c33f8e5b799341a9d794860e96e2007b6d92472eaf095efe653b17809", "status": "inspected"},
+      {"window_id": "W003", "start": 24000, "end": 36000, "sha256": "73d00fd46c07b9e7b6477ba8e660c59198e5bb31c71810e6333cdeb1fbce7fcc", "status": "inspected"},
+      {"window_id": "W004", "start": 36000, "end": 48000, "sha256": "bed25fd6d51282f823c1b0f44269c33aa25b6f5d3284db918687f09d67c3221f", "status": "inspected"},
+      {"window_id": "W005", "start": 48000, "end": 60000, "sha256": "04b8f16968eaf2d4b4e55658aa3004e3202921be1f4817de9cba4ff7629b7be2", "status": "inspected"},
+      {"window_id": "W006", "start": 60000, "end": 72000, "sha256": "5448b9448b7dce4a4d6f200d006ea9a03879af74b581080e561b9adc1ce1cdfd", "status": "inspected"},
+      {"window_id": "W007", "start": 72000, "end": 84000, "sha256": "e8fa5d9c1b48a38d77c1a4cc1968d53654fcd763497e7229a3eb467b39f327a3", "status": "inspected"},
+      {"window_id": "W008", "start": 84000, "end": 96000, "sha256": "288ca4ed552ec1c5b576144c60d4bf85c453cfaaf390deb3f518fec62229d880", "status": "inspected"},
+      {"window_id": "W009", "start": 96000, "end": 108000, "sha256": "fcdbb139bf0cf1a13c57e1ec6f4fe1629e8c88b7b18815639f6005f8e9483a93", "status": "inspected"},
+      {"window_id": "W010", "start": 108000, "end": 120000, "sha256": "fe83e869fd526cd400d65137ab37981a4ba8b92d8d179a22116ee61230f49316", "status": "inspected"},
+      {"window_id": "W011", "start": 120000, "end": 132000, "sha256": "265293b8e3f9819ef6647186009ec6b49f9210af27cd083e50bf0e7ac898c4a2", "status": "inspected"},
+      {"window_id": "W012", "start": 132000, "end": 144000, "sha256": "a321fa1b102b71b0e1b1dbd52ea860da836893a166e2307e670266ca00f88186", "status": "inspected"},
+      {"window_id": "W013", "start": 144000, "end": 156000, "sha256": "7b2c620e76021650149fd10e11df9a6541b5bdf743e7e444fd7bac2862870c92", "status": "inspected"},
+      {"window_id": "W014", "start": 156000, "end": 168000, "sha256": "773d0a8c0b8657850e539c7c1beb1d6ab029df0e91b370de5cdb8f15ad063b0d", "status": "inspected"},
+      {"window_id": "W015", "start": 168000, "end": 180000, "sha256": "36f8604a2aca4b3c34fad674a8ae966219d207d61cc73439ba2188faf8764c33", "status": "inspected"},
+      {"window_id": "W016", "start": 180000, "end": 192000, "sha256": "81649c793c205306f8f8b960cccb7d7a5a54ad8831ed414aa7fda29e4e372bee", "status": "inspected"},
+      {"window_id": "W017", "start": 192000, "end": 204000, "sha256": "7cf2755699b8d62c5edf59d763a4d0bd1cbcd25fc6ad178962296ff247c3e3ee", "status": "inspected"},
+      {"window_id": "W018", "start": 204000, "end": 216000, "sha256": "909d89bf51b6ffdc6502d93ec489b81b3c83709f513509da0a309606fd6bb221", "status": "inspected"},
+      {"window_id": "W019", "start": 216000, "end": 228000, "sha256": "d27ef5708fabe80f6b8e86012f18a770d13e8c89414dd3097cff167ff0e9c93e", "status": "inspected"},
+      {"window_id": "W020", "start": 228000, "end": 240000, "sha256": "d92dc4d59afc47fa6638fd2ff8d6728b85170ef6832065fc955581d3f20bffd0", "status": "inspected"},
+      {"window_id": "W021", "start": 240000, "end": 252000, "sha256": "f07c7fac789a13238804ade66f9214459e79c3718cdea2785733ecb24ca181b0", "status": "inspected"},
+      {"window_id": "W022", "start": 252000, "end": 264000, "sha256": "76411e9cf276f08f9f7610df03deaa314f4774e1a4fed21f0a085a6214378538", "status": "inspected"},
+      {"window_id": "W023", "start": 264000, "end": 276000, "sha256": "199a6d2a54102c570689f91d7b37aca26be65814788aafaf266d4be9a89638ad", "status": "inspected"},
+      {"window_id": "W024", "start": 276000, "end": 288000, "sha256": "1aa152a964ff8f6919deeef8ce1925b400baf7dab3ae447ce806e194899eb8f5", "status": "inspected"},
+      {"window_id": "W025", "start": 288000, "end": 300000, "sha256": "3b04e1c34015d3b172b41e12ced79fc43962888756f4518ba4ddebdb0dab184c", "status": "inspected"},
+      {"window_id": "W026", "start": 300000, "end": 312000, "sha256": "bbdf1007f1f81c125824b9695299091a68eff62b5401be9dca2bf07efcc3ae3a", "status": "inspected"},
+      {"window_id": "W027", "start": 312000, "end": 324000, "sha256": "bed9c522bdf14962f53b00e30881a55fc1fbfe3facf41ed50de189ae1bc96b74", "status": "inspected"},
+      {"window_id": "W028", "start": 324000, "end": 336000, "sha256": "5ba5d306bcf318e98d85db261f5cbc090fa6a1fc30ebe8c13d1e1aa1b67f4137", "status": "inspected"},
+      {"window_id": "W029", "start": 336000, "end": 348000, "sha256": "b7b70dcd16b1f9a1dcbdef12b24c9f6080a0e47edf220dd8b293e55a27bfba70", "status": "inspected"},
+      {"window_id": "W030", "start": 348000, "end": 360000, "sha256": "d1d223e564b92f5494a2aedbdba45257dda5dde17dd9b95ba5d5bccf5c2a7a74", "status": "inspected"},
+      {"window_id": "W031", "start": 360000, "end": 372000, "sha256": "7b0e07fc882d593f68508e6195e64801099aa481e08255c5bef0fff6e6d98c89", "status": "inspected"},
+      {"window_id": "W032", "start": 372000, "end": 383974, "sha256": "289595daebc2be8420f8f044b085438d6e4a981a7c320214db1e37ab99faa255", "status": "inspected"}
+    ]
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p18",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "粗體字拿的不精準，應該比 markdown 更下面的內容才是重點",
+        "question": "How can trade barriers affect Datadog’s growth and results?",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "answer_snippets": [
+          "Unfavorable conditions in the economy both in the United States and abroad may negatively affect the growth of our business and our results of operations."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How can export-authorization requirements affect Datadog’s sales opportunities?",
+        "query_type": "passage",
+        "item_keys": [
+          "1a"
+        ],
+        "reason": "The Round 1 snippet states the business effect but omits the trade-barrier cause. The source sentence that joins both concepts is longer than 200 characters. The revised intent remains about a concrete trade-control impact and has one independently sufficient 50–200 character occurrence."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DDOG-2025-147331",
+          "item_hint": "Item 1A",
+          "canonical_line": 592,
+          "window_id": "W013",
+          "normalized_start": 147331,
+          "normalized_end": 147496,
+          "answer_span": "Obtaining the necessary export license or other authorization for a particular sale may be time-consuming and may result in the delay or loss of sales opportunities.",
+          "answer_snippet": "Obtaining the necessary export license or other authorization for a particular sale may be time-consuming and may result in the delay or loss of sales opportunities.",
+          "snippet_chars": 165,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly states that obtaining required export authorization can delay or eliminate a sale opportunity."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the original Item 7 effect-only snippet, which does not identify trade barriers",
+          "the Item 7 cause-and-effect sentence pair, whose self-contained span exceeds 200 characters",
+          "generic tariff and economic-uncertainty references that do not independently state the requested impact",
+          "export-control disclosures about penalties or distribution limits that do not answer the revised sales-opportunity question"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p34",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一事，database bottlenecks 或 resource constraints",
+        "question": "How does Datadog identify database bottlenecks and resource constraints?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "With Database Monitoring, they can quickly pinpoint costly and slow queries and drill into precise execution details to address bottlenecks."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "How does Datadog’s Database Monitoring identify database bottlenecks?",
+        "query_type": "passage",
+        "item_keys": [
+          "1"
+        ],
+        "reason": "The Round 1 question combined bottlenecks and resource constraints, while its snippet answered only bottlenecks. The revised question asks one thing and is fully answered by the existing evidence."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DDOG-2025-039147",
+          "item_hint": "Item 1",
+          "canonical_line": 322,
+          "window_id": "W004",
+          "normalized_start": 39147,
+          "normalized_end": 39287,
+          "answer_span": "With Database Monitoring, they can quickly pinpoint costly and slow queries and drill into precise execution details to address bottlenecks.",
+          "answer_snippet": "With Database Monitoring, they can quickly pinpoint costly and slow queries and drill into precise execution details to address bottlenecks.",
+          "snippet_chars": 140,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly explains the slow-query and execution-detail method used to identify bottlenecks."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the adjacent resource-constraint sentence, which answers the removed half of the Round 1 compound question",
+          "general product descriptions that mention database performance without the identification method"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p45",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "Timing and size of Datadog's 2029 debt issuance",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes."
+        ]
+      },
+      "proposal": {
+        "change": "add_acceptable_occurrences",
+        "question": "Timing and size of Datadog's 2029 debt issuance",
+        "query_type": "factoid",
+        "item_keys": [
+          "7",
+          "7a",
+          "8-note-2",
+          "8-note-8"
+        ],
+        "reason": "The approved Round 1 question remains unchanged. Full traversal found four distinct source occurrences that each state both the issuance timing and principal amount, so all four must be OR-hit alternatives even though they do not broaden the answer."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DDOG-2025-245545",
+          "item_hint": "Item 7",
+          "canonical_line": 1005,
+          "window_id": "W021",
+          "normalized_start": 245545,
+          "normalized_end": 245735,
+          "answer_span": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes in a private placement to qualified institutional buyers pursuant to Rule 144A under the Securities Act.",
+          "answer_snippet": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes in a private placement to qualified institutional buyers pursuant to Rule 144A under the Securities Act.",
+          "snippet_chars": 190,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states December 2024 and $1.0 billion for the 2029 Notes issuance."
+        },
+        {
+          "occurrence_id": "DDOG-2025-259341",
+          "item_hint": "Item 7A",
+          "canonical_line": 1062,
+          "window_id": "W022",
+          "normalized_start": 259341,
+          "normalized_end": 259427,
+          "answer_span": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.",
+          "answer_snippet": "In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.",
+          "snippet_chars": 86,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states December 2024 and $1.0 billion for the 2029 Notes issuance."
+        },
+        {
+          "occurrence_id": "DDOG-2025-286123",
+          "item_hint": "Item 8, Note 2",
+          "canonical_line": 1389,
+          "window_id": "W024",
+          "normalized_start": 286123,
+          "normalized_end": 286224,
+          "answer_span": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of the “2029 Notes”.",
+          "answer_snippet": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of the “2029 Notes”.",
+          "snippet_chars": 101,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the more precise December 12, 2024 date and $1.0 billion principal amount."
+        },
+        {
+          "occurrence_id": "DDOG-2025-323068",
+          "item_hint": "Item 8, Note 8",
+          "canonical_line": 1629,
+          "window_id": "W027",
+          "normalized_start": 323068,
+          "normalized_end": 323210,
+          "answer_span": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of 0.00% Convertible Senior Notes due 2029 (the “2029 Notes”)",
+          "answer_snippet": "On December 12, 2024, the Company issued $1.0 billion aggregate principal amount of 0.00% Convertible Senior Notes due 2029 (the “2029 Notes”)",
+          "snippet_chars": 142,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "This shortest self-contained clause independently states the exact date, amount, and 2029 Notes identity; the source sentence continues with placement details that are unnecessary for the answer and would exceed 200 characters."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "other 2029 Notes references that state maturity, carrying value, conversion terms, proceeds, or interest but omit issuance timing or principal amount",
+          "the continuation of the Note 8 sentence beyond the shortest independently sufficient 142-character clause"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a18",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "粗體字不夠長，沒涵蓋到 net retention change 的數據",
+        "question": "Datadog net retention change and its cause in 2025",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "The increase in our trailing 12-month dollar-based net retention rate was attributable to increased usage growth from existing customers."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How did Datadog’s trailing 12-month dollar-based net retention rate change from 2024 to 2025?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The Round 1 question combined the numeric change and its cause, but no single 50–200 character source occurrence states both. The revised question keeps the change requested by the reviewer and the 190-character evidence contains both years' disclosed rates."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DDOG-2025-225945",
+          "item_hint": "Item 7",
+          "canonical_line": 812,
+          "window_id": "W019",
+          "normalized_start": 225945,
+          "normalized_end": 226135,
+          "answer_span": "As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.",
+          "answer_snippet": "As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.",
+          "snippet_chars": 190,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently supplies the 2025 and 2024 values needed to describe the year-over-year increase."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Round 1 cause-only sentence, which omits both rate values",
+          "a three-sentence span containing both values and the cause, which exceeds 200 characters",
+          "other ARR and customer-count disclosures that do not state the dollar-based net retention rates"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 4,
+    "rewritten_candidate_count": 3,
+    "unchanged_round1_approved_count": 1,
+    "acceptable_occurrence_count": 7,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

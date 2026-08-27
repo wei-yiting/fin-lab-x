@@ -1,0 +1,273 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T04",
+  "ticker": "COIN",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p38",
+      "p21",
+      "a21",
+      "n06"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001679788",
+    "accession_number": "0001679788-26-000015",
+    "filing_date": "2026-02-12",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "coin-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/0001679788-26-000015-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/0001679788-26-000015.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm",
+    "complete_submission_bytes": 25030540,
+    "complete_submission_sha256": "78459147056fb4343806105a8a20de62c7c6aaa16f1968563d877854be4537cd",
+    "primary_document_bytes": 3216972,
+    "primary_document_sha256": "cbe1e2c73bf6e9609afded3e95c338bcb1b92d0ea055fe3da5906e0c4c3805c9",
+    "primary_selection_check": "The complete submission identifies sequence 1 as TYPE 10-K and FILENAME coin-20251231.htm; the SEC filing index identifies the same file as the primary 10-K document. Trimming the SGML TEXT wrapper yields the downloaded primary document byte-for-byte."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected TYPE 10-K / SEQUENCE 1 from the accession-pinned complete submission, parsed the primary HTML with Python's standard HTMLParser, removed script, style, noscript, ix:header, ix:hidden and non-visible elements, inserted separators only at generic HTML block boundaries, decoded entities, normalized horizontal whitespace and removed blank lines. No Item, heading, block, sentence, repository-pipeline hierarchy or prior retrieval output determined traversal order or coverage.",
+    "normalized_chars": 649618,
+    "normalized_bytes": 652455,
+    "normalized_sha256": "f6e46e1eed1c1176bbb11eb6e72f383b8ddcd594175c483a4b8d78e580c44519"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 6000,
+    "overlap_chars": 0,
+    "window_count": 109,
+    "covered_interval": [
+      0,
+      649618
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T04_COIN.md",
+    "coverage_check": "All 109 fixed windows are contiguous and non-overlapping; W001 starts at 0, W109 ends at 649618, and the sum of their character counts is 649618."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p38",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "What happens to underlying Ether when cbETH changes hands?",
+        "query_type": "passage",
+        "answer_snippets": [
+          "Selling or otherwise transferring cbETH automatically transfers ownership of the underlying staked ETH, along with any rewards earned."
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "What happens to underlying Ether when cbETH changes hands?",
+        "query_type": "passage",
+        "reason": "Round 1 was approved, and full traversal found one independently sufficient occurrence."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COIN-2025-038286",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Staking",
+          "window_id": "W007",
+          "normalized_start": 38286,
+          "normalized_end": 38420,
+          "answer_span": "Selling or otherwise transferring cbETH automatically transfers ownership of the underlying staked ETH, along with any rewards earned.",
+          "answer_snippet": "Selling or otherwise transferring cbETH automatically transfers ownership of the underlying staked ETH, along with any rewards earned.",
+          "snippet_chars": 134,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly states that transferring cbETH transfers ownership of the underlying staked ETH and its earned rewards."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "other cbETH mentions in the same product description that define, acquire or route the token without stating the transfer consequence",
+          "risk-factor references to cbETH as a potentially unregistered token without describing underlying-ETH ownership transfer"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p21",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "沒涵蓋的海外營收來源，需要多個 evidence",
+        "question": "Coinbase domestic versus overseas revenue mix and foreign revenue source",
+        "query_type": "passage",
+        "answer_snippets": [
+          "For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respectively, of total revenue in the U.S., with no other country contributing over 10%."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_query_type",
+        "question": "What mainly comprised Coinbase's international revenue in 2025?",
+        "query_type": "factoid",
+        "answer_requirement": "One independently sufficient span must identify the main type of Coinbase international revenue in 2025.",
+        "reason": "The Round 1 query combined geographic mix with foreign-revenue source, while its only evidence covered the mix. Because the two adjacent disclosures cannot form separate OR alternatives for a compound question, the revision keeps the missing foreign-source intent as one independently answerable need."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COIN-2025-397600",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Revenue",
+          "window_id": "W067",
+          "normalized_start": 397600,
+          "normalized_end": 397659,
+          "answer_span": "For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respectively, of total revenue in the U.S., with no other country contributing over 10%. International revenue comprised mainly transaction revenue.",
+          "answer_snippet": "International revenue comprised mainly transaction revenue.",
+          "snippet_chars": 59,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies transaction revenue as the main source of international revenue."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the adjacent U.S.-revenue percentage, which answers the removed geographic-mix intent rather than the revised source question",
+          "the Note 4 geographic revenue table, which reports U.S. and international amounts but not the main type of international revenue",
+          "international licenses and exchange descriptions that do not identify the source of reported international revenue"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a21",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "query 問單一問題，看是 policy 還是 liquidity constraints",
+        "question": "Coinbase policy and liquidity constraints for investment digital assets",
+        "query_type": "passage",
+        "answer_snippets": [
+          "We do not plan to engage in regular trading of these crypto assets but may purchase additional crypto assets for investment as a buy and hold strategy."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "How does Coinbase approach regular trading of crypto assets it holds for investment?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient span must state Coinbase's policy or practice concerning regular trading of investment crypto assets.",
+        "reason": "The revision follows the Round 1 request to ask one question by retaining the investment-policy intent and removing liquidity constraints. Full traversal found three distinct filing locations that independently state the long-term, non-regular-trading policy."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COIN-2025-410539",
+          "item_hint": "Item 7",
+          "filing_location": "Non-GAAP Financial Measure / Adjusted EBITDA",
+          "window_id": "W069",
+          "normalized_start": 410539,
+          "normalized_end": 410717,
+          "answer_span": "We do not plan on engaging in regular trading of crypto assets, and, as an operating company, our investing activities in crypto are not part of our revenue generating activities, which are primarily based on transactions on our platform and the sales of subscriptions and services.",
+          "answer_snippet": "We do not plan on engaging in regular trading of crypto assets, and, as an operating company, our investing activities in crypto are not part of our revenue generating activities",
+          "snippet_chars": 178,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states that Coinbase does not plan regular crypto trading and treats crypto investing as outside revenue-generating operations."
+        },
+        {
+          "occurrence_id": "COIN-2025-419843",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Capital Resources / Other resources and commitments / Crypto assets",
+          "window_id": "W070",
+          "normalized_start": 419843,
+          "normalized_end": 419994,
+          "answer_span": "Crypto assets held for investment are primarily long-term holdings and in certain cases fulfill capital requirements set by regulators (see also Capital requirements below). We do not plan to engage in regular trading of these crypto assets but may purchase additional crypto assets for investment as a buy and hold strategy.",
+          "answer_snippet": "We do not plan to engage in regular trading of these crypto assets but may purchase additional crypto assets for investment as a buy and hold strategy.",
+          "snippet_chars": 151,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly states the buy-and-hold policy and lack of planned regular trading for investment crypto assets."
+        },
+        {
+          "occurrence_id": "COIN-2025-515508",
+          "item_hint": "Item 8 / Note 2",
+          "filing_location": "Summary of Significant Accounting Policies / Crypto assets held for investment",
+          "window_id": "W086",
+          "normalized_start": 515508,
+          "normalized_end": 515667,
+          "answer_span": "Crypto assets held for investment are primarily held long term. The Company does not engage in regular trading of these assets but may lend them or stake them.",
+          "answer_snippet": "Crypto assets held for investment are primarily held long term. The Company does not engage in regular trading of these assets but may lend them or stake them.",
+          "snippet_chars": 159,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The accounting-policy occurrence independently states long-term holding and no regular trading, making it a separate OR alternative."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "liquidity-stress sale conditions and market-instability liquidity constraints removed from the revised single-intent question",
+          "market-risk sensitivity disclosure that says the assets are held long term but does not state the regular-trading policy",
+          "balance, reconciliation, lending and staking disclosures that do not state the regular-trading policy"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n06",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "What drove the change in Coinbase's transaction revenue in 2025?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient span must explain a principal company-disclosed driver of Coinbase's 2025 transaction-revenue change; an isolated revenue amount is partial.",
+        "reason": "The question remains broad enough for multiple correct OR-hit answers. Full traversal found three distinct driver spans: consumer fee-rate and user-mix changes, higher consumer Trading Volume, and institutional derivatives growth associated with Deribit."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COIN-2025-398200",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Transaction revenue / consumer transaction revenue",
+          "window_id": "W067",
+          "normalized_start": 398200,
+          "normalized_end": 398367,
+          "answer_span": "a decrease of $384.4 million attributed to a lower average blended fee rate, primarily due to changes in the mix of Trading Volume from Simple users to Advanced and Coinbase One users who pay lower average fees",
+          "answer_snippet": "a lower average blended fee rate, primarily due to changes in the mix of Trading Volume from Simple users to Advanced and Coinbase One users who pay lower average fees",
+          "snippet_chars": 167,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Identifies the lower blended fee rate and the shift toward lower-fee Advanced and Coinbase One volume as a disclosed transaction-revenue driver."
+        },
+        {
+          "occurrence_id": "COIN-2025-398388",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Transaction revenue / consumer transaction revenue",
+          "window_id": "W067",
+          "normalized_start": 398388,
+          "normalized_end": 398472,
+          "answer_span": "an increase of $277.0 million attributed to a 7% increase in consumer Trading Volume",
+          "answer_snippet": "an increase of $277.0 million attributed to a 7% increase in consumer Trading Volume",
+          "snippet_chars": 84,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies higher consumer Trading Volume as a separate disclosed transaction-revenue driver."
+        },
+        {
+          "occurrence_id": "COIN-2025-398500",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Transaction revenue / institutional transaction revenue",
+          "window_id": "W067",
+          "normalized_start": 398500,
+          "normalized_end": 398665,
+          "answer_span": "an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.",
+          "answer_snippet": "an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.",
+          "snippet_chars": 165,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies derivatives trading, mainly from the Deribit acquisition, as an institutional transaction-revenue driver."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "transaction-revenue tables and summary sentences that state amounts or direction without drivers",
+          "Deribit business, risk-factor and acquisition-note disclosures that do not attribute the 2025 transaction-revenue change",
+          "the full 210-character consumer-fee clause, which exceeds the global snippet limit; the shortest self-contained 167-character causal subspan is used instead"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 4,
+    "rewritten_candidate_count": 2,
+    "unchanged_round1_approved_count": 1,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 8,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

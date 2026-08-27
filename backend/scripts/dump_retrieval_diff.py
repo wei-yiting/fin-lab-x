@@ -50,7 +50,7 @@ def _truncate(s: str, n: int) -> str:
 
 def _render_top5_table(chunks: list[dict], target_ticker: str) -> str:
     lines = [
-        "| Rank | Match | Ticker | Item | Score | Snippet (前 ~120 字) |",
+        "| Rank | Match | Ticker | Item | Score | Snippet (first ~120 chars) |",
         "|------|-------|--------|------|-------|----------------------|",
     ]
     for i, c in enumerate(chunks[:5], 1):

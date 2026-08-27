@@ -1,0 +1,199 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T03",
+  "ticker": "CAT",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p25",
+      "p42",
+      "a25"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000018230",
+    "accession_number": "0000018230-26-000008",
+    "filing_date": "2026-02-13",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "cat-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/18230/000001823026000008/0000018230-26-000008-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/18230/000001823026000008/0000018230-26-000008.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/18230/000001823026000008/cat-20251231.htm",
+    "complete_submission_bytes": 33197476,
+    "complete_submission_sha256": "1aade6920a2dcda891c91c4ff774d311be6d98963e497e305c0f729a00f8d972",
+    "primary_document_bytes": 6100485,
+    "primary_document_sha256": "ada3cc5dace5a2b16c4e05b5c888f33b2eae69a9d6076aff5e0b27825e5f9bbe",
+    "primary_selection_check": "The complete submission identifies sequence 1 as TYPE 10-K and FILENAME cat-20251231.htm; the SEC filing index identifies the same file as the primary 10-K document."
+  },
+  "normalization": {
+    "method": "transport_visible_text_lxml_v1",
+    "description": "Selected TYPE 10-K / SEQUENCE 1 from the accession-pinned complete submission, parsed the primary HTML with lxml, removed non-visible transport content, inserted separators only at neutral HTML block boundaries, decoded entities, and normalized whitespace. No Item, heading, block, sentence, or repository-pipeline hierarchy determined traversal order or coverage.",
+    "normalized_chars": 442003,
+    "normalized_sha256": "546ce9a5401f9dea2a3ee8c9236452262bc1ff7e65bd1ecd686ee519bb7a6f5a"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 8000,
+    "overlap_chars": 0,
+    "window_count": 56,
+    "covered_interval": [
+      0,
+      442003
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T03_CAT.md",
+    "coverage_check": "All 56 fixed windows are contiguous and non-overlapping; their character counts sum to 442003, with W001 starting at 0 and W056 ending at 442003."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p25",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "How much could tariffs cost without planned mitigation?",
+        "query_type": "passage",
+        "answer_snippets": [
+          "If we do not take the mitigating actions we plan to take in 2026, the impact from tariffs could be around 20 percent higher."
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "How much could tariffs cost without planned mitigation?",
+        "query_type": "passage",
+        "reason": "Round 1 was approved, and full traversal found one independently sufficient occurrence expressing the no-mitigation impact as around 20 percent higher.",
+        "contract_note": "The question can be read as asking for an absolute dollar amount, but the filing states only the relative no-mitigation increase. Do not infer an unstated $3.12 billion answer; human review may rewrite the question if an absolute amount was intended."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "CAT-2025-126153",
+          "item_hint": "Item 7",
+          "filing_location": "OVERVIEW / Full-Year 2026 Company Trends and Expectations",
+          "window_id": "W016",
+          "normalized_start": 126153,
+          "normalized_end": 126277,
+          "answer_span": "Based on the incremental tariffs announced in 2025 and in place by January 29, 2026, we expect the impact from tariffs to be around $2.6 billion in 2026, which is $800 million higher than incurred in 2025. If we do not take the mitigating actions we plan to take in 2026, the impact from tariffs could be around 20 percent higher. We remain confident that we will manage the impact of tariffs over time.",
+          "answer_snippet": "If we do not take the mitigating actions we plan to take in 2026, the impact from tariffs could be around 20 percent higher.",
+          "snippet_chars": 124,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly states the relative tariff impact if Caterpillar does not take its planned 2026 mitigating actions."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "generic trade-policy and tariff risk disclosures without the no-mitigation amount",
+          "historical 2025 profit effects from higher tariffs",
+          "first-quarter 2026 tariff amount and segment allocation without the no-mitigation condition"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p42",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "但是這個 query 是很罕見的問題，不會優先選這題，沒什麼評估意義",
+        "question": "How frequently does Caterpillar's IT chief attend Audit Committee meetings?",
+        "query_type": "factoid",
+        "answer_snippets": [
+          "The Company’s Chief Information Officer & Senior Vice President, Caterpillar IT (the “CIO”) attends all bimonthly AC meetings and provides cybersecurity updates to the AC and board."
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "How frequently does Caterpillar's IT chief attend Audit Committee meetings?",
+        "query_type": "factoid",
+        "reason": "The evidence contract is correct and full traversal found one independently sufficient occurrence. The Round 1 concern is candidate value and remains a human filtering decision."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "CAT-2025-105817",
+          "item_hint": "Item 1C",
+          "filing_location": "Cybersecurity Governance",
+          "window_id": "W014",
+          "normalized_start": 105817,
+          "normalized_end": 105998,
+          "answer_span": "The Company’s Chief Information Officer & Senior Vice President, Caterpillar IT (the “CIO”) attends all bimonthly AC meetings and provides cybersecurity updates to the AC and board.",
+          "answer_snippet": "The Company’s Chief Information Officer & Senior Vice President, Caterpillar IT (the “CIO”) attends all bimonthly AC meetings and provides cybersecurity updates to the AC and board.",
+          "snippet_chars": 181,
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly joins the CIO, attendance, Audit Committee meetings and their cadence."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "CIO background and responsibility disclosures without meeting cadence",
+          "Audit Committee cadence disclosures about accounting estimates or derivatives rather than CIO attendance"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a25",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該簡化為 deal cost and completion schedule,  拿掉 mining software capabilities",
+        "question": "RPMGlobal deal cost, completion schedule, and mining software capabilities",
+        "query_type": "passage",
+        "answer_snippets": [
+          "The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "What were the expected purchase price and closing schedule for Caterpillar's RPMGlobal acquisition?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient span must state both the expected closing window and purchase price for the RPMGlobal acquisition.",
+        "reason": "Removes mining-software capabilities as requested in Round 1, leaving one transaction-detail intent that each 149-character occurrence answers independently."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "CAT-2025-171845",
+          "item_hint": "Item 7",
+          "filing_location": "LIQUIDITY AND CAPITAL RESOURCES / Machinery, Power & Energy / resource allocation discussion",
+          "window_id": "W022",
+          "normalized_start": 171845,
+          "normalized_end": 171994,
+          "answer_span": "On February 3, 2026, the Federal Court of Australia approved Caterpillar's acquisition of RPMGlobal Holdings Limited, an Australian based software company. The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired. RPMGlobal is a leading provider of mining software solutions with deep domain expertise in mining technology enablement and data-driven software solutions at every stage of the mining lifecycle.",
+          "answer_snippet": "The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired.",
+          "snippet_chars": 149,
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "Directly states both the expected closing window and purchase price in the Item 7 liquidity discussion."
+        },
+        {
+          "occurrence_id": "CAT-2025-409946",
+          "item_hint": "Item 8 / Note 25",
+          "filing_location": "Subsequent event",
+          "window_id": "W052",
+          "normalized_start": 409946,
+          "normalized_end": 410095,
+          "answer_span": "On February 3, 2026, the Federal Court of Australia approved Caterpillar's acquisition of RPMGlobal Holdings Limited, an Australian based software company. The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired. RPMGlobal is a leading provider of mining software solutions with deep domain expertise in mining technology enablement and data-driven software solutions at every stage of the mining lifecycle.",
+          "answer_snippet": "The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired.",
+          "snippet_chars": 149,
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The same disclosure independently answers the revised question in Note 25; distinct source provenance makes it a separate OR alternative even though the normalized text is identical."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "generic acquisition-risk disclosures without RPMGlobal transaction details",
+          "references to other acquisitions",
+          "RPMGlobal capabilities text that the revised question intentionally excludes"
+        ],
+        "pipeline_artifact_removed": "The old Financial Products Segment block label does not match the Item 7 source location and is not carried into Round 2 provenance."
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "rewritten_candidate_count": 1,
+    "unchanged_round1_approved_count": 2,
+    "acceptable_occurrence_count": 4,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

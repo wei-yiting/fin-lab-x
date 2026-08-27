@@ -1,0 +1,438 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T13",
+  "ticker": "NVDA",
+  "fiscal_year": 2026,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p17",
+      "p33",
+      "p49",
+      "a17"
+    ],
+    "excluded_candidate_ids": [
+      "a01",
+      "p01"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "result_summary": {
+    "candidate_count": 4,
+    "rewritten_candidate_count": 3,
+    "new_candidate_count": 0,
+    "acceptable_occurrence_count": 15,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  },
+  "source": {
+    "cik": "0001045810",
+    "accession_number": "0001045810-26-000021",
+    "filing_date": "2026-02-25",
+    "period_of_report": "2026-01-25",
+    "submission_type": "10-K",
+    "primary_document": "nvda-20260125.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/0001045810-26-000021-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/0001045810-26-000021.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+    "complete_submission_bytes_from_index": 11461765,
+    "primary_document_bytes_from_index": 1967816,
+    "browser_dom_serialized_bytes": 1983796,
+    "browser_dom_serialized_sha256": "e5c2ebf40ccf36251b7818eb95d2ce9c94e6bfc4995c833c71860ed7bea5ab87",
+    "primary_selection_check": "The accession-pinned SEC filing index identifies sequence 1 as exact TYPE 10-K with document nvda-20260125.htm. Canonical text was derived from that official primary document. The local SEC Archives transport returned 403 for raw downloads, so raw complete-submission and primary-document byte hashes are not claimed; the saved browser DOM serialization is hashed instead."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Serialized the official SEC primary-document DOM, removed only non-visible transport content, inserted separators at neutral HTML block boundaries, decoded entities, normalized transport whitespace, and preserved visible source order. No Item, heading, block, sentence, candidate evidence, or repository-pipeline hierarchy determined traversal order or coverage.",
+    "normalized_bytes": 354707,
+    "normalized_chars": 353596,
+    "normalized_lines": 4613,
+    "normalized_sha256": "eeb14bc871982207d1862529575bfb219588da43e9dbfb09862f40b44f42c0b0"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 30,
+    "covered_interval": [
+      0,
+      353596
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T13_NVDA.md",
+    "coverage_check": "All 30 fixed windows are contiguous and non-overlapping; their character counts sum to 353596, with W0001 starting at 0 and W0030 ending at 353596."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p17",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "我覺得題目可以簡化成對大型下游買家的依賴程度就好，然後 evidence 再找過，也可以不止一個 evidence",
+        "question": "NVIDIA reliance on large downstream buyers and AI lab demand",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "user_intent": "how concentrated is the company's customer base",
+        "answer_snippets": [
+          "We estimate that one AI research and deployment company contributed to a meaningful amount of our revenue purchasing cloud services from our customers in fiscal year 2026."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "How concentrated is NVIDIA's revenue among its largest customers?",
+        "query_type": "passage",
+        "item_keys": [
+          "1A",
+          "7",
+          "8"
+        ],
+        "answer_requirement": "One independently sufficient span must qualitatively or quantitatively establish concentration among NVIDIA's direct or indirect customers; spans at distinct source offsets are OR-hit alternatives.",
+        "reason": "Removes the separate AI-lab-demand intent and keeps the Round 1 reviewer’s customer-concentration intent. Qualitative and quantitative disclosures about direct or indirect customer concentration are independently responsive OR alternatives."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "NVDA-2026-061221",
+          "item_hint": "Item 1A",
+          "filing_location": "Risk Factors Summary / Risks Related to Our Global Operating Business",
+          "canonical_line": 617,
+          "window_id": "W0006",
+          "normalized_start": 61221,
+          "normalized_end": 61313,
+          "answer_span": "A significant amount of our revenue stems from a limited number of partners and distributors",
+          "answer_snippet": "A significant amount of our revenue stems from a limited number of partners and distributors",
+          "snippet_chars": 92,
+          "snippet_sha256": "f0e417ebb526fbc622f63ac8932b4547dd9d1c47357fe594b4888389b3604fce",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The risk summary independently states that a significant amount of revenue comes from a limited partner and distributor base."
+        },
+        {
+          "occurrence_id": "NVDA-2026-115903",
+          "item_hint": "Item 1A",
+          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk heading",
+          "canonical_line": 935,
+          "window_id": "W0010",
+          "normalized_start": 115903,
+          "normalized_end": 116000,
+          "answer_span": "We receive a significant amount of our revenue from a limited number of partners and distributors",
+          "answer_snippet": "We receive a significant amount of our revenue from a limited number of partners and distributors",
+          "snippet_chars": 97,
+          "snippet_sha256": "2a3e2b2225691a70c3b42730123efbdcbb82f89ee1ed0d48495ed2364fd16b88",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The customer-concentration risk heading independently characterizes reliance on a limited number of partners and distributors."
+        },
+        {
+          "occurrence_id": "NVDA-2026-116209",
+          "item_hint": "Item 1A",
+          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk",
+          "canonical_line": 937,
+          "window_id": "W0010",
+          "normalized_start": 116209,
+          "normalized_end": 116354,
+          "answer_span": "We have experienced periods where we receive a significant amount of our revenue from a limited number of customers, and this trend may continue.",
+          "answer_snippet": "We have experienced periods where we receive a significant amount of our revenue from a limited number of customers, and this trend may continue.",
+          "snippet_chars": 145,
+          "snippet_sha256": "e316294b9ff5ce1d0cd294be68a020ccabb8396831cac18603b7160c1ea92735",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the recurring limited-customer concentration and that the trend may continue."
+        },
+        {
+          "occurrence_id": "NVDA-2026-116355",
+          "item_hint": "Item 1A",
+          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk",
+          "canonical_line": 937,
+          "window_id": "W0010",
+          "normalized_start": 116355,
+          "normalized_end": 116508,
+          "answer_span": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+          "answer_snippet": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+          "snippet_chars": 153,
+          "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
+          "exact_occurrences_in_normalized_text": 3,
+          "acceptance_reason": "Quantifies fiscal 2026 direct-customer revenue concentration with the two largest disclosed shares."
+        },
+        {
+          "occurrence_id": "NVDA-2026-118122",
+          "item_hint": "Item 1A",
+          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk",
+          "canonical_line": 937,
+          "window_id": "W0010",
+          "normalized_start": 118122,
+          "normalized_end": 118289,
+          "answer_span": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
+          "answer_snippet": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
+          "snippet_chars": 167,
+          "snippet_sha256": "bdf292c575e8965e133df1ca48009e94e54837fe43cf498ec09b64c5441a8553",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Quantifies indirect-customer concentration as individually 10% or more of revenue."
+        },
+        {
+          "occurrence_id": "NVDA-2026-205825",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Concentration of Revenue",
+          "canonical_line": 1497,
+          "window_id": "W0018",
+          "normalized_start": 205825,
+          "normalized_end": 205937,
+          "answer_span": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
+          "answer_snippet": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
+          "snippet_chars": 112,
+          "snippet_sha256": "d6ddf6031a9e65b524a3cbc43d3afb654d5b036ed2a0c0f78821868cc49fa0ab",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The Item 7 disclosure independently states concentration across both direct and indirect customers."
+        },
+        {
+          "occurrence_id": "NVDA-2026-205958",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Concentration of Revenue / Direct Customers",
+          "canonical_line": 1499,
+          "window_id": "W0018",
+          "normalized_start": 205958,
+          "normalized_end": 206111,
+          "answer_span": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+          "answer_snippet": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+          "snippet_chars": 153,
+          "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
+          "exact_occurrences_in_normalized_text": 3,
+          "acceptance_reason": "The distinct Item 7 occurrence repeats the full fiscal 2026 direct-customer concentration figures."
+        },
+        {
+          "occurrence_id": "NVDA-2026-206882",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Concentration of Revenue / Indirect Customers",
+          "canonical_line": 1505,
+          "window_id": "W0018",
+          "normalized_start": 206882,
+          "normalized_end": 207033,
+          "answer_span": "We generate a significant amount of our revenue from a limited number of indirect customers, some individually representing 10% or more of our revenue.",
+          "answer_snippet": "We generate a significant amount of our revenue from a limited number of indirect customers, some individually representing 10% or more of our revenue.",
+          "snippet_chars": 151,
+          "snippet_sha256": "a659c56091684c5f0d2f57775ddd057d7a1de91fe16f8b777e455c71dcd57a26",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The Item 7 occurrence independently quantifies indirect-customer concentration at 10% or more."
+        },
+        {
+          "occurrence_id": "NVDA-2026-207135",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Concentration of Revenue / Indirect Customers",
+          "canonical_line": 1505,
+          "window_id": "W0018",
+          "normalized_start": 207135,
+          "normalized_end": 207306,
+          "answer_span": "We estimate that one AI research and deployment company contributed to a meaningful amount of our revenue purchasing cloud services from our customers in fiscal year 2026.",
+          "answer_snippet": "We estimate that one AI research and deployment company contributed to a meaningful amount of our revenue purchasing cloud services from our customers in fiscal year 2026.",
+          "snippet_chars": 171,
+          "snippet_sha256": "c750b78a6df5b350b7f43d719a391fa728df8c44cc13de70bc56fe7e7cf9591b",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Qualitatively identifies a single indirect AI company as contributing a meaningful amount of fiscal 2026 revenue."
+        },
+        {
+          "occurrence_id": "NVDA-2026-337554",
+          "item_hint": "Item 8, Note 16",
+          "filing_location": "Segment Information / customer concentration",
+          "canonical_line": 4005,
+          "window_id": "W0029",
+          "normalized_start": 337554,
+          "normalized_end": 337666,
+          "answer_span": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
+          "answer_snippet": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
+          "snippet_chars": 112,
+          "snippet_sha256": "d6ddf6031a9e65b524a3cbc43d3afb654d5b036ed2a0c0f78821868cc49fa0ab",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The Note 16 occurrence independently repeats the direct-and-indirect concentration disclosure."
+        },
+        {
+          "occurrence_id": "NVDA-2026-337687",
+          "item_hint": "Item 8, Note 16",
+          "filing_location": "Segment Information / Direct Customers",
+          "canonical_line": 4007,
+          "window_id": "W0029",
+          "normalized_start": 337687,
+          "normalized_end": 337840,
+          "answer_span": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+          "answer_snippet": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+          "snippet_chars": 153,
+          "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
+          "exact_occurrences_in_normalized_text": 3,
+          "acceptance_reason": "The Note 16 occurrence independently repeats the two fiscal 2026 direct-customer revenue shares."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "customer concentration passages that describe only supply, partner dependence, or demand variability without establishing revenue concentration",
+          "customer-specific receivable or credit-risk balances that do not answer how concentrated fiscal 2026 revenue was",
+          "partial table labels and percentages that require a non-contiguous header or surrounding disclosure to identify customer concentration"
+        ],
+        "notes": "The 11 source occurrences are OR-hit alternatives. Repeated text at different offsets remains separate; it does not add metric denominators."
+      }
+    },
+    {
+      "candidate_id": "p33",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一事，production timeline 或 token-cost improvement over Blackwell",
+        "question": "Rubin production timeline and token-cost improvement over Blackwell",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Built for agentic AI and reasoning, it excels at processing multi-step problem-solving and massive long-context workflows, delivering up to a 10x reduction in cost per token compared to Blackwell."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "How does NVIDIA say Rubin improves cost per token compared with Blackwell?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1"
+        ],
+        "answer_requirement": "One independently sufficient span must state Rubin's cost-per-token improvement relative to Blackwell.",
+        "reason": "Selects only the token-cost comparison already supported by the original snippet and drops the separate production-timeline intent."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "NVDA-2026-023747",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Our Markets / Data Center",
+          "canonical_line": 377,
+          "window_id": "W0002",
+          "normalized_start": 23747,
+          "normalized_end": 23943,
+          "answer_span": "Built for agentic AI and reasoning, it excels at processing multi-step problem-solving and massive long-context workflows, delivering up to a 10x reduction in cost per token compared to Blackwell.",
+          "answer_snippet": "Built for agentic AI and reasoning, it excels at processing multi-step problem-solving and massive long-context workflows, delivering up to a 10x reduction in cost per token compared to Blackwell.",
+          "snippet_chars": 196,
+          "snippet_sha256": "897eb219451483860d66543b507624c3877a275598013566c84aad83282ebf88",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly states Rubin's up-to-10x cost-per-token reduction relative to Blackwell."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "Rubin production-timing disclosures, because the revised question intentionally drops that separate intent",
+          "Blackwell performance or cost statements that do not compare Rubin's cost per token with Blackwell",
+          "Rubin architecture and workflow descriptions that omit the cost-per-token improvement"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p49",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "What corporate software modernization initiative is NVIDIA continuing?",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "We are continuing a phased upgrade of our enterprise resource planning, or ERP, system to update our existing core financial systems."
+        ]
+      },
+      "proposal": {
+        "change": "none",
+        "question": "What corporate software modernization initiative is NVIDIA continuing?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1A",
+          "9A"
+        ],
+        "answer_requirement": "One independently sufficient span must identify the continuing ERP-system modernization initiative.",
+        "reason": "The Round 1 question remains unchanged. Full traversal adds the Item 1A ERP implementation disclosure as a second independently sufficient OR alternative."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "NVDA-2026-121635",
+          "item_hint": "Item 1A",
+          "filing_location": "Risks Related to Our Global Operating Business / business processes and information systems",
+          "canonical_line": 953,
+          "window_id": "W0011",
+          "normalized_start": 121635,
+          "normalized_end": 121766,
+          "answer_span": "We continue to design and implement updated accounting functionality related to a new enterprise resource planning, or ERP, system.",
+          "answer_snippet": "We continue to design and implement updated accounting functionality related to a new enterprise resource planning, or ERP, system.",
+          "snippet_chars": 131,
+          "snippet_sha256": "2a6061b3c19edcfa3bcdd176d7e0f004c1c630272162cd6b10da8b44e7766909",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently identifies continued implementation of updated accounting functionality tied to a new ERP system."
+        },
+        {
+          "occurrence_id": "NVDA-2026-227546",
+          "item_hint": "Item 9A",
+          "filing_location": "Changes in Internal Control Over Financial Reporting",
+          "canonical_line": 1769,
+          "window_id": "W0019",
+          "normalized_start": 227546,
+          "normalized_end": 227679,
+          "answer_span": "We are continuing a phased upgrade of our enterprise resource planning, or ERP, system to update our existing core financial systems.",
+          "answer_snippet": "We are continuing a phased upgrade of our enterprise resource planning, or ERP, system to update our existing core financial systems.",
+          "snippet_chars": 133,
+          "snippet_sha256": "b10677e4c50de47041c94e7407baf829abbc3e1f3533702f619b0f77953c6fc6",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The distinct Item 9A occurrence directly identifies the continuing phased ERP upgrade and its modernization purpose."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "generic information-system and cybersecurity modernization statements that do not identify the ERP initiative",
+          "internal-control disclosures about software impacts that do not state the continuing phased ERP upgrade",
+          "references to accounting functionality without identifying an enterprise resource planning system"
+        ],
+        "notes": "The full traversal adds the Item 1A occurrence as a second OR alternative."
+      }
+    },
+    {
+      "candidate_id": "a17",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "query 同時問資料中心運算與網路業務的成長，應該只問單一一個",
+        "question": "What propelled NVIDIA's Data Center compute and networking expansion?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Revenue from Data Center networking grew 142% driven by the introduction and continued ramp of NVLink compute fabric for GB200 and GB300 systems and the growth of Ethernet and InfiniBand platforms."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "What drove the growth in NVIDIA's Data Center networking revenue in fiscal 2026?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must explain the fiscal 2026 drivers of Data Center networking revenue growth; compute-only growth drivers are partial.",
+        "reason": "Keeps only the networking-growth intent supported by the original snippet and removes the separate compute-growth intent."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "NVDA-2026-204588",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Reportable Segments",
+          "canonical_line": 1485,
+          "window_id": "W0018",
+          "normalized_start": 204588,
+          "normalized_end": 204785,
+          "answer_span": "Revenue from Data Center networking grew 142% driven by the introduction and continued ramp of NVLink compute fabric for GB200 and GB300 systems and the growth of Ethernet and InfiniBand platforms.",
+          "answer_snippet": "Revenue from Data Center networking grew 142% driven by the introduction and continued ramp of NVLink compute fabric for GB200 and GB300 systems and the growth of Ethernet and InfiniBand platforms.",
+          "snippet_chars": 197,
+          "snippet_sha256": "ae199d371089fbca3f18553666e62a8bedb3ad4d664ceb75e15b202b69db3af2",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly attributes Data Center networking growth to the NVLink ramp and growth of Ethernet and InfiniBand platforms."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "Data Center compute-revenue growth disclosures, because the revised question intentionally asks only about networking",
+          "networking product descriptions that do not state fiscal 2026 revenue-growth drivers",
+          "segment-level Data Center growth summaries that combine compute and networking without independently explaining networking growth"
+        ]
+      }
+    }
+  ]
+}

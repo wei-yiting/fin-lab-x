@@ -1,0 +1,204 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T11",
+  "ticker": "LLY",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "a19",
+      "n02"
+    ],
+    "excluded_candidate_ids": [
+      "p19"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000059478",
+    "accession_number": "0000059478-26-000013",
+    "filing_date": "2026-02-12",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "lly-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000013/0000059478-26-000013-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000013/0000059478-26-000013.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000013/lly-20251231.htm",
+    "complete_submission_bytes": 14222091,
+    "complete_submission_sha256": "b405bc2ba1024b52d08e6caba50c6b04850dff86ae8a140eecbf489eb7cf0b6f",
+    "primary_document_bytes": 2369960,
+    "primary_document_sha256": "b697a898706245e4c704c5120e9307fd2de850038ae8d90caf2224da4a5326e0",
+    "primary_selection_check": "The accession-pinned complete submission identifies sequence 1 as exact TYPE 10-K with FILENAME lly-20251231.htm. A separate SEC download of the primary document matches the extracted document after removal of its single trailing newline."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected the exact TYPE 10-K document from the official complete submission, removed only its SEC XBRL transport wrapper, parsed visible HTML in source order, removed non-visible transport content, inserted separators at neutral HTML block boundaries, decoded entities, and normalized transport whitespace. No Item, heading, block, sentence, candidate evidence, repository-pipeline hierarchy, or prior retrieval output determined traversal order or coverage.",
+    "normalized_bytes": 383842,
+    "normalized_chars": 383149,
+    "normalized_lines": 4809,
+    "normalized_sha256": "8e0a9a7133429a6fbf480ec03a2396e63b514f5995c899215d9c6c994f1699f1"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 32,
+    "covered_interval": [
+      0,
+      383149
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T11_LLY.md",
+    "coverage_check": "All 32 fixed windows are contiguous and non-overlapping; their character counts sum to 383149, with W0001 starting at 0 and W0032 ending at 383149."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "a19",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "粗體字選錯句了，但整個 block 是有涵蓋到的",
+        "question": "Why will Lilly's near-term capital spending remain elevated?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "These investments, and other capital investments that support our operations, have increased our capital expenditures and will result in meaningfully higher capital expenditures in the near term."
+        ]
+      },
+      "proposal": {
+        "change": "replace_evidence",
+        "question": "Why will Lilly's near-term capital spending remain elevated?",
+        "query_type": "passage",
+        "item_keys": [
+          "1",
+          "7"
+        ],
+        "reason": "The Round 1 question is answerable, but its pronoun-led snippet was not the canonical cause sentence. Full traversal found three distinct disclosures that independently attribute the spending outlook to manufacturing expansion or global-facility investment, including the preceding sentence identified by the Round 1 comment."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "LLY-2025-081769",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Raw Materials and Product Supply",
+          "canonical_line": 1107,
+          "window_id": "W0007",
+          "normalized_start": 81769,
+          "normalized_end": 81908,
+          "answer_span": "To support anticipated demand for our current and prospective products, we have undertaken significant manufacturing expansion initiatives. Investments to increase our manufacturing capacity include new sites in North Carolina, Wisconsin, Indiana, Virginia, Texas, Alabama, Pennsylvania, Ireland, Germany, and the Netherlands.",
+          "answer_snippet": "To support anticipated demand for our current and prospective products, we have undertaken significant manufacturing expansion initiatives.",
+          "snippet_chars": 139,
+          "snippet_sha256": "f76479a290402f93efa9beb4aec1f7d95daadf029684d757fd7e31a9eddd0639",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "Independently explains that anticipated demand is driving significant manufacturing expansion, a direct reason for elevated capital spending."
+        },
+        {
+          "occurrence_id": "LLY-2025-202988",
+          "item_hint": "Item 7",
+          "filing_location": "Executive Overview / Other Matters / Incretin Medicines",
+          "canonical_line": 1731,
+          "window_id": "W0017",
+          "normalized_start": 202988,
+          "normalized_end": 203127,
+          "answer_span": "To support anticipated demand for our current and prospective products, we have undertaken significant manufacturing expansion initiatives. Additional capacity is expected to become operational over the next several years.",
+          "answer_snippet": "To support anticipated demand for our current and prospective products, we have undertaken significant manufacturing expansion initiatives.",
+          "snippet_chars": 139,
+          "snippet_sha256": "f76479a290402f93efa9beb4aec1f7d95daadf029684d757fd7e31a9eddd0639",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The distinct Item 7 occurrence independently links anticipated demand to manufacturing expansion; the adjacent timing sentence confirms that capacity comes online over several years."
+        },
+        {
+          "occurrence_id": "LLY-2025-214383",
+          "item_hint": "Item 7",
+          "filing_location": "Financial Condition and Liquidity",
+          "canonical_line": 1897,
+          "window_id": "W0018",
+          "normalized_start": 214383,
+          "normalized_end": 214474,
+          "answer_span": "Capital expenditures were $7.8 billion during 2025, compared to $5.1 billion in 2024. We are making investments in global facilities to manufacture existing and future products. These investments, and other capital investments that support our operations, have increased our capital expenditures and will result in meaningfully higher capital expenditures in the near term.",
+          "answer_snippet": "We are making investments in global facilities to manufacture existing and future products.",
+          "snippet_chars": 91,
+          "snippet_sha256": "4b0cbbe43f5e92481bf3de33dc7fbb87ee37d22ccf5c0f32af3b546251bb21a4",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "This is the cause sentence immediately preceding the Round 1 snippet and directly identifies global manufacturing facilities as the investment driving the near-term spending outlook."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Round 1 pronoun-led sentence beginning 'These investments,' which belongs to the same source occurrence as the selected 91-character cause sentence and is not a second canonical offset variant",
+          "a 226-character Item 1A sentence combining manufacturing expansion with long-term supply agreements, which exceeds the snippet cap and does not isolate capital spending",
+          "long conditional Item 1A disclosures about overestimating demand and continuing to incur capital expenditures, which do not state Lilly's actual near-term spending driver within a self-contained 50-200 character span",
+          "properties and generic capacity disclosures that list facilities but do not explain the spending outlook"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n02",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "What were the principal drivers of Lilly's 2025 revenue growth?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must identify the principal company-disclosed drivers of Lilly's 2025 revenue growth; a span containing only the growth rate is partial.",
+        "reason": "The question remains unchanged. Full traversal found one concise company-level driver sentence and one distinct geographic driver disclosure; both are valid OR alternatives."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "LLY-2025-188613",
+          "item_hint": "Item 7",
+          "filing_location": "Executive Overview / Financial Results",
+          "canonical_line": 1553,
+          "window_id": "W0016",
+          "normalized_start": 188613,
+          "normalized_end": 188719,
+          "answer_span": "Revenue increased in 2025 driven primarily by increased volume, partially offset by lower realized prices. The increased volume and lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.",
+          "answer_snippet": "Revenue increased in 2025 driven primarily by increased volume, partially offset by lower realized prices.",
+          "snippet_chars": 106,
+          "snippet_sha256": "45f7e02d6929b458b8e22b2730721c22420f0f5d51ce4587a9499fce839ff304",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Explicitly identifies increased volume as the primary company-level growth driver and lower realized prices as a partial offset."
+        },
+        {
+          "occurrence_id": "LLY-2025-208980",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Operating Results—2025 / Revenue",
+          "canonical_line": 1799,
+          "window_id": "W0018",
+          "normalized_start": 208980,
+          "normalized_end": 209179,
+          "answer_span": "In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.\n\nOutside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.",
+          "answer_snippet": "In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.\n\nOutside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.",
+          "snippet_chars": 199,
+          "snippet_sha256": "2cbc4713e3e1bc172a11c009ea84d9a04e252f3b5b7127580f082879324639c8",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently supplies the geographic volume and realized-price drivers and attributes them to Mounjaro and Zepbound within the 200-character cap."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the adjacent Executive Overview sentence attributing volume and price to Mounjaro and Zepbound, which is part of the same disclosure occurrence rather than a distinct source location",
+          "individual Mounjaro, Zepbound, and Verzenio product-growth sentences, each of which is only a partial company-level answer",
+          "the Note 2 product and geography revenue tables, which state amounts but require computation and do not narrate the growth drivers",
+          "revenue-concentration disclosures stating that Mounjaro and Zepbound represented 56 percent of total revenue, which describe share rather than the drivers of year-over-year growth"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 2,
+    "evidence_replacement_count": 1,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 5,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T16",
+  "ticker": "XOM",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p31",
+      "p32",
+      "n04"
+    ],
+    "excluded_candidates": [
+      {
+        "candidate_id": "p13",
+        "reason": "multi_passage"
+      },
+      {
+        "candidate_id": "a13",
+        "reason": "multi_passage"
+      },
+      {
+        "candidate_id": "p47",
+        "reason": "round1_x"
+      }
+    ],
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000034088",
+    "accession_number": "0000034088-26-000045",
+    "filing_date": "2026-02-18",
+    "accepted_at": "2026-02-18 16:06:52",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "xom-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/34088/000003408826000045/0000034088-26-000045-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/34088/000003408826000045/0000034088-26-000045.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/34088/000003408826000045/xom-20251231.htm",
+    "sec_declared_complete_submission_bytes": 26924307,
+    "sec_declared_primary_document_bytes": 5591068,
+    "browser_dom_bytes": 200011,
+    "browser_dom_sha256": "afd06eef7abc81939f3f7a1be95e9757684594c649fed0719c392836718d4047",
+    "primary_selection_check": "The SEC filing index identifies xom-20251231.htm as sequence 1 and the primary TYPE 10-K document. Direct download of the complete submission was blocked, so traversal used the official accession-pinned primary document in the in-app browser, not a third-party or repository filing copy. The Browser DOM hash identifies the browser XBRL viewer shell, not the raw SEC primary HTML."
+  },
+  "normalization": {
+    "method": "browser_visible_text_v1",
+    "description": "Read document.body.innerText from the official accession-pinned SEC primary document, converted NBSP to ordinary spaces, normalized line endings, collapsed horizontal whitespace per line, trimmed lines, and collapsed three or more newlines to two. No Item, heading, block, sentence, candidate evidence, or repository-pipeline hierarchy was produced or used.",
+    "rendered_text_bytes": 456004,
+    "rendered_text_chars": 444059,
+    "rendered_text_sha256": "21bd0c3707a3d0453eae980cabca1f054526fbb3597ef115da0328f2307b89a4",
+    "normalized_bytes": 424400,
+    "normalized_chars": 420010,
+    "normalized_lines": 5605,
+    "normalized_sha256": "83af0bcc2113031d8f0f8289948723a598ac36958dad08bb91f8288966dc3949"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 36,
+    "covered_interval": [
+      0,
+      420010
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T16_XOM.md",
+    "coverage_check": "All 36 fixed windows are contiguous and non-overlapping; their character counts sum to 420010, with W0001 starting at 0 and W0036 ending at 420010.",
+    "windows": [
+      {"window_id": "W0001", "start": 0, "end": 12000, "sha256": "040647806c6eb696e17b213b783ac6ee09652a95ca3ed5939f82bd99082ff04e", "status": "inspected"},
+      {"window_id": "W0002", "start": 12000, "end": 24000, "sha256": "7f84055ca4d3be2905626f85d5a244a5b0ce6ac51e09688649282cf80778a6f2", "status": "inspected"},
+      {"window_id": "W0003", "start": 24000, "end": 36000, "sha256": "85b54cce99f7851907894f65d2c9ac7e7e7836344a465019145af7abf3e4daa6", "status": "inspected"},
+      {"window_id": "W0004", "start": 36000, "end": 48000, "sha256": "4b8aaa31e380c2d623e4b87c5f81e02b7dc0dff3ac72f3d0b63e0cf2f0d55bd3", "status": "inspected"},
+      {"window_id": "W0005", "start": 48000, "end": 60000, "sha256": "35813ada93775d761ff55a164ecef9f3ee8ce61547d18f02d45d9f8815f5d25e", "status": "inspected"},
+      {"window_id": "W0006", "start": 60000, "end": 72000, "sha256": "ebaf7430e050b0e6f5615190c27f93735b677fd52715bcb8cf8da9cac75298e4", "status": "inspected"},
+      {"window_id": "W0007", "start": 72000, "end": 84000, "sha256": "a6132743c0e716fbdddbf1675b6fe560472ef7fed8ff442246677838f96f67a2", "status": "inspected"},
+      {"window_id": "W0008", "start": 84000, "end": 96000, "sha256": "32360c914bf001e49ddf8fa9659afcbc261833afe6199f7b88429361571dbcab", "status": "inspected"},
+      {"window_id": "W0009", "start": 96000, "end": 108000, "sha256": "235943af063ed59ab7e34e4fa359d929397a7fb1e9e279d58c7d00c162184a88", "status": "inspected"},
+      {"window_id": "W0010", "start": 108000, "end": 120000, "sha256": "2df2b63c947f7eaf445fef96e8d0ce23a7566b56049f9fca3811b1e0da6f9a48", "status": "inspected"},
+      {"window_id": "W0011", "start": 120000, "end": 132000, "sha256": "c1d901e39b0bf918d8d16bb21ac81b2bace0e8ab237081a9294a70854a5f7101", "status": "inspected"},
+      {"window_id": "W0012", "start": 132000, "end": 144000, "sha256": "837a1ae885d8be3fd0855d82605c42e72f50c02204a6a6c34690d76e46e88681", "status": "inspected"},
+      {"window_id": "W0013", "start": 144000, "end": 156000, "sha256": "c3640243c27d3c7d3307506187b7ff6fad3bdd51e302bda4cdc90cf5bf265863", "status": "inspected"},
+      {"window_id": "W0014", "start": 156000, "end": 168000, "sha256": "182444ca2a4588f3a5ff0418ac9bfefd2663aa1055a5935b8a2858a07855cf83", "status": "inspected"},
+      {"window_id": "W0015", "start": 168000, "end": 180000, "sha256": "b513396c7495be322aa385762f4f41c033ecb759756e51dfb142bdd0a04dc5be", "status": "inspected"},
+      {"window_id": "W0016", "start": 180000, "end": 192000, "sha256": "d1f6ae3ab8b4973afebf93ec4f8c8e20ff464d564e44f7874df1060b2c89c5a4", "status": "inspected"},
+      {"window_id": "W0017", "start": 192000, "end": 204000, "sha256": "69f022e2aa419b504f699939c2d104ac9e3db9d124457b8b5917e4d7b04639ba", "status": "inspected"},
+      {"window_id": "W0018", "start": 204000, "end": 216000, "sha256": "0d05820264b75aae40b7bc5ad787d8caf8940db7dd1764ab701689bf0b4b7f4c", "status": "inspected"},
+      {"window_id": "W0019", "start": 216000, "end": 228000, "sha256": "856c1b683bd5ef15ab634f97dcadc1c9d56b75f3c7e40c36309b521f4af4f9d3", "status": "inspected"},
+      {"window_id": "W0020", "start": 228000, "end": 240000, "sha256": "ec57733d2adfcad6a0e73c0d7486c03c930475b69e57d6e1c7ff82c80053a4b6", "status": "inspected"},
+      {"window_id": "W0021", "start": 240000, "end": 252000, "sha256": "68976c21c813b8ff1790ac513c52e890c284b2ef23ebd72d940418dc99783340", "status": "inspected"},
+      {"window_id": "W0022", "start": 252000, "end": 264000, "sha256": "4d13c04087c427318be348a1183b187db5817a53f0f0008f7cb4c1c63bba3c8c", "status": "inspected"},
+      {"window_id": "W0023", "start": 264000, "end": 276000, "sha256": "b8d1893a0210eaf6fc181ca93eef6a5002a10c78ed39ae8060e1ad10608f5d34", "status": "inspected"},
+      {"window_id": "W0024", "start": 276000, "end": 288000, "sha256": "ebbe1b3f723d332e3fe546dea3e88efa4bd3eb5daa8eb0b8bed6a08782c3bc43", "status": "inspected"},
+      {"window_id": "W0025", "start": 288000, "end": 300000, "sha256": "c9250a9778a470ba488fb181fd648f03d4006f555facbb9407bf2881a18b7eba", "status": "inspected"},
+      {"window_id": "W0026", "start": 300000, "end": 312000, "sha256": "9ba5d0fed5824d58a4f13c2f858377579ca1dc8e100013b24994f43ea8052f39", "status": "inspected"},
+      {"window_id": "W0027", "start": 312000, "end": 324000, "sha256": "ac2d4eaadd8f4e42f362ef6b93842c8751faa8c944e9bd2cc42180a92b068377", "status": "inspected"},
+      {"window_id": "W0028", "start": 324000, "end": 336000, "sha256": "3c2388964968bb2172f35f1fb8f57c102d17a8bd5157c8fa907e3b3b0aa5c1db", "status": "inspected"},
+      {"window_id": "W0029", "start": 336000, "end": 348000, "sha256": "5bf6b163f9d5b08caa931721df4c32669c96ef4c273199d76b5f9c661223af52", "status": "inspected"},
+      {"window_id": "W0030", "start": 348000, "end": 360000, "sha256": "31612b1c41a28f1dc39b24b2910195522172dda39a7ff31fbc4889b24a0c0917", "status": "inspected"},
+      {"window_id": "W0031", "start": 360000, "end": 372000, "sha256": "b504659bab2e7e29e1665bf7637f570d31a8911a3c49f4cb47b715ba387a10a1", "status": "inspected"},
+      {"window_id": "W0032", "start": 372000, "end": 384000, "sha256": "44b7098d91d0f58a8470139e787e8811e7fb8e46e7253cd6a5d4782eade25430", "status": "inspected"},
+      {"window_id": "W0033", "start": 384000, "end": 396000, "sha256": "47bc7cb4508fa602a9f34d0ac8737c0e0c99bc83718630f9157e59130f375a8f", "status": "inspected"},
+      {"window_id": "W0034", "start": 396000, "end": 408000, "sha256": "a7d754754e3d6a6b9985b2f45b810abd2b0cc8af12a8f752a5069dd31dcd7c3e", "status": "inspected"},
+      {"window_id": "W0035", "start": 408000, "end": 420000, "sha256": "c5378a6ec598e2e7b86bb7eeb72377c7e712283f78a7db9a69181fa420531c4f", "status": "inspected"},
+      {"window_id": "W0036", "start": 420000, "end": 420010, "sha256": "24acdd16468b75c62987f129b726d40708c1ed38749158266a4f0992816ca4ef", "status": "inspected"}
+    ]
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p31",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "How does ExxonMobil cultivate and retain long-tenured career employees?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Our career-oriented approach to talent development results in strong retention and an average length of service of about 30 years for our career employees."
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "How does ExxonMobil cultivate and retain long-tenured career employees?",
+        "query_type": "passage",
+        "item_keys": [
+          "1"
+        ],
+        "reason": "Round 1 approved this question and evidence. Full traversal found one independently sufficient occurrence of the approved retention and tenure answer, so the candidate remains unchanged."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "XOM-2025-009208",
+          "item_hint": "Item 1",
+          "filing_location": "Business / talent development",
+          "canonical_line": 232,
+          "window_id": "W0001",
+          "normalized_start": 9208,
+          "normalized_end": 9363,
+          "answer_span": "Our career-oriented approach to talent development results in strong retention and an average length of service of about 30 years for our career employees.",
+          "answer_snippet": "Our career-oriented approach to talent development results in strong retention and an average length of service of about 30 years for our career employees.",
+          "snippet_chars": 155,
+          "snippet_sha256": "603e5f12ec96143885818a0d1b60afd296fe06126993ed8dffa2b6b30d241b6d",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states that the career-oriented talent-development approach produces strong retention and approximately 30 years of average service."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the preceding recruiting, planned-experience, and training sentence, which describes cultivation but not the retention and tenure result",
+          "the following compensation, benefits, and workplace-program sentence, which describes another retention approach but does not independently state long tenure",
+          "employee-count, diversity, and workforce-engagement disclosures that do not answer the approved retention and tenure question"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p32",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一事，size 或 financial importance",
+        "question": "Size and financial importance of ExxonMobil's intellectual property portfolio",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How large was ExxonMobil's active patent portfolio at the end of 2025?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1"
+        ],
+        "reason": "The Round 1 query combined portfolio size and financial importance while its evidence answered size. The revised question selects only the supported size intent; the adjacent dependency statement answers the removed financial-importance half, not this revised question."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "XOM-2025-008365",
+          "item_hint": "Item 1",
+          "filing_location": "Business / proprietary technology",
+          "canonical_line": 230,
+          "window_id": "W0001",
+          "normalized_start": 8365,
+          "normalized_end": 8441,
+          "answer_span": "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.",
+          "answer_snippet": "ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.",
+          "snippet_chars": 76,
+          "snippet_sha256": "c89411df8780c97cd7cfe85fa31b0c43a4f74709e91cccc3572d4d68c68d32a4",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the worldwide count and measurement date for ExxonMobil's active patent portfolio."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the adjacent statement that no business segment depends on an individual intellectual-property right, which answers the removed financial-importance half",
+          "research-program and proprietary-technology disclosures that do not quantify the active patent portfolio",
+          "research-and-development expense disclosures that report spending rather than patent count"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n04",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "original_candidate": {
+        "generation_mode": "intent_first",
+        "intent": "Connect commodity-price movements to the company's earnings performance.",
+        "question": "How did changes in crude oil and natural gas prices affect ExxonMobil's 2025 earnings?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient span must explain the earnings effect of crude-oil and natural-gas price changes in 2025; a span that only reports commodity prices is partial."
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How did lower crude prices affect ExxonMobil's 2025 Upstream earnings?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must explain the effect of lower crude prices on ExxonMobil's 2025 Upstream earnings.",
+        "reason": "The filing reports 2025 crude-oil and natural-gas price movements together, but the independently sufficient 2025 earnings-driver disclosure attributes a $6.1 billion earnings decrease primarily to lower crude prices and does not state a 2025 natural-gas earnings effect. The revised question preserves the causal earnings intent without relaxing the global 50–200-character span limit."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "XOM-2025-167393",
+          "item_hint": "Item 7",
+          "filing_location": "Management's Discussion and Analysis / 2025 Upstream Earnings Driver Analysis",
+          "canonical_line": 1918,
+          "window_id": "W0014",
+          "normalized_start": 167393,
+          "normalized_end": 167562,
+          "answer_span": "Price – Lower realizations decreased earnings by $6.1 billion, primarily driven by lower crude prices as record demand was more than offset by increased industry supply.",
+          "answer_snippet": "Price – Lower realizations decreased earnings by $6.1 billion, primarily driven by lower crude prices as record demand was more than offset by increased industry supply.",
+          "snippet_chars": 169,
+          "snippet_sha256": "4c1bee3d3bfbecde94f2481b20d621862a9fdb99142c7fa6aa4d44d1c6f998b8",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently quantifies the 2025 Upstream earnings decrease from lower realizations and attributes it primarily to lower crude prices."
+        }
+      ],
+      "question_evidence_contract_issue": {
+        "original_contract_satisfiable": false,
+        "resolved_by_proposal": true,
+        "reason": "No 50–200-character occurrence independently explains both crude-oil and natural-gas price effects on 2025 earnings. The market-context disclosure reports both price movements without their earnings effects, while the 2025 earnings-driver disclosure quantifies the lower-crude effect only."
+      },
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the 2025 Recent Business Environment disclosure, which states modestly lower crude prices and higher natural-gas prices but does not explain their earnings effects",
+          "the 2024 lower-gas-realizations earnings driver, which concerns the wrong reporting period",
+          "generic risk-factor statements about future commodity-price effects",
+          "2026 Brent, Henry Hub, and TTF sensitivities, which are prospective benchmark scenarios rather than realized 2025 earnings effects",
+          "generic cash-flow dependence on commodity prices that does not quantify or explain the 2025 result"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "unchanged_candidate_count": 1,
+    "rewritten_candidate_count": 2,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 3,
+    "snippet_contract_violations": 0,
+    "original_question_evidence_contract_issues": 1,
+    "resolved_question_evidence_contract_issues": 1,
+    "human_review_pending": true
+  }
+}

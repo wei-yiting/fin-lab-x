@@ -79,7 +79,7 @@ def _metadata(ticker: str, fiscal_year: int) -> FilingMetadata:
     )
 
 
-LONG_BLOCK_SPAN = _filler(260, "liquidity")  # > 300 cl100k tokens
+LONG_BLOCK_SPAN = _filler(260, "liquidity")  # > 450 cl100k tokens
 
 
 @pytest.fixture()

@@ -13,9 +13,9 @@ Contract rules (one issue `rule` string each):
 - item_missing            Item absent from the parsed filing (e.g. stub-dropped)
 - span_not_in_block       span is not a substring of any single unit
                           (prelude / one block / flat text), case-insensitive
-- span_too_long           span > SPAN_MAX_TOKENS cl100k tokens (~half a chunk)
+- span_too_long           span > SPAN_MAX_TOKENS cl100k tokens
 - snippet_not_in_span     snippet not a substring of its span
-- snippet_length          snippet outside 50-200 chars
+- snippet_length          snippet outside SNIPPET_MIN/MAX_CHARS
 - snippet_not_unique      snippet occurs != 1 time across the whole corpus
 - multi_passage_same_block   two spans share one block of one structured Item
 - multi_passage_too_close    two spans in one flat Item < MIN_FLAT_GAP_TOKENS apart
@@ -46,10 +46,17 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
     StructuredItem,
 )
 
-SPAN_MAX_TOKENS = 300
+# Span cap ~0.9x the old arm's 512-token chunks: wide enough to cover a full
+# answer region, still under one chunk so a span-overlap criterion stays
+# selective (raised from 300 in review round 1).
+SPAN_MAX_TOKENS = 450
 MIN_FLAT_GAP_TOKENS = 600
+# The snippet is the strict-containment hit key. Beyond ~200 chars (~50
+# tokens, the old arm's chunk overlap) a snippet can straddle a chunk
+# boundary and make the row unhittable on that arm; 350 chars confines that
+# residual risk to the few rows that genuinely need a second sentence.
 SNIPPET_MIN_CHARS = 50
-SNIPPET_MAX_CHARS = 200
+SNIPPET_MAX_CHARS = 350
 
 
 @dataclass(frozen=True)

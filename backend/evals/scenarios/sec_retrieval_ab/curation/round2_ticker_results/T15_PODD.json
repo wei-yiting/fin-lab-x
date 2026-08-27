@@ -124,11 +124,11 @@
       },
       "proposal": {
         "change": "rewrite_question_and_query_type",
-        "question": "What milestone did Insulet reach for EVOLUTION 2 in 2025, and what did it plan for 2026?",
+        "question": "What milestone did Insulet reach for EVOLUTION 2 in 2025?",
         "query_type": "factoid",
-        "answer_requirement": "One independently sufficient occurrence must state both the 2025 EVOLUTION 2 enrollment milestone and the planned 2026 U.S. IDE pivotal study.",
-        "item_keys": ["1"],
-        "reason": "The Round 1 question named a broad set of next-generation milestones, while its evidence covered one compact EVOLUTION 2 timeline. The revision makes that past-to-future timeline explicit without requiring multi-passage composition."
+        "answer_requirement": "One independently sufficient occurrence must state that Insulet completed or finished enrollment for EVOLUTION 2 in 2025.",
+        "item_keys": ["1", "7"],
+        "reason": "The prior rewrite still combined the completed 2025 enrollment milestone with a separate planned 2026 study. This revision keeps one factoid intent. Full-filing traversal found two distinct source occurrences that independently state the 2025 EVOLUTION 2 enrollment milestone."
       },
       "acceptable_occurrences": [
         {
@@ -138,19 +138,35 @@
           "canonical_line": 300,
           "window_id": "W0004",
           "normalized_start": 24455,
-          "normalized_end": 24644,
+          "normalized_end": 24537,
           "answer_span": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.",
-          "answer_snippet": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.",
-          "snippet_chars": 189,
-          "snippet_sha256": "e603f502b1c75ce2982586af9212e57ca730fdfa26e6fca430fe34db5ca5095c",
+          "answer_snippet": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study",
+          "snippet_chars": 82,
+          "snippet_sha256": "6b199169439f07346044f3a0364d488bb99791c272b1d8d940da004f94bca206",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The single sentence independently supplies both requested dates and milestones."
+          "acceptance_reason": "The Item 1 occurrence independently states that enrollment for EVOLUTION 2 was completed in 2025. This is the shortest self-contained semantic unit that satisfies the 50-character minimum."
+        },
+        {
+          "occurrence_id": "PODD-2025-140970",
+          "item_hint": "Item 7",
+          "filing_location": "Management's Discussion and Analysis / Overview",
+          "canonical_line": 639,
+          "window_id": "W0018",
+          "normalized_start": 140970,
+          "normalized_end": 141116,
+          "answer_span": "In 2025, we also completed STRIVE, our pivotal study for the next generation hybrid closed loop system, and we finished enrollment for EVOLUTION 2, our safety and feasibility study for a fully closed loop AID system for type 2 diabetes.",
+          "answer_snippet": "In 2025, we also completed STRIVE, our pivotal study for the next generation hybrid closed loop system, and we finished enrollment for EVOLUTION 2",
+          "snippet_chars": 146,
+          "snippet_sha256": "d5ed75a05213698a94532c308029ecebe0bc8cf64310061c84fc2b69cbc50e22",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The separate Item 7 occurrence independently states that Insulet finished EVOLUTION 2 enrollment in 2025."
         }
       ],
       "post_traversal_audit": {
         "rejected_classes": [
-          "the Item 7 development-program summary, which repeats completion of EVOLUTION 2 enrollment but omits the planned 2026 IDE pivotal study",
-          "STRIVE and Omnipod 6 disclosures, which concern different programs"
+          "the planned 2026 U.S. IDE pivotal study, which is a separate intent from the completed 2025 enrollment milestone",
+          "STRIVE and Omnipod 6 disclosures that do not also state the EVOLUTION 2 enrollment milestone",
+          "arbitrary overlapping substring variants around either accepted source occurrence"
         ]
       }
     },
@@ -254,186 +270,37 @@
       "round1": null,
       "proposal": {
         "change": "new_candidate_evidence",
-        "question": "How is responsibility for cybersecurity risk oversight allocated at Insulet?",
-        "query_type": "passage",
-        "answer_requirement": "One independently sufficient occurrence must explain how Insulet allocates oversight or management responsibility for cybersecurity risk; a generic statement that cybersecurity is important is partial.",
+        "question": "Has Insulet experienced cybersecurity incidents that materially affected the company?",
+        "query_type": "factoid",
+        "answer_requirement": "One independently sufficient occurrence must state whether previous cybersecurity incidents materially affected Insulet; hypothetical incident risks, response procedures, and governance allocations are not sufficient.",
         "item_keys": ["1C"],
-        "reason": "The intent-first question remains unchanged. Full Item 1C traversal found distinct operational, ERM, Board, committee, CISO, and CTO responsibility statements; every independently sufficient non-overlapping source span is retained as an OR-hit alternative."
+        "reason": "The revised question asks one binary incident-history fact instead of a broad allocation of governance responsibilities. Full-filing traversal found one distinct source occurrence stating that Insulet does not believe previous cybersecurity incidents materially affected the company."
       },
       "acceptable_occurrences": [
         {
-          "occurrence_id": "PODD-2025-125510",
+          "occurrence_id": "PODD-2025-132068",
           "item_hint": "Item 1C",
-          "filing_location": "Risk Management and Strategy",
-          "canonical_line": 571,
-          "window_id": "W0016",
-          "normalized_start": 125510,
-          "normalized_end": 125658,
-          "answer_span": "Our cybersecurity team assesses, monitors, and manages cybersecurity risk through a combination of technical, physical, and administrative controls.",
-          "answer_snippet": "Our cybersecurity team assesses, monitors, and manages cybersecurity risk through a combination of technical, physical, and administrative controls.",
-          "snippet_chars": 148,
-          "snippet_sha256": "04afd6634b180586ece4d184a131a897e6f37d340e93533b3952611662c30b6c",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns day-to-day cybersecurity risk assessment, monitoring, and management to the cybersecurity team."
-        },
-        {
-          "occurrence_id": "PODD-2025-125932",
-          "item_hint": "Item 1C",
-          "filing_location": "Risk Management and Strategy",
-          "canonical_line": 571,
-          "window_id": "W0016",
-          "normalized_start": 125932,
-          "normalized_end": 126066,
-          "answer_span": "We maintain a cybersecurity risk register, and cybersecurity team leaders meet monthly to discuss and prioritize cybersecurity threats, review risk assessments, and monitor progress on remediation activities.",
-          "answer_snippet": "We maintain a cybersecurity risk register, and cybersecurity team leaders meet monthly to discuss and prioritize cybersecurity threats",
-          "snippet_chars": 134,
-          "snippet_sha256": "a818185b6886789c3e75a680cbbb9a643c1e5cbb19e80fe9553b2be2df758b5e",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns recurring threat prioritization, assessment review, and remediation monitoring to cybersecurity team leaders."
-        },
-        {
-          "occurrence_id": "PODD-2025-127464",
-          "item_hint": "Item 1C",
-          "filing_location": "Risk Management and Strategy / Cloud and Vulnerability Management",
-          "canonical_line": 578,
-          "window_id": "W0016",
-          "normalized_start": 127464,
-          "normalized_end": 127638,
-          "answer_span": "As part of our vulnerability and overall security posture management, a cross-functional team meets regularly to review and remediate issues identified through security scans and security configuration checks.",
-          "answer_snippet": "As part of our vulnerability and overall security posture management, a cross-functional team meets regularly to review and remediate issues identified through security scans",
-          "snippet_chars": 174,
-          "snippet_sha256": "af951611756542008c50c37b108166e6ffa4d07bfa2ade11ab3572043ac17f05",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns vulnerability-review and remediation work to a cross-functional team."
-        },
-        {
-          "occurrence_id": "PODD-2025-130771",
-          "item_hint": "Item 1C",
-          "filing_location": "Risk Management and Strategy / Incident Response",
-          "canonical_line": 584,
+          "filing_location": "Risk Management and Strategy / prior incident impact",
+          "canonical_line": 586,
           "window_id": "W0017",
-          "normalized_start": 130771,
-          "normalized_end": 130876,
-          "answer_span": "Under the CIRP, cybersecurity incidents are initially reviewed and rated by our security operations team.",
-          "answer_snippet": "Under the CIRP, cybersecurity incidents are initially reviewed and rated by our security operations team.",
-          "snippet_chars": 105,
-          "snippet_sha256": "17f1a1ba95cc2fa4462c77aef2f60ff27116130e722c259969d6df6245d24a8e",
+          "normalized_start": 132068,
+          "normalized_end": 132234,
+          "answer_span": "We currently do not believe that risks from cybersecurity threats, including as a result of any previous cybersecurity incidents, have materially affected the Company’s business strategy, results of operations, or financial condition.",
+          "answer_snippet": "We currently do not believe that risks from cybersecurity threats, including as a result of any previous cybersecurity incidents, have materially affected the Company",
+          "snippet_chars": 166,
+          "snippet_sha256": "62fc7ef5eff5b70569ea49b199cf2d38cee34bef0214447959098889f54a7e19",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns initial incident review and severity rating to the security operations team."
-        },
-        {
-          "occurrence_id": "PODD-2025-131702",
-          "item_hint": "Item 1C",
-          "filing_location": "Risk Management and Strategy / Enterprise Risk Management",
-          "canonical_line": 585,
-          "window_id": "W0017",
-          "normalized_start": 131702,
-          "normalized_end": 131870,
-          "answer_span": "Cybersecurity risks are included in the risk universe evaluated by the ERM function as it identifies and assesses the Company’s top enterprise risks on an annual basis.",
-          "answer_snippet": "Cybersecurity risks are included in the risk universe evaluated by the ERM function as it identifies and assesses the Company’s top enterprise risks on an annual basis.",
-          "snippet_chars": 168,
-          "snippet_sha256": "9c7ec9ec8f76d75871c4416ee1441e9a2ff5d860c9bbb2221007db59513f8ecf",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns annual enterprise-level cybersecurity risk identification and assessment to the ERM function."
-        },
-        {
-          "occurrence_id": "PODD-2025-132551",
-          "item_hint": "Item 1C",
-          "filing_location": "Governance",
-          "canonical_line": 588,
-          "window_id": "W0017",
-          "normalized_start": 132551,
-          "normalized_end": 132729,
-          "answer_span": "Our Board oversees management’s processes for identifying and mitigating risks, including from cybersecurity threats, to help align our risk exposure to our strategic objectives.",
-          "answer_snippet": "Our Board oversees management’s processes for identifying and mitigating risks, including from cybersecurity threats, to help align our risk exposure to our strategic objectives.",
-          "snippet_chars": 178,
-          "snippet_sha256": "aaa40df7aefc993d379e63a92cdca866c28037ecd2b72bdedae1f53dbeddc88d",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns oversight of management's cybersecurity risk processes to the full Board."
-        },
-        {
-          "occurrence_id": "PODD-2025-132825",
-          "item_hint": "Item 1C",
-          "filing_location": "Governance",
-          "canonical_line": 591,
-          "window_id": "W0017",
-          "normalized_start": 132825,
-          "normalized_end": 132922,
-          "answer_span": "NGR Committee has primary responsibility for cybersecurity as part of its risk oversight mandate.",
-          "answer_snippet": "NGR Committee has primary responsibility for cybersecurity as part of its risk oversight mandate.",
-          "snippet_chars": 97,
-          "snippet_sha256": "b73b0842ad7db613e54bbf8848b1861eb31288015f608de205c8a6a085ac1ece",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Directly assigns primary cybersecurity oversight responsibility to the NGR Committee."
-        },
-        {
-          "occurrence_id": "PODD-2025-133414",
-          "item_hint": "Item 1C",
-          "filing_location": "Governance",
-          "canonical_line": 592,
-          "window_id": "W0017",
-          "normalized_start": 133414,
-          "normalized_end": 133586,
-          "answer_span": "Our Cybersecurity organization, which includes infrastructure security, product security, technology risk management, and security awareness and culture is led by our CISO.",
-          "answer_snippet": "Our Cybersecurity organization, which includes infrastructure security, product security, technology risk management, and security awareness and culture is led by our CISO.",
-          "snippet_chars": 172,
-          "snippet_sha256": "26c47fc167400e6f45401c708b9a2e8cd8f9da22663f4624faab457485957d5d",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns leadership of the cybersecurity organization and its risk-management functions to the CISO."
-        },
-        {
-          "occurrence_id": "PODD-2025-133587",
-          "item_hint": "Item 1C",
-          "filing_location": "Governance",
-          "canonical_line": 592,
-          "window_id": "W0017",
-          "normalized_start": 133587,
-          "normalized_end": 133729,
-          "answer_span": "Our CISO reports directly to our Chief Technology Officer (“CTO”) and is responsible for developing and implementing our cybersecurity program",
-          "answer_snippet": "Our CISO reports directly to our Chief Technology Officer (“CTO”) and is responsible for developing and implementing our cybersecurity program",
-          "snippet_chars": 142,
-          "snippet_sha256": "e223d9cdb45c20855697565fa61a82972471df893bfb9f583d73c6693fb11631",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "States the CISO's reporting line and program-development and implementation responsibility."
-        },
-        {
-          "occurrence_id": "PODD-2025-134200",
-          "item_hint": "Item 1C",
-          "filing_location": "Governance",
-          "canonical_line": 593,
-          "window_id": "W0017",
-          "normalized_start": 134200,
-          "normalized_end": 134351,
-          "answer_span": "Our CTO ensures cybersecurity measures are prioritized across research and development, software engineering, and our information technology functions.",
-          "answer_snippet": "Our CTO ensures cybersecurity measures are prioritized across research and development, software engineering, and our information technology functions.",
-          "snippet_chars": 151,
-          "snippet_sha256": "c6b10e6b236f39649eb9e3934a95d4a5d35b2a438d8b9a843305158c43f869d4",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns cross-functional prioritization of cybersecurity measures to the CTO."
-        },
-        {
-          "occurrence_id": "PODD-2025-134492",
-          "item_hint": "Item 1C",
-          "filing_location": "Governance",
-          "canonical_line": 593,
-          "window_id": "W0017",
-          "normalized_start": 134492,
-          "normalized_end": 134635,
-          "answer_span": "Our CTO and CISO co-chair a quarterly Technology Risk Committee aimed at providing proper oversight and governance of the cybersecurity program",
-          "answer_snippet": "Our CTO and CISO co-chair a quarterly Technology Risk Committee aimed at providing proper oversight and governance of the cybersecurity program",
-          "snippet_chars": 143,
-          "snippet_sha256": "0ced7684fa94ea9425a637d32a1b4ccca7114aff6c2a4ce765b5b67e124adb1d",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Assigns quarterly cybersecurity-program oversight and governance to a Technology Risk Committee co-chaired by the CTO and CISO."
+          "acceptance_reason": "The filing's single historical-impact disclosure states that Insulet does not believe previous cybersecurity incidents materially affected the company; the full answer span preserves all three disclosed impact dimensions."
         }
       ],
       "post_traversal_audit": {
         "rejected_classes": [
-          "generic cybersecurity importance, controls, certifications, training, and insurance statements that do not assign responsibility",
-          "assessment-result reporting and CISO briefing sentences that describe information flow but do not independently assign oversight or management responsibility",
-          "the embedded product-cybersecurity-team sentence, whose 'this mission' dependency is not self-contained within 200 characters",
-          "the CIRT membership list, which cannot preserve the complete disclosed membership in a self-contained 50–200-character snippet"
-        ]
+          "hypothetical cybersecurity incident consequences and material-risk disclosures that do not state whether an incident occurred or materially affected Insulet",
+          "incident-response, escalation, insurance, controls, certifications, training, governance, CISO, CTO, Board, and committee statements that do not answer the incident-history question",
+          "Item 9A internal-control statements whose material-effect wording concerns changes in internal control rather than cybersecurity incidents",
+          "arbitrary overlapping substring variants around the one accepted source occurrence"
+        ],
+        "notes": "The complete 234-character answer sentence exceeds the 200-character snippet limit, so the canonical 166-character anchor retains the issuer-qualified negative conclusion, previous-incident relation, and company-level material-effect language; answer_span preserves all three disclosed impact dimensions without relaxing the snippet limit."
       }
     }
   ],
@@ -442,7 +309,7 @@
     "rewritten_candidate_count": 3,
     "unchanged_round1_approved_count": 1,
     "new_candidate_count": 1,
-    "acceptable_occurrence_count": 16,
+    "acceptable_occurrence_count": 7,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

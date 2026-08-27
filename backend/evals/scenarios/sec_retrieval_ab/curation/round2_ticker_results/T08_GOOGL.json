@@ -1,0 +1,285 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T08",
+  "ticker": "GOOGL",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p41",
+      "a24",
+      "p24"
+    ],
+    "excluded_candidate_ids": [
+      "p09",
+      "a09"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001652044",
+    "accession_number": "0001652044-26-000018",
+    "filing_date": "2026-02-05",
+    "accepted_at": "2026-02-04T21:56:03-05:00",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "goog-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/0001652044-26-000018-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/0001652044-26-000018.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm",
+    "complete_submission_bytes": 15653193,
+    "complete_submission_sha256": "66662b7992c979bb14d45147156d589e3bdf33c227f513efedfc3196f67e8b9a",
+    "primary_document_bytes": 2616499,
+    "primary_document_sha256": "c2f6301004f35411a20611c14ff01d80a85c0bcbab6053c80d8cc7f6fc747161",
+    "primary_selection_check": "The accession-pinned complete submission contains one exact TYPE 10-K document: SEQUENCE 1, FILENAME goog-20251231.htm, DESCRIPTION 10-K. The separately downloaded SEC primary document equals the extracted document plus its single trailing newline."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected the exact TYPE 10-K document from the official complete submission, removed only its SEC XBRL transport wrapper, parsed visible HTML in source order, removed non-visible transport content, inserted separators at neutral HTML block boundaries, decoded entities, and normalized transport whitespace. No Item, heading, block, sentence, candidate evidence, or repository-pipeline hierarchy determined traversal order or coverage.",
+    "normalized_bytes": 364195,
+    "normalized_chars": 363560,
+    "normalized_lines": 6141,
+    "normalized_sha256": "3224c37b8c2e941f7210e97555272acd0cf84f8abd839fd35be5ad64c1e3e612"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 31,
+    "covered_interval": [
+      0,
+      363560
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T08_GOOGL.md",
+    "coverage_check": "All 31 fixed windows are contiguous and non-overlapping; their character counts sum to 363560, with W0001 starting at 0 and W0031 ending at 363560.",
+    "windows": [
+      {"window_id": "W0001", "start": 0, "end": 12000, "sha256": "9e9b7a09467495370084852e01d5d0c42d47facbaebc840929c39266891cd7b5", "status": "inspected"},
+      {"window_id": "W0002", "start": 12000, "end": 24000, "sha256": "26f085a987b350d3f4bae10ab5cbc655d8543c8d1ba9a339ae0887481e0aa948", "status": "inspected"},
+      {"window_id": "W0003", "start": 24000, "end": 36000, "sha256": "b12b0c8ef6d1446331a6701604470789422fe0669706c51ac6d63bf39bc03e02", "status": "inspected"},
+      {"window_id": "W0004", "start": 36000, "end": 48000, "sha256": "b245e2729c9d7702157d8c98f7a31be963933624fcbd7c8ffa163c3194b1217e", "status": "inspected"},
+      {"window_id": "W0005", "start": 48000, "end": 60000, "sha256": "987dd0887c29441c0b4d50763a2af084277505015fb611336058a1fa25976c21", "status": "inspected"},
+      {"window_id": "W0006", "start": 60000, "end": 72000, "sha256": "296ce55f7e59cb96ba23a58437febce6a0d7daa86bbc7c8dacac44b95a0597dd", "status": "inspected"},
+      {"window_id": "W0007", "start": 72000, "end": 84000, "sha256": "dc8a7ea616ff60fa26ec757066f3963f060a9ce9a48a3bec24309b5200ad2102", "status": "inspected"},
+      {"window_id": "W0008", "start": 84000, "end": 96000, "sha256": "c51588e1c62e92c0498720d6e93bdf215aa69a3546629dff950f67b7d7632a4d", "status": "inspected"},
+      {"window_id": "W0009", "start": 96000, "end": 108000, "sha256": "3b3808da422474b7eeecd4c3d6b13eb0bdb29996ed360ee7de7f3b434bdc9e52", "status": "inspected"},
+      {"window_id": "W0010", "start": 108000, "end": 120000, "sha256": "ab48c7a1b844e0be532ea5a173a6bb51c529e3bc921aac6437932fd98c4db5d4", "status": "inspected"},
+      {"window_id": "W0011", "start": 120000, "end": 132000, "sha256": "cfc2c3150ea8aea4ce13495cdd991b8f310c1e029d4c48f4d6b5499e943f2c40", "status": "inspected"},
+      {"window_id": "W0012", "start": 132000, "end": 144000, "sha256": "5a6d283a7f010e5cc569743bad4e6d432709007fb724e7b30a54af6688132b02", "status": "inspected"},
+      {"window_id": "W0013", "start": 144000, "end": 156000, "sha256": "ab955144a1fffd084f3a63ba6795f3cb399344db09041503c0f0178c56e511f9", "status": "inspected"},
+      {"window_id": "W0014", "start": 156000, "end": 168000, "sha256": "c028e8b2d55d3bc3ac2f39d7a4cc64c153832f5daecc53dc71dee5cffd467720", "status": "inspected"},
+      {"window_id": "W0015", "start": 168000, "end": 180000, "sha256": "c639db3894bca3199993a10c92b0a41d6ac86e1d1669da8baaa610d60f4ea6e6", "status": "inspected"},
+      {"window_id": "W0016", "start": 180000, "end": 192000, "sha256": "17d26d3cd06af06079d32aa735bf34e94ba19a68ba3c66736958f1aa7a1a5497", "status": "inspected"},
+      {"window_id": "W0017", "start": 192000, "end": 204000, "sha256": "01fded0a8726448aaa7dcbce9fbf095a395717636f7307537f52a250ff11be91", "status": "inspected"},
+      {"window_id": "W0018", "start": 204000, "end": 216000, "sha256": "f72df08ebc48222a9651409966afe91bf9bbde6143a6f94e4acd3b8548fc2cc0", "status": "inspected"},
+      {"window_id": "W0019", "start": 216000, "end": 228000, "sha256": "8db1e4e5299e9e10e16cc1173fcdfd979fca41648a1cf63761d6d67fb0d91ded", "status": "inspected"},
+      {"window_id": "W0020", "start": 228000, "end": 240000, "sha256": "b2cdf21d960eab17ad80e42420319185c1bd580c9f728a13732efcd28bb05458", "status": "inspected"},
+      {"window_id": "W0021", "start": 240000, "end": 252000, "sha256": "e409e755676bf38641d6ef51c22d4930a9358a2316f810c93c6be90fedf0e36b", "status": "inspected"},
+      {"window_id": "W0022", "start": 252000, "end": 264000, "sha256": "b22cbd254e801e730a310658b25e14ac2b54de8a8e2998d06da422f9dfd62b7a", "status": "inspected"},
+      {"window_id": "W0023", "start": 264000, "end": 276000, "sha256": "da98cceb317cafae8067a548a9c059a4b34bbb7408f22e0e0c8fdf0754488344", "status": "inspected"},
+      {"window_id": "W0024", "start": 276000, "end": 288000, "sha256": "392ae7f98f701752c2544518192e37295247ce6d1aa53d5489c2bc86c24a05dc", "status": "inspected"},
+      {"window_id": "W0025", "start": 288000, "end": 300000, "sha256": "1469355114751eff23804e2eb3fd4cd1d60f04625c35ea308d7381c804e13f62", "status": "inspected"},
+      {"window_id": "W0026", "start": 300000, "end": 312000, "sha256": "946e2587e6735ff08f1250a67885551bfed721ebf32ad85b58a52b46c01a159f", "status": "inspected"},
+      {"window_id": "W0027", "start": 312000, "end": 324000, "sha256": "688b17598fda70d9ff2489d90f1bb881f15ccf4595cd613a372a3d9b6c89518e", "status": "inspected"},
+      {"window_id": "W0028", "start": 324000, "end": 336000, "sha256": "c57fa7b46bd303af27fc23d19677cde5a9239be1545af05c40330c74e9aaf181", "status": "inspected"},
+      {"window_id": "W0029", "start": 336000, "end": 348000, "sha256": "65789cee29dec65496f6533a9053992fa144ca550750d31845531afc05b64912", "status": "inspected"},
+      {"window_id": "W0030", "start": 348000, "end": 360000, "sha256": "1d5a5285b483204025a9f0428eb41e6021d92bb7e346565b179cf65aadb7a54f", "status": "inspected"},
+      {"window_id": "W0031", "start": 360000, "end": 363560, "sha256": "3f7da88beb1ef2fabc6fa9afcffa4d4a0e83e5268d6f5347e6e96f8d5e52d199", "status": "inspected"}
+    ]
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p41",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "但是這個 query 是蠻罕見的問題，不會優先選這題",
+        "question": "Who independently evaluates Alphabet's cyber defenses?",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Internal Audit maintains a dedicated cybersecurity auditing team that independently tests our cybersecurity controls."
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "Who independently evaluates Alphabet's cyber defenses?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1c"
+        ],
+        "reason": "Round 1 approved the evidence contract. Full traversal found one independently sufficient occurrence identifying Internal Audit; the Round 1 concern about query frequency remains a human filtering decision."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "GOOGL-2025-123761",
+          "item_hint": "Item 1C",
+          "filing_location": "Cybersecurity / governance and oversight",
+          "canonical_line": 1025,
+          "window_id": "W0011",
+          "normalized_start": 123761,
+          "normalized_end": 123878,
+          "answer_span": "Internal Audit maintains a dedicated cybersecurity auditing team that independently tests our cybersecurity controls.",
+          "answer_snippet": "Internal Audit maintains a dedicated cybersecurity auditing team that independently tests our cybersecurity controls.",
+          "snippet_chars": 117,
+          "snippet_sha256": "bc3b125f6e2c16c9f08323843f3635cdeff79befaf124810b3e7840ceb7d3bce",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies Internal Audit and its dedicated cybersecurity auditing team as the independent tester of Alphabet's cybersecurity controls."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Risk and Compliance Committee oversight disclosure, which describes governance but not independent control testing",
+          "outside-counsel and independent-public-accounting-firm references, which concern incident materiality or financial reporting rather than cyber-defense evaluation",
+          "generic Item 1A cybersecurity-risk disclosures that do not identify an independent evaluator"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a24",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "What borrowing capacity and maturity schedule did Alphabet's unused revolvers have?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030."
+        ]
+      },
+      "proposal": {
+        "change": "add_acceptable_occurrences",
+        "question": "What borrowing capacity and maturity schedule did Alphabet's unused revolvers have?",
+        "query_type": "passage",
+        "item_keys": [
+          "7",
+          "8-note-6"
+        ],
+        "answer_requirement": "One independently sufficient span must state the total revolving-credit capacity and how that capacity is split between the April 2026 and April 2030 expirations.",
+        "reason": "The approved Round 1 question remains unchanged. Item 7 and Note 6 separately state the full capacity and expiration split; their immediately following source sentences confirm that nothing had been borrowed or was outstanding, so both locations are acceptable OR alternatives."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "GOOGL-2025-172698",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Material Cash Requirements / Financing",
+          "canonical_line": 1875,
+          "window_id": "W0015",
+          "normalized_start": 172698,
+          "normalized_end": 172852,
+          "answer_span": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.",
+          "answer_snippet": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.",
+          "snippet_chars": 154,
+          "snippet_sha256": "3739869e142e18534daad545c0a45d859b823d91b17f85b125b47da40c813b12",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the $10.0 billion capacity and its $4.0 billion April 2026 / $6.0 billion April 2030 expiration schedule."
+        },
+        {
+          "occurrence_id": "GOOGL-2025-284798",
+          "item_hint": "Item 8, Note 6",
+          "filing_location": "Note 6 / Debt / Credit Facility",
+          "canonical_line": 4017,
+          "window_id": "W0024",
+          "normalized_start": 284798,
+          "normalized_end": 284959,
+          "answer_span": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, of which $4.0 billion expires in April 2026 and $6.0 billion expires in April 2030.",
+          "answer_snippet": "As of December 31, 2025, we had $10.0 billion of revolving credit facilities, of which $4.0 billion expires in April 2026 and $6.0 billion expires in April 2030.",
+          "snippet_chars": 161,
+          "snippet_sha256": "8dffd8eee4a54c2e3a304a6cfcee3c3c237619c36d252e116f64d3edf8f43b03",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The distinct Note 6 occurrence independently repeats the complete capacity and expiration split and must count as a separate OR alternative."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the separate $25.0 billion commercial-paper program, which is not a revolving credit facility",
+          "senior-note maturity tables and lease commitments, which do not state revolving-credit capacity",
+          "generic financing-risk and liquidity disclosures that omit the capacity and expiration split"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p24",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "query 問的是「如何在幣別跟票面利率結構上做出不同安排」——重點是「vary（不同）」，需要對比才能回答，選的粗體不對",
+        "question": "How did Alphabet vary debt by denomination and coupon structure?",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "answer_snippets": [
+          "We also issued €6.75 billion of euro-denominated fixed-rate senior unsecured notes with a weighted-average coupon rate of 3.31%, and a weighted-average maturity of approximately 14 years."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "What mix of floating- and fixed-rate U.S. dollar notes did Alphabet issue in November 2025?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7",
+          "8-note-6"
+        ],
+        "answer_requirement": "One independently sufficient span must state both the floating-rate and fixed-rate U.S. dollar note amounts issued in November 2025.",
+        "reason": "The Round 1 question requires a cross-denomination and coupon-structure comparison, but no single independently sufficient 50-200 character occurrence contains that full comparison. The revision preserves the reviewer's required contrast by narrowing to the November U.S. dollar issuance: $500 million floating-rate versus $17.0 billion fixed-rate."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "GOOGL-2025-172245",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Material Cash Requirements / Financing / November 2025 issuance",
+          "canonical_line": 1873,
+          "window_id": "W0015",
+          "normalized_start": 172245,
+          "normalized_end": 172406,
+          "answer_span": "We issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes",
+          "answer_snippet": "We issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes",
+          "snippet_chars": 161,
+          "snippet_sha256": "297610cb04b6d1386241f124f10463e3e12e9e44e1d30118ac2cc4c4367f0683",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "This shortest self-contained clause directly contrasts the $500 million floating-rate and $17.0 billion fixed-rate U.S. dollar notes; the remaining maturity and coupon details are not needed for the revised question."
+        },
+        {
+          "occurrence_id": "GOOGL-2025-281729",
+          "item_hint": "Item 8, Note 6",
+          "filing_location": "Note 6 / Debt / Long-Term Debt / November 2025 issuance",
+          "canonical_line": 3919,
+          "window_id": "W0024",
+          "normalized_start": 281729,
+          "normalized_end": 281890,
+          "answer_span": "we issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes",
+          "answer_snippet": "we issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes",
+          "snippet_chars": 161,
+          "snippet_sha256": "c78c6f1f075e7e3d6e4263682f1f396b24fc72e2b1db51e84c2358bca43fd763",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The distinct Note 6 occurrence repeats the complete floating-versus-fixed amount contrast and is a separate acceptable OR alternative."
+        }
+      ],
+      "post_traversal_audit": {
+        "original_contract_issue": "The May and November issuance disclosures together establish denomination and coupon-structure variation, but the shortest source span containing the complete cross-denomination comparison exceeds 200 characters. The Round 1 euro-only snippet is not independently sufficient for the original question.",
+        "rejected_classes": [
+          "the Round 1 €6.75 billion fixed-rate note sentence, which is only one data point and cannot answer how debt varied",
+          "the May 2025 U.S. dollar fixed-rate and euro fixed-rate pair, which contrasts denomination but not fixed versus floating structure and cannot fit the original full comparison in 200 characters",
+          "the November euro fixed-rate sentence, which adds denomination but exceeds the 200-character contract when combined with the U.S. dollar floating/fixed contrast",
+          "the Note 6 debt table and exhibit list, which enumerate coupon or maturity series but do not independently state the requested November floating-versus-fixed issuance amounts"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "rewritten_candidate_count": 1,
+    "unchanged_round1_approved_count": 2,
+    "acceptable_occurrence_count": 5,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "resolved_original_contract_issues": 1,
+    "human_review_pending": true
+  }
+}

@@ -1,0 +1,450 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T15",
+  "ticker": "PODD",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": ["p20", "p35", "p36", "a20", "n09"],
+    "excluded_candidate_ids": ["p04", "a04"],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001145197",
+    "accession_number": "0001145197-26-000028",
+    "filing_date": "2026-02-18",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "podd-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1145197/000114519726000028/0001145197-26-000028-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1145197/000114519726000028/0001145197-26-000028.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1145197/000114519726000028/podd-20251231.htm",
+    "complete_submission_bytes": 40457019,
+    "complete_submission_sha256": null,
+    "primary_document_bytes": 2085246,
+    "primary_document_sha256": null,
+    "primary_selection_check": "The accession-pinned SEC filing index identifies podd-20251231.htm as TYPE 10-K, SEQUENCE 1. The primary document was loaded directly from the official SEC Archives origin; repository ingestion output and sec_text_pipeline structures were not used.",
+    "raw_hash_note": "SEC index byte sizes are recorded for source identity. Raw-file hashes are null because SEC command-line delivery returned 403 and the successful official-source transport was the user's Chrome session; the complete derived canonical text is independently hashed below."
+  },
+  "normalization": {
+    "method": "sec_browser_rendered_inner_text_v1",
+    "description": "Read document.body.innerText from the accession-pinned SEC primary 10-K, replaced non-breaking spaces, normalized CRLF and horizontal whitespace per rendered line, trimmed rendered lines, and collapsed runs of three or more newlines to two. No Item, heading, block, sentence, repository-pipeline hierarchy, or prior retrieval result determined traversal order or coverage.",
+    "normalized_chars": 311405,
+    "normalized_bytes": 313181,
+    "normalized_lines": 2776,
+    "normalized_sha256": "20452e5f82c15da66ddb12f2793227513b86c09406aecdfafefcab1f06844941"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 8000,
+    "overlap_chars": 0,
+    "window_count": 39,
+    "covered_interval": [0, 311405],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T15_PODD.md",
+    "coverage_check": "All 39 windows are contiguous and non-overlapping; W0001 starts at 0, W0039 ends at 311405, the final window has 7405 characters, and the sum of window lengths is 311405."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p20",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "What threatens collection of the EOFlow trade-secret award?",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "answer_snippets": [
+          "We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain."
+        ]
+      },
+      "proposal": {
+        "change": "add_acceptable_occurrence",
+        "question": "What threatens collection of the EOFlow trade-secret award?",
+        "query_type": "passage",
+        "item_keys": ["7", "8-note-16"],
+        "reason": "The approved question remains unchanged. Item 7 and Note 16 independently state the appeal and uncertain ability to satisfy the award, so both source locations are OR-hit alternatives."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-167285",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Capital Resources / Legal Proceedings",
+          "canonical_line": 839,
+          "window_id": "W0021",
+          "normalized_start": 167285,
+          "normalized_end": 167453,
+          "answer_span": "We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
+          "answer_snippet": "We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
+          "snippet_chars": 168,
+          "snippet_sha256": "4f9cff35b9e6cc2556ad6034b3374741b54c0f1e42056b31dcd66730e4b44ad3",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies both threats to collection in Item 7: EOFlow's appeal and uncertain ability to pay."
+        },
+        {
+          "occurrence_id": "PODD-2025-255412",
+          "item_hint": "Item 8 / Note 16",
+          "filing_location": "Commitments and Contingencies / Legal Proceedings",
+          "canonical_line": 1790,
+          "window_id": "W0032",
+          "normalized_start": 255412,
+          "normalized_end": 255599,
+          "answer_span": "The Company has not recorded the damages awarded in the Company’s consolidated statements of income, as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
+          "answer_snippet": "The Company has not recorded the damages awarded in the Company’s consolidated statements of income, as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
+          "snippet_chars": 187,
+          "snippet_sha256": "c361684f5103a87711dc2744b20944530d5117f75680794af0191b612b3f0f89",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "A separate Note 16 occurrence independently states the same appeal and collectability risks."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "jury-verdict, injunction, and reduced-award passages that state the award history without both collection threats",
+          "the cross-appeal and partial-stay sentences, which describe litigation posture but do not independently answer what threatens collection"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p35",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "milestone 應該要更多時間軸過去現在未來，需要多個 evidence 組合",
+        "question": "Insulet next-generation insulin automation development milestones",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_query_type",
+        "question": "What milestone did Insulet reach for EVOLUTION 2 in 2025, and what did it plan for 2026?",
+        "query_type": "factoid",
+        "answer_requirement": "One independently sufficient occurrence must state both the 2025 EVOLUTION 2 enrollment milestone and the planned 2026 U.S. IDE pivotal study.",
+        "item_keys": ["1"],
+        "reason": "The Round 1 question named a broad set of next-generation milestones, while its evidence covered one compact EVOLUTION 2 timeline. The revision makes that past-to-future timeline explicit without requiring multi-passage composition."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-024455",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Data Management",
+          "canonical_line": 300,
+          "window_id": "W0004",
+          "normalized_start": 24455,
+          "normalized_end": 24644,
+          "answer_span": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.",
+          "answer_snippet": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.",
+          "snippet_chars": 189,
+          "snippet_sha256": "e603f502b1c75ce2982586af9212e57ca730fdfa26e6fca430fe34db5ca5095c",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The single sentence independently supplies both requested dates and milestones."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Item 7 development-program summary, which repeats completion of EVOLUTION 2 enrollment but omits the planned 2026 IDE pivotal study",
+          "STRIVE and Omnipod 6 disclosures, which concern different programs"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p36",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "evidence 只回答 receive 沒有回答 response, 這題不是分開的兩件事，但需要多個 evidence 才可以正確回答",
+        "question": "How does Omnipod 5 receive glucose readings and respond?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "The Pod integrates with a third-party continuous glucose monitor (“CGM”) to obtain glucose values through secure wireless Bluetooth communication."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "How does Omnipod 5 use glucose readings to adjust insulin dosing?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient occurrence must explain how Omnipod 5 uses glucose values to predict future levels and automatically adjust insulin dosing.",
+        "item_keys": ["1"],
+        "reason": "The original question required both receipt and response, but no 50–200-character occurrence independently answers both. The revision retains the more investor-relevant automated-response mechanism and removes the unsupported Bluetooth-receipt subpart."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-014411",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Diabetes Management Challenges",
+          "canonical_line": 204,
+          "window_id": "W0002",
+          "normalized_start": 14411,
+          "normalized_end": 14546,
+          "answer_span": "The embedded algorithm utilizes these glucose values to predict glucose levels into the future and automatically adjusts insulin dosing",
+          "answer_snippet": "The embedded algorithm utilizes these glucose values to predict glucose levels into the future and automatically adjusts insulin dosing",
+          "snippet_chars": 135,
+          "snippet_sha256": "85e03317c323a1ce6e4fd6e89e45127ec47602aeee5d57c2e0c62f788c66d457",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly explains the prediction-and-adjustment response asked by the revised question without crossing the SEC page-number artifact."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Bluetooth CGM-integration sentence, which explains receipt but not dosing response",
+          "the continuation after the rendered page break, which explains intended clinical effects but not an additional independently sufficient adjustment mechanism"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a20",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "query 問單一問題，看是資本增加原因，或是有哪些工廠擴建專案之類的",
+        "question": "2025 capital spending increase and associated factory expansion projects",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Capital Spending—Capital expenditures were $191.6 million and $124.9 million in 2025 and 2024, respectively."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "What investments primarily drove Insulet’s $66.7 million increase in capital expenditures in 2025?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient occurrence must identify the Costa Rica plant investment and the additional Malaysia machinery and equipment as the primary causes of the 2025 increase.",
+        "item_keys": ["7"],
+        "reason": "The revision asks one causal question. It replaces the Round 1 amount-only snippet with the adjacent cause disclosure and preserves both company-stated primary investments."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-161437",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Capital Resources / Investing Activities / Capital Spending",
+          "canonical_line": 791,
+          "window_id": "W0021",
+          "normalized_start": 161437,
+          "normalized_end": 161637,
+          "answer_span": "The $66.7 million increase primarily related to the investment in our third manufacturing plant in Costa Rica and the purchase of additional machinery and equipment for our Malaysia manufacturing facility to support continued business growth.",
+          "answer_snippet": "$66.7 million increase primarily related to the investment in our third manufacturing plant in Costa Rica and the purchase of additional machinery and equipment for our Malaysia manufacturing facility",
+          "snippet_chars": 200,
+          "snippet_sha256": "f33d2bf1570c3a7ed7a6c756bff8a18c913de5ec899f2b25c34a2ae6fc34bc56",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The canonical 200-character snippet states both company-disclosed primary investment causes without relaxing the global limit."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "capital-expenditure amount comparisons that do not state why spending increased",
+          "general 2026 capex expectations and global manufacturing optimization language",
+          "Item 1 property descriptions that identify facilities but do not attribute the $66.7 million increase"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n09",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "How is responsibility for cybersecurity risk oversight allocated at Insulet?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient occurrence must explain how Insulet allocates oversight or management responsibility for cybersecurity risk; a generic statement that cybersecurity is important is partial.",
+        "item_keys": ["1C"],
+        "reason": "The intent-first question remains unchanged. Full Item 1C traversal found distinct operational, ERM, Board, committee, CISO, and CTO responsibility statements; every independently sufficient non-overlapping source span is retained as an OR-hit alternative."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-125510",
+          "item_hint": "Item 1C",
+          "filing_location": "Risk Management and Strategy",
+          "canonical_line": 571,
+          "window_id": "W0016",
+          "normalized_start": 125510,
+          "normalized_end": 125658,
+          "answer_span": "Our cybersecurity team assesses, monitors, and manages cybersecurity risk through a combination of technical, physical, and administrative controls.",
+          "answer_snippet": "Our cybersecurity team assesses, monitors, and manages cybersecurity risk through a combination of technical, physical, and administrative controls.",
+          "snippet_chars": 148,
+          "snippet_sha256": "04afd6634b180586ece4d184a131a897e6f37d340e93533b3952611662c30b6c",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns day-to-day cybersecurity risk assessment, monitoring, and management to the cybersecurity team."
+        },
+        {
+          "occurrence_id": "PODD-2025-125932",
+          "item_hint": "Item 1C",
+          "filing_location": "Risk Management and Strategy",
+          "canonical_line": 571,
+          "window_id": "W0016",
+          "normalized_start": 125932,
+          "normalized_end": 126066,
+          "answer_span": "We maintain a cybersecurity risk register, and cybersecurity team leaders meet monthly to discuss and prioritize cybersecurity threats, review risk assessments, and monitor progress on remediation activities.",
+          "answer_snippet": "We maintain a cybersecurity risk register, and cybersecurity team leaders meet monthly to discuss and prioritize cybersecurity threats",
+          "snippet_chars": 134,
+          "snippet_sha256": "a818185b6886789c3e75a680cbbb9a643c1e5cbb19e80fe9553b2be2df758b5e",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns recurring threat prioritization, assessment review, and remediation monitoring to cybersecurity team leaders."
+        },
+        {
+          "occurrence_id": "PODD-2025-127464",
+          "item_hint": "Item 1C",
+          "filing_location": "Risk Management and Strategy / Cloud and Vulnerability Management",
+          "canonical_line": 578,
+          "window_id": "W0016",
+          "normalized_start": 127464,
+          "normalized_end": 127638,
+          "answer_span": "As part of our vulnerability and overall security posture management, a cross-functional team meets regularly to review and remediate issues identified through security scans and security configuration checks.",
+          "answer_snippet": "As part of our vulnerability and overall security posture management, a cross-functional team meets regularly to review and remediate issues identified through security scans",
+          "snippet_chars": 174,
+          "snippet_sha256": "af951611756542008c50c37b108166e6ffa4d07bfa2ade11ab3572043ac17f05",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns vulnerability-review and remediation work to a cross-functional team."
+        },
+        {
+          "occurrence_id": "PODD-2025-130771",
+          "item_hint": "Item 1C",
+          "filing_location": "Risk Management and Strategy / Incident Response",
+          "canonical_line": 584,
+          "window_id": "W0017",
+          "normalized_start": 130771,
+          "normalized_end": 130876,
+          "answer_span": "Under the CIRP, cybersecurity incidents are initially reviewed and rated by our security operations team.",
+          "answer_snippet": "Under the CIRP, cybersecurity incidents are initially reviewed and rated by our security operations team.",
+          "snippet_chars": 105,
+          "snippet_sha256": "17f1a1ba95cc2fa4462c77aef2f60ff27116130e722c259969d6df6245d24a8e",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns initial incident review and severity rating to the security operations team."
+        },
+        {
+          "occurrence_id": "PODD-2025-131702",
+          "item_hint": "Item 1C",
+          "filing_location": "Risk Management and Strategy / Enterprise Risk Management",
+          "canonical_line": 585,
+          "window_id": "W0017",
+          "normalized_start": 131702,
+          "normalized_end": 131870,
+          "answer_span": "Cybersecurity risks are included in the risk universe evaluated by the ERM function as it identifies and assesses the Company’s top enterprise risks on an annual basis.",
+          "answer_snippet": "Cybersecurity risks are included in the risk universe evaluated by the ERM function as it identifies and assesses the Company’s top enterprise risks on an annual basis.",
+          "snippet_chars": 168,
+          "snippet_sha256": "9c7ec9ec8f76d75871c4416ee1441e9a2ff5d860c9bbb2221007db59513f8ecf",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns annual enterprise-level cybersecurity risk identification and assessment to the ERM function."
+        },
+        {
+          "occurrence_id": "PODD-2025-132551",
+          "item_hint": "Item 1C",
+          "filing_location": "Governance",
+          "canonical_line": 588,
+          "window_id": "W0017",
+          "normalized_start": 132551,
+          "normalized_end": 132729,
+          "answer_span": "Our Board oversees management’s processes for identifying and mitigating risks, including from cybersecurity threats, to help align our risk exposure to our strategic objectives.",
+          "answer_snippet": "Our Board oversees management’s processes for identifying and mitigating risks, including from cybersecurity threats, to help align our risk exposure to our strategic objectives.",
+          "snippet_chars": 178,
+          "snippet_sha256": "aaa40df7aefc993d379e63a92cdca866c28037ecd2b72bdedae1f53dbeddc88d",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns oversight of management's cybersecurity risk processes to the full Board."
+        },
+        {
+          "occurrence_id": "PODD-2025-132825",
+          "item_hint": "Item 1C",
+          "filing_location": "Governance",
+          "canonical_line": 591,
+          "window_id": "W0017",
+          "normalized_start": 132825,
+          "normalized_end": 132922,
+          "answer_span": "NGR Committee has primary responsibility for cybersecurity as part of its risk oversight mandate.",
+          "answer_snippet": "NGR Committee has primary responsibility for cybersecurity as part of its risk oversight mandate.",
+          "snippet_chars": 97,
+          "snippet_sha256": "b73b0842ad7db613e54bbf8848b1861eb31288015f608de205c8a6a085ac1ece",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly assigns primary cybersecurity oversight responsibility to the NGR Committee."
+        },
+        {
+          "occurrence_id": "PODD-2025-133414",
+          "item_hint": "Item 1C",
+          "filing_location": "Governance",
+          "canonical_line": 592,
+          "window_id": "W0017",
+          "normalized_start": 133414,
+          "normalized_end": 133586,
+          "answer_span": "Our Cybersecurity organization, which includes infrastructure security, product security, technology risk management, and security awareness and culture is led by our CISO.",
+          "answer_snippet": "Our Cybersecurity organization, which includes infrastructure security, product security, technology risk management, and security awareness and culture is led by our CISO.",
+          "snippet_chars": 172,
+          "snippet_sha256": "26c47fc167400e6f45401c708b9a2e8cd8f9da22663f4624faab457485957d5d",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns leadership of the cybersecurity organization and its risk-management functions to the CISO."
+        },
+        {
+          "occurrence_id": "PODD-2025-133587",
+          "item_hint": "Item 1C",
+          "filing_location": "Governance",
+          "canonical_line": 592,
+          "window_id": "W0017",
+          "normalized_start": 133587,
+          "normalized_end": 133729,
+          "answer_span": "Our CISO reports directly to our Chief Technology Officer (“CTO”) and is responsible for developing and implementing our cybersecurity program",
+          "answer_snippet": "Our CISO reports directly to our Chief Technology Officer (“CTO”) and is responsible for developing and implementing our cybersecurity program",
+          "snippet_chars": 142,
+          "snippet_sha256": "e223d9cdb45c20855697565fa61a82972471df893bfb9f583d73c6693fb11631",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "States the CISO's reporting line and program-development and implementation responsibility."
+        },
+        {
+          "occurrence_id": "PODD-2025-134200",
+          "item_hint": "Item 1C",
+          "filing_location": "Governance",
+          "canonical_line": 593,
+          "window_id": "W0017",
+          "normalized_start": 134200,
+          "normalized_end": 134351,
+          "answer_span": "Our CTO ensures cybersecurity measures are prioritized across research and development, software engineering, and our information technology functions.",
+          "answer_snippet": "Our CTO ensures cybersecurity measures are prioritized across research and development, software engineering, and our information technology functions.",
+          "snippet_chars": 151,
+          "snippet_sha256": "c6b10e6b236f39649eb9e3934a95d4a5d35b2a438d8b9a843305158c43f869d4",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns cross-functional prioritization of cybersecurity measures to the CTO."
+        },
+        {
+          "occurrence_id": "PODD-2025-134492",
+          "item_hint": "Item 1C",
+          "filing_location": "Governance",
+          "canonical_line": 593,
+          "window_id": "W0017",
+          "normalized_start": 134492,
+          "normalized_end": 134635,
+          "answer_span": "Our CTO and CISO co-chair a quarterly Technology Risk Committee aimed at providing proper oversight and governance of the cybersecurity program",
+          "answer_snippet": "Our CTO and CISO co-chair a quarterly Technology Risk Committee aimed at providing proper oversight and governance of the cybersecurity program",
+          "snippet_chars": 143,
+          "snippet_sha256": "0ced7684fa94ea9425a637d32a1b4ccca7114aff6c2a4ce765b5b67e124adb1d",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Assigns quarterly cybersecurity-program oversight and governance to a Technology Risk Committee co-chaired by the CTO and CISO."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "generic cybersecurity importance, controls, certifications, training, and insurance statements that do not assign responsibility",
+          "assessment-result reporting and CISO briefing sentences that describe information flow but do not independently assign oversight or management responsibility",
+          "the embedded product-cybersecurity-team sentence, whose 'this mission' dependency is not self-contained within 200 characters",
+          "the CIRT membership list, which cannot preserve the complete disclosed membership in a self-contained 50–200-character snippet"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 5,
+    "rewritten_candidate_count": 3,
+    "unchanged_round1_approved_count": 1,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 16,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

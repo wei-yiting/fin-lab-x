@@ -1,0 +1,354 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T10",
+  "ticker": "LIN",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p16",
+      "p30",
+      "p50",
+      "a16"
+    ],
+    "excluded_candidate_ids": [],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001707925",
+    "accession_number": "0001628280-26-011430",
+    "filing_date": "2026-02-25",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "lin-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1707925/000162828026011430/0001628280-26-011430-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1707925/000162828026011430/0001628280-26-011430.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1707925/000162828026011430/lin-20251231.htm",
+    "complete_submission_bytes": 19138106,
+    "complete_submission_sha256": "5b2cf22620dc089b8b4bd909a5a8b469b851677c9996759e9093ad0e5ae82b92",
+    "extracted_primary_document_bytes": 3356474,
+    "extracted_primary_document_sha256": "3bf3783e80c92a93280a1194233d733670f713b7c36f4268c3cedec23212431c",
+    "primary_selection_check": "The accession-pinned complete submission identifies sequence 1 as the exact TYPE 10-K document lin-20251231.htm. A separate official SEC download of that primary HTML contained one additional trailing newline; removing it produced the same 3bf3783e...431c SHA-256 as the extracted document."
+  },
+  "normalization": {
+    "method": "python_html_visible_text_v1",
+    "description": "Extracted the exact TYPE 10-K document from the official complete submission, removed non-visible HTML content and SEC transport markup, converted NBSP to ordinary spaces, normalized horizontal and block-boundary whitespace, and retained visible text in source order. No Item, heading, block, sentence, candidate-evidence, or repository-pipeline hierarchy was produced or used.",
+    "normalized_bytes": 363578,
+    "normalized_chars": 362087,
+    "normalized_lines": 6145,
+    "normalized_sha256": "43aee847b2febb6d2270630d3dcd5fd9643b932e7197d02d2ddc0f32b2f5e376"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 31,
+    "covered_interval": [
+      0,
+      362087
+    ],
+    "complete_coverage": true,
+    "windows": [
+      {"window_id": "W0001", "start": 0, "end": 12000, "sha256": "ae90760d1d9b785d31c76c725bfd6810896ecd8a90d4ae110f99b62c08784169", "status": "inspected"},
+      {"window_id": "W0002", "start": 12000, "end": 24000, "sha256": "0a0042b233309392daeac1cbf920e9e8a3dbd37ccd870c9f3142c9768727b2bc", "status": "inspected"},
+      {"window_id": "W0003", "start": 24000, "end": 36000, "sha256": "50e9374de3aa93a95253beaeb3897447c79bc1377a70fcf592febc9fb90f2d7c", "status": "inspected"},
+      {"window_id": "W0004", "start": 36000, "end": 48000, "sha256": "c1511032834952c2e7285265cc210d410a2cd77eae593d33f165939b5464d8b9", "status": "inspected"},
+      {"window_id": "W0005", "start": 48000, "end": 60000, "sha256": "9f64f050c98789d0af897f1f2443a792c4a562db0c75b267c35aa3bf3701c39c", "status": "inspected"},
+      {"window_id": "W0006", "start": 60000, "end": 72000, "sha256": "42a2490574d73b7a77f4752e3e3acaed4a8c38d8a727a32358864aa3830954df", "status": "inspected"},
+      {"window_id": "W0007", "start": 72000, "end": 84000, "sha256": "30cffdd3af850c00170b47ce7bcbacf2f0b788e9a369725760e707404044c6b6", "status": "inspected"},
+      {"window_id": "W0008", "start": 84000, "end": 96000, "sha256": "4d3770fbdf548f11259a53dcdc71c742597d1508373e9b0d7c1c1abed59147b5", "status": "inspected"},
+      {"window_id": "W0009", "start": 96000, "end": 108000, "sha256": "a3e450e41a2da0a74af8d573422912f594980726d51ba7e4f01066deb826008d", "status": "inspected"},
+      {"window_id": "W0010", "start": 108000, "end": 120000, "sha256": "abd6b6a1894750a288cac8776b397e8e4a27a682cde5c975292997083f21d9b1", "status": "inspected"},
+      {"window_id": "W0011", "start": 120000, "end": 132000, "sha256": "19efebb37055348e37caabbfec1deb80d2611e8a0a16a9a976e844e110e79833", "status": "inspected"},
+      {"window_id": "W0012", "start": 132000, "end": 144000, "sha256": "787c54850edd602a363574fc57745c7727d8b0c4c009262be4a7e8ccd192eff1", "status": "inspected"},
+      {"window_id": "W0013", "start": 144000, "end": 156000, "sha256": "c73ce0ba0dbe811634106d833a5a76ebe2101d00959a505c087702278642110c", "status": "inspected"},
+      {"window_id": "W0014", "start": 156000, "end": 168000, "sha256": "b28b16085dd7ed484c1536dd97cc6f038ebd50044dc6ad20adb3be156e8afd43", "status": "inspected"},
+      {"window_id": "W0015", "start": 168000, "end": 180000, "sha256": "8494c80a8386af475d4dfd82c233a77d6ce2ce9e3df2d429ddb7518c6947b771", "status": "inspected"},
+      {"window_id": "W0016", "start": 180000, "end": 192000, "sha256": "30ca98865deda1cdc42471d708d25d7c9b83613592d2c118aa22495dc5ddfded", "status": "inspected"},
+      {"window_id": "W0017", "start": 192000, "end": 204000, "sha256": "db0d008d0303c0c90797a958a691dd0815df835c972abbe298ce639ff1eb5637", "status": "inspected"},
+      {"window_id": "W0018", "start": 204000, "end": 216000, "sha256": "1813b3f6cecc79b0b49b4edd9dc578a85c8b06e0210603d9ca2a220e506bea6a", "status": "inspected"},
+      {"window_id": "W0019", "start": 216000, "end": 228000, "sha256": "b36abc99179dc2ae6ebedb34e9f720c3486a8a0c3dc5b304f653cf424d32b7cb", "status": "inspected"},
+      {"window_id": "W0020", "start": 228000, "end": 240000, "sha256": "381fcd89333ab72a0c13f559e4454166f66aa0b4a12ff52db2c4f963c5e37610", "status": "inspected"},
+      {"window_id": "W0021", "start": 240000, "end": 252000, "sha256": "ed49f21f8e78d77d8c66ea9eff298d1916893d2f802abd03400763901183abf3", "status": "inspected"},
+      {"window_id": "W0022", "start": 252000, "end": 264000, "sha256": "313600317f45e8e9aafc2ff6bba9eafc84de59d76d400aa95dd56843bb5ff40c", "status": "inspected"},
+      {"window_id": "W0023", "start": 264000, "end": 276000, "sha256": "f75d51e5200608e07b088b169e0baa959bf51154103f10bbc0d40ade4411352a", "status": "inspected"},
+      {"window_id": "W0024", "start": 276000, "end": 288000, "sha256": "095d8f91eb818aba1993aabe75023e728a9a014446edf8b1da7bd47d410efca9", "status": "inspected"},
+      {"window_id": "W0025", "start": 288000, "end": 300000, "sha256": "3e8e5dd996286e170e29c2bf4d18c2a8a2366a7072b7650780a3bcbfce96fbf0", "status": "inspected"},
+      {"window_id": "W0026", "start": 300000, "end": 312000, "sha256": "3d03eaf3fd83137945ff098f28317b331daa736f6676bd1d872e3e5928dc5971", "status": "inspected"},
+      {"window_id": "W0027", "start": 312000, "end": 324000, "sha256": "b726222b13c6b8fc68b369aeb5ec05a3017bda09c2d0fec288523cc23164b5f5", "status": "inspected"},
+      {"window_id": "W0028", "start": 324000, "end": 336000, "sha256": "c290529a7f12dd037a3ebc76dec34f3e00743fe23788198413a660ec8ef28551", "status": "inspected"},
+      {"window_id": "W0029", "start": 336000, "end": 348000, "sha256": "22b74c61d7e6fb1c0b5c3f3c9a91737a606797614c4699b7c58c9de45700bfff", "status": "inspected"},
+      {"window_id": "W0030", "start": 348000, "end": 360000, "sha256": "ef30a9235e619b55553a6d76532ab4385172b56e32d06ab66dfa0c43b82ebe29", "status": "inspected"},
+      {"window_id": "W0031", "start": 360000, "end": 362087, "sha256": "d88f3fe86f8da42a36397a6303843e58de3cccc4ab26dc42749ce1ed773c0435", "status": "inspected"}
+    ]
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p16",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "我覺得整個 block 才能夠回答問題，光是粗體沒辦法回答",
+        "question": "Linde project exposure to materials, staffing, inflation, and scope changes",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "answer_snippets": [
+          "The key source of estimation uncertainty is the total estimated costs at completion including material, labor and overhead costs and the resultant state of completion of the contracts."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "Which cost components does Linde include when accounting for equipment contracts?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7",
+          "8-auditor-report",
+          "8-note-19"
+        ],
+        "reason": "The Round 1 question combines material and labor cost categories with technical complexity, construction duration, inflation, and scope. Those facts require multiple sentences and cannot fit in one independently sufficient 50-200 character occurrence. The revised question asks one thing and full traversal found three distinct source locations that each identify material, labor, and overhead costs."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "LIN-2025-116578",
+          "item_hint": "Item 7, Critical Accounting Estimates, Revenue Recognition",
+          "canonical_line": 1593,
+          "window_id": "W0010",
+          "window_ids": [
+            "W0010"
+          ],
+          "normalized_start": 116578,
+          "normalized_end": 116762,
+          "answer_span": "The key source of estimation uncertainty is the total estimated costs at completion including material, labor and overhead costs and the resultant state of completion of the contracts.",
+          "answer_snippet": "The key source of estimation uncertainty is the total estimated costs at completion including material, labor and overhead costs and the resultant state of completion of the contracts.",
+          "snippet_chars": 184,
+          "snippet_sha256": "95987baf21275b9745e619e4f89dab4897a62aad7404faab8ad1b194fc9df371",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies material, labor, and overhead as the components of estimated costs at completion."
+        },
+        {
+          "occurrence_id": "LIN-2025-161275",
+          "item_hint": "Item 8, Report of Independent Registered Public Accounting Firm, critical audit matter",
+          "canonical_line": 2265,
+          "window_id": "W0014",
+          "window_ids": [
+            "W0014"
+          ],
+          "normalized_start": 161275,
+          "normalized_end": 161427,
+          "answer_span": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
+          "answer_snippet": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
+          "snippet_chars": 152,
+          "snippet_sha256": "1e5098a4a229bcfe58733f97d860cd7385e33cdedba1184e4aa91f1ff3d2b022",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The auditor's critical-audit-matter discussion independently lists the three cost components used for equipment-contract revenue recognition."
+        },
+        {
+          "occurrence_id": "LIN-2025-320932",
+          "item_hint": "Item 8, Note 19, Revenue Recognition, Engineering",
+          "canonical_line": 5221,
+          "window_id": "W0027",
+          "window_ids": [
+            "W0027"
+          ],
+          "normalized_start": 320932,
+          "normalized_end": 321084,
+          "answer_span": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
+          "answer_snippet": "Costs incurred include material, labor, and overhead costs and represent work contributing and proportionate to the transfer of control to the customer.",
+          "snippet_chars": 152,
+          "snippet_sha256": "1e5098a4a229bcfe58733f97d860cd7385e33cdedba1184e4aa91f1ff3d2b022",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "Note 19 repeats the same independently sufficient cost-component disclosure at a distinct source location."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Round 1 compound intent, which needs both the 184-character cost-component sentence and a separate over-200-character uncertainty sentence",
+          "the technical-complexity, construction-duration, inflation, and scope sentence, whose complete wording exceeds 200 characters",
+          "generic project-timing, inflation, staffing, and supply-chain risks outside the equipment-contract accounting disclosure"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p30",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "「驅動因素」跟「地區集中度」兩件事，問題應問單一一件事，以 evidence 來說應該問地區集中度",
+        "question": "What drove Linde's 2025 investment spending and where was it concentrated?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "30\n\n\nApproximately 60% of the capital expenditures were in the Americas segment with 21% in the APAC segment and the rest largely in the EMEA segment."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "Where were Linde's 2025 capital expenditures concentrated geographically?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The Round 1 question asks both why capital expenditures increased and where they were allocated, while its snippet answers only geographic concentration and contains a page-number artifact. The revision follows the Round 1 reviewer direction and removes that artifact."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "LIN-2025-108671",
+          "item_hint": "Item 7, Liquidity, Capital Resources and Other Financial Data, Investing",
+          "canonical_line": 1549,
+          "window_id": "W0010",
+          "window_ids": [
+            "W0010"
+          ],
+          "normalized_start": 108671,
+          "normalized_end": 108816,
+          "answer_span": "Approximately 60% of the capital expenditures were in the Americas segment with 21% in the APAC segment and the rest largely in the EMEA segment.",
+          "answer_snippet": "Approximately 60% of the capital expenditures were in the Americas segment with 21% in the APAC segment and the rest largely in the EMEA segment.",
+          "snippet_chars": 145,
+          "snippet_sha256": "e93efa220d27ffb4d57f53e32fd2e7351132364a6f51a62dea060f30e636a45b",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently gives the Americas, APAC, and remaining EMEA allocation of 2025 capital expenditures."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the adjacent backlog-growth sentence, which answers the removed spending-driver half of the Round 1 question",
+          "the Note 18 expenditures-for-long-lived-assets table, whose measure and total differ from capital expenditures",
+          "consolidated cash-flow references that state only the total capital-expenditure amount"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p50",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "還要看更完整的整個 chunk, 現在看不出來這段是不是在想 cyber incidents",
+        "question": "Have cyber incidents materially affected Linde's performance so far?",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "To date, such attempts have not had any significant impact on Linde's operations or financial results."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "What types of information could operational security failures or breaches expose at Linde?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1a",
+          "1c"
+        ],
+        "reason": "The Round 1 answer uses the unresolved antecedent 'such attempts'. In both source locations, joining the cyber-attack antecedent to the historical-impact sentence requires more than 200 characters. The revised question stays within the cybersecurity intent, is directly answered by a 146-character clause, and has two distinct OR-hit locations."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "LIN-2025-044684",
+          "item_hint": "Item 1A, information technology and cybersecurity risk",
+          "canonical_line": 509,
+          "window_id": "W0004",
+          "window_ids": [
+            "W0004"
+          ],
+          "normalized_start": 44684,
+          "normalized_end": 44830,
+          "answer_span": "Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data",
+          "answer_snippet": "Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data",
+          "snippet_chars": 146,
+          "snippet_sha256": "fcd5f40c3f3fd575ca75ab0469b1f5389d9824df2bcfa18b537265f452eb3134",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "Directly identifies confidential information and personal data as the information types exposed by operational security failures or breaches."
+        },
+        {
+          "occurrence_id": "LIN-2025-059961",
+          "item_hint": "Item 1C, Cybersecurity, Risk Management and Strategy",
+          "canonical_line": 623,
+          "window_id": "W0005-W0006",
+          "window_ids": [
+            "W0005",
+            "W0006"
+          ],
+          "normalized_start": 59961,
+          "normalized_end": 60107,
+          "answer_span": "Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data",
+          "answer_snippet": "Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data",
+          "snippet_chars": 146,
+          "snippet_sha256": "fcd5f40c3f3fd575ca75ab0469b1f5389d9824df2bcfa18b537265f452eb3134",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "Item 1C repeats the same independently sufficient disclosure at a distinct source location; this occurrence crosses a neutral traversal-window boundary, which is recorded rather than used as an evidence boundary."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "both historical-impact sentences beginning 'To date, such attempts', because neither is self-contained and each requires an antecedent beyond the 200-character limit",
+          "cybersecurity governance and control descriptions that do not answer the revised information-exposure question",
+          "generic information-technology outage language that does not identify the information at risk"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a16",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "整個 block 有涵蓋 query 資訊，但粗體本身沒有",
+        "question": "Factors behind unchanged APAC revenue in 2025",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How did acquisitions, volumes, and currency translation affect Linde's APAC sales in 2025?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The Round 1 snippet supplies only the currency component. The revised wording names the three offsetting drivers, and the shortest canonical clause that states all three effects is 109 characters. Pricing and cost pass-through were flat and are outside the revised question."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "LIN-2025-101032",
+          "item_hint": "Item 7, Segment Discussion, APAC, Sales",
+          "canonical_line": 1319,
+          "window_id": "W0009",
+          "window_ids": [
+            "W0009"
+          ],
+          "normalized_start": 101032,
+          "normalized_end": 101141,
+          "answer_span": "Acquisitions increased sales by 2%. Volumes decreased sales by 1%. Currency translation decreased sales by 1%",
+          "answer_snippet": "Acquisitions increased sales by 2%. Volumes decreased sales by 1%. Currency translation decreased sales by 1%",
+          "snippet_chars": 109,
+          "snippet_sha256": "e5cfaa7abda6d5a4d82e42201fef383b72a4e83ff689f68d54b05dd49932ea45",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the +2% acquisition effect and the two offsetting -1% volume and currency effects."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Round 1 currency-only snippet, which omits acquisition and volume effects",
+          "the full APAC sales paragraph, which exceeds 200 characters",
+          "consolidated and other-segment sales bridges that do not describe APAC"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 4,
+    "rewritten_candidate_count": 4,
+    "unchanged_round1_approved_count": 0,
+    "acceptable_occurrence_count": 7,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

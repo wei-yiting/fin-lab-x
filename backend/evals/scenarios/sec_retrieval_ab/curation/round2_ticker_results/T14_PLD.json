@@ -1,0 +1,273 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T14",
+  "ticker": "PLD",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p48",
+      "p29",
+      "n03"
+    ],
+    "excluded_candidate_ids": [
+      "p15",
+      "a15"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001045609",
+    "accession_number": "0001193125-26-051453",
+    "filing_date": "2026-02-13",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "pld-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1045609/000119312526051453/0001193125-26-051453-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1045609/000119312526051453/0001193125-26-051453.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1045609/000119312526051453/pld-20251231.htm",
+    "complete_submission_bytes": 59058670,
+    "complete_submission_sha256": "eeb2691ee1558e63e042810b99ceec57c8b2a995a2c1ae6bd9cf7853de2cce52",
+    "primary_document_bytes": 11507278,
+    "primary_document_sha256": "bc5ac05737e3384253c1fdd6ff16feccd9769e75fc62b9b279d2e7f86fceaf5b",
+    "extracted_primary_sha256": "26897d8f0c5208ca642a0374401626719ec722749f14da0a042014111c5d9715",
+    "primary_selection_check": "SEC submissions metadata and the complete submission identify pld-20251231.htm as the primary 10-K. The complete submission marks it TYPE 10-K and SEQUENCE 1; its extracted TEXT equals the official primary-document download after trimming the SGML wrapper newline."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected TYPE 10-K / SEQUENCE 1 from the accession-pinned complete submission, removed non-visible transport content, inserted only generic HTML block and table-cell separators, decoded entities, and normalized whitespace. No Item, heading, block, sentence, repository-pipeline hierarchy or previous retrieval result determined traversal order or coverage.",
+    "normalized_chars": 459299,
+    "normalized_bytes": 461111,
+    "normalized_sha256": "229ffceb3e59c0c6402b3a4767032aadc37fdedb8003076715dc6d87ba9aea03"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 8000,
+    "overlap_chars": 0,
+    "window_count": 58,
+    "covered_interval": [
+      0,
+      459299
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T14_PLD.md",
+    "coverage_check": "All 58 windows are contiguous and non-overlapping; W0001 starts at 0, W0058 ends at 459299, and the sum of their character counts is 459299."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p48",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "屬於 long-tail 的題目",
+        "question": "Prologis Series Q per-share dividend amount for 2025",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Dividends payable per share were $4.27 for the year ended December 31, 2025."
+        ]
+      },
+      "proposal": {
+        "change": "add_acceptable_occurrence",
+        "question": "Prologis Series Q per-share dividend amount for 2025",
+        "query_type": "factoid",
+        "item_keys": [
+          "5",
+          "8-note-8"
+        ],
+        "reason": "The approved Round 1 question remains unchanged. Full traversal found a second independently sufficient source occurrence in the Note 8 dividend table, so both locations are OR-hit alternatives."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PLD-2025-127107",
+          "item_hint": "Item 5",
+          "filing_location": "Preferred Stock Dividends",
+          "canonical_line": 2845,
+          "window_id": "W0016",
+          "normalized_start": 127107,
+          "normalized_end": 127183,
+          "answer_span": "Dividends payable per share were $4.27 for the year ended December 31, 2025.",
+          "answer_snippet": "Dividends payable per share were $4.27 for the year ended December 31, 2025.",
+          "snippet_chars": 76,
+          "snippet_sha256": "af473db5f0e3368f0b925ccf611a0a33527627ef4642cfb58c7ee6a4f114ffd1",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly reports the 2025 per-share dividend amount in the Item 5 Series Q paragraph."
+        },
+        {
+          "occurrence_id": "PLD-2025-336753",
+          "item_hint": "Item 8 / Note 8",
+          "filing_location": "Stockholders' Equity of Prologis, Inc. / Dividends",
+          "canonical_line": 12473,
+          "window_id": "W0043",
+          "normalized_start": 336753,
+          "normalized_end": 336938,
+          "answer_span": "Preferred Stock – Series Q:\n\nOrdinary income\n\n$\n\n3.85\n\n$\n\n3.90\n\n$\n\n4.05\n\nQualified dividend\n\n0.02\n\n0.02\n\n0.00\n\nCapital gains\n\n0.40\n\n0.35\n\n0.22\n\nTotal dividend\n\n$\n\n4.27\n\n$\n\n4.27\n\n$\n\n4.27",
+          "answer_snippet": "Preferred Stock – Series Q:\n\nOrdinary income\n\n$\n\n3.85\n\n$\n\n3.90\n\n$\n\n4.05\n\nQualified dividend\n\n0.02\n\n0.02\n\n0.00\n\nCapital gains\n\n0.40\n\n0.35\n\n0.22\n\nTotal dividend\n\n$\n\n4.27\n\n$\n\n4.27\n\n$\n\n4.27",
+          "snippet_chars": 185,
+          "snippet_sha256": "e9a25f800bf92cdf2ba2a857641d80a1895e88b8a372ac981bca01dab5607d92",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The separate Note 8 table occurrence identifies Series Q and reports a total dividend of $4.27 in every displayed year, including 2025.",
+          "representation_note": "The line breaks are neutral canonical visible-table separators rather than repository-pipeline formatting or a generated block label."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "Series Q disclosures that report the 8.54% annual rate but not the per-share dollar amount",
+          "balance-sheet and preferred-stock descriptions that report liquidation preference or redemption terms without the 2025 dividend amount"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p29",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一事，Employee allocation 或 timing for venture incentive fees",
+        "question": "Employee allocation and expense timing for venture incentive fees",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "The Prologis Promote Plan (\"PPP\") awards up to 25% of the third-party portion of the promotes earned by us from the co-investment ventures to our employees."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_query_type",
+        "question": "What share of third-party promote earnings can Prologis allocate to employees under its Promote Plan?",
+        "query_type": "factoid",
+        "answer_requirement": "One independently sufficient occurrence must state the maximum third-party promote share allocated to employees.",
+        "item_keys": [
+          "7",
+          "8-note-11"
+        ],
+        "reason": "The Round 1 query combined employee allocation with expense timing. The revision keeps the employee-allocation half already answered by the valid evidence, removes timing, and full traversal found two independently sufficient locations."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PLD-2025-142515",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Strategic Capital Segment",
+          "canonical_line": 3605,
+          "window_id": "W0018",
+          "normalized_start": 142515,
+          "normalized_end": 142671,
+          "answer_span": "The Prologis Promote Plan (\"PPP\") awards up to 25% of the third-party portion of the promotes earned by us from the co-investment ventures to our employees.",
+          "answer_snippet": "The Prologis Promote Plan (\"PPP\") awards up to 25% of the third-party portion of the promotes earned by us from the co-investment ventures to our employees.",
+          "snippet_chars": 156,
+          "snippet_sha256": "5517cd45d81b45d1ec8e87fce90cc4544282a8b8c0dcf86d47b86055ba7ca953",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly states the current PPP maximum allocation to employees."
+        },
+        {
+          "occurrence_id": "PLD-2025-348730",
+          "item_hint": "Item 8 / Note 11",
+          "filing_location": "Long-Term Compensation / Prologis Promote Plan",
+          "canonical_line": 12819,
+          "window_id": "W0044",
+          "normalized_start": 348730,
+          "normalized_end": 348902,
+          "answer_span": "Under the PPP, for promotes earned after January 2024, we award up to 25% of the third-party portion of promotes earned by Prologis from co-investment ventures to employees through a compensation pool.",
+          "answer_snippet": "Under the PPP, for promotes earned after January 2024, we award up to 25% of the third-party portion of promotes earned by Prologis from co-investment ventures to employees",
+          "snippet_chars": 172,
+          "snippet_sha256": "31d197c2288792acbfab3b674b30ddd77de3abf6be01cf936fcae6c6e9c5b38b",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "A separate Note 11 occurrence states the same 25% current-plan allocation and independently answers the revised question."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "PPP expense-policy references that do not state the employee share",
+          "the historical pre-January-2024 40% allocation, which is outside the current-plan answer",
+          "exhibit titles that name the plan without its allocation terms"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n03",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "What drove the change in Prologis's rental revenue in 2025?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient occurrence must explain a principal company-disclosed driver of Prologis's 2025 rental-revenue change; an isolated revenue amount or percentage is partial.",
+        "item_keys": [
+          "1",
+          "7"
+        ],
+        "reason": "The intent-first question remains unchanged. Full traversal found three distinct locations that independently explain the 2025 lease mark-to-market and rollover-rent mechanism."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PLD-2025-130013",
+          "item_hint": "Item 7",
+          "filing_location": "Management's Overview / Summary of 2025",
+          "canonical_line": 2885,
+          "window_id": "W0017",
+          "normalized_start": 130013,
+          "normalized_end": 130176,
+          "answer_span": "Our results during 2025 continued to reflect the favorable mark-to-market of our existing leases, reflecting increases in market rents over the past several years.",
+          "answer_snippet": "Our results during 2025 continued to reflect the favorable mark-to-market of our existing leases, reflecting increases in market rents over the past several years.",
+          "snippet_chars": 163,
+          "snippet_sha256": "9d6a6d348ef2d187f6a7a232c193aa4b2a7f7866774f9c5a8c351193bf776d75",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Attributes 2025 results to favorable mark-to-market in existing leases created by earlier market-rent increases."
+        },
+        {
+          "occurrence_id": "PLD-2025-030022",
+          "item_hint": "Item 1",
+          "filing_location": "Future Growth / Rent Growth",
+          "canonical_line": 571,
+          "window_id": "W0004",
+          "normalized_start": 30022,
+          "normalized_end": 30179,
+          "answer_span": "For lease rollovers during 2025, the increases to market on our share of the O&M portfolio resulted in increases of approximately 50% on net effective rents.",
+          "answer_snippet": "For lease rollovers during 2025, the increases to market on our share of the O&M portfolio resulted in increases of approximately 50% on net effective rents.",
+          "snippet_chars": 157,
+          "snippet_sha256": "0ee6245382d346288db7dc47d5e80bbee76a41f5222ca09c77fc1544e0d7e655",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Identifies lease rollovers to higher market rents in 2025 and quantifies the resulting net-effective-rent increase."
+        },
+        {
+          "occurrence_id": "PLD-2025-136602",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Real Estate Segment",
+          "canonical_line": 3213,
+          "window_id": "W0018",
+          "normalized_start": 136602,
+          "normalized_end": 136756,
+          "answer_span": "Significant rent change due to higher rental rates on the rollover of leases during both periods continues to be a key driver of increasing rental income.",
+          "answer_snippet": "Significant rent change due to higher rental rates on the rollover of leases during both periods continues to be a key driver of increasing rental income.",
+          "snippet_chars": 154,
+          "snippet_sha256": "18923e83a1b343879d1d6f07ba81cd72eee36b1e3b74cd783ca69dd0ac239c96",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Explicitly identifies higher rental rates on lease rollover as a key driver of increasing rental income."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "rental-revenue and quarterly tables that state amounts without a driver",
+          "accounting-policy passages that explain revenue recognition rather than the 2025 change",
+          "future minimum lease payments",
+          "generic acquisition, development and disposition language about NOI without a specific 2025 rental-revenue driver",
+          "the general forward-looking sentence that lease rollovers will be the primary revenue-growth driver without specifically describing the observed 2025 change"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "rewritten_candidate_count": 1,
+    "unchanged_round1_approved_count": 1,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 7,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

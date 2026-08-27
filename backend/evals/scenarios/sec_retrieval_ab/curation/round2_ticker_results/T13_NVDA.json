@@ -23,7 +23,7 @@
     "candidate_count": 4,
     "rewritten_candidate_count": 3,
     "new_candidate_count": 0,
-    "acceptable_occurrence_count": 15,
+    "acceptable_occurrence_count": 7,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true
@@ -83,63 +83,18 @@
         ]
       },
       "proposal": {
-        "change": "rewrite_question",
-        "question": "How concentrated is NVIDIA's revenue among its largest customers?",
-        "query_type": "passage",
+        "change": "rewrite_question_and_query_type",
+        "question": "What share of NVIDIA's fiscal 2026 revenue came from its largest direct customer?",
+        "query_type": "factoid",
         "item_keys": [
           "1A",
           "7",
           "8"
         ],
-        "answer_requirement": "One independently sufficient span must qualitatively or quantitatively establish concentration among NVIDIA's direct or indirect customers; spans at distinct source offsets are OR-hit alternatives.",
-        "reason": "Removes the separate AI-lab-demand intent and keeps the Round 1 reviewer’s customer-concentration intent. Qualitative and quantitative disclosures about direct or indirect customer concentration are independently responsive OR alternatives."
+        "answer_requirement": "One independently sufficient span must state the percentage of total fiscal 2026 revenue attributable to NVIDIA's largest direct customer; spans at distinct source offsets are OR-hit alternatives.",
+        "reason": "The corrected single-intent factoid asks for the largest direct-customer share. Full-filing traversal found three distinct source occurrences that each report one direct customer at 22% of fiscal 2026 revenue and the next direct customer at 14%, making 22% the largest disclosed share."
       },
       "acceptable_occurrences": [
-        {
-          "occurrence_id": "NVDA-2026-061221",
-          "item_hint": "Item 1A",
-          "filing_location": "Risk Factors Summary / Risks Related to Our Global Operating Business",
-          "canonical_line": 617,
-          "window_id": "W0006",
-          "normalized_start": 61221,
-          "normalized_end": 61313,
-          "answer_span": "A significant amount of our revenue stems from a limited number of partners and distributors",
-          "answer_snippet": "A significant amount of our revenue stems from a limited number of partners and distributors",
-          "snippet_chars": 92,
-          "snippet_sha256": "f0e417ebb526fbc622f63ac8932b4547dd9d1c47357fe594b4888389b3604fce",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The risk summary independently states that a significant amount of revenue comes from a limited partner and distributor base."
-        },
-        {
-          "occurrence_id": "NVDA-2026-115903",
-          "item_hint": "Item 1A",
-          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk heading",
-          "canonical_line": 935,
-          "window_id": "W0010",
-          "normalized_start": 115903,
-          "normalized_end": 116000,
-          "answer_span": "We receive a significant amount of our revenue from a limited number of partners and distributors",
-          "answer_snippet": "We receive a significant amount of our revenue from a limited number of partners and distributors",
-          "snippet_chars": 97,
-          "snippet_sha256": "2a3e2b2225691a70c3b42730123efbdcbb82f89ee1ed0d48495ed2364fd16b88",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The customer-concentration risk heading independently characterizes reliance on a limited number of partners and distributors."
-        },
-        {
-          "occurrence_id": "NVDA-2026-116209",
-          "item_hint": "Item 1A",
-          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk",
-          "canonical_line": 937,
-          "window_id": "W0010",
-          "normalized_start": 116209,
-          "normalized_end": 116354,
-          "answer_span": "We have experienced periods where we receive a significant amount of our revenue from a limited number of customers, and this trend may continue.",
-          "answer_snippet": "We have experienced periods where we receive a significant amount of our revenue from a limited number of customers, and this trend may continue.",
-          "snippet_chars": 145,
-          "snippet_sha256": "e316294b9ff5ce1d0cd294be68a020ccabb8396831cac18603b7160c1ea92735",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states the recurring limited-customer concentration and that the trend may continue."
-        },
         {
           "occurrence_id": "NVDA-2026-116355",
           "item_hint": "Item 1A",
@@ -153,37 +108,7 @@
           "snippet_chars": 153,
           "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
           "exact_occurrences_in_normalized_text": 3,
-          "acceptance_reason": "Quantifies fiscal 2026 direct-customer revenue concentration with the two largest disclosed shares."
-        },
-        {
-          "occurrence_id": "NVDA-2026-118122",
-          "item_hint": "Item 1A",
-          "filing_location": "Risks Related to Our Global Operating Business / customer concentration risk",
-          "canonical_line": 937,
-          "window_id": "W0010",
-          "normalized_start": 118122,
-          "normalized_end": 118289,
-          "answer_span": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
-          "answer_snippet": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
-          "snippet_chars": 167,
-          "snippet_sha256": "bdf292c575e8965e133df1ca48009e94e54837fe43cf498ec09b64c5441a8553",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Quantifies indirect-customer concentration as individually 10% or more of revenue."
-        },
-        {
-          "occurrence_id": "NVDA-2026-205825",
-          "item_hint": "Item 7",
-          "filing_location": "Results of Operations / Concentration of Revenue",
-          "canonical_line": 1497,
-          "window_id": "W0018",
-          "normalized_start": 205825,
-          "normalized_end": 205937,
-          "answer_span": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
-          "answer_snippet": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
-          "snippet_chars": 112,
-          "snippet_sha256": "d6ddf6031a9e65b524a3cbc43d3afb654d5b036ed2a0c0f78821868cc49fa0ab",
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "The Item 7 disclosure independently states concentration across both direct and indirect customers."
+          "acceptance_reason": "The Item 1A occurrence independently reports 22% for the largest disclosed direct-customer share and 14% for the next direct customer."
         },
         {
           "occurrence_id": "NVDA-2026-205958",
@@ -198,52 +123,7 @@
           "snippet_chars": 153,
           "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
           "exact_occurrences_in_normalized_text": 3,
-          "acceptance_reason": "The distinct Item 7 occurrence repeats the full fiscal 2026 direct-customer concentration figures."
-        },
-        {
-          "occurrence_id": "NVDA-2026-206882",
-          "item_hint": "Item 7",
-          "filing_location": "Results of Operations / Concentration of Revenue / Indirect Customers",
-          "canonical_line": 1505,
-          "window_id": "W0018",
-          "normalized_start": 206882,
-          "normalized_end": 207033,
-          "answer_span": "We generate a significant amount of our revenue from a limited number of indirect customers, some individually representing 10% or more of our revenue.",
-          "answer_snippet": "We generate a significant amount of our revenue from a limited number of indirect customers, some individually representing 10% or more of our revenue.",
-          "snippet_chars": 151,
-          "snippet_sha256": "a659c56091684c5f0d2f57775ddd057d7a1de91fe16f8b777e455c71dcd57a26",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The Item 7 occurrence independently quantifies indirect-customer concentration at 10% or more."
-        },
-        {
-          "occurrence_id": "NVDA-2026-207135",
-          "item_hint": "Item 7",
-          "filing_location": "Results of Operations / Concentration of Revenue / Indirect Customers",
-          "canonical_line": 1505,
-          "window_id": "W0018",
-          "normalized_start": 207135,
-          "normalized_end": 207306,
-          "answer_span": "We estimate that one AI research and deployment company contributed to a meaningful amount of our revenue purchasing cloud services from our customers in fiscal year 2026.",
-          "answer_snippet": "We estimate that one AI research and deployment company contributed to a meaningful amount of our revenue purchasing cloud services from our customers in fiscal year 2026.",
-          "snippet_chars": 171,
-          "snippet_sha256": "c750b78a6df5b350b7f43d719a391fa728df8c44cc13de70bc56fe7e7cf9591b",
-          "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Qualitatively identifies a single indirect AI company as contributing a meaningful amount of fiscal 2026 revenue."
-        },
-        {
-          "occurrence_id": "NVDA-2026-337554",
-          "item_hint": "Item 8, Note 16",
-          "filing_location": "Segment Information / customer concentration",
-          "canonical_line": 4005,
-          "window_id": "W0029",
-          "normalized_start": 337554,
-          "normalized_end": 337666,
-          "answer_span": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
-          "answer_snippet": "Our revenue is concentrated among a limited number of direct and indirect customers and this trend may continue.",
-          "snippet_chars": 112,
-          "snippet_sha256": "d6ddf6031a9e65b524a3cbc43d3afb654d5b036ed2a0c0f78821868cc49fa0ab",
-          "exact_occurrences_in_normalized_text": 2,
-          "acceptance_reason": "The Note 16 occurrence independently repeats the direct-and-indirect concentration disclosure."
+          "acceptance_reason": "The distinct Item 7 occurrence independently repeats the 22% largest disclosed direct-customer share and the 14% comparison."
         },
         {
           "occurrence_id": "NVDA-2026-337687",
@@ -258,16 +138,18 @@
           "snippet_chars": 153,
           "snippet_sha256": "7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633",
           "exact_occurrences_in_normalized_text": 3,
-          "acceptance_reason": "The Note 16 occurrence independently repeats the two fiscal 2026 direct-customer revenue shares."
+          "acceptance_reason": "The Note 16 occurrence independently repeats the 22% largest disclosed direct-customer share and the 14% comparison."
         }
       ],
       "post_traversal_audit": {
         "rejected_classes": [
-          "customer concentration passages that describe only supply, partner dependence, or demand variability without establishing revenue concentration",
-          "customer-specific receivable or credit-risk balances that do not answer how concentrated fiscal 2026 revenue was",
-          "partial table labels and percentages that require a non-contiguous header or surrounding disclosure to identify customer concentration"
+          "general partner, distributor, or customer-concentration statements without the 22% fiscal 2026 direct-customer share",
+          "indirect-customer 10% or more language and the qualitative AI-company disclosure",
+          "fiscal 2025 or fiscal 2024 direct-customer percentages",
+          "customer accounts-receivable concentration percentages, which measure receivables rather than fiscal 2026 revenue",
+          "table labels, XBRL facts, or isolated percentages that require non-contiguous context"
         ],
-        "notes": "The 11 source occurrences are OR-hit alternatives. Repeated text at different offsets remains separate; it does not add metric denominators."
+        "notes": "The full-text variant audit found exactly three copies of the selected 153-character snippet and no alternate wording. They are distinct OR-hit alternatives and do not add metric denominators."
       }
     },
     {

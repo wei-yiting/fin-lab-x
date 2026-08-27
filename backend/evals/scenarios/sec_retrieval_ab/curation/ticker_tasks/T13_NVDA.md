@@ -8,7 +8,7 @@
 - Active non-`multi_passage` candidates: `p17`, `p33`, `p49`, `a17`
 - Excluded `multi_passage` candidates: `a01`, `p01`
 - Full traversal coverage: `30/30` fixed neutral windows; `353,596/353,596` canonical characters
-- Acceptable distinct occurrences: `p17 = 11`, `p33 = 1`, `p49 = 2`, `a17 = 1`
+- Acceptable distinct occurrences: `p17 = 3`, `p33 = 1`, `p49 = 2`, `a17 = 1`
 - Human review fields changed: no
 - Final Round 2 CSV/Markdown generated: no
 
@@ -87,14 +87,14 @@ Traversal checkpoints:
 
 - `W0001–W0005`: cover and Item 1 business descriptions. `W0002` contains the sole `p33`
   occurrence.
-- `W0006–W0015`: Item 1A and Item 1C. Customer-concentration evidence for `p17` appears in
-  `W0006` and `W0010`; an alternate ERP occurrence for `p49` appears in `W0011`.
-- `W0016–W0019`: Items 5, 7, 7A, and 9A. `W0018` contains `a17` plus five `p17`
-  occurrences; `W0019` contains the original `p49` occurrence.
+- `W0006–W0015`: Item 1A and Item 1C. The first corrected `p17` occurrence appears in
+  `W0010`; an alternate ERP occurrence for `p49` appears in `W0011`.
+- `W0016–W0019`: Items 5, 7, 7A, and 9A. `W0018` contains `a17` plus one corrected `p17`
+  occurrence; `W0019` contains the original `p49` occurrence.
 - `W0020–W0028`: financial statements and Notes 1–15. No additional active-candidate
   occurrence appears in this range.
-- `W0029–W0030`: Note 16, remaining disclosures, exhibits, and signatures. Note 16 repeats two
-  `p17` occurrences at distinct offsets.
+- `W0029–W0030`: Note 16, remaining disclosures, exhibits, and signatures. Note 16 repeats the
+  corrected `p17` occurrence at a third distinct offset.
 
 After sequential traversal, full-text audits covered direct terms and plausible alternatives for
 customer and partner concentration, Rubin cost-per-token and production timing, ERP modernization,
@@ -103,7 +103,63 @@ sufficient occurrence.
 
 ## Candidate findings
 
-### `p17` — narrow to customer concentration; 11 acceptable occurrences
+### Correction — `p17` largest direct customer share (supersedes the Round 2 proposal below)
+
+- Candidate ID: `p17`
+- Round 2 decision:
+- Round 2 reviewer comment:
+- Corrected question: `What share of NVIDIA's fiscal 2026 revenue came from its largest direct customer?`
+- Corrected query type: `factoid`
+- Corrected answer requirement: One independently sufficient span must state the percentage of
+  total fiscal 2026 revenue attributable to NVIDIA's largest direct customer. Qualitative
+  concentration statements, indirect-customer disclosures, and percentages for accounts
+  receivable or another fiscal year are partial or non-responsive.
+- Result: `3` acceptable distinct source occurrences, all answering `22%`.
+
+The source remains the accession-pinned [SEC filing index](https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/0001045810-26-000021-index.html),
+which identifies `nvda-20260125.htm` as sequence 1 and `TYPE=10-K`, and the official
+[SEC primary 10-K](https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm).
+The pipeline-independent canonical text and its existing `30/30` neutral-window coverage ledger
+were re-verified before the query-specific audit: `353,596` characters, SHA-256
+`eeb14bc871982207d1862529575bfb219588da43e9dbfb09862f40b44f42c0b0`, contiguous from offset
+`0` through `353596` with no gaps or overlaps.
+
+| Occurrence | Filing location | Window / offsets | Canonical line | Chars | Snippet SHA-256 |
+|---|---|---:|---:|---:|---|
+| 1 | Item 1A, customer-concentration risk | `W0010` `[116355, 116508)` | 937 | 153 | `7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633` |
+| 2 | Item 7, Concentration of Revenue / Direct Customers | `W0018` `[205958, 206111)` | 1499 | 153 | `7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633` |
+| 3 | Item 8, Note 16 / Direct Customers | `W0029` `[337687, 337840)` | 4007 | 153 | `7d7c630fdba2e391e806c8ba50d09f74bacbcd661c3f94afbfa48990b1ef6633` |
+
+All three occurrences use this exact canonical snippet:
+
+> For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue
+
+The comparison with the next disclosed direct-customer share makes `22%` identifiable as the
+largest disclosed share while keeping the snippet independently interpretable and within the
+50–200 character contract. The shorter `22%` clause was not selected because it would not itself
+show why that customer is the largest. Identical wording is retained at all three offsets because
+each is a distinct retrievable source occurrence. The Note 16 copy is visible narrative text in
+the primary 10-K under `Note 16 - Segment Information`; it is not a hidden XBRL fact or a label
+borrowed from outside Item 8.
+
+The full-text audit found exactly three copies of the selected snippet. Broader, case-insensitive
+checks for `fiscal year 2026`, `direct customer`, `22%`, and `revenue` found the same three source
+locations and no alternate wording. The following formerly acceptable `p17` classes are excluded
+under the corrected answer requirement:
+
+- general partner, distributor, or customer-concentration statements without the `22%` share;
+- indirect-customer `10% or more` language and the qualitative AI-company disclosure;
+- fiscal 2025 or fiscal 2024 direct-customer percentages;
+- customer accounts-receivable concentration percentages, which measure receivables rather than
+  fiscal 2026 revenue;
+- table labels, XBRL facts, or isolated percentages that require non-contiguous context.
+
+This correction is the assembly input for `p17`. The older broad customer-concentration proposal
+and its 11 occurrences below remain only as the Round 2 audit trail. Human review fields remain
+blank. `round2_ticker_results/T13_NVDA.json` contains the corrected question and the three
+acceptable occurrences.
+
+### Previous `p17` proposal — broad customer concentration; 11 occurrences (audit only)
 
 - Candidate ID: `p17`
 - Round 2 decision:
@@ -220,13 +276,13 @@ Occurrence 1:
 
 ## Open human decisions
 
-1. `p17` is narrowed to customer concentration. Human review should decide whether the AI-company
-   occurrence remains responsive after that narrowing; it is currently included because it
-   independently demonstrates concentration through a large indirect customer.
+1. `p17` is narrowed to the largest direct-customer share. Its three accepted occurrences each
+   report `22%` and the next direct-customer share of `14%`; indirect and qualitative occurrences
+   are excluded.
 2. `p33` selects token-cost improvement rather than production timing, preserving the original
    evidence while making the question single-intent.
 3. `p49` remains unchanged and gains the independently sufficient Item 1A ERP occurrence.
 4. `a17` selects networking growth rather than compute growth, matching its original evidence.
 
-All 15 proposed occurrences are exact canonical substrings and contain 50–200 characters. All
+All 7 proposed occurrences are exact canonical substrings and contain 50–200 characters. All
 Round 2 review fields are intentionally blank for human review.

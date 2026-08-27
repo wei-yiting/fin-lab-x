@@ -362,7 +362,7 @@ Hard rules:
 2. The query must be answerable from the selected span alone, and NOT answerable from the other sentences shown.
 3. Paraphrase: the query must not reuse any 3 consecutive words that appear in the evidence text. Use synonyms and different phrasing.
 4. Pick company-specific, substantive sentences (concrete facts, named products, numbers, named risks). Never pick boilerplate that could appear in any 10-K.
-5. The snippet must be {SNIPPET_MIN_CHARS}-{SNIPPET_MAX_CHARS} characters long. The span must stay under roughly {SPAN_MAX_TOKENS} tokens (~1,600 characters).
+5. The snippet must be {SNIPPET_MIN_CHARS}-{SNIPPET_MAX_CHARS} characters long. The span must stay under roughly {SPAN_MAX_TOKENS} tokens (~1,100 characters).
 6. curation_note: one sentence — why this evidence was picked and what the row tests.
 Respond only via the JSON schema."""
 

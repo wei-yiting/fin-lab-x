@@ -46,17 +46,15 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
     StructuredItem,
 )
 
-# Span cap ~0.9x the old arm's 512-token chunks: wide enough to cover a full
-# answer region, still under one chunk so a span-overlap criterion stays
-# selective (raised from 300 in review round 1).
-SPAN_MAX_TOKENS = 450
+# Ratified contract (round-2 review, 2026-08-27): span ~half the old arm's
+# 512-token chunks so it keeps discriminative power.
+SPAN_MAX_TOKENS = 300
 MIN_FLAT_GAP_TOKENS = 600
-# The snippet is the strict-containment hit key. Beyond ~200 chars (~50
-# tokens, the old arm's chunk overlap) a snippet can straddle a chunk
-# boundary and make the row unhittable on that arm; 350 chars confines that
-# residual risk to the few rows that genuinely need a second sentence.
+# The snippet is the strict-containment hit key. 200 chars (~50 tokens)
+# matches the old arm's chunk overlap, so a conforming snippet cannot
+# straddle a chunk boundary and silently kill the row on that arm.
 SNIPPET_MIN_CHARS = 50
-SNIPPET_MAX_CHARS = 350
+SNIPPET_MAX_CHARS = 200
 
 
 @dataclass(frozen=True)

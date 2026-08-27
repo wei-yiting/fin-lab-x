@@ -1,81 +1,81 @@
-candidate_id,in_draft,ticker,items,query_type,generation_mode,question,snippet_preview,approved,reviewer_comment
-a01,yes,NVDA,1a/7,multi_passage,passage_first,"How much went to private startups, and what threatens recovery?","We invested $17.5 billion in private companies and infrastructure funds, primari",,
-a02,yes,DDOG,1a,multi_passage,passage_first,Contractual exposure arising from Datadog's platform outage history,"For example, in March 2023, our platform experienced widespread outages across m",,
-a05,yes,JPM,1a,multi_passage,passage_first,How could artificial intelligence reshape staffing needs and employee capabilities?,It is also possible that JPMorganChase could miscalibrate its workforce planning,,
-p03,yes,LLY,1a,multi_passage,passage_first,Why do enforcement gaps around illicit incretins threaten Lilly?,Our reputation and business could suffer harm as a result of counterfeit or mass,,
-p04,yes,PODD,1a,multi_passage,passage_first,GLP-1 adoption effects on diabetes demand and Insulet shares,"Further, increased availability and adoption of the GLP-1 class of drugs may del",,
-p05,yes,JPM,1a,multi_passage,passage_first,How can rising rates trigger loan losses and capital constraints?,Higher interest rates could also negatively affect the payment performance on lo,,
-p06,yes,COIN,1a,multi_passage,passage_first,How did Deribit deepen Coinbase's vulnerability to cyberattacks?,"For example, as a result of our acquisition of Deribit in August 2025, we now pr",,
-p07,yes,AMZN,1a,multi_passage,passage_first,What risks arise from unprofitable AI investments and scarce GPUs?,"Failure to realize the benefits of amounts we invest in new technologies, produc",,
-p08,yes,DECK,1a,multi_passage,passage_first,Key partner and sheepskin processor concentration vulnerabilities,Our dependence on a limited number of key manufacturing partners may increase ou,,
-p09,yes,GOOGL,1a,multi_passage,passage_first,How laws complicate Alphabet's content and youth-safety controls,We face legal and regulatory challenges to our efforts to address low-quality co,,
-p10,yes,CAT,1a,multi_passage,passage_first,Cat Financial contingency funding and Dodd-Frank compliance burdens,Cat Financial also could be required to draw upon contractually committed lendin,,
-p11,yes,AXON,1a,multi_passage,passage_first,Operational failures and IP litigation arising from Axon's AI use,"For example, unexpected failures or inaccuracies in AI-driven systems could expo",,
-p12,yes,COST,1a,multi_passage,passage_first,"How large is Costco's overseas footprint, and how may expansion affect currency risk?","At the end of 2025, we operated 285 warehouses outside of the U.S. (31% of all w",,
-p14,yes,NEE,1a,multi_passage,passage_first,Duane Arnold revival dependencies and financial effects of nuclear mandates,"Additionally, NEER is actively pursuing the restart of the Duane Arnold nuclear ",,
-p15,yes,PLD,1a,multi_passage,passage_first,Which portfolio region faces both business slowdowns and earthquake exposure?,"Business layoffs, downsizing, industry slowdowns, changing demographics and othe",,
-p16,yes,LIN,7,passage,intent_first,"Linde project exposure to materials, staffing, inflation, and scope changes",The key source of estimation uncertainty is the total estimated costs at complet,,
-p17,yes,NVDA,7,passage,intent_first,NVIDIA reliance on large downstream buyers and AI lab demand,We estimate that one AI research and deployment company contributed to a meaning,,
-p18,yes,DDOG,7,passage,intent_first,How can trade barriers affect Datadog’s growth and results?,Unfavorable conditions in the economy both in the United States and abroad may n,,
-p19,yes,LLY,7,passage,intent_first,competitive threats facing Lilly’s incretin franchise,"We continue to see the production, marketing, and sale of counterfeit, misbrande",,
-p20,yes,PODD,7,passage,intent_first,What threatens collection of the EOFlow trade-secret award?,We have not recorded the damages awarded in our consolidated statements of incom,,
-p21,yes,COIN,7,passage,intent_first,Coinbase domestic versus overseas revenue mix and foreign revenue source,"For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respect",,
-p22,yes,AMZN,7,passage,intent_first,Factors behind Amazon's 2025 overseas retail and cloud revenue gains,"The sales growth primarily reflects increased customer usage, partially offset b",,
-p23,yes,DECK,7,passage,passage_first,Deckers fiscal 2026 supplemental sales growth and unit-volume metrics,"•We experienced an increase of 6.2% in the total volume of units sold to 78,700 ",,
-p24,yes,GOOGL,7,passage,intent_first,How did Alphabet vary debt by denomination and coupon structure?,We also issued €6.75 billion of euro-denominated fixed-rate senior unsecured not,,
-p25,yes,CAT,7,passage,passage_first,How much could tariffs cost without planned mitigation?,"If we do not take the mitigating actions we plan to take in 2026, the impact fro",,
-p26,yes,AXON,7,passage,passage_first,"What factors drove TASER, Personal Sensors, and Platform Solutions growth?","Personal Sensors increased $80.1 million, which was primarily driven by the cont",,
-p27,yes,COST,7,passage,passage_first,Costco fiscal 2026 capital spending and warehouse expansion plans,"In 2025, we spent $5,498 on capital expenditures, and it is our current intentio",,
-p28,yes,NEE,7,passage,passage_first,How sensitive were retirement obligations to cost inflation assumptions?,"For example, an increase of 0.25% in the assumed escalation rates for nuclear de",,
-p29,yes,PLD,7,passage,passage_first,Employee allocation and expense timing for venture incentive fees,"The Prologis Promote Plan (""PPP"") awards up to 25% of the third-party portion of",,
-p30,yes,LIN,7,passage,passage_first,What drove Linde's 2025 investment spending and where was it concentrated?,"30
+in_draft,items,query_type,generation_mode,question,snippet_preview,candidate_id,ticker,approved,reviewer_comment
+yes,1a/7,multi_passage,passage_first,"How much went to private startups, and what threatens recovery?","We invested $17.5 billion in private companies and infrastructure funds, primari",a01,NVDA,x,我看不懂 query 所謂 How much 是在問什麼的 how much
+yes,1a,multi_passage,passage_first,Contractual exposure arising from Datadog's platform outage history,"For example, in March 2023, our platform experienced widespread outages across m",a02,DDOG,o,
+yes,1a,multi_passage,passage_first,How could artificial intelligence reshape staffing needs and employee capabilities?,It is also possible that JPMorganChase could miscalibrate its workforce planning,a05,JPM,o,
+yes,1a,multi_passage,passage_first,Why do enforcement gaps around illicit incretins threaten Lilly?,Our reputation and business could suffer harm as a result of counterfeit or mass,p03,LLY,o,
+yes,1a,multi_passage,passage_first,GLP-1 adoption effects on diabetes demand and Insulet shares,"Further, increased availability and adoption of the GLP-1 class of drugs may del",p04,PODD,?,2 個 evidence 整體段落正確，但重點段落需要更長，目前沒覆蓋到回應題目的重點
+yes,1a,multi_passage,passage_first,How can rising rates trigger loan losses and capital constraints?,Higher interest rates could also negatively affect the payment performance on lo,p05,JPM,?,我不懂 evidence 2 跟 query 的關聯
+yes,1a,multi_passage,passage_first,How did Deribit deepen Coinbase's vulnerability to cyberattacks?,"For example, as a result of our acquisition of Deribit in August 2025, we now pr",p06,COIN,x,看不出來 evidence 跟 vulnerability to cyberattacks 有什麼關係
+yes,1a,multi_passage,passage_first,What risks arise from unprofitable AI investments and scarce GPUs?,"Failure to realize the benefits of amounts we invest in new technologies, produc",p07,AMZN,?,但我覺得不是很好的題目，關係不明顯
+yes,1a,multi_passage,passage_first,Key partner and sheepskin processor concentration vulnerabilities,Our dependence on a limited number of key manufacturing partners may increase ou,p08,DECK,?,"兩個 evidence block 內容有 cover 到 query, 但粗體字不是最關鍵的，或是需要涵蓋更多句"
+yes,1a,multi_passage,passage_first,How laws complicate Alphabet's content and youth-safety controls,We face legal and regulatory challenges to our efforts to address low-quality co,p09,GOOGL,o,
+yes,1a,multi_passage,passage_first,Cat Financial contingency funding and Dodd-Frank compliance burdens,Cat Financial also could be required to draw upon contractually committed lendin,p10,CAT,x,query 一次問兩個相關度很低的問題
+yes,1a,multi_passage,passage_first,Operational failures and IP litigation arising from Axon's AI use,"For example, unexpected failures or inaccuracies in AI-driven systems could expo",p11,AXON,?,"query 一次問兩個子問題, 這兩個 evidence 反推應該可以只是純粹單一一個問題"
+yes,1a,multi_passage,passage_first,"How large is Costco's overseas footprint, and how may expansion affect currency risk?","At the end of 2025, we operated 285 warehouses outside of the U.S. (31% of all w",p12,COST,?,第二個 evidence 不確定總長多長，block 之外應該還有符合的內容
+yes,1a,multi_passage,passage_first,Duane Arnold revival dependencies and financial effects of nuclear mandates,"Additionally, NEER is actively pursuing the restart of the Duane Arnold nuclear ",p14,NEE,x,query 一次問兩個相關度很低的問題
+yes,1a,multi_passage,passage_first,Which portfolio region faces both business slowdowns and earthquake exposure?,"Business layoffs, downsizing, industry slowdowns, changing demographics and othe",p15,PLD,o,
+yes,7,passage,intent_first,"Linde project exposure to materials, staffing, inflation, and scope changes",The key source of estimation uncertainty is the total estimated costs at complet,p16,LIN,?,我覺得整個 block 才能夠回答問題，光是粗體沒辦法回答
+yes,7,passage,intent_first,NVIDIA reliance on large downstream buyers and AI lab demand,We estimate that one AI research and deployment company contributed to a meaning,p17,NVDA,?,我覺得題目可以簡化成對大型下游買家的依賴程度就好，然後 evidence 再找過，也可以不止一個 evidence
+yes,7,passage,intent_first,How can trade barriers affect Datadog’s growth and results?,Unfavorable conditions in the economy both in the United States and abroad may n,p18,DDOG,?,粗體字拿的不精準，應該比 markdown 更下面的內容才是重點
+yes,7,passage,intent_first,competitive threats facing Lilly’s incretin franchise,"We continue to see the production, marketing, and sale of counterfeit, misbrande",p19,LLY,x,evidence 沒有回答到 query
+yes,7,passage,intent_first,What threatens collection of the EOFlow trade-secret award?,We have not recorded the damages awarded in our consolidated statements of incom,p20,PODD,o,
+yes,7,passage,intent_first,Coinbase domestic versus overseas revenue mix and foreign revenue source,"For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respect",p21,COIN,?,沒涵蓋的海外營收來源，需要多個 evidence
+yes,7,passage,intent_first,Factors behind Amazon's 2025 overseas retail and cloud revenue gains,"The sales growth primarily reflects increased customer usage, partially offset b",p22,AMZN,?,問題牽涉海外營收與雲端業務，簡化成單一問題，重找 evidence
+yes,7,passage,passage_first,Deckers fiscal 2026 supplemental sales growth and unit-volume metrics,"•We experienced an increase of 6.2% in the total volume of units sold to 78,700 ",p23,DECK,?,query 同時問「sales growth」跟「unit-volume metrics」兩件事，但 snippet 只覆蓋「unit volume」這句，前兩個成長率 bullet 沒被凸顯
+yes,7,passage,intent_first,How did Alphabet vary debt by denomination and coupon structure?,We also issued €6.75 billion of euro-denominated fixed-rate senior unsecured not,p24,GOOGL,?,query 問的是「如何在幣別跟票面利率結構上做出不同安排」——重點是「vary（不同）」，需要對比才能回答，選的粗體不對
+yes,7,passage,passage_first,How much could tariffs cost without planned mitigation?,"If we do not take the mitigating actions we plan to take in 2026, the impact fro",p25,CAT,o,
+yes,7,passage,passage_first,"What factors drove TASER, Personal Sensors, and Platform Solutions growth?","Personal Sensors increased $80.1 million, which was primarily driven by the cont",p26,AXON,?,題目應該只問單一產品，不要一次問三個
+yes,7,passage,passage_first,Costco fiscal 2026 capital spending and warehouse expansion plans,"In 2025, we spent $5,498 on capital expenditures, and it is our current intentio",p27,COST,?,題目應該只問單一產品，capital spending 或 warehouse expansion plans
+yes,7,passage,passage_first,How sensitive were retirement obligations to cost inflation assumptions?,"For example, an increase of 0.25% in the assumed escalation rates for nuclear de",p28,NEE,o,
+yes,7,passage,passage_first,Employee allocation and expense timing for venture incentive fees,"The Prologis Promote Plan (""PPP"") awards up to 25% of the third-party portion of",p29,PLD,?,題目應該只問單一事，Employee allocation 或 timing for venture incentive fees
+yes,7,passage,passage_first,What drove Linde's 2025 investment spending and where was it concentrated?,"30
 
 
-Approximately 60% of the capital expenditures were in the Americas segment ",,
-p31,yes,XOM,1,passage,passage_first,How does ExxonMobil cultivate and retain long-tenured career employees?,Our career-oriented approach to talent development results in strong retention a,,
-p32,yes,XOM,1,passage,passage_first,Size and financial importance of ExxonMobil's intellectual property portfolio,ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.,,
-p33,yes,NVDA,1,passage,passage_first,Rubin production timeline and token-cost improvement over Blackwell,"Built for agentic AI and reasoning, it excels at processing multi-step problem-s",,
-p34,yes,DDOG,1,passage,passage_first,How does Datadog identify database bottlenecks and resource constraints?,"With Database Monitoring, they can quickly pinpoint costly and slow queries and ",,
-p35,yes,PODD,1,passage,passage_first,Insulet next-generation insulin automation development milestones,"In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility stu",,
-p36,yes,PODD,1,passage,passage_first,How does Omnipod 5 receive glucose readings and respond?,The Pod integrates with a third-party continuous glucose monitor (“CGM”) to obta,,
-p37,yes,AMZN,1,passage,passage_first,"How do shoppers reach Amazon offerings, and which electronics does it make?","We also manufacture and sell electronic devices, including Kindle, Fire tablet, ",,
-p38,yes,COIN,1,passage,passage_first,What happens to underlying Ether when cbETH changes hands?,Selling or otherwise transferring cbETH automatically transfers ownership of the,,
-p39,yes,AMZN,1,passage,passage_first,"What does Career Choice provide, and how many workers joined?","Over 300,000 Amazon employees around the world have participated in Career Choic",,
-p40,yes,DECK,1c,passage,passage_first,"Which security documents undergo periodic refresh, and why?","•periodically reviewing and updating our IRP, privacy policy, and other relevant",,
-p41,yes,GOOGL,1c,factoid,passage_first,Who independently evaluates Alphabet's cyber defenses?,Internal Audit maintains a dedicated cybersecurity auditing team that independen,,
-p42,yes,CAT,1c,factoid,passage_first,How frequently does Caterpillar's IT chief attend Audit Committee meetings?,"The Company’s Chief Information Officer & Senior Vice President, Caterpillar IT ",,
-p43,yes,AXON,7a,factoid,passage_first,How much credit could Axon draw at year-end 2025?,"As of the year ended December 31, 2025, there was no amount outstanding under th",,
-p44,yes,COST,7a,factoid,passage_first,Impact of one-percentage-point rate shift on Costco investments,A 100 basis point change in interest rates as of the end of 2025 would have had ,,
-p45,yes,DDOG,7a,factoid,passage_first,Timing and size of Datadog's 2029 debt issuance,"In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 ",,
-p46,yes,COIN,3,factoid,passage_first,Where does Coinbase cross-reference its significant litigation disclosures?,"ITEM 3. LEGAL PROCEEDINGS
+Approximately 60% of the capital expenditures were in the Americas segment ",p30,LIN,?,「驅動因素」跟「地區集中度」兩件事，問題應問單一一件事，以 evidence 來說應該問地區集中度
+yes,1,passage,passage_first,How does ExxonMobil cultivate and retain long-tenured career employees?,Our career-oriented approach to talent development results in strong retention a,p31,XOM,o,
+yes,1,passage,passage_first,Size and financial importance of ExxonMobil's intellectual property portfolio,ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.,p32,XOM,?,題目應該只問單一事，size 或 financial importance
+yes,1,passage,passage_first,Rubin production timeline and token-cost improvement over Blackwell,"Built for agentic AI and reasoning, it excels at processing multi-step problem-s",p33,NVDA,?,題目應該只問單一事，production timeline 或 token-cost improvement over Blackwell
+yes,1,passage,passage_first,How does Datadog identify database bottlenecks and resource constraints?,"With Database Monitoring, they can quickly pinpoint costly and slow queries and ",p34,DDOG,?,題目應該只問單一事，database bottlenecks 或 resource constraints
+yes,1,passage,passage_first,Insulet next-generation insulin automation development milestones,"In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility stu",p35,PODD,?,milestone 應該要更多時間軸過去現在未來，需要多個 evidence 組合
+yes,1,passage,passage_first,How does Omnipod 5 receive glucose readings and respond?,The Pod integrates with a third-party continuous glucose monitor (“CGM”) to obta,p36,PODD,?,"evidence 只回答 receive 沒有回答 response, 這題不是分開的兩件事，但需要多個 evidence 才可以正確回答"
+yes,1,passage,passage_first,"How do shoppers reach Amazon offerings, and which electronics does it make?","We also manufacture and sell electronic devices, including Kindle, Fire tablet, ",p37,AMZN,?,題目應該只問單一事，which electronics does it make
+yes,1,passage,passage_first,What happens to underlying Ether when cbETH changes hands?,Selling or otherwise transferring cbETH automatically transfers ownership of the,p38,COIN,o,
+yes,1c,factoid,passage_first,Who independently evaluates Alphabet's cyber defenses?,Internal Audit maintains a dedicated cybersecurity auditing team that independen,p41,GOOGL,o,但是這個 query 是蠻罕見的問題，不會優先選這題
+yes,1c,factoid,passage_first,How frequently does Caterpillar's IT chief attend Audit Committee meetings?,"The Company’s Chief Information Officer & Senior Vice President, Caterpillar IT ",p42,CAT,o,但是這個 query 是很罕見的問題，不會優先選這題，沒什麼評估意義
+yes,7a,factoid,passage_first,How much credit could Axon draw at year-end 2025?,"As of the year ended December 31, 2025, there was no amount outstanding under th",p43,AXON,o,
+yes,7a,factoid,passage_first,Impact of one-percentage-point rate shift on Costco investments,A 100 basis point change in interest rates as of the end of 2025 would have had ,p44,COST,o,
+yes,7a,factoid,passage_first,Timing and size of Datadog's 2029 debt issuance,"In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 ",p45,DDOG,o,
+yes,3,factoid,passage_first,Where does Coinbase cross-reference its significant litigation disclosures?,"ITEM 3. LEGAL PROCEEDINGS
 
-For a description of material legal proceedings in wh",,
-p47,yes,XOM,2,factoid,passage_first,Which Brazilian development began producing via an FPSO?,Brazil commenced operations in the Bacalhau Phase 1 development with the start-u,,
-p48,yes,PLD,5,factoid,passage_first,Prologis Series Q per-share dividend amount for 2025,"Dividends payable per share were $4.27 for the year ended December 31, 2025.",,
-p49,yes,NVDA,9a,factoid,passage_first,What corporate software modernization initiative is NVIDIA continuing?,"We are continuing a phased upgrade of our enterprise resource planning, or ERP, ",,
-p50,yes,LIN,1a,factoid,passage_first,Have cyber incidents materially affected Linde's performance so far?,"To date, such attempts have not had any significant impact on Linde's operations",,
-a03,no,LLY,1a,multi_passage,passage_first,Why are trade levies especially difficult for Lilly to absorb?,Regional or single-source dependencies may in some cases accentuate risks and co,,
-a04,no,PODD,1a,multi_passage,passage_first,Why does Omnipod expansion heighten component sourcing vulnerability?,Our growth will create challenges for our organization and may strain our manage,,
-a06,no,COIN,1a,multi_passage,passage_first,How can crypto-sector contagion reduce Coinbase revenue?,Our total revenue is substantially dependent on the prices of crypto assets and ,,
-a07,no,AMZN,1a,multi_passage,passage_first,"Which rival advantages involve supplier terms, pricing, and local familiarity?","They may secure better terms from vendors, adopt more aggressive pricing, and de",,
-a08,no,DECK,1a,multi_passage,passage_first,How can overseas distribution transitions impede Deckers growth?,"For example, we are currently transitioning certain international 3PL operations",,
-a09,no,GOOGL,1a,multi_passage,passage_first,What physical bottlenecks and decarbonization difficulties accompany AI expansion?,Our ability to scale our technical infrastructure is increasingly constrained by,,
-a10,no,CAT,1a,multi_passage,passage_first,How do inventory mismatches hurt Caterpillar and its dealer network?,"On the other hand, in circumstances where demand for our products is less than w",,
-a11,no,AXON,1a,multi_passage,passage_first,How can fast-moving AI competition undermine Axon's offerings?,The introduction of products embodying new technologies and the emergence of new,,
-a12,no,COST,1a,multi_passage,passage_first,Which outside providers support Costco’s transaction processing and technology infrastructure?,We rely on third parties to provide payment transaction processing services for ,,
-a13,no,XOM,1a,multi_passage,passage_first,How can hydrocarbon supply curbs ultimately hurt ExxonMobil through economic contraction?,Such effects in turn may depress economic growth or lead to rapid or conflicting,,
-a14,no,NEE,1a,multi_passage,passage_first,How an overseas reactor accident could block a planned restart,NEER has applied to the NRC to reinstate the operating license and to MISO for a,,
-a15,no,PLD,1a,multi_passage,passage_first,Why can acquired sites leave Prologis paying cleanup costs without seller recourse?,"The acquired properties or entities may be subject to liabilities, including tax",,
-a16,no,LIN,7,passage,passage_first,Factors behind unchanged APAC revenue in 2025,Currency translation decreased sales by 1% primarily due to the weakening of the,,
-a17,no,NVDA,7,passage,passage_first,What propelled NVIDIA's Data Center compute and networking expansion?,Revenue from Data Center networking grew 142% driven by the introduction and con,,
-a18,no,DDOG,7,passage,passage_first,Datadog net retention change and its cause in 2025,The increase in our trailing 12-month dollar-based net retention rate was attrib,,
-a19,no,LLY,7,passage,passage_first,Why will Lilly's near-term capital spending remain elevated?,"These investments, and other capital investments that support our operations, ha",,
-a20,no,PODD,7,passage,passage_first,2025 capital spending increase and associated factory expansion projects,Capital Spending—Capital expenditures were $191.6 million and $124.9 million in ,,
-a21,no,COIN,7,passage,passage_first,Coinbase policy and liquidity constraints for investment digital assets,We do not plan to engage in regular trading of these crypto assets but may purch,,
-a22,no,AMZN,7,passage,passage_first,How does Amazon account for satellite broadband development before and after viability?,We will capitalize certain of these costs once the service achieves commercial v,,
-a23,no,DECK,7,passage,passage_first,Deckers currency-neutral revenue and comparable direct-sales growth rates,"•Comparable DTC channel net sales for the 52 weeks ended March 29, 2026, increas",,
-a24,no,GOOGL,7,passage,passage_first,What borrowing capacity and maturity schedule did Alphabet's unused revolvers have?,"As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4",,
-a25,no,CAT,7,passage,passage_first,"RPMGlobal deal cost, completion schedule, and mining software capabilities",The transaction is expected to close in the final two weeks of February with a p,,
-p13,no,XOM,1a,multi_passage,passage_first,How do public policies intensify competitive threats to ExxonMobil?,Such restrictions may provide a competitive advantage to competitors who may not,,
-p01,rejected,NVDA,1a/7,multi_passage,passage_first,Blackwell production issues and causes of fiscal 2026 gross margin decline,"For example, our gross margins in the second quarter of fiscal year 2025 were ne",,
-p02,rejected,DDOG,1a,multi_passage,passage_first,Why do outsourced hosting failures threaten Datadog's contractual availability promises?,We outsource substantially all of the infrastructure relating to our cloud solut,,
+For a description of material legal proceedings in wh",p46,COIN,!,這一題涉及整個 RAG retrieval 問題，另外討論
+yes,2,factoid,passage_first,Which Brazilian development began producing via an FPSO?,Brazil commenced operations in the Bacalhau Phase 1 development with the start-u,p47,XOM,x,"evidence 沒講 FPSO, 而且這題太冷門了"
+yes,5,factoid,passage_first,Prologis Series Q per-share dividend amount for 2025,"Dividends payable per share were $4.27 for the year ended December 31, 2025.",p48,PLD,o,屬於 long-tail 的題目
+yes,9a,factoid,passage_first,What corporate software modernization initiative is NVIDIA continuing?,"We are continuing a phased upgrade of our enterprise resource planning, or ERP, ",p49,NVDA,o,
+yes,1a,factoid,passage_first,Have cyber incidents materially affected Linde's performance so far?,"To date, such attempts have not had any significant impact on Linde's operations",p50,LIN,?,"還要看更完整的整個 chunk, 現在看不出來這段是不是在想 cyber incidents"
+yes,1,passage,passage_first,"What does Career Choice provide, and how many workers joined?","Over 300,000 Amazon employees around the world have participated in Career Choic",p39,AMZN,x,這題不太是 user 會問的問題，沒有參考價值
+yes,1c,passage,passage_first,"Which security documents undergo periodic refresh, and why?","•periodically reviewing and updating our IRP, privacy policy, and other relevant",p40,DECK,?,"從粗體答案中不確定是不是在講security documents, 而且題目出現了 and why, 需要多個 evidence 才能回答"
+no,1a,multi_passage,passage_first,Why are trade levies especially difficult for Lilly to absorb?,Regional or single-source dependencies may in some cases accentuate risks and co,a03,LLY,o,
+no,1a,multi_passage,passage_first,Why does Omnipod expansion heighten component sourcing vulnerability?,Our growth will create challenges for our organization and may strain our manage,a04,PODD,?,Evidence 1 對不上題，重找
+no,1a,multi_passage,passage_first,How can crypto-sector contagion reduce Coinbase revenue?,Our total revenue is substantially dependent on the prices of crypto assets and ,a06,COIN,o,
+no,1a,multi_passage,passage_first,"Which rival advantages involve supplier terms, pricing, and local familiarity?","They may secure better terms from vendors, adopt more aggressive pricing, and de",a07,AMZN,?,evidence 沒有完整回答題目所以子題
+no,1a,multi_passage,passage_first,How can overseas distribution transitions impede Deckers growth?,"For example, we are currently transitioning certain international 3PL operations",a08,DECK,?,題目跟 edivence 的對應沒有很精準，可以再修正題目
+no,1a,multi_passage,passage_first,What physical bottlenecks and decarbonization difficulties accompany AI expansion?,Our ability to scale our technical infrastructure is increasingly constrained by,a09,GOOGL,?,題目再精簡成問 physical bottlenecks 就好，拿掉 decarbonization difficulties
+no,1a,multi_passage,passage_first,How do inventory mismatches hurt Caterpillar and its dealer network?,"On the other hand, in circumstances where demand for our products is less than w",a10,CAT,?,evidence 1 block 大致正確但粗體失準，query 應單純問hurt Caterpillar 就好，拿掉 and its dealer network
+no,1a,multi_passage,passage_first,How can fast-moving AI competition undermine Axon's offerings?,The introduction of products embodying new technologies and the emergence of new,a11,AXON,?,block 大致是對的但粗體位置都不對
+no,1a,multi_passage,passage_first,Which outside providers support Costco’s transaction processing and technology infrastructure?,We rely on third parties to provide payment transaction processing services for ,a12,COST,x,本身並不是 multi-passage 題，只是問了兩個問題
+no,1a,multi_passage,passage_first,How can hydrocarbon supply curbs ultimately hurt ExxonMobil through economic contraction?,Such effects in turn may depress economic growth or lead to rapid or conflicting,a13,XOM,x,evidence 中根本沒講到 hydrocarbon，而且題目為什麼要自己講 through economic contraction？query 不太會這樣問
+no,1a,multi_passage,passage_first,How an overseas reactor accident could block a planned restart,NEER has applied to the NRC to reinstate the operating license and to MISO for a,a14,NEE,o,但這題很冷門，不是優先選擇
+no,1a,multi_passage,passage_first,Why can acquired sites leave Prologis paying cleanup costs without seller recourse?,"The acquired properties or entities may be subject to liabilities, including tax",a15,PLD,?,題目講收購、整治成本、賣方無追償三個概念，evidence 沒有全涵蓋到，需調整題目
+no,7,passage,passage_first,Factors behind unchanged APAC revenue in 2025,Currency translation decreased sales by 1% primarily due to the weakening of the,a16,LIN,?,整個 block 有涵蓋 query 資訊，但粗體本身沒有
+no,7,passage,passage_first,What propelled NVIDIA's Data Center compute and networking expansion?,Revenue from Data Center networking grew 142% driven by the introduction and con,a17,NVDA,?,query 同時問資料中心運算與網路業務的成長，應該只問單一一個
+no,7,passage,passage_first,Datadog net retention change and its cause in 2025,The increase in our trailing 12-month dollar-based net retention rate was attrib,a18,DDOG,?,粗體字不夠長，沒涵蓋到 net retention change 的數據
+no,7,passage,passage_first,Why will Lilly's near-term capital spending remain elevated?,"These investments, and other capital investments that support our operations, ha",a19,LLY,?,粗體字選錯句了，但整個 block 是有涵蓋到的
+no,7,passage,passage_first,2025 capital spending increase and associated factory expansion projects,Capital Spending—Capital expenditures were $191.6 million and $124.9 million in ,a20,PODD,?,query 問單一問題，看是資本增加原因，或是有哪些工廠擴建專案之類的
+no,7,passage,passage_first,Coinbase policy and liquidity constraints for investment digital assets,We do not plan to engage in regular trading of these crypto assets but may purch,a21,COIN,?,query 問單一問題，看是 policy 還是 liquidity constraints
+no,7,passage,passage_first,How does Amazon account for satellite broadband development before and after viability?,We will capitalize certain of these costs once the service achieves commercial v,a22,AMZN,?,粗體字太短，無法包含所有需要回答 query 的資訊
+no,7,passage,passage_first,Deckers currency-neutral revenue and comparable direct-sales growth rates,"•Comparable DTC channel net sales for the 52 weeks ended March 29, 2026, increas",a23,DECK,?,應該要只有單一問題，currency-neutral revenue 或 comparable direct-sales growth rates
+no,7,passage,passage_first,What borrowing capacity and maturity schedule did Alphabet's unused revolvers have?,"As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4",a24,GOOGL,o,
+no,7,passage,passage_first,"RPMGlobal deal cost, completion schedule, and mining software capabilities",The transaction is expected to close in the final two weeks of February with a p,a25,CAT,?,"題目應該簡化為 deal cost and completion schedule,  拿掉 mining software capabilities"
+no,1a,multi_passage,passage_first,How do public policies intensify competitive threats to ExxonMobil?,Such restrictions may provide a competitive advantage to competitors who may not,p13,XOM,?,粗體字本身無法回答到問題
+rejected,1a/7,multi_passage,passage_first,Blackwell production issues and causes of fiscal 2026 gross margin decline,"For example, our gross margins in the second quarter of fiscal year 2025 were ne",p01,NVDA,?,production issues 跟 causes of fiscal 2026 gross margin decline 兩個選一個作為單一問題
+rejected,1a,multi_passage,passage_first,Why do outsourced hosting failures threaten Datadog's contractual availability promises?,We outsource substantially all of the infrastructure relating to our cloud solut,p02,DDOG,?,evidence 沒有兩個都精準回答到 query 問題

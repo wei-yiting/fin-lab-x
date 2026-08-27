@@ -526,30 +526,6 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 
 ---
 
-## p39 — AMZN Item 1 (passage, passage_first)
-
-- sector: Consumer Discretionary / cap: large / FY2025 / detection: markdown_h4
-- **query**: What does Career Choice provide, and how many workers joined?
-- curation_note: This evidence combines Amazon’s description of Career Choice’s education benefit with a concrete participation figure, testing retrieval across adjacent sentences.
-
-**Evidence 1** — `AMZN / 2025 / Item 1. Business` / block: Human Capital
-
-> …ial intelligence and machine learning technologies), and constrained labor markets have increased competition for personnel across other parts of our business.  We strive to be Earth’s best employer. We rely on numerous and evolving initiatives to implement this objective and invent mechanisms for talent development, including competitive pay and benefits, flexible work arrangements, and skills training and educational programs such as Amazon Career Choice (education funding for eligible employees). **Over 300,000 Amazon employees around the world have participated in Career Choice.** We also continue to inspect and refine the mechanisms we use to hire, develop, evaluate, and retain our employees. In addition, safety is integral to everything we do at Amazon and we continue to inv…
-
----
-
-## p40 — DECK Item 1C (passage, passage_first)
-
-- sector: Consumer Discretionary / cap: mid / FY2026 / detection: text_fallback
-- **query**: Which security documents undergo periodic refresh, and why?
-- curation_note: This evidence identifies the specific policies Deckers updates and links those updates to changing threats and organizational needs.
-
-**Evidence 1** — `DECK / 2026 / Item 1C. Cybersecurity` / block: incidents or breaches and other technology related exposures; and
-
-> **•periodically reviewing and updating our IRP, privacy policy, and other relevant policies/procedures.**  We continuously evaluate and enhance our cybersecurity risk management practices in response to evolving   threats and business needs. In the three-year period ended March 31, 2026, our business, results of operations and financial condition have not…
-
----
-
 ## p41 — GOOGL Item 1C (factoid, passage_first)
 
 - sector: Communication Services / cap: large / FY2025 / detection: flat
@@ -667,6 +643,30 @@ Mark decisions in `review.csv` (`approved`: yes/no + optional `reviewer_comment`
 **Evidence 1** — `LIN / 2025 / Item 1A. Risk Factors`
 
 > …s could result in business interruption or malfunction and lead to legal or regulatory actions that could result in a material adverse impact on Linde’s operations, reputation and financial results. **To date, such attempts have not had any significant impact on Linde's operations or financial results.** The inability to effectively integrate acquisitions or collaborate with joint venture partners could adversely impact Linde’s financial position and results of operations.  Linde has evaluated and e…
+
+---
+
+## p39 — AMZN Item 1 (passage, passage_first)
+
+- sector: Consumer Discretionary / cap: large / FY2025 / detection: markdown_h4
+- **query**: What does Career Choice provide, and how many workers joined?
+- curation_note: This evidence combines Amazon’s description of Career Choice’s education benefit with a concrete participation figure, testing retrieval across adjacent sentences.
+
+**Evidence 1** — `AMZN / 2025 / Item 1. Business` / block: Human Capital
+
+> …ial intelligence and machine learning technologies), and constrained labor markets have increased competition for personnel across other parts of our business.  We strive to be Earth’s best employer. We rely on numerous and evolving initiatives to implement this objective and invent mechanisms for talent development, including competitive pay and benefits, flexible work arrangements, and skills training and educational programs such as Amazon Career Choice (education funding for eligible employees). **Over 300,000 Amazon employees around the world have participated in Career Choice.** We also continue to inspect and refine the mechanisms we use to hire, develop, evaluate, and retain our employees. In addition, safety is integral to everything we do at Amazon and we continue to inv…
+
+---
+
+## p40 — DECK Item 1C (passage, passage_first)
+
+- sector: Consumer Discretionary / cap: mid / FY2026 / detection: text_fallback
+- **query**: Which security documents undergo periodic refresh, and why?
+- curation_note: This evidence identifies the specific policies Deckers updates and links those updates to changing threats and organizational needs.
+
+**Evidence 1** — `DECK / 2026 / Item 1C. Cybersecurity` / block: incidents or breaches and other technology related exposures; and
+
+> **•periodically reviewing and updating our IRP, privacy policy, and other relevant policies/procedures.**  We continuously evaluate and enhance our cybersecurity risk management practices in response to evolving   threats and business needs. In the three-year period ended March 31, 2026, our business, results of operations and financial condition have not…
 
 ---
 

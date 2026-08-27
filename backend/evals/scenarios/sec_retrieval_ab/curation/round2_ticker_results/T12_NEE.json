@@ -1,0 +1,173 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T12",
+  "ticker": "NEE",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p28",
+      "n01"
+    ],
+    "excluded_candidate_ids": [
+      "p14",
+      "a14"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000753308",
+    "accession_number": "0000753308-26-000015",
+    "filing_date": "2026-02-13",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "nee-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/753308/000075330826000015/0000753308-26-000015-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/753308/000075330826000015/0000753308-26-000015.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/753308/000075330826000015/nee-20251231.htm",
+    "complete_submission_bytes": 31454405,
+    "complete_submission_sha256": "43e4b5fca98319f5b2a53384b03fa8781a91cdd9099ede79d2824716c28010dc",
+    "primary_document_bytes": 4642182,
+    "primary_document_sha256": "c9acc48394834880be0f585f88826d7ed2747cc59c31a293e0664aac78192249",
+    "primary_selection_check": "The exact TYPE 10-K document in the accession-pinned complete submission identifies sequence 1 and FILENAME nee-20251231.htm. After removal of the SEC XBRL transport wrapper and trailing newline, it matches the separately downloaded SEC primary document."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected the exact TYPE 10-K document from the official complete submission, removed only its SEC XBRL transport wrapper, parsed visible HTML in source order, removed non-visible transport content, inserted separators at neutral HTML block boundaries, decoded entities, converted NBSP to ordinary spaces, and normalized transport whitespace. No Item, heading, block, sentence, candidate evidence, or repository-pipeline hierarchy determined traversal order or coverage.",
+    "normalized_bytes": 547779,
+    "normalized_chars": 545546,
+    "normalized_lines": 16628,
+    "normalized_sha256": "53127b72ba77b6e4597050aef4f62b92ab79461f8bb376c8b266907dc40a90e0"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 46,
+    "covered_interval": [
+      0,
+      545546
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T12_NEE.md",
+    "coverage_check": "All 46 fixed windows are contiguous and non-overlapping; their character counts sum to 545546, with W0001 starting at 0 and W0046 ending at 545546."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p28",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "How sensitive were retirement obligations to cost inflation assumptions?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million."
+        ]
+      },
+      "proposal": {
+        "change": "none",
+        "question": "How sensitive were retirement obligations to cost inflation assumptions?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "Full traversal confirmed that the Round 1 question and evidence remain valid. The filing contains one quantitative occurrence linking a 0.25% increase in the nuclear-decommissioning cost escalation assumption to a $179 million increase in NEE's AROs."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "NEE-2025-240952",
+          "item_hint": "Item 7",
+          "filing_location": "Critical Accounting Estimates / Decommissioning and Dismantlement / Nature of Accounting Estimates",
+          "canonical_line": 3513,
+          "window_id": "W0021",
+          "normalized_start": 240952,
+          "normalized_end": 241132,
+          "answer_span": "Estimating the amount and timing of future expenditures includes, among other things, making projections of when assets will be retired and ultimately decommissioned and how costs will escalate with inflation. In addition, NEE also makes interest rate and rate of return projections on its investments in determining recommended funding requirements for nuclear decommissioning costs. Periodically, NEE is required to update these estimates and projections which can affect the annual expense amounts recognized, the liabilities recorded and the annual funding requirements for nuclear decommissioning costs. For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.",
+          "answer_snippet": "For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.",
+          "snippet_chars": 180,
+          "snippet_sha256": "abc96cb89843ae4fae6d0b0441dbc867e51f9177bf3d0157534f7c6aee57fb95",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states both the change in the cost-inflation assumption and the resulting increase in retirement obligations."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the preceding retirement-cost methodology, which explains that inflation escalation is estimated but gives no sensitivity result",
+          "Note 11 ARO balances and estimated-cash-flow revisions, which do not state the effect of changing the escalation-rate assumption",
+          "nuclear decommissioning cost and funding disclosures that provide balances or ultimate costs rather than another inflation sensitivity"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n01",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "How did growth in FPL's regulatory capital base affect its 2025 earnings?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must explain how growth in FPL's regulatory capital base affected 2025 earnings; a span stating only capital spending or an earnings amount is partial.",
+        "reason": "The question remains unchanged. Full traversal found two separate Item 7 source locations explaining that investment in plant in service and other property increased FPL's 2025 earnings; the more detailed occurrence also states that those investments grew average rate base by approximately $5.5 billion."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "NEE-2025-180298",
+          "item_hint": "Item 7",
+          "filing_location": "Overview / 2025 Summary",
+          "canonical_line": 2237,
+          "window_id": "W0016",
+          "normalized_start": 180298,
+          "normalized_end": 180457,
+          "answer_span": "FPL's net income increased in 2025 primarily driven by continued investments in plant in service and other property and a higher earned regulatory ROE in 2025.",
+          "answer_snippet": "FPL's net income increased in 2025 primarily driven by continued investments in plant in service and other property and a higher earned regulatory ROE in 2025.",
+          "snippet_chars": 159,
+          "snippet_sha256": "bfe5a80a782bda6fe380f077866ccaf8eb54de6b084bd6934e873c05e31ab94e",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently explains that continued regulated-asset investment was a primary driver of FPL's 2025 net-income increase."
+        },
+        {
+          "occurrence_id": "NEE-2025-183888",
+          "item_hint": "Item 7",
+          "filing_location": "FPL Results of Operations",
+          "canonical_line": 2259,
+          "window_id": "W0016",
+          "normalized_start": 183888,
+          "normalized_end": 183997,
+          "answer_span": "FPL’s net income for 2025 and 2024 was $5,012 million and $4,543 million, respectively, representing an increase of $469 million. The increase was primarily driven by higher earnings from investments in plant in service and other property. Such investments grew FPL's average rate base by approximately $5.5 billion in 2025 and reflect, among other things, solar generation additions and ongoing transmission and distribution additions.",
+          "answer_snippet": "The increase was primarily driven by higher earnings from investments in plant in service and other property.",
+          "snippet_chars": 109,
+          "snippet_sha256": "c094d4e062e8ad6531baac73afc497625e8451a55f2d43f9f20f462a5d4b9cfa",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The continuous answer span states the $469 million net-income increase, attributes it to higher earnings from plant and property investments, and states that those investments grew average rate base by approximately $5.5 billion."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the 196-character sentence stating only that investments grew average rate base by approximately $5.5 billion, because it does not independently state the earnings effect",
+          "the capital-expenditure table and construction-work-in-progress disclosures, which state deployment amounts without connecting them to 2025 earnings",
+          "reserve-amortization and regulatory-accounting descriptions, which explain rate mechanics but do not provide another occurrence of the 2025 earnings result",
+          "NEER regulated-transmission rate-base disclosures, which concern a different reportable segment"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 2,
+    "rewritten_candidate_count": 0,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 3,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

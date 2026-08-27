@@ -1,0 +1,289 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T07",
+  "ticker": "DECK",
+  "fiscal_year": 2026,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p23",
+      "p40",
+      "a23",
+      "n08"
+    ],
+    "excluded_candidate_ids": [
+      "p08",
+      "a08"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000910521",
+    "accession_number": "0001628280-26-037664",
+    "filing_date": "2026-05-22",
+    "period_of_report": "2026-03-31",
+    "submission_type": "10-K",
+    "primary_document": "deck-20260331.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/910521/000162828026037664/0001628280-26-037664-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/910521/000162828026037664/0001628280-26-037664.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/910521/000162828026037664/deck-20260331.htm",
+    "complete_submission_bytes": 23018408,
+    "complete_submission_sha256": "41656b41034d017147490b1d660bf8a516ee2a1153fca240bb3db03ded0d0a2c",
+    "primary_document_bytes": 5260148,
+    "primary_document_sha256": "f841608192e402af243e314d73468bf977cd8727929608ba5d0f049f32eb8572",
+    "primary_selection_check": "The accession-pinned complete submission identifies sequence 1 as exact TYPE 10-K with FILENAME deck-20260331.htm. A separate download of the SEC primary document matches the extracted document after removal of its single trailing newline."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected the exact TYPE 10-K document from the official complete submission, removed only its SEC XBRL transport wrapper, parsed visible HTML in source order, removed non-visible transport content, inserted separators at neutral HTML block boundaries, decoded entities, and normalized transport whitespace. No Item, heading, block, sentence, candidate evidence, or repository-pipeline hierarchy determined traversal order or coverage.",
+    "normalized_bytes": 358756,
+    "normalized_chars": 357075,
+    "normalized_lines": 14671,
+    "normalized_sha256": "4210750bcceb9cc0ae20a1faf5bbfcb7fb6fb3e43632169843a69b6bac999fef"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 30,
+    "covered_interval": [
+      0,
+      357075
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T07_DECK.md",
+    "coverage_check": "All 30 fixed windows are contiguous and non-overlapping; their character counts sum to 357075, with W0001 starting at 0 and W0030 ending at 357075."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p23",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "query 同時問「sales growth」跟「unit-volume metrics」兩件事，但 snippet 只覆蓋「unit volume」這句，前兩個成長率 bullet 沒被凸顯",
+        "question": "Deckers fiscal 2026 supplemental sales growth and unit-volume metrics",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "•We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100, \n\ncompared to the prior period."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How did Deckers' total unit volume change in fiscal 2026?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The Round 1 query combined sales-growth rates with a unit-volume metric, while its evidence answered only unit volume. The revised question asks only for the disclosed unit-volume change and removes the pipeline-specific bullet artifact from the canonical snippet."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DECK-2026-160539",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Supplemental Disclosure",
+          "canonical_line": 4553,
+          "window_id": "W0014",
+          "normalized_start": 160539,
+          "normalized_end": 160661,
+          "answer_span": "We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,\n\ncompared to the prior period.",
+          "answer_snippet": "We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,\n\ncompared to the prior period.",
+          "snippet_chars": 122,
+          "snippet_sha256": "05a1a3074bd5c0a2b1b48352d5dc0373bb0fff730b5776c32d4e64cb38747d80",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the 6.2% increase and both disclosed unit counts for the current and prior periods."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the adjacent 9.0% constant-currency net-sales metric, which answers a different single-intent question",
+          "the adjacent 4.6% comparable DTC net-sales metric, which answers a different single-intent question",
+          "the unit-category explanation, which defines the count but does not add another occurrence of the year-over-year change"
+        ]
+      }
+    },
+    {
+      "candidate_id": "p40",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "從粗體答案中不確定是不是在講security documents, 而且題目出現了 and why, 需要多個 evidence 才能回答",
+        "question": "Which security documents undergo periodic refresh, and why?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "•periodically reviewing and updating our IRP, privacy policy, and other relevant policies/procedures."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "Which cybersecurity policies and procedures does Deckers periodically review and update?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1c"
+        ],
+        "reason": "The Round 1 wording called the evidence 'security documents' and added a separate why-clause. The revised question uses the filing's own policies/procedures terminology, asks one thing, and is fully answered by one canonical occurrence without the bullet artifact."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DECK-2026-124910",
+          "item_hint": "Item 1C",
+          "filing_location": "Cybersecurity Risk Management and Strategy / key components",
+          "canonical_line": 2855,
+          "window_id": "W0011",
+          "normalized_start": 124910,
+          "normalized_end": 125010,
+          "answer_span": "periodically reviewing and updating our IRP, privacy policy, and other relevant policies/procedures.",
+          "answer_snippet": "periodically reviewing and updating our IRP, privacy policy, and other relevant policies/procedures.",
+          "snippet_chars": 100,
+          "snippet_sha256": "4b2f03ef8ca6d8839e85cdedf238437963f94cd030d95c4aa013b409833239f6",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies the IRP, privacy policy, and other relevant policies/procedures as the materials periodically reviewed and updated."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the following evolving-threats and business-needs sentence, which answered the removed why-clause but does not identify the policies",
+          "the earlier IRP description, which explains its incident-response stages but does not state periodic review or identify the privacy policy",
+          "generic Item 1A cybersecurity and privacy risk disclosures that do not identify periodically updated policies"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a23",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "應該要只有單一問題，currency-neutral revenue 或 comparable direct-sales growth rates",
+        "question": "Deckers currency-neutral revenue and comparable direct-sales growth rates",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "•Comparable DTC channel net sales for the 52 weeks ended March 29, 2026, increased by 4.6%, \n\ncompared to the prior period."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "How much did Deckers' net sales increase on a constant-currency basis in fiscal 2026?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The Round 1 query joined two non-GAAP growth measures. The revised question selects only constant-currency net-sales growth, leaving p23 to cover the separate unit-volume metric and avoiding another compound query."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DECK-2026-160324",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations / Supplemental Disclosure",
+          "canonical_line": 4547,
+          "window_id": "W0014",
+          "normalized_start": 160324,
+          "normalized_end": 160412,
+          "answer_span": "On a constant currency basis, net sales increased by 9.0%, compared to the prior period.",
+          "answer_snippet": "On a constant currency basis, net sales increased by 9.0%, compared to the prior period.",
+          "snippet_chars": 88,
+          "snippet_sha256": "3f04744ebdb8d3a1a1b4cde2c4a8b342d9b92693c0bfcd19825e6a199bb5f3eb",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Independently states the filing's fiscal 2026 constant-currency net-sales growth rate."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the 4.6% comparable DTC channel net-sales metric, which answers the removed alternative half of the Round 1 query",
+          "the 6.2% total unit-volume metric, which is assigned to revised p23",
+          "US-GAAP net-sales growth of 9.8%, which is not the requested constant-currency measure",
+          "methodology disclosures that define constant currency but do not state the fiscal 2026 growth rate"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n08",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "Which brands does Deckers identify as its principal product brands?",
+        "query_type": "factoid",
+        "item_keys": [
+          "1",
+          "7",
+          "8-note-1"
+        ],
+        "answer_requirement": "One independently sufficient span must identify all brands Deckers presents as its principal product brands; a span naming only one brand is partial unless the filing states that it is the sole principal brand.",
+        "reason": "The question remains unchanged. Full traversal found three separate source occurrences that each identify HOKA, UGG, and Teva as Deckers' three proprietary or primarily marketed brands, so all three are acceptable OR alternatives."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "DECK-2026-014599",
+          "item_hint": "Item 1",
+          "filing_location": "Business / General",
+          "canonical_line": 537,
+          "window_id": "W0002",
+          "normalized_start": 14599,
+          "normalized_end": 14685,
+          "answer_span": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
+          "answer_snippet": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
+          "snippet_chars": 86,
+          "snippet_sha256": "bf5c1df97c1e39256716affc8fdea831ca9ef5a67155021ad789a6b961fc48aa",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The Item 1 occurrence independently identifies all three primarily marketed proprietary brands."
+        },
+        {
+          "occurrence_id": "DECK-2026-139733",
+          "item_hint": "Item 7",
+          "filing_location": "Management's Discussion and Analysis / Overview",
+          "canonical_line": 3431,
+          "window_id": "W0012",
+          "normalized_start": 139733,
+          "normalized_end": 139819,
+          "answer_span": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
+          "answer_snippet": "We market our products primarily\n\nunder three proprietary brands: HOKA, UGG, and Teva.",
+          "snippet_chars": 86,
+          "snippet_sha256": "bf5c1df97c1e39256716affc8fdea831ca9ef5a67155021ad789a6b961fc48aa",
+          "exact_occurrences_in_normalized_text": 2,
+          "acceptance_reason": "The distinct Item 7 overview occurrence repeats the complete three-brand answer and must count independently despite identical text."
+        },
+        {
+          "occurrence_id": "DECK-2026-238856",
+          "item_hint": "Item 8, Note 1",
+          "filing_location": "Note 1 / General / The Company",
+          "canonical_line": 8567,
+          "window_id": "W0020",
+          "normalized_start": 238856,
+          "normalized_end": 238958,
+          "answer_span": "The Company’s three proprietary brands include\n\nthe HOKA® (HOKA), UGG® (UGG), and Teva® (Teva) brands.",
+          "answer_snippet": "The Company’s three proprietary brands include\n\nthe HOKA® (HOKA), UGG® (UGG), and Teva® (Teva) brands.",
+          "snippet_chars": 102,
+          "snippet_sha256": "37195cf48e966caf2a92f2da062e01320aaef60ed926645d4ab671e471ea88d8",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The accounting-note occurrence independently identifies the same three proprietary brands in a different source location."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the introductory trademark inventory, which also lists Koolaburra, AHNU, UGGpure, and UGGplush and does not identify the principal product brands",
+          "individual HOKA, UGG, and Teva brand descriptions, each of which names only part of the required three-brand answer",
+          "reportable-segment disclosures that list HOKA, UGG, and Other brands rather than directly identifying Teva as the third principal product brand",
+          "historical phase-out and Sanuk-sale disclosures that describe non-principal or former standalone brands"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 4,
+    "rewritten_candidate_count": 3,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 6,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

@@ -35,11 +35,11 @@ DEFAULT_DATASET = (
 # Curated highlight queries — pick the ones that best demonstrate the
 # entity-mismatch story (low naive precision + clear cross-ticker bleed).
 HIGHLIGHT_QUESTIONS = [
-    "AMD 面臨的供應鏈與製程依賴風險?",
-    "Google 最新財報提到哪些供應鏈風險?",
-    "輝達面臨哪些客戶集中度風險?",
-    "AMD 的 AI 加速器產品有什麼策略?",
-    "蘋果硬體產品的供應鏈集中度問題?",
+    "What supply chain and manufacturing process dependency risks does AMD face?",
+    "What supply chain risks does Google's latest earnings report mention?",
+    "What customer concentration risks does NVIDIA face?",
+    "What is AMD's strategy for its AI accelerator products?",
+    "What supply chain concentration issues affect Apple's hardware products?",
 ]
 
 
@@ -68,7 +68,7 @@ def _render_top5_table(chunks: list[dict], target_ticker: str) -> str:
 async def _dump_one(
     question: str,
     target_ticker: str,
-    target_entity_zh: str,
+    target_entity_en: str,
     metadata_filter_collection: str,
 ) -> str:
     naive = await _eval_search(
@@ -86,7 +86,7 @@ async def _dump_one(
 
     parts = [
         f"## Query: {question}",
-        f"**Target**: `{target_ticker}` ({target_entity_zh})",
+        f"**Target**: `{target_ticker}` ({target_entity_en})",
         "",
         "### Naive collection (no filter, no payload index, no tenant)",
         _render_top5_table(naive["retrieved_chunks"], target_ticker),
@@ -141,7 +141,7 @@ async def _amain(args: argparse.Namespace) -> int:
         section = await _dump_one(
             question=row["question"],
             target_ticker=row["target_ticker"],
-            target_entity_zh=row["target_entity_zh"],
+            target_entity_en=row["target_entity_en"],
             metadata_filter_collection=filtered_collection,
         )
         sections.append(section)

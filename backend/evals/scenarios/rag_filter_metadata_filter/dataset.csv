@@ -1,19 +1,19 @@
-question,target_ticker,target_entity_zh
-Google 最新財報提到哪些供應鏈風險?,GOOGL,Google
-Google 雲端業務面臨什麼競爭壓力?,GOOGL,Google
-Google 在 AI 監管方面揭露了哪些挑戰?,GOOGL,Google
-微軟在生成式 AI 方面有什麼競爭優勢?,MSFT,微軟
-微軟雲端事業的營收成長動能來自哪裡?,MSFT,微軟
-微軟跟 OpenAI 的合作對營運帶來什麼風險?,MSFT,微軟
-蘋果服務業務最新的成長趨勢是什麼?,AAPL,蘋果
-蘋果在中國市場面臨什麼風險?,AAPL,蘋果
-蘋果硬體產品的供應鏈集中度問題?,AAPL,蘋果
-輝達面臨哪些客戶集中度風險?,NVDA,輝達
-輝達在資料中心 GPU 的競爭優勢來源?,NVDA,輝達
-輝達受美國出口管制影響的程度?,NVDA,輝達
-AMD 在資料中心市場跟 Intel 競爭的進度?,AMD,AMD
-AMD 的 AI 加速器產品有什麼策略?,AMD,AMD
-AMD 面臨的供應鏈與製程依賴風險?,AMD,AMD
-英特爾製程技術轉型遇到哪些挑戰?,INTC,英特爾
-英特爾代工業務的策略與風險?,INTC,英特爾
-英特爾在 AI 晶片市場的競爭定位?,INTC,英特爾
+question,target_ticker,target_entity_en
+What supply chain risks does Google's latest earnings report mention?,GOOGL,Google
+What competitive pressures does Google's cloud business face?,GOOGL,Google
+What AI regulatory challenges has Google disclosed?,GOOGL,Google
+What competitive advantages does Microsoft have in generative AI?,MSFT,Microsoft
+Where is the revenue growth momentum in Microsoft's cloud business coming from?,MSFT,Microsoft
+What risks does Microsoft's partnership with OpenAI bring to its operations?,MSFT,Microsoft
+What are the latest growth trends in Apple's services business?,AAPL,Apple
+What risks does Apple face in the Chinese market?,AAPL,Apple
+What supply chain concentration issues affect Apple's hardware products?,AAPL,Apple
+What customer concentration risks does NVIDIA face?,NVDA,NVIDIA
+Where does NVIDIA's competitive advantage in data center GPUs come from?,NVDA,NVIDIA
+To what extent is NVIDIA affected by US export controls?,NVDA,NVIDIA
+What progress has AMD made competing with Intel in the data center market?,AMD,AMD
+What is AMD's strategy for its AI accelerator products?,AMD,AMD
+What supply chain and manufacturing process dependency risks does AMD face?,AMD,AMD
+What challenges has Intel faced in its process technology transition?,INTC,Intel
+What is the strategy and risk profile of Intel's foundry business?,INTC,Intel
+What is Intel's competitive positioning in the AI-chip market?,INTC,Intel

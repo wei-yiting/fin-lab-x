@@ -12,7 +12,7 @@ pre_run:
 column_mapping:
   question: input.question
   target_ticker: input.target_ticker
-  target_entity_zh: input.target_entity_zh
+  target_entity_en: input.target_entity_en
 scorers:
   - name: ticker_precision_at_5
     function: backend.evals.scenarios.rag_filter_metadata_filter.scorer.ticker_precision_at_5

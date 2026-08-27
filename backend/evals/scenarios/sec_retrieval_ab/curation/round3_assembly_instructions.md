@@ -31,6 +31,10 @@ review notes, the original DEV-162 spec text, prompt v3 wording), **this file wi
    occur more than once across the parsed corpus only if every occurrence's location
    is listed in the row's OR-set (or excluded by decision 4). Unlisted extra
    occurrences remain a validation failure.
+7. **a16 (LIN)** uses the corrected single-intent question
+   (`How did currency translation affect Linde's APAC sales in 2025?`). Its two
+   acceptable source occurrences are the APAC sales bridge table and the APAC sales
+   narrative; rebuild both from filing-store text and retain them as OR alternatives.
 
 ## B. Assembly tasks
 
@@ -88,10 +92,10 @@ The round-2 evidence is table text extracted from the canonical HTML linearizati
 and does not exact-match the store. Rebuild: locate the CIB trading VaR risk-type
 table region in the store's Item 7A text and extract a store-exact span/snippet
 covering the four risk types (fixed income, foreign exchange, equities, commodities
-and other) within the 50–200 char snippet limit. This row is the dataset's only
-table-anchored row; mark it as such in `curation_note`. If no store-exact 50–200
-char substring can establish the VaR-to-risk-types relation, escalate — do not
-substitute a different question.
+and other) within the 50–200 char snippet limit. This row and corrected `a16` are
+the dataset's two table-anchored evidence cases; mark them as such in their
+`curation_note`. If no store-exact 50–200 char substring can establish the
+VaR-to-risk-types relation, escalate — do not substitute a different question.
 
 ### T4 — Rework n09 (PODD): replace the question
 
@@ -131,7 +135,7 @@ Replace the round-2 question with:
 ### T6 — Strict re-verification of multi-occurrence rows
 
 For every row with 2+ occurrences after T1–T5 (at least: a21, n03, n06, n08, p43,
-a19, p45, a24, a25, n01, p16, p20, p29, p48), re-test each occurrence against the
+a19, p45, a24, a25, n01, p16, p20, p29, p48, corrected a16), re-test each occurrence against the
 row's `answer_requirement` "must" clause literally. An occurrence that is
 "related to the topic" but does not independently satisfy the must clause is
 removed. Record removals with one-line reasons. (Round-2 lesson: acceptance

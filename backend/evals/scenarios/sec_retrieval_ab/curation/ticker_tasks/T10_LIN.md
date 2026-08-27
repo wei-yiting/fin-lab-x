@@ -8,7 +8,7 @@
 - Active non-`multi_passage` candidates: `p16`, `p30`, `p50`, `a16`
 - Excluded `multi_passage` candidates: none
 - Full traversal coverage: `31/31` fixed neutral windows; `362,087/362,087` canonical characters
-- Acceptable distinct occurrences: `p16 = 3`, `p30 = 1`, `p50 = 2`, `a16 = 1`
+- Acceptable distinct occurrences: `p16 = 3`, `p30 = 1`, `p50 = 2`, corrected `a16 = 2`
 - Human review fields changed: no
 - Final Round 2 CSV/Markdown generated: no
 
@@ -90,7 +90,8 @@ Traversal checkpoints:
 - `W0001–W0003`: cover, business overview, executive officers, and the beginning of Item 1A.
 - `W0004–W0006`: remaining risk factors, Item 1C, properties, and the start of Part II. They
   contain the two `p50` occurrences.
-- `W0007–W0009`: consolidated and segment MD&A. `W0009` contains the sole `a16` occurrence.
+- `W0007–W0009`: consolidated and segment MD&A. `W0009` contains both corrected `a16`
+  occurrences: the APAC sales bridge table and the APAC sales narrative.
 - `W0010–W0013`: liquidity, critical accounting estimates, non-GAAP disclosures, and Item 7A.
   `W0010` contains the sole `p30` occurrence and the first `p16` occurrence.
 - `W0014–W0020`: auditor report, primary financial statements, and Notes 1–11. `W0014`
@@ -230,7 +231,90 @@ Occurrence 2 crosses a fixed neutral window boundary. It remains one continuous 
 occurrence; splitting or rejecting it because of the traversal boundary would reintroduce the
 pipeline bias this task is designed to avoid.
 
-### `a16` — include the three offsetting APAC drivers; one acceptable occurrence
+### Correction — `a16` currency effect on APAC sales (supersedes the Round 2 proposal below)
+
+- Candidate ID: `a16`
+- Round 2 decision:
+- Round 2 reviewer comment:
+- Corrected question: `How did currency translation affect Linde's APAC sales in 2025?`
+- Corrected query type: `passage`
+- Corrected answer requirement: One independently sufficient source occurrence must state the
+  direction or magnitude of currency translation's effect on APAC sales in 2025. Consolidated or
+  other-segment sales effects, APAC operating-profit effects, exchange-rate tables without a sales
+  effect, and generic foreign-exchange disclosures are partial or non-responsive.
+- Result: `2` acceptable distinct source occurrences.
+
+The pipeline-independent canonical text and its existing `31/31` neutral-window coverage ledger
+were re-verified before the query-specific audit: `362,087` characters, SHA-256
+`43aee847b2febb6d2270630d3dcd5fd9643b932e7197d02d2ddc0f32b2f5e376`, contiguous from offset
+`0` through `362087` with no gaps or overlaps.
+
+Occurrence 1 — APAC sales bridge table:
+
+- Filing location: Item 7, Segment Discussion, APAC, Factors Contributing to Changes - Sales
+- Window: `W0009`
+- Answer-span offsets: `[100223, 100737)`
+- Answer-span character count / cl100k tokens: `514` / `206`
+- Answer-span SHA-256: `ce83ddf775c2f95b436c5afac4e8b81fbe6d28183d836fe76653bcf305fe1dc0`
+- Answer-snippet offsets: `[100573, 100737)`
+- Canonical line: `1295`
+- Answer-snippet character count: `164`
+- Exact snippet occurrences: `1`
+- Answer-snippet SHA-256: `a0f35db28c63221e4a1fc4a3f44eaae4e1e4187c2f4cd9b9bd6dd4f21231bcce`
+
+The answer span starts at the `APAC` heading and includes the sales-change table through the
+`Currency (1)%` row, so the source occurrence identifies the segment, measure, comparison period,
+and effect. The 50–200 character snippet below is the unique retrieval anchor inside that span:
+
+> 2025 vs 2024
+>
+> \| \| % Change
+>
+> Factors Contributing to Changes - Sales
+>
+> \| \|
+>
+> Volume \| \| (1) \| %
+>
+> Price/Mix \| \| — \| %
+>
+> Cost pass-through \| \| — \| %
+>
+> Currency \| \| (1) \| %
+
+Occurrence 2 — APAC sales narrative:
+
+- Filing location: Item 7, Segment Discussion, APAC, Sales
+- Window and canonical offsets: `W0009`, `[101099, 101237)`
+- Canonical line: `1319`
+- Answer-span and answer-snippet character count: `138`
+- Exact snippet occurrences: `1`
+- Answer-span and answer-snippet SHA-256: `c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216`
+
+> Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.
+
+These are separate OR-hit alternatives: the first is the APAC table disclosure, and the second is
+the narrative disclosure. The table's answer span, rather than the snippet alone, carries the
+`APAC` structural context; it remains below the ratified 300-token span limit. The table separators
+are literal output of the pipeline-independent visible-text traversal and must later be re-anchored
+to the `sec_text_pipeline` filing-store text during dataset assembly.
+
+The full-text audit covered all `33` literal `APAC` locations, `136` matches across the
+`currency` / `currencies` / `foreign exchange` / `exchange rate` / `FX` family, and every
+proximity zone joining APAC, sales or revenue, and a currency term. The following classes were
+rejected:
+
+- consolidated sales disclosures, which say currency translation was flat but do not give an
+  APAC-specific currency effect;
+- Americas (`-1%`), EMEA (`+3%`), Engineering (`+3%`), and Other (`+1%`) sales disclosures;
+- the APAC operating-profit paragraph, because its measure is operating profit rather than sales;
+- Australian-dollar and Korean-won exchange-rate tables, which do not state an APAC sales effect;
+- APAC total-sales rows, AOCI, goodwill, derivatives, and generic exchange-rate risk disclosures.
+
+No other source occurrence independently satisfies the corrected answer requirement. Human review
+fields remain blank.
+
+### `a16` — superseded Round 2 three-driver proposal; one acceptable occurrence
 
 - Candidate ID: `a16`
 - Round 2 decision:
@@ -269,8 +353,8 @@ answer the APAC-specific question.
    information types.
 3. `p30` follows the Round 1 preference for geographic concentration; the backlog-growth driver
    is deliberately excluded.
-4. `a16` keeps acquisitions, volumes, and currency because they form one offsetting sales bridge;
-   human review should decide whether three named components still feel like one information need.
+4. The earlier three-driver `a16` proposal is superseded by the single-intent currency-effect
+   correction above. Its Round 2 text remains only as an audit trail.
 5. The repeated `p16` and `p50` disclosures should remain separate OR-hit locations despite
    identical text. They do not change Recall, MRR, or MAP denominators.
 

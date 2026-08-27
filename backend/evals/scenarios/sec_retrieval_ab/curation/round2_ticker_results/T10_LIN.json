@@ -307,37 +307,64 @@
       },
       "proposal": {
         "change": "rewrite_question_and_evidence",
-        "question": "How did acquisitions, volumes, and currency translation affect Linde's APAC sales in 2025?",
+        "question": "How did currency translation affect Linde's APAC sales in 2025?",
         "query_type": "passage",
         "item_keys": [
           "7"
         ],
-        "reason": "The Round 1 snippet supplies only the currency component. The revised wording names the three offsetting drivers, and the shortest canonical clause that states all three effects is 109 characters. Pricing and cost pass-through were flat and are outside the revised question."
+        "answer_requirement": "One independently sufficient source occurrence must state the direction or magnitude of currency translation's effect on APAC sales in 2025. Consolidated or other-segment sales effects, APAC operating-profit effects, exchange-rate tables without a sales effect, and generic foreign-exchange disclosures are partial or non-responsive.",
+        "reason": "The earlier three-driver rewrite remained a compound request. This correction asks only for currency translation's effect on APAC sales. Full-filing re-audit found two distinct responsive source locations: the APAC sales bridge table and the APAC sales narrative."
       },
       "acceptable_occurrences": [
         {
-          "occurrence_id": "LIN-2025-101032",
+          "occurrence_id": "LIN-2025-100223",
+          "item_hint": "Item 7, Segment Discussion, APAC, Factors Contributing to Changes - Sales",
+          "canonical_line": 1277,
+          "window_id": "W0009",
+          "window_ids": [
+            "W0009"
+          ],
+          "normalized_start": 100223,
+          "normalized_end": 100737,
+          "answer_span": "APAC\n\n| | | | | | | | | | | | | | | | | | | |\n\n(Dollar amounts in millions) | | | | Variance\n\nYear Ended December 31, | | 2025 | | 2024 | | 2025 vs 2024\n\nSales | | $ | 6,661 | | | $ | 6,632 | | | — | %\n\n| | | | | |\n\nOperating profit | | $ | 1,933 | | | $ | 1,918 | | | 1 | %\n\nAs a percent of sales | | 29.0 | % | | 28.9 | % | |\n\n| | | | | | | |\n\n| | 2025 vs 2024\n\n| | % Change\n\nFactors Contributing to Changes - Sales\n\n| |\n\nVolume | | (1) | %\n\nPrice/Mix | | — | %\n\nCost pass-through | | — | %\n\nCurrency | | (1) | %",
+          "answer_snippet": "2025 vs 2024\n\n| | % Change\n\nFactors Contributing to Changes - Sales\n\n| |\n\nVolume | | (1) | %\n\nPrice/Mix | | — | %\n\nCost pass-through | | — | %\n\nCurrency | | (1) | %",
+          "span_chars": 514,
+          "span_cl100k_tokens": 206,
+          "span_sha256": "ce83ddf775c2f95b436c5afac4e8b81fbe6d28183d836fe76653bcf305fe1dc0",
+          "snippet_normalized_start": 100573,
+          "snippet_normalized_end": 100737,
+          "snippet_chars": 164,
+          "snippet_sha256": "a0f35db28c63221e4a1fc4a3f44eaae4e1e4187c2f4cd9b9bd6dd4f21231bcce",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The answer span starts at the APAC heading and carries the APAC sales-change table through the Currency (1)% row, independently identifying the segment, measure, period, direction, and magnitude. The 164-character snippet is its unique retrieval anchor."
+        },
+        {
+          "occurrence_id": "LIN-2025-101099",
           "item_hint": "Item 7, Segment Discussion, APAC, Sales",
           "canonical_line": 1319,
           "window_id": "W0009",
           "window_ids": [
             "W0009"
           ],
-          "normalized_start": 101032,
-          "normalized_end": 101141,
-          "answer_span": "Acquisitions increased sales by 2%. Volumes decreased sales by 1%. Currency translation decreased sales by 1%",
-          "answer_snippet": "Acquisitions increased sales by 2%. Volumes decreased sales by 1%. Currency translation decreased sales by 1%",
-          "snippet_chars": 109,
-          "snippet_sha256": "e5cfaa7abda6d5a4d82e42201fef383b72a4e83ff689f68d54b05dd49932ea45",
+          "normalized_start": 101099,
+          "normalized_end": 101237,
+          "answer_span": "Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.",
+          "answer_snippet": "Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.",
+          "span_chars": 138,
+          "snippet_chars": 138,
+          "span_sha256": "c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216",
+          "snippet_sha256": "c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Independently states the +2% acquisition effect and the two offsetting -1% volume and currency effects."
+          "acceptance_reason": "Directly states that currency translation reduced APAC sales by 1% and identifies the weakening Australian dollar and Korean won as the primary cause."
         }
       ],
       "post_traversal_audit": {
         "rejected_classes": [
-          "the Round 1 currency-only snippet, which omits acquisition and volume effects",
-          "the full APAC sales paragraph, which exceeds 200 characters",
-          "consolidated and other-segment sales bridges that do not describe APAC"
+          "consolidated sales disclosures, which say currency translation was flat but do not give an APAC-specific currency effect",
+          "Americas, EMEA, Engineering, and Other sales disclosures, which describe different segments",
+          "the APAC operating-profit paragraph, because its measure is operating profit rather than sales",
+          "Australian-dollar and Korean-won exchange-rate tables, which do not state an APAC sales effect",
+          "APAC total-sales rows, AOCI, goodwill, derivatives, and generic exchange-rate risk disclosures"
         ]
       }
     }
@@ -346,7 +373,7 @@
     "candidate_count": 4,
     "rewritten_candidate_count": 4,
     "unchanged_round1_approved_count": 0,
-    "acceptable_occurrence_count": 7,
+    "acceptable_occurrence_count": 8,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

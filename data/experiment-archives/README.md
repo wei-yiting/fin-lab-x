@@ -33,3 +33,4 @@ runtime traces live in `data/trace-archives/`.
 | Experiment | Question | Tag |
 |---|---|---|
 | [`2026-08-18-rag-metadata-filter-ab-eval`](2026-08-18-rag-metadata-filter-ab-eval/) | How much cross-ticker bleed does SEC 10-K dense retrieval suffer without a ticker filter? | `experiment/2026-08-18-rag-metadata-filter-ab-eval` |
+| [`2026-08-27-rag-metadata-filter-ab-eval-en-10ka-fix`](2026-08-27-rag-metadata-filter-ab-eval-en-10ka-fix/) | Does the finding above hold in English, once AMD's corpus bug (10-K/A instead of 10-K) is fixed? | `experiment/2026-08-27-rag-metadata-filter-ab-eval-en-10ka-fix` |

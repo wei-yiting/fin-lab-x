@@ -1,0 +1,111 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T09",
+  "ticker": "JPM",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "n10"
+    ],
+    "excluded_candidate_ids": [
+      "a05",
+      "p05"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000019617",
+    "accession_number": "0001628280-26-008131",
+    "filing_date": "2026-02-13",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "jpm-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/0001628280-26-008131-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/0001628280-26-008131.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm",
+    "complete_submission_bytes": 64896112,
+    "complete_submission_sha256": "e59055162f35a8ba24c2e8f1890a4eed7572db570116ba66d3a4ea184b650f95",
+    "primary_document_bytes": 12927325,
+    "primary_document_sha256": "4d9febdbc2038dcdca8726053286df4cbbfd48885051cbd781efcc3becb66a23",
+    "extracted_primary_bytes": 12927324,
+    "extracted_primary_sha256": "5a9032f264f8c0b3473e75dc0c38ec1d725988ec1ca88ed62e9b7c05e3b7c978",
+    "primary_selection_check": "The accession-pinned complete submission contains 269 DOCUMENT records and identifies sequence 1 as exact TYPE 10-K with FILENAME jpm-20251231.htm. After removing the outer SEC XBRL wrapper, the extracted document matches the separately downloaded official primary document after removal of its single trailing newline."
+  },
+  "normalization": {
+    "method": "transport_visible_text_htmlparser_v1",
+    "description": "Selected the exact TYPE 10-K document from the official complete submission, removed only its SEC XBRL transport wrapper, parsed visible HTML in source order, removed non-visible transport content, inserted separators at neutral HTML block boundaries, decoded entities, and normalized transport whitespace. No Item, heading, block, sentence, candidate evidence, or repository-pipeline hierarchy determined traversal order or coverage.",
+    "normalized_bytes": 1207581,
+    "normalized_chars": 1199025,
+    "normalized_lines": 53582,
+    "normalized_sha256": "4ecba188c3dfe4c89c1be21033ce3f017b6b68f9c950d3b56008717eb6902fd6"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "overlap_chars": 0,
+    "window_count": 100,
+    "covered_interval": [
+      0,
+      1199025
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T09_JPM.md",
+    "coverage_check": "All 100 fixed windows are contiguous and non-overlapping; their character counts sum to 1199025, with W0001 starting at 0 and W0100 ending at 1199025."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "n10",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "Which types of market risk does JPMorganChase include in its Value-at-Risk measure?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7a"
+        ],
+        "answer_requirement": "One independently sufficient span must identify all market risk types JPMorganChase states are included in its Value-at-Risk measure.",
+        "reason": "The question remains unchanged. Full traversal found one 183-character table span that joins the CIB trading VaR risk-type heading to all four reported categories: fixed income, foreign exchange, equities, and commodities and other."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "JPM-2025-504303",
+          "item_hint": "Item 7A",
+          "filing_location": "Market Risk Management / Value-at-risk / Total VaR table",
+          "canonical_line": 19017,
+          "window_id": "W0043",
+          "normalized_start": 504303,
+          "normalized_end": 504486,
+          "answer_span": "CIB trading VaR by risk type\n\nFixed income\n\n$\n\n35\n\n$\n\n27\n\n$\n\n51\n\n$\n\n34\n\n$\n\n26\n\n$\n\n53\n\nForeign exchange\n\n9\n\n6\n\n15\n\n15\n\n7\n\n23\n\nEquities\n\n17\n\n7\n\n138\n\n(e)\n\n8\n\n4\n\n15\n\nCommodities and other",
+          "answer_snippet": "CIB trading VaR by risk type\n\nFixed income\n\n$\n\n35\n\n$\n\n27\n\n$\n\n51\n\n$\n\n34\n\n$\n\n26\n\n$\n\n53\n\nForeign exchange\n\n9\n\n6\n\n15\n\n15\n\n7\n\n23\n\nEquities\n\n17\n\n7\n\n138\n\n(e)\n\n8\n\n4\n\n15\n\nCommodities and other",
+          "snippet_chars": 183,
+          "snippet_sha256": "1e3055b861ce78fc1e608e3a3d8ae10974287c568474ff99cf53c10d51fba828",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The span preserves the table heading that establishes the VaR relationship and includes every listed CIB trading VaR risk type within the 200-character limit. The intervening values are source-table cells, not pipeline-added formatting."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the 98-character CIB business-activity sentence listing fixed income, foreign exchange, equities and commodities, because it says where CIB makes markets but does not establish that these are VaR risk types",
+          "the 2025-versus-2024 Total VaR narrative, whose shortest four-type fragment is 155 characters but omits the VaR relation; the shortest contiguous fragment retaining both VaR and all four types is 244 characters and violates the global limit",
+          "the remaining Total VaR rows for Credit Portfolio, CCB, AWM and Corporate, which are portfolio or organizational components rather than the table's market-risk-type categories",
+          "VaR methodology, backtesting and glossary disclosures that define or qualify VaR but do not identify all four reported risk types"
+        ]
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 1,
+    "rewritten_candidate_count": 0,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 1,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

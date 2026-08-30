@@ -97,10 +97,11 @@ with zero locations, escalate to the human reviewer instead of improvising.
 
 ### T3 — Rebuild n10 (JPM) evidence from store text
 
-**JPM `n10` completed 2026-08-30; LIN `a16` remains pending.** The `n10`
-filing-store exact strings, two reachable store copies, anchors, and label provenance
-are recorded in `round2_ticker_results/T09_JPM.json` and
-`round3_t1_t2_reconciliation.md`.
+**Completed 2026-08-30.** The filing-store exact strings, anchors, and provenance
+for JPM `n10` and LIN `a16` are recorded in their ticker result JSON files and
+`round3_t1_t2_reconciliation.md`. `n10` enumerates both reachable store copies;
+`a16` retains the APAC sales bridge table and narrative as two independently
+sufficient OR alternatives.
 
 The round-2 evidence is table text extracted from the canonical HTML linearization
 and does not exact-match the store. Rebuild: locate the CIB trading VaR risk-type

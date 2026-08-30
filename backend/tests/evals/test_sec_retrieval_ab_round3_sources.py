@@ -16,9 +16,7 @@ REPO_ROOT = Path(__file__).parents[3]
 RESULTS_DIR = REPO_ROOT / (
     "backend/evals/scenarios/sec_retrieval_ab/curation/round2_ticker_results"
 )
-PENDING_TABLE_REBUILDS = {
-    "LIN-2025-100223",  # Round 3 T3 / a16 table occurrence
-}
+PENDING_TABLE_REBUILDS: set[str] = set()
 EXPECTED_T2_ACTIONS = {
     "CAT-2025-409946": "dropped_item_8_duplicate",
     "COIN-2025-515508": "dropped_item_8",
@@ -163,7 +161,7 @@ def test_round3_store_anchors_resolve_to_the_current_exact_strings() -> None:
                     == anchor["snippet_sha256"]
                 )
 
-    assert anchored_occurrence_count == 17
+    assert anchored_occurrence_count == 19
 
 
 def test_jpm_n10_enumerates_store_exact_var_table_copies() -> None:
@@ -216,6 +214,42 @@ def test_jpm_n10_enumerates_store_exact_var_table_copies() -> None:
             ),
         }
     ]
+
+
+def test_lin_a16_has_independently_sufficient_store_exact_or_alternatives() -> None:
+    result = json.loads((RESULTS_DIR / "T10_LIN.json").read_text())
+    filing = json.loads((REPO_ROOT / "data/sec_text/LIN/10-K/2025.json").read_text())
+    units = list(_store_units(filing))
+    candidate = next(
+        candidate
+        for candidate in result["candidate_results"]
+        if candidate["candidate_id"] == "a16"
+    )
+    occurrences = candidate["acceptable_occurrences"]
+
+    assert candidate["proposal"]["question"] == (
+        "How did currency translation affect Linde's APAC sales in 2025?"
+    )
+    assert len(occurrences) == 2
+    assert {
+        occurrence["store_anchor"]["block_heading"] for occurrence in occurrences
+    } == {"APAC"}
+
+    table, narrative = occurrences
+    assert "Factors Contributing to Changes - Sales" in table["answer_snippet"]
+    assert "Currency(1)%" in table["answer_snippet"]
+    assert narrative["answer_snippet"].startswith(
+        "Currency translation decreased sales by 1%"
+    )
+    for occurrence in occurrences:
+        assert occurrence["exact_occurrences_in_store"] == 1
+        assert (
+            sum(unit["text"].count(occurrence["answer_snippet"]) for unit in units) == 1
+        )
+
+    assert [
+        action["action"] for action in candidate["round3_reconciliation"]["t3"]
+    ] == ["reanchored_store_table", "verified_store_exact"]
 
 
 def test_round3_item_8_reconciliation_is_complete_and_provenanced() -> None:

@@ -40,9 +40,9 @@ COIN `n06/occ0` and NEE `n01/occ1`.
 | p50 | LIN | occ1, canonical Item 1C | Collapsed into occ0 because it maps to the same Item 1A flat-item location. |
 | n04 | XOM | occ0, canonical Item 7 | Kept and relabelled to the actual Item 16 / `Upstream Financial Results` store block. |
 
-LIN `a16` remains T3/table-rebuild work because its canonical table linearization
-does not whitespace-match the filing store; it was not treated as a T1 whitespace
-correction.
+LIN `a16` was deferred to T3 rather than treated as a T1 whitespace correction
+because its canonical table linearization required a structural filing-store
+re-extraction. That rebuild is recorded below.
 
 ## T3 results
 
@@ -64,6 +64,24 @@ Both copies are enumerated as OR alternatives so the corpus-level uniqueness rul
 does not leave an unlisted reachable copy. The official source context remains Item
 7A; the filing-store Item 1/15 labels are recorded as observed, while cross-arm
 header-path reconciliation remains owned by its separate issue.
+
+### LIN `a16` table rebuilt and narrative verified against filing-store text
+
+Both accepted alternatives resolve to Item 7, structured block 27, whose filing-store
+block heading is `APAC`:
+
+| Occurrence | Evidence | Store offsets | Snippet chars | Span tokens |
+|---|---|---|---:|---:|
+| `LIN-2025-100223` | APAC sales bridge table through `Currency(1)%` | span `0–304`; snippet `178–304` | 126 | 110 |
+| `LIN-2025-101099` | APAC sales narrative stating the 1% decrease and currencies | span/snippet `653–791` | 138 | 27 |
+
+The table's canonical pipe-table text was replaced by exact filing-store text. Its
+`APAC` block heading plus the exact table span identify the segment, sales measure,
+2025-versus-2024 comparison and `Currency(1)%` effect without relying on the narrative
+copy. The narrative was already store-exact and independently states that currency
+translation decreased sales by 1%, primarily because the Australian dollar and
+Korean won weakened against the U.S. dollar. Each snippet occurs exactly once across
+the 16-filing store corpus.
 
 ## T2 results
 

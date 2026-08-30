@@ -300,17 +300,30 @@
           ],
           "normalized_start": 100223,
           "normalized_end": 100737,
-          "answer_span": "APAC\n\n| | | | | | | | | | | | | | | | | | | |\n\n(Dollar amounts in millions) | | | | Variance\n\nYear Ended December 31, | | 2025 | | 2024 | | 2025 vs 2024\n\nSales | | $ | 6,661 | | | $ | 6,632 | | | — | %\n\n| | | | | |\n\nOperating profit | | $ | 1,933 | | | $ | 1,918 | | | 1 | %\n\nAs a percent of sales | | 29.0 | % | | 28.9 | % | |\n\n| | | | | | | |\n\n| | 2025 vs 2024\n\n| | % Change\n\nFactors Contributing to Changes - Sales\n\n| |\n\nVolume | | (1) | %\n\nPrice/Mix | | — | %\n\nCost pass-through | | — | %\n\nCurrency | | (1) | %",
-          "answer_snippet": "2025 vs 2024\n\n| | % Change\n\nFactors Contributing to Changes - Sales\n\n| |\n\nVolume | | (1) | %\n\nPrice/Mix | | — | %\n\nCost pass-through | | — | %\n\nCurrency | | (1) | %",
-          "span_chars": 514,
-          "span_cl100k_tokens": 206,
-          "span_sha256": "ce83ddf775c2f95b436c5afac4e8b81fbe6d28183d836fe76653bcf305fe1dc0",
-          "snippet_normalized_start": 100573,
-          "snippet_normalized_end": 100737,
-          "snippet_chars": 164,
-          "snippet_sha256": "a0f35db28c63221e4a1fc4a3f44eaae4e1e4187c2f4cd9b9bd6dd4f21231bcce",
+          "answer_span": "(Dollar amounts in millions) Variance\n\nYear Ended December 31,202520242025 vs 2024\n\nSales$6,661 $6,632 — %\n\nOperating profit$1,933 $1,918 1 %\n\nAs a percent of sales29.0 %28.9 %\n\n2025 vs 2024\n\n % Change\n\nFactors Contributing to Changes - Sales\n\nVolume(1)%\n\nPrice/Mix— %\n\nCost pass-through— %\n\nCurrency(1)%",
+          "answer_snippet": "2025 vs 2024\n\n % Change\n\nFactors Contributing to Changes - Sales\n\nVolume(1)%\n\nPrice/Mix— %\n\nCost pass-through— %\n\nCurrency(1)%",
+          "span_chars": 304,
+          "span_cl100k_tokens": 110,
+          "span_sha256": "d8a8a6ab94223a5caa347fccf21f64b44217c38d11687a24df4b57e643f6a5ae",
+          "snippet_chars": 126,
+          "snippet_sha256": "3967f4c42c374519220d7d5c2d8f680a206b37e08fe26493298c678f76080524",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The answer span starts at the APAC heading and carries the APAC sales-change table through the Currency (1)% row, independently identifying the segment, measure, period, direction, and magnitude. The 164-character snippet is its unique retrieval anchor."
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Within the filing store's APAC structured block, the exact answer span carries the APAC sales-change table through the Currency (1)% row, independently identifying the measure, comparison period, direction, and magnitude. The 126-character snippet is its corpus-unique retrieval anchor.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 27,
+            "block_heading": "APAC",
+            "span_start": 0,
+            "span_end": 304,
+            "snippet_start": 178,
+            "snippet_end": 304,
+            "span_sha256": "d8a8a6ab94223a5caa347fccf21f64b44217c38d11687a24df4b57e643f6a5ae",
+            "snippet_sha256": "3967f4c42c374519220d7d5c2d8f680a206b37e08fe26493298c678f76080524"
+          }
         },
         {
           "occurrence_id": "LIN-2025-101099",
@@ -325,13 +338,46 @@
           "answer_span": "Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.",
           "answer_snippet": "Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.",
           "span_chars": 138,
+          "span_cl100k_tokens": 27,
           "snippet_chars": 138,
           "span_sha256": "c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216",
           "snippet_sha256": "c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "Directly states that currency translation reduced APAC sales by 1% and identifies the weakening Australian dollar and Korean won as the primary cause."
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Within the filing store's APAC structured block, this exact sentence directly states that currency translation reduced sales by 1% and identifies the weakening Australian dollar and Korean won as the primary cause. It is independently sufficient and corpus-unique.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "item_title": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+            "unit_kind": "structured_block",
+            "block_index": 27,
+            "block_heading": "APAC",
+            "span_start": 653,
+            "span_end": 791,
+            "snippet_start": 653,
+            "snippet_end": 791,
+            "span_sha256": "c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216",
+            "snippet_sha256": "c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216"
+          }
         }
       ],
+      "round3_reconciliation": {
+        "t3": [
+          {
+            "action": "reanchored_store_table",
+            "occurrence_id": "LIN-2025-100223",
+            "original_source": "pipeline-independent canonical HTML table linearization",
+            "store_location": "Item 7 / structured block 27 / APAC / chars 0-304",
+            "reason": "The canonical pipe-table text did not exact-match the filing store. The replacement span and snippet are exact filing-store substrings while preserving the APAC sales bridge's Currency (1)% answer."
+          },
+          {
+            "action": "verified_store_exact",
+            "occurrence_id": "LIN-2025-101099",
+            "store_location": "Item 7 / structured block 27 / APAC / chars 653-791",
+            "reason": "The narrative sentence already exact-matched the filing store, is corpus-unique, and independently states the direction and magnitude of currency translation's APAC sales effect."
+          }
+        ]
+      },
       "post_traversal_audit": {
         "rejected_classes": [
           "consolidated sales disclosures, which say currency translation was flat but do not give an APAC-specific currency effect",

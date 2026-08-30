@@ -296,8 +296,56 @@ Occurrence 2 — APAC sales narrative:
 These are separate OR-hit alternatives: the first is the APAC table disclosure, and the second is
 the narrative disclosure. The table's answer span, rather than the snippet alone, carries the
 `APAC` structural context; it remains below the ratified 300-token span limit. The table separators
-are literal output of the pipeline-independent visible-text traversal and must later be re-anchored
-to the `sec_text_pipeline` filing-store text during dataset assembly.
+were literal output of the pipeline-independent visible-text traversal. That canonical version is
+superseded for validation by the filing-store reconciliation below.
+
+#### Filing-store reconciliation — 2026-08-30
+
+The table occurrence has now been re-extracted from the `sec_text_pipeline` filing store. Both
+accepted occurrences resolve to Item 7, structured block 27, whose block heading is `APAC`.
+Canonical offsets above remain historical traversal provenance and are not validation targets.
+
+Occurrence 1 — filing-store APAC sales bridge table:
+
+- Store unit: Item 7 / structured block 27 / heading `APAC`
+- Store answer-span offsets: `[0, 304)`
+- Store answer-span character count / cl100k tokens: `304` / `110`
+- Store answer-span SHA-256: `d8a8a6ab94223a5caa347fccf21f64b44217c38d11687a24df4b57e643f6a5ae`
+- Store answer-snippet offsets: `[178, 304)`
+- Store answer-snippet character count: `126`
+- Filing-store corpus occurrences: `1`
+- Store answer-snippet SHA-256: `3967f4c42c374519220d7d5c2d8f680a206b37e08fe26493298c678f76080524`
+
+> 2025 vs 2024
+>
+>  % Change
+>
+> Factors Contributing to Changes - Sales
+>
+> Volume(1)%
+>
+> Price/Mix— %
+>
+> Cost pass-through— %
+>
+> Currency(1)%
+
+The store block heading supplies the APAC segment identity; the exact span supplies the sales
+measure, comparison period, and `Currency(1)%` direction and magnitude. This occurrence therefore
+independently satisfies the corrected answer requirement without relying on the narrative copy.
+
+Occurrence 2 — filing-store APAC sales narrative:
+
+- Store unit: Item 7 / structured block 27 / heading `APAC`
+- Store answer-span and snippet offsets: `[653, 791)`
+- Character count / cl100k tokens: `138` / `27`
+- Filing-store corpus occurrences: `1`
+- Answer-span and answer-snippet SHA-256: `c001c6e503e6190e1ce8e380d4db830e1f0d37b97198002910f050a210443216`
+
+> Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.
+
+The narrative was already an exact filing-store substring. Within the APAC block, it independently
+states the direction and magnitude of the sales effect and the currencies that caused it.
 
 The full-text audit covered all `33` literal `APAC` locations, `136` matches across the
 `currency` / `currencies` / `foreign exchange` / `exchange rate` / `FX` family, and every

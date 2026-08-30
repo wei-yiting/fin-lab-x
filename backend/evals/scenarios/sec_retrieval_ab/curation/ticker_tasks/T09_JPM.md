@@ -8,14 +8,14 @@
 - Active non-`multi_passage` candidate: `n10`
 - Excluded `multi_passage` candidates: `a05`, `p05`
 - Full traversal coverage: `100/100` fixed neutral windows; `1,199,025/1,199,025` canonical characters
-- Acceptable distinct occurrences: `n10 = 1`
+- Acceptable source occurrences: `n10 = 1`; reachable filing-store locations after T3: `2`
 - Human review fields changed: no
 - Final Round 2 CSV/Markdown generated: no
 
-The sole acceptable occurrence is a 183-character source-table span. It keeps the `CIB trading
-VaR by risk type` heading and all four reported categories in one contiguous interval. The values
-between category labels are visible SEC table cells, not formatting added by either repository
-pipeline.
+The pipeline-independent traversal found one acceptable source-table occurrence. Round 3 T3 later
+re-extracted it as a 151-character filing-store exact span and enumerated both reachable non-Item-8
+store copies. The span keeps the `CIB trading VaR by risk type` heading and all four reported
+categories in one contiguous interval.
 
 ## Official source and canonical text
 
@@ -177,7 +177,39 @@ After the sequential traversal, the full-text audit covered `VaR`, `value-at-ris
 commodity/commodities, credit, portfolio components, methodology, backtesting and glossary
 definitions. It found no second 50–200 character occurrence satisfying the complete relation.
 
-## Candidate finding
+## Round 3 T3 filing-store correction
+
+The canonical HTML table linearization below is historical traversal provenance only. It does not
+exact-match the filing store because the store keeps each row's values on the same line. The exact
+filing-store span/snippet is:
+
+> CIB trading VaR by risk type
+>
+> Fixed income$35 $27 $51 $34 $26 $53 
+>
+> Foreign exchange9 6 15 15 7 23 
+>
+> Equities17 7 138 (e)8 4 15 
+>
+> Commodities and other
+
+- Character count: `151`
+- SHA-256: `6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd`
+- Answer span and answer snippet: identical
+- Answer coverage: fixed income, foreign exchange, equities, and commodities and other
+- Filing-store exact occurrences outside Item 8: `2`
+
+The filing store exposes the same source table in two structured blocks, so both are retained as
+OR alternatives:
+
+1. Item 1 / block 1 / `Segment & Corporate Results – Managed Basis` / `[239167, 239318)`
+2. Item 15 / block 2 / `Segment & Corporate Results – Managed Basis` / `[239167, 239318)`
+
+The official filing context identifies the source as Item 7A. The mismatched store labels are
+recorded rather than silently rewritten; cross-arm header-path reconciliation belongs to its
+separate issue. Both new human-review fields remain blank.
+
+## Round 2 canonical candidate finding (historical provenance)
 
 ### `n10` — keep question; one acceptable occurrence
 

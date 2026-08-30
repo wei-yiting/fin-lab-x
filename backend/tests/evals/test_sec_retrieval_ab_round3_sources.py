@@ -17,7 +17,6 @@ RESULTS_DIR = REPO_ROOT / (
     "backend/evals/scenarios/sec_retrieval_ab/curation/round2_ticker_results"
 )
 PENDING_TABLE_REBUILDS = {
-    "JPM-2025-504303",  # Round 3 T3 / n10
     "LIN-2025-100223",  # Round 3 T3 / a16 table occurrence
 }
 EXPECTED_T2_ACTIONS = {
@@ -164,7 +163,59 @@ def test_round3_store_anchors_resolve_to_the_current_exact_strings() -> None:
                     == anchor["snippet_sha256"]
                 )
 
-    assert anchored_occurrence_count == 15
+    assert anchored_occurrence_count == 17
+
+
+def test_jpm_n10_enumerates_store_exact_var_table_copies() -> None:
+    result = json.loads((RESULTS_DIR / "T09_JPM.json").read_text())
+    filing = json.loads((REPO_ROOT / "data/sec_text/JPM/10-K/2025.json").read_text())
+    units = list(_store_units(filing))
+    candidate = next(
+        candidate
+        for candidate in result["candidate_results"]
+        if candidate["candidate_id"] == "n10"
+    )
+    occurrences = candidate["acceptable_occurrences"]
+
+    assert len(occurrences) == 2
+    assert {occurrence["item_hint"] for occurrence in occurrences} == {
+        "Item 1",
+        "Item 15",
+    }
+    assert len({occurrence["answer_snippet"] for occurrence in occurrences}) == 1
+
+    snippet = occurrences[0]["answer_snippet"]
+    assert len(snippet) == 151
+    for risk_type in (
+        "Fixed income",
+        "Foreign exchange",
+        "Equities",
+        "Commodities and other",
+    ):
+        assert risk_type in snippet
+    assert snippet.startswith("CIB trading VaR by risk type")
+    assert sum(unit["text"].count(snippet) for unit in units) == 2
+
+    reconciliation = candidate["round3_reconciliation"]["t3"]
+    assert reconciliation == [
+        {
+            "action": "reanchored_table_and_enumerated_store_copies",
+            "original_occurrence_id": "JPM-2025-504303",
+            "canonical_item_hint": "Item 7A",
+            "store_locations": [
+                "Item 1 / Segment & Corporate Results – Managed Basis / "
+                "chars 239167-239318",
+                "Item 15 / Segment & Corporate Results – Managed Basis / "
+                "chars 239167-239318",
+            ],
+            "reason": (
+                "The canonical table linearization did not exact-match the filing "
+                "store. The store has two non-Item-8 copies of the same source "
+                "table, so both store-exact locations are enumerated; cross-arm "
+                "header-path reconciliation remains outside this task."
+            ),
+        }
+    ]
 
 
 def test_round3_item_8_reconciliation_is_complete_and_provenanced() -> None:

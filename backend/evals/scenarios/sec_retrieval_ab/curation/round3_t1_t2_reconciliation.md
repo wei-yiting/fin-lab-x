@@ -1,4 +1,4 @@
-# Round 3 T1/T2 filing-store reconciliation
+# Round 3 filing-store reconciliation
 
 Completed on 2026-08-27 against `data/sec_text/<ticker>/10-K/<FY>.json`.
 This artifact records the source corrections applied to
@@ -40,9 +40,30 @@ COIN `n06/occ0` and NEE `n01/occ1`.
 | p50 | LIN | occ1, canonical Item 1C | Collapsed into occ0 because it maps to the same Item 1A flat-item location. |
 | n04 | XOM | occ0, canonical Item 7 | Kept and relabelled to the actual Item 16 / `Upstream Financial Results` store block. |
 
-JPM `n10` and LIN `a16` remain T3/table-rebuild work because their canonical table
-linearizations do not whitespace-match the filing store; they were not treated as
-T1 whitespace corrections.
+LIN `a16` remains T3/table-rebuild work because its canonical table linearization
+does not whitespace-match the filing store; it was not treated as a T1 whitespace
+correction.
+
+## T3 results
+
+### JPM `n10` table rebuilt from filing-store text
+
+The 183-character canonical HTML table linearization was replaced by a
+151-character exact filing-store substring. The span and snippet are identical and
+retain the `CIB trading VaR by risk type` heading plus all four row labels: fixed
+income, foreign exchange, equities, and commodities and other.
+
+The filing store contains two reachable non-Item-8 copies of this same source table:
+
+| Occurrence | Store location | Span offsets |
+|---|---|---|
+| `JPM-2025-504303` | Item 1 / block 1 / `Segment & Corporate Results – Managed Basis` | `239167–239318` |
+| `JPM-2025-store-item15-239167` | Item 15 / block 2 / `Segment & Corporate Results – Managed Basis` | `239167–239318` |
+
+Both copies are enumerated as OR alternatives so the corpus-level uniqueness rule
+does not leave an unlisted reachable copy. The official source context remains Item
+7A; the filing-store Item 1/15 labels are recorded as observed, while cross-arm
+header-path reconciliation remains owned by its separate issue.
 
 ## T2 results
 

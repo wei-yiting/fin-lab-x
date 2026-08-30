@@ -67,28 +67,81 @@
         "question": "Which types of market risk does JPMorganChase include in its Value-at-Risk measure?",
         "query_type": "factoid",
         "item_keys": [
-          "7a"
+          "1",
+          "15"
         ],
         "answer_requirement": "One independently sufficient span must identify all market risk types JPMorganChase states are included in its Value-at-Risk measure.",
-        "reason": "The question remains unchanged. Full traversal found one 183-character table span that joins the CIB trading VaR risk-type heading to all four reported categories: fixed income, foreign exchange, equities, and commodities and other."
+        "reason": "The question remains unchanged. The filing-store table yields a 151-character exact span that joins the CIB trading VaR risk-type heading to all four reported categories: fixed income, foreign exchange, equities, and commodities and other. The store contains the same source table under Item 1 and Item 15, so both reachable copies are enumerated as OR alternatives."
       },
       "acceptable_occurrences": [
         {
           "occurrence_id": "JPM-2025-504303",
-          "item_hint": "Item 7A",
-          "filing_location": "Market Risk Management / Value-at-risk / Total VaR table",
+          "item_hint": "Item 1",
+          "filing_location": "Segment & Corporate Results – Managed Basis / Market Risk Management / Value-at-risk / Total VaR table",
+          "canonical_source_hint": "Item 7A / Market Risk Management / Value-at-risk / Total VaR table",
           "canonical_line": 19017,
           "window_id": "W0043",
           "normalized_start": 504303,
           "normalized_end": 504486,
-          "answer_span": "CIB trading VaR by risk type\n\nFixed income\n\n$\n\n35\n\n$\n\n27\n\n$\n\n51\n\n$\n\n34\n\n$\n\n26\n\n$\n\n53\n\nForeign exchange\n\n9\n\n6\n\n15\n\n15\n\n7\n\n23\n\nEquities\n\n17\n\n7\n\n138\n\n(e)\n\n8\n\n4\n\n15\n\nCommodities and other",
-          "answer_snippet": "CIB trading VaR by risk type\n\nFixed income\n\n$\n\n35\n\n$\n\n27\n\n$\n\n51\n\n$\n\n34\n\n$\n\n26\n\n$\n\n53\n\nForeign exchange\n\n9\n\n6\n\n15\n\n15\n\n7\n\n23\n\nEquities\n\n17\n\n7\n\n138\n\n(e)\n\n8\n\n4\n\n15\n\nCommodities and other",
-          "snippet_chars": 183,
-          "snippet_sha256": "1e3055b861ce78fc1e608e3a3d8ae10974287c568474ff99cf53c10d51fba828",
+          "answer_span": "CIB trading VaR by risk type\n\nFixed income$35\u00a0$27\u00a0$51\u00a0$34\u00a0$26\u00a0$53\u00a0\n\nForeign exchange9\u00a06\u00a015\u00a015\u00a07\u00a023\u00a0\n\nEquities17\u00a07\u00a0138\u00a0(e)8\u00a04\u00a015\u00a0\n\nCommodities and other",
+          "answer_snippet": "CIB trading VaR by risk type\n\nFixed income$35\u00a0$27\u00a0$51\u00a0$34\u00a0$26\u00a0$53\u00a0\n\nForeign exchange9\u00a06\u00a015\u00a015\u00a07\u00a023\u00a0\n\nEquities17\u00a07\u00a0138\u00a0(e)8\u00a04\u00a015\u00a0\n\nCommodities and other",
+          "snippet_chars": 151,
+          "snippet_sha256": "6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The span preserves the table heading that establishes the VaR relationship and includes every listed CIB trading VaR risk type within the 200-character limit. The intervening values are source-table cells, not pipeline-added formatting."
+          "exact_occurrences_in_store": 2,
+          "acceptance_reason": "The store-exact span preserves the table heading that establishes the VaR relationship and includes all four CIB trading VaR risk types within the 200-character limit.",
+          "store_anchor": {
+            "item": "1",
+            "unit_kind": "structured_block",
+            "block_index": 1,
+            "block_heading": "Segment & Corporate Results – Managed Basis",
+            "span_start": 239167,
+            "span_end": 239318,
+            "snippet_start": 239167,
+            "snippet_end": 239318,
+            "span_sha256": "6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd",
+            "snippet_sha256": "6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd"
+          }
+        },
+        {
+          "occurrence_id": "JPM-2025-store-item15-239167",
+          "item_hint": "Item 15",
+          "filing_location": "Segment & Corporate Results – Managed Basis / Market Risk Management / Value-at-risk / Total VaR table",
+          "canonical_source_hint": "Item 7A / Market Risk Management / Value-at-risk / Total VaR table",
+          "answer_span": "CIB trading VaR by risk type\n\nFixed income$35\u00a0$27\u00a0$51\u00a0$34\u00a0$26\u00a0$53\u00a0\n\nForeign exchange9\u00a06\u00a015\u00a015\u00a07\u00a023\u00a0\n\nEquities17\u00a07\u00a0138\u00a0(e)8\u00a04\u00a015\u00a0\n\nCommodities and other",
+          "answer_snippet": "CIB trading VaR by risk type\n\nFixed income$35\u00a0$27\u00a0$51\u00a0$34\u00a0$26\u00a0$53\u00a0\n\nForeign exchange9\u00a06\u00a015\u00a015\u00a07\u00a023\u00a0\n\nEquities17\u00a07\u00a0138\u00a0(e)8\u00a04\u00a015\u00a0\n\nCommodities and other",
+          "snippet_chars": 151,
+          "snippet_sha256": "6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd",
+          "exact_occurrences_in_store": 2,
+          "acceptance_reason": "This second reachable filing-store copy contains the same independently sufficient table span under a distinct non-Item-8 store label, so it is enumerated as an OR alternative.",
+          "store_anchor": {
+            "item": "15",
+            "unit_kind": "structured_block",
+            "block_index": 2,
+            "block_heading": "Segment & Corporate Results – Managed Basis",
+            "span_start": 239167,
+            "span_end": 239318,
+            "snippet_start": 239167,
+            "snippet_end": 239318,
+            "span_sha256": "6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd",
+            "snippet_sha256": "6105d50fdeff67de89dd5a511baa42a28fcb253b6ee043225c47990d50a5e4cd"
+          }
         }
       ],
+      "round3_reconciliation": {
+        "t3": [
+          {
+            "action": "reanchored_table_and_enumerated_store_copies",
+            "original_occurrence_id": "JPM-2025-504303",
+            "canonical_item_hint": "Item 7A",
+            "store_locations": [
+              "Item 1 / Segment & Corporate Results – Managed Basis / chars 239167-239318",
+              "Item 15 / Segment & Corporate Results – Managed Basis / chars 239167-239318"
+            ],
+            "reason": "The canonical table linearization did not exact-match the filing store. The store has two non-Item-8 copies of the same source table, so both store-exact locations are enumerated; cross-arm header-path reconciliation remains outside this task."
+          }
+        ]
+      },
       "post_traversal_audit": {
         "rejected_classes": [
           "the 98-character CIB business-activity sentence listing fixed income, foreign exchange, equities and commodities, because it says where CIB makes markets but does not establish that these are VaR risk types",
@@ -103,7 +156,7 @@
     "candidate_count": 1,
     "rewritten_candidate_count": 0,
     "new_candidate_count": 1,
-    "acceptable_occurrence_count": 1,
+    "acceptable_occurrence_count": 2,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

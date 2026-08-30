@@ -5,8 +5,17 @@
   "fiscal_year": 2025,
   "completed_at": "2026-08-27",
   "scope": {
-    "active_candidate_ids": ["p20", "p35", "p36", "a20", "n09"],
-    "excluded_candidate_ids": ["p04", "a04"],
+    "active_candidate_ids": [
+      "p20",
+      "p35",
+      "p36",
+      "a20",
+      "n09"
+    ],
+    "excluded_candidate_ids": [
+      "p04",
+      "a04"
+    ],
     "excluded_query_type": "multi_passage",
     "human_review_fields_written": false,
     "final_round2_artifacts_written": false
@@ -42,7 +51,10 @@
     "window_chars": 8000,
     "overlap_chars": 0,
     "window_count": 39,
-    "covered_interval": [0, 311405],
+    "covered_interval": [
+      0,
+      311405
+    ],
     "complete_coverage": true,
     "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T15_PODD.md",
     "coverage_check": "All 39 windows are contiguous and non-overlapping; W0001 starts at 0, W0039 ends at 311405, the final window has 7405 characters, and the sum of window lengths is 311405."
@@ -66,7 +78,9 @@
         "change": "unchanged",
         "question": "What threatens collection of the EOFlow trade-secret award?",
         "query_type": "passage",
-        "item_keys": ["7"],
+        "item_keys": [
+          "7"
+        ],
         "reason": "The approved question remains unchanged. After the Item 8 exclusion, the Item 7 occurrence states both EOFlow's appeal and its uncertain ability to satisfy the award."
       },
       "acceptable_occurrences": [
@@ -123,7 +137,10 @@
         "question": "What milestone did Insulet reach for EVOLUTION 2 in 2025?",
         "query_type": "factoid",
         "answer_requirement": "One independently sufficient occurrence must state that Insulet completed or finished enrollment for EVOLUTION 2 in 2025.",
-        "item_keys": ["1", "7"],
+        "item_keys": [
+          "1",
+          "7"
+        ],
         "reason": "The prior rewrite still combined the completed 2025 enrollment milestone with a separate planned 2026 study. This revision keeps one factoid intent. Full-filing traversal found two distinct source occurrences that independently state the 2025 EVOLUTION 2 enrollment milestone."
       },
       "acceptable_occurrences": [
@@ -164,6 +181,18 @@
           "STRIVE and Omnipod 6 disclosures that do not also state the EVOLUTION 2 enrollment milestone",
           "arbitrary overlapping substring variants around either accepted source occurrence"
         ]
+      },
+      "round3_reconciliation": {
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient occurrence must state that Insulet completed or finished enrollment for EVOLUTION 2 in 2025.",
+          "kept_occurrence_ids": [
+            "PODD-2025-024455",
+            "PODD-2025-140970"
+          ],
+          "removed_occurrences": [],
+          "reason": "Both Item 1 and Item 7 occurrences independently state that EVOLUTION 2 enrollment was completed in 2025."
+        }
       }
     },
     {
@@ -185,7 +214,9 @@
         "question": "How does Omnipod 5 use glucose readings to adjust insulin dosing?",
         "query_type": "passage",
         "answer_requirement": "One independently sufficient occurrence must explain how Omnipod 5 uses glucose values to predict future levels and automatically adjust insulin dosing.",
-        "item_keys": ["1"],
+        "item_keys": [
+          "1"
+        ],
         "reason": "The original question required both receipt and response, but no 50–200-character occurrence independently answers both. The revision retains the more investor-relevant automated-response mechanism and removes the unsupported Bluetooth-receipt subpart."
       },
       "acceptable_occurrences": [
@@ -231,7 +262,9 @@
         "question": "What investments primarily drove Insulet’s $66.7 million increase in capital expenditures in 2025?",
         "query_type": "passage",
         "answer_requirement": "One independently sufficient occurrence must identify the Costa Rica plant investment and the additional Malaysia machinery and equipment as the primary causes of the 2025 increase.",
-        "item_keys": ["7"],
+        "item_keys": [
+          "7"
+        ],
         "reason": "The revision asks one causal question. It replaces the Round 1 amount-only snippet with the adjacent cause disclosure and preserves both company-stated primary investments."
       },
       "acceptable_occurrences": [
@@ -269,7 +302,9 @@
         "question": "Has Insulet experienced cybersecurity incidents that materially affected the company?",
         "query_type": "factoid",
         "answer_requirement": "One independently sufficient occurrence must state whether previous cybersecurity incidents materially affected Insulet; hypothetical incident risks, response procedures, and governance allocations are not sufficient.",
-        "item_keys": ["1C"],
+        "item_keys": [
+          "1C"
+        ],
         "reason": "The revised question asks one binary incident-history fact instead of a broad allocation of governance responsibilities. Full-filing traversal found one distinct source occurrence stating that Insulet does not believe previous cybersecurity incidents materially affected the company."
       },
       "acceptable_occurrences": [

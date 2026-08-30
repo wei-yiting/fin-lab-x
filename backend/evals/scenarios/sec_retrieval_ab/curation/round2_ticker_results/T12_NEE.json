@@ -137,10 +137,11 @@
         "question": "How did growth in FPL's regulatory capital base affect its 2025 earnings?",
         "query_type": "passage",
         "item_keys": [
+          "6",
           "7"
         ],
         "answer_requirement": "One independently sufficient span must explain how growth in FPL's regulatory capital base affected 2025 earnings; a span stating only capital spending or an earnings amount is partial.",
-        "reason": "The question remains unchanged. Full traversal found two separate Item 7 source locations explaining that investment in plant in service and other property increased FPL's 2025 earnings; the more detailed occurrence also states that those investments grew average rate base by approximately $5.5 billion."
+        "reason": "The question remains unchanged. The filing store contains two distinct answer texts under Item 7, and each has a second reachable copy under the store's Item 6 label. All four locations are enumerated as OR alternatives; the detailed answer text also states that the investments grew average rate base by approximately $5.5 billion."
       },
       "acceptable_occurrences": [
         {
@@ -186,6 +187,58 @@
             "span_sha256": "782c89361e45f0d13547b0c8b8d636940869fe91d64fd5fa977a1f84d1f7bb7c",
             "snippet_sha256": "c094d4e062e8ad6531baac73afc497625e8451a55f2d43f9f20f462a5d4b9cfa"
           }
+        },
+        {
+          "occurrence_id": "NEE-2025-store-item6-6732",
+          "item_hint": "Item 6",
+          "filing_location": "Flat Item 6 / [Reserved] / FPL and NEER earnings summary",
+          "canonical_source_hint": "Item 7 / Overview / 2025 Summary",
+          "answer_span": "FPL's net income increased in 2025 primarily driven by continued investments in plant in service and other property and a higher earned regulatory ROE in 2025.",
+          "answer_snippet": "FPL's net income increased in 2025 primarily driven by continued investments in plant in service and other property and a higher earned regulatory ROE in 2025.",
+          "snippet_chars": 159,
+          "snippet_sha256": "bfe5a80a782bda6fe380f077866ccaf8eb54de6b084bd6934e873c05e31ab94e",
+          "exact_occurrences_in_store": 2,
+          "acceptance_reason": "This second reachable store copy independently states that regulated-asset investment was a primary driver of FPL's 2025 net-income increase.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "6",
+            "item_title": "[Reserved]",
+            "unit_kind": "flat_item",
+            "block_index": null,
+            "block_heading": null,
+            "span_start": 6732,
+            "span_end": 6891,
+            "snippet_start": 6732,
+            "snippet_end": 6891,
+            "span_sha256": "bfe5a80a782bda6fe380f077866ccaf8eb54de6b084bd6934e873c05e31ab94e",
+            "snippet_sha256": "bfe5a80a782bda6fe380f077866ccaf8eb54de6b084bd6934e873c05e31ab94e"
+          }
+        },
+        {
+          "occurrence_id": "NEE-2025-store-item6-10171",
+          "item_hint": "Item 6",
+          "filing_location": "Flat Item 6 / [Reserved] / FPL earnings",
+          "canonical_source_hint": "Item 7 / FPL Results of Operations",
+          "answer_span": "FPL’s net income for 2025 and 2024 was $5,012 million and $4,543 million, respectively, representing an increase of $469 million. The increase was primarily driven by higher earnings from investments in plant in service and other property. Such investments grew FPL's average rate base by approximately $5.5 billion in 2025 and reflect, among other things, solar generation additions and ongoing transmission and distribution additions.",
+          "answer_snippet": "The increase was primarily driven by higher earnings from investments in plant in service and other property.",
+          "snippet_chars": 109,
+          "snippet_sha256": "c094d4e062e8ad6531baac73afc497625e8451a55f2d43f9f20f462a5d4b9cfa",
+          "exact_occurrences_in_store": 2,
+          "acceptance_reason": "This second reachable store copy states the net-income increase, attributes it to plant and property investment, and connects those investments to average-rate-base growth.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "6",
+            "item_title": "[Reserved]",
+            "unit_kind": "flat_item",
+            "block_index": null,
+            "block_heading": null,
+            "span_start": 10171,
+            "span_end": 10607,
+            "snippet_start": 10301,
+            "snippet_end": 10410,
+            "span_sha256": "782c89361e45f0d13547b0c8b8d636940869fe91d64fd5fa977a1f84d1f7bb7c",
+            "snippet_sha256": "c094d4e062e8ad6531baac73afc497625e8451a55f2d43f9f20f462a5d4b9cfa"
+          }
         }
       ],
       "post_traversal_audit": {
@@ -203,7 +256,29 @@
             "occurrence_id": "NEE-2025-183888",
             "reason": "Re-extracted the filing-store non-breaking space after $5.5; the selected snippet was already store-exact."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must explain how growth in FPL's regulatory capital base affected 2025 earnings; a span stating only capital spending or an earnings amount is partial.",
+          "kept_occurrence_ids": [
+            "NEE-2025-180298",
+            "NEE-2025-183888",
+            "NEE-2025-store-item6-6732",
+            "NEE-2025-store-item6-10171"
+          ],
+          "removed_occurrences": [],
+          "added_occurrences": [
+            {
+              "occurrence_id": "NEE-2025-store-item6-6732",
+              "reason": "Corpus enumeration found a second reachable store copy of the Item 7 summary answer under Item 6."
+            },
+            {
+              "occurrence_id": "NEE-2025-store-item6-10171",
+              "reason": "Corpus enumeration found a second reachable store copy of the detailed Item 7 answer under Item 6."
+            }
+          ],
+          "reason": "The two distinct answer texts each independently connect plant/property investment to higher FPL earnings. Both reachable store copies of each text are enumerated, and the detailed span additionally quantifies rate-base and net-income changes."
+        }
       }
     }
   ],
@@ -211,7 +286,7 @@
     "candidate_count": 2,
     "rewritten_candidate_count": 0,
     "new_candidate_count": 1,
-    "acceptable_occurrence_count": 3,
+    "acceptable_occurrence_count": 5,
     "snippet_contract_violations": 0,
     "question_evidence_contract_issues": 0,
     "human_review_pending": true

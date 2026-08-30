@@ -1,0 +1,183 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T01",
+  "ticker": "AMZN",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p22",
+      "p37",
+      "a22"
+    ],
+    "excluded_candidate_ids": [
+      "p07",
+      "a07",
+      "p39"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001018724",
+    "accession_number": "0001018724-26-000004",
+    "filing_date": "2026-02-06",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "amzn-20251231.htm"
+  },
+  "normalization": {
+    "method": "pipeline_independent_visible_text",
+    "normalized_chars": 283477,
+    "normalized_sha256": "1959bbbce1fd4c1c7ebbc752ac5cb9f3f57ebfe7ca7ae0987949d09e969aee64"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 4000,
+    "window_count": 71,
+    "covered_interval": [
+      0,
+      283477
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T01_AMZN_research.md"
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p22",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "問題牽涉海外營收與雲端業務，簡化成單一問題，重找 evidence",
+        "question": "Factors behind Amazon's 2025 overseas retail and cloud revenue gains",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "answer_snippets": [
+          "The sales growth primarily reflects increased customer usage, partially offset b"
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "What primarily drove AWS sales growth in 2025?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must explain the primary disclosed driver of AWS sales growth in 2025; a growth rate without the driver is partial.",
+        "reason": "The Round-1 question combined International retail and AWS. The revision keeps only AWS and the single store-exact occurrence identifies increased customer usage as the primary driver."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "AMZN-2025-113141",
+          "item_hint": "Item 7",
+          "filing_location": "Overview",
+          "answer_span": "AWS sales increased 20% in 2025, compared to the prior year. The sales growth primarily reflects increased customer usage",
+          "answer_snippet": "AWS sales increased 20% in 2025, compared to the prior year. The sales growth primarily reflects increased customer usage",
+          "span_chars": 121,
+          "snippet_chars": 121,
+          "span_sha256": "9f67ed8f44c9ceddff59fa176a28203379a920d0a557116d7ec365497abb2e1d",
+          "snippet_sha256": "9f67ed8f44c9ceddff59fa176a28203379a920d0a557116d7ec365497abb2e1d",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Independently states the AWS subject, comparison year, and primary customer-usage driver."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      }
+    },
+    {
+      "candidate_id": "p37",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一事，which electronics does it make",
+        "question": "How do shoppers reach Amazon offerings, and which electronics does it make?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "We also manufacture and sell electronic devices, including Kindle, Fire tablet, "
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "Which electronic devices does Amazon manufacture and sell?",
+        "query_type": "passage",
+        "item_keys": [
+          "1"
+        ],
+        "answer_requirement": "One independently sufficient span must identify the electronic devices Amazon states it manufactures and sells; a generic statement that it sells devices is partial.",
+        "reason": "The Round-1 question combined shopping access channels and devices. The revision keeps only the device-list intent."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "AMZN-2025-007599",
+          "item_hint": "Item 1",
+          "filing_location": "Consumers",
+          "answer_span": "We also manufacture and sell electronic devices, including Kindle, Fire tablet, Fire TV, Echo, Ring, Blink, and eero",
+          "answer_snippet": "We also manufacture and sell electronic devices, including Kindle, Fire tablet, Fire TV, Echo, Ring, Blink, and eero",
+          "span_chars": 116,
+          "snippet_chars": 116,
+          "span_sha256": "3816c81e7249031cf6bb4028ec956686eb67ff703001c0c3f00178244ff607ca",
+          "snippet_sha256": "3816c81e7249031cf6bb4028ec956686eb67ff703001c0c3f00178244ff607ca",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Independently identifies every device named in Amazon's manufacturing-and-sales disclosure."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      }
+    },
+    {
+      "candidate_id": "a22",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "粗體字太短，無法包含所有需要回答 query 的資訊",
+        "question": "How does Amazon account for satellite broadband development before and after viability?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "We will capitalize certain of these costs once the service achieves commercial v"
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "When will Amazon begin capitalizing certain satellite broadband development costs?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must state the trigger for Amazon to begin capitalizing the satellite broadband development costs; a before-viability expense description is partial.",
+        "reason": "The original before-and-after accounting request cannot fit the evidence limits. The revision asks only for the independently answerable capitalization trigger."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "AMZN-2025-119988",
+          "item_hint": "Item 7",
+          "filing_location": "Overview",
+          "answer_span": "We will capitalize certain of these costs once the service achieves commercial viability, including sales to customers.",
+          "answer_snippet": "We will capitalize certain of these costs once the service achieves commercial viability, including sales to customers.",
+          "span_chars": 119,
+          "snippet_chars": 119,
+          "span_sha256": "44e537dd3f5861836d078d5375b0b50010e8d1110a720a15a1fa7b0923b86029",
+          "snippet_sha256": "44e537dd3f5861836d078d5375b0b50010e8d1110a720a15a1fa7b0923b86029",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Directly states commercial viability, including customer sales, as the capitalization trigger."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "acceptable_occurrence_count": 3,
+    "snippet_contract_violations": 0,
+    "store_whitespace_reanchors": 0
+  }
+}

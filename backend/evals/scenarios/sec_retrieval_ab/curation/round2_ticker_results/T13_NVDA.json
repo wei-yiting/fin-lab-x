@@ -175,7 +175,18 @@
             "store_location": "Item 15 / Note 16 - Segment Information / chars 5742-5895",
             "reason": "The actual filing-store label is Item 15, so this distinct store location remains in the OR-set."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must state the percentage of total fiscal 2026 revenue attributable to NVIDIA's largest direct customer; spans at distinct source offsets are OR-hit alternatives.",
+          "kept_occurrence_ids": [
+            "NVDA-2026-116355",
+            "NVDA-2026-205958",
+            "NVDA-2026-337687"
+          ],
+          "removed_occurrences": [],
+          "reason": "All three distinct store locations independently report that the largest direct customer represented 22% of fiscal 2026 revenue."
+        }
       }
     },
     {
@@ -291,6 +302,18 @@
           "references to accounting functionality without identifying an enterprise resource planning system"
         ],
         "notes": "The full traversal adds the Item 1A occurrence as a second OR alternative."
+      },
+      "round3_reconciliation": {
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must identify the continuing ERP-system modernization initiative.",
+          "kept_occurrence_ids": [
+            "NVDA-2026-121635",
+            "NVDA-2026-227546"
+          ],
+          "removed_occurrences": [],
+          "reason": "Both disclosures independently identify an ongoing ERP modernization initiative, one through new accounting functionality and one through the phased core-financial-system upgrade."
+        }
       }
     },
     {

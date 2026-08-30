@@ -1,0 +1,213 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T05",
+  "ticker": "COST",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p27",
+      "p44",
+      "n05"
+    ],
+    "excluded_candidate_ids": [
+      "p12",
+      "a12"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0000909832",
+    "accession_number": "0000909832-25-000101",
+    "filing_date": "2025-10-08",
+    "period_of_report": "2025-08-31",
+    "submission_type": "10-K",
+    "primary_document": "cost-20250831.htm"
+  },
+  "normalization": {
+    "method": "pipeline_independent_visible_text",
+    "normalized_chars": 218693,
+    "normalized_sha256": "b638124a26158007f5b23e8c749affa8761cf5dc7d51d7f718c9de5e3561df0d"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 4000,
+    "window_count": 55,
+    "covered_interval": [
+      0,
+      218693
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T05_COST_research.md"
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p27",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一產品，capital spending 或 warehouse expansion plans",
+        "question": "Costco fiscal 2026 capital spending and warehouse expansion plans",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "In 2025, we spent $5,498 on capital expenditures, and it is our current intentio"
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_query_type",
+        "question": "How much does Costco intend to spend on capital expenditures in fiscal 2026?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must state Costco's intended fiscal 2026 capital-expenditure amount; historical spending or warehouse counts alone are partial.",
+        "reason": "The Round-1 question combined capital spending and warehouse expansion. The revision asks only for the disclosed fiscal 2026 spending range."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COST-2025-103987",
+          "item_hint": "Item 7",
+          "filing_location": "LIQUIDITY AND CAPITAL RESOURCES",
+          "answer_span": "In 2025, we spent $5,498 on capital expenditures, and it is our current intention to spend $6,000 to $6,500 during fiscal 2026.",
+          "answer_snippet": "In 2025, we spent $5,498 on capital expenditures, and it is our current intention to spend $6,000 to $6,500 during fiscal 2026.",
+          "span_chars": 127,
+          "snippet_chars": 127,
+          "span_sha256": "ad674927521e72fb3f4d886bb9df53a68ab541b64db7228cc968e2043f11d212",
+          "snippet_sha256": "ad674927521e72fb3f4d886bb9df53a68ab541b64db7228cc968e2043f11d212",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Independently states the intended fiscal 2026 capital-expenditure range."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      }
+    },
+    {
+      "candidate_id": "p44",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "Impact of one-percentage-point rate shift on Costco investments",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "A 100 basis point change in interest rates as of the end of 2025 would have had "
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "Impact of one-percentage-point rate shift on Costco investments",
+        "query_type": "factoid",
+        "item_keys": [
+          "7a"
+        ],
+        "answer_requirement": "One independently sufficient span must state the fair-value effect of a 100-basis-point interest-rate change on Costco's investments at fiscal 2025 year-end.",
+        "reason": "The approved question and its sole independently sufficient occurrence remain unchanged."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COST-2025-111712",
+          "item_hint": "Item 7A",
+          "filing_location": "Interest Rate Risk",
+          "answer_span": "A 100 basis point change in interest rates as of the end of 2025 would have had an immaterial incremental change in fair market value.",
+          "answer_snippet": "A 100 basis point change in interest rates as of the end of 2025 would have had an immaterial incremental change in fair market value.",
+          "span_chars": 134,
+          "snippet_chars": 134,
+          "span_sha256": "af2db2630c8895b9d501e9c96d12afbb50e4f4eb3d3cbe063d2faeaa017d2099",
+          "snippet_sha256": "af2db2630c8895b9d501e9c96d12afbb50e4f4eb3d3cbe063d2faeaa017d2099",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Directly states that the incremental fair-market-value effect would have been immaterial."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      }
+    },
+    {
+      "candidate_id": "n05",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "What drove Costco's comparable-sales growth in fiscal 2025?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must explain a principal disclosed driver of Costco's fiscal 2025 comparable-sales growth; a growth percentage without a driver is partial.",
+        "reason": "The full-filing audit identified three distinct disclosures of the operating mechanisms and observed frequency/ticket drivers of comparable-sales growth.",
+        "investor_intent": "Understand the business drivers of comparable-sales performance."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "COST-2025-083984",
+          "item_hint": "Item 7",
+          "filing_location": "Overview",
+          "answer_span": "Comparable sales growth is achieved through increasing shopping frequency from new and existing members and the amount they spend on each visit (average ticket).",
+          "answer_snippet": "Comparable sales growth is achieved through increasing shopping frequency from new and existing members and the amount they spend on each visit (average ticket).",
+          "span_chars": 161,
+          "snippet_chars": 161,
+          "span_sha256": "6ab050e604d2c92800e65dc914e2ba9db6f4a13fd0c7e8100102f082a340fdc7",
+          "snippet_sha256": "6ab050e604d2c92800e65dc914e2ba9db6f4a13fd0c7e8100102f082a340fdc7",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Identifies shopping frequency and average ticket as the two operating drivers of comparable-sales growth."
+        },
+        {
+          "occurrence_id": "COST-2025-084633",
+          "item_hint": "Item 7",
+          "filing_location": "Overview",
+          "answer_span": "Generating comparable sales growth is foremost a question of making available the right merchandise at the right prices, a skill that we believe we have repeatedly demonstrated over the long-term.",
+          "answer_snippet": "Generating comparable sales growth is foremost a question of making available the right merchandise at the right prices, a skill that we believe we have repeatedly demonstrated over the long-term.",
+          "span_chars": 196,
+          "snippet_chars": 196,
+          "span_sha256": "cdfc17bb8479bb76c3dfadbb3e9dcc6c876844aef4139d5014b650b17c3683a9",
+          "snippet_sha256": "cdfc17bb8479bb76c3dfadbb3e9dcc6c876844aef4139d5014b650b17c3683a9",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Identifies merchandise selection and pricing as Costco's disclosed mechanism for generating comparable-sales growth."
+        },
+        {
+          "occurrence_id": "COST-2025-094148",
+          "item_hint": "Item 7",
+          "filing_location": "Overview",
+          "answer_span": "Comparable sales were positively impacted by increases of 5% in shopping frequency and approximately 1% in average ticket.",
+          "answer_snippet": "Comparable sales were positively impacted by increases of 5% in shopping frequency and approximately 1% in average ticket.",
+          "span_chars": 122,
+          "snippet_chars": 122,
+          "span_sha256": "731f98f603d1d6efd969787d9d1e78a68d6f22b3133e9cd769ba586b7baed7cd",
+          "snippet_sha256": "731f98f603d1d6efd969787d9d1e78a68d6f22b3133e9cd769ba586b7baed7cd",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Quantifies the observed shopping-frequency and average-ticket contributions to fiscal 2025 comparable sales."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      },
+      "round3_reconciliation": {
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must explain a principal disclosed driver of Costco's fiscal 2025 comparable-sales growth; a growth percentage without a driver is partial.",
+          "kept_occurrence_ids": [
+            "COST-2025-083984",
+            "COST-2025-084633",
+            "COST-2025-094148"
+          ],
+          "removed_occurrences": [],
+          "reason": "The three disclosures independently identify complementary comparable-sales drivers: shopping frequency/average ticket, merchandise/pricing, and the observed 2025 frequency/ticket increases."
+        }
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "acceptable_occurrence_count": 5,
+    "snippet_contract_violations": 0,
+    "store_whitespace_reanchors": 0
+  }
+}

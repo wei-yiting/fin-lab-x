@@ -52,37 +52,223 @@
     ],
     "complete_coverage": true,
     "windows": [
-      {"window_id": "W0001", "start": 0, "end": 12000, "sha256": "ae90760d1d9b785d31c76c725bfd6810896ecd8a90d4ae110f99b62c08784169", "status": "inspected"},
-      {"window_id": "W0002", "start": 12000, "end": 24000, "sha256": "0a0042b233309392daeac1cbf920e9e8a3dbd37ccd870c9f3142c9768727b2bc", "status": "inspected"},
-      {"window_id": "W0003", "start": 24000, "end": 36000, "sha256": "50e9374de3aa93a95253beaeb3897447c79bc1377a70fcf592febc9fb90f2d7c", "status": "inspected"},
-      {"window_id": "W0004", "start": 36000, "end": 48000, "sha256": "c1511032834952c2e7285265cc210d410a2cd77eae593d33f165939b5464d8b9", "status": "inspected"},
-      {"window_id": "W0005", "start": 48000, "end": 60000, "sha256": "9f64f050c98789d0af897f1f2443a792c4a562db0c75b267c35aa3bf3701c39c", "status": "inspected"},
-      {"window_id": "W0006", "start": 60000, "end": 72000, "sha256": "42a2490574d73b7a77f4752e3e3acaed4a8c38d8a727a32358864aa3830954df", "status": "inspected"},
-      {"window_id": "W0007", "start": 72000, "end": 84000, "sha256": "30cffdd3af850c00170b47ce7bcbacf2f0b788e9a369725760e707404044c6b6", "status": "inspected"},
-      {"window_id": "W0008", "start": 84000, "end": 96000, "sha256": "4d3770fbdf548f11259a53dcdc71c742597d1508373e9b0d7c1c1abed59147b5", "status": "inspected"},
-      {"window_id": "W0009", "start": 96000, "end": 108000, "sha256": "a3e450e41a2da0a74af8d573422912f594980726d51ba7e4f01066deb826008d", "status": "inspected"},
-      {"window_id": "W0010", "start": 108000, "end": 120000, "sha256": "abd6b6a1894750a288cac8776b397e8e4a27a682cde5c975292997083f21d9b1", "status": "inspected"},
-      {"window_id": "W0011", "start": 120000, "end": 132000, "sha256": "19efebb37055348e37caabbfec1deb80d2611e8a0a16a9a976e844e110e79833", "status": "inspected"},
-      {"window_id": "W0012", "start": 132000, "end": 144000, "sha256": "787c54850edd602a363574fc57745c7727d8b0c4c009262be4a7e8ccd192eff1", "status": "inspected"},
-      {"window_id": "W0013", "start": 144000, "end": 156000, "sha256": "c73ce0ba0dbe811634106d833a5a76ebe2101d00959a505c087702278642110c", "status": "inspected"},
-      {"window_id": "W0014", "start": 156000, "end": 168000, "sha256": "b28b16085dd7ed484c1536dd97cc6f038ebd50044dc6ad20adb3be156e8afd43", "status": "inspected"},
-      {"window_id": "W0015", "start": 168000, "end": 180000, "sha256": "8494c80a8386af475d4dfd82c233a77d6ce2ce9e3df2d429ddb7518c6947b771", "status": "inspected"},
-      {"window_id": "W0016", "start": 180000, "end": 192000, "sha256": "30ca98865deda1cdc42471d708d25d7c9b83613592d2c118aa22495dc5ddfded", "status": "inspected"},
-      {"window_id": "W0017", "start": 192000, "end": 204000, "sha256": "db0d008d0303c0c90797a958a691dd0815df835c972abbe298ce639ff1eb5637", "status": "inspected"},
-      {"window_id": "W0018", "start": 204000, "end": 216000, "sha256": "1813b3f6cecc79b0b49b4edd9dc578a85c8b06e0210603d9ca2a220e506bea6a", "status": "inspected"},
-      {"window_id": "W0019", "start": 216000, "end": 228000, "sha256": "b36abc99179dc2ae6ebedb34e9f720c3486a8a0c3dc5b304f653cf424d32b7cb", "status": "inspected"},
-      {"window_id": "W0020", "start": 228000, "end": 240000, "sha256": "381fcd89333ab72a0c13f559e4454166f66aa0b4a12ff52db2c4f963c5e37610", "status": "inspected"},
-      {"window_id": "W0021", "start": 240000, "end": 252000, "sha256": "ed49f21f8e78d77d8c66ea9eff298d1916893d2f802abd03400763901183abf3", "status": "inspected"},
-      {"window_id": "W0022", "start": 252000, "end": 264000, "sha256": "313600317f45e8e9aafc2ff6bba9eafc84de59d76d400aa95dd56843bb5ff40c", "status": "inspected"},
-      {"window_id": "W0023", "start": 264000, "end": 276000, "sha256": "f75d51e5200608e07b088b169e0baa959bf51154103f10bbc0d40ade4411352a", "status": "inspected"},
-      {"window_id": "W0024", "start": 276000, "end": 288000, "sha256": "095d8f91eb818aba1993aabe75023e728a9a014446edf8b1da7bd47d410efca9", "status": "inspected"},
-      {"window_id": "W0025", "start": 288000, "end": 300000, "sha256": "3e8e5dd996286e170e29c2bf4d18c2a8a2366a7072b7650780a3bcbfce96fbf0", "status": "inspected"},
-      {"window_id": "W0026", "start": 300000, "end": 312000, "sha256": "3d03eaf3fd83137945ff098f28317b331daa736f6676bd1d872e3e5928dc5971", "status": "inspected"},
-      {"window_id": "W0027", "start": 312000, "end": 324000, "sha256": "b726222b13c6b8fc68b369aeb5ec05a3017bda09c2d0fec288523cc23164b5f5", "status": "inspected"},
-      {"window_id": "W0028", "start": 324000, "end": 336000, "sha256": "c290529a7f12dd037a3ebc76dec34f3e00743fe23788198413a660ec8ef28551", "status": "inspected"},
-      {"window_id": "W0029", "start": 336000, "end": 348000, "sha256": "22b74c61d7e6fb1c0b5c3f3c9a91737a606797614c4699b7c58c9de45700bfff", "status": "inspected"},
-      {"window_id": "W0030", "start": 348000, "end": 360000, "sha256": "ef30a9235e619b55553a6d76532ab4385172b56e32d06ab66dfa0c43b82ebe29", "status": "inspected"},
-      {"window_id": "W0031", "start": 360000, "end": 362087, "sha256": "d88f3fe86f8da42a36397a6303843e58de3cccc4ab26dc42749ce1ed773c0435", "status": "inspected"}
+      {
+        "window_id": "W0001",
+        "start": 0,
+        "end": 12000,
+        "sha256": "ae90760d1d9b785d31c76c725bfd6810896ecd8a90d4ae110f99b62c08784169",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0002",
+        "start": 12000,
+        "end": 24000,
+        "sha256": "0a0042b233309392daeac1cbf920e9e8a3dbd37ccd870c9f3142c9768727b2bc",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0003",
+        "start": 24000,
+        "end": 36000,
+        "sha256": "50e9374de3aa93a95253beaeb3897447c79bc1377a70fcf592febc9fb90f2d7c",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0004",
+        "start": 36000,
+        "end": 48000,
+        "sha256": "c1511032834952c2e7285265cc210d410a2cd77eae593d33f165939b5464d8b9",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0005",
+        "start": 48000,
+        "end": 60000,
+        "sha256": "9f64f050c98789d0af897f1f2443a792c4a562db0c75b267c35aa3bf3701c39c",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0006",
+        "start": 60000,
+        "end": 72000,
+        "sha256": "42a2490574d73b7a77f4752e3e3acaed4a8c38d8a727a32358864aa3830954df",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0007",
+        "start": 72000,
+        "end": 84000,
+        "sha256": "30cffdd3af850c00170b47ce7bcbacf2f0b788e9a369725760e707404044c6b6",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0008",
+        "start": 84000,
+        "end": 96000,
+        "sha256": "4d3770fbdf548f11259a53dcdc71c742597d1508373e9b0d7c1c1abed59147b5",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0009",
+        "start": 96000,
+        "end": 108000,
+        "sha256": "a3e450e41a2da0a74af8d573422912f594980726d51ba7e4f01066deb826008d",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0010",
+        "start": 108000,
+        "end": 120000,
+        "sha256": "abd6b6a1894750a288cac8776b397e8e4a27a682cde5c975292997083f21d9b1",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0011",
+        "start": 120000,
+        "end": 132000,
+        "sha256": "19efebb37055348e37caabbfec1deb80d2611e8a0a16a9a976e844e110e79833",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0012",
+        "start": 132000,
+        "end": 144000,
+        "sha256": "787c54850edd602a363574fc57745c7727d8b0c4c009262be4a7e8ccd192eff1",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0013",
+        "start": 144000,
+        "end": 156000,
+        "sha256": "c73ce0ba0dbe811634106d833a5a76ebe2101d00959a505c087702278642110c",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0014",
+        "start": 156000,
+        "end": 168000,
+        "sha256": "b28b16085dd7ed484c1536dd97cc6f038ebd50044dc6ad20adb3be156e8afd43",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0015",
+        "start": 168000,
+        "end": 180000,
+        "sha256": "8494c80a8386af475d4dfd82c233a77d6ce2ce9e3df2d429ddb7518c6947b771",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0016",
+        "start": 180000,
+        "end": 192000,
+        "sha256": "30ca98865deda1cdc42471d708d25d7c9b83613592d2c118aa22495dc5ddfded",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0017",
+        "start": 192000,
+        "end": 204000,
+        "sha256": "db0d008d0303c0c90797a958a691dd0815df835c972abbe298ce639ff1eb5637",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0018",
+        "start": 204000,
+        "end": 216000,
+        "sha256": "1813b3f6cecc79b0b49b4edd9dc578a85c8b06e0210603d9ca2a220e506bea6a",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0019",
+        "start": 216000,
+        "end": 228000,
+        "sha256": "b36abc99179dc2ae6ebedb34e9f720c3486a8a0c3dc5b304f653cf424d32b7cb",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0020",
+        "start": 228000,
+        "end": 240000,
+        "sha256": "381fcd89333ab72a0c13f559e4454166f66aa0b4a12ff52db2c4f963c5e37610",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0021",
+        "start": 240000,
+        "end": 252000,
+        "sha256": "ed49f21f8e78d77d8c66ea9eff298d1916893d2f802abd03400763901183abf3",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0022",
+        "start": 252000,
+        "end": 264000,
+        "sha256": "313600317f45e8e9aafc2ff6bba9eafc84de59d76d400aa95dd56843bb5ff40c",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0023",
+        "start": 264000,
+        "end": 276000,
+        "sha256": "f75d51e5200608e07b088b169e0baa959bf51154103f10bbc0d40ade4411352a",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0024",
+        "start": 276000,
+        "end": 288000,
+        "sha256": "095d8f91eb818aba1993aabe75023e728a9a014446edf8b1da7bd47d410efca9",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0025",
+        "start": 288000,
+        "end": 300000,
+        "sha256": "3e8e5dd996286e170e29c2bf4d18c2a8a2366a7072b7650780a3bcbfce96fbf0",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0026",
+        "start": 300000,
+        "end": 312000,
+        "sha256": "3d03eaf3fd83137945ff098f28317b331daa736f6676bd1d872e3e5928dc5971",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0027",
+        "start": 312000,
+        "end": 324000,
+        "sha256": "b726222b13c6b8fc68b369aeb5ec05a3017bda09c2d0fec288523cc23164b5f5",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0028",
+        "start": 324000,
+        "end": 336000,
+        "sha256": "c290529a7f12dd037a3ebc76dec34f3e00743fe23788198413a660ec8ef28551",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0029",
+        "start": 336000,
+        "end": 348000,
+        "sha256": "22b74c61d7e6fb1c0b5c3f3c9a91737a606797614c4699b7c58c9de45700bfff",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0030",
+        "start": 348000,
+        "end": 360000,
+        "sha256": "ef30a9235e619b55553a6d76532ab4385172b56e32d06ab66dfa0c43b82ebe29",
+        "status": "inspected"
+      },
+      {
+        "window_id": "W0031",
+        "start": 360000,
+        "end": 362087,
+        "sha256": "d88f3fe86f8da42a36397a6303843e58de3cccc4ab26dc42749ce1ed773c0435",
+        "status": "inspected"
+      }
     ]
   },
   "candidate_results": [
@@ -376,7 +562,17 @@
             "store_location": "Item 7 / structured block 27 / APAC / chars 653-791",
             "reason": "The narrative sentence already exact-matched the filing store, is corpus-unique, and independently states the direction and magnitude of currency translation's APAC sales effect."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient source occurrence must state the direction or magnitude of currency translation's effect on APAC sales in 2025. Consolidated or other-segment sales effects, APAC operating-profit effects, exchange-rate tables without a sales effect, and generic foreign-exchange disclosures are partial or non-responsive.",
+          "kept_occurrence_ids": [
+            "LIN-2025-100223",
+            "LIN-2025-101099"
+          ],
+          "removed_occurrences": [],
+          "reason": "The APAC sales bridge table states Currency (1)%, while the narrative independently states the 1% decrease and currency causes."
+        }
       },
       "post_traversal_audit": {
         "rejected_classes": [

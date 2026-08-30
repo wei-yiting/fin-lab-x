@@ -77,7 +77,8 @@
           "1",
           "7"
         ],
-        "reason": "The Round 1 question is answerable, but its pronoun-led snippet was not the canonical cause sentence. Full traversal found three distinct disclosures that independently attribute the spending outlook to manufacturing expansion or global-facility investment, including the preceding sentence identified by the Round 1 comment."
+        "reason": "The Round 1 question is answerable, but its pronoun-led snippet was not the canonical cause sentence. Full traversal found three distinct disclosures that independently attribute the spending outlook to manufacturing expansion or global-facility investment, including the preceding sentence identified by the Round 1 comment.",
+        "answer_requirement": "One independently sufficient span must identify demand-driven manufacturing expansion or global manufacturing-facility investment as a reason Lilly expects near-term capital spending to remain elevated."
       },
       "acceptable_occurrences": [
         {
@@ -133,6 +134,19 @@
           "long conditional Item 1A disclosures about overestimating demand and continuing to incur capital expenditures, which do not state Lilly's actual near-term spending driver within a self-contained 50-200 character span",
           "properties and generic capacity disclosures that list facilities but do not explain the spending outlook"
         ]
+      },
+      "round3_reconciliation": {
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must identify demand-driven manufacturing expansion or global manufacturing-facility investment as a reason Lilly expects near-term capital spending to remain elevated.",
+          "kept_occurrence_ids": [
+            "LLY-2025-081769",
+            "LLY-2025-202988",
+            "LLY-2025-214383"
+          ],
+          "removed_occurrences": [],
+          "reason": "The first two spans identify demand-driven manufacturing expansion; the third directly ties global manufacturing-facility investment to meaningfully higher near-term capital expenditures."
+        }
       }
     },
     {
@@ -211,7 +225,17 @@
             "occurrence_id": "LLY-2025-208980",
             "reason": "Re-extracted the filing-store space before the paragraph break; the exact snippet is 200 characters and remains within the global limit."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must identify the principal company-disclosed drivers of Lilly's 2025 revenue growth; a span containing only the growth rate is partial.",
+          "kept_occurrence_ids": [
+            "LLY-2025-188613",
+            "LLY-2025-208980"
+          ],
+          "removed_occurrences": [],
+          "reason": "The first span states the consolidated volume/price drivers; the second independently identifies the U.S. and international product drivers behind those revenue components."
+        }
       }
     }
   ],

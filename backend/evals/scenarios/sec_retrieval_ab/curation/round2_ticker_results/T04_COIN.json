@@ -195,7 +195,17 @@
             "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
             "reason": "Item 8 is outside retrieval scope; two non-Item-8 acceptable occurrences remain."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must state Coinbase's policy or practice concerning regular trading of investment crypto assets.",
+          "kept_occurrence_ids": [
+            "COIN-2025-410539",
+            "COIN-2025-419843"
+          ],
+          "removed_occurrences": [],
+          "reason": "Both Item 7 disclosures independently state that investment crypto assets are not intended for regular trading; the second also states the buy-and-hold policy."
+        }
       }
     },
     {
@@ -296,7 +306,18 @@
             "occurrence_id": "COIN-2025-398500",
             "reason": "Re-extracted the span and snippet from the filing store to preserve its non-breaking space after $152.0."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must explain a principal company-disclosed driver of Coinbase's 2025 transaction-revenue change; an isolated revenue amount is partial.",
+          "kept_occurrence_ids": [
+            "COIN-2025-398200",
+            "COIN-2025-398388",
+            "COIN-2025-398500"
+          ],
+          "removed_occurrences": [],
+          "reason": "Each bullet is an answer-bearing transaction-revenue driver in the same Results of Operations block: fee-rate mix, consumer trading volume, or institutional derivatives volume from Deribit."
+        }
       }
     }
   ],

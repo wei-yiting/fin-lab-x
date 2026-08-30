@@ -79,7 +79,8 @@
           "5",
           "16"
         ],
-        "reason": "The approved Round 1 question remains unchanged. The filing store labels the separate Series Q dividend table under Item 16, so the Item 5 sentence and Item 16 table remain OR-hit alternatives."
+        "reason": "The approved Round 1 question remains unchanged. The filing store labels the separate Series Q dividend table under Item 16, so the Item 5 sentence and Item 16 table remain OR-hit alternatives.",
+        "answer_requirement": "One independently sufficient span must identify the Series Q total dividend of $4.27 per share for 2025; a dividend amount for another security is partial."
       },
       "acceptable_occurrences": [
         {
@@ -105,12 +106,14 @@
           "window_id": "W0043",
           "normalized_start": 336753,
           "normalized_end": 336938,
-          "answer_span": "Preferred Stock – Series Q:\n\n         Ordinary income\n\n         $\n\n         3.85\n\n         $\n\n         3.90\n\n         $\n\n         4.05\n\n         Qualified dividend\n\n         0.02\n\n         0.02\n\n         0.00\n\n         Capital gains\n\n         0.40\n\n         0.35\n\n         0.22\n\n         Total dividend\n\n         $\n\n         4.27\n\n         $\n\n         4.27\n\n         $\n\n         4.27",
+          "answer_span": "The following summarizes the taxability of our common and preferred stock dividends for the years ended December 31: \n\n         2025\n\n         2024\n\n         2023\n\n         Common Stock:\n\n         Ordinary income\n\n         $\n\n         3.61\n\n         $\n\n         3.50\n\n         $\n\n         3.29\n\n         Qualified dividend\n\n         0.03\n\n         0.01\n\n         0.00\n\n         Capital gains\n\n         0.40\n\n         0.33\n\n         0.19\n\n         Total dividend\n\n         $\n\n         4.04\n\n         $\n\n         3.84\n\n         $\n\n         3.48\n\n         Preferred Stock – Series Q:\n\n         Ordinary income\n\n         $\n\n         3.85\n\n         $\n\n         3.90\n\n         $\n\n         4.05\n\n         Qualified dividend\n\n         0.02\n\n         0.02\n\n         0.00\n\n         Capital gains\n\n         0.40\n\n         0.35\n\n         0.22\n\n         Total dividend\n\n         $\n\n         4.27\n\n         $\n\n         4.27\n\n         $\n\n         4.27",
           "answer_snippet": "Total dividend\n\n         $\n\n         4.27\n\n         $\n\n         4.27\n\n         $\n\n         4.27",
+          "span_chars": 936,
+          "span_cl100k_tokens": 247,
           "snippet_chars": 95,
           "snippet_sha256": "8a6b986b3df27669d4beffc19b48c0e1f1c58e8b1d76616e0b721ea70672ac9d",
           "exact_occurrences_in_normalized_text": 1,
-          "acceptance_reason": "The Item 16 answer span identifies Series Q and reports a total dividend of $4.27 in every displayed year, including 2025; the shorter store-exact snippet anchors the total-dividend row within that span.",
+          "acceptance_reason": "The Item 16 answer span includes the 2025/2024/2023 column headings, identifies Series Q, and reports a total dividend of $4.27 in every displayed year; the shorter store-exact snippet anchors the total-dividend row within that independently sufficient span.",
           "representation_note": "The answer span and snippet are exact substrings of the filing-store table text, including indentation.",
           "store_anchor": {
             "source": "sec_text_pipeline_filing_store",
@@ -119,11 +122,11 @@
             "unit_kind": "structured_block",
             "block_index": 39,
             "block_heading": "Dividends",
-            "span_start": 1826,
+            "span_start": 1273,
             "span_end": 2209,
             "snippet_start": 2114,
             "snippet_end": 2209,
-            "span_sha256": "7bb419400db2a568a9bbf02c0f3ce26ea5ad2fd1049313d977ecbd42ddad25fa",
+            "span_sha256": "e6dbb578876162312625ddcaa4067a98fd0f531d98497d2491a2afdc920140b1",
             "snippet_sha256": "8a6b986b3df27669d4beffc19b48c0e1f1c58e8b1d76616e0b721ea70672ac9d"
           }
         }
@@ -141,10 +144,20 @@
             "occurrence_id": "PLD-2025-336753",
             "original_item_hint": "Item 8 / Note 8",
             "label_escape_search": "The dividend table is reachable under Item 16 / Dividends in the filing store.",
-            "store_location": "Item 16 / Dividends / chars 1826-2209",
-            "reason": "The non-Item-8 store location remains in the OR-set. Store indentation made the original full-table snippet exceed 200 characters, so a 95-character exact anchor within the same answer span is used."
+            "store_location": "Item 16 / Dividends / chars 1273-2209",
+            "reason": "The non-Item-8 store location remains in the OR-set. The 247-token answer span includes the table's year headings and Series Q rows; a 95-character exact anchor keeps the snippet within the global limit."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must identify the Series Q total dividend of $4.27 per share for 2025; a dividend amount for another security is partial.",
+          "kept_occurrence_ids": [
+            "PLD-2025-127107",
+            "PLD-2025-336753"
+          ],
+          "removed_occurrences": [],
+          "reason": "The Item 5 sentence directly states $4.27 per share; the Item 16 span labels Preferred Stock Series Q and shows total dividend of $4.27 in all displayed years, including 2025."
+        }
       }
     },
     {
@@ -235,7 +248,17 @@
             "store_location": "Item 16 / structured block 42 / chars 0-201",
             "reason": "The actual filing-store label is non-Item-8, so the distinct occurrence remains in the OR-set."
           }
-        ]
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient occurrence must state the maximum third-party promote share allocated to employees.",
+          "kept_occurrence_ids": [
+            "PLD-2025-142515",
+            "PLD-2025-348730"
+          ],
+          "removed_occurrences": [],
+          "reason": "Both occurrences independently state the current maximum allocation of 25% of third-party promotes to employees."
+        }
       }
     },
     {
@@ -309,6 +332,19 @@
           "generic acquisition, development and disposition language about NOI without a specific 2025 rental-revenue driver",
           "the general forward-looking sentence that lease rollovers will be the primary revenue-growth driver without specifically describing the observed 2025 change"
         ]
+      },
+      "round3_reconciliation": {
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient occurrence must explain a principal company-disclosed driver of Prologis's 2025 rental-revenue change; an isolated revenue amount or percentage is partial.",
+          "kept_occurrence_ids": [
+            "PLD-2025-130013",
+            "PLD-2025-030022",
+            "PLD-2025-136602"
+          ],
+          "removed_occurrences": [],
+          "reason": "Each occurrence independently identifies a rental-revenue mechanism: favorable lease mark-to-market, rent increases on rollover, or higher rollover rental rates."
+        }
       }
     }
   ],

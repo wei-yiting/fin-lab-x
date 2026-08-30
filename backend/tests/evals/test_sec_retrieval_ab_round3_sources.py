@@ -19,6 +19,7 @@ RESULTS_DIR = REPO_ROOT / (
 PENDING_TABLE_REBUILDS: set[str] = set()
 EXPECTED_T2_ACTIONS = {
     "CAT-2025-409946": "dropped_item_8_duplicate",
+    "AXON-2025-355627": "dropped_item_8",
     "COIN-2025-515508": "dropped_item_8",
     "DDOG-2025-286123": "dropped_item_8",
     "DDOG-2025-323068": "dropped_item_8",
@@ -161,7 +162,7 @@ def test_round3_store_anchors_resolve_to_the_current_exact_strings() -> None:
                     == anchor["snippet_sha256"]
                 )
 
-    assert anchored_occurrence_count == 19
+    assert anchored_occurrence_count == 24
 
 
 def test_jpm_n10_enumerates_store_exact_var_table_copies() -> None:
@@ -250,6 +251,56 @@ def test_lin_a16_has_independently_sufficient_store_exact_or_alternatives() -> N
     assert [
         action["action"] for action in candidate["round3_reconciliation"]["t3"]
     ] == ["reanchored_store_table", "verified_store_exact"]
+
+
+def test_pld_p48_item16_span_preserves_year_context() -> None:
+    result = json.loads((RESULTS_DIR / "T14_PLD.json").read_text())
+    candidate = next(
+        candidate
+        for candidate in result["candidate_results"]
+        if candidate["candidate_id"] == "p48"
+    )
+    item16 = next(
+        occurrence
+        for occurrence in candidate["acceptable_occurrences"]
+        if occurrence["item_hint"] == "Item 16"
+    )
+
+    assert "2025\n\n         2024\n\n         2023" in item16["answer_span"]
+    assert "Preferred Stock – Series Q:" in item16["answer_span"]
+    assert item16["span_cl100k_tokens"] == 247
+    assert len(item16["answer_snippet"]) == 95
+
+
+def test_every_non_item8_store_copy_is_enumerated_in_its_or_set() -> None:
+    store_units: list[dict[str, Any]] = []
+    listed_snippets: list[str] = []
+
+    for result_path in sorted(RESULTS_DIR.glob("*.json")):
+        result = json.loads(result_path.read_text())
+        filing = json.loads(
+            (
+                REPO_ROOT
+                / "data/sec_text"
+                / result["ticker"]
+                / "10-K"
+                / f"{result['fiscal_year']}.json"
+            ).read_text()
+        )
+        store_units.extend(unit for unit in _store_units(filing) if unit["item"] != "8")
+        listed_snippets.extend(
+            occurrence["answer_snippet"]
+            for candidate in result["candidate_results"]
+            for occurrence in candidate["acceptable_occurrences"]
+        )
+
+    for snippet in set(listed_snippets):
+        folded = snippet.casefold()
+        reachable_count = sum(
+            unit["text"].casefold().count(folded) for unit in store_units
+        )
+        listed_count = sum(listed.casefold() == folded for listed in listed_snippets)
+        assert reachable_count == listed_count, snippet
 
 
 def test_round3_item_8_reconciliation_is_complete_and_provenanced() -> None:

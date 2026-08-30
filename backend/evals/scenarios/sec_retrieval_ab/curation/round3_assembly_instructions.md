@@ -114,6 +114,10 @@ VaR-to-risk-types relation, escalate — do not substitute a different question.
 
 ### T4 — Rework n09 (PODD): replace the question
 
+**Completed 2026-08-27.** Option 1 was selected. The corrected single-intent
+question, one independently sufficient occurrence, and full-filing rejection audit
+are recorded in `T15_PODD.json` and `T15_PODD_correction_research.md`.
+
 The round-2 question and its 11 accepted occurrences are rejected (too broad, and
 over-accepted practices that do not answer "responsibility allocation"). Replace
 with ONE of the following, in order of preference, subject to the checks stated:
@@ -136,6 +140,10 @@ Pick exactly one; do not merge them.
 
 ### T5 — Narrow p17 (NVDA)
 
+**Completed 2026-08-27.** The corrected factoid and three independently sufficient
+store locations (Item 1A, Item 7, and the Item 15 label escape) are recorded in
+`T13_NVDA.json`.
+
 Replace the round-2 question with:
 
 - Question: `What share of NVIDIA's fiscal 2026 revenue came from its largest direct customer?`
@@ -148,6 +156,12 @@ Replace the round-2 question with:
   copy follows T2's label-escape verification.
 
 ### T6 — Strict re-verification of multi-occurrence rows
+
+**Completed 2026-08-30.** Seventeen candidates and 41 surviving occurrences were
+re-tested literally against their answer requirements. No semantically accepted
+occurrence was removed. Corpus enumeration found two additional reachable NEE
+`n01` copies under the store's Item 6 label; both were added to the OR-set. The
+candidate-level provenance and `round3_t6_semantic_audit.md` record the results.
 
 For every row with 2+ occurrences after T1–T5 (at least: a21, n03, n06, n08, p43,
 a19, p45, a24, a25, n01, p16, p20, p29, p48, corrected a16), re-test each occurrence against the
@@ -185,13 +199,13 @@ said responsibility allocation.)
 
 ## D. Verification checklist (before handing back for human review)
 
-- [ ] Every span/snippet is a case-insensitive exact substring of the filing store
+- [x] Every span/snippet is a case-insensitive exact substring of the filing store
       text at its listed (ticker, FY, item) location.
-- [ ] Every snippet is 50–200 chars; every span ≤ 300 cl100k tokens.
-- [ ] No expected location has an Item 8 header_path.
-- [ ] Every snippet occurring >1× in the corpus has all occurrences either listed
+- [x] Every snippet is 50–200 chars; every span ≤ 300 cl100k tokens.
+- [x] No expected location has an Item 8 header_path.
+- [x] Every snippet occurring >1× in the corpus has all occurrences either listed
       in its OR-set or excluded under a documented T2 drop.
-- [ ] No question is compound (one information need per row; no ", and" clause
+- [x] No question is compound (one information need per row; no ", and" clause
       joins, no "and <wh-word>" joins).
-- [ ] Rows changed in round 3 (T3, T4, T5, T6 removals) are flagged for human
+- [x] Rows changed in round 3 (T3, T4, T5, T6 removals) are flagged for human
       re-review; unchanged approved rows keep their round-1/round-2 status.

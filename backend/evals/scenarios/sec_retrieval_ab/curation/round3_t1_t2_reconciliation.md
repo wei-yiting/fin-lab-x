@@ -17,6 +17,9 @@ offsets remain only as Round 2 provenance and are not filing-store offsets.
 
 | Candidate | Ticker | Occurrence | Store item | Correction |
 |---|---|---|---|---|
+| p43 | AXON | occ0 | Item 7 | Re-extracted canonical whitespace as exact store text. |
+| p43 | AXON | occ1 | Item 7A | Re-extracted canonical whitespace as exact store text. |
+| n07 | AXON | occ1 | Item 1 | Re-extracted canonical whitespace as exact store text. |
 | n06 | COIN | occ0 | Item 7 | Preserved the non-breaking space after `$384.4`. |
 | n06 | COIN | occ2 | Item 7 | Preserved the non-breaking space after `$152.0`. |
 | p45 | DDOG | occ1 | Item 7A | Preserved the non-breaking space after `In`. |
@@ -29,8 +32,9 @@ offsets remain only as Round 2 provenance and are not filing-store offsets.
 | n01 | NEE | occ1 | Item 7 | Preserved the non-breaking space after `$5.5`; the snippet itself was already exact. |
 | p32 | XOM | occ0 | Item 1 | Preserved the non-breaking space between `8` and `thousand`. |
 
-The audit found two pure-whitespace mismatches beyond the original T1 table:
-COIN `n06/occ0` and NEE `n01/occ1`.
+The audit found five pure-whitespace mismatches beyond the original T1 table:
+AXON `p43/occ0`, `p43/occ1`, `n07/occ1`, COIN `n06/occ0`, and NEE
+`n01/occ1`.
 
 ### Store-location reconciliation
 
@@ -38,6 +42,7 @@ COIN `n06/occ0` and NEE `n01/occ1`.
 |---|---|---|---|
 | n08 | DECK | occ1, canonical Item 7 | Collapsed into occ0 because it maps to the same Item 1 store location; no Item 7 store copy exists. |
 | p50 | LIN | occ1, canonical Item 1C | Collapsed into occ0 because it maps to the same Item 1A flat-item location. |
+| n01 | NEE | two Item 7 answer texts | Each text also occurs under the store's Item 6 label; both additional reachable copies were enumerated during T6. |
 | n04 | XOM | occ0, canonical Item 7 | Kept and relabelled to the actual Item 16 / `Upstream Financial Results` store block. |
 
 LIN `a16` was deferred to T3 rather than treated as a T1 whitespace correction
@@ -85,15 +90,16 @@ the 16-filing store corpus.
 
 ## T2 results
 
-The complete audit found 13 Round 2 occurrences whose canonical source hint was
-Item 8, including four beyond the original known-case list (`a21`, `p24`, `p29`,
-and `p20`). Ten were dropped and three were retained under actual non-Item-8 store
+The complete audit found 14 Round 2 occurrences whose canonical source hint was
+Item 8, including five beyond the original known-case list (`p43`, `a21`, `p24`,
+`p29`, and `p20`). Eleven were dropped and three were retained under actual non-Item-8 store
 labels. Every affected candidate retains at least one acceptable occurrence.
 
 ### Dropped Item 8 occurrences
 
 | Candidate | Ticker | Occurrence | Non-Item-8 search result |
 |---|---|---|---|
+| p43 | AXON | occ2 / Note 9 | No same-text non-Item-8 occurrence; distinct Item 7 and Item 7A answers remain. |
 | a25 | CAT | occ1 / Note 25 | Same text exists under Item 7 and is already represented by occ0; dropped as a duplicate. |
 | a21 | COIN | occ2 / Note 2 | No non-Item-8 store occurrence. |
 | p45 | DDOG | occ2 / Note 2 | No non-Item-8 store occurrence. |
@@ -110,7 +116,7 @@ labels. Every affected candidate retains at least one acceptable occurrence.
 | Candidate | Ticker | Original hint | Actual store location | Result |
 |---|---|---|---|---|
 | p17 | NVDA | Item 8 / Note 16 | Item 15 / `Note 16 - Segment Information` | Retained as the third distinct OR alternative; Item 1A and Item 7 copies were already present. |
-| p48 | PLD | Item 8 / Note 8 | Item 16 / `Dividends` | Retained. The store-exact table span is 383 characters; its conforming exact anchor is the 95-character `Total dividend` row. |
+| p48 | PLD | Item 8 / Note 8 | Item 16 / `Dividends` | Retained. The 247-token store-exact span includes the table's year headings and Series Q rows; its conforming exact anchor is the 95-character `Total dividend` row. |
 | p29 | PLD | Item 8 / Note 11 | Item 16 / `Prologis Promote Plan (“PPP”)` | Retained as a distinct OR alternative. |
 
 ## Assembly contract

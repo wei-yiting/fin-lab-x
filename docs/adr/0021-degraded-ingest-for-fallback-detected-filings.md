@@ -1,4 +1,4 @@
-# ADR-0018: Degraded ingest for fallback-detected filings (2026-08-21)
+# ADR-0021: Degraded ingest for fallback-detected filings (2026-08-21)
 
 **Decision**: A filing whose filing-level section detection method (passed through from
 upstream `Section.detection_method`) falls outside {`toc`, `heading`} is ingested

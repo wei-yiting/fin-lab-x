@@ -1,4 +1,4 @@
-"""Noise cleaning for degraded-ingest full-document markdown (ADR-0018).
+"""Noise cleaning for degraded-ingest full-document markdown (ADR-0021).
 
 When section detection ran a fallback strategy the item parser cannot
 trust, the whole filing-level markdown is ingested instead of per-Item

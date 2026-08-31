@@ -110,7 +110,7 @@ class TestParsedFilingRoundTrip:
 
 
 class TestDegradedFields:
-    """ADR-0018 ratified additive change to the frozen schema: a degraded
+    """ADR-0021 ratified additive change to the frozen schema: a degraded
     filing stores the noise-cleaned full document text instead of items,
     and metadata records the upstream section detection method."""
 

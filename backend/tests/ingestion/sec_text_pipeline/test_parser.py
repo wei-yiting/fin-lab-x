@@ -506,7 +506,7 @@ DEGRADED_MARKDOWN = (
 
 
 def make_pattern_tenk() -> FakeTenK:
-    """The AMD FY2025 pattern-detection shape (ADR-0018; the historical repro):
+    """The AMD FY2025 pattern-detection shape (ADR-0021; the historical repro):
     one semantically-named section, item metadata empty, detection_method
     "pattern" — the shape the item parser cannot trust."""
     return FakeTenK(
@@ -521,7 +521,7 @@ def make_pattern_tenk() -> FakeTenK:
 
 
 class TestDegradedIngest:
-    """Detection-method-triggered degraded path (ADR-0018): fallback-detected
+    """Detection-method-triggered degraded path (ADR-0021): fallback-detected
     filings ingest the noise-cleaned full markdown instead of items."""
 
     def _patch(self, monkeypatch, tenk, markdown=DEGRADED_MARKDOWN):

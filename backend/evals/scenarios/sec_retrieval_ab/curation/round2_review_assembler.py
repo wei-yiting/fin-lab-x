@@ -279,12 +279,18 @@ def _blockquote(text: str) -> str:
     return "\n".join(f"> {line}" if line else ">" for line in lines)
 
 
-def _span_with_bold_snippet(span: str, snippet: str) -> str:
+def _span_with_bold_snippet(
+    span: str, snippet: str, zh_tw_snippet: str | None = None
+) -> str:
     index = span.find(snippet)
     if index < 0:
-        return f"{_blockquote(span)}\n\nSnippet: **{snippet}**"
-    marked = f"{span[:index]}**{snippet}**{span[index + len(snippet) :]}"
-    return _blockquote(marked)
+        rendered = f"{_blockquote(span)}\n\nSnippet: **{snippet}**"
+    else:
+        marked = f"{span[:index]}**{snippet}**{span[index + len(snippet) :]}"
+        rendered = _blockquote(marked)
+    if zh_tw_snippet:
+        return f"{rendered}\n\n> **繁體中文（台灣用語，僅供 review）**：{zh_tw_snippet}"
+    return rendered
 
 
 def _reconciliation_reasons(candidate: dict[str, Any]) -> list[str]:
@@ -305,6 +311,7 @@ def _reconciliation_reasons(candidate: dict[str, Any]) -> list[str]:
 
 def _render_markdown(curation_dir: Path, rows: list[dict[str, str]]) -> str:
     results = _load_results(curation_dir)
+    translations = _read_json(curation_dir / "round2_review_zh_tw.json")["candidates"]
     original_candidates = {
         candidate["candidate_id"]: candidate
         for candidate in _read_json(curation_dir / "candidates.json")
@@ -315,6 +322,8 @@ def _render_markdown(curation_dir: Path, rows: list[dict[str, str]]) -> str:
         "This surface contains 51 active candidates and 4 reference-only Round-1 rows. Fill only `round2_decision` and `round2_reviewer_comment` in `round2_review.csv`; both fields are intentionally blank.",
         "",
         "Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving any one occurrence counts as a hit, and every occurrence must independently satisfy the answer requirement.",
+        "",
+        "Round-2 questions and highlighted evidence snippets include a Traditional Chinese (Taiwan) review translation. The English source span remains authoritative; Round-1 evidence is preserved as English historical comparison material.",
         "",
         "## Review order",
         "",
@@ -331,6 +340,7 @@ def _render_markdown(curation_dir: Path, rows: list[dict[str, str]]) -> str:
         candidate_id = row["candidate_id"]
         candidate = results.get(candidate_id)
         original = original_candidates.get(candidate_id)
+        translated = translations.get(candidate_id, {})
         lines.extend(
             [
                 f"## Candidate {candidate_id} — {row['ticker']}",
@@ -363,7 +373,10 @@ def _render_markdown(curation_dir: Path, rows: list[dict[str, str]]) -> str:
                     [
                         f"**Original evidence {index}** — `{evidence['header_path']}`",
                         "",
-                        _span_with_bold_snippet(evidence["span"], evidence["snippet"]),
+                        _span_with_bold_snippet(
+                            evidence["span"],
+                            evidence["snippet"],
+                        ),
                         "",
                     ]
                 )
@@ -382,6 +395,7 @@ def _render_markdown(curation_dir: Path, rows: list[dict[str, str]]) -> str:
                 [
                     "### Round-2 proposal",
                     "",
+                    f"- 問題（繁體中文）：{translated['question']}",
                     f"- Answer requirement: {row['answer_requirement']}",
                     f"- Curation note: {row['curation_note']}",
                     f"- Change summary: {row['change_summary']}",
@@ -404,7 +418,11 @@ def _render_markdown(curation_dir: Path, rows: list[dict[str, str]]) -> str:
                         f"- Acceptance reason: {occurrence.get('acceptance_reason', '—')}",
                         "",
                         _span_with_bold_snippet(
-                            occurrence["answer_span"], occurrence["answer_snippet"]
+                            occurrence["answer_span"],
+                            occurrence["answer_snippet"],
+                            translated["round2_occurrences"][
+                                occurrence["occurrence_id"]
+                            ],
                         ),
                         "",
                     ]

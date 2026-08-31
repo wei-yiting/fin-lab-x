@@ -4,6 +4,8 @@ This surface contains 51 active candidates and 4 reference-only Round-1 rows. Fi
 
 Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving any one occurrence counts as a hit, and every occurrence must independently satisfy the answer requirement.
 
+Round-2 questions and highlighted evidence snippets include a Traditional Chinese (Taiwan) review translation. The English source span remains authoritative; Round-1 evidence is preserved as English historical comparison material.
+
 ## Review order
 
 | group | rows | review expectation |
@@ -39,6 +41,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：什麼因素可能妨礙收回 EOFlow 商業機密訴訟的賠償金？
 - Answer requirement: One independently sufficient occurrence must identify EOFlow's appeal and uncertain ability to satisfy the damages award as threats to collection.
 - Curation note: This passage identifies a company-specific legal judgment and tests retrieval of appeal and collectability risks that could prevent Insulet from realizing the award.
 - Change summary: The approved question remains unchanged. After the Item 8 exclusion, the Item 7 occurrence states both EOFlow's appeal and its uncertain ability to satisfy the award.
@@ -52,6 +55,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies both threats to collection in Item 7: EOFlow's appeal and uncertain ability to pay.
 
 > **We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.**
+
+> **繁體中文（台灣用語，僅供 review）**：由於 EOFlow 已提出上訴，且其履行賠償金的能力不確定，公司尚未在合併損益表認列該賠償金。
 
 #### Evidence provenance
 
@@ -90,6 +95,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：若未採取計畫中的緩解措施，關稅可能造成多少成本？
 - Answer requirement: One independently sufficient occurrence must state the relative tariff impact if Caterpillar does not take its planned 2026 mitigation actions; an inferred dollar amount is not acceptable.
 - Curation note: This passage quantifies Caterpillar’s 2026 tariff exposure and the additional downside if its countermeasures are not implemented.
 - Change summary: Round 1 was approved, and full traversal found one independently sufficient occurrence expressing the no-mitigation impact as around 20 percent higher.
@@ -103,6 +109,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states the relative tariff impact if Caterpillar does not take its planned 2026 mitigating actions.
 
 > Based on the incremental tariffs announced in 2025 and in place by January 29, 2026, we expect the impact from tariffs to be around $2.6 billion in 2026, which is $800 million higher than incurred in 2025. **If we do not take the mitigating actions we plan to take in 2026, the impact from tariffs could be around 20 percent higher.** We remain confident that we will manage the impact of tariffs over time.
+
+> **繁體中文（台灣用語，僅供 review）**：若未採取計畫於 2026 年執行的緩解措施，關稅影響可能約高出 20%。
 
 ### Human review — Round 2
 
@@ -137,6 +145,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：退休義務對成本通膨假設有多敏感？
 - Answer requirement: One independently sufficient occurrence must quantify how a change in the nuclear-decommissioning cost-escalation assumption would affect NEE's retirement obligations.
 - Curation note: This passage links NEE’s estimation methodology to a quantified $179 million sensitivity from a 0.25% escalation-rate increase.
 - Change summary: Full traversal confirmed that the Round 1 question and evidence remain valid. The filing contains one quantitative occurrence linking a 0.25% increase in the nuclear-decommissioning cost escalation assumption to a $179 million increase in NEE's AROs.
@@ -150,6 +159,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states both the change in the cost-inflation assumption and the resulting increase in retirement obligations.
 
 > Estimating the amount and timing of future expenditures includes, among other things, making projections of when assets will be retired and ultimately decommissioned and how costs will escalate with inflation. In addition, NEE also makes interest rate and rate of return projections on its investments in determining recommended funding requirements for nuclear decommissioning costs. Periodically, NEE is required to update these estimates and projections which can affect the annual expense amounts recognized, the liabilities recorded and the annual funding requirements for nuclear decommissioning costs. **For example, an increase of 0.25% in the assumed escalation rates for nuclear decommissioning costs would increase NEE’s AROs as of December 31, 2025 by approximately $179 million.**
+
+> **繁體中文（台灣用語，僅供 review）**：例如，核能除役成本假設遞增率上升 0.25%，將使 NEE 截至 2025 年 12 月 31 日的資產除役義務增加約 1.79 億美元。
 
 #### Evidence provenance
 
@@ -188,6 +199,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：ExxonMobil 如何培育並留任任職年資長的職涯員工？
 - Answer requirement: One independently sufficient occurrence must connect ExxonMobil's career-oriented talent-development approach to employee retention or tenure.
 - Curation note: This evidence links individualized development, roughly 30-year average tenure, and performance-based rewards, testing retrieval of ExxonMobil’s specific workforce strategy.
 - Change summary: Round 1 approved this question and evidence. Full traversal found one independently sufficient occurrence of the approved retention and tenure answer, so the candidate remains unchanged.
@@ -201,6 +213,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states that the career-oriented talent-development approach produces strong retention and approximately 30 years of average service.
 
 > **Our career-oriented approach to talent development results in strong retention and an average length of service of about 30 years for our career employees.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司以職涯為導向的人才培育方式帶來強勁留任率，職涯員工平均年資約為 30 年。
 
 ### Human review — Round 2
 
@@ -235,6 +249,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：cbETH 易手時，標的質押 Ether 會如何處理？
 - Answer requirement: One independently sufficient occurrence must explain what happens to ownership of underlying staked Ether when cbETH is sold or transferred.
 - Curation note: This evidence explains cbETH ownership and transfer mechanics, testing retrieval of a product-specific consequence of selling or transferring the token.
 - Change summary: Round 1 was approved, and full traversal found one independently sufficient occurrence.
@@ -248,6 +263,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states that transferring cbETH transfers ownership of the underlying staked ETH and its earned rewards.
 
 > **Selling or otherwise transferring cbETH automatically transfers ownership of the underlying staked ETH, along with any rewards earned.**
+
+> **繁體中文（台灣用語，僅供 review）**：出售或轉讓 cbETH 時，標的已質押 ETH 的所有權及已累積的獎勵會自動一併移轉。
 
 ### Human review — Round 2
 
@@ -282,6 +299,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：誰會獨立評估 Alphabet 的網路防禦能力？
 - Answer requirement: One independently sufficient occurrence must identify who independently tests Alphabet's cybersecurity controls.
 - Curation note: This evidence identifies the specific internal function responsible for independent control testing and tests retrieval of Alphabet’s cybersecurity oversight structure.
 - Change summary: Round 1 approved the evidence contract. Full traversal found one independently sufficient occurrence identifying Internal Audit; the Round 1 concern about query frequency remains a human filtering decision.
@@ -295,6 +313,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies Internal Audit and its dedicated cybersecurity auditing team as the independent tester of Alphabet's cybersecurity controls.
 
 > **Internal Audit maintains a dedicated cybersecurity auditing team that independently tests our cybersecurity controls.**
+
+> **繁體中文（台灣用語，僅供 review）**：內部稽核部門設有專責資安稽核團隊，獨立測試公司的資安控制措施。
 
 ### Human review — Round 2
 
@@ -329,6 +349,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Caterpillar 的 IT 主管多久參加一次 Audit Committee 會議？
 - Answer requirement: One independently sufficient occurrence must state how frequently Caterpillar's CIO attends Audit Committee meetings.
 - Curation note: This evidence provides a company-specific meeting cadence and tests retrieval of Caterpillar's cybersecurity governance practices.
 - Change summary: The evidence contract is correct and full traversal found one independently sufficient occurrence. The Round 1 concern is candidate value and remains a human filtering decision.
@@ -342,6 +363,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly joins the CIO, attendance, Audit Committee meetings and their cadence.
 
 > **The Company’s Chief Information Officer & Senior Vice President, Caterpillar IT (the “CIO”) attends all bimonthly AC meetings and provides cybersecurity updates to the AC and board.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司 CIO 每兩個月參加所有 Audit Committee 會議，並向委員會與董事會提供資安更新。
 
 ### Human review — Round 2
 
@@ -376,6 +399,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：截至 2025 年底，Axon 可動用多少信用額度？
 - Answer requirement: One independently sufficient span must state Axon's available borrowing under its line of credit at year-end 2025.
 - Curation note: This evidence gives Axon’s exact unused borrowing capacity and tests retrieval of a dated liquidity fact.
 - Change summary: The approved question remains unchanged. Two reachable non-Item-8 store occurrences independently report $291.1 million of available borrowing.
@@ -390,6 +414,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **As of December 31, 2025, we had letters of credit outstanding of approximately $8.9 million under the facility and available borrowing of $291.1 million.**
 
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年 12 月 31 日，扣除約 890 萬美元已開立信用狀後，該融資額度可借款金額為 2.911 億美元。
+
 **OR alternative 2** — `AXON-2025-226300`
 
 - Store Item: `7a`
@@ -397,6 +423,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states the year-end date and $291.1 million available borrowing.
 
 > **As of the year ended December 31, 2025, there was no amount outstanding under the line of credit, and the available borrowing under the line of credit was $291.1 million.**
+
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年底，該循環信用額度沒有未償餘額，可借款金額為 2.911 億美元。
 
 #### Evidence provenance
 
@@ -438,6 +466,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：利率變動一個百分點對 Costco 投資的影響為何？
 - Answer requirement: One independently sufficient span must state the fair-value effect of a 100-basis-point interest-rate change on Costco's investments at fiscal 2025 year-end.
 - Curation note: This evidence quantifies a company-specific sensitivity scenario and tests retrieval of the resulting valuation impact.
 - Change summary: The approved question and its sole independently sufficient occurrence remain unchanged.
@@ -451,6 +480,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states that the incremental fair-market-value effect would have been immaterial.
 
 > **A 100 basis point change in interest rates as of the end of 2025 would have had an immaterial incremental change in fair market value.**
+
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年底，利率變動 100 個基點對公平市價的額外影響並不重大。
 
 ### Human review — Round 2
 
@@ -485,6 +516,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Datadog 的 2029 Notes 在何時發行、金額多少？
 - Answer requirement: One independently sufficient span must state both when Datadog issued the 2029 Notes and their aggregate principal amount.
 - Curation note: This sentence provides a company-specific issuance date and principal amount, testing retrieval of a precise financing fact.
 - Change summary: The approved Round 1 question remains unchanged. After the Item 8 exclusion, the Item 7 and Item 7A filing-store occurrences each state both the issuance timing and principal amount.
@@ -499,6 +531,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes in a private placement to qualified institutional buyers pursuant to Rule 144A under the Securities Act.**
 
+> **繁體中文（台灣用語，僅供 review）**：Datadog 於 2024 年 12 月依 Securities Act Rule 144A 私募發行本金總額 10 億美元的 2029 Notes。
+
 **OR alternative 2** — `DDOG-2025-259341`
 
 - Store Item: `7a`
@@ -506,6 +540,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states December 2024 and $1.0 billion for the 2029 Notes issuance.
 
 > **In December 2024, we issued $1.0 billion aggregate principal amount of the 2029 Notes.**
+
+> **繁體中文（台灣用語，僅供 review）**：Datadog 於 2024 年 12 月發行本金總額 10 億美元的 2029 Notes。
 
 #### Evidence provenance
 
@@ -547,6 +583,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Prologis Series Q 在 2025 年每股股利是多少？
 - Answer requirement: One independently sufficient span must identify the Series Q total dividend of $4.27 per share for 2025; a dividend amount for another security is partial.
 - Curation note: This evidence states a precise annual per-share dividend and tests retrieval of a company-specific preferred-stock payment.
 - Change summary: The approved Round 1 question remains unchanged. The filing store labels the separate Series Q dividend table under Item 16, so the Item 5 sentence and Item 16 table remain OR-hit alternatives.
@@ -560,6 +597,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly reports the 2025 per-share dividend amount in the Item 5 Series Q paragraph.
 
 > **Dividends payable per share were $4.27 for the year ended December 31, 2025.**
+
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年 12 月 31 日止年度，每股應付股利為 4.27 美元。
 
 **OR alternative 2** — `PLD-2025-336753`
 
@@ -667,6 +706,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 >
 >          4.27**
 
+> **繁體中文（台灣用語，僅供 review）**：表中各年度的總股利皆為每股 4.27 美元。
+
 #### Evidence provenance
 
 - T2: The non-Item-8 store location remains in the OR-set. The 247-token answer span includes the table's year headings and Series Q rows; a 95-character exact anchor keeps the snippet within the global limit.
@@ -705,6 +746,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：NVIDIA 正持續推動哪一項企業軟體現代化計畫？
 - Answer requirement: One independently sufficient span must identify the continuing ERP-system modernization initiative.
 - Curation note: This evidence identifies NVIDIA’s phased ERP upgrade and tests retrieval of a specific ongoing financial-systems initiative.
 - Change summary: The Round 1 question remains unchanged. Full traversal adds the Item 1A ERP implementation disclosure as a second independently sufficient OR alternative.
@@ -719,6 +761,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **We continue to design and implement updated accounting functionality related to a new enterprise resource planning, or ERP, system.**
 
+> **繁體中文（台灣用語，僅供 review）**：公司持續設計並導入與新 enterprise resource planning（ERP）系統相關的更新會計功能。
+
 **OR alternative 2** — `NVDA-2026-227546`
 
 - Store Item: `Item 9A`
@@ -726,6 +770,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: The distinct Item 9A occurrence directly identifies the continuing phased ERP upgrade and its modernization purpose.
 
 > **We are continuing a phased upgrade of our enterprise resource planning, or ERP, system to update our existing core financial systems.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司持續分階段升級 ERP 系統，以更新既有的核心財務系統。
 
 #### Evidence provenance
 
@@ -764,6 +810,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Alphabet 尚未動用的 revolving credit facilities 額度與到期時程為何？
 - Answer requirement: One independently sufficient span must state the total revolving-credit capacity and how that capacity is split between the April 2026 and April 2030 expirations.
 - Curation note: This evidence gives the company-specific size, expiration dates, and unused status of Alphabet’s revolving credit arrangements, testing retrieval of linked financing details.
 - Change summary: The approved Round 1 question remains unchanged. The Item 7 filing-store occurrence states the full capacity and expiration split; the Item 8 copy is excluded.
@@ -777,6 +824,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states the $10.0 billion capacity and its $4.0 billion April 2026 / $6.0 billion April 2030 expiration schedule.
 
 > **As of December 31, 2025, we had $10.0 billion of revolving credit facilities, $4.0 billion expiring in April 2026 and $6.0 billion expiring in April 2030.**
+
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年 12 月 31 日，公司有 100 億美元循環信用額度，其中 40 億美元於 2026 年 4 月到期、60 億美元於 2030 年 4 月到期。
 
 #### Evidence provenance
 
@@ -816,6 +865,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Linde 在設備合約會計中納入哪些成本組成？
 - Answer requirement: One independently sufficient occurrence must identify the material, labor, and overhead cost components Linde includes when accounting for equipment contracts.
 - Curation note: This passage captures Linde-specific engineering delivery risks involving input and labor estimates, construction duration, technical complexity, inflation, and changing scope.
 - Change summary: The Round 1 question combines material and labor cost categories with technical complexity, construction duration, inflation, and scope. Those facts require multiple sentences and cannot fit in one independently sufficient 50-200 character occurrence. The revised question asks one thing; after the Item 8 exclusion, the Item 7 occurrence identifies material, labor, and overhead costs.
@@ -829,6 +879,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies material, labor, and overhead as the components of estimated costs at completion.
 
 > **The key source of estimation uncertainty is the total estimated costs at completion including material, labor and overhead costs and the resultant state of completion of the contracts.**
+
+> **繁體中文（台灣用語，僅供 review）**：估計不確定性的主要來源，是完工時的估計總成本（包括材料、人工及間接成本），以及合約的完工狀態。
 
 #### Evidence provenance
 
@@ -868,6 +920,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：NVIDIA 最大的直接客戶占其 2026 會計年度營收多少比重？
 - Answer requirement: One independently sufficient span must state the percentage of total fiscal 2026 revenue attributable to NVIDIA's largest direct customer; spans at distinct source offsets are OR-hit alternatives.
 - Curation note: This passage identifies concentrated indirect-buyer exposure and a meaningful fiscal 2026 contribution linked to one AI company, testing retrieval beyond direct-customer percentages.
 - Change summary: The corrected single-intent factoid asks for the largest direct-customer share. Full-filing traversal found three distinct source occurrences that each report one direct customer at 22% of fiscal 2026 revenue and the next direct customer at 14%, making 22% the largest disclosed share.
@@ -882,6 +935,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue**
 
+> **繁體中文（台灣用語，僅供 review）**：2026 會計年度，單一直接客戶的銷售額占總營收 22%；另一直接客戶占 14%。
+
 **OR alternative 2** — `NVDA-2026-205958`
 
 - Store Item: `Item 7`
@@ -890,6 +945,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue**
 
+> **繁體中文（台灣用語，僅供 review）**：2026 會計年度，單一直接客戶的銷售額占總營收 22%；另一直接客戶占 14%。
+
 **OR alternative 3** — `NVDA-2026-337687`
 
 - Store Item: `15`
@@ -897,6 +954,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: The filing store labels the Note 16 occurrence under Item 15; it independently repeats the 22% largest disclosed direct-customer share and the 14% comparison.
 
 > **For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue**
+
+> **繁體中文（台灣用語，僅供 review）**：2026 會計年度，單一直接客戶的銷售額占總營收 22%；另一直接客戶占 14%。
 
 #### Evidence provenance
 
@@ -936,6 +995,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：出口授權要求可能如何影響 Datadog 的銷售機會？
 - Answer requirement: One independently sufficient occurrence must state how export-authorization requirements can restrict or eliminate Datadog sales opportunities.
 - Curation note: This passage links restrictive trade policies to economic uncertainty that may weaken Datadog’s growth and operating performance.
 - Change summary: The Round 1 snippet states the business effect but omits the trade-barrier cause. The source sentence that joins both concepts is longer than 200 characters. The revised intent remains about a concrete trade-control impact and has one independently sufficient 50–200 character occurrence.
@@ -949,6 +1009,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states that obtaining required export authorization can delay or eliminate a sale opportunity.
 
 > **Obtaining the necessary export license or other authorization for a particular sale may be time-consuming and may result in the delay or loss of sales opportunities.**
+
+> **繁體中文（台灣用語，僅供 review）**：取得特定銷售所需的出口許可或其他授權可能耗時，並可能導致銷售機會延遲或流失。
 
 ### Human review — Round 2
 
@@ -987,6 +1049,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Coinbase 2025 年的國際營收主要由什麼構成？
 - Answer requirement: One independently sufficient span must identify the main type of Coinbase international revenue in 2025.
 - Curation note: This passage quantifies Coinbase’s geographic revenue concentration and identifies the main type of revenue earned internationally.
 - Change summary: The Round 1 query combined geographic mix with foreign-revenue source, while its only evidence covered the mix. Because the two adjacent disclosures cannot form separate OR alternatives for a compound question, the revision keeps the missing foreign-source intent as one independently answerable need.
@@ -1000,6 +1063,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies transaction revenue as the main source of international revenue.
 
 > For the years ended December 31, 2025 and 2024 we generated 84% and 83%, respectively, of total revenue in the U.S., with no other country contributing over 10%. **International revenue comprised mainly transaction revenue.**
+
+> **繁體中文（台灣用語，僅供 review）**：國際營收主要由交易營收構成。
 
 ### Human review — Round 2
 
@@ -1041,6 +1106,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：2025 年 AWS 銷售成長主要由什麼驅動？
 - Answer requirement: One independently sufficient span must explain the primary disclosed driver of AWS sales growth in 2025; a growth rate without the driver is partial.
 - Curation note: This passage captures distinct growth drivers for Amazon’s International and AWS businesses, testing retrieval across adjacent segment discussions.
 - Change summary: The Round-1 question combined International retail and AWS. The revision keeps only AWS and the single store-exact occurrence identifies increased customer usage as the primary driver.
@@ -1054,6 +1120,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states the AWS subject, comparison year, and primary customer-usage driver.
 
 > **AWS sales increased 20% in 2025, compared to the prior year. The sales growth primarily reflects increased customer usage**
+
+> **繁體中文（台灣用語，僅供 review）**：AWS 2025 年銷售額較前一年增加 20%，主要反映客戶使用量增加。
 
 ### Human review — Round 2
 
@@ -1100,6 +1168,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Deckers 的總銷售單位量在 2026 會計年度如何變動？
 - Answer requirement: One independently sufficient occurrence must state the fiscal 2026 percentage increase and resulting total unit volume for Deckers.
 - Curation note: This passage consolidates constant-currency growth, comparable direct-channel performance, and unit-volume data, testing retrieval of related supplemental operating metrics.
 - Change summary: The Round 1 query combined sales-growth rates with a unit-volume metric, while its evidence answered only unit volume. The revised question asks only for the disclosed unit-volume change and removes the pipeline-specific bullet artifact from the canonical snippet.
@@ -1115,6 +1184,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 > **We experienced an increase of 6.2% in the total volume of units sold to 78,700 from 74,100,
 >
 > compared to the prior period.**
+
+> **繁體中文（台灣用語，僅供 review）**：銷售單位總量由前期 74,100 增至 78,700，增加 6.2%。
 
 #### Evidence provenance
 
@@ -1155,6 +1226,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Alphabet 在 2025 年 11 月發行的美元票據中，浮動利率與固定利率各占多少？
 - Answer requirement: One independently sufficient span must state both the floating-rate and fixed-rate U.S. dollar note amounts issued in November 2025.
 - Curation note: This passage details Alphabet’s mix of dollar and euro borrowings and fixed versus floating coupons, testing retrieval of concrete financing choices relevant to currency and interest-rate exposure.
 - Change summary: The Round 1 question requires a cross-denomination and coupon-structure comparison, but no single independently sufficient 50-200 character occurrence contains that full comparison. The revision preserves the reviewer's required contrast by narrowing to the November U.S. dollar issuance: $500 million floating-rate versus $17.0 billion fixed-rate.
@@ -1168,6 +1240,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: This shortest self-contained clause directly contrasts the $500 million floating-rate and $17.0 billion fixed-rate U.S. dollar notes; the remaining maturity and coupon details are not needed for the revised question.
 
 > **We issued $500 million of US dollar-denominated floating-rate senior unsecured notes and $17.0 billion of US dollar-denominated fixed-rate senior unsecured notes**
+
+> **繁體中文（台灣用語，僅供 review）**：公司發行 5 億美元美元計價浮動利率無擔保優先票據，以及 170 億美元美元計價固定利率無擔保優先票據。
 
 #### Evidence provenance
 
@@ -1206,6 +1280,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：2025 年 Axon Personal Sensors 營收增加的原因為何？
 - Answer requirement: One independently sufficient span must explain a principal disclosed driver of the 2025 increase in Personal Sensors revenue; an amount without a driver is partial.
 - Curation note: This evidence captures product-specific growth drivers across all three Connected Devices lines and tests retrieval of a compact comparative operating explanation.
 - Change summary: The Round-1 question combined three product lines. The revision retains only Personal Sensors and its disclosed drivers.
@@ -1219,6 +1294,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently identifies AB4 adoption and higher warranty revenue as the principal drivers.
 
 > **Personal Sensors increased $80.1 million, which was primarily driven by the continued adoption of our newest body camera, AB4, and higher warranty revenue from more devices in the field.**
+
+> **繁體中文（台灣用語，僅供 review）**：Personal Sensors 增加 8,010 萬美元，主要由最新 body camera AB4 持續被採用，以及更多現場設備帶來較高的保固營收所推動。
 
 ### Human review — Round 2
 
@@ -1255,6 +1332,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Costco 預計在 2026 會計年度投入多少資本支出？
 - Answer requirement: One independently sufficient span must state Costco's intended fiscal 2026 capital-expenditure amount; historical spending or warehouse counts alone are partial.
 - Curation note: This passage combines Costco’s projected fiscal 2026 investment range, funding sources, and planned openings, testing retrieval of a detailed forward capital plan.
 - Change summary: The Round-1 question combined capital spending and warehouse expansion. The revision asks only for the disclosed fiscal 2026 spending range.
@@ -1268,6 +1346,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states the intended fiscal 2026 capital-expenditure range.
 
 > **In 2025, we spent $5,498 on capital expenditures, and it is our current intention to spend $6,000 to $6,500 during fiscal 2026.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司 2025 年資本支出為 54.98 億美元，現計畫於 2026 會計年度投入 60 億至 65 億美元。
 
 ### Human review — Round 2
 
@@ -1302,6 +1382,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Prologis 依 Promote Plan 最多可分配多少第三方 promote earnings 給員工？
 - Answer requirement: One independently sufficient occurrence must state the maximum third-party promote share allocated to employees.
 - Curation note: This passage captures Prologis’s specific 25% employee allocation, award mix, vesting treatment, and potential lag between incentive revenue and expense recognition.
 - Change summary: The Round 1 query combined employee allocation with expense timing. The revision keeps the employee-allocation half already answered by the valid evidence. The filing store contains independently sufficient Item 7 and Item 16 locations.
@@ -1316,6 +1397,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **The Prologis Promote Plan ("PPP") awards up to 25% of the third-party portion of the promotes earned by us from the co-investment ventures to our employees.**
 
+> **繁體中文（台灣用語，僅供 review）**：Prologis Promote Plan 可將共同投資事業所賺取 promote 中屬於第三方的部分，最多 25% 獎勵給員工。
+
 **OR alternative 2** — `PLD-2025-348730`
 
 - Store Item: `16`
@@ -1323,6 +1406,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: A separate Item 16 store occurrence states the same 25% current-plan allocation and independently answers the revised question.
 
 > **Under the PPP, for promotes earned after January 2024, we award up to 25% of the third-party portion of promotes earned by Prologis from co-investment ventures to employees** through a compensation pool.
+
+> **繁體中文（台灣用語，僅供 review）**：對 2024 年 1 月後賺取的 promote，PPP 最多將 Prologis 從共同投資事業賺取、屬於第三方的部分之 25% 獎勵給員工。
 
 #### Evidence provenance
 
@@ -1367,6 +1452,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Linde 2025 年的資本支出主要集中在哪些地區？
 - Answer requirement: One independently sufficient occurrence must state where Linde's 2025 capital expenditures were concentrated geographically.
 - Curation note: This evidence captures both the backlog-related purpose and geographic allocation of Linde's capital investment, testing retrieval across adjacent quantitative details.
 - Change summary: The Round 1 question asks both why capital expenditures increased and where they were allocated, while its snippet answers only geographic concentration and contains a page-number artifact. The revision follows the Round 1 reviewer direction and removes that artifact.
@@ -1380,6 +1466,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently gives the Americas, APAC, and remaining EMEA allocation of 2025 capital expenditures.
 
 > **Approximately 60% of the capital expenditures were in the Americas segment with 21% in the APAC segment and the rest largely in the EMEA segment.**
+
+> **繁體中文（台灣用語，僅供 review）**：約 60% 的資本支出位於 Americas segment、21% 位於 APAC segment，其餘大多位於 EMEA segment。
 
 ### Human review — Round 2
 
@@ -1414,6 +1502,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：截至 2025 年底，ExxonMobil 的有效專利組合有多大？
 - Answer requirement: One independently sufficient occurrence must state the size of ExxonMobil's active patent portfolio at the end of 2025.
 - Curation note: This evidence gives a concrete worldwide patent count and clarifies that no single intellectual property right determines segment profitability.
 - Change summary: The Round 1 query combined portfolio size and financial importance while its evidence answered size. The revised question selects only the supported size intent; the adjacent dependency statement answers the removed financial-importance half, not this revised question.
@@ -1427,6 +1516,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states the worldwide count and measurement date for ExxonMobil's active patent portfolio.
 
 > **ExxonMobil held over 8 thousand active patents worldwide at the end of 2025.**
+
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年底，ExxonMobil 在全球持有超過 8 千件有效專利。
 
 #### Evidence provenance
 
@@ -1465,6 +1556,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：NVIDIA 表示 Rubin 相較 Blackwell 如何改善每 token 成本？
 - Answer requirement: One independently sufficient span must state Rubin's cost-per-token improvement relative to Blackwell.
 - Curation note: This evidence pairs Rubin’s expected shipment schedule with its quantified efficiency advantage, testing retrieval of a product roadmap and performance claim.
 - Change summary: Selects only the token-cost comparison already supported by the original snippet and drops the separate production-timeline intent.
@@ -1478,6 +1570,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states Rubin's up-to-10x cost-per-token reduction relative to Blackwell.
 
 > **Built for agentic AI and reasoning, it excels at processing multi-step problem-solving and massive long-context workflows, delivering up to a 10x reduction in cost per token compared to Blackwell.**
+
+> **繁體中文（台灣用語，僅供 review）**：Rubin 專為 agentic AI 與推理設計，可處理多步驟問題與長內容工作流程；相較 Blackwell，每 token 成本最高可降低 10 倍。
 
 ### Human review — Round 2
 
@@ -1512,6 +1606,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Datadog 的 Database Monitoring 如何找出資料庫瓶頸？
 - Answer requirement: One independently sufficient occurrence must explain how Datadog Database Monitoring identifies database bottlenecks.
 - Curation note: This passage explains Datadog’s concrete methods for diagnosing slow queries, execution issues, and infrastructure-related database performance problems.
 - Change summary: The Round 1 question combined bottlenecks and resource constraints, while its snippet answered only bottlenecks. The revised question asks one thing and is fully answered by the existing evidence.
@@ -1525,6 +1620,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly explains the slow-query and execution-detail method used to identify bottlenecks.
 
 > **With Database Monitoring, they can quickly pinpoint costly and slow queries and drill into precise execution details to address bottlenecks.**
+
+> **繁體中文（台灣用語，僅供 review）**：透過 Database Monitoring，使用者可快速定位成本高且緩慢的查詢，並深入查看精確執行細節以處理瓶頸。
 
 ### Human review — Round 2
 
@@ -1559,6 +1656,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Insulet 在 2025 年為 EVOLUTION 2 達成了哪項里程碑？
 - Answer requirement: One independently sufficient occurrence must state that Insulet completed or finished enrollment for EVOLUTION 2 in 2025.
 - Curation note: This evidence captures named pipeline programs, completed studies, enrollment progress, and a planned pivotal trial, testing retrieval of product-development status across a compact passage.
 - Change summary: The prior rewrite still combined the completed 2025 enrollment milestone with a separate planned 2026 study. This revision keeps one factoid intent. Full-filing traversal found two distinct source occurrences that independently state the 2025 EVOLUTION 2 enrollment milestone.
@@ -1573,6 +1671,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study** for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.
 
+> **繁體中文（台灣用語，僅供 review）**：公司於 2025 年完成 EVOLUTION 2（安全性與可行性研究）的受試者招募。
+
 **OR alternative 2** — `PODD-2025-140970`
 
 - Store Item: `Item 7`
@@ -1580,6 +1680,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: The separate Item 7 occurrence independently states that Insulet finished EVOLUTION 2 enrollment in 2025.
 
 > **In 2025, we also completed STRIVE, our pivotal study for the next generation hybrid closed loop system, and we finished enrollment for EVOLUTION 2**, our safety and feasibility study for a fully closed loop AID system for type 2 diabetes.
+
+> **繁體中文（台灣用語，僅供 review）**：公司於 2025 年完成下一代 hybrid closed loop system 的關鍵 STRIVE 研究，並完成 EVOLUTION 2 的受試者招募。
 
 #### Evidence provenance
 
@@ -1620,6 +1722,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Omnipod 5 如何運用血糖讀值調整胰島素劑量？
 - Answer requirement: One independently sufficient occurrence must explain how Omnipod 5 uses glucose values to predict future levels and automatically adjust insulin dosing.
 - Curation note: This evidence explains the product-specific sensor connection and predictive algorithm, testing retrieval of how Omnipod 5 automates insulin adjustments.
 - Change summary: The original question required both receipt and response, but no 50–200-character occurrence independently answers both. The revision retains the more investor-relevant automated-response mechanism and removes the unsupported Bluetooth-receipt subpart.
@@ -1633,6 +1736,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly explains the prediction-and-adjustment response asked by the revised question without crossing the SEC page-number artifact.
 
 > **The embedded algorithm utilizes these glucose values to predict glucose levels into the future and automatically adjusts insulin dosing**
+
+> **繁體中文（台灣用語，僅供 review）**：內建演算法利用這些血糖數值預測未來血糖，並自動調整胰島素劑量。
 
 ### Human review — Round 2
 
@@ -1667,6 +1772,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Amazon 製造並銷售哪些電子裝置？
 - Answer requirement: One independently sufficient span must identify the electronic devices Amazon states it manufactures and sells; a generic statement that it sells devices is partial.
 - Curation note: This evidence combines Amazon-specific customer access channels with its named device portfolio, testing retrieval across two adjacent substantive facts.
 - Change summary: The Round-1 question combined shopping access channels and devices. The revision keeps only the device-list intent.
@@ -1680,6 +1786,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently identifies every device named in Amazon's manufacturing-and-sales disclosure.
 
 > **We also manufacture and sell electronic devices, including Kindle, Fire tablet, Fire TV, Echo, Ring, Blink, and eero**
+
+> **繁體中文（台灣用語，僅供 review）**：公司製造並銷售 Kindle、Fire tablet、Fire TV、Echo、Ring、Blink 與 eero 等電子裝置。
 
 ### Human review — Round 2
 
@@ -1714,6 +1822,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Linde 的營運資安失敗或 breach 可能暴露哪些類型的資訊？
 - Answer requirement: One independently sufficient occurrence must identify the types of confidential, proprietary, or personal information that Linde security failures or breaches could expose.
 - Curation note: This disclosure gives a company-specific historical outcome and tests retrieval of whether prior cyberattacks caused significant harm.
 - Change summary: The Round 1 answer uses the unresolved antecedent 'such attempts'. Joining the cyber-attack antecedent to the historical-impact sentence requires more than 200 characters. The revised question stays within the cybersecurity intent and is directly answered by a 146-character Item 1A clause; the canonical Item 1C copy maps to that same filing-store location.
@@ -1727,6 +1836,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies confidential information and personal data as the information types exposed by operational security failures or breaches.
 
 > **Operational failures and breaches of security from such attempts could lead to the loss or disclosure of confidential information or personal data**
+
+> **繁體中文（台灣用語，僅供 review）**：這類嘗試引發的營運失敗與資安 breach，可能導致機密資訊或個人資料遺失或外洩。
 
 #### Evidence provenance
 
@@ -1769,6 +1880,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Deckers 會定期檢視並更新哪些網路安全政策與程序？
 - Answer requirement: One independently sufficient occurrence must identify the cybersecurity policies or procedures Deckers periodically reviews and updates.
 - Curation note: This evidence identifies the specific policies Deckers updates and links those updates to changing threats and organizational needs.
 - Change summary: The Round 1 wording called the evidence 'security documents' and added a separate why-clause. The revised question uses the filing's own policies/procedures terminology, asks one thing, and is fully answered by one canonical occurrence without the bullet artifact.
@@ -1782,6 +1894,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies the IRP, privacy policy, and other relevant policies/procedures as the materials periodically reviewed and updated.
 
 > **periodically reviewing and updating our IRP, privacy policy, and other relevant policies/procedures.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司定期檢視並更新其 IRP、privacy policy 及其他相關政策／程序。
 
 ### Human review — Round 2
 
@@ -1818,6 +1932,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：2025 年匯率換算如何影響 Linde 的 APAC 銷售？
 - Answer requirement: One independently sufficient source occurrence must state the direction or magnitude of currency translation's effect on APAC sales in 2025. Consolidated or other-segment sales effects, APAC operating-profit effects, exchange-rate tables without a sales effect, and generic foreign-exchange disclosures are partial or non-responsive.
 - Curation note: This passage decomposes flat APAC sales into acquisition gains offset by volume and currency declines, testing retrieval of segment-specific revenue drivers.
 - Change summary: The earlier three-driver rewrite remained a compound request. This correction asks only for currency translation's effect on APAC sales. Full-filing re-audit found two distinct responsive source locations: the APAC sales bridge table and the APAC sales narrative.
@@ -1854,6 +1969,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 >
 > Currency(1)%**
 
+> **繁體中文（台灣用語，僅供 review）**：表列出 2025 年相較 2024 年銷售變動的因素，包括銷量、價格／組合、成本轉嫁及匯率。
+
 **OR alternative 2** — `LIN-2025-101099`
 
 - Store Item: `7`
@@ -1861,6 +1978,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Within the filing store's APAC structured block, this exact sentence directly states that currency translation reduced sales by 1% and identifies the weakening Australian dollar and Korean won as the primary cause. It is independently sufficient and corpus-unique.
 
 > **Currency translation decreased sales by 1% primarily due to the weakening of the Australian dollar and Korean won against the U.S. dollar.**
+
+> **繁體中文（台灣用語，僅供 review）**：由於澳幣與韓元兌美元走弱，匯率換算使銷售額減少 1%。
 
 #### Evidence provenance
 
@@ -1901,6 +2020,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：NVIDIA 2026 會計年度 Data Center networking 營收成長由什麼驅動？
 - Answer requirement: One independently sufficient span must explain the fiscal 2026 drivers of Data Center networking revenue growth; compute-only growth drivers are partial.
 - Curation note: This evidence pairs distinct growth rates with named Blackwell, NVLink, Ethernet, and InfiniBand demand drivers, testing retrieval of segment-specific operating details.
 - Change summary: Keeps only the networking-growth intent supported by the original snippet and removes the separate compute-growth intent.
@@ -1914,6 +2034,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly attributes Data Center networking growth to the NVLink ramp and growth of Ethernet and InfiniBand platforms.
 
 > **Revenue from Data Center networking grew 142% driven by the introduction and continued ramp of NVLink compute fabric for GB200 and GB300 systems and the growth of Ethernet and InfiniBand platforms.**
+
+> **繁體中文（台灣用語，僅供 review）**：Data Center networking 營收成長 142%，由 GB200 與 GB300 的 NVLink compute fabric 導入與持續放量，以及 Ethernet 與 InfiniBand 平台成長所推動。
 
 ### Human review — Round 2
 
@@ -1948,6 +2070,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Datadog 的 trailing 12-month dollar-based net retention rate 從 2024 到 2025 如何變動？
 - Answer requirement: One independently sufficient occurrence must state Datadog's trailing 12-month dollar-based net-retention rates for both 2024 and 2025.
 - Curation note: This evidence quantifies the year-over-year retention improvement and attributes it to greater usage by established customers, testing metric-and-driver retrieval.
 - Change summary: The Round 1 question combined the numeric change and its cause, but no single 50–200 character source occurrence states both. The revised question keeps the change requested by the reviewer and the 190-character evidence contains both years' disclosed rates.
@@ -1961,6 +2084,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently supplies the 2025 and 2024 values needed to describe the year-over-year increase.
 
 > **As of December 31, 2025, our trailing 12-month dollar-based net retention rate was about 120%. As of December 31, 2024, our trailing 12-month dollar-based net retention rate was high-110%'s.**
+
+> **繁體中文（台灣用語，僅供 review）**：截至 2025 年 12 月 31 日，過去 12 個月的 dollar-based net retention rate 約為 120%；截至 2024 年底則為 110% 高段。
 
 #### Evidence provenance
 
@@ -2001,6 +2126,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：為何 Lilly 短期內的資本支出仍將維持高檔？
 - Answer requirement: One independently sufficient span must identify demand-driven manufacturing expansion or global manufacturing-facility investment as a reason Lilly expects near-term capital spending to remain elevated.
 - Curation note: This passage links rising capital expenditures to global manufacturing investments and tests retrieval of the specific operational driver behind Lilly's spending outlook.
 - Change summary: The Round 1 question is answerable, but its pronoun-led snippet was not the canonical cause sentence. Full traversal found three distinct disclosures that independently attribute the spending outlook to manufacturing expansion or global-facility investment, including the preceding sentence identified by the Round 1 comment.
@@ -2015,6 +2141,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **To support anticipated demand for our current and prospective products, we have undertaken significant manufacturing expansion initiatives.** Investments to increase our manufacturing capacity include new sites in North Carolina, Wisconsin, Indiana, Virginia, Texas, Alabama, Pennsylvania, Ireland, Germany, and the Netherlands.
 
+> **繁體中文（台灣用語，僅供 review）**：為支應目前與未來產品的預期需求，公司已展開重大製造產能擴張。
+
 **OR alternative 2** — `LLY-2025-202988`
 
 - Store Item: `Item 7`
@@ -2023,6 +2151,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **To support anticipated demand for our current and prospective products, we have undertaken significant manufacturing expansion initiatives.** Additional capacity is expected to become operational over the next several years.
 
+> **繁體中文（台灣用語，僅供 review）**：為支應目前與未來產品的預期需求，公司已展開重大製造產能擴張。
+
 **OR alternative 3** — `LLY-2025-214383`
 
 - Store Item: `Item 7`
@@ -2030,6 +2160,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: This is the cause sentence immediately preceding the Round 1 snippet and directly identifies global manufacturing facilities as the investment driving the near-term spending outlook.
 
 > Capital expenditures were $7.8 billion during 2025, compared to $5.1 billion in 2024. **We are making investments in global facilities to manufacture existing and future products.** These investments, and other capital investments that support our operations, have increased our capital expenditures and will result in meaningfully higher capital expenditures in the near term.
+
+> **繁體中文（台灣用語，僅供 review）**：公司正投資全球各地設施，以生產現有及未來產品。
 
 #### Evidence provenance
 
@@ -2072,6 +2204,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Insulet 2025 年資本支出增加 6,670 萬美元，主要由哪些投資帶動？
 - Answer requirement: One independently sufficient occurrence must identify the Costa Rica plant investment and the additional Malaysia machinery and equipment as the primary causes of the 2025 increase.
 - Curation note: This passage links the year-over-year increase in capital expenditures to specific manufacturing investments in Costa Rica and Malaysia.
 - Change summary: The revision asks one causal question. It replaces the Round 1 amount-only snippet with the adjacent cause disclosure and preserves both company-stated primary investments.
@@ -2085,6 +2218,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: The canonical 200-character snippet states both company-disclosed primary investment causes without relaxing the global limit.
 
 > The **$66.7 million increase primarily related to the investment in our third manufacturing plant in Costa Rica and the purchase of additional machinery and equipment for our Malaysia manufacturing facility** to support continued business growth.
+
+> **繁體中文（台灣用語，僅供 review）**：增加的 6,670 萬美元主要用於投資哥斯大黎加第三座製造廠，以及為馬來西亞製造設施添購機械與設備。
 
 ### Human review — Round 2
 
@@ -2119,6 +2254,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Coinbase 如何看待其為投資持有的 crypto assets 之例行交易？
 - Answer requirement: One independently sufficient span must state Coinbase's policy or practice concerning regular trading of investment crypto assets.
 - Curation note: This passage explains Coinbase’s long-term holding approach, exceptional-sale policy, and potential difficulty monetizing investment crypto during market instability.
 - Change summary: The revision follows the Round 1 request to ask one question by retaining the investment-policy intent and removing liquidity constraints. After the Item 8 exclusion, two filing-store locations independently state the long-term, non-regular-trading policy.
@@ -2133,6 +2269,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **We do not plan on engaging in regular trading of crypto assets, and, as an operating company, our investing activities in crypto are not part of our revenue generating activities**, which are primarily based on transactions on our platform and the sales of subscriptions and services.
 
+> **繁體中文（台灣用語，僅供 review）**：公司不打算經常交易 crypto assets；作為營運公司，crypto 投資活動不屬於創收活動。
+
 **OR alternative 2** — `COIN-2025-419843`
 
 - Store Item: `Item 7`
@@ -2140,6 +2278,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states the buy-and-hold policy and lack of planned regular trading for investment crypto assets.
 
 > Crypto assets held for investment are primarily long-term holdings and in certain cases fulfill capital requirements set by regulators (see also Capital requirements below). **We do not plan to engage in regular trading of these crypto assets but may purchase additional crypto assets for investment as a buy and hold strategy.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司不打算經常交易這些 crypto assets，但可能以 buy-and-hold 策略額外買入作為投資。
 
 #### Evidence provenance
 
@@ -2179,6 +2319,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Amazon 何時開始資本化部分衛星寬頻開發成本？
 - Answer requirement: One independently sufficient span must state the trigger for Amazon to begin capitalizing the satellite broadband development costs; a before-viability expense description is partial.
 - Curation note: This evidence captures Amazon-specific accounting treatment for its satellite network and tests retrieval of the capitalization threshold after commercial viability.
 - Change summary: The original before-and-after accounting request cannot fit the evidence limits. The revision asks only for the independently answerable capitalization trigger.
@@ -2192,6 +2333,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states commercial viability, including customer sales, as the capitalization trigger.
 
 > **We will capitalize certain of these costs once the service achieves commercial viability, including sales to customers.**
+
+> **繁體中文（台灣用語，僅供 review）**：該服務達到商業可行性（包括開始對客戶銷售）後，公司將開始資本化其中部分成本。
 
 ### Human review — Round 2
 
@@ -2230,6 +2373,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Deckers 在 2026 會計年度按固定匯率計算的淨銷售額成長多少？
 - Answer requirement: One independently sufficient occurrence must state Deckers' constant-currency net-sales increase in fiscal 2026.
 - Curation note: This passage provides two related supplemental sales-growth measures, testing retrieval of adjusted revenue performance metrics.
 - Change summary: The Round 1 query joined two non-GAAP growth measures. The revised question selects only constant-currency net-sales growth, leaving p23 to cover the separate unit-volume metric and avoiding another compound query.
@@ -2243,6 +2387,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently states the filing's fiscal 2026 constant-currency net-sales growth rate.
 
 > **On a constant currency basis, net sales increased by 9.0%, compared to the prior period.**
+
+> **繁體中文（台灣用語，僅供 review）**：按固定匯率計算，淨銷售額較前期增加 9.0%。
 
 ### Human review — Round 2
 
@@ -2277,6 +2423,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Caterpillar 收購 RPMGlobal 的預計買價與交割時程為何？
 - Answer requirement: One independently sufficient span must state both the expected closing window and purchase price for the RPMGlobal acquisition.
 - Curation note: This passage combines the acquisition’s expected closing window and consideration with RPMGlobal’s specialized mining technology expertise, testing transaction-detail retrieval.
 - Change summary: Removes mining-software capabilities as requested in Round 1, leaving one transaction-detail intent that each 149-character occurrence answers independently.
@@ -2290,6 +2437,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly states both the expected closing window and purchase price in the Item 7 liquidity discussion.
 
 > On February 3, 2026, the Federal Court of Australia approved Caterpillar's acquisition of RPMGlobal Holdings Limited, an Australian based software company. **The transaction is expected to close in the final two weeks of February with a purchase price of approximately $790 million, excluding cash acquired.** RPMGlobal is a leading provider of mining software solutions with deep domain expertise in mining technology enablement and data-driven software solutions at every stage of the mining lifecycle.
+
+> **繁體中文（台灣用語，僅供 review）**：該交易預計於 2 月最後兩週完成，買價約 7.9 億美元（不含取得的現金）。
 
 #### Evidence provenance
 
@@ -2322,6 +2471,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：FPL 的 regulatory capital base 成長如何影響其 2025 年獲利？
 - Answer requirement: One independently sufficient span must explain how growth in FPL's regulatory capital base affected 2025 earnings; a span stating only capital spending or an earnings amount is partial.
 - Curation note: Understand whether regulated capital deployment translated into earnings growth.
 - Change summary: The question remains unchanged. The filing store contains two distinct answer texts under Item 7, and each has a second reachable copy under the store's Item 6 label. All four locations are enumerated as OR alternatives; the detailed answer text also states that the investments grew average rate base by approximately $5.5 billion.
@@ -2336,6 +2486,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **FPL's net income increased in 2025 primarily driven by continued investments in plant in service and other property and a higher earned regulatory ROE in 2025.**
 
+> **繁體中文（台灣用語，僅供 review）**：FPL 2025 年淨利增加，主要由持續投資已投入使用的廠房及其他資產，以及較高的 earned regulatory ROE 所推動。
+
 **OR alternative 2** — `NEE-2025-183888`
 
 - Store Item: `7`
@@ -2343,6 +2495,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: The continuous answer span states the $469 million net-income increase, attributes it to higher earnings from plant and property investments, and states that those investments grew average rate base by approximately $5.5 billion.
 
 > FPL’s net income for 2025 and 2024 was $5,012 million and $4,543 million, respectively, representing an increase of $469 million. **The increase was primarily driven by higher earnings from investments in plant in service and other property.** Such investments grew FPL's average rate base by approximately $5.5 billion in 2025 and reflect, among other things, solar generation additions and ongoing transmission and distribution additions.
+
+> **繁體中文（台灣用語，僅供 review）**：增加主要由已投入使用的廠房及其他資產投資帶來的較高獲利所推動。
 
 **OR alternative 3** — `NEE-2025-store-item6-6732`
 
@@ -2352,6 +2506,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **FPL's net income increased in 2025 primarily driven by continued investments in plant in service and other property and a higher earned regulatory ROE in 2025.**
 
+> **繁體中文（台灣用語，僅供 review）**：FPL 2025 年淨利增加，主要由持續投資已投入使用的廠房及其他資產，以及較高的 earned regulatory ROE 所推動。
+
 **OR alternative 4** — `NEE-2025-store-item6-10171`
 
 - Store Item: `6`
@@ -2359,6 +2515,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: This second reachable store copy states the net-income increase, attributes it to plant and property investment, and connects those investments to average-rate-base growth.
 
 > FPL’s net income for 2025 and 2024 was $5,012 million and $4,543 million, respectively, representing an increase of $469 million. **The increase was primarily driven by higher earnings from investments in plant in service and other property.** Such investments grew FPL's average rate base by approximately $5.5 billion in 2025 and reflect, among other things, solar generation additions and ongoing transmission and distribution additions.
+
+> **繁體中文（台灣用語，僅供 review）**：增加主要由已投入使用的廠房及其他資產投資帶來的較高獲利所推動。
 
 #### Evidence provenance
 
@@ -2392,6 +2550,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Lilly 2025 年營收成長的主要驅動因素是什麼？
 - Answer requirement: One independently sufficient span must identify the principal company-disclosed drivers of Lilly's 2025 revenue growth; a span containing only the growth rate is partial.
 - Curation note: Identify the operating drivers behind company-level revenue growth.
 - Change summary: The question remains unchanged. Full traversal found one concise company-level driver sentence and one distinct geographic driver disclosure; both are valid OR alternatives.
@@ -2406,6 +2565,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **Revenue increased in 2025 driven primarily by increased volume, partially offset by lower realized prices.** The increased volume and lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.
 
+> **繁體中文（台灣用語，僅供 review）**：2025 年營收增加主要由銷量上升帶動，但部分被已實現價格下降抵銷。
+
 **OR alternative 2** — `LLY-2025-208980`
 
 - Store Item: `7`
@@ -2415,6 +2576,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 > **In the U.S., the volume increase and the lower realized prices in 2025 were primarily driven by Mounjaro and Zepbound.
 >
 > Outside the U.S., the volume increase in 2025 was primarily driven by Mounjaro.**
+
+> **繁體中文（台灣用語，僅供 review）**：在美國，2025 年銷量增加與已實現價格下降主要來自 Mounjaro 與 Zepbound；美國以外的銷量增加則主要來自 Mounjaro。
 
 #### Evidence provenance
 
@@ -2448,6 +2611,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Prologis 2025 年租賃營收的變動由什麼驅動？
 - Answer requirement: One independently sufficient occurrence must explain a principal company-disclosed driver of Prologis's 2025 rental-revenue change; an isolated revenue amount or percentage is partial.
 - Curation note: Understand the operating causes of rental-revenue movement.
 - Change summary: The intent-first question remains unchanged. Full traversal found three distinct locations that independently explain the 2025 lease mark-to-market and rollover-rent mechanism.
@@ -2462,6 +2626,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **Our results during 2025 continued to reflect the favorable mark-to-market of our existing leases, reflecting increases in market rents over the past several years.**
 
+> **繁體中文（台灣用語，僅供 review）**：2025 年業績持續反映既有租約有利的 mark-to-market，源自過去數年市場租金上升。
+
 **OR alternative 2** — `PLD-2025-030022`
 
 - Store Item: `Item 1`
@@ -2470,6 +2636,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **For lease rollovers during 2025, the increases to market on our share of the O&M portfolio resulted in increases of approximately 50% on net effective rents.**
 
+> **繁體中文（台灣用語，僅供 review）**：2025 年租約續約時，公司在 O&M portfolio 的份額使 net effective rents 約增加 50%。
+
 **OR alternative 3** — `PLD-2025-136602`
 
 - Store Item: `Item 7`
@@ -2477,6 +2645,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Explicitly identifies higher rental rates on lease rollover as a key driver of increasing rental income.
 
 > **Significant rent change due to higher rental rates on the rollover of leases during both periods continues to be a key driver of increasing rental income.**
+
+> **繁體中文（台灣用語，僅供 review）**：兩個期間租約續約時較高的租金水準造成顯著租金變動，持續是租賃收入增加的關鍵驅動因素。
 
 #### Evidence provenance
 
@@ -2509,6 +2679,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：較低的原油價格如何影響 ExxonMobil 2025 年 Upstream 獲利？
 - Answer requirement: One independently sufficient span must explain the effect of lower crude prices on ExxonMobil's 2025 Upstream earnings.
 - Curation note: Connect commodity-price movements to the company's earnings performance.
 - Change summary: The filing reports 2025 crude-oil and natural-gas price movements together, but the independently sufficient 2025 earnings-driver disclosure attributes a $6.1 billion earnings decrease primarily to lower crude prices and does not state a 2025 natural-gas earnings effect. The revised question preserves the causal earnings intent without relaxing the global 50–200-character span limit.
@@ -2522,6 +2693,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Independently quantifies the 2025 Upstream earnings decrease from lower realizations and attributes it primarily to lower crude prices.
 
 > **Price – Lower realizations decreased earnings by $6.1 billion, primarily driven by lower crude prices as record demand was more than offset by increased industry supply.**
+
+> **繁體中文（台灣用語，僅供 review）**：較低的實現價格使獲利減少 61 億美元，主因是創紀錄需求被業界供給增加抵銷後，原油價格下跌。
 
 #### Evidence provenance
 
@@ -2554,6 +2727,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Costco 2025 會計年度 comparable sales 成長由什麼帶動？
 - Answer requirement: One independently sufficient span must explain a principal disclosed driver of Costco's fiscal 2025 comparable-sales growth; a growth percentage without a driver is partial.
 - Curation note: Understand the business drivers of comparable-sales performance.
 - Change summary: The full-filing audit identified three distinct disclosures of the operating mechanisms and observed frequency/ticket drivers of comparable-sales growth.
@@ -2568,6 +2742,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **Comparable sales growth is achieved through increasing shopping frequency from new and existing members and the amount they spend on each visit (average ticket).**
 
+> **繁體中文（台灣用語，僅供 review）**：comparable sales 成長來自新舊會員的購物頻率提高，以及每次到店消費金額（average ticket）增加。
+
 **OR alternative 2** — `COST-2025-084633`
 
 - Store Item: `Item 7`
@@ -2576,6 +2752,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **Generating comparable sales growth is foremost a question of making available the right merchandise at the right prices, a skill that we believe we have repeatedly demonstrated over the long-term.**
 
+> **繁體中文（台灣用語，僅供 review）**：推動 comparable sales 成長的首要關鍵，是以正確價格提供正確商品。
+
 **OR alternative 3** — `COST-2025-094148`
 
 - Store Item: `Item 7`
@@ -2583,6 +2761,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Quantifies the observed shopping-frequency and average-ticket contributions to fiscal 2025 comparable sales.
 
 > **Comparable sales were positively impacted by increases of 5% in shopping frequency and approximately 1% in average ticket.**
+
+> **繁體中文（台灣用語，僅供 review）**：購物頻率增加 5% 與 average ticket 約增加 1%，對 comparable sales 帶來正面影響。
 
 #### Evidence provenance
 
@@ -2615,6 +2795,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Coinbase 2025 年 transaction revenue 的變動由什麼驅動？
 - Answer requirement: One independently sufficient span must explain a principal company-disclosed driver of Coinbase's 2025 transaction-revenue change; an isolated revenue amount is partial.
 - Curation note: Understand the operating drivers of transaction-revenue movement.
 - Change summary: The question remains broad enough for multiple correct OR-hit answers. Full traversal found three distinct driver spans: consumer fee-rate and user-mix changes, higher consumer Trading Volume, and institutional derivatives growth associated with Deribit.
@@ -2629,6 +2810,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > a decrease of $384.4 million attributed to **a lower average blended fee rate, primarily due to changes in the mix of Trading Volume from Simple users to Advanced and Coinbase One users who pay lower average fees**
 
+> **繁體中文（台灣用語，僅供 review）**：平均 blended fee rate 降低，主要因交易量組合由 Simple users 轉向平均費率較低的 Advanced 與 Coinbase One users。
+
 **OR alternative 2** — `COIN-2025-398388`
 
 - Store Item: `Item 7`
@@ -2637,6 +2820,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **an increase of $277.0 million attributed to a 7% increase in consumer Trading Volume**
 
+> **繁體中文（台灣用語，僅供 review）**：consumer Trading Volume 增加 7%，帶來 2.77 億美元增加。
+
 **OR alternative 3** — `COIN-2025-398500`
 
 - Store Item: `7`
@@ -2644,6 +2829,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly identifies derivatives trading, mainly from the Deribit acquisition, as an institutional transaction-revenue driver.
 
 > **an increase in institutional transaction revenue driven by an increase of $152.0 million attributed to derivatives trading, due mainly to the acquisition of Deribit.**
+
+> **繁體中文（台灣用語，僅供 review）**：衍生性商品交易增加（主要因收購 Deribit）帶動 institutional transaction revenue 增加 1.52 億美元。
 
 #### Evidence provenance
 
@@ -2678,6 +2865,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Axon 的訂閱方案如何支撐其 recurring-revenue model？
 - Answer requirement: One independently sufficient span must connect an Axon subscription or SaaS offering to recurring revenue; a product list without that business-model relationship is partial.
 - Curation note: Understand how subscription offerings support recurring revenue.
 - Change summary: The full-filing audit found two distinct Item 1 disclosures that independently connect subscription offerings to recurring revenue.
@@ -2692,6 +2880,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 > **Our revenue is derived from a combination of hardware sales, multi-year recurring software subscriptions, professional services, and extended warranties.**
 
+> **繁體中文（台灣用語，僅供 review）**：公司營收來自硬體銷售、多年期 recurring software subscriptions、專業服務及延長保固的組合。
+
 **OR alternative 2** — `AXON-2025-013183`
 
 - Store Item: `1`
@@ -2699,6 +2889,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: Directly connects Axon's SaaS suite to annual recurring revenue.
 
 > **Axon has a suite of cloud-based, SaaS solutions that deeply integrate with our hardware to benefit customers and drive annual recurring revenue, which totaled $1.3 billion1 as of December 31, 2025.**
+
+> **繁體中文（台灣用語，僅供 review）**：Axon 的 cloud-based SaaS solutions 與硬體深度整合，為客戶帶來效益並推動 annual recurring revenue；截至 2025 年底 ARR 為 13 億美元。
 
 #### Evidence provenance
 
@@ -2732,6 +2924,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Deckers 認定的主要產品品牌有哪些？
 - Answer requirement: One independently sufficient span must identify all brands Deckers presents as its principal product brands; a span naming only one brand is partial unless the filing states that it is the sole principal brand.
 - Curation note: Identify the brands that define the company's product portfolio.
 - Change summary: The question remains unchanged. Filing-store reconciliation retains one Item 1 occurrence identifying HOKA, UGG, and Teva; the canonical Item 7 copy maps to that same store location and the Item 8 copy is excluded.
@@ -2747,6 +2940,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 > **We market our products primarily
 >
 > under three proprietary brands: HOKA, UGG, and Teva.**
+
+> **繁體中文（台灣用語，僅供 review）**：公司主要以三個自有品牌行銷產品：HOKA、UGG 與 Teva。
 
 #### Evidence provenance
 
@@ -2781,6 +2976,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：Insulet 是否曾遭遇對公司有重大影響的網路安全事件？
 - Answer requirement: One independently sufficient occurrence must state whether previous cybersecurity incidents materially affected Insulet; hypothetical incident risks, response procedures, and governance allocations are not sufficient.
 - Curation note: Understand how responsibility for cybersecurity risk is governed.
 - Change summary: The revised question asks one binary incident-history fact instead of a broad allocation of governance responsibilities. Full-filing traversal found one distinct source occurrence stating that Insulet does not believe previous cybersecurity incidents materially affected the company.
@@ -2794,6 +2990,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 - Acceptance reason: The filing's single historical-impact disclosure states that Insulet does not believe previous cybersecurity incidents materially affected the company; the full answer span preserves all three disclosed impact dimensions.
 
 > **We currently do not believe that risks from cybersecurity threats, including as a result of any previous cybersecurity incidents, have materially affected the Company**’s business strategy, results of operations, or financial condition.
+
+> **繁體中文（台灣用語，僅供 review）**：公司目前不認為資安威脅風險（包括過去任何資安事件所致）已對公司造成重大影響。
 
 ### Human review — Round 2
 
@@ -2822,6 +3020,7 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 
 ### Round-2 proposal
 
+- 問題（繁體中文）：JPMorganChase 的 Value-at-Risk measure 納入哪些市場風險類型？
 - Answer requirement: One independently sufficient span must identify all market risk types JPMorganChase states are included in its Value-at-Risk measure.
 - Curation note: Understand which market-risk exposures JPMorganChase's Value-at-Risk measure covers.
 - Change summary: The question remains unchanged. The filing-store table yields a 151-character exact span that joins the CIB trading VaR risk-type heading to all four reported categories: fixed income, foreign exchange, equities, and commodities and other. The store contains the same source table under Item 1 and Item 15, so both reachable copies are enumerated as OR alternatives.
@@ -2844,6 +3043,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 >
 > Commodities and other**
 
+> **繁體中文（台灣用語，僅供 review）**：CIB trading VaR 按風險類型列示：fixed income、foreign exchange、equities，以及 commodities and other。
+
 **OR alternative 2** — `JPM-2025-store-item15-239167`
 
 - Store Item: `15`
@@ -2859,6 +3060,8 @@ Every listed Round-2 evidence occurrence is an **OR alternative**: retrieving an
 > Equities17 7 138 (e)8 4 15 
 >
 > Commodities and other**
+
+> **繁體中文（台灣用語，僅供 review）**：CIB trading VaR 按風險類型列示：fixed income、foreign exchange、equities，以及 commodities and other。
 
 #### Evidence provenance
 

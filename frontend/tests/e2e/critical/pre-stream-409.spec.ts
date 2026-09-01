@@ -12,7 +12,7 @@ test(
     await expect(errorBlock).toBeVisible({ timeout: E2E_TIMEOUTS.streamComplete });
 
     // 409 maps to a retriable friendly error, so Retry button must be present
-    await expect(page.getByTestId("error-title")).toContainText(/system is busy/i);
+    await expect(page.getByTestId("error-title")).toContainText(/系統忙碌中/);
     await expect(page.getByTestId("error-retry-btn")).toBeVisible();
 
     // No assistant message renders (the request never even streamed)

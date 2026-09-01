@@ -9,7 +9,7 @@ function assistantMsg(id: string, parts: Array<{ type: string; [k: string]: unkn
   return { id, role: "assistant", parts };
 }
 
-describe("useReasoningTimers — Thought-for-Xs measurement", () => {
+describe("useReasoningTimers — copy.reasoningChip.thoughtFor measurement", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-28T10:00:00Z"));

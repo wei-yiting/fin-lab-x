@@ -158,6 +158,12 @@ A transient sidecar SSE event that updates a running tool card without entering 
 The citation strategy: source extraction runs exactly once when the stream finishes (status leaves `streaming` — ready, error, or stop), never during streaming.
 _Avoid_: defer-to-ready (superseded name)
 
+## Frontend
+
+**UI Copy**:
+The centralized Traditional Chinese text for every system-authored UI surface — status words, buttons, error titles, tooltips, modal headers, form validation, aria-labels — held in one domain-nested module, hardcoded with no i18n framework or language switch. Excludes user-generated content (chat messages, LLM replies) and backend-originated error text (HTTP error `detail`, sanitized tool errors), both of which keep their original wording untranslated.
+_Avoid_: strings (collides with the `string` type), content (collides with SEC filing/document content)
+
 ## Design calibration
 
 **Design Envelope**:

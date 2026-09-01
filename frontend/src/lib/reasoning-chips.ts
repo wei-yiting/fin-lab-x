@@ -1,6 +1,7 @@
 import { isReasoningUIPart, isToolUIPart } from "ai";
 import type { UIDataTypes, UIMessagePart, UITools } from "ai";
 import { hasVisibleReplyText } from "@/lib/markdown-sources";
+import { copy } from "@/lib/copy";
 
 /**
  * Cast target at the delegation boundary below. The local predicates keep
@@ -119,12 +120,12 @@ export function isChipExpanded(chipState: ChipState, override: boolean | undefin
 
 export function chipHeaderLabel(chipState: ChipState, seconds: number, stalled: boolean): string {
   if (chipState === "streaming") {
-    return stalled ? "Still working…" : "Thinking…";
+    return stalled ? copy.reasoningChip.stalledLive : copy.reasoningChip.thinkingLive;
   }
   if (chipState === "aborted") {
-    return `Stopped — thought for ${seconds}s`;
+    return copy.reasoningChip.stoppedThoughtFor(seconds);
   }
-  return `Thought for ${seconds}s`;
+  return copy.reasoningChip.thoughtFor(seconds);
 }
 
 /** Stable key for the timer and override maps — part ids are turn-unique but

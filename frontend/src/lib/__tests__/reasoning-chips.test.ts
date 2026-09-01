@@ -172,14 +172,14 @@ describe("isChipExpanded — tail-only derivation with user override", () => {
 });
 
 describe("chipHeaderLabel", () => {
-  test("streaming: Thinking…, degraded to Still working… on stall", () => {
-    expect(chipHeaderLabel("streaming", 0, false)).toBe("Thinking…");
-    expect(chipHeaderLabel("streaming", 0, true)).toBe("Still working…");
+  test("streaming: copy.reasoningChip.thinkingLive, degraded to copy.reasoningChip.stalledLive on stall", () => {
+    expect(chipHeaderLabel("streaming", 0, false)).toBe("思考中…");
+    expect(chipHeaderLabel("streaming", 0, true)).toBe("仍在處理中…");
   });
 
   test("done / aborted carry the measured seconds; stall has no effect", () => {
-    expect(chipHeaderLabel("done", 7, true)).toBe("Thought for 7s");
-    expect(chipHeaderLabel("aborted", 3, false)).toBe("Stopped — thought for 3s");
+    expect(chipHeaderLabel("done", 7, true)).toBe("思考了 7 秒");
+    expect(chipHeaderLabel("aborted", 3, false)).toBe("已停止 — 思考了 3 秒");
   });
 });
 

@@ -10,16 +10,16 @@ describe("ActivityPlaceholder — copy and a11y contract", () => {
     render(<ActivityPlaceholder stalled={false} />);
 
     const el = screen.getByTestId("activity-placeholder");
-    expect(el).toHaveTextContent("Thinking");
-    expect(el).not.toHaveTextContent("Still working");
+    expect(el).toHaveTextContent("思考中");
+    expect(el).not.toHaveTextContent("仍在處理中");
   });
 
   test("stalled=true renders the degraded copy", () => {
     render(<ActivityPlaceholder stalled={true} />);
 
     const el = screen.getByTestId("activity-placeholder");
-    expect(el).toHaveTextContent("Still working");
-    expect(el).not.toHaveTextContent("Thinking");
+    expect(el).toHaveTextContent("仍在處理中");
+    expect(el).not.toHaveTextContent("思考中");
   });
 
   test("the placeholder announces politely", () => {

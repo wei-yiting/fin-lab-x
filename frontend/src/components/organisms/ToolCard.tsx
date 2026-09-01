@@ -8,6 +8,7 @@ import { ToolDetail } from "@/components/molecules/ToolDetail";
 import { toFriendlyError } from "@/lib/error-messages";
 import { isRunningToolState } from "@/models";
 import type { ToolUIState } from "@/models";
+import { copy } from "@/lib/copy";
 
 export interface ToolPart {
   type: string;
@@ -52,7 +53,7 @@ export function ToolCard({ toolPart, isAborted, progressText }: ToolCardProps) {
       >
         <CollapsibleTrigger
           data-testid="tool-card-expand"
-          aria-label="Toggle tool details"
+          aria-label={copy.toolCard.toggleDetailsAriaLabel}
           className="w-full"
         >
           <ToolRow

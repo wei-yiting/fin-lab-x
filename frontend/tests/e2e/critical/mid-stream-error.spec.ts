@@ -21,7 +21,7 @@ test(
     await expect(page.getByTestId("stream-error-block")).not.toBeVisible();
 
     // "context length exceeded" maps to a non-retriable friendly error
-    await expect(page.getByTestId("error-title")).toContainText(/too long/i);
+    await expect(page.getByTestId("error-title")).toContainText(/太長/);
     await expect(page.getByTestId("error-retry-btn")).not.toBeVisible();
 
     // Partial text + already-extracted sources persist alongside the error

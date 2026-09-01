@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/primitives/button";
 import type { FriendlyError } from "@/lib/error-messages";
 import type { ErrorClass } from "@/lib/error-classifier";
+import { copy } from "@/lib/copy";
 
 interface ErrorBlockProps {
   friendly: FriendlyError;
@@ -43,7 +44,7 @@ export function ErrorBlock({ friendly, onRetry, source, errorClass }: ErrorBlock
               onClick={() => setIsDetailOpen(!isDetailOpen)}
               className="text-xs text-muted-foreground hover:underline"
             >
-              {isDetailOpen ? "Hide details" : "Show details"}
+              {isDetailOpen ? copy.errorBlock.hideDetails : copy.errorBlock.showDetails}
             </button>
           )}
           {isDetailOpen && friendly.detail && (
@@ -57,7 +58,7 @@ export function ErrorBlock({ friendly, onRetry, source, errorClass }: ErrorBlock
                   onClick={() => setShowFullDetail(true)}
                   className="ml-1 text-[var(--chat-brand-accent)] hover:underline"
                 >
-                  Show more
+                  {copy.errorBlock.showMore}
                 </button>
               )}
             </pre>
@@ -68,11 +69,11 @@ export function ErrorBlock({ friendly, onRetry, source, errorClass }: ErrorBlock
                 variant="outline"
                 size="sm"
                 data-testid="error-retry-btn"
-                aria-label="Retry"
+                aria-label={copy.errorBlock.retryAriaLabel}
                 onClick={onRetry}
                 className="h-7 text-xs"
               >
-                Retry
+                {copy.errorBlock.retry}
               </Button>
             )}
           </div>

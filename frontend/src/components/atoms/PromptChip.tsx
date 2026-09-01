@@ -19,7 +19,7 @@ export function PromptChip({
       data-chip-index={index}
       aria-label={text}
       onClick={onClick}
-      className="h-auto justify-start gap-2 whitespace-normal px-3 py-2 text-left text-sm"
+      className="h-auto justify-start gap-2 whitespace-nowrap px-3 py-2 text-left text-sm"
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span>{text}</span>

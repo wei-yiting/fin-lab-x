@@ -47,7 +47,7 @@ describe("ToolCard — visual state via data-tool-state attribute", () => {
     );
     expect(screen.getByTestId("tool-card")).toHaveAttribute("data-tool-state", "output-error");
     expect(screen.getByTestId("status-dot")).toHaveAttribute("data-status-state", "error");
-    expect(screen.getByText(/Too many requests/)).toBeInTheDocument();
+    expect(screen.getByText(/請求過於頻繁/)).toBeInTheDocument();
     expect(screen.queryByText("API rate limit exceeded")).not.toBeInTheDocument();
   });
 

@@ -17,7 +17,7 @@ test(
     await expect(page.getByTestId("stream-error-block")).toBeVisible({
       timeout: E2E_TIMEOUTS.streamComplete,
     });
-    await expect(page.getByTestId("error-title")).toContainText("Server error");
+    await expect(page.getByTestId("error-title")).toContainText("伺服器發生錯誤");
 
     // Step 3: click Retry → succeeds
     await page.getByTestId("error-retry-btn").click();

@@ -1,6 +1,7 @@
 import { StatusDot } from "@/components/atoms/StatusDot";
 import { ChevronRight } from "lucide-react";
 import type { ToolUIState } from "@/models";
+import { copy } from "@/lib/copy";
 
 function stateToStatusDot(state: ToolUIState): "running" | "success" | "error" | "aborted" {
   switch (state) {
@@ -25,13 +26,13 @@ function stateLabel(
   switch (state) {
     case "input-streaming":
     case "input-available":
-      return progressText ?? `Running ${toolName}...`;
+      return progressText ?? copy.toolStatus.running(toolName);
     case "output-available":
-      return `Completed ${toolName}`;
+      return copy.toolStatus.completed(toolName);
     case "output-error":
-      return friendlyTitle ?? `Error in ${toolName}`;
+      return friendlyTitle ?? copy.toolStatus.error(toolName);
     case "aborted":
-      return "Aborted";
+      return copy.toolStatus.aborted;
   }
 }
 

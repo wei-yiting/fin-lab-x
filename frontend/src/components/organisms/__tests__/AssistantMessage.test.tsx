@@ -306,10 +306,10 @@ describe("AssistantMessage — reasoning chips", () => {
     const chip = screen.getByTestId("reasoning-chip");
     expect(chip).toHaveAttribute("data-state", "streaming");
     expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("分析 10-K 中");
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thinking…");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("思考中…");
   });
 
-  test("done reasoning part collapses to Thought for Xs", () => {
+  test("done reasoning part collapses to copy.reasoningChip.thoughtFor", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -321,11 +321,11 @@ describe("AssistantMessage — reasoning chips", () => {
     render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
     const chip = screen.getByTestId("reasoning-chip");
     expect(chip).toHaveAttribute("data-state", "collapsed");
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thought for 3s");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("思考了 3 秒");
     expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
   });
 
-  test("aborted half-chip keeps text behind a Stopped header", () => {
+  test("aborted half-chip keeps text behind a copy.reasoningChip.stoppedThoughtFor header", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -334,9 +334,7 @@ describe("AssistantMessage — reasoning chips", () => {
     render(<AssistantMessage message={message} isStreaming={false} {...chipProps} />);
     const chip = screen.getByTestId("reasoning-chip");
     expect(chip).toHaveAttribute("data-state", "collapsed");
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
-      "Stopped — thought for 3s",
-    );
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("已停止 — 思考了 3 秒");
   });
 
   test("zero-delta reasoning part renders no chip", () => {

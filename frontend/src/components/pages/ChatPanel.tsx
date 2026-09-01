@@ -18,6 +18,7 @@ import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
 import { apiUrl } from "@/lib/api";
 import { ChatHttpError, statusAwareFetch } from "@/lib/chat-http";
+import { copy } from "@/lib/copy";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
 
@@ -68,10 +69,10 @@ export function ChatPanel() {
     experimental_throttle: STREAM_THROTTLE_MS,
     onData,
     onFinish: ({ isAbort, isDisconnect, isError }) => {
-      // Only the natural-completion path should trigger the SR "Response
-      // complete" announcement. The three non-normal paths each have their
-      // own user-visible affordance:
-      //   - isAbort                → aborted chip header (Stopped — thought for Xs)
+      // Only the natural-completion path should trigger the SR
+      // copy.chatPanel.responseComplete announcement. The three non-normal
+      // paths each have their own user-visible affordance:
+      //   - isAbort                → aborted chip header (copy.reasoningChip.stoppedThoughtFor)
       //   - isDisconnect / isError → announced by ErrorBlock's role="alert"
       if (isAbort || isDisconnect || isError) return;
       setResponseComplete(true);
@@ -81,8 +82,9 @@ export function ChatPanel() {
   // Turn-level interruption record: message ids whose
   // turn the user stopped. Companion to abortedTools — same capture point,
   // message-granular instead of tool-granular, so the transcript always
-  // carries an explicit "Interrupted" row even when no chip or tool card
-  // exists to carry the abort state (Stop during placeholder / reply text).
+  // carries an explicit copy.interruptedMarker.label row even when no chip
+  // or tool card exists to carry the abort state (Stop during placeholder /
+  // reply text).
   const [interruptedMessages, setInterruptedMessages] = useState<Set<string>>(() => new Set());
   const lastTriggerRef = useRef<LastTrigger | null>(null);
   const messageListRef = useRef<MessageListHandle>(null);
@@ -91,7 +93,7 @@ export function ChatPanel() {
   // Four of the five allowed non-derived stores of the chips system live
   // here (the fifth, the placeholder grace timer, lives inside
   // useDeadAirPlaceholder — see hooks/README.md for the full budget):
-  //   1. chip timing map (Thought-for-Xs measurement),
+  //   1. chip timing map (copy.reasoningChip.thoughtFor measurement),
   //   2. global stall stopwatch,
   //   3. user expand/collapse overrides (cleared each turn),
   //   4. turn interruption record (interruptedMessages — set whenever the user stops a turn).
@@ -136,7 +138,7 @@ export function ChatPanel() {
   // so entries for already-completed, still-rendered messages are never
   // re-read once a new turn's message ids are in play — wiping the whole
   // map on every send/regenerate/retry corrupted already-displayed
-  // "Thought for Xs" durations on unrelated past turns.
+  // copy.reasoningChip.thoughtFor durations on unrelated past turns.
   const resetForNewTurn = useCallback(() => {
     setChipOverrides(new Map());
   }, []);
@@ -179,10 +181,10 @@ export function ChatPanel() {
     }
     // The aborted chip needs no capture here: the reasoning part stays in
     // message.parts with state "streaming" (no reasoning-end on the wire),
-    // and the header derives "Stopped — thought for Xs" from that shape.
+    // and the header derives copy.reasoningChip.stoppedThoughtFor from that shape.
     // The turn-level marker anchors on the last message regardless of role:
     // a Stop before the assistant message exists (placeholder window) still
-    // leaves an "Interrupted" row under the user bubble.
+    // leaves a copy.interruptedMarker.label row under the user bubble.
     const anchor = messages.at(-1);
     if (anchor) {
       setInterruptedMessages((prev) => new Set(prev).add(anchor.id));
@@ -331,7 +333,7 @@ export function ChatPanel() {
         status={status as ChatStatus}
       />
       <div role="status" aria-live="polite" className="sr-only">
-        {responseComplete ? "Response complete" : ""}
+        {responseComplete ? copy.chatPanel.responseComplete : ""}
       </div>
     </div>
   );

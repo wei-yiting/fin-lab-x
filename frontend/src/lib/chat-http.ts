@@ -6,11 +6,13 @@
  * classifier and friendly-message mapper, we need to throw a typed
  * error before the SDK sees the failed response.
  */
+import { copy } from "@/lib/copy";
+
 export class ChatHttpError extends Error {
   readonly status: number;
 
   constructor(status: number, body: string) {
-    super(body || `HTTP ${status}`);
+    super(body || copy.errorMessages.httpStatusFallback(status));
     this.name = "ChatHttpError";
     this.status = status;
   }

@@ -3,6 +3,7 @@ import { Button } from "@/components/primitives/button";
 import { Textarea } from "@/components/primitives/textarea";
 import { Send, Square } from "lucide-react";
 import type { ChatStatus } from "@/models";
+import { copy } from "@/lib/copy";
 
 export interface ComposerHandle {
   setValue: (v: string) => void;
@@ -49,8 +50,8 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
           <Textarea
             ref={textareaRef}
             data-testid="composer-textarea"
-            aria-label="Message input"
-            placeholder="Ask about markets, companies, or filings..."
+            aria-label={copy.composer.inputAriaLabel}
+            placeholder={copy.composer.inputPlaceholder}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
@@ -69,7 +70,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 variant="outline"
                 size="icon"
                 data-testid="composer-stop-btn"
-                aria-label="Stop response"
+                aria-label={copy.composer.stopAriaLabel}
                 onClick={stop}
                 className="size-8 shrink-0"
               >
@@ -80,7 +81,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 type="submit"
                 size="icon"
                 data-testid="composer-send-btn"
-                aria-label="Send message"
+                aria-label={copy.composer.sendAriaLabel}
                 disabled={!text.trim()}
                 className="size-8 shrink-0"
               >
@@ -90,7 +91,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
           </div>
         </form>
         <p className="mt-2 text-center text-[10px] text-[var(--chat-fg-subtler)]">
-          AI-generated responses may be inaccurate. Please verify important information.
+          {copy.composer.disclaimer}
         </p>
       </div>
     );

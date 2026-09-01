@@ -1,4 +1,5 @@
 import type { ErrorClass } from "@/models";
+import { copy } from "@/lib/copy";
 
 export interface ErrorContext {
   source: "pre-stream-http" | "mid-stream-sse" | "tool-output-error" | "network";
@@ -21,20 +22,20 @@ interface PreStreamHttpEntry {
 export const preStreamHttpMap: Record<number, PreStreamHttpEntry> = {
   422: {
     class: "pre-stream-422",
-    title: "Couldn't regenerate that message. Please try again.",
+    title: copy.errorMessages.regenerateFailed,
     retriable: true,
   },
   404: {
     class: "pre-stream-404",
-    title: "Conversation not found. Refresh to start a new one.",
+    title: copy.errorMessages.conversationNotFound,
     retriable: false,
   },
   409: {
     class: "pre-stream-409",
-    title: "The system is busy. Please try again in a moment.",
+    title: copy.errorMessages.sessionBusy,
     retriable: true,
   },
-  500: { class: "pre-stream-500", title: "Server error. Please try again.", retriable: true },
+  500: { class: "pre-stream-500", title: copy.errorMessages.serverError, retriable: true },
 };
 
 const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boolean }> = [
@@ -45,19 +46,19 @@ const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boo
     // through to the rate-limit case. Per-run budgets are not retriable
     // within the same request.
     pattern: /per-run tool-call budget reached/i,
-    title: "Tool-call budget reached for this request.",
+    title: copy.errorMessages.toolBudgetReached,
     retriable: false,
   },
   {
     pattern: /rate limit/i,
-    title: "Too many requests. Please wait a moment and try again.",
+    title: copy.errorMessages.tooManyRequests,
     retriable: true,
   },
-  { pattern: /not found/i, title: "We couldn't find that data.", retriable: false },
-  { pattern: /timeout/i, title: "The tool timed out. Please try again.", retriable: true },
+  { pattern: /not found/i, title: copy.errorMessages.dataNotFound, retriable: false },
+  { pattern: /timeout/i, title: copy.errorMessages.toolTimeout, retriable: true },
   {
     pattern: /permission denied|forbidden/i,
-    title: "Access denied for this resource.",
+    title: copy.errorMessages.accessDenied,
     retriable: false,
   },
 ];
@@ -65,12 +66,12 @@ const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boo
 const midStreamPatterns: Array<{ pattern: RegExp; title: string; retriable: boolean }> = [
   {
     pattern: /context length exceeded|token limit/i,
-    title: "This conversation is too long. Start a new chat to continue.",
+    title: copy.errorMessages.conversationTooLong,
     retriable: false,
   },
   {
     pattern: /rate limit/i,
-    title: "The system is busy. Please try again in a moment.",
+    title: copy.errorMessages.sessionBusy,
     retriable: true,
   },
 ];
@@ -99,19 +100,19 @@ export function toFriendlyError(ctx: ErrorContext): FriendlyError {
       if (mapped) {
         return { title: mapped.title, retriable: mapped.retriable, detail };
       }
-      return { title: "Something went wrong. Please try again.", retriable: true, detail };
+      return { title: copy.errorMessages.preStreamFallback, retriable: true, detail };
     }
 
     case "network":
       return {
-        title: "Connection lost. Check your network and try again.",
+        title: copy.errorMessages.networkError,
         retriable: true,
         detail,
       };
 
     case "tool-output-error": {
       const matched = matchPattern(ctx.rawMessage, toolOutputPatterns, {
-        title: "The tool failed to run. Please try again.",
+        title: copy.errorMessages.toolFailedFallback,
         retriable: true,
       });
       return { ...matched, detail };
@@ -119,7 +120,7 @@ export function toFriendlyError(ctx: ErrorContext): FriendlyError {
 
     case "mid-stream-sse": {
       const matched = matchPattern(ctx.rawMessage, midStreamPatterns, {
-        title: "Something went wrong while generating the response. Please try again.",
+        title: copy.errorMessages.midStreamFallback,
         retriable: true,
       });
       return { ...matched, detail };

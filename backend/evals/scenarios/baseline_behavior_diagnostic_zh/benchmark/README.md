@@ -1,7 +1,7 @@
-# Benchmark protocol (DEV-200/205/206)
+# Benchmark protocol
 
 Infrastructure and frozen artifacts for the fast-vs-reasoning model-configuration
-benchmark defined in DEV-200. Lives under this scenario (not `profiles/`) because
+benchmark. Lives under this scenario (not `profiles/`) because
 `baseline_behavior_diagnostic_zh` is the frozen decision's benchmark body — see
 `ProfileConfigLoader.load_from_dir()`'s docstring for why benchmark configs don't
 live under `profiles/`.
@@ -15,27 +15,29 @@ live under `profiles/`.
   canonical prompt below, so 4 configs can never drift into 4 slightly
   different prompts.
 - `prompt/system_prompt.md` — the single canonical shared prompt. Seeded as an
-  unmodified copy of the `baseline` profile's prompt; DEV-206 evolves it from
-  here (product behavior, tool-contract changes, and the known failures below),
-  cross-checked against all 4 configs before any revision is kept.
+  unmodified copy of the `baseline` profile's prompt; a later revision evolves
+  it from here (product behavior, tool-contract changes, and the known
+  failures below), cross-checked against all 4 configs before any revision is
+  kept.
 - `split.json` — the dev/holdout/reserve row-id split proposal (status:
-  `proposed`, pending the 🧑 human split-review gate on DEV-200). Read via
+  `proposed`, pending human split review). Read via
   `backend.evals.diagnostic.row_selection.load_split_sidecar` /
   `apply_split`, which default to dev rows only — holdout/reserve need an
   explicit opt-in on the caller's side, and only after the split is frozen.
 
 ## Status
 
-DEV-205 delivers the infrastructure above and the split *proposal*. DEV-206
-evolves the prompt, runs the cross-config dev-set validation cycle, and
-performs the actual freeze (commit + `experiment/2026-09-baseline-model-config-benchmark`
-tag). Until that freeze, nothing here is authoritative — the split is a
-candidate for human review, and the seeded prompt is baseline's, unmodified.
+This directory currently holds the infrastructure above and the split
+*proposal* — nothing here is authoritative yet. The split is a candidate for
+human review; the seeded prompt is `baseline`'s, unmodified. What comes next:
+prompt evolution against the known failures below, a cross-config dev-set
+validation cycle, then the actual freeze (commit + an
+`experiment/`-prefixed git tag pinning the code that produced it).
 
-## Known failure sources DEV-206's prompt evolution targets
+## Known failure sources the next prompt revision targets
 
 Recorded here (not as an exhaustive list — dev-set work is itself a discovery
-surface, see DEV-200):
+surface):
 
 - Simplified/Traditional Chinese drift in zh responses — never previously
   addressed. Caught automatically by `language_policy`'s new

@@ -6,12 +6,16 @@ ids are recorded in experiment metadata so a subset run can never be mistaken
 for a full one. Anything richer than an explicit id list — field filters, saved
 manifests, slice hashing — is out of envelope.
 
-``load_split_sidecar`` / ``apply_split`` are a separate, composable layer for
-scenarios that additionally carry a frozen dev/holdout/reserve split (e.g. a
-benchmark protocol's ``benchmark/split.json``). They guard against an
-accidental holdout/reserve run before that split is frozen — not against
-malicious misuse — by defaulting to dev rows only and requiring each other
-tier's inclusion to be named explicitly.
+``load_split_sidecar`` / ``apply_split`` are a deliberate, narrow exception to
+the paragraph above: a benchmark protocol needs a real leakage guard (dev
+rows only, until the split is frozen), which is richer than a plain id list.
+They guard against an accidental holdout/reserve run before that split is
+frozen — not against malicious misuse — by defaulting to dev rows only and
+requiring each other tier's inclusion to be named explicitly. Nothing in the
+run path calls them yet; the next ticket in this benchmark protocol's
+sequence is the one that actually executes runs against the frozen split, so
+it is also the one that wires this in. Author-accepted as reachable-soon
+rather than reachable-now, not a standing exception.
 """
 
 from __future__ import annotations

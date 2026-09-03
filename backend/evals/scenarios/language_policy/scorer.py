@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
+# Only used to locate the package's bundled dictionary file below; OpenCC
+# itself (the conversion class) still comes from `from opencc import OpenCC`.
+import opencc as _opencc_pkg
 from autoevals import Score  # pyright: ignore[reportMissingImports]
 from opencc import OpenCC
 
-from backend.evals.eval_helpers import contains_cjk, cjk_ratio
+from backend.evals.eval_helpers import CJK_PATTERN, contains_cjk, cjk_ratio
 
 TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]*$")
 
@@ -17,27 +21,66 @@ TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]*$")
 # scorer calls rather than per-call.
 _S2T_CONVERTER = OpenCC("s2t")
 
-# OpenCC's Simplified-to-Traditional table treats a handful of characters
-# as ambiguous: its STCharacters.txt entry for 台 is "臺 檯 颱 台" — 台
-# appears on both the Simplified (key) side and its own Traditional
-# (candidate) side, because 台 is genuinely dual-status: the Simplified
-# merge of 臺/檯/颱 in mainland usage, AND a completely legitimate,
-# extremely common standalone Traditional character in Taiwan usage (台灣,
-# 台北, 台積電). convert() always picks the first candidate (臺) rather
-# than recognizing the input was already valid, so unfiltered s2t-diffing
-# flags correct Taiwan-standard text — e.g. 台積電 (TSMC, this dataset's
-# own row 4) — as Simplified contamination.
+# OpenCC's Simplified-to-Traditional table treats a number of characters as
+# ambiguous: its STCharacters.txt entry for a character can list that same
+# character among its own Traditional candidates, alongside other
+# Traditional characters it also maps from. 台 is the clearest example —
+# its entry is "臺 檯 颱 台" — because 台 is genuinely dual-status: the
+# Simplified merge of 臺/檯/颱 in mainland usage, AND a completely
+# legitimate, extremely common standalone Traditional character in Taiwan
+# usage (台灣, 台北, 台積電 — a common company name in Traditional Chinese
+# financial answers). convert() always picks the first candidate (臺)
+# rather than recognizing the input was already valid, so unfiltered
+# s2t-diffing flags correct Taiwan-standard text as Simplified
+# contamination.
+#
 # opencc-python-reimplemented (0.1.7) has no public API to query this
-# ambiguity data (OpenCC.convert() is the only public surface), so the
-# known case is hardcoded here instead of parsed from its bundled
-# dictionary file at runtime. A researched alternative — the `zhon`/
+# ambiguity data directly (OpenCC.convert() is the only public surface), so
+# this module parses the same STCharacters.txt dictionary file the library
+# loads internally (see _load_dual_status_traditional_chars below) instead
+# of hand-picking known-ambiguous characters one at a time as false
+# positives are found by testing. A researched alternative — the `zhon`/
 # `hanzidentifier` character-set libraries — hits the identical dual-status
-# ambiguity (see hanzidentifier issue #5, the analogous 着 case) and would
-# add two new dependencies for a ~30-row eval dataset, so it is not a
-# strictly better fix. Extend this set if another dual-status false
-# positive is found; this is not an exhaustive CJK variant table (out of
-# scope per docs/design-envelope.md §1).
-_DUAL_STATUS_TRADITIONAL_CHARS: frozenset[str] = frozenset({"台"})
+# ambiguity and would add two new dependencies for a ~30-row eval dataset,
+# so it is not a strictly better fix.
+_STCHARACTERS_PATH = (
+    Path(_opencc_pkg.__file__).parent / "dictionary" / "STCharacters.txt"
+)
+
+
+def _load_dual_status_traditional_chars(path: Path) -> frozenset[str]:
+    """Derive the set of characters OpenCC's own s2t table treats as dual-status.
+
+    Each STCharacters.txt line is `simplified_char\\tcandidate1 candidate2 ...`.
+    A line where the key also appears in its own candidate list means OpenCC
+    itself considers this character valid Traditional Chinese as-is (not only
+    a simplified stand-in for something else) — e.g. `台\\t臺 檯 颱 台` (Taiwan's
+    "台" is genuinely dual-status: mainland usage merges it with 臺/檯/颱, but
+    Taiwan usage writes 台灣/台積電 with 台 correctly on its own). Deriving this
+    from OpenCC's own data catches the whole class (170 characters as of
+    opencc-python-reimplemented 0.1.7) instead of hand-picking examples as
+    they're discovered by testing.
+    """
+    dual_status: set[str] = set()
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            key, _, values = line.partition("\t")
+            if key in values.split(" "):
+                dual_status.add(key)
+    return frozenset(dual_status)
+
+
+_DUAL_STATUS_TRADITIONAL_CHARS = _load_dual_status_traditional_chars(_STCHARACTERS_PATH)
+
+# Empirically-set threshold, not a precisely-derived constant: legitimate
+# dense-but-correct Traditional text (repeated 台/占-style dual-status
+# usage) measured up to ~12% "changed" under naive s2t diffing, while
+# genuinely-Simplified samples measured 21%-43%. 15% sits with margin on
+# both sides. May need tuning once DEV-206 runs real dev-set data.
+_MAX_SIMPLIFIED_RATIO = 0.15
 
 
 def _as_mapping(value: Any) -> Mapping[str, Any]:
@@ -103,7 +146,7 @@ def expected_tool_called(output: Any, expected: Any, *, input: Any) -> Score | N
 def response_no_simplified_chars(
     output: Any, expected: Any, *, input: Any
 ) -> Score | None:
-    """Check the response contains no Simplified Chinese characters.
+    """Check the response is not substantially written in Simplified Chinese.
 
     Only rows expecting a Chinese response (``cjk_min > 0``) make this
     claim — an English-expected row no-scores, matching
@@ -111,14 +154,21 @@ def response_no_simplified_chars(
     ``response_language``'s CJK-ratio check cannot: a fully Simplified
     response can still land inside the expected CJK ratio range.
 
-    Detection diffs the response character-by-character against its
-    OpenCC Simplified-to-Traditional (``s2t``) conversion — s2t conversion
-    is length-preserving (verified against every entry in OpenCC's own
-    dictionaries), so index-aligned diffing is safe. A changed character
-    only counts as Simplified contamination if it is not in
-    ``_DUAL_STATUS_TRADITIONAL_CHARS``; see that constant's comment for why
-    whole-string conversion-equality (the previous approach) incorrectly
-    flags legitimate Traditional Chinese.
+    This scorer's job is to judge whether the response is written in the
+    wrong language overall, not to guarantee zero wrong characters: an
+    occasional genuine mistake is tolerated, but a response substantially
+    written in Simplified is not. Detection diffs the response
+    character-by-character against its OpenCC Simplified-to-Traditional
+    (``s2t``) conversion — s2t conversion is length-preserving (verified
+    against every entry in OpenCC's own dictionaries), so index-aligned
+    diffing is safe. Among the CJK characters (``CJK_PATTERN``) in the
+    original response, a changed character counts as a genuine
+    Simplified-contamination signal unless it is in
+    ``_DUAL_STATUS_TRADITIONAL_CHARS`` (see that constant's comment for why
+    whole-string conversion-equality incorrectly flags legitimate
+    Traditional Chinese). The response scores pure (1.0) as long as the
+    ratio of genuine changes to total CJK characters stays at or below
+    ``_MAX_SIMPLIFIED_RATIO``.
     """
     expected_mapping = _as_mapping(expected)
     if "cjk_min" not in expected_mapping:
@@ -139,10 +189,21 @@ def response_no_simplified_chars(
         # misaligning the per-character diff below.
         raise ValueError("OpenCC s2t conversion changed response length unexpectedly")
 
-    is_pure = all(
-        orig == conv or orig in _DUAL_STATUS_TRADITIONAL_CHARS
-        for orig, conv in zip(response, converted)
-    )
+    total_cjk = 0
+    genuine_changes = 0
+    for orig, conv in zip(response, converted):
+        if not CJK_PATTERN.match(orig):
+            continue
+        total_cjk += 1
+        if orig != conv and orig not in _DUAL_STATUS_TRADITIONAL_CHARS:
+            genuine_changes += 1
+
+    if total_cjk == 0:
+        # Vacuous case: no CJK characters means no Simplified contamination.
+        is_pure = True
+    else:
+        is_pure = (genuine_changes / total_cjk) <= _MAX_SIMPLIFIED_RATIO
+
     return Score(name="response_no_simplified_chars", score=1.0 if is_pure else 0.0)
 
 

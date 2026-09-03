@@ -1,6 +1,6 @@
 {
   "dataset_name": "baseline_behavior_diagnostic_zh",
-  "dataset_version": "2026-04-24",
+  "dataset_version": "2026-09-03",
   "applies_to": [
     "baseline_behavior_diagnostic_zh",
     "baseline_behavior_diagnostic"
@@ -8,32 +8,6 @@
   "split_date": "2026-09-03",
   "status": "proposed",
   "counts": { "dev": 8, "holdout": 16, "reserve": 6 },
-  "stratification": {
-    "primary_key": "capability_band x expected_baseline_behavior, proportional to 8/16/6",
-    "secondary_balance": ["category", "time_sensitivity"],
-    "method": "row-wise floor + largest-remainder rounding per stratum, seeded shuffle within each stratum for the specific row picks",
-    "seed": "36 (search over seeds 0-499 for the seed maximizing dev-set category/time_sensitivity coverage; seed 36 reaches 7/7 categories and 2/2 time_sensitivity values inside dev's 8 rows, and 7/7 categories inside holdout)",
-    "forced_overrides": [
-      {
-        "row_id": "5",
-        "tier": "holdout",
-        "reason": "sole beyond_boundary x should_fail_cleanly row — pulled out of proportional allocation and pinned to holdout before stratifying the remaining 29 rows."
-      }
-    ],
-    "manual_adjustments": [
-      {
-        "stratum": ["boundary", "may_pass_with_tuning"],
-        "change": "dev +1, reserve -1 (within this 13-row stratum only)",
-        "reason": "Independent per-stratum largest-remainder rounding left the whole-table totals at dev=7/holdout=15/reserve=7 (target 8/15/6, excluding the forced row-5 holdout slot) — short 1 in dev, over 1 in reserve. In this stratum dev's rounding remainder (.59) was the closest miss behind the two remainders that got rounded up (holdout .72, reserve .69); reassigning its 1-row shortfall from reserve fixes both totals to the exact target with the smallest possible remainder distortion, and this stratum has the most rows (13) to absorb it without concentrating the change on a small stratum."
-      }
-    ]
-  },
-  "twin_rule": "en/zh datasets share row ids 1-30 1:1 (baseline_behavior_diagnostic / baseline_behavior_diagnostic_zh); this split applies to both by id — a row's tier must never differ between the two language variants, since that would leak the zh (primary) tier assignment through the en twin's answer.",
-  "curation_pass": {
-    "date": "2026-09-03",
-    "method": "Pass 1: compared every non-free-text column (company_universe, category, expected_answer_type-excluded-as-prose, time_sensitivity, question_style, capability_band, expected_baseline_behavior, primary_failure_mechanism, secondary_failure_mechanism, expected_best_source, likely_tuning_lever) between the en and zh datasets, row by row, by id. Pass 2 (follow-up): compared the 4 free-text columns (question, expected_answer_type, why_baseline_might_fail_or_pass, draft_pass_signals) between the en and zh datasets, row by row, by id.",
-    "result": "Pass 1: 0 anomalies — all categorical columns identical between the en/zh twins for all 30 rows. Pass 2: 1 anomaly found and corrected — row 19's zh why_baseline_might_fail_or_pass referenced yfinance where the en twin and the row's own expected_best_source both say Finnhub; corrected to Finnhub. No other free-text drift, and no row identity, capability_band, or expected_baseline_behavior drift found."
-  },
   "dev": ["3", "6", "9", "13", "17", "20", "24", "29"],
   "holdout": ["1", "2", "5", "7", "10", "12", "14", "16", "18", "19", "21", "22", "25", "26", "27", "28"],
   "reserve": ["4", "8", "11", "15", "23", "30"]

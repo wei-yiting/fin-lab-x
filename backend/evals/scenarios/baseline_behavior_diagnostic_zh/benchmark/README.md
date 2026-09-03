@@ -23,7 +23,18 @@ live under `profiles/`.
   `proposed`, pending human split review). Read via
   `backend.evals.diagnostic.row_selection.load_split_sidecar` /
   `apply_split`, which default to dev rows only — holdout/reserve need an
-  explicit opt-in on the caller's side, and only after the split is frozen.
+  explicit opt-in on the caller's side, and only after the split is frozen
+  (`status: "frozen"`).
+
+  Two standing rules govern this split and aren't captured in the JSON
+  itself: the en/zh datasets share row ids 1-30 1:1, and a row's split-tier
+  assignment must be identical across both language variants — the zh split
+  above is authoritative, so it must never be allowed to drift from what a
+  reader sees if they instead look at the en twin. Row 5 is pinned to
+  `holdout` as a fixed rule rather than an output of the stratification
+  algorithm — it's the dataset's sole `beyond_boundary` x
+  `should_fail_cleanly` row, so if the split is ever regenerated (e.g. the
+  dataset grows), row 5 must still land in holdout.
 
 ## Status
 

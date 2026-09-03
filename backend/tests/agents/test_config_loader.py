@@ -193,23 +193,23 @@ def test_model_config_accepts_reasoning_effort_string(tmp_path, monkeypatch):
 
 
 def test_load_from_dir_loads_config_without_prompt_path(tmp_path):
-    config_dir = tmp_path / "c1_luna_none"
+    config_dir = tmp_path / "sample_config"
     config_dir.mkdir()
     (config_dir / "orchestrator_config.yaml").write_text(
-        yaml.safe_dump(_valid_payload("c1_luna_none"))
+        yaml.safe_dump(_valid_payload("sample_config"))
     )
 
     config = ProfileConfigLoader.load_from_dir(config_dir)
 
-    assert config.name == "c1_luna_none"
+    assert config.name == "sample_config"
     assert config.system_prompt is None
 
 
 def test_load_from_dir_injects_prompt_from_explicit_path(tmp_path):
-    config_dir = tmp_path / "c1_luna_none"
+    config_dir = tmp_path / "sample_config"
     config_dir.mkdir()
     (config_dir / "orchestrator_config.yaml").write_text(
-        yaml.safe_dump(_valid_payload("c1_luna_none"))
+        yaml.safe_dump(_valid_payload("sample_config"))
     )
     prompt_file = tmp_path / "shared_prompt" / "system_prompt.md"
     prompt_file.parent.mkdir()
@@ -225,10 +225,10 @@ def test_load_from_dir_ignores_sibling_system_prompt_md(tmp_path):
     profile-name constructor, injection here is explicit-only via
     prompt_path, so N configs sharing one canonical prompt can never drift
     into N slightly-different copies."""
-    config_dir = tmp_path / "c1_luna_none"
+    config_dir = tmp_path / "sample_config"
     config_dir.mkdir()
     (config_dir / "orchestrator_config.yaml").write_text(
-        yaml.safe_dump(_valid_payload("c1_luna_none"))
+        yaml.safe_dump(_valid_payload("sample_config"))
     )
     (config_dir / "system_prompt.md").write_text("Should not be picked up.\n")
 

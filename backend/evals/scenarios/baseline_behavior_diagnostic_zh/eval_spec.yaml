@@ -7,7 +7,7 @@ regression:
   enabled: false
 diagnostic:
   dataset_name: baseline_behavior_diagnostic_zh
-  dataset_version: "2026-04-24"
+  dataset_version: "2026-09-03"
   agent_version: baseline
 task:
   function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic

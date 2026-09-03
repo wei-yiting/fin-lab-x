@@ -28,6 +28,7 @@ from typing import TypedDict
 class SplitSidecar(TypedDict):
     """Parsed shape of a benchmark's dev/holdout/reserve split sidecar."""
 
+    status: str
     dev: list[str]
     holdout: list[str]
     reserve: list[str]
@@ -98,21 +99,30 @@ def _find_duplicates(values: list[str]) -> list[str]:
 def load_split_sidecar(path: Path) -> SplitSidecar:
     """Load a dev/holdout/reserve split sidecar and check its integrity.
 
-    Requires ``dev``/``holdout``/``reserve`` id lists and rejects a row id
-    appearing in more than one tier — a corrupt sidecar must fail loudly
-    rather than silently leak a holdout row into dev. Every id must be a
-    non-empty (post-strip) string; a malformed element is rejected here,
-    naming the tier and value, instead of surfacing later as an incidental
-    ``TypeError`` inside duplicate-checking.
+    Requires a ``status`` string plus ``dev``/``holdout``/``reserve`` id lists,
+    and rejects a row id appearing in more than one tier — a corrupt sidecar
+    must fail loudly rather than silently leak a holdout row into dev. Every
+    id must be a non-empty (post-strip) string; a malformed element is
+    rejected here, naming the tier and value, instead of surfacing later as
+    an incidental ``TypeError`` inside duplicate-checking. ``status`` gates
+    ``apply_split``'s holdout/reserve opt-in — only ``"frozen"`` unlocks
+    them (see ``apply_split``).
     """
     with open(path, "r") as f:
         data = json.load(f)
 
     if not isinstance(data, dict):
         raise ValueError(
-            "Split sidecar must be a JSON object with 'dev'/'holdout'/'reserve' "
-            f"keys, got {type(data).__name__}: {path}"
+            "Split sidecar must be a JSON object with 'status'/'dev'/'holdout'/"
+            f"'reserve' keys, got {type(data).__name__}: {path}"
         )
+
+    if (
+        "status" not in data
+        or not isinstance(data["status"], str)
+        or not data["status"].strip()
+    ):
+        raise ValueError(f"Split sidecar missing a non-empty 'status' string: {path}")
 
     for tier in ("dev", "holdout", "reserve"):
         if tier not in data or not isinstance(data[tier], list):
@@ -132,7 +142,10 @@ def load_split_sidecar(path: Path) -> SplitSidecar:
         )
 
     return SplitSidecar(
-        dev=data["dev"], holdout=data["holdout"], reserve=data["reserve"]
+        status=data["status"],
+        dev=data["dev"],
+        holdout=data["holdout"],
+        reserve=data["reserve"],
     )
 
 
@@ -147,11 +160,27 @@ def apply_split(
 
     Defaults to dev rows only; ``include_holdout``/``include_reserve`` are
     explicit per-tier opt-ins (never a single "unlock everything" flag) so a
-    caller can never widen scope by accident. Every row in ``rows`` must
-    appear in exactly one tier of ``split`` — a row absent from the sidecar
-    (e.g. the dataset grew after the split was frozen) fails loudly instead
-    of silently passing through or being silently dropped.
+    caller can never widen scope by accident. Requesting either opt-in
+    additionally requires ``split["status"] == "frozen"`` — holdout/reserve
+    rows must never be readable before the split is actually frozen (dev
+    rows stay available regardless of status). Every row in ``rows`` must
+    have a well-formed, unique ``id`` and appear in exactly one tier of
+    ``split`` — a malformed/duplicate row id, or a row absent from the
+    sidecar (e.g. the dataset grew after the split was frozen), fails
+    loudly instead of silently passing through, skewing downstream
+    aggregation, or being silently dropped.
     """
+    if include_holdout and split.get("status") != "frozen":
+        raise ValueError(
+            "include_holdout requires a frozen split sidecar "
+            f"(status={split.get('status')!r})"
+        )
+    if include_reserve and split.get("status") != "frozen":
+        raise ValueError(
+            "include_reserve requires a frozen split sidecar "
+            f"(status={split.get('status')!r})"
+        )
+
     allowed = set(split["dev"])
     if include_holdout:
         allowed |= set(split["holdout"])
@@ -159,7 +188,24 @@ def apply_split(
         allowed |= set(split["reserve"])
 
     known = set(split["dev"]) | set(split["holdout"]) | set(split["reserve"])
-    unknown = [row["id"] for row in rows if row.get("id") not in known]
+
+    row_ids: list[str] = []
+    unknown: list[str] = []
+    for row in rows:
+        row_id = row.get("id")
+        if not isinstance(row_id, str) or not row_id.strip():
+            raise ValueError(
+                f"Dataset row has a malformed id (must be a non-empty string): "
+                f"{row_id!r}"
+            )
+        row_ids.append(row_id)
+        if row_id not in known:
+            unknown.append(row_id)
+
+    duplicates = _find_duplicates(row_ids)
+    if duplicates:
+        raise ValueError(f"Duplicate row ids in dataset rows: {', '.join(duplicates)}")
+
     if unknown:
         raise ValueError(f"Rows not present in the split sidecar: {', '.join(unknown)}")
 

@@ -17,7 +17,7 @@
       {
         "row_id": "5",
         "tier": "holdout",
-        "reason": "sole beyond_boundary x should_fail_cleanly row (frozen decision, DEV-200) — pulled out of proportional allocation and pinned to holdout before stratifying the remaining 29 rows."
+        "reason": "sole beyond_boundary x should_fail_cleanly row — pulled out of proportional allocation and pinned to holdout before stratifying the remaining 29 rows."
       }
     ],
     "manual_adjustments": [
@@ -31,8 +31,8 @@
   "twin_rule": "en/zh datasets share row ids 1-30 1:1 (baseline_behavior_diagnostic / baseline_behavior_diagnostic_zh); this split applies to both by id — a row's tier must never differ between the two language variants, since that would leak the zh (primary) tier assignment through the en twin's answer.",
   "curation_pass": {
     "date": "2026-09-03",
-    "method": "Compared every non-free-text column (company_universe, category, expected_answer_type-excluded-as-prose, time_sensitivity, question_style, capability_band, expected_baseline_behavior, primary_failure_mechanism, secondary_failure_mechanism, expected_best_source, likely_tuning_lever) between the en and zh datasets, row by row, by id.",
-    "result": "0 anomalies. All categorical columns are identical between the en/zh twins for all 30 rows; only the free-text columns (question, expected_answer_type, why_baseline_might_fail_or_pass, draft_pass_signals) differ, as expected for a translation. No row identity, capability_band, or expected_baseline_behavior drift found."
+    "method": "Pass 1: compared every non-free-text column (company_universe, category, expected_answer_type-excluded-as-prose, time_sensitivity, question_style, capability_band, expected_baseline_behavior, primary_failure_mechanism, secondary_failure_mechanism, expected_best_source, likely_tuning_lever) between the en and zh datasets, row by row, by id. Pass 2 (follow-up): compared the 4 free-text columns (question, expected_answer_type, why_baseline_might_fail_or_pass, draft_pass_signals) between the en and zh datasets, row by row, by id.",
+    "result": "Pass 1: 0 anomalies — all categorical columns identical between the en/zh twins for all 30 rows. Pass 2: 1 anomaly found and corrected — row 19's zh why_baseline_might_fail_or_pass referenced yfinance where the en twin and the row's own expected_best_source both say Finnhub; corrected to Finnhub. No other free-text drift, and no row identity, capability_band, or expected_baseline_behavior drift found."
   },
   "dev": ["3", "6", "9", "13", "17", "20", "24", "29"],
   "holdout": ["1", "2", "5", "7", "10", "12", "14", "16", "18", "19", "21", "22", "25", "26", "27", "28"],

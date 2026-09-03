@@ -123,6 +123,9 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
             f"(got reasoning={config.reasoning!r})."
         )
 
+    if config.reasoning_effort is not None and not config.reasoning_effort.strip():
+        raise ValueError("reasoning_effort must be a non-empty string if set.")
+
     if provider in ("openai", "anthropic", "google_genai"):
         kwargs["model_provider"] = provider
         name = config.bare_name
@@ -214,7 +217,11 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
             # reasoning_effort overrides the "medium" default when the admin
             # config declares a specific effort tier (e.g. benchmark configs
             # pinning "none" vs "medium" on the same model).
-            effort = config.reasoning_effort or "medium"
+            effort = (
+                config.reasoning_effort
+                if config.reasoning_effort is not None
+                else "medium"
+            )
             kwargs["reasoning"] = {"effort": effort, "summary": "auto"}
             kwargs["use_responses_api"] = True
         else:

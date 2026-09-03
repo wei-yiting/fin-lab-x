@@ -100,14 +100,29 @@ def load_split_sidecar(path: Path) -> SplitSidecar:
 
     Requires ``dev``/``holdout``/``reserve`` id lists and rejects a row id
     appearing in more than one tier — a corrupt sidecar must fail loudly
-    rather than silently leak a holdout row into dev.
+    rather than silently leak a holdout row into dev. Every id must be a
+    non-empty (post-strip) string; a malformed element is rejected here,
+    naming the tier and value, instead of surfacing later as an incidental
+    ``TypeError`` inside duplicate-checking.
     """
     with open(path, "r") as f:
         data = json.load(f)
 
+    if not isinstance(data, dict):
+        raise ValueError(
+            "Split sidecar must be a JSON object with 'dev'/'holdout'/'reserve' "
+            f"keys, got {type(data).__name__}: {path}"
+        )
+
     for tier in ("dev", "holdout", "reserve"):
         if tier not in data or not isinstance(data[tier], list):
             raise ValueError(f"Split sidecar missing '{tier}' row-id list: {path}")
+        for row_id in data[tier]:
+            if not isinstance(row_id, str) or not row_id.strip():
+                raise ValueError(
+                    f"Split sidecar tier '{tier}' has a malformed row id "
+                    f"(must be a non-empty string): {row_id!r}"
+                )
 
     all_ids = [*data["dev"], *data["holdout"], *data["reserve"]]
     duplicates = _find_duplicates(all_ids)

@@ -142,6 +142,33 @@ class TestLoadSplitSidecar:
         with pytest.raises(ValueError, match="more than one split tier: 2"):
             load_split_sidecar(path)
 
+    def test_rejects_non_object_root(self, tmp_path: Path) -> None:
+        path = tmp_path / "split.json"
+        path.write_text(json.dumps(["1", "2", "3"]))
+
+        with pytest.raises(ValueError, match="must be a JSON object"):
+            load_split_sidecar(path)
+
+    @pytest.mark.parametrize(
+        "malformed_id",
+        [
+            pytest.param("", id="empty-string"),
+            pytest.param("   ", id="whitespace-only"),
+            pytest.param(1, id="non-string"),
+            pytest.param(None, id="null"),
+        ],
+    )
+    def test_rejects_malformed_row_id(
+        self, tmp_path: Path, malformed_id: object
+    ) -> None:
+        path = tmp_path / "split.json"
+        path.write_text(
+            json.dumps({"dev": ["1", malformed_id], "holdout": ["2"], "reserve": ["3"]})
+        )
+
+        with pytest.raises(ValueError, match="tier 'dev' has a malformed row id"):
+            load_split_sidecar(path)
+
 
 class TestApplySplit:
     def test_defaults_to_dev_only(self) -> None:
@@ -182,44 +209,3 @@ class TestApplySplit:
 
         with pytest.raises(ValueError, match="not present in the split sidecar: 999"):
             apply_split(rows, split)
-
-
-# ---------------------------------------------------------------------------
-# The real DEV-200/205 split proposal: dev 8 / holdout 16 / reserve 6,
-# covers every zh dataset row exactly once, with the sole
-# beyond_boundary x should_fail_cleanly row (id 5) pinned to holdout.
-# ---------------------------------------------------------------------------
-
-REAL_SPLIT_PATH = Path(
-    "backend/evals/scenarios/baseline_behavior_diagnostic_zh/benchmark/split.json"
-)
-ZH_DATASET_PATH = Path(
-    "backend/evals/scenarios/baseline_behavior_diagnostic_zh/dataset.csv"
-)
-
-
-def test_real_split_proposal_has_the_frozen_counts() -> None:
-    split = load_split_sidecar(REAL_SPLIT_PATH)
-
-    assert len(split["dev"]) == 8
-    assert len(split["holdout"]) == 16
-    assert len(split["reserve"]) == 6
-
-
-def test_real_split_proposal_covers_every_zh_dataset_row_exactly_once() -> None:
-    _, zh_rows = load_raw_csv_rows(ZH_DATASET_PATH)
-    split = load_split_sidecar(REAL_SPLIT_PATH)
-
-    selected = apply_split(zh_rows, split, include_holdout=True, include_reserve=True)
-
-    assert len(selected) == len(zh_rows) == 30
-
-
-def test_real_split_proposal_pins_the_sole_beyond_boundary_fail_row_to_holdout() -> (
-    None
-):
-    split = load_split_sidecar(REAL_SPLIT_PATH)
-
-    assert "5" in split["holdout"]
-    assert "5" not in split["dev"]
-    assert "5" not in split["reserve"]

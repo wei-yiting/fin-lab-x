@@ -17,6 +17,28 @@ TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]*$")
 # scorer calls rather than per-call.
 _S2T_CONVERTER = OpenCC("s2t")
 
+# OpenCC's Simplified-to-Traditional table treats a handful of characters
+# as ambiguous: its STCharacters.txt entry for 台 is "臺 檯 颱 台" — 台
+# appears on both the Simplified (key) side and its own Traditional
+# (candidate) side, because 台 is genuinely dual-status: the Simplified
+# merge of 臺/檯/颱 in mainland usage, AND a completely legitimate,
+# extremely common standalone Traditional character in Taiwan usage (台灣,
+# 台北, 台積電). convert() always picks the first candidate (臺) rather
+# than recognizing the input was already valid, so unfiltered s2t-diffing
+# flags correct Taiwan-standard text — e.g. 台積電 (TSMC, this dataset's
+# own row 4) — as Simplified contamination.
+# opencc-python-reimplemented (0.1.7) has no public API to query this
+# ambiguity data (OpenCC.convert() is the only public surface), so the
+# known case is hardcoded here instead of parsed from its bundled
+# dictionary file at runtime. A researched alternative — the `zhon`/
+# `hanzidentifier` character-set libraries — hits the identical dual-status
+# ambiguity (see hanzidentifier issue #5, the analogous 着 case) and would
+# add two new dependencies for a ~30-row eval dataset, so it is not a
+# strictly better fix. Extend this set if another dual-status false
+# positive is found; this is not an exhaustive CJK variant table (out of
+# scope per docs/design-envelope.md §1).
+_DUAL_STATUS_TRADITIONAL_CHARS: frozenset[str] = frozenset({"台"})
+
 
 def _as_mapping(value: Any) -> Mapping[str, Any]:
     if isinstance(value, Mapping):
@@ -89,12 +111,14 @@ def response_no_simplified_chars(
     ``response_language``'s CJK-ratio check cannot: a fully Simplified
     response can still land inside the expected CJK ratio range.
 
-    Detection converts the response through OpenCC's Simplified-to-
-    Traditional table (``s2t``): any character that conversion touches is,
-    by construction, a Simplified-form character that should not appear in
-    a correct Traditional Chinese answer. Characters identical in both
-    scripts pass through untouched, so this never flags valid Traditional
-    text.
+    Detection diffs the response character-by-character against its
+    OpenCC Simplified-to-Traditional (``s2t``) conversion — s2t conversion
+    is length-preserving (verified against every entry in OpenCC's own
+    dictionaries), so index-aligned diffing is safe. A changed character
+    only counts as Simplified contamination if it is not in
+    ``_DUAL_STATUS_TRADITIONAL_CHARS``; see that constant's comment for why
+    whole-string conversion-equality (the previous approach) incorrectly
+    flags legitimate Traditional Chinese.
     """
     expected_mapping = _as_mapping(expected)
     if "cjk_min" not in expected_mapping:
@@ -107,7 +131,18 @@ def response_no_simplified_chars(
     if not isinstance(response, str):
         response = ""
 
-    is_pure = _S2T_CONVERTER.convert(response) == response
+    converted = _S2T_CONVERTER.convert(response)
+    if len(converted) != len(response):
+        # s2t conversion is length-preserving for every entry in OpenCC's
+        # own dictionaries (verified empirically); a mismatch means that
+        # invariant broke, so fail loudly here rather than silently
+        # misaligning the per-character diff below.
+        raise ValueError("OpenCC s2t conversion changed response length unexpectedly")
+
+    is_pure = all(
+        orig == conv or orig in _DUAL_STATUS_TRADITIONAL_CHARS
+        for orig, conv in zip(response, converted)
+    )
     return Score(name="response_no_simplified_chars", score=1.0 if is_pure else 0.0)
 
 

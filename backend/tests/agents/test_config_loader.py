@@ -254,9 +254,9 @@ def test_load_from_dir_applies_strict_schema_validation(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# DEV-200/205 benchmark configs: the 4 real, shipped candidate configs must
-# load via load_from_dir, validate, hold no baked-in system_prompt of their
-# own, and correctly carry the reasoning_effort each candidate pins.
+# Benchmark configs: the 4 real, shipped candidate configs must load via
+# load_from_dir, validate, hold no baked-in system_prompt of their own, and
+# correctly carry the reasoning_effort each candidate pins.
 # ---------------------------------------------------------------------------
 
 _BENCHMARK_CONFIGS_DIR = (
@@ -272,10 +272,10 @@ _BENCHMARK_CONFIGS_DIR = (
 @pytest.mark.parametrize(
     ("config_name", "expected_provider", "expected_effort"),
     [
-        ("c1_luna_none", "openai", "none"),
-        ("c2_luna_medium", "openai", "medium"),
-        ("c3_gemini_minimal", "google_genai", "minimal"),
-        ("c4_gemini_medium", "google_genai", "medium"),
+        ("luna_none", "openai", "none"),
+        ("luna_medium", "openai", "medium"),
+        ("gemini_minimal", "google_genai", "minimal"),
+        ("gemini_medium", "google_genai", "medium"),
     ],
 )
 def test_benchmark_configs_load_and_validate(
@@ -294,10 +294,10 @@ def test_benchmark_configs_load_and_validate(
 def test_benchmark_configs_share_the_same_canonical_prompt():
     prompt_path = _BENCHMARK_CONFIGS_DIR.parent / "prompt" / "system_prompt.md"
     for config_name in [
-        "c1_luna_none",
-        "c2_luna_medium",
-        "c3_gemini_minimal",
-        "c4_gemini_medium",
+        "luna_none",
+        "luna_medium",
+        "gemini_minimal",
+        "gemini_medium",
     ]:
         config = ProfileConfigLoader.load_from_dir(
             _BENCHMARK_CONFIGS_DIR / config_name, prompt_path=prompt_path

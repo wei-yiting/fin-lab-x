@@ -121,15 +121,34 @@ class ProfileConfigLoader:
             WorkflowProfileConfig: Parsed configuration object
         """
         if self._config is None:
-            with open(self.config_path, "r") as f:
-                config_dict = yaml.safe_load(f)
-
             prompt_path = self.config_path.parent / "system_prompt.md"
-            if prompt_path.exists():
-                config_dict["system_prompt"] = prompt_path.read_text().strip()
-
-            self._config = WorkflowProfileConfig(**config_dict)
+            self._config = self._parse_config(
+                self.config_path, prompt_path if prompt_path.exists() else None
+            )
         return self._config
+
+    @staticmethod
+    def _parse_config(
+        config_path: Path, prompt_path: Optional[Path]
+    ) -> WorkflowProfileConfig:
+        """Read a profile YAML and construct its ``WorkflowProfileConfig``.
+
+        Shared by ``load()`` and ``load_from_dir()``: opens ``config_path``,
+        injects ``prompt_path``'s text as ``system_prompt`` when given, and
+        validates the result. Callers own *whether* a given ``prompt_path``
+        should exist — ``load()`` pre-filters to ``None`` when its
+        auto-discovered sibling ``system_prompt.md`` is absent (silent
+        skip); ``load_from_dir()`` passes its argument through unchanged (a
+        given path is expected to exist and fails loudly via
+        ``read_text()`` if it doesn't).
+        """
+        with open(config_path, "r") as f:
+            config_dict = yaml.safe_load(f)
+
+        if prompt_path is not None:
+            config_dict["system_prompt"] = prompt_path.read_text().strip()
+
+        return WorkflowProfileConfig(**config_dict)
 
     @property
     def config(self) -> WorkflowProfileConfig:
@@ -169,13 +188,7 @@ class ProfileConfigLoader:
         if not config_path.exists():
             raise FileNotFoundError(f"Config not found: {config_path}")
 
-        with open(config_path, "r") as f:
-            config_dict = yaml.safe_load(f)
-
-        if prompt_path is not None:
-            config_dict["system_prompt"] = prompt_path.read_text().strip()
-
-        return WorkflowProfileConfig(**config_dict)
+        return cls._parse_config(config_path, prompt_path)
 
     @classmethod
     def list_available_profiles(cls) -> list[str]:

@@ -8,7 +8,7 @@ live under `profiles/`.
 
 ## Layout
 
-- `configs/{c1_luna_none,c2_luna_medium,c3_gemini_minimal,c4_gemini_medium}/orchestrator_config.yaml` —
+- `configs/{luna_none,luna_medium,gemini_minimal,gemini_medium}/orchestrator_config.yaml` —
   the 2×2 candidate matrix (family × reasoning strength). Each is a normal
   `WorkflowProfileConfig` YAML, loaded via `ProfileConfigLoader.load_from_dir()`.
   None of them ship a `system_prompt.md` — the loader injects the single

@@ -154,3 +154,30 @@ class TestResponseNoSimplifiedChars:
 
         assert score is not None
         assert score.score == 1.0
+
+    def test_taiwan_standard_response_with_tai_scores_one(self) -> None:
+        """Regression case: 台 is legitimate standalone Taiwan-standard
+        Traditional Chinese (台灣, 台積電), but OpenCC's s2t table treats it
+        as ambiguous and rewrites it to 臺 — the false positive this scorer
+        must not reproduce (dataset row 4 asks about TSMC/台積電)."""
+        output = {"response": "台積電目前的財務體質在台灣半導體產業中相對穩健。"}
+        expected = {"cjk_min": 0.20, "cjk_max": 1.0}
+
+        score = response_no_simplified_chars(output, expected, input="any question")
+
+        assert score is not None
+        assert score.score == 1.0
+
+    def test_tai_allowance_does_not_mask_other_simplified_contamination(
+        self,
+    ) -> None:
+        """The 台 allowlist entry is narrowly scoped: unrelated Simplified
+        characters appearing alongside a legitimate 台 must still be
+        caught, not accidentally excused by it."""
+        output = {"response": "台积电目前的财务体质相对稳健。"}
+        expected = {"cjk_min": 0.20, "cjk_max": 1.0}
+
+        score = response_no_simplified_chars(output, expected, input="any question")
+
+        assert score is not None
+        assert score.score == 0.0

@@ -451,6 +451,28 @@ class TestInitModelReasoningEffort:
         with pytest.raises(ValueError, match="not supported for provider 'anthropic'"):
             _init_model(cfg)
 
+    @pytest.mark.parametrize(
+        "reasoning_effort",
+        [
+            pytest.param("", id="empty-string"),
+            pytest.param("   ", id="whitespace-only"),
+        ],
+    )
+    def test_empty_or_blank_reasoning_effort_raises(self, reasoning_effort):
+        """An empty/blank reasoning_effort passes ModelConfig's plain
+        ``str | None`` Pydantic validation but must fail loudly here rather
+        than silently falling back to "medium" via truthiness (``or``)."""
+        cfg = ModelConfig(
+            name="openai:gpt-5.6-luna",
+            temperature=0.0,
+            reasoning="on",
+            reasoning_effort=reasoning_effort,
+        )
+        with pytest.raises(
+            ValueError, match="reasoning_effort must be a non-empty string"
+        ):
+            _init_model(cfg)
+
 
 class TestInitModelTemperature:
     @pytest.mark.parametrize(

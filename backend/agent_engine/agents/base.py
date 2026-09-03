@@ -97,7 +97,8 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
     """Build a chat model with provider-aware reasoning kwargs.
 
     Translates the admin-declared ``ModelConfig.reasoning`` three-state
-    (plus ``thinking_budget``) into each provider's own reasoning kwargs,
+    (plus ``thinking_budget`` and the optional ``reasoning_effort`` strength
+    override) into each provider's own reasoning kwargs,
     and validates provider-specific hard constraints at startup instead of
     at first request. The full per-provider kwarg matrix, hard constraints,
     and empirically verified API caveats live in ONE place —
@@ -115,6 +116,12 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
     """
     provider = config.provider
     kwargs: dict[str, Any] = {"temperature": config.temperature}
+
+    if config.reasoning_effort is not None and config.reasoning != "on":
+        raise ValueError(
+            "reasoning_effort requires reasoning='on' "
+            f"(got reasoning={config.reasoning!r})."
+        )
 
     if provider in ("openai", "anthropic", "google_genai"):
         kwargs["model_provider"] = provider
@@ -156,8 +163,21 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
         # metadata.reasoning and the wire reasoning parts both end up empty.
         if config.reasoning == "on":
             kwargs["include_thoughts"] = True
+            # Gemini 3.x's effort-tier control (native name: thinking_level,
+            # accepted as an alias for langchain-google-genai's
+            # reasoning_effort field). Older Gemini generations only
+            # support the raw thinking_budget above; omitting this kwarg
+            # when unset keeps that path unchanged.
+            if config.reasoning_effort is not None:
+                kwargs["thinking_level"] = config.reasoning_effort
     elif provider == "anthropic":
         if config.reasoning == "on":
+            if config.reasoning_effort is not None:
+                raise ValueError(
+                    "reasoning_effort is not supported for provider "
+                    "'anthropic' — Anthropic exposes thinking_budget "
+                    "(budget_tokens), not an effort tier."
+                )
             if config.thinking_budget is None:
                 raise ValueError(
                     "Anthropic provider with reasoning='on' requires explicit "
@@ -191,7 +211,11 @@ def _init_model(config: ModelConfig) -> BaseChatModel:
             # Responses API decide whether to emit a reasoning summary block;
             # without it the response carries no reasoning content_blocks
             # even on gpt-5 / o4 models, leaving metadata.reasoning empty.
-            kwargs["reasoning"] = {"effort": "medium", "summary": "auto"}
+            # reasoning_effort overrides the "medium" default when the admin
+            # config declares a specific effort tier (e.g. benchmark configs
+            # pinning "none" vs "medium" on the same model).
+            effort = config.reasoning_effort or "medium"
+            kwargs["reasoning"] = {"effort": effort, "summary": "auto"}
             kwargs["use_responses_api"] = True
         else:
             # gpt-5-tier models are reasoning-capable by default; omitting

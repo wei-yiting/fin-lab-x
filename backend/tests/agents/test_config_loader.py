@@ -164,6 +164,147 @@ def test_model_config_rejects_unknown_field():
         ModelConfig(thinking_budgett=1024)  # type: ignore[call-arg]
 
 
+def test_model_config_reasoning_effort_defaults_to_none():
+    cfg = ModelConfig()
+    assert cfg.reasoning_effort is None
+
+
+def test_model_config_accepts_reasoning_effort_string(tmp_path, monkeypatch):
+    payload = _valid_payload("v_test_reasoning_effort")
+    payload["model"] = {
+        "name": "openai:gpt-5.6-luna",
+        "temperature": 0.0,
+        "reasoning": "on",
+        "reasoning_effort": "none",
+    }
+    _write_profile_yaml(tmp_path, "v_test_reasoning_effort", payload)
+    monkeypatch.setattr(ProfileConfigLoader, "PROFILES_DIR", tmp_path)
+
+    config = ProfileConfigLoader("v_test_reasoning_effort").load()
+    assert config.model.reasoning_effort == "none"
+
+
+# ---------------------------------------------------------------------------
+# ProfileConfigLoader.load_from_dir: arbitrary-directory loading for
+# benchmark/experiment configs that must not live under profiles/. Unlike
+# the profile-name constructor, this never auto-discovers a sibling
+# system_prompt.md — injection is explicit-only via prompt_path.
+# ---------------------------------------------------------------------------
+
+
+def test_load_from_dir_loads_config_without_prompt_path(tmp_path):
+    config_dir = tmp_path / "c1_luna_none"
+    config_dir.mkdir()
+    (config_dir / "orchestrator_config.yaml").write_text(
+        yaml.safe_dump(_valid_payload("c1_luna_none"))
+    )
+
+    config = ProfileConfigLoader.load_from_dir(config_dir)
+
+    assert config.name == "c1_luna_none"
+    assert config.system_prompt is None
+
+
+def test_load_from_dir_injects_prompt_from_explicit_path(tmp_path):
+    config_dir = tmp_path / "c1_luna_none"
+    config_dir.mkdir()
+    (config_dir / "orchestrator_config.yaml").write_text(
+        yaml.safe_dump(_valid_payload("c1_luna_none"))
+    )
+    prompt_file = tmp_path / "shared_prompt" / "system_prompt.md"
+    prompt_file.parent.mkdir()
+    prompt_file.write_text("You are the shared benchmark prompt.\n")
+
+    config = ProfileConfigLoader.load_from_dir(config_dir, prompt_path=prompt_file)
+
+    assert config.system_prompt == "You are the shared benchmark prompt."
+
+
+def test_load_from_dir_ignores_sibling_system_prompt_md(tmp_path):
+    """A stray sibling system_prompt.md must NOT be auto-loaded — unlike the
+    profile-name constructor, injection here is explicit-only via
+    prompt_path, so N configs sharing one canonical prompt can never drift
+    into N slightly-different copies."""
+    config_dir = tmp_path / "c1_luna_none"
+    config_dir.mkdir()
+    (config_dir / "orchestrator_config.yaml").write_text(
+        yaml.safe_dump(_valid_payload("c1_luna_none"))
+    )
+    (config_dir / "system_prompt.md").write_text("Should not be picked up.\n")
+
+    config = ProfileConfigLoader.load_from_dir(config_dir)
+
+    assert config.system_prompt is None
+
+
+def test_load_from_dir_raises_on_missing_config(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        ProfileConfigLoader.load_from_dir(tmp_path / "does_not_exist")
+
+
+def test_load_from_dir_applies_strict_schema_validation(tmp_path):
+    config_dir = tmp_path / "bad_config"
+    config_dir.mkdir()
+    payload = _valid_payload("bad_config")
+    payload["descripton"] = "typo of description"
+    (config_dir / "orchestrator_config.yaml").write_text(yaml.safe_dump(payload))
+
+    with pytest.raises(ValidationError):
+        ProfileConfigLoader.load_from_dir(config_dir)
+
+
+# ---------------------------------------------------------------------------
+# DEV-200/205 benchmark configs: the 4 real, shipped candidate configs must
+# load via load_from_dir, validate, hold no baked-in system_prompt of their
+# own, and correctly carry the reasoning_effort each candidate pins.
+# ---------------------------------------------------------------------------
+
+_BENCHMARK_CONFIGS_DIR = (
+    Path(__file__).parents[2]
+    / "evals"
+    / "scenarios"
+    / "baseline_behavior_diagnostic_zh"
+    / "benchmark"
+    / "configs"
+)
+
+
+@pytest.mark.parametrize(
+    ("config_name", "expected_provider", "expected_effort"),
+    [
+        ("c1_luna_none", "openai", "none"),
+        ("c2_luna_medium", "openai", "medium"),
+        ("c3_gemini_minimal", "google_genai", "minimal"),
+        ("c4_gemini_medium", "google_genai", "medium"),
+    ],
+)
+def test_benchmark_configs_load_and_validate(
+    config_name, expected_provider, expected_effort
+):
+    config = ProfileConfigLoader.load_from_dir(_BENCHMARK_CONFIGS_DIR / config_name)
+
+    assert config.model.provider == expected_provider
+    assert config.model.reasoning == "on"
+    assert config.model.reasoning_effort == expected_effort
+    # No prompt file ships inside a benchmark config directory — injection
+    # is the loader's job (single canonical prompt, zero drift).
+    assert config.system_prompt is None
+
+
+def test_benchmark_configs_share_the_same_canonical_prompt():
+    prompt_path = _BENCHMARK_CONFIGS_DIR.parent / "prompt" / "system_prompt.md"
+    for config_name in [
+        "c1_luna_none",
+        "c2_luna_medium",
+        "c3_gemini_minimal",
+        "c4_gemini_medium",
+    ]:
+        config = ProfileConfigLoader.load_from_dir(
+            _BENCHMARK_CONFIGS_DIR / config_name, prompt_path=prompt_path
+        )
+        assert config.system_prompt == prompt_path.read_text().strip()
+
+
 # ---------------------------------------------------------------------------
 # Loader contract: every shipped profile YAML parses into a valid ModelConfig
 # with a non-empty model name and a recognized reasoning literal. We

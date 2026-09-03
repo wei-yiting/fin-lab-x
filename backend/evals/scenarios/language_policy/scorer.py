@@ -7,10 +7,15 @@ from collections.abc import Mapping
 from typing import Any
 
 from autoevals import Score  # pyright: ignore[reportMissingImports]
+from opencc import OpenCC
 
 from backend.evals.eval_helpers import contains_cjk, cjk_ratio
 
 TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]*$")
+
+# Built once (loads OpenCC's conversion dictionaries) and reused across
+# scorer calls rather than per-call.
+_S2T_CONVERTER = OpenCC("s2t")
 
 
 def _as_mapping(value: Any) -> Mapping[str, Any]:
@@ -71,6 +76,39 @@ def expected_tool_called(output: Any, expected: Any, *, input: Any) -> Score | N
             return Score(name="expected_tool_called", score=1.0)
 
     return Score(name="expected_tool_called", score=0.0)
+
+
+def response_no_simplified_chars(
+    output: Any, expected: Any, *, input: Any
+) -> Score | None:
+    """Check the response contains no Simplified Chinese characters.
+
+    Only rows expecting a Chinese response (``cjk_min > 0``) make this
+    claim — an English-expected row no-scores, matching
+    ``expected_tool_called``'s no-claim convention. Catches a drift
+    ``response_language``'s CJK-ratio check cannot: a fully Simplified
+    response can still land inside the expected CJK ratio range.
+
+    Detection converts the response through OpenCC's Simplified-to-
+    Traditional table (``s2t``): any character that conversion touches is,
+    by construction, a Simplified-form character that should not appear in
+    a correct Traditional Chinese answer. Characters identical in both
+    scripts pass through untouched, so this never flags valid Traditional
+    text.
+    """
+    expected_mapping = _as_mapping(expected)
+    if "cjk_min" not in expected_mapping:
+        raise ValueError("response_no_simplified_chars requires cjk_min")
+
+    if float(expected_mapping["cjk_min"]) <= 0:
+        return None
+
+    response = _as_mapping(output).get("response", "")
+    if not isinstance(response, str):
+        response = ""
+
+    is_pure = _S2T_CONVERTER.convert(response) == response
+    return Score(name="response_no_simplified_chars", score=1.0 if is_pure else 0.0)
 
 
 def response_language(output: Any, expected: Any, *, input: Any) -> Score:

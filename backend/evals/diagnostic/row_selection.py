@@ -5,9 +5,28 @@ for smoke runs, debugging, and re-running a handful of failed rows; the selected
 ids are recorded in experiment metadata so a subset run can never be mistaken
 for a full one. Anything richer than an explicit id list — field filters, saved
 manifests, slice hashing — is out of envelope.
+
+``load_split_sidecar`` / ``apply_split`` are a separate, composable layer for
+scenarios that additionally carry a frozen dev/holdout/reserve split (e.g. a
+benchmark protocol's ``benchmark/split.json``). They guard against an
+accidental holdout/reserve run before that split is frozen — not against
+malicious misuse — by defaulting to dev rows only and requiring each other
+tier's inclusion to be named explicitly.
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import TypedDict
+
+
+class SplitSidecar(TypedDict):
+    """Parsed shape of a benchmark's dev/holdout/reserve split sidecar."""
+
+    dev: list[str]
+    holdout: list[str]
+    reserve: list[str]
 
 
 def select_diagnostic_rows(
@@ -70,3 +89,59 @@ def _find_duplicates(values: list[str]) -> list[str]:
             duplicates.append(value)
         seen.add(value)
     return duplicates
+
+
+def load_split_sidecar(path: Path) -> SplitSidecar:
+    """Load a dev/holdout/reserve split sidecar and check its integrity.
+
+    Requires ``dev``/``holdout``/``reserve`` id lists and rejects a row id
+    appearing in more than one tier — a corrupt sidecar must fail loudly
+    rather than silently leak a holdout row into dev.
+    """
+    with open(path, "r") as f:
+        data = json.load(f)
+
+    for tier in ("dev", "holdout", "reserve"):
+        if tier not in data or not isinstance(data[tier], list):
+            raise ValueError(f"Split sidecar missing '{tier}' row-id list: {path}")
+
+    all_ids = [*data["dev"], *data["holdout"], *data["reserve"]]
+    duplicates = _find_duplicates(all_ids)
+    if duplicates:
+        raise ValueError(
+            f"Row ids appear in more than one split tier: {', '.join(duplicates)}"
+        )
+
+    return SplitSidecar(
+        dev=data["dev"], holdout=data["holdout"], reserve=data["reserve"]
+    )
+
+
+def apply_split(
+    rows: list[dict[str, str]],
+    split: SplitSidecar,
+    *,
+    include_holdout: bool = False,
+    include_reserve: bool = False,
+) -> list[dict[str, str]]:
+    """Filter ``rows`` to the split-approved subset.
+
+    Defaults to dev rows only; ``include_holdout``/``include_reserve`` are
+    explicit per-tier opt-ins (never a single "unlock everything" flag) so a
+    caller can never widen scope by accident. Every row in ``rows`` must
+    appear in exactly one tier of ``split`` — a row absent from the sidecar
+    (e.g. the dataset grew after the split was frozen) fails loudly instead
+    of silently passing through or being silently dropped.
+    """
+    allowed = set(split["dev"])
+    if include_holdout:
+        allowed |= set(split["holdout"])
+    if include_reserve:
+        allowed |= set(split["reserve"])
+
+    known = set(split["dev"]) | set(split["holdout"]) | set(split["reserve"])
+    unknown = [row["id"] for row in rows if row.get("id") not in known]
+    if unknown:
+        raise ValueError(f"Rows not present in the split sidecar: {', '.join(unknown)}")
+
+    return [row for row in rows if row["id"] in allowed]

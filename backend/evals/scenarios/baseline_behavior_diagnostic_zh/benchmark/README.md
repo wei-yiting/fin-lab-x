@@ -36,6 +36,13 @@ live under `profiles/`.
   `should_fail_cleanly` row, so if the split is ever regenerated (e.g. the
   dataset grows), row 5 must still land in holdout.
 
+  One manual adjustment departs from pure proportional stratification: the
+  `boundary` x `may_pass_with_tuning` stratum has `dev` +1 / `reserve` -1.
+  Independent per-stratum rounding left the whole-table totals short one row
+  in `dev` and over by one in `reserve`; this stratum was chosen to absorb
+  the adjustment because it has the most rows to absorb it without
+  concentrating the change on a small stratum.
+
 ## Status
 
 This directory currently holds the infrastructure above and the split

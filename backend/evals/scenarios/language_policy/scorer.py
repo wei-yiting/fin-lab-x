@@ -74,6 +74,11 @@ def _load_dual_status_traditional_chars(path: Path) -> frozenset[str]:
 
 
 _DUAL_STATUS_TRADITIONAL_CHARS = _load_dual_status_traditional_chars(_STCHARACTERS_PATH)
+assert len(_DUAL_STATUS_TRADITIONAL_CHARS) > 100, (
+    "Expected roughly 170 dual-status characters derived from "
+    f"{_STCHARACTERS_PATH}, got only {len(_DUAL_STATUS_TRADITIONAL_CHARS)} — "
+    "the file may be empty, missing, or its format may have changed."
+)
 
 # Empirically-set threshold, not a precisely-derived constant: legitimate
 # dense-but-correct Traditional text (repeated 台/占-style dual-status
@@ -81,6 +86,15 @@ _DUAL_STATUS_TRADITIONAL_CHARS = _load_dual_status_traditional_chars(_STCHARACTE
 # genuinely-Simplified samples measured 21%-43%. 15% sits with margin on
 # both sides. May need tuning once DEV-206 runs real dev-set data.
 _MAX_SIMPLIFIED_RATIO = 0.15
+
+# Absolute floor, independent of ratio: a response with more than this many
+# genuine Simplified characters fails regardless of how low the ratio computes,
+# because common shared vocabulary can keep the ratio misleadingly low even for
+# a response that is wholly written in Simplified Chinese (empirically confirmed:
+# a natural wholly-Simplified financial sentence measured only ~11% under the
+# ratio alone and incorrectly passed). 3 keeps "occasional genuine mistake"
+# (1-2 characters) tolerant while catching anything more sustained.
+_MAX_GENUINE_CHANGES = 3
 
 
 def _as_mapping(value: Any) -> Mapping[str, Any]:
@@ -166,9 +180,14 @@ def response_no_simplified_chars(
     Simplified-contamination signal unless it is in
     ``_DUAL_STATUS_TRADITIONAL_CHARS`` (see that constant's comment for why
     whole-string conversion-equality incorrectly flags legitimate
-    Traditional Chinese). The response scores pure (1.0) as long as the
-    ratio of genuine changes to total CJK characters stays at or below
-    ``_MAX_SIMPLIFIED_RATIO``.
+    Traditional Chinese). The response scores pure (1.0) only if both hold:
+    the ratio of genuine changes to total CJK characters stays at or below
+    ``_MAX_SIMPLIFIED_RATIO``, AND the absolute count of genuine changes
+    stays at or below ``_MAX_GENUINE_CHANGES``. The absolute floor exists
+    because common Simplified/Traditional-identical vocabulary (股票,
+    成交量, 信心, ...) can keep the ratio misleadingly low even for a
+    response that is wholly written in Simplified Chinese (see that
+    constant's comment for the empirical case that motivated it).
     """
     expected_mapping = _as_mapping(expected)
     if "cjk_min" not in expected_mapping:
@@ -202,7 +221,10 @@ def response_no_simplified_chars(
         # Vacuous case: no CJK characters means no Simplified contamination.
         is_pure = True
     else:
-        is_pure = (genuine_changes / total_cjk) <= _MAX_SIMPLIFIED_RATIO
+        is_pure = (
+            genuine_changes <= _MAX_GENUINE_CHANGES
+            and (genuine_changes / total_cjk) <= _MAX_SIMPLIFIED_RATIO
+        )
 
     return Score(name="response_no_simplified_chars", score=1.0 if is_pure else 0.0)
 

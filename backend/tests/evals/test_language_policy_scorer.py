@@ -129,6 +129,30 @@ class TestResponseNoSimplifiedChars:
         assert score is not None
         assert score.score == 1.0
 
+    def test_absolute_floor_fails_despite_low_ratio(self) -> None:
+        """Regression case for the absolute-count floor (``_MAX_GENUINE_CHANGES``):
+        many common Chinese words are identical in Simplified and Traditional
+        (股票, 成交量, 信心, ...), so a response can carry several genuine
+        Simplified characters and still land under ``_MAX_SIMPLIFIED_RATIO``
+        by ratio alone. This response has exactly 4 genuine (non-dual-status)
+        Simplified characters — 说, 电, 现, 学 — scattered through an
+        otherwise-long, correct Traditional response (4 of 57 CJK
+        characters, a ~7% ratio, well under the 15% ratio threshold), so the
+        ratio check alone would incorrectly pass it. The absolute floor (3)
+        catches it independently of the ratio."""
+        output = {
+            "response": (
+                "分析師針對特斯拉本季財報進行说明，並在电話會議中談到需求疲軟的现象，"
+                "多數学者則持保留態度，但整體長期投資論點未受根本動搖。"
+            )
+        }
+        expected = {"cjk_min": 0.20, "cjk_max": 1.0}
+
+        score = response_no_simplified_chars(output, expected, input="any question")
+
+        assert score is not None
+        assert score.score == 0.0
+
     def test_english_expected_row_skips(self) -> None:
         """cjk_min == 0 declares an English-expected row — script purity is
         not a claim this row makes, matching expected_tool_called's
@@ -201,12 +225,13 @@ class TestResponseNoSimplifiedChars:
         ],
     )
     def test_other_dual_status_characters_score_one(self, response: str) -> None:
-        """Round-2 counter-examples: the round-1 fix hardcoded only 台, but
-        the same OpenCC s2t ambiguity affects many other characters —
-        干預 (幹預), 公布 (布→佈), 市占率 (占→佔), and 范先生 (范→範) all
-        false-positived under the round-1 fix. The systematically-derived
-        170-character dual-status set (Part A) must cover all of these
-        without hand-picking each one as it's discovered."""
+        """The systematically-derived dual-status exclusion set must cover
+        more than just 台 — these are additional characters with the same
+        ambiguity (干預, 公司公布財報, 市占率保持穩定, 范先生 all use a
+        different dual-status character each). A naive single-character
+        allowlist would miss all of these; deriving the full set from
+        OpenCC's own dictionary catches them without hand-picking each one
+        as it's discovered."""
         output = {"response": response}
         expected = {"cjk_min": 0.20, "cjk_max": 1.0}
 

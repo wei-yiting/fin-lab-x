@@ -43,6 +43,9 @@ _S2T_CONVERTER = OpenCC("s2t")
 # `hanzidentifier` character-set libraries — hits the identical dual-status
 # ambiguity and would add two new dependencies for a ~30-row eval dataset,
 # so it is not a strictly better fix.
+assert _opencc_pkg.__file__ is not None, (
+    "opencc package has no __file__ (unexpected for a normally pip-installed package)"
+)
 _STCHARACTERS_PATH = (
     Path(_opencc_pkg.__file__).parent / "dictionary" / "STCharacters.txt"
 )

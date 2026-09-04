@@ -1,0 +1,19 @@
+version: "0.1.0"
+name: "benchmark-gemini-minimal"
+description: "Cross-provider minimal-reasoning arm (google_genai:gemini-3.6-flash, thinking_level=minimal, this model's reasoning floor — Gemini cannot fully disable thinking the way OpenAI's effort=none can). No prompt file here — ProfileConfigLoader.load_from_dir() injects the single canonical shared prompt from ../../prompt/system_prompt.md."
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+
+model:
+  name: "google_genai:gemini-3.6-flash"
+  temperature: 0.0
+  reasoning: "on"
+  reasoning_effort: "minimal"
+
+constraints:
+  max_tool_calls_per_run: 10

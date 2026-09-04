@@ -366,6 +366,114 @@ class TestInitModelDefaults:
         assert kwargs["reasoning_effort"] == "minimal"
 
 
+class TestInitModelReasoningEffort:
+    """``ModelConfig.reasoning_effort`` — the strength override used to pin
+    benchmark configs (e.g. Luna reasoning.effort none vs medium, Gemini
+    thinking_level minimal vs medium) on top of the existing on/off/
+    unsupported three-state."""
+
+    def test_openai_reasoning_effort_overrides_medium_default(self):
+        cfg = ModelConfig(
+            name="openai:gpt-5.6-luna",
+            temperature=0.0,
+            reasoning="on",
+            reasoning_effort="none",
+        )
+        kwargs = _kwargs(cfg)
+        assert kwargs["reasoning"] == {"effort": "none", "summary": "auto"}
+        assert kwargs["use_responses_api"] is True
+
+    def test_openai_reasoning_on_without_effort_keeps_medium_default(self):
+        """Backward compatibility: the 5 shipped profiles never set
+        reasoning_effort, so omitting it must reproduce the exact prior
+        hardcoded behavior."""
+        cfg = ModelConfig(name="openai:gpt-5.6-luna", temperature=0.0, reasoning="on")
+        kwargs = _kwargs(cfg)
+        assert kwargs["reasoning"] == {"effort": "medium", "summary": "auto"}
+
+    def test_gemini_reasoning_effort_sets_thinking_level(self):
+        cfg = ModelConfig(
+            name="google_genai:gemini-3.6-flash",
+            temperature=0.0,
+            reasoning="on",
+            reasoning_effort="minimal",
+        )
+        kwargs = _kwargs(cfg)
+        assert kwargs["thinking_level"] == "minimal"
+        # thinking_budget stays the existing pass-through (None here, since
+        # the config didn't set one) — the two knobs are independent.
+        assert kwargs["thinking_budget"] is None
+
+    def test_gemini_reasoning_on_without_effort_omits_thinking_level(self):
+        """Backward compatibility: profiles that never set reasoning_effort
+        must not gain a new kwarg."""
+        cfg = ModelConfig(
+            name="google_genai:gemini-2.5-flash",
+            temperature=0.0,
+            reasoning="on",
+            thinking_budget=None,
+        )
+        kwargs = _kwargs(cfg)
+        assert "thinking_level" not in kwargs
+
+    def test_reasoning_effort_without_reasoning_on_raises(self):
+        cfg = ModelConfig(
+            name="openai:gpt-5.6-luna",
+            temperature=0.0,
+            reasoning="off",
+            reasoning_effort="none",
+        )
+        with pytest.raises(
+            ValueError, match="reasoning_effort requires reasoning='on'"
+        ):
+            _init_model(cfg)
+
+    def test_reasoning_effort_with_unsupported_raises(self):
+        cfg = ModelConfig(
+            name="openai:gpt-4o",
+            temperature=0.0,
+            reasoning="unsupported",
+            reasoning_effort="medium",
+        )
+        with pytest.raises(
+            ValueError, match="reasoning_effort requires reasoning='on'"
+        ):
+            _init_model(cfg)
+
+    def test_anthropic_reasoning_effort_raises_no_effort_tier_concept(self):
+        cfg = ModelConfig(
+            name="anthropic:claude-sonnet-4-5",
+            temperature=1.0,
+            reasoning="on",
+            thinking_budget=2048,
+            reasoning_effort="medium",
+        )
+        with pytest.raises(ValueError, match="not supported for provider 'anthropic'"):
+            _init_model(cfg)
+
+    @pytest.mark.parametrize(
+        "reasoning_effort",
+        [
+            pytest.param("", id="empty-string"),
+            pytest.param("   ", id="whitespace-only"),
+        ],
+    )
+    def test_empty_or_blank_reasoning_effort_raises(self, reasoning_effort):
+        """An empty/blank reasoning_effort passes ModelConfig's plain
+        ``str | None`` Pydantic validation but must fail loudly here rather
+        than silently falling back to "medium" via truthiness (``or``)."""
+        cfg = ModelConfig(
+            name="openai:gpt-5.6-luna",
+            temperature=0.0,
+            reasoning="on",
+            reasoning_effort=reasoning_effort,
+        )
+        with pytest.raises(
+            ValueError, match="reasoning_effort must be a non-empty string"
+        ):
+            _init_model(cfg)
+
+
 class TestInitModelTemperature:
     @pytest.mark.parametrize(
         "name",

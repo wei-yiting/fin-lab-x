@@ -1,0 +1,14 @@
+{
+  "dataset_name": "baseline_behavior_diagnostic_zh",
+  "dataset_version": "2026-09-03",
+  "applies_to": [
+    "baseline_behavior_diagnostic_zh",
+    "baseline_behavior_diagnostic"
+  ],
+  "split_date": "2026-09-03",
+  "status": "proposed",
+  "counts": { "dev": 8, "holdout": 16, "reserve": 6 },
+  "dev": ["3", "6", "9", "13", "17", "20", "24", "29"],
+  "holdout": ["1", "2", "5", "7", "10", "12", "14", "16", "18", "19", "21", "22", "25", "26", "27", "28"],
+  "reserve": ["4", "8", "11", "15", "23", "30"]
+}

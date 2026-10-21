@@ -1,0 +1,253 @@
+{
+  "row_id": "13",
+  "arm": "reader_luna_medium",
+  "experiments": [
+    "E1"
+  ],
+  "row_position": 3,
+  "slot_in_row": 0,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "luna_none",
+    "gemini_minimal",
+    "gemini_medium"
+  ],
+  "started_at": "2026-10-21T16:05:28.368645+00:00",
+  "finished_at": "2026-10-21T16:06:15.974198+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**結論：Visa 與 Mastercard 的官方揭露，直接支持「監管會壓低費率、限制定價自由，進而對營收與獲利造成壓力」這個機制；但不足以直接證明「監管必然壓縮刷卡網路本身的利潤率」。** 關鍵原因是：刷卡交易的 interchange fee 主要是發卡銀行收入，不等於 Visa 或 Mastercard 的網路收入。\n\n### Visa：支持度較直接\n\nVisa 的官方投資人揭露明確把以下監管列為可能使業績「重大且不利」偏離預期的因素：\n\n- 對 debit interchange reimbursement fee 設定上限；\n- 擴大商戶與發卡機構選擇 debit payment network 的權利；\n- 美國以外及其他支付產品的監管增加；\n- 涉及 interchange 的訴訟與政府執法。\n\n因此，Visa 自己的揭露直接承認：監管可能壓低可收取的費率、削弱網路的定價與路由優勢，並對公司整體財務結果造成不利影響。[1]\n\n但這段揭露仍然是**風險描述**，沒有量化說明某項監管會使 Visa 的 operating margin 或 net margin 下降多少，也沒有把「interchange fee 降低」直接等同於 Visa 的收入下降。\n\n### Mastercard：支持「費率監管會傷害支付生態的經濟性」，但對自身利潤率較間接\n\nMastercard 的官方揭露則明確主張，若監管強制大幅降低 interchange fee，可能造成：\n\n- 發卡機構收入下降；\n- 發卡機構削減卡片功能與福利；\n- 對支付科技、新服務與創新的投資減少；\n- 支付卡業務成長放慢。\n\n換言之，Mastercard 直接支持「價格管制會壓低支付產業的經濟誘因與成長」；但它談的主要是**發卡機構收入與整個支付生態**，不是 Mastercard 自身網路收入或利潤率。[2]\n\n### 為什麼不能把 interchange fee 下降直接當成 Visa／Mastercard 利潤率下降？\n\nInterchange fee 通常是商戶支付給**發卡銀行**的費用，而不是 Visa 或 Mastercard 直接全額收取的網路收入。[3] 因此，監管降低 interchange fee 的直接受害者首先是發卡銀行；對 Visa 和 Mastercard 的影響通常要透過以下渠道傳導：\n\n1. **支付量或支付產品成長放慢**；\n2. **網路費率、評估費或其他服務費受到議價壓力**；\n3. 商戶取得更大的 routing、surcharging 或 steering 自由；\n4. 網路需要增加合規、訴訟及技術投入；\n5. 發卡銀行因回報下降而減少卡片推廣、獎勵與數位支付投資。\n\n近期相關和解方案也顯示，監管與訴訟壓力可能要求降低或限制 swipe fee；報導所述方案包括降低 interchange rate 及設定費率上限。[4] 這支持「監管會壓縮支付鏈條中的價格空間」；但仍不能單獨推出 Visa 或 Mastercard 的利潤率必然下降。\n\n### 兩家公司揭露的差異\n\n| 面向 | Visa | Mastercard |\n|---|---|---|\n| 對監管的描述 | 更直接連結到公司業績、費率上限、網路選擇與政府執法 | 更強調發卡銀行收入、卡片福利、創新投資與產業成長 |\n| 對「網路定價權」的支持 | 較直接 | 多為間接支持 |\n| 對「利潤率下降」的直接證據 | 有「業績可能重大不利」的風險語言，但未量化 margin | 未看到直接把監管與 Mastercard 利潤率下降連結的表述 |\n| 最合理的解讀 | 監管是公司財務結果的下行風險 | 監管會削弱支付生態的經濟誘因，並可能間接影響 Mastercard |\n\n**因此，較嚴謹的表述應是：**\n\n> Visa 與 Mastercard 的官方揭露支持「監管可能降低支付費率、限制網路定價與路由優勢，並對收入、成長及整體獲利造成壓力」；但官方揭露並未直接證明「interchange fee 管制會按同等幅度壓縮 Visa／Mastercard 的網路利潤率」。\n\n另外，本次取得的官方材料主要是 Visa 2012 年及 Mastercard 2007 年的投資人揭露，而不是可核對的最新年度 10-K；所以它們適合證明兩家公司長期一致的風險論述，但不宜直接當作當前影響幅度的估計。\n\n[1]: https://investor.visa.com/news/news-details/2012/Visa-Inc-Posts-Strong-Fiscal-Fourth-Quarter-and-Full-Year-2012-Adjusted-Earnings-Results-and-Announces-New-15-billion-Share-Repurchase-Program/default.aspx \"Visa Inc. Posts Strong Fiscal Fourth Quarter and Full-Year 2012 Adjusted Earnings Results and Announces New $1.5 billion Share Repurchase Program\"\n\n[2]: https://investor.mastercard.com/investor-news/investor-news-details/2007/MasterCard-Europe-to-Challenge-European-Commission-Decision-on-Cross-Border-Interchange-Fees/default.aspx \"MasterCard Europe to Challenge European Commission Decision on Cross-Border Interchange Fees\"\n\n[3]: https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html \"Mastercard, Visa reach $30 billion settlement over credit card fees\"\n\n[4]: https://www.reuters.com/sustainability/boards-policy-regulation/visa-mastercard-reach-revised-swipe-fee-settlement-with-merchants-2025-11-10 \"Visa, Mastercard reach $38 billion swipe fee settlement with merchants\"",
+    "tool_outputs": [
+      {
+        "tool": "sec_filing_search",
+        "args": {
+          "query": "regulation interchange fees assessment fees pricing controls competition and impact on revenue margins profitability of payment network business",
+          "ticker": "MA",
+          "fiscal_year": null
+        },
+        "error": "Search failed: 'NoneType' object has no attribute 'download'"
+      },
+      {
+        "tool": "sec_filing_search",
+        "args": {
+          "query": "regulation interchange fees assessment fees pricing controls competition and impact on revenue margins profitability of payment network business",
+          "ticker": "V",
+          "fiscal_year": null
+        },
+        "error": "Search failed: 'NoneType' object has no attribute 'download'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "V",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "MA",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Visa latest 10-K regulatory interchange fees profitability official filing",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V Visa latest 10-K regulatory interchange fees profitability official filing\", \"results\": [{\"title\": \"Visa and Mastercard near settlement with merchants, ...\", \"url\": \"https://www.reuters.com/business/visa-mastercard-near-settlement-with-merchants-would-lower-fees-wsj-reports-2025-11-09\", \"content\": \"Visa and Mastercard would trim interchange fees, typically 2% to 2.5% per transaction, by an average of about a tenth of a percentage point\", \"published_date\": null}, {\"title\": \"Visa, Mastercard $38 billion swipe fee settlement wins US ...\", \"url\": \"https://www.reuters.com/world/us-judge-oks-visa-mastercard-38-billion-swipe-fee-settlement-2026-06-09\", \"content\": \"Also known as interchange fees, swipe fees totaled $118.8 billion … up from $111.2 billion in 2024. The average fee was 2.36%.\", \"published_date\": null}, {\"title\": \"Visa, Mastercard legal settlement: What you need to know\", \"url\": \"https://www.cnbc.com/2025/11/13/visa-mastercard-legal-settlement-what-you-need-to-know.html\", \"content\": \"\\\"About 86% of interchange fees go to card issuers to fund credit card rewards and loyalty programs,\\\" according to Trent Swanson, a loyalty points consulting adviser who runs Mileshusband.com.\\\"What's often overlooked is that the cost of running rewards programs has already been rising.\\\" [...] In another scenario, merchants raise prices to cover the cost of accepting cards with higher interchange fees. \\\"What, in fact, happens is that all of us pay these huge fees in the form of inflated prices and we don't know it,\\\" said Kantor. \\\"The cash-paying customer, they get the shortest straw every time.\\\" [...] A Visa and MasterCard settlement with merchants announced earlier this week is the latest development in a two-decade-old battle over the fees that banks and credit card companies charge to process payments.\\n Under the proposed legal settlement, merchants can choose whether to accept different tiers of credit cards — commercial cards, premium cards including rewards cards, and basic, no-rewards cards.\\n Stores may also be able to charge customers extra depending on which credit card they use.\", \"published_date\": null}, {\"title\": \"Visa, Mastercard reach $38 billion swipe fee settlement, ...\", \"url\": \"https://www.reuters.com/sustainability/boards-policy-regulation/visa-mastercard-reach-revised-swipe-fee-settlement-with-merchants-2025-11-10\", \"content\": \"The settlement calls for Visa and Mastercard to lower swipe fees, which averaged 2.35% in 2024 and typically range from 2% to 2.5%, by 0.1\", \"published_date\": null}, {\"title\": \"Visa, Mastercard reach $30 billion settlement over credit ...\", \"url\": \"https://www.reuters.com/business/finance/mastercard-visa-reach-30-bln-settlement-over-credit-card-fees-2024-03-26\", \"content\": \"Visa, Mastercard reach $30 billion settlement over credit card fees · Fees would decline over five years, consumers may benefit · Critics say\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Mastercard latest 10-K regulatory interchange fees profitability official filing",
+          "ticker": "MA"
+        },
+        "result": "{\"query\": \"MA Mastercard latest 10-K regulatory interchange fees profitability official filing\", \"results\": [{\"title\": \"Visa & Mastercard execs grilled by senators on high swipe fees\", \"url\": \"https://www.cnbc.com/2024/11/19/visa-mastercard-execs-grilled-by-senators-on-high-swipe-fees.html\", \"content\": \"Interchange fees, also known as swipe fees, are percentage-based fees paid by merchants to credit card issuers whenever customers use credit cards in retail purchases. Visa and Mastercard have a combined market cap of more than $1 trillion, and control 80% of the market.\\n\\n\\\"In 2023 alone, Visa and Mastercard charged merchants more than $100 billion in credit card fees, mostly in the form of interchange fees,\\\" Durbin told the committee. [...] Visa is also battling a Justice Department lawsuit filed in September. The payment network is accused of maintaining an illegal monopoly over debit card payment networks, which has affected \\\"the price of nearly everything,\\\" according to Attorney General Merrick Garland.  \\nCorrection: This story has been updated to correct the definition of interchange fees. [...] get factored into interchange [fees].\\\"\", \"published_date\": null}, {\"title\": \"Visa & Mastercard execs grilled by senators on high swipe fees\", \"url\": \"https://www.cnbc.com/amp/2024/11/19/visa-mastercard-execs-grilled-by-senators-on-high-swipe-fees.html\", \"content\": \"Interchange fees, also known as swipe fees, are percentage-based fees paid by merchants to credit card issuers whenever customers use credit cards in retail purchases. Visa and Mastercard have a combined market cap of more than $1 trillion, and control 80% of the market.\\n\\n\\\"In 2023 alone, Visa and Mastercard charged merchants more than $100 billion in credit card fees, mostly in the form of interchange fees,\\\" Durbin told the committee. [...] Visa is also battling a Justice Department lawsuit filed in September. The payment network is accused of maintaining an illegal monopoly over debit card payment networks, which has affected \\\"the price of nearly everything,\\\" according to Attorney General Merrick Garland.  \\nCorrection: This story has been updated to correct the definition of interchange fees. [...] get factored into interchange [fees].\\\"\", \"published_date\": null}, {\"title\": \"Mastercard, Visa's merchant fees breach competition law, UK tribunal rules | Reuters\", \"url\": \"https://www.reuters.com/sustainability/boards-policy-regulation/mastercard-visas-merchant-fees-breach-competition-law-uk-tribunal-rules-2025-06-27\", \"content\": \"Exclusive news, data and analytics for financial market professionalsLearn more aboutRefinitiv. # Mastercard, Visa's merchant fees breach competition law, UK tribunal rules. LONDON, June 27 (Reuters) - Global payments processors Visa (V.N), opens new tab and Mastercard's (MA.N), opens new tab default multilateral interchange fees which are charged to retailers infringe competition law, a London tribunal ruled on Friday in the latest round of the long-running legal saga. London's Competition Appeal Tribunal unanimously ruled that Visa and Mastercard's multilateral interchange fees breach European competition law, in a ruling in linked lawsuits brought by hundreds of merchants. David Scott, global managing partner of law firm Scott+Scott, which represented the claimants, said the ruling was \\\"a significant win for all merchants who have been paying excessive interchange fees to Visa and Mastercard\\\". Both Visa and Mastercard said they disagreed with the decision and intended to seek permission to appeal. A Visa spokesperson said: \\\"Visa continues to believe that interchange is a critical component to maintaining a secure digital payments ecosystem that benefits all parties, including consumers, merchants and banks.\\\". \\\"Mastercard strongly disagrees with today's decision, which is deeply flawed, and will seek permission to appeal,\\\" a Mastercard spokesperson said in a statement. Litigation over multilateral interchange fees, which are levied on retailers when cardholders make a transaction, has rumbled on for well over a decade in Britain and elsewhere. Scott+Scott said Friday's ruling was the first time that Visa and Mastercard's commercial card and inter-regional multilateral interchange fees had been found to infringe competition law. Who is BMW's new boss Nedeljković? BMW names veteran Nedeljkovic as CEO to tackle China, Tesla. Indian AI royalty proposal targets data practices of OpenAI, Google. Google faces EU antitrust investigation over AI Overviews, YouTube. ## Sustainability. * ### Swiss insurer Helvetia Baloise to cut up to 2,600 jobs following merger. Newly created Swiss insurer Helvetia Baloise plans to cut up to 2,600 jobs in the coming years to boost profitability, a person familiar with the matter told Reuters on Tuesday. * Sustainable Finance & ReportingcategoryExclusive: Starboard takes large stake in Clearwater Analytics, sources say. * BusinesscategoryBMW names veteran Nedeljkovic as CEO to tackle China, Tesla. * Boards, Policy & RegulationcategoryWho is BMW's new boss Nedeljković?\", \"published_date\": null}, {\"title\": \"Mastercard, Visa reach $30 billion settlement over credit card fees\", \"url\": \"https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html\", \"content\": \"Merchants have long accused Visa and Mastercard of charging inflated swipe fees, or interchange fees, when shoppers used credit or debit cards, and barring them through \\\"anti-steering\\\" rules from directing customers toward cheaper means of payment.\\n\\nUnder the settlement announced on Tuesday, Visa and Mastercard will reduce interchange rates by four basis points (0.04 percentage points) in the United States for three years, and cap rates for five years. [...] Last March, the federal appeals court in Manhattan upheld a related $5.6 billion class-action settlement by Visa and Mastercard and covered about 12 million merchants.\\n\\nThat settlement did not resolve what kinds of fees Visa and Mastercard could impose, and not all retailers were covered by it. [...] Joseph Stiglitz, a Nobel Prize-winning economist hired by the merchants as an expert, in an affidavit said the settlement \\\"greatly enhances merchants' freedom to steer customers using the linchpin of competition--prices,\\\" and could lead to \\\"very substantial\\\" savings for merchants.\\n\\n\\\"Competition among merchants results in these cost savings being passed on to customers in the form of lower prices,\\\" Stiglitz added.\", \"published_date\": null}, {\"title\": \"Visa and MasterCard Cut Interchange Fees to 1.5% in ...\", \"url\": \"https://www.bloomberg.com/news/articles/2014-11-04/visa-to-cut-canada-consumer-card-interchange-fees-to-1-5-\", \"content\": \"# Visa and MasterCard Cut Interchange Fees to 1.5% in Canada Provide news feedback or report an error Send a tip to our reporters By Steve Dickson, Doug Alexander and Theophilos Argitis This article is for **subscribers only**. Visa Inc. and MasterCard Inc. lowered credit-card transaction fees for Canadian merchants by about 10 percent in a move the federal government said should lower consumer prices and may trim revenue for the nation’s banks. The two payment networks submitted proposals to reduce their average effective interchange rate in Canada to 1.5 percent on consumer credit cards, the finance department said in a statement posted on its website today. The rate will stand for five years and take effect no later than April, it said. Before it’s here, it’s on the Bloomberg Terminal ### More From Bloomberg Trump Set to Start Notifying Countries of Tariffs Up to 70%Trump Wins Broad Economic Policy Shift as House Passes Tax BillJane Street Curbed in India After $4.3 Billion Trading GainUS Plans AI Chip Curbs on Malaysia, Thailand Over China ConcernsCanned-Food Producer Del Monte Foods Files for Bankruptcy ### Top Reads Trump’s Fast and Furious Second Term Racks Up Wins — and Risks by Mario ParkerHighway Robberies Are Now Just Part of Doing Business in Mexico by Andrea Navarro and Maya AverbuchGreece’s Painful Decade of Rehabilitation Rewards the Believers by Viktoria Dendrinou, Sotiris Nikas and Paul TugwellMount Everest's Trash-Covered Slopes Are Being Cleaned by Drones by Sheryl Tian Tong Lee\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:annualreports.com/HostedData/AnnualReportArchive Mastercard 2024 10-K regulatory interchange fees revenues risk factors",
+          "ticker": "MA"
+        },
+        "result": "{\"query\": \"MA site:annualreports.com/HostedData/AnnualReportArchive Mastercard 2024 10-K regulatory interchange fees revenues risk factors\", \"results\": [{\"title\": \"SSO | Ultra S&P500 | ProShares\", \"url\": \"https://links.message.bloomberg.com/s/c/tYyvK45ZLcSKmfaQfwotzB3lAIZwY9p9jcAoz3_QhiWZTmVMpMtSwyb2iznuwzOfG4VKHJew3AOvMDgfsPwVg4S7oTm1E2m1J682kX3FLCQmr_EpktlLqHXxUo90YbWCXYMYf6cSD-MReBBx5hsY_e_d2yD3Lkipf2Q2BUzkBOV8_qfLkT_xgT2ZmWvfXuB6bRkrz2CBsmtBfUkQtiPeU0XzQhUXL5DyWpRf2VYmHHkkws3KDoYCUEw7IYyGCyxTyg4LHSUVIHj66I4-7WFXoOwT-80OCJac_Q7FkFfKOMULkkLuqPTIrRu7-8Ef2C2YBimeLX7a1_RJxszsis-hI5EncMPPRYvBmKrz1JuArjr6LhzeIYClZZbH30SDQyc1jvetl_5IrXaq_GYRPkZhtHYmogzS5eglJI4VGLx9qcdDgASP-8cXnl8J2ALNa34rNCglrxbd1ni1nvbE4Z0qQV3-Ivs9z-2O/o1pP9oXQ5NvoBx8jTUN0p42F_a2-_7sl/7\", \"content\": \"| 0.62% | INTC | INTEL CORP  $53,443,869.00 | 434,503 | 2463247 |\\n| 0.49% | WMT | WALMART INC  $42,070,735.68 | 389,616 | 2936921 |\\n| 0.47% | ABBV | ABBVIE INC  $40,843,966.42 | 154,513 | B92SR70 |\\n| 0.47% | MA | MASTERCARD INC - A  $40,105,040.15 | 70,651 | B121557 |\\n| 0.44% | PLTR | PALANTIR TECHNOLOGIES INC-A  $38,162,362.68 | 201,204 | BN78DQ4 |\\n| 0.43% | CSCO | CISCO SYSTEMS INC  $36,765,085.50 | 344,565 | 2198163 | [...] | 0.12% | CB | CHUBB LTD  $10,252,127.61 | 30,753 | B3BQMF6 |\\n| 0.12% | MO | ALTRIA GROUP INC  $10,046,687.70 | 145,985 | 2692632 |\\n| 0.12% | CVS | CVS HEALTH CORP  $9,970,705.71 | 111,867 | 2577609 |\\n| 0.12% | MDT | MEDTRONIC PLC  $9,924,843.52 | 111,968 | BTN1Y11 |\\n| 0.11% | VLO | VALERO ENERGY CORP  $9,754,612.92 | 25,194 | 2041364 |\\n| 0.11% | MPC | MARATHON PETROLEUM CORP  $9,652,652.08 | 24,529 | B3K3L40 |\\n| 0.11% | SBUX | STARBUCKS CORP  $9,455,549.94 | 99,679 | 2842255 | [...] | 0.04% | AIG | AMERICAN INTERNATIONAL GROUP  $3,386,898.88 | 45,664 | 2027342 |\\n| 0.04% | CBRE | CBRE GROUP INC - A  $3,352,716.90 | 24,918 | B6WVMH3 |\\n| 0.04% | ED | CONSOLIDATED EDISON INC  $3,339,512.10 | 32,391 | 2216850 |\\n| 0.04% | FANG | DIAMONDBACK ENERGY INC  $3,331,312.82 | 17,846 | B7Y8YR3 |\\n| 0.04% | WDAY | WORKDAY INC-CLASS A  $3,320,300.70 | 17,526 | B8K6ZD1 |\\n| 0.04% | YUM | YUM! BRANDS INC  $3,313,811.52 | 23,904 | 2098876 |\", \"published_date\": null}, {\"title\": \"UPRO | UltraPro S&P500 | ProShares\", \"url\": \"https://links.message.bloomberg.com/s/c/c7USRvcwtuGBokupBgr5BSWpczzO-ftzeH3-xQl1pjkpYKEysjc72VMZ4nQfcA-0KSbheq4S3qsGUIwhj7LfA-egTVVJ-FsIyWsABiNsewqlN4X3OuOJIiryruWFr3aKMVPPUUF_LSGfiRnhhlaIpJ0Ziy1yy6GayrzUbBm0ry7ai2q5pM0xD-Zrhq62DXHCbKSg7JCtIimuPNQhQuETJfotn0rwNsHE1vdJB7E3tpPXbAxWuV4YRzjoB7tqxMT0eDz7ml4Zm-1DfpONCmcuJ-TJZ0XB3tHXr4s3cfia83DbBFpWEXOdJ_dtBDlHKGmtJky3jM_ub7s8uYYHfLzwcWu5rmckOJvWN1ceia-9vVYTkeSqlMh1mpFyQIFe8JwfsmOlFN8VhnvgepnroiUi4dpRAR9fhwuSXGZuaWLSkjnsL1vlivZzTeeajvcMX0vLFsgI-PowVz4R0rhTF82xd8ak7W217HV4OjY/_xAt1-MkDhGe3Xocg4T3jaZN3Dkc1hH_/7\", \"content\": \"| 0.38% | WMT | WALMART INC  $20,980,977.87 | 178,001 | 2936921 |\\n| 0.36% | ABBV | ABBVIE INC  $20,004,922.60 | 70,589 | B92SR70 |\\n| 0.36% | MA | MASTERCARD INC - A  $19,907,136.00 | 32,300 | B121557 |\\n| 0.34% | INTC | INTEL CORP  $18,931,135.74 | 198,502 | 2463247 |\\n| 0.33% | PLTR | PALANTIR TECHNOLOGIES INC-A  $18,426,551.50 | 91,903 | BN78DQ4 |\\n| 0.31% | COST | COSTCO WHOLESALE CORP  $17,320,557.10 | 17,710 | 2701271 |\\n| 0.31% | CVX | CHEVRON CORP  $17,309,173.04 | 78,922 | 2838555 | [...] | 0.06% | INTU | INTUIT INC  $3,609,088.27 | 10,931 | 2459020 |\\n| 0.06% | CSX | CSX CORP  $3,603,595.59 | 74,011 | 2160753 |\\n| 0.06% | SNPS | SYNOPSYS INC  $3,582,913.94 | 7,654 | 2867719 |\\n| 0.06% | USB | US BANCORP  $3,571,953.60 | 62,240 | 2736035 |\\n| 0.06% | JCI | JOHNSON CONTROLS INTERNATION  $3,570,579.18 | 24,186 | BY7QL61 |\\n| 0.06% | CDNS | CADENCE DESIGN SYS INC  $3,565,909.34 | 10,993 | 2302232 |\\n| 0.06% | DDOG | DATADOG INC - CLASS A  $3,560,295.00 | 13,372 | BKT9Y49 | [...] | 0.03% | VEEV | VEEVA SYSTEMS INC-CLASS A  $1,868,789.10 | 5,970 | BFH3N85 |\\n| 0.03% | KDP | KEURIG DR PEPPER INC  $1,857,546.28 | 54,346 | BD3W133 |\\n| 0.03% | DAL | DELTA AIR LINES INC  $1,855,336.96 | 23,762 | B1W9D46 |\\n| 0.03% | STT | STATE STREET CORP  $1,837,398.80 | 10,963 | 2842040 |\\n| 0.03% | FITB | FIFTH THIRD BANCORP  $1,824,281.20 | 36,232 | 2336747 |\\n| 0.03% | CARR | CARRIER GLOBAL CORP  $1,809,503.04 | 32,924 | BK4N0D7 |\", \"published_date\": null}, {\"title\": \"QIWI PLC - NanduQ\", \"url\": \"http://www.annualreports.com/HostedData/AnnualReportArchive/q/NASDAQ_QIWI%20_2017.PDF\", \"content\": \"at the point when merchants or individuals accept payments from consumers in the gross amount, including fees payable for payment acquisition. Payment processing fees and transaction costs are reported gross, except for the consumer fees on payments collected through payment kiosks, which is recorded in the net amount receivable from the agents-owners of kiosks. Visa payment processing fee revenues and related transaction costs are reported net. [...] Significant accounting judgments, estimates and assumptions (continued) Significant judgments Revenue recognition Payment processing fees revenue and transaction costs The Group exercised significant judgment in reaching a conclusion about its accounting policy for gross versus net reporting of payment processing fee revenues and related transaction costs. In particular, there are two major sources of payment processing fee revenues: • Payment processing fees charged to consumers on payments [...] Revenue recognition We exercise significant judgment in reaching a conclusion about our accounting policy for gross versus net reporting of payment processing fee revenues and related transaction costs.\\nIn particular, there are two major sources of payment processing fee revenues: • Payment processing fees charged to consumers on payments collected through agents, mobile operators and other payment methods; and • Payment processing fees charged to merchants.\", \"published_date\": null}, {\"title\": \"Best CD Rates of October 2026: Earn up to 5.00% APY\", \"url\": \"https://www.cnbc.com/select/best-certificates-of-deposits\", \"content\": \"Terms apply.\\n\\nAPYs are subject to change at any time without notice. Offers apply to personal accounts only. Fees may reduce earnings. For CD accounts, a penalty may be imposed for early withdrawals. After maturity, if your CD rolls over, you will earn the offered rate of interest for your CD type in effect at that time.\\n\\n4.20% to 4.40%\\n\\n6 months to 60 months\\n\\nNone [...] Terms apply.\\n\\n2.80% to 4.25% APY\\n\\n3 months to 5 years\\n\\nNone [...] $500\\n\\nDepends on the term length. Withdrawing within six days of account opening will result in a 7-day interest penalty.\\n\\nTerms apply.\\n\\nFrom 3.10% to 4.15% APY\\n\\nFrom 3 months to 60 months\\n\\n$1,000 minimum deposit\\n\\nNone\", \"published_date\": null}, {\"title\": \"Markets | Bloomberg Professional Services\", \"url\": \"https://www.bloomberg.com/professional/insights/category/markets?pg=118\", \"content\": \"Connecting decision makers to a dynamic network of information, people and ideas, Bloomberg quickly and accurately delivers business and financial information, news and insight around the world\\n\\nAmericas+1 212 318 2000\\n\\nEMEA+44 20 7330 7500\\n\\nAsia Pacific+65 6212 1000\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:investor.visa.com 2024 annual report regulatory interchange fees revenue risk",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V site:investor.visa.com 2024 annual report regulatory interchange fees revenue risk\", \"results\": [{\"title\": \"US judge reviews Visa, Mastercard $38 billion swipe fee settlement\", \"url\": \"https://www.reuters.com/legal/government/us-judge-reviews-visa-mastercard-38-billion-swipe-fee-settlement-2026-04-27\", \"content\": \"Visa and Mastercard agreed to lower so-called swipe fees, or ​interchange fees, by 0.1 percentage point for five years, and cut standard\", \"published_date\": null}, {\"title\": \"Visa - Visa Inc. Posts Strong Fiscal Fourth Quarter and Full-Year 2012 Adjusted Earnings Results and Announces New $1.5 billion Share Repurchase Program\", \"url\": \"https://investor.visa.com/news/news-details/2012/Visa-Inc-Posts-Strong-Fiscal-Fourth-Quarter-and-Full-Year-2012-Adjusted-Earnings-Results-and-Announces-New-15-billion-Share-Repurchase-Program/default.aspx\", \"content\": \"and (iii) are subject to risks, uncertainties, assumptions and changes in circumstances that are difficult to predict or quantify. Therefore, actual results could differ materially and adversely from those forward-looking statements because of a variety of factors, including the following:    the impact of laws, regulations and marketplace barriers, including:   + rules capping debit interchange reimbursement fees promulgated under the U.S. Wall Street Reform and Consumer Protection Act, or the [...] Act, or the Dodd-Frank Act;   + rules under the Dodd-Frank Act expanding issuers' and merchants' choice among debit payment networks;   + increased regulation outside the United States and in other product categories;   + increased government support of national payment networks outside the United States; and   + rules about consumer privacy and data use and security;  developments in current or future litigation and government enforcement, including those affecting interchange reimbursement [...] and related tax benefits associated with the interchange Multidistrict Litigation Proceedings, which are covered by the retrospective responsibility plan. Monetary liabilities from settlements of, or judgments in, the covered litigation will be paid from the litigation escrow account. | | | | | | | | | | | | | | | | |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  Deferred tax adjustment. During the second quarter of fiscal 2012, we benefited from a one-time non-cash adjustment of $208\", \"published_date\": null}, {\"title\": \"Visa, Mastercard reach $38 billion swipe fee settlement ... - Reuters\", \"url\": \"https://www.reuters.com/sustainability/boards-policy-regulation/visa-mastercard-reach-revised-swipe-fee-settlement-with-merchants-2025-11-10\", \"content\": \"The settlement calls for Visa and Mastercard to lower swipe fees, which averaged 2.35% in 2024 and typically range from 2% to 2.5%, by 0.1\", \"published_date\": null}, {\"title\": \"Visa - SEC Filings\", \"url\": \"https://investor.visa.com/SEC-Filings\", \"content\": \"### Feeds & Alerts\\n\\n|  |  |\\n --- |\\n|  | |\\n| Email Address | \\\\ |\\n\\n|  |  |\\n --- |\\n| Mailing Lists \\\\ | |\\n| |  |  | News | | SEC Filings | | Presentations | | Events | | Financial Reports | | EOD Stock Quote | | |\\n\\n|  |\\n\\n| News |\\n| SEC Filings |\\n| Presentations |\\n| Events |\\n| Financial Reports |\\n| EOD Stock Quote |\\n\\n|  |  |\\n --- |\\n|  | |\\n|  | |\\n| Enter the code shown above. | |\\n| \\\\ | |\\n\\n## SEC Filings\\n\\n.jpg)\\n\\n| Date Filed | Filing | Reported | Description | View |\\n ---  ---\", \"published_date\": null}, {\"title\": \"The Fed - Detecting Tariff Effects on Consumer Prices in Real Time\", \"url\": \"https://links.message.bloomberg.com/s/c/0XURqqY3-a6hfjY0fIfAduQVb2PzdDBy1x3qnH6BjehN6Yt3qb86aDieqiBMFpj_IvGN5u5RdoHLiZjeGWgXWnYjhQbfRBoUdXOndTiLlv6FHdJnVVXWvr5VHMIJopWa7aCctUl4YrdDyYMfzcLWBL_tmDjdUprlrVQksyRyV1Gu8wXGpPJFlgoz3rfANsmitJF_WlME0tV6RiolUzhzJN2mmW7tX2-ag6CDllsftPI9NhvLqu_Ju7fVp1X8qcjI6j0jYAdBpN9Y9Af1UsWy9c2fUb1U5dRVciX5UvtopoGI_dwzg59BHNbTHPOU3vpKZdbeRUNIqtJnN9xcKe0J5LLSfguBLWFpegDjaAfZc_Vd17Uif44VvDpBuaA/o3eqWFfYo_HWvYVJt9dXNxIPcRRkL6Ux/10\", \"content\": \"Fifth, we have assumed that retailers and wholesalers maintain constant dollar markups. If these sectors increase margins to maintain constant percent markups instead, our theoretical measures will understate the effect of tariffs on PCE prices.16 Recent work by Sangani (2024) argues that markup adjustment may not be an important determinant of long-run pass-through of cost shocks.17 [...] De Michelis, Andrea, and Mariano Somale. 2023. \\\"A Sourcing Risk Index for U.S. Manufacturing Industries.\\\" FEDS Notes. Washington: Board of Governors of the Federal Reserve System, September 08, 2023.\\n\\nDellaVigna, Stefano and Matthew Gentzkow. 2019. \\\"Uniform Pricing in U.S. Retail Chains.\\\" The Quarterly Journal of Economics 134 (4): 2011–84, [...] 23. The analysis above used BEA input-output and PCE bridge data from 2017, but we use the same data for 2019 for our analysis in 2025. Ideally, we would use BEA data from 2024, but the BEA stopped publishing this data for years after 2020. We do not use the data from 2020 since it is potentially confounded by issues related to the pandemic that may make it ill-suited for analysis of incoming data in 2025. For completeness, we note that the results we show in this section are more statistically\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:investor.mastercard.com 2024 annual report regulatory interchange fees revenue risk",
+          "ticker": "MA"
+        },
+        "result": "{\"query\": \"MA site:investor.mastercard.com 2024 annual report regulatory interchange fees revenue risk\", \"results\": [{\"title\": \"Mastercard Incorporated - MasterCard Europe to Challenge European Commission Decision on Cross-Border Interchange Fees\", \"url\": \"https://investor.mastercard.com/investor-news/investor-news-details/2007/MasterCard-Europe-to-Challenge-European-Commission-Decision-on-Cross-Border-Interchange-Fees/default.aspx\", \"content\": \"delays or the inability of the company to achieve its strategic initiatives\\nset forth above. Factors other than those listed above could also cause the\\ncompany's results to differ materially from expected results. [...] \\\"Forcing drastic reductions in interchange fees across Europe could delay\\nimplementation of SEPA, as well as reduce incentives for payment institutions\\nto expand into new domestic European payments markets. In addition, a large\\nreduction in issuers' revenues would force cutbacks on the necessary\\ninvestments in new services and technology. This goes directly against the\\ngoal of establishing a single market for payments throughout the euro area and [...] \\\"The Commission has also ignored the experience in Australia where\\nregulators forced down interchange fees, resulting in higher cardholder\\ncharges, reduced card features and benefits, less competition, and diminished\\ninvestment and innovation. Moreover, there is no evidence that consumers\\nbenefited from lower merchant prices as regulators predicted. Not\\nsurprisingly, the Australian payment card business has seen slower growth\\nsince regulation was introduced.\\\"\", \"published_date\": null}, {\"title\": \"Mastercard (MA) Predicts Slower Annual Revenue Growth Through 2027 - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2024-11-13/mastercard-predicts-slower-annual-revenue-growth-through-2027\", \"content\": \"The global payments network expects net revenue to grow annually by a percentage in the “high-end of low-double-digits” in that time frame, it said in a presentation during its investor day on Wednesday. The projection compares to the high-teens percentage rate it had predicted for 2022 to 2024. [...] Finance\\n\\n# Mastercard Sees Slower Annual Revenue Growth Through 2027\\n\\n Firm is pushing for a bigger chunk of digital payments market\\n Sees opportunity in China, where it processes some payments\\n\\nThis article is for subscribers only.\\n\\nMastercard Inc. projected slower annual net revenue growth for the 2025 to 2027 period as the firm strives for a larger slice of the digital payments market.\", \"published_date\": null}, {\"title\": \"Revolut 2020 annual loss climbed 57% but crypto boosted revenue\", \"url\": \"https://www.cnbc.com/2021/06/21/revolut-2020-annual-results.html\", \"content\": \"Revolut, which offers app-based checking accounts and trading services, still makes most of its revenue from interchange fees that are taken from a merchant's bank account each time a customer uses their card. The firm sought to reduce its reliance on interchange, however, as the coronavirus pandemic led to a sharp drop in payment volume. [...] About 36% of Revolut's 2020 revenues came from card and interchange income, according to its annual report, while foreign exchange income accounted for 31% and paid subscriptions made up 29%. [...] Revolut reported a total annual loss of £167.8 million, or $231.8 million, higher than the £106.7 million it lost in 2019. But it reported adjusted operating losses, which include crypto revaluation income but exclude share-based payments, of £122 million, an increase from the £98.4 million loss in its previous fiscal year.\", \"published_date\": null}, {\"title\": \"Global Regulatory Brief: Risk, capital and financial stability, September edition | Insights | Bloomberg Professional Services\", \"url\": \"https://www.bloomberg.com/professional/insights/regulation/global-regulatory-brief-risk-capital-and-financial-stability-september-2023\", \"content\": \"What’s next: In addition to the actions above, APRA intends to consult on crypto-assets and market risk in 2024.\\n\\n## Hong Kong provides update to Basel III implementation timeline\\n\\nThe Hong Kong Monetary Authority (HKMA) has updated its schedule for implementing the Basel III final reform package to account for the latest implementation timetables of other major jurisdictions. [...] Important context: These changes come under the existing legal framework for CSDR but it is important to note that the CSDR framework itself is set to change. Under reforms recently agreed, preconditions will be introduced so that mandatory buy-ins are only imposed as a last resort.\\n\\nNext steps: To provide firms time to implement the adjustments, the new rules will apply from September 2, 2024 and will not apply to settlement fails that begin before this date. [...] What is happening: The implementation will start from a date no earlier than July 1, 2024 and will cover the revised standards on credit risk, operational risk and output floor as a minimum regulatory requirement, and the revised standards on market risk and CVA risk as a reporting-only requirement.\\n\\n The revised market risk and CVA risk standards will take effect as a minimum regulatory requirement on a date no earlier than January 1, 2025;\", \"published_date\": null}, {\"title\": \"Trump Media (DJT) earnings report 2024\", \"url\": \"https://www.cnbc.com/2025/02/14/trump-media-djt-earnings-report-2024.html\", \"content\": \"In 2024, Trump Media incurred merger-related legal fees because of obstruction from former President Biden's Securities and Exchange Commission, according to a statement. A change to a revenue-sharing agreement with an advertising partner resulted in lower sales. \\\"Additionally, revenue has varied as we selectively test a nascent advertising initiative on our Truth Social platform,\\\" the company said in the annual report. [...] In this article\\n\\nTrump Media & Technology Group shares were down about 1% in extended trading on Friday after the operator of Truth Social released its 2024 results.\\n\\nHere's how the company performed:\\n\\nThe company's revenue declined 12% year over year, according to its annual report. The company saw its net loss widen to $400.9 million from $58.2 million in 2023. [...] The company has not held an earnings call since the merger.\\n\\nAs of Friday, a trust where President Trump is the sole beneficiary owns 52% of the voting power of the company's stock, the filing states.\\n\\nTrump publishes posts on Truth Social, where he has 8.9 million followers. On X, owned by Tesla CEO Elon Musk, who has been helping with the Trump administration's Department of Government Efficiency, Trump has 100.9 million followers.\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:annualreports.com/HostedData/AnnualReportArchive Visa 2024 10-K regulatory interchange fees revenues risk factors",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V site:annualreports.com/HostedData/AnnualReportArchive Visa 2024 10-K regulatory interchange fees revenues risk factors\", \"results\": [{\"title\": \"Form 10-K for Perella Weinberg Partners filed 02/23/2024\", \"url\": \"https://www.annualreports.com/HostedData/AnnualReportArchive/p/NASDAQ_PWP_2023.pdf\", \"content\": \"are susceptible to factors outside of the Company’s influence, such as third-party negotiations, regulatory approval, court approval, and shareholder votes. Accordingly, a large portion of the fees associated with these services is constrained until substantially all services have been provided, specified conditions have been met and/or certain milestones have been achieved, and it is probable that a significant revenue reversal will not occur in a future period. Such determination of [...] Item 1A. Risk Factors Risk Factor Summary The principal risks and uncertainties affecting our business include (but are not limited to) the following: changing market conditions; the Company's ability to execute on its growth initiatives, business strategies or operating plans; the Company's ability to successfully identify, recruit, develop and retain talent; the Company's dependence on its fee-paying clients and fluctuating revenues from its non-exclusive, engagement-by-engagement business [...] Further, we have in the past and may in the future face the risk that certain clients may not have the financial resources to pay our agreed-upon fees.\\nCertain clients may also be unwilling to pay our fees in whole or in part, in which case we may have to incur significant costs to bring legal action to enforce our engagement agreements to obtain such fees. On occasion, some of our clients have entered bankruptcy, which has prevented us from collecting amounts owed to us.\", \"published_date\": null}, {\"title\": \"Form 10-K for Arcadia Biosciences INC filed 03/28/2024\", \"url\": \"https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_RKDA_2023.pdf\", \"content\": \"7 Table of Contents Item 1A. Risk Factors. [...] trials, filing with regulatory agencies, completion of the regulatory process, and commercial launch of a product containing the Company’s traits. Given the seasonality of agriculture and time required to progress from one milestone to the next, achievement of milestones is inherently uneven, and the Company’s license revenues are likely to fluctuate significantly from period to period. [...] and pricing of competing products; • compliance with laws and regulations that impact our business, and changes to such laws and regulations; • our ability to maintain, protect, and enhance our intellectual property; • our future capital requirements and our ability to satisfy our capital needs; • industry conditions and market conditions; • the preceding and other factors discussed in Part I, Item 1A, “Risk Factors,” and other reports we may file with the Securities and Exchange Commission\", \"published_date\": null}, {\"title\": \"[PDF] Form 10-K for Candel Therapeutics INC filed 03/28/2024\", \"url\": \"https://www.annualreports.com/HostedData/AnnualReportArchive/c/NASDAQ_CADL_2023.pdf\", \"content\": \"fluctuations in the financial markets in the United States and abroad; and • the other factors described in this “Risk Factors” section. [...] growth; ▪ developments relating to our competitors and our industry, including the impact of government regulation; ▪ our ability to retain the continued service of our key professionals and to identify, hire and retain additional qualified professionals; and ▪ other risks and uncertainties, including those discussed in Part I, Item 1A - Risk Factors in this Annual Report on Form 10-K. [...] the EEA or the UK, security breach notifications, security and confidentiality of the personal data and imposition of substantial potential fines for breaches of the data protection obligations. Companies that must comply with the GDPR face increased compliance obligations and risk, including more robust regulatory enforcement of data protection requirements and potential fines for noncompliance of up to €20 million (£17.5 million) or 4% of the annual global revenues of the noncompliant\", \"published_date\": null}, {\"title\": \"Form 10-K for Uniqure NV filed 02/28/2024\", \"url\": \"https://www.annualreports.com/HostedData/AnnualReportArchive/u/NASDAQ_QURE_2023.pdf\", \"content\": \"You should not place undue reliance on these forward-looking statements, which speak only as of the date that they were made. Our actual results or experience could differ significantly from those anticipated in the forward-looking statements and from historical results, due to the risks and uncertainties described in this Annual Report on Form 10-K including in Part I, Item 1A. “Risk Factors,” as well as others that we may consider immaterial or do not anticipate at this time. These cautionary [...] Our ability to generate revenues from our product candidates will depend on the successful development and eventual commercialization of our product candidates. The success of our product candidates will depend on many factors, including: ● successful completion of preclinical studies and clinical trials, and other work required by regulators; ● receipt and maintenance of marketing approvals from applicable regulatory authorities; ● obtaining and maintaining patent and trade secret protection [...] licensing, and collaboration activity among our peer companies in the pharmaceutical and biotechnology sectors; ● general economic, industry and market conditions; and ● the other factors described in this “Risk Factors” section.\", \"published_date\": null}, {\"title\": \"[PDF] Form 10-K for Ponce Financial Group INC filed 03/19/2024\", \"url\": \"https://www.annualreports.com/HostedData/AnnualReportArchive/p/NASDAQ_PDLB_2023.pdf\", \"content\": \"by quantitative loss rates. These qualitative risk factors include: (1) changes in lending policies, procedures and strategies including changes in underwriting standards and collection, charge-off, and recovery practices not considered elsewhere in estimating credit losses; (2) economic conditions such as the Bank’s market area, customer demographics, portfolio composition, along with national indicators considered impactful to the model; (3) changes in the nature and volume of the portfolio; [...] control and rent stabilization. Additional risks of our construction loans are also discussed under See Item 1A.Risk Factors – “We have increased our multifamily, nonresidential and construction and land loans, and intend to continue ‎ to increase ‎ originations of these types of loans. These loans may carry greater credit risk than loans secured by ‎ one-to-four family real ‎ estate that could adversely affect our financial condition and net income.”; “The unseasoned nature of our multifamily, [...] factors such as the financial and managerial resources, future prospects of the company and institution involved, the effect of the acquisition on the risk to the Federal Deposit Insurance Fund, the convenience and needs of the community and competitive factors.\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Visa 2024 Form 10-K risk factors laws regulations interchange fees debit routing revenue official",
+          "ticker": "V"
+        },
+        "error": "Per-run tool-call budget reached for this request. Do not call any further tools again in this run. This is an INTERNAL orchestration budget — it is NOT an external rate limit from SEC EDGAR, Finnhub, Tavily, or any other external API. Summarize with the data already collected; do not describe this to the user as a network or API failure."
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Mastercard 2024 Form 10-K risk factors laws regulations interchange fees revenue official",
+          "ticker": "MA"
+        },
+        "error": "Per-run tool-call budget reached for this request. Do not call any further tools again in this run. This is an INTERNAL orchestration budget — it is NOT an external rate limit from SEC EDGAR, Finnhub, Tavily, or any other external API. Summarize with the data already collected; do not describe this to the user as a network or API failure."
+      }
+    ],
+    "model": "openai:gpt-5.6-luna",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 1.8136657919967547,
+      "first_text_s": 35.817040666996036,
+      "total_s": 47.59797758399509
+    },
+    "usage": {
+      "input_tokens": 43245,
+      "output_tokens": 2830
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 0.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": false,
+      "tool_call_count": 12,
+      "tool_error_names": [
+        "sec_filing_search",
+        "sec_filing_search",
+        "sec_filing_list_sections",
+        "sec_filing_list_sections",
+        "tavily_financial_search",
+        "tavily_financial_search"
+      ]
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 2.9547003750049043,
+      "input_tokens": 3029,
+      "output_tokens": 146,
+      "reasoning_tokens": 36,
+      "cache_read_tokens": 2985
+    },
+    {
+      "duration_s": 3.0035639999987325,
+      "input_tokens": 3227,
+      "output_tokens": 103,
+      "reasoning_tokens": 23,
+      "cache_read_tokens": 3026
+    },
+    {
+      "duration_s": 4.882955624998431,
+      "input_tokens": 3378,
+      "output_tokens": 130,
+      "reasoning_tokens": 43,
+      "cache_read_tokens": 3224
+    },
+    {
+      "duration_s": 4.250790250007412,
+      "input_tokens": 5989,
+      "output_tokens": 273,
+      "reasoning_tokens": 83,
+      "cache_read_tokens": 3375
+    },
+    {
+      "duration_s": 5.3215920829970855,
+      "input_tokens": 13550,
+      "output_tokens": 342,
+      "reasoning_tokens": 243,
+      "cache_read_tokens": 5986
+    },
+    {
+      "duration_s": 16.862640499995905,
+      "input_tokens": 14072,
+      "output_tokens": 1836,
+      "reasoning_tokens": 421,
+      "cache_read_tokens": 13547
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "sec_filing_search",
+      "duration_s": 1.0517926249885932,
+      "error": "Search failed: 'NoneType' object has no attribute 'download'"
+    },
+    {
+      "tool": "sec_filing_search",
+      "duration_s": 1.0522891669970704,
+      "error": "Search failed: 'NoneType' object has no attribute 'download'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.0018933329993160442,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.002674417002708651,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.511530165997101,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.012632083002245,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 2.801196208005422,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.126451875010389,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.199257334010326,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 5.109300458003418,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "ea1bf046-7d2e-40a0-9c62-b8c6911310c6"
+}

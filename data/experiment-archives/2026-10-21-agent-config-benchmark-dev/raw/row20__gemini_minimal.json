@@ -1,0 +1,112 @@
+{
+  "row_id": "20",
+  "arm": "gemini_minimal",
+  "experiments": [
+    "E2"
+  ],
+  "row_position": 5,
+  "slot_in_row": 4,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "gemini_medium",
+    "luna_none",
+    "gemini_minimal"
+  ],
+  "started_at": "2026-10-21T16:13:30.904408+00:00",
+  "finished_at": "2026-10-21T16:13:47.111099+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**是的，可口可樂（The Coca-Cola Company, 股票代號：KO）目前依然是非常典型且穩定的高品質配息型公司（Dividend King/股息王）。**\n\n不論從歷史連續配息紀錄、當前股息殖利率，還是公司的獲利與營運防守能力來看，可口可樂依然具備極高的股息穩定性。\n\n---\n\n### 一、 關鍵財務與配息數據\n\n根據 Finnhub 即時市場數據及財務指標：\n\n| 財務指標 | 最新數據 | 說明 / 分析 |\n| --- | --- | --- |\n| **當前股價** | $92.92 美元 | 接近 52 週高點（$67.27 – $94.10） |\n| **股息殖利率 (Dividend Yield)** | **3.14%** | 提供遠高於大盤平均的穩定現金流收益 |\n| **Beta 值（波動度）** | **0.29** | 波動度極低，股價表現極具防禦性 |\n| **淨利潤率 (Net Profit Margin)**| **28.56%** | 本業獲利能力極強，具備強大定價權 |\n| **營業利潤率 (Operating Margin)**| **30.35%** | 保持高水準營運效益 |\n| **股東權益報酬率 (ROE)** | **42.99%** | 資本使用效率優異 |\n| **EPS 成長率 (TTM YoY)** | **17.61%** | 獲利持續成長，支持未來股息擴充 |\n\n---\n\n### 二、 為什麼可口可樂仍是穩健的配息標的？\n\n1. **超過 60 年連續調升股息（股息王地位）**\n   可口可樂已連續 **64 年** 每年調高股息金額 [1]，屬於美股市場中最頂尖的「股息王（Dividend Kings）」之一，展現跨越多次經濟衰退與通膨週期的極高配息穩定度。\n\n2. **強勁的自由現金流與資本回報**\n   根據最新報導，可口可樂光是單一年度就向股東發放高達 88 億美元的股息，自 2010 年以來已累計發放超過 1,020 億美元的現金股息 [1]。\n\n3. **強大的品牌壟斷力與抗通膨定價權**\n   即使面對全球通膨與供應鏈壓力，可口可樂透過旗艦產品（Coca-Cola Zero Sugar 等系列）與多元飲料組合的銷量成長，持續上調全年有機營收與 EPS 獲利預測 [2]。高達 61.89% 的毛利率與近 29% 的淨利潤率，為其配息提供了充足的安全墊。\n\n4. **防禦型資產特性**\n   其 Beta 值僅為 0.29（遠低於市場平均的 1.0），代表當整體股市大跌時，可口可樂的股價波動相對溫和，是避險與追求穩定現金流投資人的首選。\n\n---\n\n### 三、 數據品質與風險提醒\n\n* **債務結構與流動性**：可口可樂目前負債權益比（Debt-to-Equity）為 **1.20**，速動比率（Quick Ratio）為 **1.01**。雖然作為防禦型消費巨頭，其現金流足以覆蓋短債與股息支出，但仍需留意高利率環境對其利息費用的影響。\n* **估值位階**：目前預估本益比（Forward P/E）約為 **25.56 倍**，處於相對合理的消費龍頭估值區間，主要反映市場對其避險屬性與穩定配息所給予的溢價。\n\n**總結：**\n如果你尋求的是「高資本成長/暴漲」的股票，可口可樂並非首選；但如果你的目標是**尋求高於平均的股息收益（約 3.14%）、極低的波動度（Beta 0.29），以及極高確定性的股息成長歷史**，可口可樂依然是全球市場中最頂級且穩定的配息公司之一。\n\n[1]: https://www.cnbc.com/2026/03/02/these-dividend-aristocrat-stocks-are-wall-streets-favorites.html \"These Dividend Aristocrat stocks are Wall Street’s favorites\"\n[2]: https://www.cnbc.com/2026/07/28/coca-cola-ko-q2-2026-earnings.html \"Coca-Cola (KO) Q2 2026 earnings\"",
+    "tool_outputs": [
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "KO"
+        },
+        "result": "{\"ticker\": \"KO\", \"currentPrice\": 92.92, \"open\": 92.9975, \"previousClose\": 93.49, \"change\": -0.57, \"percentChange\": -0.6097, \"dayHigh\": 93.46, \"dayLow\": 92.73}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "KO"
+        },
+        "result": "{\"ticker\": \"KO\", \"fiftyTwoWeekHigh\": 94.1, \"fiftyTwoWeekLow\": 67.27, \"peTTM\": 27.9924, \"forwardPE\": 25.55502, \"psTTM\": 7.9942, \"pb\": 10.0141, \"marketCap\": 400739.38, \"enterpriseValue\": 431375.38, \"beta\": 0.29004005, \"epsTTM\": 3.3194, \"roeTTM\": 42.99, \"roaTTM\": 13.54, \"grossMarginTTM\": 61.89, \"netProfitMarginTTM\": 28.56, \"operatingMarginTTM\": 30.35, \"currentRatio\": 1.3046, \"quickRatio\": 1.0135, \"debtToEquity\": 1.2045, \"dividendYield\": 3.14154, \"revenueGrowthTTMYoy\": 6.52, \"epsGrowthTTMYoy\": 17.61, \"tenDayAvgVolume\": 15.92069}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Coca Cola KO dividend growth years increases dividend king",
+          "ticker": "KO"
+        },
+        "result": "{\"query\": \"KO Coca Cola KO dividend growth years increases dividend king\", \"results\": [{\"title\": \"These Dividend Aristocrat stocks are Wall Street’s favorites\", \"url\": \"https://www.cnbc.com/2026/03/02/these-dividend-aristocrat-stocks-are-wall-streets-favorites.html\", \"content\": \"annual lette r to shareholders on Saturday that Coke is among the businesses \\\"we understand well, have a high regard for their leaders, and expect will compound over decades.\\\" KO 1Y mountain Coca-Cola's one-year performance Coca-Cola reported fourth-quarter adjusted earnings in February that topped Wall Street's expectations, but adjusted revenue fell short for the first time in five years. Atlanta-based Coke currently pays a dividend yield equal to 2.6% and is up 15% year to date. NextEra [...] as of March 13. It marks the 64th consecutive year of increases for the soft drink maker. Coca-Cola said it returned $8.8 billion in dividends to shareholders last year, bringing the total amount of dividends paid to roughly $102 billion since Jan. 1, 2010. The snack and beverage giant is among the elite group of American companies that make up a large part of Berkshire Hathaway's portfolio. CEO Greg Abel, who took the reins from Warren Buffett on Jan. 1, said in his first annual lette r to\", \"published_date\": null}, {\"title\": \"Dividend growth stocks offer attractive returns and less risk, per Nuveen\", \"url\": \"https://www.cnbc.com/2026/01/08/dividend-growth-stocks-offer-attractive-returns-and-less-risk-per-nuveen.html\", \"content\": \"tailwinds,\\\" analyst Chris Carey wrote. The Sprite and Fanta maker is expected to benefit from the World Cup this summer, too, he said. Coca-Cola lifted its quarterly dividend for the 63rd consecutive year last February, raising it more than 5% to 51 cents per share. KO 1Y mountain Coca-Cola in the past 12 months Other names that showed up on CNBC Pro's screen include biopharmaceutical player AbbVie , data center power stock Entergy and insurer Unum Group . —CNBC's Michael Bloom and Fred Imbert\", \"published_date\": null}, {\"title\": \"Coca-Cola (KO) Q2 2026 earnings\", \"url\": \"https://www.cnbc.com/2026/07/28/coca-cola-ko-q2-2026-earnings.html\", \"content\": \"The company also hiked its full-year forecast. Coke is now projecting comparable earnings per share growth of 9% to 10%, up from its prior forecast of 8% to 9%. It also expects organic revenue to increase about 5%, on the high end of its earlier range of 4% to 5%.\\n\\nShares of Coke rose more than 7% in morning trading, hitting a record high.\\n\\nHere's what the company reported compared with what Wall Street analysts surveyed by LSEG were expecting: [...] Coke's juice, value-added dairy and plant-based beverage division saw volume growth of 2%. [...] Coke's sparkling soft drinks segment reported volume growth of 4%, helped in part by the lift in demand for its namesake soda and its line extensions. Coca-Cola Zero Sugar saw volume climbed 16%, while Diet Coke, or Coca-Cola Light as it is known in some markets, reported volume growth of 7%. Additionally, the relaunch of Mr. Pibb, with 30% more caffeine, led the drink brand's volume to climb 20% in the quarter, according to Braun.\", \"published_date\": null}, {\"title\": \"Coca-Cola (KO) Q2 2026 earnings\", \"url\": \"https://www.cnbc.com/amp/2026/07/28/coca-cola-ko-q2-2026-earnings.html\", \"content\": \"The company also hiked its full-year forecast. Coke is now projecting comparable earnings per share growth of 9% to 10%, up from its prior forecast of 8% to 9%. It also expects organic revenue to increase about 5%, on the high end of its earlier range of 4% to 5%.\\n\\nShares of Coke rose more than 7% in morning trading, hitting a record high.\\n\\nHere's what the company reported compared with what Wall Street analysts surveyed by LSEG were expecting: [...] Coke's juice, value-added dairy and plant-based beverage division saw volume growth of 2%.\\n\\nIn this article [...] Coke's sparkling soft drinks segment reported volume growth of 4%, helped in part by the lift in demand for its namesake soda and its line extensions. Coca-Cola Zero Sugar saw volume climbed 16%, while Diet Coke, or Coca-Cola Light as it is known in some markets, reported volume growth of 7%. Additionally, the relaunch of Mr. Pibb, with 30% more caffeine, led the drink brand's volume to climb 20% in the quarter, according to Braun.\", \"published_date\": null}, {\"title\": \"Coca-Cola (KO) Q3 2023 earnings\", \"url\": \"https://www.cnbc.com/2023/10/24/coca-cola-ko-q3-2023-earnings.html\", \"content\": \"All of Coke's drink divisions reported volume growth. Both its sparkling soft drinks and juice, dairy and plant-based beverage divisions reported 2% increases in volume. Coke's water, sports, coffee and tea business saw 1% volume growth.\\n\\nFor the full year, Coke now expects comparable earnings per share growth of 7% to 8%, up from its prior range of 5% to 6%. The company also adjusted its outlook for organic revenue, forecasting an increase of 10% to 11%, up from the prior range of 8% to 9%.\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "google_genai:gemini-3.6-flash",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 1.3561482920049457,
+      "first_text_s": 9.625541792003787,
+      "total_s": 16.19951991700509
+    },
+    "usage": {
+      "input_tokens": 8274,
+      "output_tokens": 1183
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 1.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": true,
+      "tool_call_count": 3,
+      "tool_error_names": []
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 1.3489148340013344,
+      "input_tokens": 2035,
+      "output_tokens": 43,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 0
+    },
+    {
+      "duration_s": 1.3714086249965476,
+      "input_tokens": 2427,
+      "output_tokens": 34,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 0
+    },
+    {
+      "duration_s": 8.242405500001041,
+      "input_tokens": 3812,
+      "output_tokens": 1106,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 0
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.630491499992786,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.0366231670050183,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.128113415994449,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "2a325244-62d3-4974-9509-78cfef0b120a"
+}

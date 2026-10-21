@@ -1,0 +1,125 @@
+{
+  "row_id": "13",
+  "arm": "luna_none",
+  "experiments": [
+    "E2"
+  ],
+  "row_position": 3,
+  "slot_in_row": 2,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "luna_none",
+    "gemini_minimal",
+    "gemini_medium"
+  ],
+  "started_at": "2026-10-21T16:07:05.323975+00:00",
+  "finished_at": "2026-10-21T16:07:25.699100+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**結論：有，但目前可取得的資料較直接支持「監管會壓低 Visa 與 Mastercard 的部分收入或定價能力」，尚不足以單獨證明「整體刷卡網路生意的獲利能力必然被壓縮」。**\n\n### 1. 官方揭露應該支持哪些層次的說法？\n\nVisa 與 Mastercard 的核心收入，部分來自支付網路相關的服務費、跨境交易服務，以及與交易金額或交易量相關的費用。若監管直接限制 interchange fee、network fee，或要求取消限制商戶導向其他支付方式的規則，理論上會影響：\n\n- 每筆交易可收取的費用；\n- 商戶或發卡銀行對網路的依賴程度；\n- 網路的定價權與議價能力；\n- 在交易量不變時的收入及邊際利潤。\n\n近期公開報導顯示，美國 Visa 與 Mastercard 的商戶費用和反導流規則曾面臨重大監管及訴訟壓力；相關和解安排包括美國 interchange rate 下調 4 個基點、五年內設置費率上限，以及取消部分 anti-steering 條款。[1] 這直接支持「監管或監管性和解可能壓低單筆交易收入、限制定價自由度」的說法。\n\n英國方面，監管機構也曾審查 Visa 與 Mastercard 的 scheme fees 及跨境 interchange fees；報導指出，兩家公司在英國卡片交易中占有約 99% 的市場，監管機構關注其費用上升是否有成本依據。[2] 這支持監管風險具有實質性，而非純粹理論風險。\n\n### 2. 但「收入受壓」不等於「獲利能力必然受壓」\n\n要直接證明「獲利能力被壓縮」，官方 10-K 通常需要出現以下其中一類明確揭露：\n\n1. 監管導致收入或營業利益下降；\n2. 公司量化某項費率限制對營收、營業利潤或 EPS 的影響；\n3. 公司明確表示無法透過交易量成長、其他產品或成本控制抵銷影響；\n4. 相關監管事件已造成毛利率、營業利益率或自由現金流率下降。\n\n本次 SEC 10-K section 工具未能成功返回 Visa 或 Mastercard 的 filing sections，因此我**沒有足夠的官方 10-K 原文資料**來確認兩家公司是否已量化揭露「監管造成獲利率下降」。因此，不能把上述監管壓力直接表述成已被公司財報證實的利潤率壓縮。\n\n### 3. 對原命題的精確判斷\n\n| 命題 | 判斷 |\n|---|---|\n| 監管可能限制 Visa/Mastercard 的費率或定價權 | **有直接支持** |\n| 監管可能壓低部分交易相關收入 | **有直接支持** |\n| 監管會壓縮整體刷卡網路的獲利能力 | **方向上合理，但目前缺乏足夠官方量化證據** |\n| 監管必然導致長期利潤率下降 | **不能由現有資料推出** |\n\n更嚴謹的表述應是：\n\n> **監管對 Visa 與 Mastercard 的主要風險，不只是交易量，而是限制其對商戶及支付生態系統的定價權；這可能壓低每筆交易收入與邊際利潤，但是否轉化為整體獲利能力下降，仍取決於交易量成長、跨境業務、增值服務、成本控制及公司能否把費用壓力轉嫁給其他參與者。**\n\n### 資料品質限制\n\n- SEC 10-K section 工具本次回傳錯誤，未能取得 Visa 與 Mastercard 最新年報的 Risk Factors、MD&A 或財務數據。\n- Tavily 結果主要是新聞報導，不等同於公司官方揭露。\n- 因此，本分析可以支持「監管造成收入與定價壓力」，但不能聲稱已由兩家公司官方財報直接量化證明「獲利能力已被壓縮」。\n\n[1]: https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html \"Mastercard, Visa reach $30 billion settlement over credit card fees\"\n[2]: https://www.reuters.com/business/finance/british-lawmakers-target-visa-and-mastercard-fee-increases-2022-01-13 \"British lawmakers target Visa and Mastercard fee increases\"",
+    "tool_outputs": [
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "V",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "MA",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Mastercard latest 10-K regulatory changes reduce profitability payment network interchange fees official filing",
+          "ticker": "MA"
+        },
+        "result": "{\"query\": \"MA Mastercard latest 10-K regulatory changes reduce profitability payment network interchange fees official filing\", \"results\": [{\"title\": \"Visa and MasterCard Cut Interchange Fees to 1.5% in Canada - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2014-11-04/visa-to-cut-canada-consumer-card-interchange-fees-to-1-5-\", \"content\": \"The two payment networks submitted proposals to reduce their average effective interchange rate in Canada to 1.5 percent on consumer credit cards, the finance department said in a statement posted on its website today. The rate will stand for five years and take effect no later than April, it said. [...] # Visa and MasterCard Cut Interchange Fees to 1.5% in Canada\\n\\nThis article is for subscribers only.\\n\\nVisa Inc. and MasterCard Inc. lowered credit-card transaction fees for Canadian merchants by about 10 percent in a move the federal government said should lower consumer prices and may trim revenue for the nation’s banks.\", \"published_date\": null}, {\"title\": \"Mastercard, Visa reach $30 billion settlement over credit card fees\", \"url\": \"https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html\", \"content\": \"Merchants have long accused Visa and Mastercard of charging inflated swipe fees, or interchange fees, when shoppers used credit or debit cards, and barring them through \\\"anti-steering\\\" rules from directing customers toward cheaper means of payment.\\n\\nUnder the settlement announced on Tuesday, Visa and Mastercard will reduce interchange rates by four basis points (0.04 percentage points) in the United States for three years, and cap rates for five years. [...] Both card networks also agreed to remove anti-steering provisions. They denied wrongdoing in agreeing to settle.\\n\\nThe fee rollbacks and caps alone are worth $29.79 billion, according to court papers, and Visa estimated that small businesses comprise more than 90% of the settling merchants.\", \"published_date\": null}, {\"title\": \"Payment card processing trends: merchant surcharging to offset interchange costs\", \"url\": \"https://www.reuters.com/legal/legalindustry/payment-card-processing-trends-merchant-surcharging-offset-interchange-costs--pracin-2025-09-15\", \"content\": \"and requires the provider to maintain a robust regulatory change management program. [...] Connecticut, Maine, Massachusetts, Oklahoma and Puerto Rico broadly ban credit card surcharges; however, Oklahoma will lift its surcharge ban, effective Nov. 1, 2025. [...] Cookies, opens new tab\\n   Terms & Conditions\\n   Privacy, opens new tab\\n   Copyright, opens new tab\\n   Digital Accessibility, opens new tab\\n   Corrections\\n   Data Disclosure and Sources, opens new tab\\n   Site Feedback, opens new tab\\n\\n© 2026 Reuters. All rights reserved\", \"published_date\": null}, {\"title\": \"British lawmakers target Visa and Mastercard fee increases | Reuters\", \"url\": \"https://www.reuters.com/business/finance/british-lawmakers-target-visa-mastercard-fee-increases-2022-01-13\", \"content\": \"\\\"We note the interest of the Treasury Select Committee and look forward to working with the PSR (Payment Systems Regulator) as it conducts its review,\\\" Mastercard said.\\n\\nVisa had no immediate comment.\\n\\nBusinesses pay scheme fees to be part of a payments network and interchange fees that are based on individual transactions. Increases in fees merchants pay to card issuers are typically passed on to consumers, regulators have said. [...] LONDON, Jan 13 (Reuters) - British lawmakers plan to scrutinise increases in the fees Visa (V.N) and Mastercard charge businesses after the country's payments regulator found no evidence to justify the rises, a parliamentary committee said on Thursday.\\n\\nParliament's Treasury Select Committee said the companies, whose networks account for 99% of card transactions in Britain, had increased the scheme and interchange fees paid by businesses to card issuers when a card is used.\\n\\nSign up here. [...] Interchange fees for purchases by British consumers from the European Union rose last year after an EU cap ended due to Britain's full departure from the bloc at the end of 2020. Fees for purchases in Britain, however, remain capped under UK rules.\\n\\nThe PSR said it was closely monitoring the increases in cross-border interchange fees in October by Visa and Mastercard, saying it had seen no significant changes in costs for issuers.\", \"published_date\": null}, {\"title\": \"Credit-Card Swipe Fees: Behind Visa, Mastercard Agreement to Cap Fees - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2024-06-14/credit-card-swipe-fees-behind-visa-mastercard-agreement-to-cap-fees\", \"content\": \"What’s known in payments-industry parlance as an interchange fee is typically divided among multiple parties and usually amounts to about 2% of the purchase price for a credit-card transaction and 21 cents for one with a debit card. The US has what’s known as a four-party system — the consumer, the consumer’s bank, the merchant and the merchant’s bank. The networks, Visa and Mastercard, sit between the consumer’s bank and the merchant’s bank and send signals back and forth that allow money to [...] Every time a credit or debit card is swiped or a website’s “buy” button is clicked, a series of events moves money from consumer to merchant. The process cost US retailers more than $170 billion in fees last year — and banks, payment networks (such as Visa Inc. and Mastercard Inc.) and payment processors fight intensely for a share of that. Retailers have been pushing back, and on March 26, Visa and Mastercard agreed to cap so-called swipe fees as part of a settlement to end a legal fight\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Visa latest 10-K regulatory changes reduce profitability payment network interchange fees official filing",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V Visa latest 10-K regulatory changes reduce profitability payment network interchange fees official filing\", \"results\": [{\"title\": \"Visa and MasterCard Cut Interchange Fees to 1.5% in Canada - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2014-11-04/visa-to-cut-canada-consumer-card-interchange-fees-to-1-5-\", \"content\": \"The two payment networks submitted proposals to reduce their average effective interchange rate in Canada to 1.5 percent on consumer credit cards, the finance department said in a statement posted on its website today. The rate will stand for five years and take effect no later than April, it said. [...] # Visa and MasterCard Cut Interchange Fees to 1.5% in Canada\\n\\nThis article is for subscribers only.\\n\\nVisa Inc. and MasterCard Inc. lowered credit-card transaction fees for Canadian merchants by about 10 percent in a move the federal government said should lower consumer prices and may trim revenue for the nation’s banks.\", \"published_date\": null}, {\"title\": \"Mastercard, Visa reach $30 billion settlement over credit card fees\", \"url\": \"https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html\", \"content\": \"Merchants have long accused Visa and Mastercard of charging inflated swipe fees, or interchange fees, when shoppers used credit or debit cards, and barring them through \\\"anti-steering\\\" rules from directing customers toward cheaper means of payment.\\n\\nUnder the settlement announced on Tuesday, Visa and Mastercard will reduce interchange rates by four basis points (0.04 percentage points) in the United States for three years, and cap rates for five years. [...] Both card networks also agreed to remove anti-steering provisions. They denied wrongdoing in agreeing to settle.\\n\\nThe fee rollbacks and caps alone are worth $29.79 billion, according to court papers, and Visa estimated that small businesses comprise more than 90% of the settling merchants. [...] Last March, the federal appeals court in Manhattan upheld a related $5.6 billion class-action settlement by Visa and Mastercard and covered about 12 million merchants.\\n\\nThat settlement did not resolve what kinds of fees Visa and Mastercard could impose, and not all retailers were covered by it.\", \"published_date\": null}, {\"title\": \"Payment card processing trends: merchant surcharging to offset interchange costs\", \"url\": \"https://www.reuters.com/legal/legalindustry/payment-card-processing-trends-merchant-surcharging-offset-interchange-costs--pracin-2025-09-15\", \"content\": \"and requires the provider to maintain a robust regulatory change management program. [...] After the 2013 change to the payment networks' operating regulations, merchants were reluctant to adopt surcharges for the fear of alienating end users; merchants prioritized patronage and transaction volumes over interchange expense management. Furthermore, some merchants were deterred by state laws that prohibited or limited credit card surcharging. [...] Cookies, opens new tab\\n   Terms & Conditions\\n   Privacy, opens new tab\\n   Copyright, opens new tab\\n   Digital Accessibility, opens new tab\\n   Corrections\\n   Data Disclosure and Sources, opens new tab\\n   Site Feedback, opens new tab\\n\\n© 2026 Reuters. All rights reserved\", \"published_date\": null}, {\"title\": \"British lawmakers target Visa and Mastercard fee increases | Reuters\", \"url\": \"https://www.reuters.com/business/finance/british-lawmakers-target-visa-mastercard-fee-increases-2022-01-13\", \"content\": \"\\\"We note the interest of the Treasury Select Committee and look forward to working with the PSR (Payment Systems Regulator) as it conducts its review,\\\" Mastercard said.\\n\\nVisa had no immediate comment.\\n\\nBusinesses pay scheme fees to be part of a payments network and interchange fees that are based on individual transactions. Increases in fees merchants pay to card issuers are typically passed on to consumers, regulators have said. [...] LONDON, Jan 13 (Reuters) - British lawmakers plan to scrutinise increases in the fees Visa (V.N) and Mastercard charge businesses after the country's payments regulator found no evidence to justify the rises, a parliamentary committee said on Thursday.\\n\\nParliament's Treasury Select Committee said the companies, whose networks account for 99% of card transactions in Britain, had increased the scheme and interchange fees paid by businesses to card issuers when a card is used.\\n\\nSign up here. [...] Interchange fees for purchases by British consumers from the European Union rose last year after an EU cap ended due to Britain's full departure from the bloc at the end of 2020. Fees for purchases in Britain, however, remain capped under UK rules.\\n\\nThe PSR said it was closely monitoring the increases in cross-border interchange fees in October by Visa and Mastercard, saying it had seen no significant changes in costs for issuers.\", \"published_date\": null}, {\"title\": \"UK’s Payment Regulator to Review Rising Visa and Mastercard Credit Card Fees - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2022-06-21/uk-s-payment-regulator-to-review-rising-visa-and-mastercard-fees\", \"content\": \"The regulator will examine whether higher charges levied on merchants are an indication of market failure, according to a statement Tuesday. One review will look at scheme and processing fees on the networks while another will examine cross-border interchange charges -- the tolls charged on some overseas transactions. [...] City Of London\\n\\n# UK’s Payment Regulator to Review Rising Visa and Mastercard Fees\\n\\n Payment Systems Regulator sets outs terms of market reviews\\n Visa and Mastercard account for 99% of card payments in UK\\n\\nThis article is for subscribers only.\\n\\nThe UK’s Payment Systems Regulator will focus a pair of market reviews on the rising card fees charged by Visa Inc. and Mastercard Inc.\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "openai:gpt-5.6-luna",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 2.4002960000070743,
+      "first_text_s": 8.624313667009119,
+      "total_s": 20.368101416999707
+    },
+    "usage": {
+      "input_tokens": 6272,
+      "output_tokens": 1254
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 0.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": false,
+      "tool_call_count": 4,
+      "tool_error_names": [
+        "sec_filing_list_sections",
+        "sec_filing_list_sections"
+      ]
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 2.3909304999979213,
+      "input_tokens": 1782,
+      "output_tokens": 151,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 1738
+    },
+    {
+      "duration_s": 12.725775958009763,
+      "input_tokens": 4490,
+      "output_tokens": 1103,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 1779
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.005414332990767434,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.005360084003768861,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.833577375000459,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 5.195276915997965,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "b7971a22-3b64-4ebf-b866-849b7dd6dbac"
+}

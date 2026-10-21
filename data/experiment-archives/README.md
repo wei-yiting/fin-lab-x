@@ -33,3 +33,4 @@ runtime traces live in `data/trace-archives/`.
 | Experiment | Question | Tag |
 |---|---|---|
 | [`2026-08-18-rag-metadata-filter-ab-eval`](2026-08-18-rag-metadata-filter-ab-eval/) | How much cross-ticker bleed does SEC 10-K dense retrieval suffer without a ticker filter? | `experiment/2026-08-18-rag-metadata-filter-ab-eval` |
+| [`2026-10-21-agent-config-benchmark-dev`](2026-10-21-agent-config-benchmark-dev/) | Does the RAG bundle beat whole-section 10-K reading at a fixed model, and how do model family × reasoning tier move health, latency, tokens, and cost? (dev split, n=1) | `experiment/2026-10-21-agent-config-benchmark-dev` |

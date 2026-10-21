@@ -1,0 +1,72 @@
+[
+  {
+    "ticker": "BA",
+    "list_sections_status": "success",
+    "list_sections_s": 7.5,
+    "search_status": "success",
+    "search_s": 1.3
+  },
+  {
+    "ticker": "JNJ",
+    "list_sections_status": "success",
+    "list_sections_s": 7.9,
+    "search_status": "success",
+    "search_s": 0.6
+  },
+  {
+    "ticker": "AAPL",
+    "list_sections_status": "success",
+    "list_sections_s": 3.1,
+    "search_status": "success",
+    "search_s": 0.4
+  },
+  {
+    "ticker": "META",
+    "list_sections_error": "AttributeError: 'NoneType' object has no attribute 'sections'",
+    "list_sections_s": 0.8,
+    "search_error": "CorpusUnavailableError: Search failed: 'NoneType' object has no attribute 'download'",
+    "search_s": 1.0
+  },
+  {
+    "ticker": "V",
+    "list_sections_error": "AttributeError: 'NoneType' object has no attribute 'sections'",
+    "list_sections_s": 0.6,
+    "search_error": "CorpusUnavailableError: Search failed: 'NoneType' object has no attribute 'download'",
+    "search_s": 0.6
+  },
+  {
+    "ticker": "MA",
+    "list_sections_error": "AttributeError: 'NoneType' object has no attribute 'sections'",
+    "list_sections_s": 1.0,
+    "search_error": "CorpusUnavailableError: Search failed: 'NoneType' object has no attribute 'download'",
+    "search_s": 0.4
+  },
+  {
+    "ticker": "AMZN",
+    "list_sections_status": "success",
+    "list_sections_s": 4.3,
+    "search_status": "success",
+    "search_s": 0.5
+  },
+  {
+    "ticker": "KO",
+    "list_sections_status": "success",
+    "list_sections_s": 7.4,
+    "search_status": "success",
+    "search_s": 0.5
+  },
+  {
+    "ticker": "TSLA",
+    "list_sections_status": "success",
+    "list_sections_s": 4.7,
+    "search_status": "success",
+    "search_s": 0.4
+  },
+  {
+    "ticker": "NVDA",
+    "list_sections_status": "success",
+    "list_sections_s": 3.6,
+    "search_status": "success",
+    "search_s": 0.4
+  }
+]

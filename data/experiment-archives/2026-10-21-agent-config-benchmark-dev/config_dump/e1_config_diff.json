@@ -1,0 +1,17 @@
+{
+  "differing_keys": [
+    "arm",
+    "config_dir",
+    "identity",
+    "prompt",
+    "prompt_path",
+    "tool_contracts",
+    "tools"
+  ],
+  "unexpected_differences": [],
+  "tools_only_in_b": [
+    "sec_filing_search"
+  ],
+  "tools_only_in_a": [],
+  "shared_tool_contracts_identical": true
+}

@@ -1,0 +1,132 @@
+{
+  "row_id": "20",
+  "arm": "gemini_medium",
+  "experiments": [
+    "E2"
+  ],
+  "row_position": 5,
+  "slot_in_row": 2,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "gemini_medium",
+    "luna_none",
+    "gemini_minimal"
+  ],
+  "started_at": "2026-10-21T16:12:38.028192+00:00",
+  "finished_at": "2026-10-21T16:13:01.051199+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**是的，可口可樂（Coca-Cola，股票代號：KO）目前依然是非常典型的穩定高防禦性、連續增配股利的優質企業。**\n\n### 核心支持數據與分析\n\n1. **股利王者（Dividend King）紀錄持續保持**\n   - 根據報導，可口可樂已連續 **62 年調升每股股利**，屬於美股市場中極少數的「股利王者」之一 [1]。\n   - 根據 Finnhub 數據，可口可樂目前年化股利殖利率（Dividend Yield）約為 **3.14%**，提供穩健且持續成長的現金流。\n\n2. **優異的獲利能力保障配息安全**\n   - 根據 Finnhub 財務數據，公司近十二個月（TTM）營業利益率（Operating Margin）達 **30.35%**，淨利率（Net Margin）達 **28.56%**，毛利率（Gross Margin）達 **61.89%**，展現極強的定價能力與成本控制能力。\n   - 每股盈餘（TTM EPS）為 **$3.32**，且 TTM 每股盈餘年增率達 **17.61%**、營收年增率達 **6.52%**，顯示其盈利能力的成長足以覆蓋股利支出。\n\n3. **低波動防禦型特質**\n   - 根據 Finnhub 數據，可口可樂的 Beta 值僅為 **0.29**，代表其股價受整體大盤波動影響極小，深受追求穩健回報與避險資金的青睞。\n\n---\n\n### 可口可樂（KO）關鍵財務與配息數據總覽\n\n| 財務與股利指標 | 最新數據 | 數據來源 |\n| --- | --- | --- |\n| **最新股價** | $92.94 | Finnhub 即時報價 |\n| **股利殖利率** | 3.14% | Finnhub 財務數據 |\n| **連續調升股利年數** | 62 年 | CNBC [1] |\n| **季度股利金額** | 每股 $0.485 | CNBC [1] |\n| **每股盈餘 (TTM EPS)** | $3.32 | Finnhub 財務數據 |\n| **EPS 年增率 (TTM YoY)** | +17.61% | Finnhub 財務數據 |\n| **淨利率 (TTM Net Margin)** | 28.56% | Finnhub 財務數據 |\n| **營業利益率 (TTM Operating Margin)** | 30.35% | Finnhub 財務數據 |\n| **Beta 值 (相對於大盤波動度)** | 0.29 | Finnhub 財務數據 |\n| **總市值 (Market Cap)** | 約 $4,007 億美元 | Finnhub 財務數據 |\n\n综合以上數據，可口可樂憑藉其強大的品牌護城河、高利潤率以及長達 62 年不間斷增長配息的紀錄 [1]，依然是收益型投資者眼中極具代表性的穩定配息標的。\n\n[1]: https://www.cnbc.com/2024/05/05/top-wall-street-analysts-suggest-these-dividend-stocks-for-income-investors-.html \"Top Wall Street analysts suggest these dividend stocks for income investors\"",
+    "tool_outputs": [
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "KO"
+        },
+        "result": "{\"ticker\": \"KO\", \"currentPrice\": 92.94, \"open\": 92.9975, \"previousClose\": 93.49, \"change\": -0.55, \"percentChange\": -0.5883, \"dayHigh\": 93.46, \"dayLow\": 92.73}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "KO"
+        },
+        "result": "{\"ticker\": \"KO\", \"fiftyTwoWeekHigh\": 94.1, \"fiftyTwoWeekLow\": 67.27, \"peTTM\": 27.9924, \"forwardPE\": 25.55502, \"psTTM\": 7.9942, \"pb\": 10.0141, \"marketCap\": 400739.38, \"enterpriseValue\": 431375.38, \"beta\": 0.29004005, \"epsTTM\": 3.3194, \"roeTTM\": 42.99, \"roaTTM\": 13.54, \"grossMarginTTM\": 61.89, \"netProfitMarginTTM\": 28.56, \"operatingMarginTTM\": 30.35, \"currentRatio\": 1.3046, \"quickRatio\": 1.0135, \"debtToEquity\": 1.2045, \"dividendYield\": 3.14154, \"revenueGrowthTTMYoy\": 6.52, \"epsGrowthTTMYoy\": 17.61, \"tenDayAvgVolume\": 15.92069}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "ticker": "KO",
+          "query": "Coca Cola KO dividend growth consecutive years payout 2024 2025"
+        },
+        "result": "{\"query\": \"KO Coca Cola KO dividend growth consecutive years payout 2024 2025\", \"results\": [{\"title\": \"Bloomberg Europe\", \"url\": \"https://www.bloomberg.com\", \"content\": \"### Video: Coke's Struggle to Break Into the $500 Billion Global Coffee Market\\n\\nMusk Teases SpaceX-Tesla Merger in Earnings Call\\n\\n### Video: Musk Teases SpaceX-Tesla Merger in Earnings Call\\n\\nOdd Lots: Are Financial Regulations Falling Apart?\\n\\n### Video: Odd Lots: Are Financial Regulations Falling Apart?\\n\\nAlberta Voters Reject Separation From Canada in Win for Carney\\n\\n### Video: Alberta Voters Reject Separation From Canada in Win for Carney\\n\\n### Bloomberg Businessweek [...] ### Video: Coke's Struggle to Break Into the $500 Billion Global Coffee Market\\n\\nMusk Teases SpaceX-Tesla Merger in Earnings Call\\n\\n### Video: Musk Teases SpaceX-Tesla Merger in Earnings Call\\n\\nOdd Lots: Are Financial Regulations Falling Apart?\\n\\n### Video: Odd Lots: Are Financial Regulations Falling Apart?\\n\\nAlberta Voters Reject Separation From Canada in Win for Carney\\n\\n### Video: Alberta Voters Reject Separation From Canada in Win for Carney\\n\\nAlbania's Protests Pile Pressure on Edi Rama [...] ### Video: Albania's Protests Pile Pressure on Edi Rama\\n\\nJackdaw Gas Field Gets UK Approval After Years of Debate\\n\\n### Video: Jackdaw Gas Field Gets UK Approval After Years of Debate\\n\\nUS Wants India’s Reliance to Refine More Venezuelan Oil\\n\\n### Video: US Wants India’s Reliance to Refine More Venezuelan Oil\\n\\nHow Takaichi Commands Global Attention\\n\\n### Video: How Takaichi Commands Global Attention\\n\\nCoke's Struggle to Break Into the $500 Billion Global Coffee Market\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "ticker": "KO",
+          "query": "Coca-Cola dividend history consecutive years dividend king increase 2024"
+        },
+        "result": "{\"query\": \"KO Coca-Cola dividend history consecutive years dividend king increase 2024\", \"results\": [{\"title\": \"Top Wall Street analysts suggest these dividend stocks for income investors\", \"url\": \"https://www.cnbc.com/2024/05/05/top-wall-street-analysts-suggest-these-dividend-stocks-for-income-investors-.html\", \"content\": \"Moreen ranks No. 183 among 8,800 analysts tracked by TipRanks. His ratings have been successful 79% of the time, with each delivering an average return of 10.3%. (See Energy Transfer Technical Analysis on TipRanks)\\n\\nThis week's final pick is dividend king Coca-Cola (KO). Earlier this year, the beverage giant increased its quarterly dividend by about 5.4% to $0.485 per share. This marked the 62nd consecutive year in which the company hiked its dividend. KO stock offers a dividend yield of 3.1%. [...] The analyst expects capital returns of $778.8 million and $1.15 billion in 2024 and 2025, respectively. These estimates for 2024 and 2025 reflect capital return yields of 6.6% and 9.7%, respectively, which are above the peer average yields of 6.3% and 7.8%. [...] Reacting to the Q1 print, RBC Capital analyst Nik Modi reiterated a buy rating on KO stock with a price target of $65. The analyst noted that KO significantly outperformed organic growth expectations. He thinks that the company's underlying fundamentals continue to be robust despite the impact of a strong dollar on the bottom line.\", \"published_date\": null}, {\"title\": \"Bloomberg Europe\", \"url\": \"https://www.bloomberg.com\", \"content\": \"BlackRock’s Fink Sees Inflation Risk in Slow Data-Center Buildout\\nCan Japan’s Economy Afford Takaichi’s Gamble?\\nUnited ‘Still Solidly Profitable’ as Fuels Costs Rise, CEO Kirby Says\\nUS-SPACE-AEROSPACE-SPACEX\\nBofA’s Cabana Asks Fed on Rate Hikes ‘Why Wait Now?’\\nCoke's Struggle to Break Into the $500 Billion Global Coffee Market [...] ### Video: Coke's Struggle to Break Into the $500 Billion Global Coffee Market\\n\\nMusk Teases SpaceX-Tesla Merger in Earnings Call\\n\\n### Video: Musk Teases SpaceX-Tesla Merger in Earnings Call\\n\\nOdd Lots: Are Financial Regulations Falling Apart?\\n\\n### Video: Odd Lots: Are Financial Regulations Falling Apart?\\n\\nAlberta Voters Reject Separation From Canada in Win for Carney\\n\\n### Video: Alberta Voters Reject Separation From Canada in Win for Carney\\n\\n### Bloomberg Businessweek [...] ### Video: Coke's Struggle to Break Into the $500 Billion Global Coffee Market\\n\\nMusk Teases SpaceX-Tesla Merger in Earnings Call\\n\\n### Video: Musk Teases SpaceX-Tesla Merger in Earnings Call\\n\\nOdd Lots: Are Financial Regulations Falling Apart?\\n\\n### Video: Odd Lots: Are Financial Regulations Falling Apart?\\n\\nAlberta Voters Reject Separation From Canada in Win for Carney\\n\\n### Video: Alberta Voters Reject Separation From Canada in Win for Carney\\n\\nAlbania's Protests Pile Pressure on Edi Rama\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "google_genai:gemini-3.6-flash",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 2.1306832090049284,
+      "first_text_s": 19.342372084007366,
+      "total_s": 23.015748709003674
+    },
+    "usage": {
+      "input_tokens": 12400,
+      "output_tokens": 2426
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 1.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": true,
+      "tool_call_count": 4,
+      "tool_error_names": []
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 2.4906642499990994,
+      "input_tokens": 2035,
+      "output_tokens": 218,
+      "reasoning_tokens": 175,
+      "cache_read_tokens": 0
+    },
+    {
+      "duration_s": 2.326796082998044,
+      "input_tokens": 2691,
+      "output_tokens": 261,
+      "reasoning_tokens": 218,
+      "cache_read_tokens": 0
+    },
+    {
+      "duration_s": 1.4087565000081668,
+      "input_tokens": 3439,
+      "output_tokens": 62,
+      "reasoning_tokens": 22,
+      "cache_read_tokens": 17
+    },
+    {
+      "duration_s": 10.13614245899953,
+      "input_tokens": 4235,
+      "output_tokens": 1885,
+      "reasoning_tokens": 1086,
+      "cache_read_tokens": 0
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.6597172920010053,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.0335892919974867,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 2.0554530840017833,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.466653666997445,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "9e497909-4530-449c-900e-bc9d32b6fc4b"
+}

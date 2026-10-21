@@ -13,6 +13,7 @@ import csv
 import html
 import json
 import random
+import re
 from pathlib import Path
 
 from backend.evals.experiments.agent_config_benchmark.run import (
@@ -22,6 +23,14 @@ from backend.evals.experiments.agent_config_benchmark.run import (
 )
 
 VERDICTS = ["X 較好", "Y 較好", "平手", "兩者都差"]
+
+# Only the RAG arm can emit chunk citation ids, so they would unblind every
+# pair; the sheet shows a neutral label instead (raw outputs stay untouched).
+_SEC_CHUNK_ID_RE = re.compile(r"`?sec://[^\s`)\]]+`?")
+
+
+def _mask(answer: str) -> str:
+    return _SEC_CHUNK_ID_RE.sub("SEC 10-K excerpt", answer)
 
 
 def build(raw_dir: Path, out_dir: Path) -> None:
@@ -50,8 +59,8 @@ def build(raw_dir: Path, out_dir: Path) -> None:
             {
                 "row_id": row_id,
                 "question": questions[row_id],
-                "X": answers[x_arm],
-                "Y": answers[y_arm],
+                "X": _mask(answers[x_arm]),
+                "Y": _mask(answers[y_arm]),
             }
         )
     pairs.sort(key=lambda p: int(p["row_id"]))
@@ -78,8 +87,9 @@ def _markdown(pairs: list[dict]) -> str:
         "For each question, judge which answer better serves an investor asking it "
         "(correct, grounded, on-target, useful). Verdict: "
         + " / ".join(VERDICTS)
-        + ". Citation style (e.g. `[N]` markers with `sec://` ids) can hint at which "
-        "config produced an answer — judge the content, not the format. The key is "
+        + ". SEC chunk citation ids are masked as `SEC 10-K excerpt`; citation style "
+        "(e.g. `[N]` markers) can still hint at which config produced an answer — "
+        "judge the content, not the format. The key is "
         "in `e1_blind_review_KEY.json`; open it only after you finish.",
         "",
     ]
@@ -149,7 +159,7 @@ button {{ background:var(--accent); color:var(--bg); border:0; border-radius:6px
 .muted {{ color:var(--muted); }}
 </style></head><body><main>
 <h1>E1 blind pairwise review</h1>
-<p class="muted">每題判斷哪個回答對發問的投資人比較有用（正確、有根據、切題）。引用格式（例如 <code>[N]</code> 加 <code>sec://</code> id）可能透露是哪個 config 產生的，請以內容判斷，不要看格式。答案 key 在 <code>e1_blind_review_KEY.json</code>，做完再打開。</p>
+<p class="muted">每題判斷哪個回答對發問的投資人比較有用（正確、有根據、切題）。SEC chunk 的 citation id 已遮成「SEC 10-K excerpt」；引用格式（例如 <code>[N]</code>）仍可能透露是哪個 config 產生的，請以內容判斷，不要看格式。答案 key 在 <code>e1_blind_review_KEY.json</code>，做完再打開。</p>
 {"".join(cards)}
 <button id="export">Export CSV</button>
 </main>

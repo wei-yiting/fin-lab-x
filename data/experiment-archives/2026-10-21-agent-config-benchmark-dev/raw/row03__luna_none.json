@@ -1,0 +1,105 @@
+{
+  "row_id": "3",
+  "arm": "luna_none",
+  "experiments": [
+    "E2"
+  ],
+  "row_position": 0,
+  "slot_in_row": 2,
+  "row_order": [
+    "luna_medium",
+    "reader_luna_medium",
+    "luna_none",
+    "gemini_minimal",
+    "gemini_medium"
+  ],
+  "started_at": "2026-10-21T15:58:05.603058+00:00",
+  "finished_at": "2026-10-21T15:58:20.446288+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**結論：波音目前主要卡在「監管與製造品質」，並進一步拖累交付；需求面反而不是核心問題。**\n\n### 1. 首要瓶頸：監管與品質控制\n\n2024 年 1 月 737 MAX 艙門塞脫落事件後，FAA 加強現場監督，並限制波音提高 MAX 產量；FAA 稽核還發現製造流程控制、零件處理與產品管制存在不合規問題。[1]\n\n此外，美國國家運輸安全委員會指出，訓練不足與管理監督問題也是事故成因之一。這表示波音面對的不是單一零件瑕疵，而是安全文化、流程紀律與管理監督的系統性修復問題。[2]\n\n### 2. 直接財務影響：交付與產能爬坡\n\n監管限制和額外檢查使飛機需要更多返工與驗收，延後交付。近期報導顯示，波音的交付量已回升至多年高位，但公司仍在逐步提高生產速度，並減少「travelling work」——也就是未按正常順序完成裝配工作的做法——以降低錯誤與返工。[2]\n\n因此，**交付問題更像是監管與品質問題的結果**，而不是獨立的需求不足。\n\n### 3. 需求面：目前相對健康\n\n航空旅行需求仍然強勁；報導引用國際航空運輸協會資料稱，全球航班 2025 年 11 月載客率接近 84%，創紀錄高位。航空公司也有汰換老舊飛機及取得新機的需求。[2]\n\n所以目前的矛盾是：\n\n| 面向 | 判斷 | 主要依據 |\n|---|---|---|\n| 監管／品質 | **最主要瓶頸** | FAA 加強監督、限制 MAX 增產，並發現製造流程不合規 [1] |\n| 交付 | **主要受影響環節** | 額外檢查、返工與產能爬坡拖慢交機 [2] |\n| 需求 | **目前不是核心問題** | 全球航空載客率高，航空公司仍有汰換與增購需求 [2] |\n\n### 投資含義\n\n波音的關鍵不是「有沒有訂單」，而是能否在不引發新品質事件的情況下，**穩定提高產量並按時交付**。Finnhub 基本面資料顯示，BA 的 TTM 營收年增 24.78%，但毛利率僅 4.68%、淨利率 2.59%，負債權益比為 7.52，反映營收恢復尚未等同於盈利與資產負債表完全修復。[3]\n\n資料品質提醒：Tavily 搜尋結果混合了 2026 年及較早年份的報導，且部分結果沒有明確發布日期；因此上述判斷以報導中可核實的事件為主，不把搜尋結果視為完整的即時監管狀態。\n\n[1]: https://www.cnbc.com/2024/07/18/boeing-path-forward.html \"Boeing’s missteps have cost it billions. Here’s its path forward\"\n[2]: https://www.cnbc.com/2026/01/11/boeing-plane-deliveries-production-pace.html \"Boeing plane deliveries are the highest in years. Now it's ramping up\"",
+    "tool_outputs": [
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"currentPrice\": 191.73, \"open\": 191.5725, \"previousClose\": 190.47, \"change\": 1.26, \"percentChange\": 0.6615, \"dayHigh\": 193.28, \"dayLow\": 189.12}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"fiftyTwoWeekHigh\": 254.35, \"fiftyTwoWeekLow\": 176.77, \"peTTM\": 62.4344, \"psTTM\": 1.6174, \"pb\": 27.9744, \"marketCap\": 152027.75, \"enterpriseValue\": 190688.75, \"beta\": 1.3375436, \"epsTTM\": 2.9605999999999986, \"roeTTM\": 132.92, \"roaTTM\": 1.5, \"grossMarginTTM\": 4.68, \"netProfitMarginTTM\": 2.59, \"operatingMarginTTM\": 4.89, \"currentRatio\": 1.1375, \"quickRatio\": 0.3308, \"debtToEquity\": 7.5246, \"revenueGrowthTTMYoy\": 24.78, \"tenDayAvgVolume\": 6.30827}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "BA Boeing recent problems regulatory oversight deliveries demand latest news",
+          "ticker": "BA"
+        },
+        "result": "{\"query\": \"BA BA Boeing recent problems regulatory oversight deliveries demand latest news\", \"results\": [{\"title\": \"Boeing plane deliveries are the highest in years. Now it's ramping up\", \"url\": \"https://www.cnbc.com/2026/01/11/boeing-plane-deliveries-production-pace.html\", \"content\": \"Under Ortberg, the manufacturer has slashed so-called traveled work, in which assembly tasks are done out of order, to avoid costly mistakes. The company has made other manufacturing changes, as well, including added training.\\n\\nThe National Transportation Safety Board in June said inadequate training and management oversight had been among the problems at the company, according to its investigation into what led to the door plug blowout in January 2024. [...] Boeing was forced to scale back production in recent years following two fatal crashes of its popular 737 Max aircraft in 2018 and 2019 and a midair blowout of a door plug from one of its planes in the first week of 2024. The Covid pandemic snarled airplane assembly at both Boeing and its chief rival, Airbus, with supply chain delays and loss of experienced workers, even after the worst of the health crisis subsided. [...] Globally, airplanes flew nearly 84% full in November, the highest level on record, according to the latest data available from the International Air Transport Association, an airline industry group.\\n\\nWith travel demand still robust, orders to replace older jets and secure new ones will continue to fuel growth.\", \"published_date\": null}, {\"title\": \"Boeing names CFO to manage new group overseeing key operations\", \"url\": \"https://www.cnbc.com/2020/04/21/boeing-names-cfo-to-manage-new-group-overseeing-key-operations.html\", \"content\": \"Boeing, facing a 13-month-old freeze on deliveries of the 737 MAX and now disruption to deliveries of larger planes due to the coronavirus, said last week it had delivered 50 planes in the first quarter, barely a third of the 149 a year earlier and the lowest since 1984 for the first quarter.\\n\\nThe pandemic has forced Boeing and European rival Airbus to cut production in the face of plunging demand, cash problems at airlines and logistical difficulties in delivering aircraft. [...] Boeing remains in talks with regulators seeking approval to return the 737 MAX to service that was grounded in March 2019 after two fatal crashes in five months. Earlier this month, Boeing said it was addressing two new software issues with the MAX flight control computer. A key certification test flight is not expected until late May at the earliest. [...] Boeing also said it was combining legal and core compliance programs into a single organization led by chief legal officer Brett Gerry. Boeing plans to soon name a chief compliance officer.\\n\\n\\\"These changes will drive greater alignment among our functions; better equip our commercial, defense and space, and services businesses to deliver on customer commitments in a changing marketplace,\\\" said Boeing Chief Executive Dave Calhoun\", \"published_date\": null}, {\"title\": \"Boeing, FAA slammed in House report over deadly 737 Max failures\", \"url\": \"https://www.cnbc.com/2020/09/16/boeing-slammed-in-house-report-over-737-max-failures-as-company-tries-to-return-the-plane-to-service.html\", \"content\": \"The crashes pushed Boeing into its biggest-ever crisis, as its bestselling aircraft couldn't be delivered to customers and costs mounted. The missteps cost Dennis Muilenburg his job as Boeing CEO and prompted the company to undergo an internal restructuring to improve its approach to safety. Now, the coronavirus pandemic that has roiled air travel demand worldwide coupled with the extensive grounding presents Boeing with a new problem: cancellations of the planes are piling up. [...] The manufacturer's problems don't end with the 737 Max. It recently discovered flaws on some 787 Dreamliners, prompting inspections that have slowed deliveries of the wide-body aircraft. [...] Boeing has made changes to the MCAS system that render it less powerful, give pilots greater control and provide it with more data before it is activated. That is among other changes regulators have reviewed as part of the process in recertifying the planes as safe for the traveling public.\", \"published_date\": null}, {\"title\": \"Boeing’s missteps have cost it billions. Here’s its path forward\", \"url\": \"https://www.cnbc.com/2024/07/18/boeing-path-forward.html\", \"content\": \"But the Jan. 5 door plug blowout on Flight 1282, operated by Boeing's crosstown customer Alaska Airlines, brought a swift response from regulators. The Federal Aviation Administration barred Boeing from increasing output of its Max planes and stepped up hands-on inspections at production plants. The FAA said in March that its audit found \\\"non-compliance issues in Boeing's manufacturing process control, parts handling and storage, and product control.\\\" [...] Key Points\\n\\n Boeing's leaders say they have charted a path forward to stamp out safety and manufacturing flaws on its best-selling planes.\\n Plans include better oversight, improved safety and manufacturing procedures, more robust worker training, and buying back a key supplier.\\n Industry watchers and insiders say a string of decisions stretching back decades led to the problems at the longtime touchstone of American manufacturing quality and innovation.\\n\\nIn this article\\n\\n BA [...] BA\\n\\nAn American Airlines Boeing 737 Max 8 flight approaches for landing at Reagan National Airport on March 13, 2019.\\n\\nJoshua Roberts | Reuters\\n\\nBoeing executives spent years after two fatal 737 Max crashes trying to convince Wall Street, regulators, airlines and the flying public that they had an eagle eye on quality, reliability and safety.\", \"published_date\": null}, {\"title\": \"Boeing, Spirit expand inspections for 737 MAX production defect\", \"url\": \"https://www.cnbc.com/2023/10/13/boeing-spirit-expand-inspections-for-737-max-production-defect.html\", \"content\": \"\\\"We continue to take the time necessary to ensure each airplane meets our standards and regulatory requirements prior to ticketing and delivery,\\\" Boeing said in a statement.\\n\\nThe company declined to comment further on the scope of the latest issue or whether it will be able to meet its 737 delivery target of at least 400 jets in 2023, citing the quiet period before it announces its earnings on Oct. 25. [...] Boeing notified the Federal Aviation Administration of its initial findings earlier this week, along with customers already facing delivery delays of 737 Max 8s, according to The Air Current.\\n\\nThe FAA told Reuters it is \\\"aware of the issue and are working it through our regular oversight process. There is no immediate safety concern.\\\"\\n\\nSpirit said it continues working closely with Boeing to address rework related to the aft pressure bulkhead. [...] The planemaker in August identified a new quality problem with its popular 737 MAX aircraft involving supplier Spirit that resulted in improperly drilled holes on the aft pressure bulkhead made using an automated drill. Boeing has expanded inspections to include hand-drilled holes, according to trade publication The Air Current, which first reported the problem.\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "openai:gpt-5.6-luna",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 2.04065312500461,
+      "first_text_s": 6.012623749993509,
+      "total_s": 14.809539875001065
+    },
+    "usage": {
+      "input_tokens": 5441,
+      "output_tokens": 913
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 1.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": true,
+      "tool_call_count": 3,
+      "tool_error_names": []
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 2.0297116250003455,
+      "input_tokens": 1764,
+      "output_tokens": 88,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 1738
+    },
+    {
+      "duration_s": 10.333688167011132,
+      "input_tokens": 3677,
+      "output_tokens": 825,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 1761
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.661243333001039,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.1727357500058133,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 2.37675749999471,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "4db1fae0-070f-4dd8-a4ff-16ce366e62dc"
+}

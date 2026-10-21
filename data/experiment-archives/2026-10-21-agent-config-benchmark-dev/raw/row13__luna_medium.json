@@ -1,0 +1,247 @@
+{
+  "row_id": "13",
+  "arm": "luna_medium",
+  "experiments": [
+    "E1",
+    "E2"
+  ],
+  "row_position": 3,
+  "slot_in_row": 1,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "luna_none",
+    "gemini_minimal",
+    "gemini_medium"
+  ],
+  "started_at": "2026-10-21T16:06:15.977051+00:00",
+  "finished_at": "2026-10-21T16:07:05.322688+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**結論：有直接支持，但支持的是「監管可能壓低營收、交易量並增加成本，進而傷害獲利／營運結果」；並不是兩家公司都直接揭露「監管已造成刷卡網路營業利潤率下降」。**\n\n### 1. Mastercard：支持最直接\n\nMastercard 最新可取得的 2024 年 10-K 明確表示：\n\n- 跨區域 interchange fee 的監管可能降低跨境活動；\n- 跨境活動下降會降低 Mastercard 收取的營收；\n- 關於 interchange fees 與 acceptance practices 的監管、訴訟及立法結果，合併而言可能對公司的「未來成長前景、營運結果及財務狀況」造成重大不利影響。[1]\n\n因此，對 Mastercard 而言，官方揭露直接支持以下因果鏈：\n\n> 監管 interchange fees／網路規則  \n> → 跨境或支付活動下降、收入減少  \n> → 對營運結果及財務狀況造成重大不利影響\n\n這已足以支持「監管會壓縮刷卡網路生意的獲利能力」作為**風險命題**。不過，10-K 的措辭是風險揭露，並非表示該影響已經在最新期間量化地反映為利潤率下降。\n\n### 2. Visa：支持機制相同，但目前可取得的官方材料較舊\n\nVisa 的官方 10-K 揭露曾明確指出：\n\n- interchange reimbursement fees 的進一步監管，可能對 Visa 的財務狀況、營收、營運結果及未來成長造成重大不利影響；\n- Visa 通常不直接取得交易中的 interchange reimbursement fee，但 interchange fee 會影響其與其他支付服務商競爭的方式；\n- 因此，interchange fee 的變化可能大幅影響 Visa 處理的交易量、營收，以及支付電子化的速度與範圍。[2][3]\n\n這點很重要：**對 Visa／Mastercard 而言，監管不一定是直接砍掉其所收取的 interchange 收入**。更直接的傳導管道可能是：\n\n1. 發卡行或收單行經濟誘因下降；\n2. 網路使用量或交易量下降；\n3. Visa／Mastercard 的網路服務、數據處理及相關服務收入受壓；\n4. 同時增加合規、法律及監管應對成本。\n\n因此，Visa 的官方說法支持「監管會透過交易量和營收渠道傷害獲利」，而不是簡單的「interchange fee 被削減，Visa 直接少收同額收入」。\n\n### 3. 「壓縮獲利能力」這個表述應該如何精確化\n\n較嚴謹的說法是：\n\n> **Visa 與 Mastercard 的官方揭露直接支持：支付監管可能透過降低交易量、跨境活動及營收，並增加合規與法律成本，對營運結果與財務狀況造成不利影響。**\n\n但以下較強的說法，官方揭露目前**不能直接證明**：\n\n- 監管已經導致兩家公司營業利潤率下降；\n- 每降低一個基點的 interchange fee，Visa／Mastercard 的淨利會下降多少；\n- 監管成本必然無法轉嫁給發卡行、收單行或商戶；\n- 監管一定會讓整體長期獲利能力下降，而非僅改變收入結構或成長率。\n\n### 判斷\n\n| 命題 | 官方揭露支持程度 |\n|---|---|\n| 監管可能降低交易量或跨境支付活動 | **直接支持** |\n| 監管可能降低 Visa／Mastercard 營收 | **直接支持** |\n| 監管可能傷害營運結果與財務狀況 | **直接支持** |\n| 監管會增加合規、法律或營運成本 | **支持，但未在目前材料中量化** |\n| 監管已導致營業利潤率下降 | **目前沒有直接證據** |\n| 監管會壓縮刷卡網路生意的長期獲利能力 | **作為風險推論成立，但不是已實現結果** |\n\n**資料品質提示：** Mastercard 的 2024 年 10-K 可直接支持上述結論；Visa 搜尋取得的相關官方 10-K 片段主要是 2011／2012–2013 年文件，因此 Visa 部分的官方證據較舊。SEC 10-K 分段讀取工具本次未成功返回文件內容，故不能據此聲稱已完成對 Visa 最新 10-K 的逐段核驗。\n\n[1]: https://www.sec.gov/Archives/edgar/data/1141391/000114139125000011/ma-20241231.htm \"Mastercard 2024 Form 10-K\"\n[2]: https://www.sec.gov/Archives/edgar/data/1403161/000119312511315956/d218694d10k.htm \"Visa Form 10-K\"\n[3]: https://www.sec.gov/Archives/edgar/data/1403161/000138410812000011/v09301210-k.htm \"Visa 2012 Form 10-K\"",
+    "tool_outputs": [
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "V",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "MA",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "V",
+          "fiscal_year": null
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "MA",
+          "fiscal_year": 2024
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "doc_type": "10-K",
+          "ticker": "V",
+          "fiscal_year": 2024
+        },
+        "error": "'NoneType' object has no attribute 'sections'"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Visa latest 10-K regulatory changes interchange fees assessment revenue profitability official filing",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V Visa latest 10-K regulatory changes interchange fees assessment revenue profitability official filing\", \"results\": [{\"title\": \"Trump calls for one-year cap on credit card interest rates at 10%\", \"url\": \"https://www.reuters.com/sustainability/boards-policy-regulation/trump-calls-one-year-cap-credit-card-interest-rates-10-2026-01-10\", \"content\": \"Banking advocacy groups say a cap would reduce credit availability.\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Mastercard latest 10-K regulatory changes interchange fees assessment revenue profitability official filing",
+          "ticker": "MA"
+        },
+        "result": "{\"query\": \"MA Mastercard latest 10-K regulatory changes interchange fees assessment revenue profitability official filing\", \"results\": [{\"title\": \"British lawmakers target Visa and Mastercard fee increases | Reuters\", \"url\": \"https://www.reuters.com/business/finance/british-lawmakers-target-visa-mastercard-fee-increases-2022-01-13\", \"content\": \"\\\"We note the interest of the Treasury Select Committee and look forward to working with the PSR (Payment Systems Regulator) as it conducts its review,\\\" Mastercard said.\\n\\nVisa had no immediate comment.\\n\\nBusinesses pay scheme fees to be part of a payments network and interchange fees that are based on individual transactions. Increases in fees merchants pay to card issuers are typically passed on to consumers, regulators have said. [...] Interchange fees for purchases by British consumers from the European Union rose last year after an EU cap ended due to Britain's full departure from the bloc at the end of 2020. Fees for purchases in Britain, however, remain capped under UK rules.\\n\\nThe PSR said it was closely monitoring the increases in cross-border interchange fees in October by Visa and Mastercard, saying it had seen no significant changes in costs for issuers. [...] LONDON, Jan 13 (Reuters) - British lawmakers plan to scrutinise increases in the fees Visa (V.N) and Mastercard charge businesses after the country's payments regulator found no evidence to justify the rises, a parliamentary committee said on Thursday.\\n\\nParliament's Treasury Select Committee said the companies, whose networks account for 99% of card transactions in Britain, had increased the scheme and interchange fees paid by businesses to card issuers when a card is used.\\n\\nSign up here.\", \"published_date\": null}, {\"title\": \"Visa & Mastercard execs grilled by senators on high swipe fees\", \"url\": \"https://www.cnbc.com/2024/11/19/visa-mastercard-execs-grilled-by-senators-on-high-swipe-fees.html\", \"content\": \"Interchange fees, also known as swipe fees, are percentage-based fees paid by merchants to credit card issuers whenever customers use credit cards in retail purchases. Visa and Mastercard have a combined market cap of more than $1 trillion, and control 80% of the market.\\n\\n\\\"In 2023 alone, Visa and Mastercard charged merchants more than $100 billion in credit card fees, mostly in the form of interchange fees,\\\" Durbin told the committee. [...] get factored into interchange [fees].\\\" [...] Visa is also battling a Justice Department lawsuit filed in September. The payment network is accused of maintaining an illegal monopoly over debit card payment networks, which has affected \\\"the price of nearly everything,\\\" according to Attorney General Merrick Garland.  \\nCorrection: This story has been updated to correct the definition of interchange fees.\", \"published_date\": null}, {\"title\": \"Visa & Mastercard execs grilled by senators on high swipe fees\", \"url\": \"https://www.cnbc.com/amp/2024/11/19/visa-mastercard-execs-grilled-by-senators-on-high-swipe-fees.html\", \"content\": \"Interchange fees, also known as swipe fees, are percentage-based fees paid by merchants to credit card issuers whenever customers use credit cards in retail purchases. Visa and Mastercard have a combined market cap of more than $1 trillion, and control 80% of the market.\\n\\n\\\"In 2023 alone, Visa and Mastercard charged merchants more than $100 billion in credit card fees, mostly in the form of interchange fees,\\\" Durbin told the committee. [...] get factored into interchange [fees].\\\" [...] Visa is also battling a Justice Department lawsuit filed in September. The payment network is accused of maintaining an illegal monopoly over debit card payment networks, which has affected \\\"the price of nearly everything,\\\" according to Attorney General Merrick Garland.  \\nCorrection: This story has been updated to correct the definition of interchange fees.\", \"published_date\": null}, {\"title\": \"Visa and MasterCard Cut Interchange Fees to 1.5% in Canada - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2014-11-04/visa-to-cut-canada-consumer-card-interchange-fees-to-1-5-\", \"content\": \"The two payment networks submitted proposals to reduce their average effective interchange rate in Canada to 1.5 percent on consumer credit cards, the finance department said in a statement posted on its website today. The rate will stand for five years and take effect no later than April, it said. [...] # Visa and MasterCard Cut Interchange Fees to 1.5% in Canada\\n\\nThis article is for subscribers only.\\n\\nVisa Inc. and MasterCard Inc. lowered credit-card transaction fees for Canadian merchants by about 10 percent in a move the federal government said should lower consumer prices and may trim revenue for the nation’s banks.\", \"published_date\": null}, {\"title\": \"Credit-Card Swipe Fees: Behind Visa, Mastercard Agreement to Cap Fees - Bloomberg\", \"url\": \"https://www.bloomberg.com/news/articles/2024-06-14/credit-card-swipe-fees-behind-visa-mastercard-agreement-to-cap-fees\", \"content\": \"What’s known in payments-industry parlance as an interchange fee is typically divided among multiple parties and usually amounts to about 2% of the purchase price for a credit-card transaction and 21 cents for one with a debit card. The US has what’s known as a four-party system — the consumer, the consumer’s bank, the merchant and the merchant’s bank. The networks, Visa and Mastercard, sit between the consumer’s bank and the merchant’s bank and send signals back and forth that allow money to [...] Every time a credit or debit card is swiped or a website’s “buy” button is clicked, a series of events moves money from consumer to merchant. The process cost US retailers more than $170 billion in fees last year — and banks, payment networks (such as Visa Inc. and Mastercard Inc.) and payment processors fight intensely for a share of that. Retailers have been pushing back, and on March 26, Visa and Mastercard agreed to cap so-called swipe fees as part of a settlement to end a legal fight [...] end a legal fight that’s lasted almost two decades. That deal is now in doubt after the judge indicated she’s likely to reject it.\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:investor.mastercard.com 2024 annual report regulatory interchange fees Mastercard 10-K",
+          "ticker": "MA"
+        },
+        "error": "Per-run tool-call budget reached for this request. Do not call any further tools again in this run. This is an INTERNAL orchestration budget — it is NOT an external rate limit from SEC EDGAR, Finnhub, Tavily, or any other external API. Summarize with the data already collected; do not describe this to the user as a network or API failure."
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:investor.visa.com 2024 annual report regulatory interchange fees Visa 10-K",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V site:investor.visa.com 2024 annual report regulatory interchange fees Visa 10-K\", \"results\": [{\"title\": \"Visa - Visa Completes Acquisition of Pismo\", \"url\": \"https://investor.visa.com/news/news-details/2024/Visa-Completes-Acquisition-of-Pismo/default.aspx\", \"content\": \"regulatory approval process, shifts in the regulatory and competitive landscape, cybersecurity incidents, the pace and success of integration, and various other factors, including those contained in our Annual Report on Form 10-K for the fiscal year ended September 30, 2023, and our other filings with the U.S. Securities and Exchange Commission. [...] Visa (NYSE: V) is a world leader in digital payments, facilitating transactions between consumers, merchants, financial institutions and government entities across more than 200 countries and territories. Our mission is to connect the world through the most innovative, convenient, reliable and secure payments network, enabling individuals, businesses and economies to thrive. We believe that economies that include everyone everywhere, uplift everyone everywhere and see access as foundational to [...] By their nature, forward-looking statements: (i) speak only as of the date they are made; (ii) are not statements of historical fact or guarantees of future performance; and (iii) are subject to risks, uncertainties, assumptions or changes in circumstances that are difficult to predict or quantify. Therefore, actual results could differ materially and adversely from Visa’s forward-looking statements due to a variety of factors, including the timing and outcome of the regulatory approval\", \"published_date\": null}, {\"title\": \"Visa - Visa to Acquire a Majority Interest in Prosa to Accelerate Digital Payments Adoption in Mexico\", \"url\": \"https://investor.visa.com/news/news-details/2023/Visa-to-Acquire-a-Majority-Interest-in-Prosa-to-Accelerate-Digital-Payments-Adoption-in-Mexico/default.aspx\", \"content\": \"regulatory approval process, shifts in the regulatory and competitive landscape, cybersecurity incidents, the pace and success of integration, and various other factors, including those contained in our Annual Report on Form 10-K for the fiscal year ended September 30, 2023, and our other filings with the U.S. Securities and Exchange Commission. [...] Visa (NYSE: V) is a world leader in digital payments, facilitating payments transactions between consumers, merchants, financial institutions, and government entities across more than 200 countries and territories. Our mission is to connect the world through the most innovative, convenient, reliable, and secure payments network, enabling individuals, businesses and economies to thrive. We believe that economies that include everyone everywhere, uplift everyone everywhere and see access as [...] Prosa will continue commercially providing its brand-agnostic solutions, with its current leadership team staying on to lead the organization. The transaction is subject to regulatory approvals and other customary closing conditions and is expected to close during the second half of 2024. Over the coming months, Visa will work closely with participants in the Mexican payment ecosystem, including regulators, current shareholders and the management and board of directors of Prosa to ensure a\", \"published_date\": null}, {\"title\": \"Visa - Visa Inc. Posts Strong Fiscal Fourth Quarter and Full-Year 2012 Adjusted Earnings Results and Announces New $1.5 billion Share Repurchase Program\", \"url\": \"https://investor.visa.com/news/news-details/2012/Visa-Inc-Posts-Strong-Fiscal-Fourth-Quarter-and-Full-Year-2012-Adjusted-Earnings-Results-and-Announces-New-15-billion-Share-Repurchase-Program/default.aspx\", \"content\": \"failure to maintain interoperability between our systems;  costs arising if Visa Europe were to exercise its right to require us to acquire all of its outstanding stock;  loss of organizational effectiveness or key employees;  failure to integrate acquisitions successfully or to effectively launch new products and businesses;  changes in accounting principles or treatments; and   the other factors discussed under the heading \\\"Risk Factors\\\" in our most recent Annual Report on Form 10−K on file [...] the other factors discussed under the heading \\\"Risk Factors\\\" in our most recent Annual Report on Form 10−K on file with the U.S. Securities and Exchange Commission. You should not place undue reliance on such statements. Unless required to do so by law, we do not intend to update or revise any forward−looking statement, because of new information or future developments or otherwise.\\n\\nContacts: [...] the other factors discussed under the heading \\\"Risk Factors\\\" in our most recent Annual Report on Form 10−K on file with the U.S. Securities and Exchange Commission. You should not place undue reliance on such statements. Unless required to do so by law, we do not intend to update or revise any forward−looking statement, because of new information or future developments or otherwise.\\n\\nContacts:\", \"published_date\": null}, {\"title\": \"SSO | Ultra S&P500 | ProShares\", \"url\": \"https://links.message.bloomberg.com/s/c/tYyvK45ZLcSKmfaQfwotzB3lAIZwY9p9jcAoz3_QhiWZTmVMpMtSwyb2iznuwzOfG4VKHJew3AOvMDgfsPwVg4S7oTm1E2m1J682kX3FLCQmr_EpktlLqHXxUo90YbWCXYMYf6cSD-MReBBx5hsY_e_d2yD3Lkipf2Q2BUzkBOV8_qfLkT_xgT2ZmWvfXuB6bRkrz2CBsmtBfUkQtiPeU0XzQhUXL5DyWpRf2VYmHHkkws3KDoYCUEw7IYyGCyxTyg4LHSUVIHj66I4-7WFXoOwT-80OCJac_Q7FkFfKOMULkkLuqPTIrRu7-8Ef2C2YBimeLX7a1_RJxszsis-hI5EncMPPRYvBmKrz1JuArjr6LhzeIYClZZbH30SDQyc1jvetl_5IrXaq_GYRPkZhtHYmogzS5eglJI4VGLx9qcdDgASP-8cXnl8J2ALNa34rNCglrxbd1ni1nvbE4Z0qQV3-Ivs9z-2O/o1pP9oXQ5NvoBx8jTUN0p42F_a2-_7sl/7\", \"content\": \"| 0.96% | LLY | ELI LILLY & CO  $82,814,980.42 | 69,977 | 2516152 |\\n| 0.96% | BRK/B | BERKSHIRE HATHAWAY INC-CL B  $82,316,407.04 | 162,848 | 2073390 |\\n| 0.93% | JPM | JPMORGAN CHASE & CO  $79,732,289.90 | 232,415 | 2190385 |\\n| 0.67% | XOM | EXXONMOBIL HOLDINGS CORP  $57,726,966.12 | 359,468 | BVSRPD7 |\\n| 0.66% | JNJ | JOHNSON & JOHNSON  $57,145,240.34 | 210,697 | 2475833 |\\n| 0.64% | V | VISA INC-CLASS A SHARES  $54,732,272.40 | 148,980 | B2PZN04 | [...] | 0.01% | LII | LENNOX INTERNATIONAL INC  $1,012,916.70 | 2,710 | 2442053 |\\n| 0.01% | CSGP | COSTAR GROUP INC  $996,296.12 | 35,468 | 2262864 |\\n| 0.01% | TECH | BIO-TECHNE CORP  $996,063.98 | 13,718 | BSHZ3Q0 |\\n| 0.01% | PNW | PINNACLE WEST CAPITAL  $976,297.08 | 10,642 | 2048804 |\\n| 0.01% | TKO | TKO GROUP HOLDINGS INC  $960,844.20 | 5,260 | BQBBFD1 |\\n| 0.01% | COO | COOPER COS INC/THE  $946,111.92 | 17,084 | BQPDXR3 |\\n| 0.01% | DECK | DECKERS OUTDOOR CORP  $938,297.09 | 11,927 | 2267278 | [...] | 0.01% | AES | AES CORP  $926,832.23 | 62,329 | 2002479 |\\n| 0.01% | LULU | LULULEMON ATHLETICA INC  $919,398.80 | 9,076 | B23FN39 |\\n| 0.01% | JKHY | JACK HENRY & ASSOCIATES INC  $913,637.78 | 6,182 | 2469193 |\\n| 0.01% | HII | HUNTINGTON INGALLS INDUSTRIE  $911,925.08 | 3,454 | B40SSC9 |\\n| 0.01% | NWSA | NEWS CORP - CLASS A  $898,118.76 | 31,524 | BBGVT40 |\\n| 0.01% | CLX | CLOROX COMPANY  $889,704.60 | 10,617 | 2204026 |\\n| 0.01% | BXP | BXP INC  $888,107.20 | 14,008 | 2019479 |\", \"published_date\": null}, {\"title\": \"Visa - Investor Relations\", \"url\": \"https://investor.visa.com\", \"content\": \"|  |\\n\\n| News |\\n| SEC Filings |\\n| Presentations |\\n| Events |\\n| Financial Reports |\\n| EOD Stock Quote | [...] ## In the news\\n\\n## Investor information\\n\\n### News\\n\\n### Financial Information\\n\\n### Corporate Governance\\n\\n### SEC Filings\\n\\n### Annual Report & Meeting\\n\\n### Events Calendar\\n\\nSee upcoming and past investor events\\n\\n### Investor Resources\\n\\n### Feeds & Alerts\\n\\n|  |  |\\n --- |\\n|  | |\\n| Email Address | \\\\ |\\n\\n|  |  |\\n --- |\\n| Mailing Lists \\\\ | |\\n| |  |  | News | | SEC Filings | | Presentations | | Events | | Financial Reports | | EOD Stock Quote | | |\\n\\n|  |\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:sec.gov/Archives/edgar/data Visa 2024 10-K regulatory interchange fees competition revenue risk factors",
+          "ticker": "V"
+        },
+        "result": "{\"query\": \"V site:sec.gov/Archives/edgar/data Visa 2024 10-K regulatory interchange fees competition revenue risk factors\", \"results\": [{\"title\": \"Form 10-K\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1403161/000119312511315956/d218694d10k.htm\", \"content\": \"| ITEM 1A. | Risk Factors |\\n --- |\\n\\nRegulatory Risks\\n\\nIncreasing regulation of interchange reimbursement fees and other business practices may have a material adverse impact on our financial condition, revenues,\\nresults of operations, prospects for future growth and overall business. [...] adjustment up to an additional one cent. This amounts to a significant reduction from the average system-wide fees charged previously. See Item 1A—Risk Factors—The Reform Act may have a material adverse effect on our financial\\ncondition, revenues, results of operations, prospects for future growth and overall business; Item 1A—Risk Factors—Increasing regulation of interchange reimbursement fees and other business practices may have a material adverse impact [...] 1A—Risk Factors—Increased global regulatory focus on the payments industry may result in costly new compliance burdens on our clients and on us, leading to increased costs and decreased payments volume and revenues.\", \"published_date\": null}, {\"title\": \"10-K\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1141391/000114139116000085/ma12312015-10xk.htm\", \"content\": \"Interchange Fees. Interchange fees associated with four-party payments systems like ours are being reviewed or challenged in various jurisdictions around the world via legislation to regulate interchange fees, competition-related regulatory proceedings, central bank regulation and litigation. For more detail, see our risk factors in “Risk Factors-Payments System Legal and Regulatory Challenges” in Part I, Item 1A. Also see Note 18 (Legal and Regulatory Proceedings) to the consolidated financial [...] we will need to further increase transaction volumes or the amount of services provided thereunder in order to benefit incrementally from such agreements and to increase revenue and profit, and we may not be successful in doing so, particularly in the current regulatory environment. Our customers also may implement cost reduction initiatives that reduce or eliminate payment product marketing or increase requests for greater incentives or greater cost stability. These factors could have a [...] to the defense of interchange fees in regulatory proceedings, litigation and legislative activity. The potential outcome of any legislative, regulatory or litigation action could have a more positive or negative impact on MasterCard relative to its competitors. If we are ultimately unsuccessful in our defense of interchange fees, any such legislation, regulation and/or litigation may have a material adverse impact on our overall business and results of operations. In addition, regulatory\", \"published_date\": null}, {\"title\": \"V 093012 10-K\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1403161/000138410812000011/v09301210-k.htm\", \"content\": \"ITEM  1A. Risk Factors\\n\\nRegulatory Risks\\n\\nAdditional regulation of interchange reimbursement fees may have a material, adverse impact on our financial condition, revenues, results of operations, prospects for future growth and overall business. [...] fees charged previously. See Item 1A—Risk Factors—The Dodd-Frank Act may continue to have a material, adverse impact on our financial condition, revenues, results of operations, prospects for future growth and overall business; and Item 1A—Risk Factors—Additional regulation of interchange reimbursement fees may have a material, adverse impact on our financial condition, revenues, results of operations, prospects for future growth and overall business. [...] We generally do not receive any portion of interchange reimbursement fees in a transaction. They are, however, a factor on which we compete with other payments providers and are therefore an important determinant of the volume of transactions we process. Consequently, changes to these fees can substantially affect our revenues and the pace or breadth of overall payment electronification.\", \"published_date\": null}, {\"title\": \"V 093013 10-K\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1403161/000140316113000011/v09301310-k.htm\", \"content\": \"ITEM 1A. Risk Factors\\n\\nRegulatory Risks\\n\\nAdditional regulation of interchange reimbursement rates may have a material, adverse impact on our financial condition, revenues, results of operations, prospects for future growth and overall business. [...] We generally do not receive any revenue related to interchange reimbursement fees in a purchase transaction as those fees are paid by the acquirers to the issuers. They are, however, a factor on which we compete with other payments providers and are therefore an important determinant of the volume of transactions we process. Consequently, changes to these fees can substantially affect our revenues and the pace or breadth of overall payment electronification. [...] • Any negative perception of the United States arising from its political, economic, social or other positions could harm the perception of our company and our brands globally by associating Visa with those positions.\\n\\nAny of these factors could require us to take on additional liabilities and costs, result in greater regulatory or legislative scrutiny, and materially and adversely affect our revenues, operating results, prospects for future growth and overall business.\", \"published_date\": null}, {\"title\": \"10-K\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1720592/000095017025030855/rpay-20241231.htm\", \"content\": \"•\\n\\nTo the extent we cannot maintain savings related to favorable pricing or incentives on interchange and other payment network fees and cannot pass along any corresponding increases in such fees to our clients, our operating results and financial condition may be materially adversely affected.\\n\\n•\\n\\nOur systems and those of our third-party providers may fail due to factors beyond our control.\\n\\n• [...] |  | Year Ended December 31, 2024 |  |  |  |\\n ---  --- \\n| ($ in thousands) | Consumer Payments | Business Payments | Elimination of intersegment revenues (1) | Total |\\n| Revenue |  |  |  |  |\\n| Direct relationships | $270,749 | $52,068 | $(20,847) | $301,970 |\\n| Indirect relationships | 10,217 | 855 | — | 11,072 |\\n| Total Revenue | $280,966 | $52,923 | $(20,847) | $313,042 | [...] Year Ended December 31, 2024 Compared to Year Ended December 31, 2023\\n\\nRevenue\\n\\nTotal revenue was $313.0 million for the year ended December 31, 2024 and $296.6 million for the year ended December 31, 2023, an increase of $16.4 million or 5.5%. This increase was the result of newly signed clients, the growth of our existing clients and political media spending associated with the 2024 election cycle in our media payments business.\\n\\nCosts of Services\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "site:sec.gov/Archives/edgar/data Mastercard 2024 10-K regulatory interchange fees competition revenue risk factors",
+          "ticker": "MA"
+        },
+        "result": "{\"query\": \"MA site:sec.gov/Archives/edgar/data Mastercard 2024 10-K regulatory interchange fees competition revenue risk factors\", \"results\": [{\"title\": \"ma-20241231\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1141391/000114139125000011/ma-20241231.htm\", \"content\": \"Please see “Risk Factors” in Part I, Item 1A for a complete discussion of these risk factors. We caution you that the important factors referenced above may not contain all of the factors that are important to you. Our forward-looking statements speak only as of the date of this Report or as of the date they are made, and we undertake no obligation to update our forward-looking statements.\\n\\n4\\n MASTERCARD 2024 FORM 10-K\\n\\nPART I\\n\\nItem 1. Business\\n\\nItem 1A. Risk factors [...] The impact of and uncertainty that could result from any of these events or factors could ultimately decrease cross-border activity. Additionally, any regulation of interregional interchange fees could also negatively impact our cross-border activity (for example, the targets announced by the G20 Financial Stability Board related to cross-border payments). In each case, decreased cross-border activity could decrease the revenue we receive. [...] Mastercard’s interchange fees and other practices are subject to regulatory, legal review and/or challenges in a number of jurisdictions, including the proceedings described below. When taken as a whole, the resulting decisions, regulations and legislation with respect to interchange fees and acceptance practices may have a material adverse effect on the Company’s prospects for future growth and its overall results of operations and financial condition.\", \"published_date\": null}, {\"title\": \"10-K\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1141391/000114139116000085/ma12312015-10xk.htm\", \"content\": \"Interchange Fees. Interchange fees associated with four-party payments systems like ours are being reviewed or challenged in various jurisdictions around the world via legislation to regulate interchange fees, competition-related regulatory proceedings, central bank regulation and litigation. For more detail, see our risk factors in “Risk Factors-Payments System Legal and Regulatory Challenges” in Part I, Item 1A. Also see Note 18 (Legal and Regulatory Proceedings) to the consolidated financial [...] increasingly global scope and influence. We believe that these merchants are having a significant impact on all participants in the global payments industry, including MasterCard. Some large merchants have supported the legal, regulatory and legislative challenges to interchange fees that MasterCard has been defending, including the U.S. merchant litigations. See our risk factor in this Part I, Item 1A with respect to payments industry regulation, including interchange fees. The continued focus [...] MasterCard’s interchange fees and other practices are subject to regulatory and/or legal review and/or challenges in a number of jurisdictions, including the proceedings described below. When taken as a whole, the resulting decisions, regulations and legislation with respect to interchange fees and acceptance practices may have a material adverse effect on the Company’s prospects for future growth and its overall results of operations, financial position and cash flows.\", \"published_date\": null}, {\"title\": \"Document\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1141391/000114139120000032/ma12312019-10xk.htm\", \"content\": \"increasingly global scope and influence. We believe that these merchants are having a significant impact on all participants in the global payments industry, including Mastercard. Some large merchants have supported the legal, regulatory and legislative challenges to interchange fees that Mastercard has been defending, including the U.S. merchant litigations. See our risk factor in “Risk Factors – Other Regulation” in this Part I, Item 1A with respect to payments industry regulation, including [...] Mastercard’s interchange fees and other practices are subject to regulatory, legal review and/or challenges in a number of jurisdictions, including the proceedings described below. When taken as a whole, the resulting decisions, regulations and legislation with respect to interchange fees and acceptance practices may have a material adverse effect on the Company’s prospects for future growth and its overall results of operations, financial position and cash flows. [...] • Our ability to compete may also be affected by the outcomes of litigation, competition-related regulatory proceedings, central bank activity and legislative activity.\\n\\nCertain of our competitors operate three-party payments systems with direct connections to both merchants and consumers and these competitors may derive competitive advantages from their business models. If we continue to attract more regulatory scrutiny than\\n\\nITEM 1A. RISK FACTORS\", \"published_date\": null}, {\"title\": \"Document\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1141391/000114139119000013/ma12312018-10xk.htm\", \"content\": \"increasingly global scope and influence. We believe that these merchants are having a significant impact on all participants in the global payments industry, including Mastercard. Some large merchants have supported the legal, regulatory and legislative challenges to interchange fees that Mastercard has been defending, including the U.S. merchant litigations. See our risk factor in “Risk Factors – Risks Related to Our Participation in the Payments Industry” in this Part I, Item 1A with respect [...] Mastercard’s interchange fees and other practices are subject to regulatory, legal review and/or challenges in a number of jurisdictions, including the proceedings described below. When taken as a whole, the resulting decisions, regulations and legislation with respect to interchange fees and acceptance practices may have a material adverse effect on the Company’s prospects for future growth and its overall results of operations, financial position and cash flows. [...] Legal and Regulatory. We operate in a dynamic and rapidly evolving legal and regulatory environment, with heightened regulatory and legislative scrutiny, expansion of local regulatory schemes and other legal challenges, particularly with respect to interchange fees (as discussed below under “Our Operations and Network”). These challenges create both risks and opportunities for our industry. Our recent legal and regulatory developments include:\\n\\n• Payments Regulation\", \"published_date\": null}, {\"title\": \"ma-20251231\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1141391/000114139126000013/ma-20251231.htm\", \"content\": \"In 2024, Mastercard received a formal request for information from the European Commission seeking documents and information in connection with an investigation into alleged anti-competitive behavior of certain card scheme services in the European Union/EEA. The request focuses on Mastercard’s practices regarding network fees related to acquirers. Mastercard is cooperating with the European Commission in connection with the request.\\n\\nNote 20. Settlement and Other Risk Management [...] Mastercard’s interchange fees and other practices are subject to regulatory, legal review and/or challenges in a number of jurisdictions, including the proceedings described below. When taken as a whole, the resulting decisions, regulations and legislation with respect to interchange fees and acceptance practices may have a material adverse effect on the Company’s prospects for future growth and its overall results of operations and financial condition.\\n\\nUnited States [...] ITEM 1A. RISK FACTORS\\n\\nchanges, which could negatively impact us. Moreover, failure to comply with the laws and regulations to which we are subject could result in fines, sanctions, civil damages or other penalties, which could materially and adversely affect our overall business and results of operations, as well as have an impact on our brand and reputation.\\n\\nIncreased activity with respect to interchange rates could have an adverse impact on our business.\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "openai:gpt-5.6-luna",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 2.780490083998302,
+      "first_text_s": 37.70984383400355,
+      "total_s": 49.337272000004305
+    },
+    "usage": {
+      "input_tokens": 21545,
+      "output_tokens": 2308
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 0.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": false,
+      "tool_call_count": 11,
+      "tool_error_names": [
+        "sec_filing_list_sections",
+        "sec_filing_list_sections",
+        "sec_filing_list_sections",
+        "sec_filing_list_sections",
+        "sec_filing_list_sections",
+        "tavily_financial_search"
+      ]
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 4.3219380419905065,
+      "input_tokens": 1782,
+      "output_tokens": 151,
+      "reasoning_tokens": 71,
+      "cache_read_tokens": 1738
+    },
+    {
+      "duration_s": 2.82524370799365,
+      "input_tokens": 1981,
+      "output_tokens": 55,
+      "reasoning_tokens": 20,
+      "cache_read_tokens": 1779
+    },
+    {
+      "duration_s": 2.4187820000079228,
+      "input_tokens": 2061,
+      "output_tokens": 119,
+      "reasoning_tokens": 37,
+      "cache_read_tokens": 1978
+    },
+    {
+      "duration_s": 4.423254833993269,
+      "input_tokens": 2228,
+      "output_tokens": 148,
+      "reasoning_tokens": 55,
+      "cache_read_tokens": 2058
+    },
+    {
+      "duration_s": 5.588605666998774,
+      "input_tokens": 3845,
+      "output_tokens": 274,
+      "reasoning_tokens": 82,
+      "cache_read_tokens": 2225
+    },
+    {
+      "duration_s": 18.362206750010955,
+      "input_tokens": 9648,
+      "output_tokens": 1561,
+      "reasoning_tokens": 338,
+      "cache_read_tokens": 3842
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.011319665994960815,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.011489124997751787,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 0.0017772919964045286,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 1.258550667000236,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 1.3726908340031514,
+      "error": "'NoneType' object has no attribute 'sections'"
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.301363542006584,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.933900250005536,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.0000584999943385,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.010530958010349,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 4.937519458006136,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "938df811-42a4-475b-a1e6-d38caab0e4b3"
+}

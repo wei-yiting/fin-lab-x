@@ -1,0 +1,124 @@
+{
+  "row_id": "3",
+  "arm": "gemini_medium",
+  "experiments": [
+    "E2"
+  ],
+  "row_position": 0,
+  "slot_in_row": 4,
+  "row_order": [
+    "luna_medium",
+    "reader_luna_medium",
+    "luna_none",
+    "gemini_minimal",
+    "gemini_medium"
+  ],
+  "started_at": "2026-10-21T15:58:32.672299+00:00",
+  "finished_at": "2026-10-21T15:59:02.431212+00:00",
+  "task_error": null,
+  "output": {
+    "response": "波音（Boeing, BA）目前的瓶頸**完全不是「需求面」，而是卡在「監管面約束」與「交付/生產面效率」**。\n\n核心問題在於：市場訂單極為龐大，但受限於嚴格監管審查與生產線爬坡瓶頸，無法及時將訂單轉化為飛機交付與現金流。\n\n---\n\n### 一、 三大層面詳細剖析\n\n| 面向 | 現況診斷 | 核心數據與影響 |\n| --- | --- | --- |\n| **需求面 (Demand)** | **非常強勁（非卡關點）** | 積壓訂單（Backlog）超過 **5,000 億美元** [3]；全球航空客運需求持續高漲，航空公司急需採訪新機 [2]。 |\n| **監管面 (Regulatory)** | **嚴格監督（上限放寬中）** | 美國聯邦航空管理局（FAA）先前因質量安全問題對 737 MAX 設下**生產數量上限**（如每月 38–42 架上限），並嚴格審查新機型認證 [1], [2], [3]。 |\n| **交付/生產面 (Delivery)** | **核心營運瓶頸** | 飛機尾款於交付時收取，生產速度與品質整頓直接影響現金流 [3], [5]；工會罷工與供應鏈整備拉長了產能爬坡進度 [3]。 |\n\n---\n\n### 二、 細部原因分析\n\n#### 1. 需求面：訂單爆滿，需求完全沒有問題\n全球航空客運率維持高位，航空公司（如聯合航空、達美航空、美航、阿拉斯加航空等）機隊汰舊換新需求殷切 [2], [3], [4]。根據最新財務說明，波音商業飛機與服務的積壓訂單總額已突破 **5,000 億美元** [3]，表明市場對其產品的需求極為強勁。\n\n#### 2. 監管面：嚴格安全審查與產能上限限制\n受到先前飛航安全與品質瑕疵事故影響（如 2024 年門塞脫落事件），FAA 採取極高規格的質量監管，嚴格限制波音 737 MAX 的每月最大產量（初期限制在 38 架，後續隨質量改善逐步核准增至 42 架）[1], [2], [3]。此外，737 MAX 7 及 MAX 10 等衍生機型的安全認證也歷經多年審查延宕 [4], [5]。\n\n#### 3. 交付面：直接卡住財務與現金流的「最後一哩路」\n飛機製造業的商業模式為：客戶在**飛機實際交付時支付大部分款項** [3], [5]。波音雖有龐大訂單，但受到工會罷工（如 2024 年機械師罷工）、供應鏈瓶頸及組裝品質自主檢查等影響，產能回升速度受限 [3]。波音已積極在華盛頓州埃弗里特開闢第 4 條 737 MAX 生產線以加快提機速度 [4], [5]。\n\n---\n\n### 三、 財務與即時股價概況\n\n根據 Finnhub 即時行情與基本面數據：\n* **目前股價**：$191.60（當日高低價區間：$189.12 – $193.28）\n* **市值**：約 1,520.28 億美元\n* **52 週高低價**：$176.77 – $254.35\n* **近 12 個月營收成長率 (YoY)**：24.78%\n\n---\n\n### 四、 結論\n\n波音當前問題的本質是**「有單做不出、做了交得慢」**：需求端毫無疑慮，但受制於監管機構對品質安全的核准步調（監管面）以及工廠實際將積壓訂單轉化為飛機交付的能力（交付面）[1], [3], [5]。\n\n[1]: https://www.reuters.com/business/aerospace-defense/boeing-delivers-737-max-jet-china-ending-four-year-freeze-2024-01-24 \"FAA bars Boeing from increasing MAX output but ends partial grounding | Reuters\"\n[2]: https://www.cnbc.com/2026/01/11/boeing-plane-deliveries-production-pace.html \"Boeing plane deliveries are the highest in years. Now it's ramping up\"\n[3]: https://www.cnbc.com/2025/04/23/boeing-ba-1q-2025-earnings.html \"Boeing (BA) Q1 2025 earnings\"\n[4]: https://www.cnbc.com/2026/10/20/boeing-737-max-10-certification.html \"Boeing wins FAA approval for 737 Max 10 after years of delays\"\n[5]: https://www.cnbc.com/2026/08/03/faa-boeing-737-max-certification.html \"FAA clears smallest Boeing 737 Max to fly after years of delays\"",
+    "tool_outputs": [
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"currentPrice\": 191.6, \"open\": 191.5725, \"previousClose\": 190.47, \"change\": 1.13, \"percentChange\": 0.5933, \"dayHigh\": 193.28, \"dayLow\": 189.12}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"fiftyTwoWeekHigh\": 254.35, \"fiftyTwoWeekLow\": 176.77, \"peTTM\": 62.4344, \"psTTM\": 1.6174, \"pb\": 27.9744, \"marketCap\": 152027.75, \"enterpriseValue\": 190688.75, \"beta\": 1.3375436, \"epsTTM\": 2.9605999999999986, \"roeTTM\": 132.92, \"roaTTM\": 1.5, \"grossMarginTTM\": 4.68, \"netProfitMarginTTM\": 2.59, \"operatingMarginTTM\": 4.89, \"currentRatio\": 1.1375, \"quickRatio\": 0.3308, \"debtToEquity\": 7.5246, \"revenueGrowthTTMYoy\": 24.78, \"tenDayAvgVolume\": 6.30827}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Boeing BA regulatory FAA delivery production rate demand order backlog issues",
+          "ticker": "BA"
+        },
+        "result": "{\"query\": \"BA Boeing BA regulatory FAA delivery production rate demand order backlog issues\", \"results\": [{\"title\": \"FAA bars Boeing from increasing MAX output but ends partial grounding | Reuters\", \"url\": \"https://www.reuters.com/business/aerospace-defense/boeing-delivers-737-max-jet-china-ending-four-year-freeze-2024-01-24\", \"content\": \"\\\"We will not agree to any request from Boeing for an expansion in production or approve additional production lines for the 737 MAX until we are satisfied that the quality control issues uncovered during this process are resolved,\\\" FAA Administrator Mike Whitaker said.\\n\\n\\\"The quality assurance issues we have seen are unacceptable.\\\"\\n\\nClarifying the order, the FAA subsequently told Reuters: \\\"That means Boeing can continue producing at the current monthly rate, but they cannot increase that rate.\\\" [...] WASHINGTON, Jan 24 (Reuters) - The U.S. Federal Aviation Administration late on Wednesday tightened pressure on Boeing (BA.N) by barring the troubled planemaker from expanding production of its best-selling 737 MAX narrowbody planes, following \\\"unacceptable\\\" quality issues. [...] Boeing's latest 737 master schedule, which sets the production pace for suppliers, calls for production to rise to 42 jets per month in February, 47.2 in August, 52.5 by February 2025 and 57.7 in October 2025, Reuters reported in December.\\n\\nHowever, Boeing's own production pace can lag the supplier master schedule.\", \"published_date\": null}, {\"title\": \"Boeing plane deliveries are the highest in years. Now it's ramping up\", \"url\": \"https://www.cnbc.com/2026/01/11/boeing-plane-deliveries-production-pace.html\", \"content\": \"Last October, the FAA raised its production cap on Boeing's 737 Max from 38 a month to 42. (The FAA required its sign-off after the door plug accident.) CFO Jay Malave said at a UBS conference on Dec. 2 that he expects the company to get to that rate in early 2026. Ortberg told investors in October that further rate increases are on the table, in increments of five planes. [...] Their tone has changed as Boeing has become more predictable and increased production, with the Federal Aviation Administration's blessing. In a sign of the FAA's increased confidence in Boeing, the agency in September said Boeing could issue its own air worthiness certificates before customers receive some of its 737s and 787s after years of restrictions. [...] Globally, airplanes flew nearly 84% full in November, the highest level on record, according to the latest data available from the International Air Transport Association, an airline industry group.\\n\\nWith travel demand still robust, orders to replace older jets and secure new ones will continue to fuel growth.\", \"published_date\": null}, {\"title\": \"Boeing (BA) Q1 2025 earnings\", \"url\": \"https://www.cnbc.com/2025/04/23/boeing-ba-1q-2025-earnings.html\", \"content\": \"Boeing said once it has stabilized its production rate at 38 per month, it will move up to 42, if it receives approval, and then increase it in five-per-month increments, up to about 52 a month, with about six months in between each hike.\\n\\nRevenue in Boeing's commercial airplane unit rose 75% during the first quarter from a year ago to $8.1 billion, with deliveries up to 130 planes from 83 a year ago. [...] \\\"While we are closely watching the developments in global trade, our strong start to the year combined with the demand for airplanes and our half trillion-dollar backlog for our products and services gives us the flexibility we need to navigate this environment,\\\" Boeing CEO Ortberg said in a staff note Wednesday.\\n\\nOrtberg said on an earnings call that demand remains strong for its aircraft and said the company's backlog is worth more than $500 billion. [...] Since the January 2024 accident, Boeing must receive approval from the FAA to increase output of the 737 Max to above 38 jets a month. Boeing had been producing significantly below that level after the accident and a nearly two-month union strike last year halted much of the company's manufacturing.\", \"published_date\": null}, {\"title\": \"Boeing wins FAA approval for 737 Max 10 after years of delays\", \"url\": \"https://www.cnbc.com/2026/10/20/boeing-737-max-10-certification.html\", \"content\": \"\\\"The FAA's decision follows a thorough review of the aircraft's design and safety requirements,\\\" said FAA Administrator Bryan Bedford. \\\"We will continue to hold Boeing to the highest safety standards.\\\"\\n\\nCEO Kelly Ortberg said at a Morgan Stanley conference on Sept. 16 that orders for the aircraft make up about 30% of Boeing's backlog. Customers include Alaska Airlines, American Airlines, United Airlines and Delta Air Lines. [...] The FAA approved the smallest model of the 737 Max family, the Max 7, in early August.\\n\\nBoeing has been working to ramp up production of its 737 Maxes and 787 Dreamliners, which are key to its recovery since airlines and other customers pay the bulk of the aircraft's price upon delivery. The manufacturer opened a fourth production line in Everett, Washington, in July for its 737 Max airplanes. [...] In this article\\n\\nThe Federal Aviation Administration on Tuesday signed off on the Boeing 737 Max 10 after years of delays, a major win for the manufacturer and the last in Boeing's best-selling family of jets to get government approval.\\n\\nThe green light comes weeks after federal officials reviewed a navigation system glitch on the aircraft but deemed it was not a safety-of-flight issue.\", \"published_date\": null}, {\"title\": \"FAA clears smallest Boeing 737 Max to fly after years of delays\", \"url\": \"https://www.cnbc.com/2026/08/03/faa-boeing-737-max-certification.html\", \"content\": \"The manufacturer, a top U.S. exporter, has been working to ramp up production of its 737 Maxes and 787 Dreamliners, key to its recovery after years of crisis since airlines and other customers pay the bulk of the aircraft's price upon delivery. Boeing opened a fourth production line in Everett, Washington, in July for its 737 Max airplanes. [...] The plane maker has about 40 of the 737 Max 7s and 737 Max 10s built and in inventory already, and the FAA approval could help the manufacturer bring in much-needed cash, Jefferies analyst Sheila Kahyaoglu said in a note Sunday. Boeing and other manufacturers receive the bulk of an airplane's price when they hand it over to customers. [...] The agency on Monday said the approval \\\"reflects years of sustained work to resolve complex technical issues and complete a thorough review of the airplane's design and supporting safety analyses.\\\"\\n\\nBoeing stock rose 8% Monday.\\n\\nAirlines can finally start flying passengers soon after planes are certified, but it can take them months to work them into schedules.\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "sec_filing_list_sections",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"doc_type\": \"10-K\", \"fiscal_year\": 2025, \"period_of_report\": \"2025-12-31\", \"filing_date\": \"2026-01-30\", \"company_name\": \"BOEING CO\", \"sections\": [{\"key\": \"1\", \"char_count\": 5506}, {\"key\": \"1a\", \"char_count\": 57151}, {\"key\": \"1b\", \"char_count\": 41}, {\"key\": \"1c\", \"char_count\": 9047}, {\"key\": \"2\", \"char_count\": 2107}, {\"key\": \"3\", \"char_count\": 34286}, {\"key\": \"4\", \"char_count\": 56}, {\"key\": \"5\", \"char_count\": 1258}, {\"key\": \"6\", \"char_count\": 18, \"is_stub\": true, \"stub_reason\": \"section marked as reserved/deprecated\"}, {\"key\": \"7\", \"char_count\": 64372}, {\"key\": \"7a\", \"char_count\": 2884}, {\"key\": \"8\", \"char_count\": 199092}, {\"key\": \"9\", \"char_count\": 118}, {\"key\": \"9a\", \"char_count\": 2842}, {\"key\": \"9b\", \"char_count\": 281}, {\"key\": \"9c\", \"char_count\": 112}, {\"key\": \"10\", \"char_count\": 9355}, {\"key\": \"11\", \"char_count\": 687}, {\"key\": \"12\", \"char_count\": 2456}, {\"key\": \"13\", \"char_count\": 398, \"is_stub\": true, \"stub_reason\": \"incorporated by reference from proxy statement\"}, {\"key\": \"15\", \"char_count\": 12895}, {\"key\": \"16\", \"char_count\": 1525}], \"reading_guide\": \"10-K STANDARD SECTIONS (SEC 17 CFR 229):\\n| Key  | Title |\\n|------|-------|\\n| 1    | Business |\\n| 1a   | Risk Factors |\\n| 1b   | Unresolved Staff Comments |\\n| 1c   | Cybersecurity |\\n| 2    | Properties |\\n| 3    | Legal Proceedings |\\n| 4    | Mine Safety Disclosures |\\n| 5    | Market for Registrant's Common Equity, Related Stockholder Matters and Issuer Purchases of Equity Securities |\\n| 6    | [Reserved] |\\n| 7    | Management's Discussion and Analysis of Financial Condition and Results of Operations |\\n| 7a   | Quantitative and Qualitative Disclosures About Market Risk |\\n| 8    | Financial Statements and Supplementary Data |\\n| 9    | Changes in and Disagreements With Accountants on Accounting and Financial Disclosure |\\n| 9a   | Controls and Procedures |\\n| 9b   | Other Information |\\n| 9c   | Disclosure Regarding Foreign Jurisdictions that Prevent Inspections |\\n| 10   | Directors, Executive Officers and Corporate Governance |\\n| 11   | Executive Compensation |\\n| 12   | Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters |\\n| 13   | Certain Relationships and Related Transactions, and Director Independence |\\n| 14   | Principal Accountant Fees and Services |\\n| 15   | Exhibits, Financial Statement Schedules |\\n| 16   | Form 10-K Summary |\\n\\nACCESS NOTES:\\n- Pass fiscal_year=2025 explicitly to sec_filing_get_section so both calls hit the same cached filing.\\n- Section keys are normalized item numbers (e.g. \\\"1\\\", \\\"1a\\\", \\\"7\\\", \\\"7a\\\"). Use the Key column above.\\n- Stub sections (is_stub=true) have content incorporated by reference from another filing (typically DEF 14A proxy); fetching returns a brief notice.\\n- If a section's char_count is large and you only need specific facts from it (pinpoint question), and a sec_filing_search tool is available in your toolset, prefer it with a focused query instead of reading the whole section.\\n- This table of contents is stable; do NOT call sec_filing_list_sections again for the same (ticker, fiscal_year) in this conversation. Issue multiple sec_filing_get_section calls instead.\"}"
+      }
+    ],
+    "model": "google_genai:gemini-3.6-flash",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 2.0649617500021122,
+      "first_text_s": 23.15843224999844,
+      "total_s": 29.71664574999886
+    },
+    "usage": {
+      "input_tokens": 12833,
+      "output_tokens": 3736
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 1.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": true,
+      "tool_call_count": 4,
+      "tool_error_names": []
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 3.616275541993673,
+      "input_tokens": 2036,
+      "output_tokens": 423,
+      "reasoning_tokens": 343,
+      "cache_read_tokens": 0
+    },
+    {
+      "duration_s": 5.187375749999774,
+      "input_tokens": 4489,
+      "output_tokens": 653,
+      "reasoning_tokens": 632,
+      "cache_read_tokens": 0
+    },
+    {
+      "duration_s": 15.104016583005432,
+      "input_tokens": 6308,
+      "output_tokens": 2660,
+      "reasoning_tokens": 1407,
+      "cache_read_tokens": 0
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.6802680420078104,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.0918308339896612,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.9440560000075493,
+      "error": null
+    },
+    {
+      "tool": "sec_filing_list_sections",
+      "duration_s": 1.7883288750017527,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "79c2c725-09d2-4cce-bd47-7a356edf403b"
+}

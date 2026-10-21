@@ -1,0 +1,176 @@
+{
+  "row_id": "29",
+  "arm": "luna_medium",
+  "experiments": [
+    "E1",
+    "E2"
+  ],
+  "row_position": 7,
+  "slot_in_row": 1,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "gemini_minimal",
+    "gemini_medium",
+    "luna_none"
+  ],
+  "started_at": "2026-10-21T16:17:03.036227+00:00",
+  "finished_at": "2026-10-21T16:17:55.177068+00:00",
+  "task_error": null,
+  "output": {
+    "response": "**結論：在目前的供應鏈與監管壓力下，空中巴士（Airbus）整體上比波音（Boeing）更能撐過這一段亂流。**  \n核心原因不是 Airbus 沒有供應鏈問題，而是它的**財務緩衝較厚、盈利能力較強、監管與品質危機較輕**；波音則同時面臨供應商瓶頸、FAA 生產限制、737 MAX 認證延遲與資產負債表壓力。\n\n## 主要比較\n\n| 面向 | 波音 | 空中巴士 | 判斷 |\n|---|---:|---:|---|\n| TTM 毛利率 | 4.68% | 19.06% | Airbus 明顯較強 |\n| TTM 營業利益率 | 4.89% | 9.04% | Airbus 較有緩衝 |\n| TTM 淨利率 | 2.59% | 5.55% | Airbus 較穩定 |\n| 流動比率 | 1.14 | 2.83 | Airbus 流動性較佳 |\n| 速動比率 | 0.33 | 1.28 | Boeing 對存貨與持續融資依賴較高 |\n| 負債／股東權益 | 7.52 | 0.50 | Boeing 槓桿壓力遠高 |\n| ROA | 1.50% | 5.79% | Airbus 資產使用效率較高 |\n| TTM 營收年增 | 24.78% | 21.97% | 兩者都有復甦，但 Boeing 的成長基礎較弱 |\n\n以上為 Finnhub 基本面資料；其中 Boeing 的負債／股東權益比為 7.52，Airbus 為 0.50，這是兩家公司抗震能力最關鍵的差異之一。Boeing 雖然營收年增 24.78%，但盈利率與流動性仍偏薄。[Finnhub 公司基本面資料]\n\n## 1. 供應鏈：Airbus 也受傷，但 Boeing 的問題更接近「系統性修復」\n\nAirbus 的主要瓶頸集中在**引擎、機身結構與客艙設備**。此前 Airbus 曾表示，持續性的供應鏈問題主要來自這幾個環節，並因此面臨交機目標壓力。[1]\n\n這代表 Airbus 並非可以順利按照需求擴產。尤其 Airbus 高度依賴 Pratt & Whitney 和 CFM 等引擎供應商，任何引擎交付延遲，都可能使已完成大部分組裝的飛機無法交付。\n\n不過，Boeing 面臨的問題更廣泛，包含：\n\n- 737 MAX 生產速度受監管限制；\n- 供應鏈與勞資問題；\n- 777X 認證與交付延遲；\n- 事故後的品質管理與製造流程重建；\n- 潛在關稅或供應商停供風險。\n\n新聞資料指出，Boeing 的生產與交機曾受到罷工、監管審查與供應鏈瓶頸共同影響；其供應商 Howmet 也曾警告關稅可能導致部分出貨中斷。[2]\n\n**判斷：**  \nAirbus 主要是「需求很強但供應商跟不上」；Boeing 則是「供應商跟不上，加上自身製造與品質體系仍需重建」。前者通常比較容易透過時間、預付款、供應商協調和調整產能來修復；後者涉及監管信任與組織流程，修復時間更長。\n\n## 2. 監管壓力：Boeing 明顯處於劣勢\n\nBoeing 的監管壓力具有三個特徵：\n\n1. **直接限制產量**：FAA 曾對 737 MAX 的生產設置上限，這會直接限制 Boeing 將訂單轉化為收入與現金流的速度。  \n2. **新機型認證延遲**：Boeing 737 MAX 7 與 MAX 10 的認證預期延至 2026 年，這會推遲產品組合更新與客戶交付。[3]  \n3. **品質與治理信任尚未完全恢復**：事故後監管機構、航空公司與客戶都會要求更高的檢查和放行標準，導致生產效率低於正常狀態。\n\nBoeing 近期交付有所改善，說明公司並非沒有復甦能力；但 Reuters 報導仍指出公司面臨供應鏈干擾、關稅壓力以及新機型認證延遲。[3]\n\n相比之下，現有工具資料沒有顯示 Airbus 正面承受同等程度的機型安全危機或生產上限。Airbus 的主要監管風險更偏向一般性的航空認證、引擎適航與跨國監管，而不是 Boeing 目前面對的「品質文化與製造控制」問題。\n\n**判斷：監管面 Airbus 優勢很明顯。**\n\n## 3. 財務承受力：Airbus 有更大的緩衝空間\n\n這是 Airbus 最重要的優勢。\n\nBoeing 的速動比率只有 0.33，負債／股東權益比為 7.52；Airbus 的速動比率為 1.28，負債／股東權益比為 0.50。換言之，若供應鏈問題導致飛機延遲交付：\n\n- Airbus 較能依靠現有流動資產與營運現金流吸收延遲；\n- Boeing 更容易受到庫存、預付款、債務成本與額外品質支出的共同擠壓；\n- Boeing 若需要更久時間才能恢復生產，可能必須依賴額外融資或資產處分。\n\nAirbus 的 TTM 淨利率為 5.55%，Boeing 為 2.59%；Airbus 的 TTM ROA 也高於 Boeing，顯示同樣受到供應鏈干擾時，Airbus 更有機會維持正向盈利。[Finnhub 公司基本面資料]\n\n## 4. Boeing 的優勢：不是沒有翻身機會\n\nBoeing 仍有幾項重要優勢：\n\n- 商用飛機市場需求依然強勁；\n- Boeing 具有龐大的訂單與客戶基礎；\n- 美國國防與航太業務提供一定的業務多元性；\n- 若 FAA 逐步放寬生產限制、供應鏈恢復，營運槓桿可能很高；\n- 目前 Boeing 的 TTM 營收年增 24.78%，高於 Airbus 的 21.97%，顯示其收入修復速度並不弱。\n\n但這些優勢比較像是**復甦上行空間**，不是短期抗壓能力。高營運槓桿在正常化時能放大利潤，但在交付受阻、品質成本上升或監管延遲時，也會放大現金流風險。\n\n## 投資與產業判斷\n\n### 基準情境：Airbus 較能撐住\n\n若未來 12–24 個月仍然存在：\n\n- 引擎供應不足；\n- 航太零組件交付延誤；\n- 新機型認證較慢；\n- 航空公司要求延後交機；\n- 監管審查維持高強度；\n\n那麼 Airbus 較可能維持穩定的盈利與交付增長，Boeing 則可能繼續處於「交付改善但現金流與品質成本承壓」的狀態。\n\n### 上行情境：Boeing 的股價彈性可能更大\n\n如果 Boeing 能夠同時做到：\n\n1. 穩定提高 737 MAX 產量；\n2. 消除供應鏈瓶頸；\n3. 取得新型號認證；\n4. 降低品質與返工成本；\n5. 改善現金流與債務結構；\n\n其利潤改善幅度可能高於 Airbus，因為目前 Boeing 的營運效率與盈利率較低。但這需要更多執行證據，不能只依賴訂單或交付短期反彈。\n\n## 最終判斷\n\n**抗風險能力排名：Airbus ＞ Boeing。**  \n**復甦彈性與潛在反轉幅度：Boeing ＞ Airbus，但執行風險也更高。**\n\n因此，如果問題是「哪一邊比較能撐過這段亂流」，答案是：\n\n> **選 Airbus。** 它也受到引擎和供應鏈瓶頸拖累，但財務條件較健康，且目前沒有 Boeing 同等程度的監管與品質信任危機。Boeing 更像是一項高風險的修復交易，而 Airbus 則是相對穩健但仍受供應鏈制約的產業龍頭。\n\n**資料品質提示：** Finnhub 的報價未提供明確時間戳；Airbus 使用的 `AIR` 代碼基本面資料可能對應特定市場或交易標的，因此其市值等欄位不宜直接與 Boeing 的美股資料做一比一比較。Tavily 搜尋結果的日期也不完全一致，部分資料較舊，故上述結論主要依賴仍具可比性的財務指標與已知監管／供應鏈事件，而不是把所有新聞視為同一時點的即時資訊。\n\n[1]: https://www.cnbc.com/2024/10/10/airbus-monthly-deliveries-fall-piling-pressure-on-annual-target-.html \"Airbus monthly deliveries fall, piling pressure on annual target\"\n[2]: https://www.cnbc.com/2025/04/08/boeing-deliveries-in-march-jump-by-41percent-compared-to-a-year-earlier.html \"Boeing deliveries in March jump by 41% compared to a year earlier\"\n[3]: https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29 \"Boeing's quarterly loss shrinks as jet deliveries rebound\"",
+    "tool_outputs": [
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "AIR"
+        },
+        "result": "{\"ticker\": \"AIR\", \"currentPrice\": 99.73, \"open\": 99.9, \"previousClose\": 99.8, \"change\": -0.07, \"percentChange\": -0.0701, \"dayHigh\": 101.38, \"dayLow\": 98.805}"
+      },
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"currentPrice\": 191.83, \"open\": 191.5725, \"previousClose\": 190.47, \"change\": 1.36, \"percentChange\": 0.714, \"dayHigh\": 193.28, \"dayLow\": 189.12}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"fiftyTwoWeekHigh\": 254.35, \"fiftyTwoWeekLow\": 176.77, \"peTTM\": 62.4344, \"psTTM\": 1.6174, \"pb\": 27.9744, \"marketCap\": 152027.75, \"enterpriseValue\": 190688.75, \"beta\": 1.3375436, \"epsTTM\": 2.9605999999999986, \"roeTTM\": 132.92, \"roaTTM\": 1.5, \"grossMarginTTM\": 4.68, \"netProfitMarginTTM\": 2.59, \"operatingMarginTTM\": 4.89, \"currentRatio\": 1.1375, \"quickRatio\": 0.3308, \"debtToEquity\": 7.5246, \"revenueGrowthTTMYoy\": 24.78, \"tenDayAvgVolume\": 6.30827}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "AIR"
+        },
+        "result": "{\"ticker\": \"AIR\", \"fiftyTwoWeekHigh\": 154, \"fiftyTwoWeekLow\": 76.1, \"peTTM\": 20.6988, \"forwardPE\": 16.914675767918087, \"psTTM\": 1.1482, \"pb\": 2.9825, \"marketCap\": 4003.142, \"enterpriseValue\": 4778.242, \"beta\": 1.1389542, \"epsTTM\": 4.9085, \"roeTTM\": 11.63, \"roaTTM\": 5.79, \"grossMarginTTM\": 19.06, \"netProfitMarginTTM\": 5.55, \"operatingMarginTTM\": 9.04, \"currentRatio\": 2.8274, \"quickRatio\": 1.2769, \"debtToEquity\": 0.5048, \"revenueGrowthTTMYoy\": 21.97, \"epsGrowthTTMYoy\": 548.93, \"tenDayAvgVolume\": 0.47626}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Airbus current supply chain pressure regulatory scrutiny production deliveries latest news",
+          "ticker": "AIR"
+        },
+        "result": "{\"query\": \"AIR Airbus current supply chain pressure regulatory scrutiny production deliveries latest news\", \"results\": [{\"title\": \"Airbus deliveries fell to 127 jets in Q1, sources say\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-deliveries-fell-127-jets-q1-sources-say-2023-04-07\", \"content\": \"Airbus deliveries fell by 11% on an industrial basis to 127 jets in the first quarter, underscoring the pressure on global supply chains and\", \"published_date\": null}, {\"title\": \"Airbus exec says checking on health of small suppliers\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-is-tackling-supply-chain-problems-senior-executive-says-2023-03-16\", \"content\": \"Planemaker Airbus has measures in place to stabilise global pressure on its supply chains and is making increased checks about the financial\", \"published_date\": null}, {\"title\": \"Airbus delivered 81 jets in May after China logjam eases\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-delivered-81-jets-may-after-china-logjam-eases-2026-06-04\", \"content\": \"Airbus delivered 81 aircraft in May, up sharply from a year earlier, partly due to ​the release of planes caught up in a regulatory\", \"published_date\": null}, {\"title\": \"Airbus faces steep climb in 'make or break' delivery year\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-faces-steep-climb-make-or-break-delivery-year-2023-03-14\", \"content\": \"Airbus has for the most part blamed industrial delays on disruption at suppliers, though sources say its own internal operational performance\", \"published_date\": null}, {\"title\": \"Aviation supply chain faces mounting strain as demand ...\", \"url\": \"https://www.reuters.com/business/aerospace-defense/aviation-supply-chain-faces-mounting-strain-demand-picks-up-2021-10-15\", \"content\": \"Global shipping and supply chain disruptions are making it harder for corporate planemakers and suppliers to meet resurgent demand for parts\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Boeing current supply chain pressure regulatory scrutiny production deliveries latest news",
+          "ticker": "BA"
+        },
+        "result": "{\"query\": \"BA Boeing current supply chain pressure regulatory scrutiny production deliveries latest news\", \"results\": [{\"title\": \"Boeing deliveries in March jump by 41% compared to a year earlier\", \"url\": \"https://www.cnbc.com/2025/04/08/boeing-deliveries-in-march-jump-by-41percent-compared-to-a-year-earlier.html\", \"content\": \"Boeing's production and deliveries have been hampered in the last year by a labor strike, regulatory scrutiny and supply chain bottlenecks.\\n\\nAn emerging trade war could further disrupt production. Key Boeing components supplier Howmet Aerospace highlighted the risk when it told customers that tariffs implemented by U.S. President Donald Trump could force it to halt some shipments. [...] Of the orders, 88 were for 737 MAX aircraft, including 50 from Singapore-based leasing company BOC Aviation, 17 for Japan Airlines and 21 from unidentified customers.\\n\\nIt also received orders for 11 777 freighters, including eight for FedEx, as well as 40 777X orders - 20 for Korean Air Lines and 20 for unidentified customers. Boeing also recorded 53 787 orders, including 20 from Korean Air and 33 from unidentified customers. [...] Through the first three months of the year, Boeing has booked 241 new orders. Adjusted for cancellations and conversions, Boeing recorded 204 net orders, increasing its order backlog to 5,648.\", \"published_date\": null}, {\"title\": \"Boeing deliveries drop 27% in June year-on-year\", \"url\": \"https://www.cnbc.com/2024/07/09/boeing-deliveries-drop-27percent-in-june-year-on-year.html\", \"content\": \"In this article\\n\\nBoeing said on Tuesday it delivered more commercial jets in June than in any other month this year, but the total of 44 planes represented a 27% drop on an annual basis amid a whirlwind of legal and production challenges.\\n\\nThe company has pledged to expand production by the end of the year, after wrestling with supply chain snags and operating a slower assembly line since a Jan. 5 mid-air blowout of a door plug on a 737 MAX 9 jet that heightened regulatory scrutiny. [...] On Sunday, the U.S. Justice Department said Boeing agreed to plead guilty to a criminal fraud conspiracy charge linked to two 737 MAX fatal crashes in 2018 and 2019, raising questions about the planemaker's ability to secure government contracts.\\n\\nThe company handed over five 777 freighters, including two of the jets to Air China, confirming Reuters reports that widebody deliveries to China have resumed after being halted this spring due to a Chinese regulatory review. [...] Following further accounting adjustments, Boeing reported adjusted net orders of 26 airplanes so far this year.\\n\\nBoeing delivered 175 planes in the year to date, trailing its European rival Airbus which delivered 323 airplanes in the first half.\\n\\nThe world's largest planemaker also said this week that it had won 327 gross orders in the first six months of 2024, or a net total of 310 after cancellations.\", \"published_date\": null}, {\"title\": \"Boeing (BA) 3Q 2025 earnings\", \"url\": \"https://www.cnbc.com/2025/10/29/boeing-ba-3q-2025-earnings.html\", \"content\": \"CEO Kelly Ortberg, an aerospace veteran who came out of retirement to helm Boeing in August 2024, has worked to steady the manufacturer's sprawling supply chain and cash-generating production lines.\\n\\nThe 777X, an updated version of its 777 plane, took its first flight nearly six years ago but still hasn't won regulator approval. Boeing said it now expects the first delivery in 2027, leading to the noncash charge. [...] Last year was supposed to be a turnaround year for Boeing, but a midair blowout of a door panel in January 2024 resulted in a near catastrophe and increased federal scrutiny that slowed production.\\n\\nBut Boeing has made progress. Earlier this month, the Federal Aviation Administration lifted a production cap for Boeing's 737 Max to 42 a month from 38, a restriction it put in place after the accident. Ortberg said the company will increase production beyond that level when it has FAA approval. [...] In this article\\n\\nBoeing said Wednesday its jetliner deliveries drove it back into cash-positive territory for the first time in nearly two years, but it took a $4.9 billion charge on additional delays of its long-awaited 777X wide-body plane.\\n\\nBoeing is on track to deliver the most aircraft this year since 2018, before two crashes grounded its bestselling jetliner, the Covid pandemic hit supply chains and a host of manufacturing crises drove years of losses at the top U.S. exporter.every\", \"published_date\": null}, {\"title\": \"Boeing (BA) 3Q 2025 earnings\", \"url\": \"https://www.cnbc.com/amp/2025/10/29/boeing-ba-3q-2025-earnings.html\", \"content\": \"CEO Kelly Ortberg, an aerospace veteran who came out of retirement to helm Boeing in August 2024, has worked to steady the manufacturer's sprawling supply chain and cash-generating production lines.\\n\\nThe 777X, an updated version of its 777 plane, took its first flight nearly six years ago but still hasn't won regulator approval. Boeing said it now expects the first delivery in 2027, leading to the noncash charge. [...] Last year was supposed to be a turnaround year for Boeing, but a midair blowout of a door panel in January 2024 resulted in a near catastrophe and increased federal scrutiny that slowed production.\\n\\nBut Boeing has made progress. Earlier this month, the Federal Aviation Administration lifted a production cap for Boeing's 737 Max to 42 a month from 38, a restriction it put in place after the accident. Ortberg said the company will increase production beyond that level when it has FAA approval. [...] In this article\\n\\nBoeing said Wednesday its jetliner deliveries drove it back into cash-positive territory for the first time in nearly two years, but it took a $4.9 billion charge on additional delays of its long-awaited 777X wide-body plane.\\n\\nBoeing is on track to deliver the most aircraft this year since 2018, before two crashes grounded its bestselling jetliner, the Covid pandemic hit supply chains and a host of manufacturing crises drove years of losses at the top U.S. exporter.every\", \"published_date\": null}, {\"title\": \"Airbus monthly deliveries fall, piling pressure on annual target\", \"url\": \"https://www.cnbc.com/2024/10/10/airbus-monthly-deliveries-fall-piling-pressure-on-annual-target-.html\", \"content\": \"While eager to renew their fleets with new, more fuel-efficient models, airlines are also being stymied by the multitude of issues at Airbus rival Boeing. Along with production delays, the U.S. manufacturing juggernaut is tackling a labor dispute and intense regulatory and customer scrutiny in the continued fall-out from two fatal crashes and more recent in-flight issues involving its planes. [...] Airbus reported lower monthly deliveries late on Wednesday, putting its annual production target under pressure as supply chain struggles continue to plague the industry.\\n\\nThe European planemaker said it delivered 50 aircraft in September, down from 55 during the same period last year. [...] Airbus deliveries now total 497 in the year-to-date, out of its target of around 770 for the entire 2024 period. In June, the company cut its annual delivery goal from near 800, while also pushing back its timeline for ramping up production of its bestselling A320, a single-aisle jet.\\n\\nThe company said at the time it was facing \\\"persistent specific supply chain issues mainly in engines, aerostructures and cabin equipment.\\\"\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Boeing 2025 FAA production cap 737 MAX regulatory oversight supply chain cash flow Reuters CNBC",
+          "ticker": "BA"
+        },
+        "result": "{\"query\": \"BA Boeing 2025 FAA production cap 737 MAX regulatory oversight supply chain cash flow Reuters CNBC\", \"results\": [{\"title\": \"Boeing's quarterly loss shrinks as jet deliveries rebound ...\", \"url\": \"https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29\", \"content\": \"Boeing says FAA will not certify 737 MAX 7 and 10 models until 2026 Boeing faces supply chain disruptions, tariff pressures\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Airbus 2025 supply chain engine shortages production delivery target Reuters CNBC",
+          "ticker": "AIR"
+        },
+        "result": "{\"query\": \"AIR Airbus 2025 supply chain engine shortages production delivery target Reuters CNBC\", \"results\": [{\"title\": \"Airbus targets 870 deliveries in 2026, competition with Boeing tightens\", \"url\": \"https://www.cnbc.com/2026/02/19/airbus-earnings-fy-q4-boeing-deliveries-a320-airbus-2026-boeing-recovery.html\", \"content\": \"While demand for commercial aircraft is strong, the company is facing significant engine shortages due to issues with its supplier Pratt & Whitney, said Airbus CEO Guillaume Faury.\\n\\n\\\"They are telling us they will not ... be able to deliver the number of engines that we were expecting,\\\" Faury told CNBC's Charlotte Reed. \\\"We have an unsatisfactory situation with less engines than what we would need for .\\\" [...] \\\"What is missing from Pratt is very significant and is difficult to be offset by other ways,\\\" Faury said, adding that its other engine supplier, CFM, wasn't in a position to deliver more engines in 2026 than what it had already committed.\\n\\nAirbus wants to enforce its contractual rights with Pratt & Whitney, Faury said, which \\\"turns into a legal battle if we don't manage to solve it in the amicable way.\\\"\\n\\nPratt & Whitney parent RTX didn't immediately respond to a CNBC request for comment. [...] Looking ahead, Airbus said it expects adjusted EBIT of around 7.5 billion euros and free cash flow before customer financing of about 4.5 billion euros in 2026, alongside its target of around 870 commercial aircraft deliveries.\\n\\n— CNBC's Lee Ying Shan contributed to this report.\", \"published_date\": null}, {\"title\": \"Airbus keeps No.1 planemaker spot but raises new concern on engine supplies\", \"url\": \"https://www.cnbc.com/2026/01/12/airbus-keeps-nopoint1-planemaker-spot-but-raises-new-concern-on-engine-supplies.html\", \"content\": \"AIR-FR\\n\\nA bird flies past an Airbus A350 aircraft performing a flypast at the Dubai Airshow in Dubai, United Arab Emirates, November 17, 2025.\\n\\nAmr Alfiky | Reuters\\n\\nAirbus deliveries rose 4% last year to reach 793 aircraft, the European planemaker said on Monday, leaving it on course to remain the world's largest planemaker despite recent industrial snags and a new question mark over engine supplies. [...] Outgoing Airbus planemaking CEO Christian Scherer stressed deliveries remained on an upward trajectory and underlying demand was strong.\\n\\n\\\"The overall situation is much brighter now with a great deal less bottlenecks,\\\" he told reporters.\\n\\nHowever, he noted that jet engines for the A320neo family continued to arrive \\\"very, very late\\\" in 2025. [...] Boeing, which is due to issue its own full-year data on Tuesday, delivered 537 jets up to end-November, giving Airbus an unassailable lead in the manufacturing battle.\\n\\nAlthough Airbus met its recently revised target, it remains 70 planes short of its 2019 peak of 863 annual deliveries.\\n\\nIn three out of the last four years Airbus has missed the original delivery target with which it started out the year, though the margin of underperformance has been steadily falling.\", \"published_date\": null}, {\"title\": \"Airbus stock falls after delivery guidance. What analysts are saying\", \"url\": \"https://www.cnbc.com/2026/02/19/airbus-stock-buy-sell-guidance-earnings-boeing.html\", \"content\": \"company said. CEO Guillaume Faury told CNBC's Charlotte Reed that its \\\"supply chain is vast and has very significantly improved its performance over the last years.\\\" \\\"We enter into  with a situation that is probably the best we've had since going out of Covid-19, he added. \\\"Doesn't mean that we have zero issues.\\\" The engine shortage is but the latest issue weighing on Airbus. Sentiment has soured this year, and the soft delivery guidance isn't helping. Before the freshly issued guidance, some [...] it \\\"might be a clearing event.\\\" \\\"If AIR can persuade investors that the new guidance is achievable this reset could provide an attractive entry point,\\\" said Perry, who rates the stock at Overweight with a price target of 240 euros. Airbus blamed one of its key suppliers, RTX -owned Pratt & Whitney, for the weak guidance. \\\"Pratt & Whitney's failure to commit to the number of engines ordered by Airbus is negatively impacting this year's guidance and the ramp-up trajectory,\\\" the company said. CEO [...] Airbus stock is down after its earnings painted a complicated picture: Its 2025 profits exceeded expectations, but conservative delivery guidance for 2026 and a delay in production ramp-up targets dented confidence. The stock finished Thursday's session almost 7% lower, bringing it into the red year-to-date. The stock is up more than 11% over the last 12 months, but U.S. rival Boeing is up 32% over the same period. AIR-FR BA 1Y line Boeing shares have outperformed Airbus over the past 12 months.\", \"published_date\": null}, {\"title\": \"China’s answer to Boeing and Airbus makes first international flight\", \"url\": \"https://www.cnbc.com/2026/08/12/china-comac-boeing-airbus.html\", \"content\": \"Aircraft production is both complex and vulnerable to supply chain disruptions, with shortages of even relatively minor components capable of preventing a finished jet from being delivered.\\n\\n\\\"How many parts does it take to build a plane? The answer is all of them,\\\" Richard Aboulafia, managing director at AeroDynamic Advisory, told CNBC earlier this year. \\\"Even if it's just fasteners, it means you can't build the plane.\\\" [...] The complexity means bottlenecks can emerge several layers down the supply chain, Aboulafia said, with shortages ranging from engines and fuselage components to castings, forgings and fasteners.\\n\\nBefore COMAC can reach global competitiveness, it will need to put its supply chain on more solid footing, significantly bolster production capacity and achieve scale, Mischer noted. \\\"Even then, it will be hard to become fully self-reliant in a product as complicated as a passenger jet.\\\" [...] \\\"Production of COMAC's C919 narrow-body passenger jet still relies heavily on foreign suppliers,\\\" Andreas Mischer, an analyst at the Mercator Institute for China Studies, or MERICS, told CNBC.\\n\\nHe highlighted the aircraft's engines, manufactured by CFM International, a joint venture between U.S.-based GE Aerospace and France's Safran Aircraft Engines.\", \"published_date\": null}, {\"title\": \"Aviation industry to have another hard year led by Boeing delays\", \"url\": \"https://www.cnbc.com/2025/01/08/aviation-industry-to-have-another-hard-year-led-by-boeing-delays.html\", \"content\": \"WATCH LIVE\\n\\nIssues with supply chains, engine maintenance and delivery delays at Boeing are set to continue well into 2025.\\n\\nTed Horowitz Photography | The Image Bank | Getty Images\\n\\nIn this article\\n\\n BA\\n\\nThe aviation industry is bracing for another year of difficulties, as delivery delays at Boeing and supply chain problems are set to continue into 2025, say aviation consultants. [...] Pete Buttigieg, the U.S. transportation secretary, said Monday that Boeing has \\\"much more\\\" work to do, according to Reuters.\\n\\n\\\"The culture change at Boeing is something that is a real work in progress,\\\" he said. \\\"The only way to fully assess it will be to see they can consistently improve results.\\\"\\n\\nJohn Grant, chief analyst at the aviation intelligence company OAG, said tangible improvements at Boeing are unlikely to come before the end of 2025, at the earliest. [...] Investing\\n\\n Personal Finance\\n Fintech\\n Financial Advisors\\n Options Action\\n ETF Street\\n Buffett Archive\\n Earnings\\n Trader Talk\\n\\nTech\\n\\n Cybersecurity\\n AI\\n Enterprise\\n Internet\\n Media\\n Mobile\\n Social Media\\n CNBC Disruptor 50\\n Tech Guide\\n\\nPolitics & Policy\\n\\n White House\\n Policy\\n Defense\\n Congress\\n Expanding Opportunity\\n Europe Politics\\n China Politics\\n Asia Politics\\n World Politics\\n\\nVideo\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "openai:gpt-5.6-luna",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 3.0728352919977624,
+      "first_text_s": 23.54465966700809,
+      "total_s": 52.125567542010685
+    },
+    "usage": {
+      "input_tokens": 13740,
+      "output_tokens": 3238
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 1.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": true,
+      "tool_call_count": 8,
+      "tool_error_names": []
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 4.4499862090015085,
+      "input_tokens": 1781,
+      "output_tokens": 268,
+      "reasoning_tokens": 105,
+      "cache_read_tokens": 1738
+    },
+    {
+      "duration_s": 4.701186584003153,
+      "input_tokens": 4906,
+      "output_tokens": 242,
+      "reasoning_tokens": 144,
+      "cache_read_tokens": 1778
+    },
+    {
+      "duration_s": 35.81763658300042,
+      "input_tokens": 7053,
+      "output_tokens": 2728,
+      "reasoning_tokens": 285,
+      "cache_read_tokens": 4903
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.6428766669996548,
+      "error": null
+    },
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.6404110409930581,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.0518831250083167,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.0501594999950612,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 1.9405742090020794,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.1638484169961885,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 2.098654000001261,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 3.9034810829907656,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "f0052d39-631b-4c85-9684-32ad56d0126c"
+}

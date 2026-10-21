@@ -1,0 +1,41 @@
+{
+  "note": "Do not open before finishing the review sheet.",
+  "arms": {
+    "luna_medium": "Arm A (no RAG)",
+    "reader_luna_medium": "Arm B (RAG bundle)"
+  },
+  "key": {
+    "3": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "6": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "9": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "13": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "17": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "20": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "24": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "29": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    }
+  }
+}

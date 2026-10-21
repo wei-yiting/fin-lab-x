@@ -1,0 +1,145 @@
+{
+  "row_id": "29",
+  "arm": "luna_none",
+  "experiments": [
+    "E2"
+  ],
+  "row_position": 7,
+  "slot_in_row": 4,
+  "row_order": [
+    "reader_luna_medium",
+    "luna_medium",
+    "gemini_minimal",
+    "gemini_medium",
+    "luna_none"
+  ],
+  "started_at": "2026-10-21T16:18:40.789241+00:00",
+  "finished_at": "2026-10-21T16:19:08.490063+00:00",
+  "task_error": null,
+  "output": {
+    "response": "## 結論\n\n**在目前供應鏈與監管壓力下，空中巴士（Airbus）整體上較能撐過這段亂流；波音（Boeing）則具有較大的修復彈性，但財務與監管風險明顯更高。**\n\n這不是說 Airbus 沒有供應鏈問題，而是兩家公司面對的問題性質不同：\n\n- **Airbus：主要是產能爬坡、引擎、機體結構與客艙設備短缺。**\n- **Boeing：除了供應鏈與勞資問題，還疊加飛安事故後的監管、品質控制、客戶信任與高槓桿壓力。**\n\n## 核心比較\n\n| 面向 | Boeing | Airbus | 判斷 |\n|---|---|---|---|\n| 供應鏈 | 生產延誤，並受勞資爭議影響 | 引擎、機體結構、客艙設備供應吃緊 | Airbus 較佳 |\n| 監管壓力 | 面臨事故後的密集監管與客戶審查 | 相對沒有同等規模的監管危機 | Airbus 明顯較佳 |\n| 財務韌性 | 流動比率 1.14、速動比率 0.33，負債權益比 7.52 | 本次工具未取得 Airbus 財務數據 | 無法完整量化，但 Boeing 數據偏弱 |\n| 修復潛力 | 若品質與產量恢復，改善空間大 | 交付與產能基礎較穩定 | Boeing 上行彈性較大 |\n| 主要風險 | 品質、監管、現金流與高槓桿 | 供應商瓶頸與 A320 產能爬坡 | Boeing 風險較集中且嚴重 |\n\n## 為什麼 Airbus 目前較有韌性\n\nAirbus 同樣受到供應鏈衝擊。新聞資料指出，其問題集中在**引擎、機體結構與客艙設備**，並曾因供應鏈問題下調交付目標、延後 A320 產能提升時程；這表示 Airbus 並非免疫於產業瓶頸。[1]\n\n但 Airbus 的壓力主要仍是「**能否按計畫生產與交付**」，而不是同時處理大規模飛安信任危機。相較之下，Boeing 還要面對事故後的監管與客戶審查，以及生產延誤和勞資爭議。[1]\n\n此外，搜尋結果顯示 Airbus 在 2025 年交付 793 架商用飛機，維持業界領先地位；這反映其目前的交付基礎仍相對穩固。[2] 不過，資料來源與 Finnhub 對 Airbus 的代號存取均有問題，因此不能把這些資料延伸成完整的估值或財務結論。\n\n## Boeing 的最大問題不是訂單，而是執行與資產負債表\n\nBoeing 的基本面數據顯示：\n\n- 營收 TTM 年增 **24.78%**\n- 毛利率僅 **4.68%**\n- 營業利益率 **4.89%**\n- 淨利率 **2.59%**\n- 流動比率 **1.14**\n- 速動比率僅 **0.33**\n- 負債權益比 **7.52**\n- ROE **132.92%**，但在高槓桿背景下不宜直接視為經營品質強勁\n\n[3]\n\n這組數據說明 Boeing 的營收正在恢復，但盈利緩衝仍薄，短期流動性與槓桿壓力也較大。尤其速動比率只有 0.33，代表若交付延誤、客戶付款時程改變或需要額外投入品質改善，財務彈性可能受到限制。\n\nBoeing 的股價目前為 **191.77 美元**，較前收上升 **0.68%**；52 週區間為 **176.77–254.35 美元**。[4] 股價已反映部分復甦期待，但這不等於監管與現金流風險已經解除。\n\n## Boeing 何時可能反超？\n\nBoeing 並非沒有翻身機會。它的優勢在於：\n\n1. **營收成長較快**：TTM 年增 24.78%。[3]\n2. **危機改善帶來較大的邊際上行空間**。\n3. 若新管理層能持續改善品質、恢復產量並降低監管限制，交付恢復可能帶來顯著營運槓桿。\n\n但這是一個「**高風險修復交易**」，不是目前較穩健的產業防禦選擇。Boeing 必須同時證明三件事：\n\n- 生產品質能穩定改善；\n- 監管機構願意逐步放寬限制；\n- 交付增加不會以更高的返工、索賠或現金消耗為代價。\n\n## 最終判斷\n\n### 若問題是「誰比較能撐過去」\n**Airbus 勝出。**\n\n理由是 Airbus 的主要問題是供應鏈與產能執行，而 Boeing 還承受更深層的監管、品質、信任與財務壓力。\n\n### 若問題是「誰的股價修復潛力較大」\n**Boeing 可能較大，但風險也顯著較高。**\n\nBoeing 的營收成長顯示修復正在進行，但低速動比率、高負債權益比、低利潤率，以及持續的監管與客戶審查，使其更依賴執行改善。Airbus 則較像是「供應鏈受阻但基本盤較穩」的公司。\n\n**因此，在目前資訊下，我會把 Airbus 視為較具防禦性的選擇，把 Boeing 視為高波動、高修復彈性的轉機標的。**\n\n資料品質提醒：Finnhub 本次未能提供 `AIR.PA` 的報價與基本面資料；部分新聞搜尋結果的日期較舊或包含未來日期標記，因此 Airbus 的比較主要依據新聞中的交付與供應鏈資訊，不能視為完整的即時財務比較。\n\n[1]: https://www.cnbc.com/2024/10/10/airbus-monthly-deliveries-fall-piling-pressure-on-annual-target-.html \"Airbus monthly deliveries fall, piling pressure on annual target\"\n[2]: https://www.reuters.com/business/aerospace-defense/airbus-jetliner-deliveries-rose-4-2025-2026-01-12 \"Airbus keeps No.1 planemaker spot but raises new concern on ...\"\n",
+    "tool_outputs": [
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "AIR.PA"
+        },
+        "error": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+      },
+      {
+        "tool": "finnhub_stock_quote",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"currentPrice\": 191.77, \"open\": 191.5725, \"previousClose\": 190.47, \"change\": 1.3, \"percentChange\": 0.6825, \"dayHigh\": 193.28, \"dayLow\": 189.12}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "BA"
+        },
+        "result": "{\"ticker\": \"BA\", \"fiftyTwoWeekHigh\": 254.35, \"fiftyTwoWeekLow\": 176.77, \"peTTM\": 62.4344, \"psTTM\": 1.6174, \"pb\": 27.9744, \"marketCap\": 152027.75, \"enterpriseValue\": 190688.75, \"beta\": 1.3375436, \"epsTTM\": 2.9605999999999986, \"roeTTM\": 132.92, \"roaTTM\": 1.5, \"grossMarginTTM\": 4.68, \"netProfitMarginTTM\": 2.59, \"operatingMarginTTM\": 4.89, \"currentRatio\": 1.1375, \"quickRatio\": 0.3308, \"debtToEquity\": 7.5246, \"revenueGrowthTTMYoy\": 24.78, \"tenDayAvgVolume\": 6.30827}"
+      },
+      {
+        "tool": "finnhub_company_basic_financials",
+        "args": {
+          "ticker": "AIR.PA"
+        },
+        "error": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Airbus current supply chain pressure regulatory scrutiny production deliveries latest news",
+          "ticker": "AIR.PA"
+        },
+        "result": "{\"query\": \"AIR.PA Airbus current supply chain pressure regulatory scrutiny production deliveries latest news\", \"results\": [{\"title\": \"Airbus deliveries fell 6% in May amid supply chain pressure\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-deliveries-fell-6-may-amid-supply-chain-pressure-2022-06-08\", \"content\": \"Airbus confirmed on Wednesday it delivered 6% fewer airplanes in May, compared to the same month last year, as the aerospace industry\", \"published_date\": null}, {\"title\": \"Airbus targets 870 deliveries in 2026, competition with Boeing tightens\", \"url\": \"https://www.cnbc.com/2026/02/19/airbus-earnings-fy-q4-boeing-deliveries-a320-airbus-2026-boeing-recovery.html\", \"content\": \"Airbus said Thursday it expects to deliver 870 commercial aircraft in 2026, slightly fewer than the roughly 880 analysts had expected.\\n\\nIt comes as pressure is building for the European planemaker, with U.S. rival Boeing showing signs of recovery after years of crisis which has benefited Airbus, and mounting tensions with key suppliers. [...] Ortberg, who took the top job in 2024 to lead it out of crisis, was positive about his company's ability to ramp up production in the near term, after it reported fourth-quarter revenue ahead of Wall Street's expectations in late January.\\n\\nAirbus and Boeing's order backlogs have spiked in recent years due to supply chain issues that arose during the Covid-19 pandemic.\\n\\nBoeing also secured more deliveries and net orders in the first month of 2026 than Airbus. [...] \\\"The development is not surprising given the slower delivery progression observed through 2025,\\\" said Barclays analyst Milene Kerner. Airbus had previously targeted 75 aircraft per month in 2027.\\n\\nHowever, with better clarity on 2026 delivery targets and visibility on the production of its A320 family of planes, a key overhang is removed, Kerner said.\", \"published_date\": null}, {\"title\": \"Airbus roiled by poor start to 2023 as industrial pressure ...\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-roiled-by-poor-start-2023-industrial-pressure-grows-2023-02-13\", \"content\": \"While Airbus shapes 2023, the fortunes of 12,000 suppliers remain mixed. There has been an improvement in supplies of electronic chips as well\", \"published_date\": null}, {\"title\": \"Airbus can hit delivery goal despite delays, jetmaking CEO ...\", \"url\": \"https://www.reuters.com/business/autos-transportation/airbus-can-hit-delivery-goal-despite-delays-jetmaking-ceo-says-2025-06-12\", \"content\": \"Airbus is \\\"cautiously hopeful\\\" that it can meet a 2025 target of 820 deliveries despite bottlenecks that have left nearly 40 completed\", \"published_date\": null}, {\"title\": \"Airbus faces new output delays amid parts shortages ...\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-faces-new-output-pressure-amid-parts-shortages-sources-say-2024-05-31\", \"content\": \"Airbus plans to raise underlying production of aircraft by about 50% to 75 narrowbody planes a month in 2026. Sources have previously said it\", \"published_date\": null}]}"
+      },
+      {
+        "tool": "tavily_financial_search",
+        "args": {
+          "query": "Boeing Airbus current supply chain pressure regulatory scrutiny production deliveries latest news",
+          "ticker": "BA"
+        },
+        "result": "{\"query\": \"BA Boeing Airbus current supply chain pressure regulatory scrutiny production deliveries latest news\", \"results\": [{\"title\": \"Airbus monthly deliveries fall, piling pressure on annual target\", \"url\": \"https://www.cnbc.com/2024/10/10/airbus-monthly-deliveries-fall-piling-pressure-on-annual-target-.html\", \"content\": \"Airbus deliveries now total 497 in the year-to-date, out of its target of around 770 for the entire 2024 period. In June, the company cut its annual delivery goal from near 800, while also pushing back its timeline for ramping up production of its bestselling A320, a single-aisle jet.\\n\\nThe company said at the time it was facing \\\"persistent specific supply chain issues mainly in engines, aerostructures and cabin equipment.\\\" [...] While eager to renew their fleets with new, more fuel-efficient models, airlines are also being stymied by the multitude of issues at Airbus rival Boeing. Along with production delays, the U.S. manufacturing juggernaut is tackling a labor dispute and intense regulatory and customer scrutiny in the continued fall-out from two fatal crashes and more recent in-flight issues involving its planes. [...] Airbus reported lower monthly deliveries late on Wednesday, putting its annual production target under pressure as supply chain struggles continue to plague the industry.\\n\\nThe European planemaker said it delivered 50 aircraft in September, down from 55 during the same period last year.\", \"published_date\": null}, {\"title\": \"Airbus deliveries fell 6% in May amid supply chain pressure - Reuters\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-deliveries-fell-6-may-amid-supply-chain-pressure-2022-06-08\", \"content\": \"Airbus confirmed on Wednesday it delivered 6% fewer airplanes in May, compared to the same month last year, as the aerospace industry\", \"published_date\": null}, {\"title\": \"Airbus targets 870 deliveries in 2026, competition with Boeing tightens\", \"url\": \"https://www.cnbc.com/2026/02/19/airbus-earnings-fy-q4-boeing-deliveries-a320-airbus-2026-boeing-recovery.html\", \"content\": \"Ortberg, who took the top job in 2024 to lead it out of crisis, was positive about his company's ability to ramp up production in the near term, after it reported fourth-quarter revenue ahead of Wall Street's expectations in late January.\\n\\nAirbus and Boeing's order backlogs have spiked in recent years due to supply chain issues that arose during the Covid-19 pandemic.\\n\\nBoeing also secured more deliveries and net orders in the first month of 2026 than Airbus. [...] Airbus said Thursday it expects to deliver 870 commercial aircraft in 2026, slightly fewer than the roughly 880 analysts had expected.\\n\\nIt comes as pressure is building for the European planemaker, with U.S. rival Boeing showing signs of recovery after years of crisis which has benefited Airbus, and mounting tensions with key suppliers. [...] \\\"While January deliveries in any given year is not historically a good indicator of production rates for the year, we view 19 deliveries in Jan-26 as materially weaker than expected vs 25 delivered in Jan-25,\\\" said UBS in a note to clients last week.\\n\\n\\\"Due to the typically low levels YTD, we can't deduce much from this trend other than that the expected 2026 delivery profile is likely to be back-end-loaded again,\\\" noted Barclays analysts.\", \"published_date\": null}, {\"title\": \"Airbus and Boeing snap up deals despite delivery delays - Reuters\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-snaps-up-deals-qatar-airways-weighs-wide-body-options-2024-07-23\", \"content\": \"More plane orders flowed in at the Farnborough Airshow on Tuesday despite supply chain pressures on jetmakers and complaints from airlines\", \"published_date\": null}, {\"title\": \"Airbus keeps No.1 planemaker spot but raises new concern on ...\", \"url\": \"https://www.reuters.com/business/aerospace-defense/airbus-jetliner-deliveries-rose-4-2025-2026-01-12\", \"content\": \"Airbus reaches revised 2025 target, to keep delivery spot · European group delivered 793 aircraft in 2025 · Orders reached 1,000 jets or 889 after\", \"published_date\": null}]}"
+      }
+    ],
+    "model": "openai:gpt-5.6-luna",
+    "version": "0.1.0",
+    "finished_normally": true,
+    "timing": {
+      "first_event_s": 6.194863041993813,
+      "first_text_s": 12.521368667003117,
+      "total_s": 27.692967583003337
+    },
+    "usage": {
+      "input_tokens": 5845,
+      "output_tokens": 1797
+    }
+  },
+  "scores": {
+    "diagnostic_execution_health": 0.0,
+    "response_no_simplified_chars": 1.0
+  },
+  "score_details": {
+    "execution_health": {
+      "execution_complete": true,
+      "tool_call_all_successful": false,
+      "tool_call_count": 6,
+      "tool_error_names": [
+        "finnhub_stock_quote",
+        "finnhub_company_basic_financials"
+      ]
+    },
+    "response_no_simplified_chars": {}
+  },
+  "llm_calls": [
+    {
+      "duration_s": 6.186629375006305,
+      "input_tokens": 1781,
+      "output_tokens": 168,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 1738
+    },
+    {
+      "duration_s": 18.612075124998228,
+      "input_tokens": 4064,
+      "output_tokens": 1629,
+      "reasoning_tokens": 0,
+      "cache_read_tokens": 1778
+    }
+  ],
+  "tool_runs": [
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.6308562920021359,
+      "error": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+    },
+    {
+      "tool": "finnhub_stock_quote",
+      "duration_s": 0.6428455410059541,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.0947250409953995,
+      "error": null
+    },
+    {
+      "tool": "finnhub_company_basic_financials",
+      "duration_s": 1.3603527919913176,
+      "error": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 2.699638958001742,
+      "error": null
+    },
+    {
+      "tool": "tavily_financial_search",
+      "duration_s": 2.8389667500014184,
+      "error": null
+    }
+  ],
+  "braintrust_span_id": "64a22547-a0e7-46b1-8c55-bd4daf225a91"
+}

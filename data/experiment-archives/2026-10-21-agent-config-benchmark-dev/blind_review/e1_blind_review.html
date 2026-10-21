@@ -2,7 +2,6 @@
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>E1 Blind Review</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <style>
 :root { --bg:#fafaf9; --fg:#1c1917; --muted:#57534e; --card:#fff; --line:#e7e5e4; --accent:#0f766e; }
 @media (prefers-color-scheme: dark) { :root { --bg:#1c1917; --fg:#f5f5f4; --muted:#a8a29e; --card:#292524; --line:#44403c; --accent:#5eead4; } }
@@ -14,6 +13,8 @@ main { max-width:1200px; margin:0 auto; }
 @media (max-width:800px) { .pair { grid-template-columns:1fr; } }
 article { border:1px solid var(--line); border-radius:8px; padding:12px; overflow-wrap:anywhere; }
 article h3 { margin-top:0; color:var(--accent); }
+.md table { border-collapse:collapse; display:block; overflow-x:auto; }
+.md th, .md td { border:1px solid var(--line); padding:4px 8px; }
 .verdict label { margin-right:16px; white-space:nowrap; }
 textarea { width:100%; min-height:60px; margin-top:8px; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px; }
 button { background:var(--accent); color:var(--bg); border:0; border-radius:6px; padding:8px 14px; font-size:15px; }
@@ -25,8 +26,100 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 3</h2>
   <p class="q">波音最近的問題主要卡在監管、交付，還是需求面？</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：波音目前主要卡在「交付／生產爬坡」，而監管是造成瓶頸的重要約束；需求面反而不是首要問題。**\n\n大致可排序為：\n\n1. **交付與生產執行：最核心**\n   - 波音需要把飛機安全、按規格造出來並交給客戶；供應鏈、零件品質、勞動力不穩定、返工與產能提升過程，都可能造成延遲。FY2025 10-K也明確表示，這些問題會導致交付延後、成本上升，甚至影響客戶需求的滿足。[1]\n   - 777X尤其嚴重：波音預計首架交付延至2027年，並因生產、認證與交付延誤等因素，在FY2025確認約49億美元的前瞻性虧損。[2]\n   - 不過交付已有改善跡象：近期報導顯示，波音2026年第一季交付143架商用飛機，年增10%。這表示問題正在緩解，但還沒有完全轉化為穩定獲利。[3]\n\n2. **監管：是生產速度的「閘門」，也是問題根源之一**\n   - 737-9事故後，FAA加強對波音生產、品質與安全管理系統的監督；737產量要進一步提升，必須取得FAA同意。[4]\n   - FY2025 10-K顯示，波音原本計畫2026年將737產量提升至每月47架，但能否實現取決於生產健康指標、公司的安全管理流程及FAA同意。[5]\n   - 因此，監管不是與交付完全分開的另一個問題，而是直接限制波音提高產量、恢復交付節奏的因素。近期報導也稱，737 MAX產量從每月42架進一步提升仍需FAA批准。[6]\n\n3. **需求：目前看起來是三者中最不像「主卡點」**\n   - 波音管理層近期表示，沒有看到飛機訂單因地緣政治而放緩；同時，商用飛機業務收入仍增長。[3]\n   - FY2025 10-K承認航空需求仍受經濟、融資、燃油價格、通膨、地緣政治及航空公司財務狀況影響，但這是長期風險描述，不是目前最直接的營運瓶頸。[7]\n   - 換句話說，航空公司似乎仍想要飛機，問題在於波音能否以足夠快、足夠穩定且符合監管要求的方式交付。\n\n**一句話總結：**波音不是「沒有訂單」，而是**有需求、但生產和品質系統尚未完全恢復；FAA監管又限制產能提升，最終表現為交付延遲與現金流、利潤承壓**。監管是約束條件，交付／生產執行才是當前最直接的症結。\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: https://www.cnbc.com/2026/04/22/boeing-ba-q1-2026-earnings.html \&quot;Boeing (BA) Q1 2026 earnings\&quot;  \n[4]: SEC 10-K excerpt  \n[5]: SEC 10-K excerpt  \n[6]: https://www.cnbc.com/2026/04/22/boeing-ba-q1-2026-earnings.html \&quot;Boeing (BA) Q1 2026 earnings\&quot;  \n[7]: SEC 10-K excerpt&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;**結論：波音目前主要卡在「生產／品質問題導致交付受阻」，而監管是核心約束；需求反而不是主要問題。**\n\n可以按重要性分成：\n\n1. **交付與生產執行：最直接的營運瓶頸**\n   - 2025年7月，波音交付量較6月下滑約20%；截至7月底，雖然全年取得699架總訂單、調整後淨訂單655架，但仍有約5,968架訂單積壓。[1]\n   - 漢莎航空表示，僅在美國就有41架雙走道飛機等待交付，且其未來超過240架訂單不同程度受到延誤影響。[2]\n   - 777X更是典型案例：波音把首次交付推遲至2027年，並因此計提約49億美元費用；延誤同時反映認證、生產速度及返工問題。[3]\n\n2. **監管與品質：交付問題背後的根因／約束**\n   - FAA曾將737 MAX月產量限制在38架，要求對737 MAX及787逐架進行適航檢查；2025年FAA還提出對波音處以310萬美元罰款，原因包括廣泛的品質系統違規，以及曾有不符合標準的飛機被提交認證。[4]\n   - 因此，波音不能單純靠「加快生產」解決問題。只要品質流程、員工簽核、供應鏈或認證環節未達標，飛機就可能停在工廠或等待FAA放行。\n   - 不過監管壓力已出現邊際改善：FAA後來把737 MAX產量上限由38架提高至42架，顯示問題不是監管全面封鎖，而是波音必須先證明品質控制可持續。[5]\n\n3. **需求：目前相對不是主要矛盾**\n   - 波音的訂單積壓接近6,000架，且2025年仍錄得大量淨訂單；787在2025年前10個月取得320架訂單，為該機型歷來相當強勁的年度表現之一。[6]\n   - 這表示航空公司仍然需要飛機，尤其是窄體機與787等機型。波音現在更大的問題是**能否按時、合規且具成本效益地把飛機交給客戶**，而不是缺乏買家。\n\n**我的判斷：**\n\n| 問題 | 重要性 | 判斷 |\n|---|---:|---|\n| 生產／品質與交付 | 最高 | 目前最直接拖累收入、現金流與客戶關係 |\n| 監管 | 很高 | 是限制產量、放行與新機認證的根本約束 |\n| 需求 | 較低 | 訂單和積壓仍強，尚未顯示需求崩潰 |\n\n更精確地說，**「監管」是根因，「交付」是表現出來的症狀與財務瓶頸，「需求」目前排在第三位**。波音的復甦關鍵不是再接更多訂單，而是把品質穩定下來、提高可持續產量，並消化現有積壓。\n\n**資料品質提示：**搜尋結果中混有不同年份及部分未來日期的文章；以上判斷主要採用可核對的2025年Reuters／CNBC資料，並避免把搜尋結果中的未來日期資訊當成已確認事實。基本面數據則來自Finnhub，顯示波音TTM營收年增24.78%，但淨利率僅2.59%、負債權益比7.52，反映公司仍對交付恢復及現金流改善高度敏感（Finnhub公司基本面資料）。\n\n[1]: https://www.cnbc.com/2025/08/12/boeings-july-aircraft-deliveries-tumble.html \&quot;Boeing&#x27;s July aircraft deliveries tumble 20% from June, trailing Airbus\&quot;\n[2]: https://www.cnbc.com/2025/03/06/lufthansa-hopeful-trump-administration-will-spur-boeing-deliveries-as-delays-hit-bottom-line.html \&quot;Lufthansa hopeful Trump administration will spur Boeing deliveries as delays hit bottom line\&quot;\n[3]: https://www.cnbc.com/2025/10/29/boeing-ba-3q-2025-earnings.html \&quot;Boeing (BA) earnings Q3 2025\&quot;\n[4]: https://www.cnbc.com/2025/09/12/faa-proposes-to-fine-boeing-3point1-million-over-widespread-safety-violations.html \&quot;FAA proposes to fine Boeing $3.1 million over widespread safety violations\&quot;\n[5]: https://www.cnbc.com/2026/01/11/boeing-plane-deliveries-production-pace.html \&quot;Boeing plane deliveries are the highest in years. Now it&#x27;s ramping up\&quot;\n[6]: https://www.reuters.com/business/aerospace-defense/boeing-keeps-up-strong-delivery-pace-in-october-2025-11-11 \&quot;Boeing keeps up strong delivery pace in October\&quot;&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>結論：波音目前主要卡在「生產／品質問題導致交付受阻」，而監管是核心約束；需求反而不是主要問題。</strong></p>
+<p>可以按重要性分成：</p>
+<ol>
+<li>
+<p><strong>交付與生產執行：最直接的營運瓶頸</strong></p>
+<ul>
+<li>2025年7月，波音交付量較6月下滑約20%；截至7月底，雖然全年取得699架總訂單、調整後淨訂單655架，但仍有約5,968架訂單積壓。<a href="https://www.cnbc.com/2025/08/12/boeings-july-aircraft-deliveries-tumble.html" title="Boeing's July aircraft deliveries tumble 20% from June, trailing Airbus">1</a></li>
+<li>漢莎航空表示，僅在美國就有41架雙走道飛機等待交付，且其未來超過240架訂單不同程度受到延誤影響。<a href="https://www.cnbc.com/2025/03/06/lufthansa-hopeful-trump-administration-will-spur-boeing-deliveries-as-delays-hit-bottom-line.html" title="Lufthansa hopeful Trump administration will spur Boeing deliveries as delays hit bottom line">2</a></li>
+<li>777X更是典型案例：波音把首次交付推遲至2027年，並因此計提約49億美元費用；延誤同時反映認證、生產速度及返工問題。<a href="https://www.cnbc.com/2025/10/29/boeing-ba-3q-2025-earnings.html" title="Boeing (BA) earnings Q3 2025">3</a></li>
+</ul>
+</li>
+<li>
+<p><strong>監管與品質：交付問題背後的根因／約束</strong></p>
+<ul>
+<li>FAA曾將737 MAX月產量限制在38架，要求對737 MAX及787逐架進行適航檢查；2025年FAA還提出對波音處以310萬美元罰款，原因包括廣泛的品質系統違規，以及曾有不符合標準的飛機被提交認證。<a href="https://www.cnbc.com/2025/09/12/faa-proposes-to-fine-boeing-3point1-million-over-widespread-safety-violations.html" title="FAA proposes to fine Boeing $3.1 million over widespread safety violations">4</a></li>
+<li>因此，波音不能單純靠「加快生產」解決問題。只要品質流程、員工簽核、供應鏈或認證環節未達標，飛機就可能停在工廠或等待FAA放行。</li>
+<li>不過監管壓力已出現邊際改善：FAA後來把737 MAX產量上限由38架提高至42架，顯示問題不是監管全面封鎖，而是波音必須先證明品質控制可持續。<a href="https://www.cnbc.com/2026/01/11/boeing-plane-deliveries-production-pace.html" title="Boeing plane deliveries are the highest in years. Now it's ramping up">5</a></li>
+</ul>
+</li>
+<li>
+<p><strong>需求：目前相對不是主要矛盾</strong></p>
+<ul>
+<li>波音的訂單積壓接近6,000架，且2025年仍錄得大量淨訂單；787在2025年前10個月取得320架訂單，為該機型歷來相當強勁的年度表現之一。<a href="https://www.reuters.com/business/aerospace-defense/boeing-keeps-up-strong-delivery-pace-in-october-2025-11-11" title="Boeing keeps up strong delivery pace in October">6</a></li>
+<li>這表示航空公司仍然需要飛機，尤其是窄體機與787等機型。波音現在更大的問題是<strong>能否按時、合規且具成本效益地把飛機交給客戶</strong>，而不是缺乏買家。</li>
+</ul>
+</li>
+</ol>
+<p><strong>我的判斷：</strong></p>
+<table>
+<thead>
+<tr>
+<th>問題</th>
+<th style="text-align:right">重要性</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生產／品質與交付</td>
+<td style="text-align:right">最高</td>
+<td>目前最直接拖累收入、現金流與客戶關係</td>
+</tr>
+<tr>
+<td>監管</td>
+<td style="text-align:right">很高</td>
+<td>是限制產量、放行與新機認證的根本約束</td>
+</tr>
+<tr>
+<td>需求</td>
+<td style="text-align:right">較低</td>
+<td>訂單和積壓仍強，尚未顯示需求崩潰</td>
+</tr>
+</tbody>
+</table>
+<p>更精確地說，<strong>「監管」是根因，「交付」是表現出來的症狀與財務瓶頸，「需求」目前排在第三位</strong>。波音的復甦關鍵不是再接更多訂單，而是把品質穩定下來、提高可持續產量，並消化現有積壓。</p>
+<p>**資料品質提示：**搜尋結果中混有不同年份及部分未來日期的文章；以上判斷主要採用可核對的2025年Reuters／CNBC資料，並避免把搜尋結果中的未來日期資訊當成已確認事實。基本面數據則來自Finnhub，顯示波音TTM營收年增24.78%，但淨利率僅2.59%、負債權益比7.52，反映公司仍對交付恢復及現金流改善高度敏感（Finnhub公司基本面資料）。</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p><strong>結論：波音目前主要卡在「交付／生產爬坡」，而監管是造成瓶頸的重要約束；需求面反而不是首要問題。</strong></p>
+<p>大致可排序為：</p>
+<ol>
+<li>
+<p><strong>交付與生產執行：最核心</strong></p>
+<ul>
+<li>波音需要把飛機安全、按規格造出來並交給客戶；供應鏈、零件品質、勞動力不穩定、返工與產能提升過程，都可能造成延遲。FY2025 10-K也明確表示，這些問題會導致交付延後、成本上升，甚至影響客戶需求的滿足。[1]</li>
+<li>777X尤其嚴重：波音預計首架交付延至2027年，並因生產、認證與交付延誤等因素，在FY2025確認約49億美元的前瞻性虧損。[2]</li>
+<li>不過交付已有改善跡象：近期報導顯示，波音2026年第一季交付143架商用飛機，年增10%。這表示問題正在緩解，但還沒有完全轉化為穩定獲利。[3]</li>
+</ul>
+</li>
+<li>
+<p><strong>監管：是生產速度的「閘門」，也是問題根源之一</strong></p>
+<ul>
+<li>737-9事故後，FAA加強對波音生產、品質與安全管理系統的監督；737產量要進一步提升，必須取得FAA同意。[4]</li>
+<li>FY2025 10-K顯示，波音原本計畫2026年將737產量提升至每月47架，但能否實現取決於生產健康指標、公司的安全管理流程及FAA同意。[5]</li>
+<li>因此，監管不是與交付完全分開的另一個問題，而是直接限制波音提高產量、恢復交付節奏的因素。近期報導也稱，737 MAX產量從每月42架進一步提升仍需FAA批准。[6]</li>
+</ul>
+</li>
+<li>
+<p><strong>需求：目前看起來是三者中最不像「主卡點」</strong></p>
+<ul>
+<li>波音管理層近期表示，沒有看到飛機訂單因地緣政治而放緩；同時，商用飛機業務收入仍增長。[3]</li>
+<li>FY2025 10-K承認航空需求仍受經濟、融資、燃油價格、通膨、地緣政治及航空公司財務狀況影響，但這是長期風險描述，不是目前最直接的營運瓶頸。[7]</li>
+<li>換句話說，航空公司似乎仍想要飛機，問題在於波音能否以足夠快、足夠穩定且符合監管要求的方式交付。</li>
+</ul>
+</li>
+</ol>
+<p><strong>一句話總結：<strong>波音不是「沒有訂單」，而是</strong>有需求、但生產和品質系統尚未完全恢復；FAA監管又限制產能提升，最終表現為交付延遲與現金流、利潤承壓</strong>。監管是約束條件，交付／生產執行才是當前最直接的症結。</p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: https://www.cnbc.com/2026/04/22/boeing-ba-q1-2026-earnings.html &quot;Boeing (BA) Q1 2026 earnings&quot;<br />
+[4]: SEC 10-K excerpt<br />
+[5]: SEC 10-K excerpt<br />
+[6]: https://www.cnbc.com/2026/04/22/boeing-ba-q1-2026-earnings.html &quot;Boeing (BA) Q1 2026 earnings&quot;<br />
+[7]: SEC 10-K excerpt</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v3" value="X 較好"> X 較好</label><label><input type="radio" name="v3" value="Y 較好"> Y 較好</label><label><input type="radio" name="v3" value="平手"> 平手</label><label><input type="radio" name="v3" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n3"></textarea>
@@ -34,8 +127,207 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 6</h2>
   <p class="q">分析嬌生最近最大的官司風險，區分已經看得到的成本，和還不確定會不會繼續擴大的部分。</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：嬌生目前最大的官司風險仍是滑石粉（talc）致癌訴訟，尤其是卵巢癌及間皮瘤索賠。**它已經形成一筆相當明確的會計負債與防禦成本，但真正可能讓損失大幅擴大的部分，仍取決於未來判決、索賠人數、因果關係專家證詞及能否達成整體和解。\n\n以下以嬌生 **FY2025 10-K、截至2025年12月28日** 的資料為基準。\n\n## 一、已經看得到的成本\n\n### 1. 已確認的滑石粉訴訟準備金：約34億美元現值\n\n截至2025年第四季，嬌生對滑石粉相關訴訟保留的準備金約為 **34億美元現值**，內容包括已簽署的和解協議、訴訟辯護費用及其他成本；其中約三分之一列為流動負債，意味著部分現金支出可能在近期發生。[1]\n\n這是目前最重要、最可量化的成本，但它不是「全部官司的最終上限」；公司明確表示，對於已認列準備金以外的可能損失，仍無法估計金額或範圍。[2]\n\n### 2. 過去已發生的大額支出與會計沖銷\n\n嬌生在2021年支付了約 **25億美元**，以履行一宗重大滑石粉訴訟判決，該金額包括利息。[3]\n\n此外，公司原本為一項全面解決方案在FY2024累計增加約 **50億美元費用**，使滑石粉訴訟準備金的現值一度達約116億美元；但德州破產法院在2025年3月駁回相關案件後，公司沖回約 **70億美元**，準備金才降至目前約34億美元。[4]這項沖回降低了帳面負債，但不代表訴訟風險消失，而是原先的破產整體和解方案失效，公司重新回到逐案訴訟。\n\n### 3. 防禦訴訟本身會持續消耗現金\n\n即使嬌生最終在個別案件勝訴，公司仍需支付律師、專家、證據調查及審判相關成本。FY2025 10-K列出的美國直接待決索賠人中，滑石粉產品相關案件約有 **74,360名原告**，遠高於公司列出的其他主要產品責任案件。[5]\n\n因此，已經可以看得到的成本不只是和解金，還包括：\n\n- 已確認的34億美元準備金；\n- 已簽署和解協議的付款；\n- 持續的辯護及專家費用；\n- 部分負債將在近期到期、需要現金支付；\n- 個別案件可能帶來額外判決或和解成本。\n\n## 二、仍不確定、可能繼續擴大的部分\n\n### 1. 剩餘索賠是否會轉化為大量實際賠償\n\n74,360名原告代表案件數量很大，但**不等於嬌生一定要支付同等數量的賠償**。案件結果可能包括駁回、陪審團判決、上訴推翻、個別和解或長期拖延。\n\n嬌生也承認，訴訟可能涉及高額甚至不確定的損害賠償，包括懲罰性賠償，而且實際支付可能超過現有準備金。[6]\n\n### 2. 卵巢癌訴訟重新進入審判階段\n\n在全面和解的破產方案失敗後，嬌生已回到一般法院程序。公司披露，卵巢癌案件正在安排2026年及之後的審判；多地法院仍會持續審理。[7]\n\n這部分是最主要的擴張風險之一，因為原先提出的破產和解方案本來試圖一次處理絕大多數化妝品滑石粉索賠，但該方案未能落地。換言之，嬌生現在失去了「用一個固定總額封頂」的確定性，改由逐案判決及和解決定最終成本。\n\n### 3. 科學因果關係的專家證詞仍未完全定案\n\n聯邦多區訴訟中，法院正在處理嬌生針對原告專家證詞的 Daubert 動議，涵蓋一般因果關係、個案因果關係及石棉檢測方法。2026年1月，特別主事官建議排除部分原告專家意見，但允許其他意見繼續；嬌生表示將提出上訴，其他動議預計在2026年上半年決定。[7]\n\n這造成雙向風險：\n\n- 如果更多原告專家意見被排除，嬌生的案件負擔可能下降；\n- 如果主要因果關係證詞獲准使用，原告在大規模審判及和解談判中的地位可能增強。\n\n所以目前不能把任何一種結果視為已確定。\n\n### 4. 間皮瘤案件雖已有較高解決比例，但仍可能新增\n\n嬌生表示，截至2024年8月已解決約 **95%已提出的間皮瘤訴訟**，但新的案件仍持續提出，且各州法院仍有審判活動。[8]這表示間皮瘤部分相較卵巢癌更接近可控，但並未完全結束；單一案件的高額陪審團判決仍可能造成季度業績波動。\n\n### 5. 供應商及保險相關訴訟也可能改變最終分攤\n\n嬌生與滑石粉供應商 Imerys、Cyprus及其相關債權人達成全球和解，但部分保險公司仍在上訴。若保險責任、賠償分攤或破產信託安排出現變化，可能影響嬌生最終需要自行承擔的金額。[9]\n\n## 判斷風險層級\n\n可以把滑石粉訴訟拆成三層：\n\n| 層級 | 目前判斷 |\n|---|---|\n| **已發生或高度可見成本** | 約34億美元滑石粉訴訟準備金、已簽和解、辯護費，以及部分近期現金付款 |\n| **中度不確定成本** | 2026年起持續進行的卵巢癌審判、間皮瘤新案、個別高額判決及和解 |\n| **最可能造成大幅上修的風險** | 原告專家因果關係證詞獲准、索賠人數繼續增加、陪審團大量判原告勝訴，或無法再形成一個全面和解方案 |\n\n**核心結論是：34億美元比較像目前已辨識的負債與防禦成本，而不是滑石粉官司的最終損失上限。**嬌生自己也表示，若一項或多項訴訟導致準備金增加，可能對某一期間的營業利益與現金流造成重大不利影響。[2]\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: SEC 10-K excerpt  \n[4]: SEC 10-K excerpt  \n[5]: SEC 10-K excerpt  \n[6]: SEC 10-K excerpt  \n[7]: SEC 10-K excerpt  \n[8]: SEC 10-K excerpt  \n[9]: SEC 10-K excerpt&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;**結論：嬌生（JNJ）目前最大的官司風險仍是滑石粉（talc）訴訟；已經確定或高度可見的成本約為數十億美元，但真正可能繼續放大的部分，主要取決於未決索賠數量、陪審團判決、專家證詞以及是否能否形成全面和解。** 相比之下，阿片類訴訟與 Auris 股東訴訟的財務成本較可量化，尾部風險低於滑石粉案件。\n\n## 一、最大風險：滑石粉訴訟\n\n### 已經看得到、或已反映在帳上的成本\n\n| 項目 | 已知金額／狀況 | 解讀 |\n|---|---:|---|\n| 滑石粉訴訟準備 | **約34億美元現值** | 截至2025年12月28日，包含已簽和解、訴訟辯護及其他成本；約三分之一列為流動負債 |\n| 2025年準備回轉 | **約70億美元** | 因德州破產案被駁回，公司回轉了先前為全面和解所計提的大部分準備；這是會計回轉，不代表風險消失 |\n| 2024年相關計提 | **約51億美元費用** | 反映原先規劃的滑石粉全面和解方案 |\n| 2025年未決美國直接索賠人數 | **約74,360人** | 仍是公司產品責任案件中規模最大的索賠群體 |\n\n上述數據來自嬌生2025年10-K的法律訴訟附註與MD&amp;A；公司同時表示，法律訴訟的最終結果即使扣除已計提負債，仍可能使特定期間的損益和現金流受到重大影響。[SEC 10-K：Item 8, Note 19；Item 7]\n\n關鍵是：**34億美元是目前的準備，不是滑石粉風險的上限。** 這筆準備包含部分已執行和解與辯護成本，但不代表所有74,360名索賠人都已解決。\n\n### 還不確定、可能繼續擴大的部分\n\n1. **破產和解路徑已失敗，案件回到一般侵權訴訟系統。**  \n   嬌生原先提出約64.75億美元現值、25年支付的全面和解方案；但其相關破產程序在2025年3月被德州法院駁回，公司決定不再上訴，重新以逐案訴訟方式抗辯。Reuters也報導，法院拒絕了嬌生約100億美元的滑石粉和解方案。[1]\n\n2. **陪審團判決的波動性仍很高。**  \n   公司在部分案件取得勝訴，但也曾出現重大不利判決，例如2018年密蘇里案件原始判決為47億美元，後降至21億美元，最終嬌生連同利息支付約25億美元。公司強調該案事實特殊，不能直接代表其他案件；但它說明單一案件仍可能產生極大的現金流波動。[SEC 10-K：Item 8, Note 19]\n\n3. **科學因果關係的專家證詞尚未完全定案。**  \n   2026年1月，MDL特別主事官對一般因果關係提出部分排除、部分允許的建議；嬌生準備向地區法院提出上訴，其他 Daubert 專家證據動議預期在2026年上半年決定。這些裁定會直接影響大批案件能否進入審判階段。[SEC 10-K：Item 8, Note 19]\n\n4. **索賠數量可能繼續變動，甚至出現尚未提出的索賠。**  \n   公司明確披露，案件數量會因和解、撤訴和新案件而波動，且可能還有尚未提出的索賠。這使得公司目前無法對已計提金額之外的可能損失提供合理區間。[SEC 10-K：Item 8, Note 19]\n\n5. **部分案件不在原和解範圍內。**  \n   原本的方案主要涵蓋化妝品滑石粉相關索賠，但排除了間皮瘤索賠及州消費者保護索賠等類別。即使未來重新談和解，也未必能一次涵蓋全部法律責任。\n\n## 二、其他重要官司：成本較明確，但仍有尾部風險\n\n### 1. 阿片類訴訟：現金支出大致可見\n\n嬌生在2021年達成最多 **50億美元**的州政府及地方政府和解；截至2025財年結束，約 **80%** 已支付。公司在MD&amp;A中另外指出，仍有約 **11億美元**與阿片類訴訟相關的準備金。[SEC 10-K：Item 7]\n\n剩餘案件包括：\n\n- 約23件州法院案件；\n- Ohio MDL約285件；\n- 其他聯邦法院3件；\n- 加拿大卑詩省及其他地區的集體訴訟。\n\n因此，**阿片類訴訟的主要成本不像滑石粉那麼難以估算**，但加拿大案件、退出既有和解的政府實體，以及私人索賠人仍可能造成額外支出。[SEC 10-K：Item 8, Note 19]\n\n### 2. Auris 股東訴訟：最大的單一已知新成本之一\n\nAuris 前股東訴訟在2026年1月由特拉華州最高法院部分維持，形成對嬌生約 **8億美元**的判決；該金額已在2025年第四季計提，並於2026年1月支付。[SEC 10-K：Item 8, Note 19]\n\n這筆成本已經基本落地，對未來估值的風險主要是：\n\n- 它顯示併購相關陳述與保證可能產生重大責任；\n- 類似併購、商業合約或股東訴訟仍可能出現，但目前工具資料沒有提供可量化的新增金額。\n\n### 3. 其他產品責任案件：規模較小，但長尾很長\n\n截至2025年底，公司披露的美國直接索賠人數包括：\n\n- 骨盆網片：約5,190人；\n- PINNACLE 髖臼杯：約680人；\n- ELMIRON：約790人；\n- Physiomesh：約110人；\n- DePuy ASR：約30人。\n\n多數相關案件已有和解或準備金，但公司仍表示，未來可能因新案件、不同司法管轄區及個案事實而調整準備。[SEC 10-K：Item 8, Note 19]\n\n## 三、風險排序\n\n### 以「可能造成長期估值衝擊」排序\n\n1. **滑石粉：最高**\n   - 索賠人數最多；\n   - 全面和解失敗；\n   - 仍有大量案件回到州法院與MDL；\n   - 專家證詞及一般因果關係仍在訴訟；\n   - 公司無法估計34億美元準備之外的損失範圍。\n\n2. **阿片類：中等**\n   - 已有主要和解框架；\n   - 約80%已支付；\n   - 剩餘準備約11億美元，金額相對可見；\n   - 加拿大及未加入和解的案件仍可能增加尾部成本。\n\n3. **Auris及其他商業／股東案件：短期成本明確，長期風險較低**\n   - Auris的8億美元已計提並支付；\n   - 目前最大的衝擊已反映在財報；\n   - 但其他併購、反壟斷及政府調查案件仍可能帶來額外費用。\n\n## 四、投資上最應注意的判斷\n\n**不要把2025年的70億美元滑石粉準備回轉，解讀為官司風險已經大幅消失。** 它主要反映的是原先破產和解方案失敗後，會計上撤銷部分以該方案為基礎的準備；同一時間，公司仍保留約34億美元準備，且仍面對約74,360名美國直接索賠人。\n\n較合理的拆解是：\n\n- **可見成本：** 34億美元滑石粉準備、約11億美元阿片類準備、已支付的8億美元 Auris 判決，以及持續的律師費與辯護成本。\n- **不確定上行風險：** 滑石粉案件是否大量進入審判、陪審團損害賠償是否偏高、專家因果關係動議結果、是否會出現更多索賠，以及未來能否達成涵蓋多數索賠人的和解。\n- **目前最重要的觀察點：** 2026年滑石粉案件的審判數量、MDL Daubert 裁定、是否重新形成多方和解，以及公司季度報告中34億美元準備是否再次增加。\n\n**資料品質提醒：** 上述財務數字主要來自嬌生於2026年2月11日提交、截至2025年12月28日的10-K；法律準備金是管理層在「可能發生且可合理估計」時認列的金額，並非全部潛在損失。新聞搜尋結果中個別Reuters結果包含未來日期或摘要不完整的項目，因此本分析以嬌生最新10-K披露為主，Reuters僅用於佐證破產和解遭拒的事件。\n\n[1]: https://www.reuters.com/sustainability/boards-policy-regulation/us-judge-rejects-jjs-10-billion-baby-powder-settlement-2025-04-01 \&quot;US judge rejects J&amp;J&#x27;s $10 billion baby powder settlement\&quot;&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>結論：嬌生（JNJ）目前最大的官司風險仍是滑石粉（talc）訴訟；已經確定或高度可見的成本約為數十億美元，但真正可能繼續放大的部分，主要取決於未決索賠數量、陪審團判決、專家證詞以及是否能否形成全面和解。</strong> 相比之下，阿片類訴訟與 Auris 股東訴訟的財務成本較可量化，尾部風險低於滑石粉案件。</p>
+<h2>一、最大風險：滑石粉訴訟</h2>
+<h3>已經看得到、或已反映在帳上的成本</h3>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th style="text-align:right">已知金額／狀況</th>
+<th>解讀</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>滑石粉訴訟準備</td>
+<td style="text-align:right"><strong>約34億美元現值</strong></td>
+<td>截至2025年12月28日，包含已簽和解、訴訟辯護及其他成本；約三分之一列為流動負債</td>
+</tr>
+<tr>
+<td>2025年準備回轉</td>
+<td style="text-align:right"><strong>約70億美元</strong></td>
+<td>因德州破產案被駁回，公司回轉了先前為全面和解所計提的大部分準備；這是會計回轉，不代表風險消失</td>
+</tr>
+<tr>
+<td>2024年相關計提</td>
+<td style="text-align:right"><strong>約51億美元費用</strong></td>
+<td>反映原先規劃的滑石粉全面和解方案</td>
+</tr>
+<tr>
+<td>2025年未決美國直接索賠人數</td>
+<td style="text-align:right"><strong>約74,360人</strong></td>
+<td>仍是公司產品責任案件中規模最大的索賠群體</td>
+</tr>
+</tbody>
+</table>
+<p>上述數據來自嬌生2025年10-K的法律訴訟附註與MD&amp;A；公司同時表示，法律訴訟的最終結果即使扣除已計提負債，仍可能使特定期間的損益和現金流受到重大影響。[SEC 10-K：Item 8, Note 19；Item 7]</p>
+<p>關鍵是：<strong>34億美元是目前的準備，不是滑石粉風險的上限。</strong> 這筆準備包含部分已執行和解與辯護成本，但不代表所有74,360名索賠人都已解決。</p>
+<h3>還不確定、可能繼續擴大的部分</h3>
+<ol>
+<li>
+<p><strong>破產和解路徑已失敗，案件回到一般侵權訴訟系統。</strong><br />
+嬌生原先提出約64.75億美元現值、25年支付的全面和解方案；但其相關破產程序在2025年3月被德州法院駁回，公司決定不再上訴，重新以逐案訴訟方式抗辯。Reuters也報導，法院拒絕了嬌生約100億美元的滑石粉和解方案。<a href="https://www.reuters.com/sustainability/boards-policy-regulation/us-judge-rejects-jjs-10-billion-baby-powder-settlement-2025-04-01" title="US judge rejects J&amp;J's $10 billion baby powder settlement">1</a></p>
+</li>
+<li>
+<p><strong>陪審團判決的波動性仍很高。</strong><br />
+公司在部分案件取得勝訴，但也曾出現重大不利判決，例如2018年密蘇里案件原始判決為47億美元，後降至21億美元，最終嬌生連同利息支付約25億美元。公司強調該案事實特殊，不能直接代表其他案件；但它說明單一案件仍可能產生極大的現金流波動。[SEC 10-K：Item 8, Note 19]</p>
+</li>
+<li>
+<p><strong>科學因果關係的專家證詞尚未完全定案。</strong><br />
+2026年1月，MDL特別主事官對一般因果關係提出部分排除、部分允許的建議；嬌生準備向地區法院提出上訴，其他 Daubert 專家證據動議預期在2026年上半年決定。這些裁定會直接影響大批案件能否進入審判階段。[SEC 10-K：Item 8, Note 19]</p>
+</li>
+<li>
+<p><strong>索賠數量可能繼續變動，甚至出現尚未提出的索賠。</strong><br />
+公司明確披露，案件數量會因和解、撤訴和新案件而波動，且可能還有尚未提出的索賠。這使得公司目前無法對已計提金額之外的可能損失提供合理區間。[SEC 10-K：Item 8, Note 19]</p>
+</li>
+<li>
+<p><strong>部分案件不在原和解範圍內。</strong><br />
+原本的方案主要涵蓋化妝品滑石粉相關索賠，但排除了間皮瘤索賠及州消費者保護索賠等類別。即使未來重新談和解，也未必能一次涵蓋全部法律責任。</p>
+</li>
+</ol>
+<h2>二、其他重要官司：成本較明確，但仍有尾部風險</h2>
+<h3>1. 阿片類訴訟：現金支出大致可見</h3>
+<p>嬌生在2021年達成最多 <strong>50億美元</strong>的州政府及地方政府和解；截至2025財年結束，約 <strong>80%</strong> 已支付。公司在MD&amp;A中另外指出，仍有約 <strong>11億美元</strong>與阿片類訴訟相關的準備金。[SEC 10-K：Item 7]</p>
+<p>剩餘案件包括：</p>
+<ul>
+<li>約23件州法院案件；</li>
+<li>Ohio MDL約285件；</li>
+<li>其他聯邦法院3件；</li>
+<li>加拿大卑詩省及其他地區的集體訴訟。</li>
+</ul>
+<p>因此，<strong>阿片類訴訟的主要成本不像滑石粉那麼難以估算</strong>，但加拿大案件、退出既有和解的政府實體，以及私人索賠人仍可能造成額外支出。[SEC 10-K：Item 8, Note 19]</p>
+<h3>2. Auris 股東訴訟：最大的單一已知新成本之一</h3>
+<p>Auris 前股東訴訟在2026年1月由特拉華州最高法院部分維持，形成對嬌生約 <strong>8億美元</strong>的判決；該金額已在2025年第四季計提，並於2026年1月支付。[SEC 10-K：Item 8, Note 19]</p>
+<p>這筆成本已經基本落地，對未來估值的風險主要是：</p>
+<ul>
+<li>它顯示併購相關陳述與保證可能產生重大責任；</li>
+<li>類似併購、商業合約或股東訴訟仍可能出現，但目前工具資料沒有提供可量化的新增金額。</li>
+</ul>
+<h3>3. 其他產品責任案件：規模較小，但長尾很長</h3>
+<p>截至2025年底，公司披露的美國直接索賠人數包括：</p>
+<ul>
+<li>骨盆網片：約5,190人；</li>
+<li>PINNACLE 髖臼杯：約680人；</li>
+<li>ELMIRON：約790人；</li>
+<li>Physiomesh：約110人；</li>
+<li>DePuy ASR：約30人。</li>
+</ul>
+<p>多數相關案件已有和解或準備金，但公司仍表示，未來可能因新案件、不同司法管轄區及個案事實而調整準備。[SEC 10-K：Item 8, Note 19]</p>
+<h2>三、風險排序</h2>
+<h3>以「可能造成長期估值衝擊」排序</h3>
+<ol>
+<li>
+<p><strong>滑石粉：最高</strong></p>
+<ul>
+<li>索賠人數最多；</li>
+<li>全面和解失敗；</li>
+<li>仍有大量案件回到州法院與MDL；</li>
+<li>專家證詞及一般因果關係仍在訴訟；</li>
+<li>公司無法估計34億美元準備之外的損失範圍。</li>
+</ul>
+</li>
+<li>
+<p><strong>阿片類：中等</strong></p>
+<ul>
+<li>已有主要和解框架；</li>
+<li>約80%已支付；</li>
+<li>剩餘準備約11億美元，金額相對可見；</li>
+<li>加拿大及未加入和解的案件仍可能增加尾部成本。</li>
+</ul>
+</li>
+<li>
+<p><strong>Auris及其他商業／股東案件：短期成本明確，長期風險較低</strong></p>
+<ul>
+<li>Auris的8億美元已計提並支付；</li>
+<li>目前最大的衝擊已反映在財報；</li>
+<li>但其他併購、反壟斷及政府調查案件仍可能帶來額外費用。</li>
+</ul>
+</li>
+</ol>
+<h2>四、投資上最應注意的判斷</h2>
+<p><strong>不要把2025年的70億美元滑石粉準備回轉，解讀為官司風險已經大幅消失。</strong> 它主要反映的是原先破產和解方案失敗後，會計上撤銷部分以該方案為基礎的準備；同一時間，公司仍保留約34億美元準備，且仍面對約74,360名美國直接索賠人。</p>
+<p>較合理的拆解是：</p>
+<ul>
+<li><strong>可見成本：</strong> 34億美元滑石粉準備、約11億美元阿片類準備、已支付的8億美元 Auris 判決，以及持續的律師費與辯護成本。</li>
+<li><strong>不確定上行風險：</strong> 滑石粉案件是否大量進入審判、陪審團損害賠償是否偏高、專家因果關係動議結果、是否會出現更多索賠，以及未來能否達成涵蓋多數索賠人的和解。</li>
+<li><strong>目前最重要的觀察點：</strong> 2026年滑石粉案件的審判數量、MDL Daubert 裁定、是否重新形成多方和解，以及公司季度報告中34億美元準備是否再次增加。</li>
+</ul>
+<p><strong>資料品質提醒：</strong> 上述財務數字主要來自嬌生於2026年2月11日提交、截至2025年12月28日的10-K；法律準備金是管理層在「可能發生且可合理估計」時認列的金額，並非全部潛在損失。新聞搜尋結果中個別Reuters結果包含未來日期或摘要不完整的項目，因此本分析以嬌生最新10-K披露為主，Reuters僅用於佐證破產和解遭拒的事件。</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p>**結論：嬌生目前最大的官司風險仍是滑石粉（talc）致癌訴訟，尤其是卵巢癌及間皮瘤索賠。**它已經形成一筆相當明確的會計負債與防禦成本，但真正可能讓損失大幅擴大的部分，仍取決於未來判決、索賠人數、因果關係專家證詞及能否達成整體和解。</p>
+<p>以下以嬌生 <strong>FY2025 10-K、截至2025年12月28日</strong> 的資料為基準。</p>
+<h2>一、已經看得到的成本</h2>
+<h3>1. 已確認的滑石粉訴訟準備金：約34億美元現值</h3>
+<p>截至2025年第四季，嬌生對滑石粉相關訴訟保留的準備金約為 <strong>34億美元現值</strong>，內容包括已簽署的和解協議、訴訟辯護費用及其他成本；其中約三分之一列為流動負債，意味著部分現金支出可能在近期發生。[1]</p>
+<p>這是目前最重要、最可量化的成本，但它不是「全部官司的最終上限」；公司明確表示，對於已認列準備金以外的可能損失，仍無法估計金額或範圍。[2]</p>
+<h3>2. 過去已發生的大額支出與會計沖銷</h3>
+<p>嬌生在2021年支付了約 <strong>25億美元</strong>，以履行一宗重大滑石粉訴訟判決，該金額包括利息。[3]</p>
+<p>此外，公司原本為一項全面解決方案在FY2024累計增加約 <strong>50億美元費用</strong>，使滑石粉訴訟準備金的現值一度達約116億美元；但德州破產法院在2025年3月駁回相關案件後，公司沖回約 <strong>70億美元</strong>，準備金才降至目前約34億美元。[4]這項沖回降低了帳面負債，但不代表訴訟風險消失，而是原先的破產整體和解方案失效，公司重新回到逐案訴訟。</p>
+<h3>3. 防禦訴訟本身會持續消耗現金</h3>
+<p>即使嬌生最終在個別案件勝訴，公司仍需支付律師、專家、證據調查及審判相關成本。FY2025 10-K列出的美國直接待決索賠人中，滑石粉產品相關案件約有 <strong>74,360名原告</strong>，遠高於公司列出的其他主要產品責任案件。[5]</p>
+<p>因此，已經可以看得到的成本不只是和解金，還包括：</p>
+<ul>
+<li>已確認的34億美元準備金；</li>
+<li>已簽署和解協議的付款；</li>
+<li>持續的辯護及專家費用；</li>
+<li>部分負債將在近期到期、需要現金支付；</li>
+<li>個別案件可能帶來額外判決或和解成本。</li>
+</ul>
+<h2>二、仍不確定、可能繼續擴大的部分</h2>
+<h3>1. 剩餘索賠是否會轉化為大量實際賠償</h3>
+<p>74,360名原告代表案件數量很大，但<strong>不等於嬌生一定要支付同等數量的賠償</strong>。案件結果可能包括駁回、陪審團判決、上訴推翻、個別和解或長期拖延。</p>
+<p>嬌生也承認，訴訟可能涉及高額甚至不確定的損害賠償，包括懲罰性賠償，而且實際支付可能超過現有準備金。[6]</p>
+<h3>2. 卵巢癌訴訟重新進入審判階段</h3>
+<p>在全面和解的破產方案失敗後，嬌生已回到一般法院程序。公司披露，卵巢癌案件正在安排2026年及之後的審判；多地法院仍會持續審理。[7]</p>
+<p>這部分是最主要的擴張風險之一，因為原先提出的破產和解方案本來試圖一次處理絕大多數化妝品滑石粉索賠，但該方案未能落地。換言之，嬌生現在失去了「用一個固定總額封頂」的確定性，改由逐案判決及和解決定最終成本。</p>
+<h3>3. 科學因果關係的專家證詞仍未完全定案</h3>
+<p>聯邦多區訴訟中，法院正在處理嬌生針對原告專家證詞的 Daubert 動議，涵蓋一般因果關係、個案因果關係及石棉檢測方法。2026年1月，特別主事官建議排除部分原告專家意見，但允許其他意見繼續；嬌生表示將提出上訴，其他動議預計在2026年上半年決定。[7]</p>
+<p>這造成雙向風險：</p>
+<ul>
+<li>如果更多原告專家意見被排除，嬌生的案件負擔可能下降；</li>
+<li>如果主要因果關係證詞獲准使用，原告在大規模審判及和解談判中的地位可能增強。</li>
+</ul>
+<p>所以目前不能把任何一種結果視為已確定。</p>
+<h3>4. 間皮瘤案件雖已有較高解決比例，但仍可能新增</h3>
+<p>嬌生表示，截至2024年8月已解決約 <strong>95%已提出的間皮瘤訴訟</strong>，但新的案件仍持續提出，且各州法院仍有審判活動。[8]這表示間皮瘤部分相較卵巢癌更接近可控，但並未完全結束；單一案件的高額陪審團判決仍可能造成季度業績波動。</p>
+<h3>5. 供應商及保險相關訴訟也可能改變最終分攤</h3>
+<p>嬌生與滑石粉供應商 Imerys、Cyprus及其相關債權人達成全球和解，但部分保險公司仍在上訴。若保險責任、賠償分攤或破產信託安排出現變化，可能影響嬌生最終需要自行承擔的金額。[9]</p>
+<h2>判斷風險層級</h2>
+<p>可以把滑石粉訴訟拆成三層：</p>
+<table>
+<thead>
+<tr>
+<th>層級</th>
+<th>目前判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>已發生或高度可見成本</strong></td>
+<td>約34億美元滑石粉訴訟準備金、已簽和解、辯護費，以及部分近期現金付款</td>
+</tr>
+<tr>
+<td><strong>中度不確定成本</strong></td>
+<td>2026年起持續進行的卵巢癌審判、間皮瘤新案、個別高額判決及和解</td>
+</tr>
+<tr>
+<td><strong>最可能造成大幅上修的風險</strong></td>
+<td>原告專家因果關係證詞獲准、索賠人數繼續增加、陪審團大量判原告勝訴，或無法再形成一個全面和解方案</td>
+</tr>
+</tbody>
+</table>
+<p>**核心結論是：34億美元比較像目前已辨識的負債與防禦成本，而不是滑石粉官司的最終損失上限。**嬌生自己也表示，若一項或多項訴訟導致準備金增加，可能對某一期間的營業利益與現金流造成重大不利影響。[2]</p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: SEC 10-K excerpt<br />
+[4]: SEC 10-K excerpt<br />
+[5]: SEC 10-K excerpt<br />
+[6]: SEC 10-K excerpt<br />
+[7]: SEC 10-K excerpt<br />
+[8]: SEC 10-K excerpt<br />
+[9]: SEC 10-K excerpt</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v6" value="X 較好"> X 較好</label><label><input type="radio" name="v6" value="Y 較好"> Y 較好</label><label><input type="radio" name="v6" value="平手"> 平手</label><label><input type="radio" name="v6" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n6"></textarea>
@@ -43,8 +335,236 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 9</h2>
   <p class="q">分析在歐盟和美國對大型平台管得更嚴的新局下，蘋果跟 Meta 哪家的直接商業衝擊比較大。</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：若看「已經直接打到現有營收與抽成機制」的衝擊，我判斷 Apple 比 Meta 大；若看「美國監管最壞情境的結構性風險」，Meta 的尾部風險可能更大。**\n\n## 為什麼 Apple 的直接商業衝擊較大\n\n### 1. Apple 被碰到的是核心變現管道，而不只是合規成本\n\nApple 的 App Store 抽成、支付及分發控制，是其平台經濟的重要 monetization 機制。其 FY2025 10-K（截至 2025-09-27）披露，歐盟 DMA 已迫使 Apple：\n\n- 開放替代 App 商店；\n- 允許替代支付；\n- 調整 App Store 商業條款及費率；\n- 允許開發者把用戶導向 App Store 以外的支付或分發渠道。[1]\n\n更直接的是，美國 Epic 案相關禁令要求 Apple 不得對 App 外部購買收取佣金或費用，也不得限制開發者引導用戶到外部購買渠道。[2] 這意味著監管不是只要求 Apple 改變介面或披露方式，而是直接削弱其「控制分發—控制支付—收取抽成」的閉環。\n\n歐盟方面，Apple 在 2025 年已被處以 **5 億歐元**罰款；其後調整 App Store 費率：App Store 內購處理費約為 20%，小型企業可低至 13%，而把用戶導向外部支付的開發者費用約為 5% 至 15%。[3] 這可能保留部分收入，但整體上降低了 Apple 對交易的控制力及抽成空間。\n\n此外，Apple 的 10-K 還披露，其從 Google 等公司取得搜尋服務授權收入，而美國 Google 反壟斷案件的補救措施若限制 Google 向 Apple 提供搜尋分發商業條件，可能實質影響 Apple 的相關授權收入。[4]\n\n**所以 Apple 面對的是三個直接商業效果：**\n\n1. App Store 佣金率及交易量可能下降；  \n2. 外部支付及替代分發增加，削弱平台控制力；  \n3. 搜尋分發付款也可能受到美國反壟斷補救措施牽連。\n\n## Meta 的衝擊集中在廣告定向，而非整個交易基礎設施\n\nMeta 的歐盟風險主要針對 Facebook 和 Instagram 的「付費免廣告，或同意個人化廣告」模式。歐盟認為，這種模式可能迫使用戶同意把個人資料用於定向廣告；Meta 在 2025 年 4 月因此被處以 **2 億歐元** DMA 罰款。歐盟後來警告，如果調整仍不符合要求，Meta 可能面對最高相當於平均每日全球營收 5% 的周期性罰款。[5]\n\n這對 Meta 的直接商業影響是：\n\n- 歐洲用戶可用於個人化廣告的資料可能減少；\n- 廣告定向精準度及轉化率可能下降；\n- Meta 可能需要提供更便宜、甚至免費但較不個人化的選項；\n- 「以資料換取免費服務」的商業模式受到限制。\n\n不過，這主要首先影響歐洲市場及廣告定向效率，並不等同於 Meta 全球廣告交易平台被拆解。Meta 的基本服務仍可繼續透過廣告取得收入；目前監管焦點是資料使用、同意方式及用戶選項，而不是直接禁止其向廣告主出售廣告。[5]\n\n**因此，相比 Apple，Meta 的近期直接衝擊更像是「每千次展示或每次轉換的經濟價值下降」，而 Apple 則是「平台交易及抽成收入的制度被改寫」。**\n\n## 美國因素：Meta 的尾部風險不能低估\n\n在美國，Meta 的 FTC 反壟斷訴訟涉及 Instagram 和 WhatsApp 的收購，最壞情況可能要求其剝離其中部分資產。[6] 這種結果若發生，對 Meta 的影響會遠大於歐盟的 2 億歐元罰款，因為它可能破壞 Meta 的產品整合、用戶網絡及資料協同。\n\n但這仍屬**高影響、低確定性的尾部情境**；與 Apple 已經面對的 App Store 禁令、DMA 調整及既有罰款相比，Meta 的美國反壟斷風險更像是公司結構層面的潛在威脅，而非已全面落地的收入機制改造。\n\nApple 在美國也面對 DOJ 的智慧型手機反壟斷訴訟，以及多宗涉及 App Store 的訴訟；Apple 自己在 FY2025 10-K 中表示，若案件結果不利，可能導致罰款、改變商業慣例及限制其提供產品和服務的方式。[7] 但目前最直接、最具體的商業限制仍集中在 App Store 外部支付及導流。\n\n## 綜合比較\n\n| 面向 | Apple | Meta |\n|---|---|---|\n| 歐盟已落地罰款 | 5 億歐元 | 2 億歐元 |\n| 被打擊的核心機制 | App Store 抽成、支付、分發控制 | 個人資料與個人化廣告 |\n| 直接收入影響 | 可能直接減少平台佣金及搜尋分發收入 | 可能降低廣告定向效率及廣告單價 |\n| 美國最壞情境 | App Store 商業模式進一步被限制 | Instagram、WhatsApp 甚至可能面臨結構性剝離風險 |\n| 商業衝擊的確定性 | **較高，已有禁令、罰款及業務調整** | 歐盟影響已發生，但美國最壞情境仍較不確定 |\n| 全球外溢風險 | 若其他地區仿效，可能普遍削弱 Apple 抽成模式 | 若資料規則全球化，可能削弱廣告定向，但不必然摧毀廣告模式 |\n\n**我的判斷是：**\n\n- **近中期、按已實現的直接商業損失：Apple 較大。**\n- **按長期最壞情境：Meta 可能更危險，因為美國 FTC 案若導致 Instagram 或 WhatsApp 被剝離，將改變公司的資產與競爭結構。**\n- **Apple 的風險是「平台抽成率和控制權被持續侵蝕」；Meta 的風險是「資料驅動廣告效率下降，加上美國可能出現結構性拆分」。**\n\n本次未取得可用的 Meta 10-K 檢索文本，因此 Meta 部分主要依據所取得的 2024–2025 年監管及訴訟新聞；Apple 部分則有 FY2025 10-K 的直接披露支持。\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: https://www.reuters.com/legal/litigation/apple-changes-app-store-rules-eu-comply-with-antitrust-order-2025-06-26 \&quot;Apple changes App Store rules in EU to comply with antitrust order\&quot;  \n[4]: SEC 10-K excerpt  \n[5]: https://www.reuters.com/sustainability/boards-policy-regulation/meta-will-only-make-limited-changes-pay-or-consent-model-eu-says-2025-06-27 \&quot;Meta may face daily fines over pay-or-consent model, EU warns\&quot;  \n[6]: https://www.cnbc.com/2025/04/11/ftc-meta-instagram-whatsapp-lawsuit.html \&quot;Meta faces the FTC as blockbuster antitrust trial kicks off\&quot;  \n[7]: SEC 10-K excerpt&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;**結論：若看「已經發生、可直接打到收入與毛利的商業衝擊」，Apple 比 Meta 更大；若看「最壞情境的結構性風險」，Meta 可能更危險。**\n\n核心差異是：\n\n- **Apple 的監管問題直接針對收費閘門——App Store、支付、分發與生態系封閉性。**\n- **Meta 的監管問題主要針對廣告資料使用、同意機制，以及 Instagram／WhatsApp 的併購合法性。**\n\n## 一、為什麼 Apple 的直接商業衝擊較大\n\n### 1. Apple 被迫改變的是高毛利、可重複收費的商業模式\n\nApple 2025 財年 Services 營收為 **1,091.6 億美元，占總營收 4,161.6 億美元**；Services 毛利率為 **75.4%**，遠高於產品業務的 **36.8%**。[SEC 10-K Item 7]\n\n因此，歐盟要求 Apple：\n\n- 開放第三方 App 商店；\n- 允許替代支付；\n- 允許開發者把用戶導向 App Store 外交易；\n- 調整 App Store 費率與商業條款。\n\n這不是單純增加合規成本，而是直接削弱 Apple 對交易流程的控制權。2025 年 6 月，Apple 在歐盟修改規則後，App Store 內購處理費為 **20%**，小型企業方案可低至 **13%**；導向外部支付的費用約為 **5% 至 15%**。[1]\n\n這代表 Apple 面臨兩種直接損失：\n\n1. **抽成率下降**：部分交易從原本較高的 App Store 抽成，轉為較低費率或外部支付。\n2. **交易外流**：Apple 可能失去對支付、訂閱續費與客戶關係的控制。\n\n歐盟已在 2025 年 4 月對 Apple 處以 **5 億歐元**罰款，並要求其改善反引導措施；若未遵守，可能面臨相當於全球平均每日營收 **5%** 的每日罰款，Reuters 報導估算約為 **5,000 萬歐元／日**。[1][2]\n\n### 2. 美國案件也打擊 Apple 的「圍牆花園」\n\n美國司法部的反壟斷訴訟指控 Apple 利用 iPhone 生態系限制跨平台通訊、第三方錢包、智慧手錶相容性、雲端遊戲及非 App Store 分發。[3]\n\n這使 Apple 的風險不只是「少收一點 App 抽成」，而是可能被迫：\n\n- 開放更多系統 API；\n- 讓第三方服務更容易與 iOS 整合；\n- 降低 Apple Watch、Apple Pay、App Store 等服務對硬體生態系的鎖定效果；\n- 降低 iPhone 生態系的轉換成本與差異化。\n\nApple 自己在 2025 年 10-K 也明確表示，歐盟 DMA 及其他競爭法規可能要求它調整 App Store、iOS、iPadOS、Safari、支付及分發方式，並可能導致**較低收入、較低毛利、產品需求下降及競爭優勢受損**。[SEC 10-K Item 1A]\n\n## 二、Meta 的衝擊也很大，但目前更多是「廣告效率與尾部風險」\n\n### 1. 歐盟直接打擊 Meta 的個人化廣告模型\n\n歐盟在 2025 年 4 月對 Meta 處以 **2 億歐元**罰款，認定其「付費或同意」模式沒有充分提供一個使用較少個人資料、但仍具等同性的服務選項。[2]\n\nMeta 後續面臨的直接商業問題是：\n\n- 歐洲用戶可能減少對個人化廣告的同意；\n- 可用於廣告定向的資料減少；\n- 廣告轉換率與每千次曝光價值可能下降；\n- Meta 可能需要提供低資料使用版本，甚至完全無廣告或低個人化方案。\n\nReuters 報導指出，Meta 當時不太可能進一步大幅修改其「付費或同意」模式，因此可能面臨新的歐盟指控及每日罰款，最高可達全球平均每日營收的 **5%**。[4]\n\n這對 Meta 比一般隱私罰款更嚴重，因為它打到的是核心變現機制：**用戶資料—廣告定向—廣告價格**。\n\n但目前可觀察到的衝擊仍較偏向：\n\n- 歐洲市場的廣告效率下降；\n- 合規和產品改造成本上升；\n- 商業模式需要區域化。\n\n它尚未像 Apple 的 App Store 案件那樣，明確要求 Meta 把主要交易流程或平台抽成權讓給第三方。\n\n### 2. 美國 FTC 案件的最壞情境非常大，但不確定性更高\n\n美國 FTC 的案件要求處理 Meta 收購 Instagram 與 WhatsApp 的問題，案件核心是是否需要剝離這兩項資產；2025 年 4 月案件進入審判階段。[5]\n\n若最壞情況是要求剝離 Instagram 或 WhatsApp，對 Meta 的影響可能遠大於一般罰款，因為這會：\n\n- 破壞跨平台廣告與用戶資料協同；\n- 降低 Facebook、Instagram、WhatsApp 的網路效應；\n- 削弱 Meta 將 Reels、訊息、商業帳戶與廣告工具整合的能力；\n- 改變其長期競爭地位。\n\n不過，這屬於**高衝擊、低確定性**風險。相較之下，Apple 的歐盟 App Store 改制已經落地，商業條款與費率已被迫調整。\n\n## 三、直接商業衝擊比較\n\n| 面向 | Apple | Meta | 判斷 |\n|---|---|---|---|\n| 已實現的監管成本 | 已被罰 5 億歐元，並須改變 App Store 條款 | 已被罰 2 億歐元，需調整廣告選項 | Apple 較大 |\n| 被打擊的收入來源 | App Store、支付、分發及高毛利 Services | 個人化廣告效率與資料使用 | Apple 較直接 |\n| 對毛利的即時壓力 | 直接降低抽成與交易控制權 | 目前主要是廣告定價、轉換率風險 | Apple 較大 |\n| 美國最壞情境 | iPhone 生態系被迫開放 | Instagram／WhatsApp 可能被要求剝離 | Meta 的尾部風險較大 |\n| 商業模式可調整性 | 需要改變平台交易規則 | 可透過付費方案、較少個人化、產品調整因應 | Apple 較難調整 |\n| 監管外溢至全球的可能性 | 高，因 iOS／App Store 規則容易形成全球標準 | 中高，但部分問題可先限縮在歐洲 | Apple 較高 |\n\n## 四、我的判斷\n\n### 基準情境：Apple 受到的直接商業衝擊較大\n\n原因有三個：\n\n1. **Apple 的監管措施已轉化為具體的費率、支付與分發改變。**\n2. **受影響的是 Services 業務，而 Services 2025 財年毛利率達 75.4%。**\n3. **歐盟與美國都直接挑戰 Apple 的平台控制權，而不是只要求增加揭露或支付罰款。**\n\n因此，Apple 的風險可概括為：\n\n&gt; **每一筆交易少抽一點、更多交易離開平台，以及 iPhone 生態系的鎖定力下降。**\n\n### 壓力情境：Meta 的潛在長期破壞性可能更大\n\n如果歐洲限制個人化廣告的資料使用，Meta 可能在歐洲面臨廣告收益率下降；如果美國 FTC 最終成功要求拆分 Instagram 或 WhatsApp，則可能直接破壞 Meta 最有價值的資產組合。\n\n但目前這些對 Meta 的最大衝擊仍取決於未來裁決與執法結果。相比之下，Apple 已經被迫修改 App Store 商業條款，故其「直接、確定、近期」的商業衝擊更明顯。\n\n## 最終排序\n\n- **近期收入／毛利直接受壓：Apple &gt; Meta**\n- **商業模式被迫改造：Apple &gt; Meta**\n- **美國最壞情境的資產重組風險：Meta ≥ Apple**\n- **目前投資者最應先反映的監管影響：Apple**\n\n因此，我會把結論定義為：\n\n&gt; **在歐盟與美國同時加強大型平台監管的新局下，Apple 是較直接的受害者；Meta 則是較具尾部風險的受害者。Apple 的問題已經進入收入抽成與平台規則層面，Meta 的問題則更集中在廣告資料效率與可能的資產拆分。**\n\n資料品質說明：Apple 的最新 10-K 資料可取得至 2025 財年；本次 SEC 工具未能成功擷取 Meta 最新 10-K，因此 Meta 的財務面判斷主要依據 Finnhub 基本面及 Tavily 財經新聞結果。新聞搜尋結果的部分發布日期不完整，對尚未有最終裁決的案件，以上以「風險」而非既定結果描述。\n\n[1]: https://www.reuters.com/legal/litigation/apple-changes-app-store-rules-eu-comply-with-antitrust-order-2025-06-26 \&quot;Apple changes App Store rules in EU to comply with antitrust order\&quot;\n[2]: https://www.cnbc.com/2025/04/23/eu-fines-meta-and-apple-for-breaching-digital-antitrust-rules.html \&quot;EU fines Meta and Apple for breaching digital antitrust rules\&quot;\n[3]: https://www.cnbc.com/2024/03/21/doj-sues-apple-over-iphone-monopoly.html?par=sharebar \&quot;DOJ sues Apple over iPhone monopoly in landmark antitrust case\&quot;\n[4]: https://www.reuters.com/sustainability/boards-policy-regulation/meta-wont-tweak-pay-or-consent-model-further-despite-risk-eu-fines-sources-say-2025-07-11 \&quot;Meta won&#x27;t tweak pay-or-consent model further despite risk of EU fines\&quot;\n[5]: https://www.cnbc.com/2025/04/11/ftc-meta-instagram-whatsapp-lawsuit.html \&quot;Meta faces the FTC as blockbuster antitrust trial kicks off\&quot;&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>結論：若看「已經發生、可直接打到收入與毛利的商業衝擊」，Apple 比 Meta 更大；若看「最壞情境的結構性風險」，Meta 可能更危險。</strong></p>
+<p>核心差異是：</p>
+<ul>
+<li><strong>Apple 的監管問題直接針對收費閘門——App Store、支付、分發與生態系封閉性。</strong></li>
+<li><strong>Meta 的監管問題主要針對廣告資料使用、同意機制，以及 Instagram／WhatsApp 的併購合法性。</strong></li>
+</ul>
+<h2>一、為什麼 Apple 的直接商業衝擊較大</h2>
+<h3>1. Apple 被迫改變的是高毛利、可重複收費的商業模式</h3>
+<p>Apple 2025 財年 Services 營收為 <strong>1,091.6 億美元，占總營收 4,161.6 億美元</strong>；Services 毛利率為 <strong>75.4%</strong>，遠高於產品業務的 <strong>36.8%</strong>。[SEC 10-K Item 7]</p>
+<p>因此，歐盟要求 Apple：</p>
+<ul>
+<li>開放第三方 App 商店；</li>
+<li>允許替代支付；</li>
+<li>允許開發者把用戶導向 App Store 外交易；</li>
+<li>調整 App Store 費率與商業條款。</li>
+</ul>
+<p>這不是單純增加合規成本，而是直接削弱 Apple 對交易流程的控制權。2025 年 6 月，Apple 在歐盟修改規則後，App Store 內購處理費為 <strong>20%</strong>，小型企業方案可低至 <strong>13%</strong>；導向外部支付的費用約為 <strong>5% 至 15%</strong>。<a href="https://www.reuters.com/legal/litigation/apple-changes-app-store-rules-eu-comply-with-antitrust-order-2025-06-26" title="Apple changes App Store rules in EU to comply with antitrust order">1</a></p>
+<p>這代表 Apple 面臨兩種直接損失：</p>
+<ol>
+<li><strong>抽成率下降</strong>：部分交易從原本較高的 App Store 抽成，轉為較低費率或外部支付。</li>
+<li><strong>交易外流</strong>：Apple 可能失去對支付、訂閱續費與客戶關係的控制。</li>
+</ol>
+<p>歐盟已在 2025 年 4 月對 Apple 處以 <strong>5 億歐元</strong>罰款，並要求其改善反引導措施；若未遵守，可能面臨相當於全球平均每日營收 <strong>5%</strong> 的每日罰款，Reuters 報導估算約為 <strong>5,000 萬歐元／日</strong>。<a href="https://www.cnbc.com/2025/04/23/eu-fines-meta-and-apple-for-breaching-digital-antitrust-rules.html" title="EU fines Meta and Apple for breaching digital antitrust rules">1</a></p>
+<h3>2. 美國案件也打擊 Apple 的「圍牆花園」</h3>
+<p>美國司法部的反壟斷訴訟指控 Apple 利用 iPhone 生態系限制跨平台通訊、第三方錢包、智慧手錶相容性、雲端遊戲及非 App Store 分發。<a href="https://www.cnbc.com/2024/03/21/doj-sues-apple-over-iphone-monopoly.html?par=sharebar" title="DOJ sues Apple over iPhone monopoly in landmark antitrust case">3</a></p>
+<p>這使 Apple 的風險不只是「少收一點 App 抽成」，而是可能被迫：</p>
+<ul>
+<li>開放更多系統 API；</li>
+<li>讓第三方服務更容易與 iOS 整合；</li>
+<li>降低 Apple Watch、Apple Pay、App Store 等服務對硬體生態系的鎖定效果；</li>
+<li>降低 iPhone 生態系的轉換成本與差異化。</li>
+</ul>
+<p>Apple 自己在 2025 年 10-K 也明確表示，歐盟 DMA 及其他競爭法規可能要求它調整 App Store、iOS、iPadOS、Safari、支付及分發方式，並可能導致<strong>較低收入、較低毛利、產品需求下降及競爭優勢受損</strong>。[SEC 10-K Item 1A]</p>
+<h2>二、Meta 的衝擊也很大，但目前更多是「廣告效率與尾部風險」</h2>
+<h3>1. 歐盟直接打擊 Meta 的個人化廣告模型</h3>
+<p>歐盟在 2025 年 4 月對 Meta 處以 <strong>2 億歐元</strong>罰款，認定其「付費或同意」模式沒有充分提供一個使用較少個人資料、但仍具等同性的服務選項。<a href="https://www.cnbc.com/2025/04/23/eu-fines-meta-and-apple-for-breaching-digital-antitrust-rules.html" title="EU fines Meta and Apple for breaching digital antitrust rules">2</a></p>
+<p>Meta 後續面臨的直接商業問題是：</p>
+<ul>
+<li>歐洲用戶可能減少對個人化廣告的同意；</li>
+<li>可用於廣告定向的資料減少；</li>
+<li>廣告轉換率與每千次曝光價值可能下降；</li>
+<li>Meta 可能需要提供低資料使用版本，甚至完全無廣告或低個人化方案。</li>
+</ul>
+<p>Reuters 報導指出，Meta 當時不太可能進一步大幅修改其「付費或同意」模式，因此可能面臨新的歐盟指控及每日罰款，最高可達全球平均每日營收的 <strong>5%</strong>。<a href="https://www.reuters.com/sustainability/boards-policy-regulation/meta-wont-tweak-pay-or-consent-model-further-despite-risk-eu-fines-sources-say-2025-07-11" title="Meta won't tweak pay-or-consent model further despite risk of EU fines">4</a></p>
+<p>這對 Meta 比一般隱私罰款更嚴重，因為它打到的是核心變現機制：<strong>用戶資料—廣告定向—廣告價格</strong>。</p>
+<p>但目前可觀察到的衝擊仍較偏向：</p>
+<ul>
+<li>歐洲市場的廣告效率下降；</li>
+<li>合規和產品改造成本上升；</li>
+<li>商業模式需要區域化。</li>
+</ul>
+<p>它尚未像 Apple 的 App Store 案件那樣，明確要求 Meta 把主要交易流程或平台抽成權讓給第三方。</p>
+<h3>2. 美國 FTC 案件的最壞情境非常大，但不確定性更高</h3>
+<p>美國 FTC 的案件要求處理 Meta 收購 Instagram 與 WhatsApp 的問題，案件核心是是否需要剝離這兩項資產；2025 年 4 月案件進入審判階段。<a href="https://www.cnbc.com/2025/04/11/ftc-meta-instagram-whatsapp-lawsuit.html" title="Meta faces the FTC as blockbuster antitrust trial kicks off">5</a></p>
+<p>若最壞情況是要求剝離 Instagram 或 WhatsApp，對 Meta 的影響可能遠大於一般罰款，因為這會：</p>
+<ul>
+<li>破壞跨平台廣告與用戶資料協同；</li>
+<li>降低 Facebook、Instagram、WhatsApp 的網路效應；</li>
+<li>削弱 Meta 將 Reels、訊息、商業帳戶與廣告工具整合的能力；</li>
+<li>改變其長期競爭地位。</li>
+</ul>
+<p>不過，這屬於<strong>高衝擊、低確定性</strong>風險。相較之下，Apple 的歐盟 App Store 改制已經落地，商業條款與費率已被迫調整。</p>
+<h2>三、直接商業衝擊比較</h2>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th>Apple</th>
+<th>Meta</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>已實現的監管成本</td>
+<td>已被罰 5 億歐元，並須改變 App Store 條款</td>
+<td>已被罰 2 億歐元，需調整廣告選項</td>
+<td>Apple 較大</td>
+</tr>
+<tr>
+<td>被打擊的收入來源</td>
+<td>App Store、支付、分發及高毛利 Services</td>
+<td>個人化廣告效率與資料使用</td>
+<td>Apple 較直接</td>
+</tr>
+<tr>
+<td>對毛利的即時壓力</td>
+<td>直接降低抽成與交易控制權</td>
+<td>目前主要是廣告定價、轉換率風險</td>
+<td>Apple 較大</td>
+</tr>
+<tr>
+<td>美國最壞情境</td>
+<td>iPhone 生態系被迫開放</td>
+<td>Instagram／WhatsApp 可能被要求剝離</td>
+<td>Meta 的尾部風險較大</td>
+</tr>
+<tr>
+<td>商業模式可調整性</td>
+<td>需要改變平台交易規則</td>
+<td>可透過付費方案、較少個人化、產品調整因應</td>
+<td>Apple 較難調整</td>
+</tr>
+<tr>
+<td>監管外溢至全球的可能性</td>
+<td>高，因 iOS／App Store 規則容易形成全球標準</td>
+<td>中高，但部分問題可先限縮在歐洲</td>
+<td>Apple 較高</td>
+</tr>
+</tbody>
+</table>
+<h2>四、我的判斷</h2>
+<h3>基準情境：Apple 受到的直接商業衝擊較大</h3>
+<p>原因有三個：</p>
+<ol>
+<li><strong>Apple 的監管措施已轉化為具體的費率、支付與分發改變。</strong></li>
+<li><strong>受影響的是 Services 業務，而 Services 2025 財年毛利率達 75.4%。</strong></li>
+<li><strong>歐盟與美國都直接挑戰 Apple 的平台控制權，而不是只要求增加揭露或支付罰款。</strong></li>
+</ol>
+<p>因此，Apple 的風險可概括為：</p>
+<blockquote>
+<p><strong>每一筆交易少抽一點、更多交易離開平台，以及 iPhone 生態系的鎖定力下降。</strong></p>
+</blockquote>
+<h3>壓力情境：Meta 的潛在長期破壞性可能更大</h3>
+<p>如果歐洲限制個人化廣告的資料使用，Meta 可能在歐洲面臨廣告收益率下降；如果美國 FTC 最終成功要求拆分 Instagram 或 WhatsApp，則可能直接破壞 Meta 最有價值的資產組合。</p>
+<p>但目前這些對 Meta 的最大衝擊仍取決於未來裁決與執法結果。相比之下，Apple 已經被迫修改 App Store 商業條款，故其「直接、確定、近期」的商業衝擊更明顯。</p>
+<h2>最終排序</h2>
+<ul>
+<li><strong>近期收入／毛利直接受壓：Apple &gt; Meta</strong></li>
+<li><strong>商業模式被迫改造：Apple &gt; Meta</strong></li>
+<li><strong>美國最壞情境的資產重組風險：Meta ≥ Apple</strong></li>
+<li><strong>目前投資者最應先反映的監管影響：Apple</strong></li>
+</ul>
+<p>因此，我會把結論定義為：</p>
+<blockquote>
+<p><strong>在歐盟與美國同時加強大型平台監管的新局下，Apple 是較直接的受害者；Meta 則是較具尾部風險的受害者。Apple 的問題已經進入收入抽成與平台規則層面，Meta 的問題則更集中在廣告資料效率與可能的資產拆分。</strong></p>
+</blockquote>
+<p>資料品質說明：Apple 的最新 10-K 資料可取得至 2025 財年；本次 SEC 工具未能成功擷取 Meta 最新 10-K，因此 Meta 的財務面判斷主要依據 Finnhub 基本面及 Tavily 財經新聞結果。新聞搜尋結果的部分發布日期不完整，對尚未有最終裁決的案件，以上以「風險」而非既定結果描述。</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p><strong>結論：若看「已經直接打到現有營收與抽成機制」的衝擊，我判斷 Apple 比 Meta 大；若看「美國監管最壞情境的結構性風險」，Meta 的尾部風險可能更大。</strong></p>
+<h2>為什麼 Apple 的直接商業衝擊較大</h2>
+<h3>1. Apple 被碰到的是核心變現管道，而不只是合規成本</h3>
+<p>Apple 的 App Store 抽成、支付及分發控制，是其平台經濟的重要 monetization 機制。其 FY2025 10-K（截至 2025-09-27）披露，歐盟 DMA 已迫使 Apple：</p>
+<ul>
+<li>開放替代 App 商店；</li>
+<li>允許替代支付；</li>
+<li>調整 App Store 商業條款及費率；</li>
+<li>允許開發者把用戶導向 App Store 以外的支付或分發渠道。[1]</li>
+</ul>
+<p>更直接的是，美國 Epic 案相關禁令要求 Apple 不得對 App 外部購買收取佣金或費用，也不得限制開發者引導用戶到外部購買渠道。[2] 這意味著監管不是只要求 Apple 改變介面或披露方式，而是直接削弱其「控制分發—控制支付—收取抽成」的閉環。</p>
+<p>歐盟方面，Apple 在 2025 年已被處以 <strong>5 億歐元</strong>罰款；其後調整 App Store 費率：App Store 內購處理費約為 20%，小型企業可低至 13%，而把用戶導向外部支付的開發者費用約為 5% 至 15%。[3] 這可能保留部分收入，但整體上降低了 Apple 對交易的控制力及抽成空間。</p>
+<p>此外，Apple 的 10-K 還披露，其從 Google 等公司取得搜尋服務授權收入，而美國 Google 反壟斷案件的補救措施若限制 Google 向 Apple 提供搜尋分發商業條件，可能實質影響 Apple 的相關授權收入。[4]</p>
+<p><strong>所以 Apple 面對的是三個直接商業效果：</strong></p>
+<ol>
+<li>App Store 佣金率及交易量可能下降；</li>
+<li>外部支付及替代分發增加，削弱平台控制力；</li>
+<li>搜尋分發付款也可能受到美國反壟斷補救措施牽連。</li>
+</ol>
+<h2>Meta 的衝擊集中在廣告定向，而非整個交易基礎設施</h2>
+<p>Meta 的歐盟風險主要針對 Facebook 和 Instagram 的「付費免廣告，或同意個人化廣告」模式。歐盟認為，這種模式可能迫使用戶同意把個人資料用於定向廣告；Meta 在 2025 年 4 月因此被處以 <strong>2 億歐元</strong> DMA 罰款。歐盟後來警告，如果調整仍不符合要求，Meta 可能面對最高相當於平均每日全球營收 5% 的周期性罰款。[5]</p>
+<p>這對 Meta 的直接商業影響是：</p>
+<ul>
+<li>歐洲用戶可用於個人化廣告的資料可能減少；</li>
+<li>廣告定向精準度及轉化率可能下降；</li>
+<li>Meta 可能需要提供更便宜、甚至免費但較不個人化的選項；</li>
+<li>「以資料換取免費服務」的商業模式受到限制。</li>
+</ul>
+<p>不過，這主要首先影響歐洲市場及廣告定向效率，並不等同於 Meta 全球廣告交易平台被拆解。Meta 的基本服務仍可繼續透過廣告取得收入；目前監管焦點是資料使用、同意方式及用戶選項，而不是直接禁止其向廣告主出售廣告。[5]</p>
+<p><strong>因此，相比 Apple，Meta 的近期直接衝擊更像是「每千次展示或每次轉換的經濟價值下降」，而 Apple 則是「平台交易及抽成收入的制度被改寫」。</strong></p>
+<h2>美國因素：Meta 的尾部風險不能低估</h2>
+<p>在美國，Meta 的 FTC 反壟斷訴訟涉及 Instagram 和 WhatsApp 的收購，最壞情況可能要求其剝離其中部分資產。[6] 這種結果若發生，對 Meta 的影響會遠大於歐盟的 2 億歐元罰款，因為它可能破壞 Meta 的產品整合、用戶網絡及資料協同。</p>
+<p>但這仍屬<strong>高影響、低確定性的尾部情境</strong>；與 Apple 已經面對的 App Store 禁令、DMA 調整及既有罰款相比，Meta 的美國反壟斷風險更像是公司結構層面的潛在威脅，而非已全面落地的收入機制改造。</p>
+<p>Apple 在美國也面對 DOJ 的智慧型手機反壟斷訴訟，以及多宗涉及 App Store 的訴訟；Apple 自己在 FY2025 10-K 中表示，若案件結果不利，可能導致罰款、改變商業慣例及限制其提供產品和服務的方式。[7] 但目前最直接、最具體的商業限制仍集中在 App Store 外部支付及導流。</p>
+<h2>綜合比較</h2>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th>Apple</th>
+<th>Meta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>歐盟已落地罰款</td>
+<td>5 億歐元</td>
+<td>2 億歐元</td>
+</tr>
+<tr>
+<td>被打擊的核心機制</td>
+<td>App Store 抽成、支付、分發控制</td>
+<td>個人資料與個人化廣告</td>
+</tr>
+<tr>
+<td>直接收入影響</td>
+<td>可能直接減少平台佣金及搜尋分發收入</td>
+<td>可能降低廣告定向效率及廣告單價</td>
+</tr>
+<tr>
+<td>美國最壞情境</td>
+<td>App Store 商業模式進一步被限制</td>
+<td>Instagram、WhatsApp 甚至可能面臨結構性剝離風險</td>
+</tr>
+<tr>
+<td>商業衝擊的確定性</td>
+<td><strong>較高，已有禁令、罰款及業務調整</strong></td>
+<td>歐盟影響已發生，但美國最壞情境仍較不確定</td>
+</tr>
+<tr>
+<td>全球外溢風險</td>
+<td>若其他地區仿效，可能普遍削弱 Apple 抽成模式</td>
+<td>若資料規則全球化，可能削弱廣告定向，但不必然摧毀廣告模式</td>
+</tr>
+</tbody>
+</table>
+<p><strong>我的判斷是：</strong></p>
+<ul>
+<li><strong>近中期、按已實現的直接商業損失：Apple 較大。</strong></li>
+<li><strong>按長期最壞情境：Meta 可能更危險，因為美國 FTC 案若導致 Instagram 或 WhatsApp 被剝離，將改變公司的資產與競爭結構。</strong></li>
+<li><strong>Apple 的風險是「平台抽成率和控制權被持續侵蝕」；Meta 的風險是「資料驅動廣告效率下降，加上美國可能出現結構性拆分」。</strong></li>
+</ul>
+<p>本次未取得可用的 Meta 10-K 檢索文本，因此 Meta 部分主要依據所取得的 2024–2025 年監管及訴訟新聞；Apple 部分則有 FY2025 10-K 的直接披露支持。</p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: https://www.reuters.com/legal/litigation/apple-changes-app-store-rules-eu-comply-with-antitrust-order-2025-06-26 &quot;Apple changes App Store rules in EU to comply with antitrust order&quot;<br />
+[4]: SEC 10-K excerpt<br />
+[5]: https://www.reuters.com/sustainability/boards-policy-regulation/meta-will-only-make-limited-changes-pay-or-consent-model-eu-says-2025-06-27 &quot;Meta may face daily fines over pay-or-consent model, EU warns&quot;<br />
+[6]: https://www.cnbc.com/2025/04/11/ftc-meta-instagram-whatsapp-lawsuit.html &quot;Meta faces the FTC as blockbuster antitrust trial kicks off&quot;<br />
+[7]: SEC 10-K excerpt</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v9" value="X 較好"> X 較好</label><label><input type="radio" name="v9" value="Y 較好"> Y 較好</label><label><input type="radio" name="v9" value="平手"> 平手</label><label><input type="radio" name="v9" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n9"></textarea>
@@ -52,8 +572,153 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 13</h2>
   <p class="q">分析 Visa 跟 Mastercard 的官方揭露，有沒有直接支持「監管會壓縮刷卡網路生意的獲利能力」這個說法。</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：有直接支持，但支持的是「監管可能壓低營收、交易量並增加成本，進而傷害獲利／營運結果」；並不是兩家公司都直接揭露「監管已造成刷卡網路營業利潤率下降」。**\n\n### 1. Mastercard：支持最直接\n\nMastercard 最新可取得的 2024 年 10-K 明確表示：\n\n- 跨區域 interchange fee 的監管可能降低跨境活動；\n- 跨境活動下降會降低 Mastercard 收取的營收；\n- 關於 interchange fees 與 acceptance practices 的監管、訴訟及立法結果，合併而言可能對公司的「未來成長前景、營運結果及財務狀況」造成重大不利影響。[1]\n\n因此，對 Mastercard 而言，官方揭露直接支持以下因果鏈：\n\n&gt; 監管 interchange fees／網路規則  \n&gt; → 跨境或支付活動下降、收入減少  \n&gt; → 對營運結果及財務狀況造成重大不利影響\n\n這已足以支持「監管會壓縮刷卡網路生意的獲利能力」作為**風險命題**。不過，10-K 的措辭是風險揭露，並非表示該影響已經在最新期間量化地反映為利潤率下降。\n\n### 2. Visa：支持機制相同，但目前可取得的官方材料較舊\n\nVisa 的官方 10-K 揭露曾明確指出：\n\n- interchange reimbursement fees 的進一步監管，可能對 Visa 的財務狀況、營收、營運結果及未來成長造成重大不利影響；\n- Visa 通常不直接取得交易中的 interchange reimbursement fee，但 interchange fee 會影響其與其他支付服務商競爭的方式；\n- 因此，interchange fee 的變化可能大幅影響 Visa 處理的交易量、營收，以及支付電子化的速度與範圍。[2][3]\n\n這點很重要：**對 Visa／Mastercard 而言，監管不一定是直接砍掉其所收取的 interchange 收入**。更直接的傳導管道可能是：\n\n1. 發卡行或收單行經濟誘因下降；\n2. 網路使用量或交易量下降；\n3. Visa／Mastercard 的網路服務、數據處理及相關服務收入受壓；\n4. 同時增加合規、法律及監管應對成本。\n\n因此，Visa 的官方說法支持「監管會透過交易量和營收渠道傷害獲利」，而不是簡單的「interchange fee 被削減，Visa 直接少收同額收入」。\n\n### 3. 「壓縮獲利能力」這個表述應該如何精確化\n\n較嚴謹的說法是：\n\n&gt; **Visa 與 Mastercard 的官方揭露直接支持：支付監管可能透過降低交易量、跨境活動及營收，並增加合規與法律成本，對營運結果與財務狀況造成不利影響。**\n\n但以下較強的說法，官方揭露目前**不能直接證明**：\n\n- 監管已經導致兩家公司營業利潤率下降；\n- 每降低一個基點的 interchange fee，Visa／Mastercard 的淨利會下降多少；\n- 監管成本必然無法轉嫁給發卡行、收單行或商戶；\n- 監管一定會讓整體長期獲利能力下降，而非僅改變收入結構或成長率。\n\n### 判斷\n\n| 命題 | 官方揭露支持程度 |\n|---|---|\n| 監管可能降低交易量或跨境支付活動 | **直接支持** |\n| 監管可能降低 Visa／Mastercard 營收 | **直接支持** |\n| 監管可能傷害營運結果與財務狀況 | **直接支持** |\n| 監管會增加合規、法律或營運成本 | **支持，但未在目前材料中量化** |\n| 監管已導致營業利潤率下降 | **目前沒有直接證據** |\n| 監管會壓縮刷卡網路生意的長期獲利能力 | **作為風險推論成立，但不是已實現結果** |\n\n**資料品質提示：** Mastercard 的 2024 年 10-K 可直接支持上述結論；Visa 搜尋取得的相關官方 10-K 片段主要是 2011／2012–2013 年文件，因此 Visa 部分的官方證據較舊。SEC 10-K 分段讀取工具本次未成功返回文件內容，故不能據此聲稱已完成對 Visa 最新 10-K 的逐段核驗。\n\n[1]: https://www.sec.gov/Archives/edgar/data/1141391/000114139125000011/ma-20241231.htm \&quot;Mastercard 2024 Form 10-K\&quot;\n[2]: https://www.sec.gov/Archives/edgar/data/1403161/000119312511315956/d218694d10k.htm \&quot;Visa Form 10-K\&quot;\n[3]: https://www.sec.gov/Archives/edgar/data/1403161/000138410812000011/v09301210-k.htm \&quot;Visa 2012 Form 10-K\&quot;&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;**結論：Visa 與 Mastercard 的官方揭露，直接支持「監管會壓低費率、限制定價自由，進而對營收與獲利造成壓力」這個機制；但不足以直接證明「監管必然壓縮刷卡網路本身的利潤率」。** 關鍵原因是：刷卡交易的 interchange fee 主要是發卡銀行收入，不等於 Visa 或 Mastercard 的網路收入。\n\n### Visa：支持度較直接\n\nVisa 的官方投資人揭露明確把以下監管列為可能使業績「重大且不利」偏離預期的因素：\n\n- 對 debit interchange reimbursement fee 設定上限；\n- 擴大商戶與發卡機構選擇 debit payment network 的權利；\n- 美國以外及其他支付產品的監管增加；\n- 涉及 interchange 的訴訟與政府執法。\n\n因此，Visa 自己的揭露直接承認：監管可能壓低可收取的費率、削弱網路的定價與路由優勢，並對公司整體財務結果造成不利影響。[1]\n\n但這段揭露仍然是**風險描述**，沒有量化說明某項監管會使 Visa 的 operating margin 或 net margin 下降多少，也沒有把「interchange fee 降低」直接等同於 Visa 的收入下降。\n\n### Mastercard：支持「費率監管會傷害支付生態的經濟性」，但對自身利潤率較間接\n\nMastercard 的官方揭露則明確主張，若監管強制大幅降低 interchange fee，可能造成：\n\n- 發卡機構收入下降；\n- 發卡機構削減卡片功能與福利；\n- 對支付科技、新服務與創新的投資減少；\n- 支付卡業務成長放慢。\n\n換言之，Mastercard 直接支持「價格管制會壓低支付產業的經濟誘因與成長」；但它談的主要是**發卡機構收入與整個支付生態**，不是 Mastercard 自身網路收入或利潤率。[2]\n\n### 為什麼不能把 interchange fee 下降直接當成 Visa／Mastercard 利潤率下降？\n\nInterchange fee 通常是商戶支付給**發卡銀行**的費用，而不是 Visa 或 Mastercard 直接全額收取的網路收入。[3] 因此，監管降低 interchange fee 的直接受害者首先是發卡銀行；對 Visa 和 Mastercard 的影響通常要透過以下渠道傳導：\n\n1. **支付量或支付產品成長放慢**；\n2. **網路費率、評估費或其他服務費受到議價壓力**；\n3. 商戶取得更大的 routing、surcharging 或 steering 自由；\n4. 網路需要增加合規、訴訟及技術投入；\n5. 發卡銀行因回報下降而減少卡片推廣、獎勵與數位支付投資。\n\n近期相關和解方案也顯示，監管與訴訟壓力可能要求降低或限制 swipe fee；報導所述方案包括降低 interchange rate 及設定費率上限。[4] 這支持「監管會壓縮支付鏈條中的價格空間」；但仍不能單獨推出 Visa 或 Mastercard 的利潤率必然下降。\n\n### 兩家公司揭露的差異\n\n| 面向 | Visa | Mastercard |\n|---|---|---|\n| 對監管的描述 | 更直接連結到公司業績、費率上限、網路選擇與政府執法 | 更強調發卡銀行收入、卡片福利、創新投資與產業成長 |\n| 對「網路定價權」的支持 | 較直接 | 多為間接支持 |\n| 對「利潤率下降」的直接證據 | 有「業績可能重大不利」的風險語言，但未量化 margin | 未看到直接把監管與 Mastercard 利潤率下降連結的表述 |\n| 最合理的解讀 | 監管是公司財務結果的下行風險 | 監管會削弱支付生態的經濟誘因，並可能間接影響 Mastercard |\n\n**因此，較嚴謹的表述應是：**\n\n&gt; Visa 與 Mastercard 的官方揭露支持「監管可能降低支付費率、限制網路定價與路由優勢，並對收入、成長及整體獲利造成壓力」；但官方揭露並未直接證明「interchange fee 管制會按同等幅度壓縮 Visa／Mastercard 的網路利潤率」。\n\n另外，本次取得的官方材料主要是 Visa 2012 年及 Mastercard 2007 年的投資人揭露，而不是可核對的最新年度 10-K；所以它們適合證明兩家公司長期一致的風險論述，但不宜直接當作當前影響幅度的估計。\n\n[1]: https://investor.visa.com/news/news-details/2012/Visa-Inc-Posts-Strong-Fiscal-Fourth-Quarter-and-Full-Year-2012-Adjusted-Earnings-Results-and-Announces-New-15-billion-Share-Repurchase-Program/default.aspx \&quot;Visa Inc. Posts Strong Fiscal Fourth Quarter and Full-Year 2012 Adjusted Earnings Results and Announces New $1.5 billion Share Repurchase Program\&quot;\n\n[2]: https://investor.mastercard.com/investor-news/investor-news-details/2007/MasterCard-Europe-to-Challenge-European-Commission-Decision-on-Cross-Border-Interchange-Fees/default.aspx \&quot;MasterCard Europe to Challenge European Commission Decision on Cross-Border Interchange Fees\&quot;\n\n[3]: https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html \&quot;Mastercard, Visa reach $30 billion settlement over credit card fees\&quot;\n\n[4]: https://www.reuters.com/sustainability/boards-policy-regulation/visa-mastercard-reach-revised-swipe-fee-settlement-with-merchants-2025-11-10 \&quot;Visa, Mastercard reach $38 billion swipe fee settlement with merchants\&quot;&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>結論：Visa 與 Mastercard 的官方揭露，直接支持「監管會壓低費率、限制定價自由，進而對營收與獲利造成壓力」這個機制；但不足以直接證明「監管必然壓縮刷卡網路本身的利潤率」。</strong> 關鍵原因是：刷卡交易的 interchange fee 主要是發卡銀行收入，不等於 Visa 或 Mastercard 的網路收入。</p>
+<h3>Visa：支持度較直接</h3>
+<p>Visa 的官方投資人揭露明確把以下監管列為可能使業績「重大且不利」偏離預期的因素：</p>
+<ul>
+<li>對 debit interchange reimbursement fee 設定上限；</li>
+<li>擴大商戶與發卡機構選擇 debit payment network 的權利；</li>
+<li>美國以外及其他支付產品的監管增加；</li>
+<li>涉及 interchange 的訴訟與政府執法。</li>
+</ul>
+<p>因此，Visa 自己的揭露直接承認：監管可能壓低可收取的費率、削弱網路的定價與路由優勢，並對公司整體財務結果造成不利影響。<a href="https://investor.visa.com/news/news-details/2012/Visa-Inc-Posts-Strong-Fiscal-Fourth-Quarter-and-Full-Year-2012-Adjusted-Earnings-Results-and-Announces-New-15-billion-Share-Repurchase-Program/default.aspx" title="Visa Inc. Posts Strong Fiscal Fourth Quarter and Full-Year 2012 Adjusted Earnings Results and Announces New $1.5 billion Share Repurchase Program">1</a></p>
+<p>但這段揭露仍然是<strong>風險描述</strong>，沒有量化說明某項監管會使 Visa 的 operating margin 或 net margin 下降多少，也沒有把「interchange fee 降低」直接等同於 Visa 的收入下降。</p>
+<h3>Mastercard：支持「費率監管會傷害支付生態的經濟性」，但對自身利潤率較間接</h3>
+<p>Mastercard 的官方揭露則明確主張，若監管強制大幅降低 interchange fee，可能造成：</p>
+<ul>
+<li>發卡機構收入下降；</li>
+<li>發卡機構削減卡片功能與福利；</li>
+<li>對支付科技、新服務與創新的投資減少；</li>
+<li>支付卡業務成長放慢。</li>
+</ul>
+<p>換言之，Mastercard 直接支持「價格管制會壓低支付產業的經濟誘因與成長」；但它談的主要是<strong>發卡機構收入與整個支付生態</strong>，不是 Mastercard 自身網路收入或利潤率。<a href="https://investor.mastercard.com/investor-news/investor-news-details/2007/MasterCard-Europe-to-Challenge-European-Commission-Decision-on-Cross-Border-Interchange-Fees/default.aspx" title="MasterCard Europe to Challenge European Commission Decision on Cross-Border Interchange Fees">2</a></p>
+<h3>為什麼不能把 interchange fee 下降直接當成 Visa／Mastercard 利潤率下降？</h3>
+<p>Interchange fee 通常是商戶支付給<strong>發卡銀行</strong>的費用，而不是 Visa 或 Mastercard 直接全額收取的網路收入。<a href="https://www.cnbc.com/2024/03/26/mastercard-visa-reach-30-billion-settlement-over-credit-card-fees-.html" title="Mastercard, Visa reach $30 billion settlement over credit card fees">3</a> 因此，監管降低 interchange fee 的直接受害者首先是發卡銀行；對 Visa 和 Mastercard 的影響通常要透過以下渠道傳導：</p>
+<ol>
+<li><strong>支付量或支付產品成長放慢</strong>；</li>
+<li><strong>網路費率、評估費或其他服務費受到議價壓力</strong>；</li>
+<li>商戶取得更大的 routing、surcharging 或 steering 自由；</li>
+<li>網路需要增加合規、訴訟及技術投入；</li>
+<li>發卡銀行因回報下降而減少卡片推廣、獎勵與數位支付投資。</li>
+</ol>
+<p>近期相關和解方案也顯示，監管與訴訟壓力可能要求降低或限制 swipe fee；報導所述方案包括降低 interchange rate 及設定費率上限。<a href="https://www.reuters.com/sustainability/boards-policy-regulation/visa-mastercard-reach-revised-swipe-fee-settlement-with-merchants-2025-11-10" title="Visa, Mastercard reach $38 billion swipe fee settlement with merchants">4</a> 這支持「監管會壓縮支付鏈條中的價格空間」；但仍不能單獨推出 Visa 或 Mastercard 的利潤率必然下降。</p>
+<h3>兩家公司揭露的差異</h3>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th>Visa</th>
+<th>Mastercard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>對監管的描述</td>
+<td>更直接連結到公司業績、費率上限、網路選擇與政府執法</td>
+<td>更強調發卡銀行收入、卡片福利、創新投資與產業成長</td>
+</tr>
+<tr>
+<td>對「網路定價權」的支持</td>
+<td>較直接</td>
+<td>多為間接支持</td>
+</tr>
+<tr>
+<td>對「利潤率下降」的直接證據</td>
+<td>有「業績可能重大不利」的風險語言，但未量化 margin</td>
+<td>未看到直接把監管與 Mastercard 利潤率下降連結的表述</td>
+</tr>
+<tr>
+<td>最合理的解讀</td>
+<td>監管是公司財務結果的下行風險</td>
+<td>監管會削弱支付生態的經濟誘因，並可能間接影響 Mastercard</td>
+</tr>
+</tbody>
+</table>
+<p><strong>因此，較嚴謹的表述應是：</strong></p>
+<blockquote>
+<p>Visa 與 Mastercard 的官方揭露支持「監管可能降低支付費率、限制網路定價與路由優勢，並對收入、成長及整體獲利造成壓力」；但官方揭露並未直接證明「interchange fee 管制會按同等幅度壓縮 Visa／Mastercard 的網路利潤率」。</p>
+</blockquote>
+<p>另外，本次取得的官方材料主要是 Visa 2012 年及 Mastercard 2007 年的投資人揭露，而不是可核對的最新年度 10-K；所以它們適合證明兩家公司長期一致的風險論述，但不宜直接當作當前影響幅度的估計。</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p><strong>結論：有直接支持，但支持的是「監管可能壓低營收、交易量並增加成本，進而傷害獲利／營運結果」；並不是兩家公司都直接揭露「監管已造成刷卡網路營業利潤率下降」。</strong></p>
+<h3>1. Mastercard：支持最直接</h3>
+<p>Mastercard 最新可取得的 2024 年 10-K 明確表示：</p>
+<ul>
+<li>跨區域 interchange fee 的監管可能降低跨境活動；</li>
+<li>跨境活動下降會降低 Mastercard 收取的營收；</li>
+<li>關於 interchange fees 與 acceptance practices 的監管、訴訟及立法結果，合併而言可能對公司的「未來成長前景、營運結果及財務狀況」造成重大不利影響。<a href="https://www.sec.gov/Archives/edgar/data/1141391/000114139125000011/ma-20241231.htm" title="Mastercard 2024 Form 10-K">1</a></li>
+</ul>
+<p>因此，對 Mastercard 而言，官方揭露直接支持以下因果鏈：</p>
+<blockquote>
+<p>監管 interchange fees／網路規則<br />
+→ 跨境或支付活動下降、收入減少<br />
+→ 對營運結果及財務狀況造成重大不利影響</p>
+</blockquote>
+<p>這已足以支持「監管會壓縮刷卡網路生意的獲利能力」作為<strong>風險命題</strong>。不過，10-K 的措辭是風險揭露，並非表示該影響已經在最新期間量化地反映為利潤率下降。</p>
+<h3>2. Visa：支持機制相同，但目前可取得的官方材料較舊</h3>
+<p>Visa 的官方 10-K 揭露曾明確指出：</p>
+<ul>
+<li>interchange reimbursement fees 的進一步監管，可能對 Visa 的財務狀況、營收、營運結果及未來成長造成重大不利影響；</li>
+<li>Visa 通常不直接取得交易中的 interchange reimbursement fee，但 interchange fee 會影響其與其他支付服務商競爭的方式；</li>
+<li>因此，interchange fee 的變化可能大幅影響 Visa 處理的交易量、營收，以及支付電子化的速度與範圍。<a href="https://www.sec.gov/Archives/edgar/data/1403161/000138410812000011/v09301210-k.htm" title="Visa 2012 Form 10-K">2</a></li>
+</ul>
+<p>這點很重要：<strong>對 Visa／Mastercard 而言，監管不一定是直接砍掉其所收取的 interchange 收入</strong>。更直接的傳導管道可能是：</p>
+<ol>
+<li>發卡行或收單行經濟誘因下降；</li>
+<li>網路使用量或交易量下降；</li>
+<li>Visa／Mastercard 的網路服務、數據處理及相關服務收入受壓；</li>
+<li>同時增加合規、法律及監管應對成本。</li>
+</ol>
+<p>因此，Visa 的官方說法支持「監管會透過交易量和營收渠道傷害獲利」，而不是簡單的「interchange fee 被削減，Visa 直接少收同額收入」。</p>
+<h3>3. 「壓縮獲利能力」這個表述應該如何精確化</h3>
+<p>較嚴謹的說法是：</p>
+<blockquote>
+<p><strong>Visa 與 Mastercard 的官方揭露直接支持：支付監管可能透過降低交易量、跨境活動及營收，並增加合規與法律成本，對營運結果與財務狀況造成不利影響。</strong></p>
+</blockquote>
+<p>但以下較強的說法，官方揭露目前<strong>不能直接證明</strong>：</p>
+<ul>
+<li>監管已經導致兩家公司營業利潤率下降；</li>
+<li>每降低一個基點的 interchange fee，Visa／Mastercard 的淨利會下降多少；</li>
+<li>監管成本必然無法轉嫁給發卡行、收單行或商戶；</li>
+<li>監管一定會讓整體長期獲利能力下降，而非僅改變收入結構或成長率。</li>
+</ul>
+<h3>判斷</h3>
+<table>
+<thead>
+<tr>
+<th>命題</th>
+<th>官方揭露支持程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>監管可能降低交易量或跨境支付活動</td>
+<td><strong>直接支持</strong></td>
+</tr>
+<tr>
+<td>監管可能降低 Visa／Mastercard 營收</td>
+<td><strong>直接支持</strong></td>
+</tr>
+<tr>
+<td>監管可能傷害營運結果與財務狀況</td>
+<td><strong>直接支持</strong></td>
+</tr>
+<tr>
+<td>監管會增加合規、法律或營運成本</td>
+<td><strong>支持，但未在目前材料中量化</strong></td>
+</tr>
+<tr>
+<td>監管已導致營業利潤率下降</td>
+<td><strong>目前沒有直接證據</strong></td>
+</tr>
+<tr>
+<td>監管會壓縮刷卡網路生意的長期獲利能力</td>
+<td><strong>作為風險推論成立，但不是已實現結果</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>資料品質提示：</strong> Mastercard 的 2024 年 10-K 可直接支持上述結論；Visa 搜尋取得的相關官方 10-K 片段主要是 2011／2012–2013 年文件，因此 Visa 部分的官方證據較舊。SEC 10-K 分段讀取工具本次未成功返回文件內容，故不能據此聲稱已完成對 Visa 最新 10-K 的逐段核驗。</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v13" value="X 較好"> X 較好</label><label><input type="radio" name="v13" value="Y 較好"> Y 較好</label><label><input type="radio" name="v13" value="平手"> 平手</label><label><input type="radio" name="v13" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n13"></textarea>
@@ -61,8 +726,439 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 17</h2>
   <p class="q">分析亞馬遜的廣告業務，現在算不算已經是高品質獲利引擎。</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：亞馬遜廣告業務已經是「高品質獲利引擎」，但更精確地說，它是高品質的高毛利、低資本強度收入來源；目前仍不能把它視為已被單獨驗證的獨立利潤中心。**\n\n以下依亞馬遜最新 **FY2025 10-K、財年截至 2025-12-31** 分析。\n\n## 一、為什麼它具備高品質獲利引擎的特徵\n\n### 1. 收入規模大、成長仍快\n\n廣告服務收入：\n\n- 2023 年：469 億美元\n- 2024 年：562 億美元\n- 2025 年：686 億美元\n\n換算後，2024 年增長約 20%，2025 年增長約 22%。2025 年廣告收入約占亞馬遜合併收入 9.6%，已不是附屬業務，而是大型核心收入來源。[1]\n\n更重要的是，亞馬遜整體 2025 年收入增長 12%，廣告業務增速明顯高於公司整體，說明它仍在提升收入組合中的重要性。[1]\n\n### 2. 商業模式具有明顯的「流量變現」特徵\n\n亞馬遜的廣告包括 sponsored ads、展示廣告和影音廣告，收入主要在廣告被點擊或展示時確認。[2]\n\n這種模式的優點是：\n\n- 不需要像零售商品一樣承擔庫存成本；\n- 不需要為每一筆商品銷售承擔完整的採購、倉儲和配送成本；\n- 廣告位可以在既有網站、App、Prime 內容和購物流量上反覆銷售；\n- 廣告主通常可以直接衡量點擊、轉換和銷售效果。\n\n因此，廣告收入理論上比自營零售收入更接近「平台變現」，也更可能帶來較高的增量利潤。\n\n### 3. 廣告與亞馬遜電商形成很強的閉環\n\n亞馬遜的廣告客戶包括賣家、供應商、出版商、作者等，而廣告本身又直接嵌入購物場景。[2]\n\n這使它和一般展示型廣告平台有所不同：\n\n- 用戶已經有明確購物意圖；\n- 廣告可以出現在搜尋結果和商品頁；\n- 賣家為了爭取排名和曝光，需要持續投入廣告；\n- 亞馬遜可以把廣告效果和實際商品交易連接起來。\n\n這種「交易入口＋廣告＋賣家服務」的閉環，是亞馬遜廣告業務品質高於單純流量廣告的重要原因。\n\n### 4. 管理層已明確表示廣告增長帶動營業利益\n\n亞馬遜沒有單獨披露廣告業務的營業利潤，但公司表示，2025 年北美營業利益增加，主要原因之一是單位銷售及廣告銷售增加；國際業務營業利益增加也受到廣告銷售增長的推動。[3]\n\n這至少證明兩件事：\n\n1. 廣告增長不只是增加收入，也對部門利潤有實際貢獻；\n2. 廣告可能正在改善北美與國際電商業務的經濟性。\n\n## 二、但為什麼現在還不能完全等同於「已驗證的高利潤業務」\n\n### 1. 亞馬遜沒有單獨披露廣告營業利潤率\n\n亞馬遜只披露三個報告部門：\n\n- North America\n- International\n- AWS\n\n廣告收入被包含在北美與國際部門中，沒有獨立的廣告部門損益表。[4]\n\n因此，我們目前無法從 10-K 直接知道：\n\n- 廣告毛利率；\n- 廣告營業利潤率；\n- 每增加 1 美元廣告收入能帶來多少營業利益；\n- 廣告業務的資本報酬率；\n- 廣告成本是否正在快速上升。\n\n所以，**「廣告收入高成長」是已驗證的；「廣告具有極高獨立利潤率」則是合理推論，並非公司披露的直接數據。**\n\n### 2. 成本分攤使得業務質量難以精確衡量\n\n亞馬遜的技術與基礎設施成本會按照使用情況分配至不同部門，且許多系統同時服務零售、賣家服務、廣告和其他業務。[4]\n\n此外，亞馬遜披露的 Sales and Marketing 費用包含多種項目，包括人員薪酬、AWS 銷售佣金、第三方推薦佣金和其他市場推廣支出，並不等於廣告業務自身的成本。[5]\n\n這代表外部投資者不能簡單用：\n\n&gt; 廣告收入 ÷ Sales and Marketing 費用\n\n來計算廣告利潤率，因為分子和分母的範圍並不一致。\n\n### 3. 廣告業務依賴亞馬遜整體生態系\n\n廣告本身雖然可能是低資本強度，但它依賴：\n\n- 亞馬遜的購物流量；\n- Prime 會員與用戶黏性；\n- 第三方賣家數量；\n- 商品搜尋和推薦系統；\n- 亞馬遜在電商市場的地位。\n\n因此，它不是完全獨立於零售業務的軟體訂閱模式。若電商流量、賣家數量或用戶購物意願放緩，廣告需求也可能受影響。\n\n## 三、主要風險：增長很強，但不是沒有天花板\n\n### 1. 競爭可能壓縮廣告定價與回報\n\n亞馬遜承認其廣告業務面臨來自數位廣告、搜尋、社交媒體、零售媒體和其他平台的激烈競爭；競爭者可能投入更多資源、降低價格或提供更有效的廣告工具，進而壓低亞馬遜的銷售和利潤。[6]\n\n目前亞馬遜的核心優勢是「高購物意圖」和「交易數據」，但 Google、Meta、TikTok、沃爾瑪以及其他零售媒體平台都在競爭廣告預算。\n\n### 2. 隱私、數據和反壟斷監管風險\n\n亞馬遜表示，各國對隱私、數據使用、數據保護、消費者保護、廣告和競爭法規的監管都在變化；公司也面臨涉及市場支配、賣家數據使用和廣告實務的訴訟與調查。[7]\n\n這些風險未必會摧毀廣告業務，但可能導致：\n\n- 數據使用受到限制；\n- 廣告排序和推薦方式被要求改變；\n- 賣家定價或廣告安排受到監管；\n- 合規成本上升；\n- 廣告轉換率或定向能力下降。\n\n## 四、我的評分\n\n| 評估項目 | 判斷 |\n|---|---|\n| 收入成長 | **很強**：2025 年約增長 22% |\n| 收入可重複性 | **強**：賣家和品牌需要持續獲取流量 |\n| 資本強度 | **偏低，但非完全獨立** |\n| 客戶黏性 | **中高**：購物意圖與交易數據形成優勢 |\n| 增量利潤潛力 | **很高**，但缺少單獨利潤披露 |\n| 競爭風險 | **中高** |\n| 監管風險 | **中高** |\n| 財務透明度 | **不足**：沒有單獨營業利潤率和現金流 |\n\n## 最終判斷\n\n我會把亞馬遜廣告定義為：\n\n&gt; **已經成熟為高品質的結構性獲利引擎，但還不是財報上完全透明、可以精確估值的獨立高利潤部門。**\n\n它的核心優勢是：**收入成長快、依託高購物意圖流量、資產需求相對低、能改善北美和國際電商部門的利潤。**\n\n但要更有把握地稱它為「頂級獲利引擎」，還需要亞馬遜未來披露更多資料，尤其是：\n\n1. 廣告業務獨立營業利潤；\n2. 廣告毛利率或增量利潤率；\n3. 廣告收入相對於賣家數量、流量和商品交易額的滲透率；\n4. 廣告主回報率和續約率；\n5. 監管對數據和搜尋排序的實際影響。\n\n因此，**從經營質量看，答案是「算」；從財務證據完整度看，答案是「尚未完全證明」。**\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: SEC 10-K excerpt  \n[4]: SEC 10-K excerpt  \n[5]: SEC 10-K excerpt  \n[6]: SEC 10-K excerpt  \n[7]: SEC 10-K excerpt&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;## 結論\n\n**亞馬遜廣告業務已經是高品質的獲利引擎，但更準確地說，它是「高品質、高增長、資本密度低的服務收入引擎」；由於亞馬遜沒有單獨披露廣告業務的營業利益率或自由現金流，因此尚不能在會計上直接證明它是獨立的高利潤率業務。**\n\n我會給它的評價是：\n\n- **業務質量：高**\n- **增長質量：高**\n- **資本需求：低至中低**\n- **可見獲利能力：高，但缺乏單獨披露**\n- **監管與平台風險：中高**\n- **整體判斷：已經是亞馬遜最重要的第三個獲利支柱，僅次於 AWS 與成熟化後的北美電商業務**\n\n---\n\n## 一、規模已經足夠大，而且增速仍然很高\n\n根據亞馬遜 2025 年 10-K：\n\n| 指標 | 2023 | 2024 | 2025 |\n|---|---:|---:|---:|\n| 廣告服務收入 | 469.06 億美元 | 562.14 億美元 | 686.35 億美元 |\n| 年增長 | — | 19.8% | 22.1% |\n| 2023–2025 年複合增長率 | — | — | 約 20.9% |\n\n廣告收入在 2025 年已經接近 **687 億美元**，約佔亞馬遜總收入 7,169.24 億美元的 **9.6%**。而且，它的增速明顯高於亞馬遜整體收入約 12% 的增速。[SEC 10-K Item 8，Amazon 2025 年年報]\n\n這一點很重要：廣告業務已經不是附屬服務，而是足以影響集團整體增長率與利潤率的核心業務。\n\n亞馬遜披露的廣告產品包括：\n\n- Sponsored Ads\n- Display Ads\n- Video Ads\n\n收入主要按廣告被點擊或展示時確認。[SEC 10-K Item 1、Item 8，Amazon 2025 年年報]\n\n---\n\n## 二、它的商業模式具備高品質廣告業務的幾個核心特徵\n\n### 1. 流量具有高購買意圖\n\nGoogle、Meta 的廣告很多是「發現型」或「興趣型」流量；亞馬遜廣告則大量出現在消費者已經搜尋商品、比較商品、準備購買的場景。\n\n這意味著廣告主支付的不是單純曝光，而是：\n\n- 商品搜尋排名\n- 購物決策影響力\n- 交易轉化率\n- 銷售歸因\n\n亞馬遜在 10-K 中表示，其服務對象包括消費者、第三方賣家、品牌供應商及廣告主；廣告收入與第三方賣家及零售生態系統密切相連。[SEC 10-K Item 1，Amazon 2025 年年報]\n\n因此，亞馬遜廣告的價值不只是「有多少人看到廣告」，而是「有多少人正在購買」。\n\n### 2. 廣告與 Marketplace 形成正向循環\n\n亞馬遜的生態鏈可以簡化為：\n\n&gt; 更多消費者 → 更多賣家 → 更多商品與競爭 → 更多賣家購買廣告 → 更高廣告收入 → 亞馬遜可繼續改善流量與物流體驗\n\n2025 年第三方賣家服務收入達 **1,721.62 億美元**，其中包括佣金、履約與其他賣家服務；廣告服務則為 **686.35 億美元**。[SEC 10-K Item 8，Amazon 2025 年年報]\n\n這說明廣告並不是孤立業務，而是建立在亞馬遜 Marketplace、搜尋流量、Prime、物流和支付系統之上的變現層。\n\n### 3. 廣告業務本身不需要大量新增實體資產\n\n亞馬遜 2025 年資本支出非常高，現金資本支出約為 **1,283.2 億美元**，主要用於 AWS 基礎設施和履約網路；但這些資本支出並不是主要為廣告業務單獨建設的。[SEC 10-K Item 7，Amazon 2025 年年報]\n\n換言之，廣告可以利用既有的：\n\n- 電商網站與 App\n- 搜尋與推薦系統\n- 消費者行為數據\n- 第三方賣家網絡\n- Prime 用戶群\n- 商品與交易資料\n\n因此，廣告收入增長通常不需要同比例增加倉庫、庫存或配送資產。這是其具有高增量利潤潛力的主要原因。\n\n---\n\n## 三、但不能直接把全部廣告收入都視為純利潤\n\n這是分析中最需要克制的地方。\n\n亞馬遜只披露三大經營分部：\n\n- 北美\n- 國際\n- AWS\n\n並沒有披露「廣告業務」的獨立營業利益、成本結構或自由現金流。[SEC 10-K Item 8，Amazon 2025 年年報]\n\n亞馬遜 2025 年的整體資料如下：\n\n| 指標 | 2025 年 |\n|---|---:|\n| 總收入 | 7,169.24 億美元 |\n| 營業利益 | 799.75 億美元 |\n| 北美營業利益 | 296.19 億美元 |\n| 國際營業利益 | 47.50 億美元 |\n| AWS 營業利益 | 456.06 億美元 |\n\n但這些數字都不能直接等同於廣告業務的利潤。原因是：\n\n1. 廣告收入分散在北美及國際分部。\n2. 技術、流量、支付、推薦和管理成本由不同分部共同承擔。\n3. 亞馬遜沒有披露廣告相關的直接成本。\n4. 銷售與行銷費用包含多種支出，不只是廣告業務成本。\n\n2025 年亞馬遜整體銷售與行銷費用為 **471.29 億美元**，其中廣告及促銷支出約 **235 億美元**；但這是亞馬遜為自身產品和服務支付的營銷成本，不能直接拿來與 686 億美元廣告收入相減，因為兩者的定義並不相同。[SEC 10-K Item 7、Item 8，Amazon 2025 年年報]\n\n所以，合理說法是：\n\n&gt; 廣告業務具有非常高的增量利潤潛力，但亞馬遜尚未提供足夠數據，讓投資者精確計算其獨立營業利潤率。\n\n---\n\n## 四、為什麼它可能比傳統零售收入更有價值\n\n亞馬遜 2025 年整體營業利益率約為：\n\n\\[\n79.975 / 716.924 \\approx 11.2\\%\n\\]\n\n但這個數字混合了低毛利零售、物流、AWS、訂閱及廣告等不同業務，不能代表廣告業務本身的利潤率。[SEC 10-K Item 7、Item 8，Amazon 2025 年年報]\n\n廣告業務的經濟特徵通常更接近：\n\n- 高毛利服務收入\n- 低邊際交付成本\n- 不需要承擔商品成本\n- 不需要承擔大部分履約成本\n- 與既有流量和數據基礎設施共享成本\n\n因此，廣告收入對集團利潤的貢獻，理論上很可能高於同等規模的商品銷售收入。\n\n這也是為什麼亞馬遜 2025 年北美和國際營業利益增加時，管理層明確將「廣告銷售增加」列為重要原因之一。[SEC 10-K Item 7，Amazon 2025 年年報]\n\n不過，這仍然是「對整體分部利潤的正面貢獻」，並非廣告業務的獨立利潤披露。\n\n---\n\n## 五、它是否已經達到「高品質獲利引擎」的標準？\n\n### 已經符合的條件\n\n#### 1. 規模大\n\n2025 年廣告收入約 **686 億美元**，已經是全球大型廣告平台級別的收入來源。[SEC 10-K Item 8]\n\n#### 2. 增速高且持續\n\n2024 年增長約 19.8%，2025 年增長約 22.1%，連續兩年接近或超過 20%。[SEC 10-K Item 8]\n\n#### 3. 依賴既有生態，而非大量新增資本\n\n廣告可以搭載在亞馬遜現有電商、Marketplace、Prime 和影音流量上，並不需要像 AWS 那樣持續投入巨額資料中心資本。[SEC 10-K Item 7、Item 8]\n\n#### 4. 與客戶收入具有直接關聯\n\n對賣家而言，廣告通常可以與商品曝光、點擊和銷售結果掛鉤，因此廣告主較容易衡量投資回報。這種「可歸因性」有助於支撐廣告價格和預算。[SEC 10-K Item 8]\n\n#### 5. 對集團利潤已有實質影響\n\n亞馬遜明確表示，北美及國際營業利益增長部分由廣告銷售增加推動。[SEC 10-K Item 7]\n\n---\n\n## 六、尚未完全達標的地方\n\n### 1. 缺少獨立利潤率披露\n\n這是最大的資訊缺口。\n\n我們不知道：\n\n- 廣告業務的營業利益\n- 廣告業務的直接成本\n- 每一美元廣告收入帶來多少增量利潤\n- 廣告業務是否需要顯著補貼其他零售業務\n\n因此，它是「高品質獲利引擎」的判斷，部分是基於商業模式推論，而不是完整的分部會計數據。\n\n### 2. 廣告收入可能受到賣家成本壓力限制\n\n亞馬遜廣告的主要付費者包括第三方賣家和品牌供應商。如果賣家認為：\n\n- 廣告價格上升太快\n- 廣告已經成為獲得自然流量的必要費用\n- 平台抽成、履約費和廣告費疊加過高\n\n他們可能提高商品價格、減少廣告投入，或轉移到其他平台。\n\n### 3. 監管與反壟斷風險\n\n亞馬遜 10-K 披露的法律及監管案件中，包含涉及市場支配、賣家關係、價格政策、推薦位及廣告實務的反壟斷訴訟。[SEC 10-K Item 8，Amazon 2025 年年報]\n\n若監管機構限制亞馬遜如何：\n\n- 排列商品搜尋結果\n- 使用賣家數據\n- 綁定廣告與 Marketplace\n- 向賣家收取費用\n- 推廣自有或特定商品\n\n廣告業務的變現效率可能受到影響。\n\n### 4. AI 可能同時是機會與威脅\n\n生成式 AI 和 AI 購物代理可能：\n\n- 提高亞馬遜商品推薦和廣告匹配效率；\n- 但也可能把消費者決策入口轉移到外部 AI 助手；\n- 減少消費者直接進入亞馬遜搜尋商品的次數。\n\n亞馬遜年報也將搜尋引擎、社交網絡、比較購物網站、AI 和其他商品發現渠道列為競爭來源。[SEC 10-K Item 1，Amazon 2025 年年報]\n\n---\n\n## 七、投資判斷：它更像「第二個 AWS」，還是「附屬收入」？\n\n我的判斷是：\n\n&gt; **亞馬遜廣告業務已經脫離附屬收入階段，但還沒有達到 AWS 那種透明、可獨立衡量的分部業務階段。**\n\n它與 AWS 的差異如下：\n\n| 維度 | 廣告業務 | AWS |\n|---|---|---|\n| 2025 年收入 | 686.35 億美元 | 1,287.25 億美元 |\n| 2025 年增長 | 約 22.1% | 20% |\n| 單獨收入披露 | 有 | 有 |\n| 單獨營業利益披露 | 沒有 | 有，456.06 億美元 |\n| 資本密度 | 相對較低 | 非常高 |\n| 客戶轉換成本 | 中等至高 | 通常較高 |\n| 主要風險 | 監管、賣家成本、廣告競爭 | 雲計算競爭、AI 資本支出、價格壓力 |\n\nAWS 是已被財務報表證明的高利潤業務；廣告則是**從收入增長、資本效率和生態位置來看，已經高度符合高品質業務特徵，但利潤率仍需透過間接數據推斷**。\n\n---\n\n## 最終評價\n\n**是，亞馬遜廣告業務現在可以算是高品質獲利引擎，但應該加上兩個限定詞：**\n\n1. **它是高品質的增量利潤引擎，而不是已被單獨財報完全驗證的獨立利潤中心。**\n2. **它的高品質建立在亞馬遜電商和 Marketplace 生態之上，因此不能完全脫離零售平台來估值。**\n\n最值得追蹤的三個指標是：\n\n- 廣告收入增速能否持續高於亞馬遜整體收入增速；\n- 北美和國際營業利益增長中，廣告貢獻是否繼續擴大；\n- 亞馬遜是否開始披露廣告業務的更詳細成本或盈利數據。\n\n目前資料支持的核心結論是：**亞馬遜廣告業務已經是規模大、增長快、資本需求相對低、對集團利潤有實質貢獻的優質業務；但由於缺乏獨立利潤披露，仍不宜直接把它等同於一個已公開證明擁有超高營業利潤率的廣告平台。**\n\n資料品質提示：以上廣告收入與盈利資料主要來自 Amazon 2025 年 10-K，報告期截至 2025 年 12 月 31 日；Finnhub 的 AMZN 基本面資料顯示整體公司 TTM 營業利益率為 12.08%、淨利率為 17.44%，但這些是亞馬遜合併口徑，不能直接用來代表廣告業務利潤率。[Finnhub company basic financials]&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>結論：亞馬遜廣告業務已經是「高品質獲利引擎」，但更精確地說，它是高品質的高毛利、低資本強度收入來源；目前仍不能把它視為已被單獨驗證的獨立利潤中心。</strong></p>
+<p>以下依亞馬遜最新 <strong>FY2025 10-K、財年截至 2025-12-31</strong> 分析。</p>
+<h2>一、為什麼它具備高品質獲利引擎的特徵</h2>
+<h3>1. 收入規模大、成長仍快</h3>
+<p>廣告服務收入：</p>
+<ul>
+<li>2023 年：469 億美元</li>
+<li>2024 年：562 億美元</li>
+<li>2025 年：686 億美元</li>
+</ul>
+<p>換算後，2024 年增長約 20%，2025 年增長約 22%。2025 年廣告收入約占亞馬遜合併收入 9.6%，已不是附屬業務，而是大型核心收入來源。[1]</p>
+<p>更重要的是，亞馬遜整體 2025 年收入增長 12%，廣告業務增速明顯高於公司整體，說明它仍在提升收入組合中的重要性。[1]</p>
+<h3>2. 商業模式具有明顯的「流量變現」特徵</h3>
+<p>亞馬遜的廣告包括 sponsored ads、展示廣告和影音廣告，收入主要在廣告被點擊或展示時確認。[2]</p>
+<p>這種模式的優點是：</p>
+<ul>
+<li>不需要像零售商品一樣承擔庫存成本；</li>
+<li>不需要為每一筆商品銷售承擔完整的採購、倉儲和配送成本；</li>
+<li>廣告位可以在既有網站、App、Prime 內容和購物流量上反覆銷售；</li>
+<li>廣告主通常可以直接衡量點擊、轉換和銷售效果。</li>
+</ul>
+<p>因此，廣告收入理論上比自營零售收入更接近「平台變現」，也更可能帶來較高的增量利潤。</p>
+<h3>3. 廣告與亞馬遜電商形成很強的閉環</h3>
+<p>亞馬遜的廣告客戶包括賣家、供應商、出版商、作者等，而廣告本身又直接嵌入購物場景。[2]</p>
+<p>這使它和一般展示型廣告平台有所不同：</p>
+<ul>
+<li>用戶已經有明確購物意圖；</li>
+<li>廣告可以出現在搜尋結果和商品頁；</li>
+<li>賣家為了爭取排名和曝光，需要持續投入廣告；</li>
+<li>亞馬遜可以把廣告效果和實際商品交易連接起來。</li>
+</ul>
+<p>這種「交易入口＋廣告＋賣家服務」的閉環，是亞馬遜廣告業務品質高於單純流量廣告的重要原因。</p>
+<h3>4. 管理層已明確表示廣告增長帶動營業利益</h3>
+<p>亞馬遜沒有單獨披露廣告業務的營業利潤，但公司表示，2025 年北美營業利益增加，主要原因之一是單位銷售及廣告銷售增加；國際業務營業利益增加也受到廣告銷售增長的推動。[3]</p>
+<p>這至少證明兩件事：</p>
+<ol>
+<li>廣告增長不只是增加收入，也對部門利潤有實際貢獻；</li>
+<li>廣告可能正在改善北美與國際電商業務的經濟性。</li>
+</ol>
+<h2>二、但為什麼現在還不能完全等同於「已驗證的高利潤業務」</h2>
+<h3>1. 亞馬遜沒有單獨披露廣告營業利潤率</h3>
+<p>亞馬遜只披露三個報告部門：</p>
+<ul>
+<li>North America</li>
+<li>International</li>
+<li>AWS</li>
+</ul>
+<p>廣告收入被包含在北美與國際部門中，沒有獨立的廣告部門損益表。[4]</p>
+<p>因此，我們目前無法從 10-K 直接知道：</p>
+<ul>
+<li>廣告毛利率；</li>
+<li>廣告營業利潤率；</li>
+<li>每增加 1 美元廣告收入能帶來多少營業利益；</li>
+<li>廣告業務的資本報酬率；</li>
+<li>廣告成本是否正在快速上升。</li>
+</ul>
+<p>所以，<strong>「廣告收入高成長」是已驗證的；「廣告具有極高獨立利潤率」則是合理推論，並非公司披露的直接數據。</strong></p>
+<h3>2. 成本分攤使得業務質量難以精確衡量</h3>
+<p>亞馬遜的技術與基礎設施成本會按照使用情況分配至不同部門，且許多系統同時服務零售、賣家服務、廣告和其他業務。[4]</p>
+<p>此外，亞馬遜披露的 Sales and Marketing 費用包含多種項目，包括人員薪酬、AWS 銷售佣金、第三方推薦佣金和其他市場推廣支出，並不等於廣告業務自身的成本。[5]</p>
+<p>這代表外部投資者不能簡單用：</p>
+<blockquote>
+<p>廣告收入 ÷ Sales and Marketing 費用</p>
+</blockquote>
+<p>來計算廣告利潤率，因為分子和分母的範圍並不一致。</p>
+<h3>3. 廣告業務依賴亞馬遜整體生態系</h3>
+<p>廣告本身雖然可能是低資本強度，但它依賴：</p>
+<ul>
+<li>亞馬遜的購物流量；</li>
+<li>Prime 會員與用戶黏性；</li>
+<li>第三方賣家數量；</li>
+<li>商品搜尋和推薦系統；</li>
+<li>亞馬遜在電商市場的地位。</li>
+</ul>
+<p>因此，它不是完全獨立於零售業務的軟體訂閱模式。若電商流量、賣家數量或用戶購物意願放緩，廣告需求也可能受影響。</p>
+<h2>三、主要風險：增長很強，但不是沒有天花板</h2>
+<h3>1. 競爭可能壓縮廣告定價與回報</h3>
+<p>亞馬遜承認其廣告業務面臨來自數位廣告、搜尋、社交媒體、零售媒體和其他平台的激烈競爭；競爭者可能投入更多資源、降低價格或提供更有效的廣告工具，進而壓低亞馬遜的銷售和利潤。[6]</p>
+<p>目前亞馬遜的核心優勢是「高購物意圖」和「交易數據」，但 Google、Meta、TikTok、沃爾瑪以及其他零售媒體平台都在競爭廣告預算。</p>
+<h3>2. 隱私、數據和反壟斷監管風險</h3>
+<p>亞馬遜表示，各國對隱私、數據使用、數據保護、消費者保護、廣告和競爭法規的監管都在變化；公司也面臨涉及市場支配、賣家數據使用和廣告實務的訴訟與調查。[7]</p>
+<p>這些風險未必會摧毀廣告業務，但可能導致：</p>
+<ul>
+<li>數據使用受到限制；</li>
+<li>廣告排序和推薦方式被要求改變；</li>
+<li>賣家定價或廣告安排受到監管；</li>
+<li>合規成本上升；</li>
+<li>廣告轉換率或定向能力下降。</li>
+</ul>
+<h2>四、我的評分</h2>
+<table>
+<thead>
+<tr>
+<th>評估項目</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入成長</td>
+<td><strong>很強</strong>：2025 年約增長 22%</td>
+</tr>
+<tr>
+<td>收入可重複性</td>
+<td><strong>強</strong>：賣家和品牌需要持續獲取流量</td>
+</tr>
+<tr>
+<td>資本強度</td>
+<td><strong>偏低，但非完全獨立</strong></td>
+</tr>
+<tr>
+<td>客戶黏性</td>
+<td><strong>中高</strong>：購物意圖與交易數據形成優勢</td>
+</tr>
+<tr>
+<td>增量利潤潛力</td>
+<td><strong>很高</strong>，但缺少單獨利潤披露</td>
+</tr>
+<tr>
+<td>競爭風險</td>
+<td><strong>中高</strong></td>
+</tr>
+<tr>
+<td>監管風險</td>
+<td><strong>中高</strong></td>
+</tr>
+<tr>
+<td>財務透明度</td>
+<td><strong>不足</strong>：沒有單獨營業利潤率和現金流</td>
+</tr>
+</tbody>
+</table>
+<h2>最終判斷</h2>
+<p>我會把亞馬遜廣告定義為：</p>
+<blockquote>
+<p><strong>已經成熟為高品質的結構性獲利引擎，但還不是財報上完全透明、可以精確估值的獨立高利潤部門。</strong></p>
+</blockquote>
+<p>它的核心優勢是：<strong>收入成長快、依託高購物意圖流量、資產需求相對低、能改善北美和國際電商部門的利潤。</strong></p>
+<p>但要更有把握地稱它為「頂級獲利引擎」，還需要亞馬遜未來披露更多資料，尤其是：</p>
+<ol>
+<li>廣告業務獨立營業利潤；</li>
+<li>廣告毛利率或增量利潤率；</li>
+<li>廣告收入相對於賣家數量、流量和商品交易額的滲透率；</li>
+<li>廣告主回報率和續約率；</li>
+<li>監管對數據和搜尋排序的實際影響。</li>
+</ol>
+<p>因此，<strong>從經營質量看，答案是「算」；從財務證據完整度看，答案是「尚未完全證明」。</strong></p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: SEC 10-K excerpt<br />
+[4]: SEC 10-K excerpt<br />
+[5]: SEC 10-K excerpt<br />
+[6]: SEC 10-K excerpt<br />
+[7]: SEC 10-K excerpt</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><h2>結論</h2>
+<p><strong>亞馬遜廣告業務已經是高品質的獲利引擎，但更準確地說，它是「高品質、高增長、資本密度低的服務收入引擎」；由於亞馬遜沒有單獨披露廣告業務的營業利益率或自由現金流，因此尚不能在會計上直接證明它是獨立的高利潤率業務。</strong></p>
+<p>我會給它的評價是：</p>
+<ul>
+<li><strong>業務質量：高</strong></li>
+<li><strong>增長質量：高</strong></li>
+<li><strong>資本需求：低至中低</strong></li>
+<li><strong>可見獲利能力：高，但缺乏單獨披露</strong></li>
+<li><strong>監管與平台風險：中高</strong></li>
+<li><strong>整體判斷：已經是亞馬遜最重要的第三個獲利支柱，僅次於 AWS 與成熟化後的北美電商業務</strong></li>
+</ul>
+<hr />
+<h2>一、規模已經足夠大，而且增速仍然很高</h2>
+<p>根據亞馬遜 2025 年 10-K：</p>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th style="text-align:right">2023</th>
+<th style="text-align:right">2024</th>
+<th style="text-align:right">2025</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>廣告服務收入</td>
+<td style="text-align:right">469.06 億美元</td>
+<td style="text-align:right">562.14 億美元</td>
+<td style="text-align:right">686.35 億美元</td>
+</tr>
+<tr>
+<td>年增長</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">19.8%</td>
+<td style="text-align:right">22.1%</td>
+</tr>
+<tr>
+<td>2023–2025 年複合增長率</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">約 20.9%</td>
+</tr>
+</tbody>
+</table>
+<p>廣告收入在 2025 年已經接近 <strong>687 億美元</strong>，約佔亞馬遜總收入 7,169.24 億美元的 <strong>9.6%</strong>。而且，它的增速明顯高於亞馬遜整體收入約 12% 的增速。[SEC 10-K Item 8，Amazon 2025 年年報]</p>
+<p>這一點很重要：廣告業務已經不是附屬服務，而是足以影響集團整體增長率與利潤率的核心業務。</p>
+<p>亞馬遜披露的廣告產品包括：</p>
+<ul>
+<li>Sponsored Ads</li>
+<li>Display Ads</li>
+<li>Video Ads</li>
+</ul>
+<p>收入主要按廣告被點擊或展示時確認。[SEC 10-K Item 1、Item 8，Amazon 2025 年年報]</p>
+<hr />
+<h2>二、它的商業模式具備高品質廣告業務的幾個核心特徵</h2>
+<h3>1. 流量具有高購買意圖</h3>
+<p>Google、Meta 的廣告很多是「發現型」或「興趣型」流量；亞馬遜廣告則大量出現在消費者已經搜尋商品、比較商品、準備購買的場景。</p>
+<p>這意味著廣告主支付的不是單純曝光，而是：</p>
+<ul>
+<li>商品搜尋排名</li>
+<li>購物決策影響力</li>
+<li>交易轉化率</li>
+<li>銷售歸因</li>
+</ul>
+<p>亞馬遜在 10-K 中表示，其服務對象包括消費者、第三方賣家、品牌供應商及廣告主；廣告收入與第三方賣家及零售生態系統密切相連。[SEC 10-K Item 1，Amazon 2025 年年報]</p>
+<p>因此，亞馬遜廣告的價值不只是「有多少人看到廣告」，而是「有多少人正在購買」。</p>
+<h3>2. 廣告與 Marketplace 形成正向循環</h3>
+<p>亞馬遜的生態鏈可以簡化為：</p>
+<blockquote>
+<p>更多消費者 → 更多賣家 → 更多商品與競爭 → 更多賣家購買廣告 → 更高廣告收入 → 亞馬遜可繼續改善流量與物流體驗</p>
+</blockquote>
+<p>2025 年第三方賣家服務收入達 <strong>1,721.62 億美元</strong>，其中包括佣金、履約與其他賣家服務；廣告服務則為 <strong>686.35 億美元</strong>。[SEC 10-K Item 8，Amazon 2025 年年報]</p>
+<p>這說明廣告並不是孤立業務，而是建立在亞馬遜 Marketplace、搜尋流量、Prime、物流和支付系統之上的變現層。</p>
+<h3>3. 廣告業務本身不需要大量新增實體資產</h3>
+<p>亞馬遜 2025 年資本支出非常高，現金資本支出約為 <strong>1,283.2 億美元</strong>，主要用於 AWS 基礎設施和履約網路；但這些資本支出並不是主要為廣告業務單獨建設的。[SEC 10-K Item 7，Amazon 2025 年年報]</p>
+<p>換言之，廣告可以利用既有的：</p>
+<ul>
+<li>電商網站與 App</li>
+<li>搜尋與推薦系統</li>
+<li>消費者行為數據</li>
+<li>第三方賣家網絡</li>
+<li>Prime 用戶群</li>
+<li>商品與交易資料</li>
+</ul>
+<p>因此，廣告收入增長通常不需要同比例增加倉庫、庫存或配送資產。這是其具有高增量利潤潛力的主要原因。</p>
+<hr />
+<h2>三、但不能直接把全部廣告收入都視為純利潤</h2>
+<p>這是分析中最需要克制的地方。</p>
+<p>亞馬遜只披露三大經營分部：</p>
+<ul>
+<li>北美</li>
+<li>國際</li>
+<li>AWS</li>
+</ul>
+<p>並沒有披露「廣告業務」的獨立營業利益、成本結構或自由現金流。[SEC 10-K Item 8，Amazon 2025 年年報]</p>
+<p>亞馬遜 2025 年的整體資料如下：</p>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th style="text-align:right">2025 年</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>總收入</td>
+<td style="text-align:right">7,169.24 億美元</td>
+</tr>
+<tr>
+<td>營業利益</td>
+<td style="text-align:right">799.75 億美元</td>
+</tr>
+<tr>
+<td>北美營業利益</td>
+<td style="text-align:right">296.19 億美元</td>
+</tr>
+<tr>
+<td>國際營業利益</td>
+<td style="text-align:right">47.50 億美元</td>
+</tr>
+<tr>
+<td>AWS 營業利益</td>
+<td style="text-align:right">456.06 億美元</td>
+</tr>
+</tbody>
+</table>
+<p>但這些數字都不能直接等同於廣告業務的利潤。原因是：</p>
+<ol>
+<li>廣告收入分散在北美及國際分部。</li>
+<li>技術、流量、支付、推薦和管理成本由不同分部共同承擔。</li>
+<li>亞馬遜沒有披露廣告相關的直接成本。</li>
+<li>銷售與行銷費用包含多種支出，不只是廣告業務成本。</li>
+</ol>
+<p>2025 年亞馬遜整體銷售與行銷費用為 <strong>471.29 億美元</strong>，其中廣告及促銷支出約 <strong>235 億美元</strong>；但這是亞馬遜為自身產品和服務支付的營銷成本，不能直接拿來與 686 億美元廣告收入相減，因為兩者的定義並不相同。[SEC 10-K Item 7、Item 8，Amazon 2025 年年報]</p>
+<p>所以，合理說法是：</p>
+<blockquote>
+<p>廣告業務具有非常高的增量利潤潛力，但亞馬遜尚未提供足夠數據，讓投資者精確計算其獨立營業利潤率。</p>
+</blockquote>
+<hr />
+<h2>四、為什麼它可能比傳統零售收入更有價值</h2>
+<p>亞馬遜 2025 年整體營業利益率約為：</p>
+<p>[
+79.975 / 716.924 \approx 11.2%
+]</p>
+<p>但這個數字混合了低毛利零售、物流、AWS、訂閱及廣告等不同業務，不能代表廣告業務本身的利潤率。[SEC 10-K Item 7、Item 8，Amazon 2025 年年報]</p>
+<p>廣告業務的經濟特徵通常更接近：</p>
+<ul>
+<li>高毛利服務收入</li>
+<li>低邊際交付成本</li>
+<li>不需要承擔商品成本</li>
+<li>不需要承擔大部分履約成本</li>
+<li>與既有流量和數據基礎設施共享成本</li>
+</ul>
+<p>因此，廣告收入對集團利潤的貢獻，理論上很可能高於同等規模的商品銷售收入。</p>
+<p>這也是為什麼亞馬遜 2025 年北美和國際營業利益增加時，管理層明確將「廣告銷售增加」列為重要原因之一。[SEC 10-K Item 7，Amazon 2025 年年報]</p>
+<p>不過，這仍然是「對整體分部利潤的正面貢獻」，並非廣告業務的獨立利潤披露。</p>
+<hr />
+<h2>五、它是否已經達到「高品質獲利引擎」的標準？</h2>
+<h3>已經符合的條件</h3>
+<h4>1. 規模大</h4>
+<p>2025 年廣告收入約 <strong>686 億美元</strong>，已經是全球大型廣告平台級別的收入來源。[SEC 10-K Item 8]</p>
+<h4>2. 增速高且持續</h4>
+<p>2024 年增長約 19.8%，2025 年增長約 22.1%，連續兩年接近或超過 20%。[SEC 10-K Item 8]</p>
+<h4>3. 依賴既有生態，而非大量新增資本</h4>
+<p>廣告可以搭載在亞馬遜現有電商、Marketplace、Prime 和影音流量上，並不需要像 AWS 那樣持續投入巨額資料中心資本。[SEC 10-K Item 7、Item 8]</p>
+<h4>4. 與客戶收入具有直接關聯</h4>
+<p>對賣家而言，廣告通常可以與商品曝光、點擊和銷售結果掛鉤，因此廣告主較容易衡量投資回報。這種「可歸因性」有助於支撐廣告價格和預算。[SEC 10-K Item 8]</p>
+<h4>5. 對集團利潤已有實質影響</h4>
+<p>亞馬遜明確表示，北美及國際營業利益增長部分由廣告銷售增加推動。[SEC 10-K Item 7]</p>
+<hr />
+<h2>六、尚未完全達標的地方</h2>
+<h3>1. 缺少獨立利潤率披露</h3>
+<p>這是最大的資訊缺口。</p>
+<p>我們不知道：</p>
+<ul>
+<li>廣告業務的營業利益</li>
+<li>廣告業務的直接成本</li>
+<li>每一美元廣告收入帶來多少增量利潤</li>
+<li>廣告業務是否需要顯著補貼其他零售業務</li>
+</ul>
+<p>因此，它是「高品質獲利引擎」的判斷，部分是基於商業模式推論，而不是完整的分部會計數據。</p>
+<h3>2. 廣告收入可能受到賣家成本壓力限制</h3>
+<p>亞馬遜廣告的主要付費者包括第三方賣家和品牌供應商。如果賣家認為：</p>
+<ul>
+<li>廣告價格上升太快</li>
+<li>廣告已經成為獲得自然流量的必要費用</li>
+<li>平台抽成、履約費和廣告費疊加過高</li>
+</ul>
+<p>他們可能提高商品價格、減少廣告投入，或轉移到其他平台。</p>
+<h3>3. 監管與反壟斷風險</h3>
+<p>亞馬遜 10-K 披露的法律及監管案件中，包含涉及市場支配、賣家關係、價格政策、推薦位及廣告實務的反壟斷訴訟。[SEC 10-K Item 8，Amazon 2025 年年報]</p>
+<p>若監管機構限制亞馬遜如何：</p>
+<ul>
+<li>排列商品搜尋結果</li>
+<li>使用賣家數據</li>
+<li>綁定廣告與 Marketplace</li>
+<li>向賣家收取費用</li>
+<li>推廣自有或特定商品</li>
+</ul>
+<p>廣告業務的變現效率可能受到影響。</p>
+<h3>4. AI 可能同時是機會與威脅</h3>
+<p>生成式 AI 和 AI 購物代理可能：</p>
+<ul>
+<li>提高亞馬遜商品推薦和廣告匹配效率；</li>
+<li>但也可能把消費者決策入口轉移到外部 AI 助手；</li>
+<li>減少消費者直接進入亞馬遜搜尋商品的次數。</li>
+</ul>
+<p>亞馬遜年報也將搜尋引擎、社交網絡、比較購物網站、AI 和其他商品發現渠道列為競爭來源。[SEC 10-K Item 1，Amazon 2025 年年報]</p>
+<hr />
+<h2>七、投資判斷：它更像「第二個 AWS」，還是「附屬收入」？</h2>
+<p>我的判斷是：</p>
+<blockquote>
+<p><strong>亞馬遜廣告業務已經脫離附屬收入階段，但還沒有達到 AWS 那種透明、可獨立衡量的分部業務階段。</strong></p>
+</blockquote>
+<p>它與 AWS 的差異如下：</p>
+<table>
+<thead>
+<tr>
+<th>維度</th>
+<th>廣告業務</th>
+<th>AWS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025 年收入</td>
+<td>686.35 億美元</td>
+<td>1,287.25 億美元</td>
+</tr>
+<tr>
+<td>2025 年增長</td>
+<td>約 22.1%</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>單獨收入披露</td>
+<td>有</td>
+<td>有</td>
+</tr>
+<tr>
+<td>單獨營業利益披露</td>
+<td>沒有</td>
+<td>有，456.06 億美元</td>
+</tr>
+<tr>
+<td>資本密度</td>
+<td>相對較低</td>
+<td>非常高</td>
+</tr>
+<tr>
+<td>客戶轉換成本</td>
+<td>中等至高</td>
+<td>通常較高</td>
+</tr>
+<tr>
+<td>主要風險</td>
+<td>監管、賣家成本、廣告競爭</td>
+<td>雲計算競爭、AI 資本支出、價格壓力</td>
+</tr>
+</tbody>
+</table>
+<p>AWS 是已被財務報表證明的高利潤業務；廣告則是<strong>從收入增長、資本效率和生態位置來看，已經高度符合高品質業務特徵，但利潤率仍需透過間接數據推斷</strong>。</p>
+<hr />
+<h2>最終評價</h2>
+<p><strong>是，亞馬遜廣告業務現在可以算是高品質獲利引擎，但應該加上兩個限定詞：</strong></p>
+<ol>
+<li><strong>它是高品質的增量利潤引擎，而不是已被單獨財報完全驗證的獨立利潤中心。</strong></li>
+<li><strong>它的高品質建立在亞馬遜電商和 Marketplace 生態之上，因此不能完全脫離零售平台來估值。</strong></li>
+</ol>
+<p>最值得追蹤的三個指標是：</p>
+<ul>
+<li>廣告收入增速能否持續高於亞馬遜整體收入增速；</li>
+<li>北美和國際營業利益增長中，廣告貢獻是否繼續擴大；</li>
+<li>亞馬遜是否開始披露廣告業務的更詳細成本或盈利數據。</li>
+</ul>
+<p>目前資料支持的核心結論是：<strong>亞馬遜廣告業務已經是規模大、增長快、資本需求相對低、對集團利潤有實質貢獻的優質業務；但由於缺乏獨立利潤披露，仍不宜直接把它等同於一個已公開證明擁有超高營業利潤率的廣告平台。</strong></p>
+<p>資料品質提示：以上廣告收入與盈利資料主要來自 Amazon 2025 年 10-K，報告期截至 2025 年 12 月 31 日；Finnhub 的 AMZN 基本面資料顯示整體公司 TTM 營業利益率為 12.08%、淨利率為 17.44%，但這些是亞馬遜合併口徑，不能直接用來代表廣告業務利潤率。[Finnhub company basic financials]</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v17" value="X 較好"> X 較好</label><label><input type="radio" name="v17" value="Y 較好"> Y 較好</label><label><input type="radio" name="v17" value="平手"> 平手</label><label><input type="radio" name="v17" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n17"></textarea>
@@ -70,8 +1166,129 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 20</h2>
   <p class="q">可口可樂現在還算是穩定配息的那種公司嗎？</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**是， Coca-Cola（KO）目前仍可算是「穩定配息型」公司；但它的優勢主要是配息紀律與業務穩定，不代表殖利率特別高或完全沒有風險。**\n\n關鍵依據：\n\n- 可口可樂在 FY2025 10-K（財年截至 **2025-12-31**）披露，2025 年支付股利 **87.79 億美元**，高於 2024 年的 **83.59 億美元**；公司並在 2026 年將季度股利提高至每股 **0.53 美元**、全年 **2.12 美元**，這是**連續第 64 年增加年度股利**。[1]\n- 以目前股價約 **92.94 美元**計算，按全年股利 2.12 美元推算，現金殖利率約 **2.28%**。這比較像「穩定增長型股利」，而不是高股息股。\n- 以 Finnhub 的 TTM EPS **3.3194 美元**粗略估算，股利支付率約 **64%**（2.12 ÷ 3.3194）。這個水準通常仍有一定緩衝，但已不是非常保守的支付率。\n- 財務流動性目前仍有支撐：公司披露 2025 年底持有現金、現金等價物、短期投資及有價證券合計 **158 億美元**，另有 **62 億美元**未使用的備用信用額度；管理層也表示目前流動性足以支應未來可預見的營運及融資承諾。[2]\n- 需要留意的是，公司 2025 年底長期債務約 **426.23 億美元**，並非低負債公司；不過其長期債信評等為 S&amp;P **A+**、Moody’s **A1**。[3]\n\n**我的判斷：**\n\n| 面向 | 評價 |\n|---|---|\n| 配息連續性 | 很強，已連續 64 年增加 |\n| 股利成長 | 穩定，但通常不會非常高 |\n| 殖利率 | 中等，按最新股利與股價約 2.3% |\n| 財務安全墊 | 良好，但有相當規模的債務 |\n| 適合對象 | 重視長期現金流、抗波動與股利成長的投資人 |\n| 不適合期待 | 高殖利率或短期爆發性報酬的投資人 |\n\n另外，Finnhub 基本面資料顯示 KO 的股利殖利率為 **3.14%**，但這與公司最新公布的全年股利 2.12 美元及約 92.94 美元股價推算出的約 2.28% 不一致，可能是資料更新時間或計算口徑不同；因此我會以公司 10-K 的股利金額自行計算為主。\n\n總結來說，**KO 還是穩定配息股，但目前更準確的定位是「高品質、長期增息、殖利率中等」的防禦型公司，而不是高股息股。**\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: SEC 10-K excerpt&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;**結論：算是。可口可樂（KO）目前仍屬於「相對穩定配息」的公司，但不是毫無風險的高股息股。**它的優勢在於成熟的品牌、穩定獲利與低股價波動；主要需要留意的是股息支付率偏高、自由現金流覆蓋並不寬裕，以及稅務訴訟風險。\n\n### 支持「穩定配息」的因素\n\n- **股息率約 3.14%**，以目前股價 **92.94 美元**計，屬於中等偏穩定的現金收益率。[1]\n- 2025 年每股股息為 **2.04 美元**，2024 年為 **1.94 美元**，2023 年為 **1.84 美元**；至少近三年呈現增加趨勢。[2]\n- 2025 年可口可樂的：\n  - 營收為 **479.41 億美元**\n  - 歸屬股東淨利為 **131.07 億美元**\n  - 稀釋後每股盈餘為 **3.04 美元**\n  - 營業現金流為 **74.08 億美元**。[2]\n- 公司盈利能力仍強：TTM 淨利率約 **28.56%**、營業利益率約 **30.35%**；股價 beta 約 **0.29**，通常代表股價波動低於大盤。[1]\n\n### 需要留意的地方\n\n**1. 股息支付率不算低**\n\n以 2025 年數據估算：\n\n- 每股股息支付率約為 **2.04 ÷ 3.04 = 67%**\n- 按公司總額計算，股息約 **87.79 億美元**，相對於歸屬股東淨利 **131.07 億美元**，支付率也約 **67%**。[2]\n\n這仍然可以接受，但代表公司約三分之二的盈餘用於派息，未來股息大幅加速成長的空間可能有限。\n\n**2. 2025 年營業現金流低於股息支出**\n\n2025 年營業現金流為 **74.08 億美元**，但支付股息 **87.79 億美元**；2024 年也出現營業現金流 **68.05 億美元**低於股息 **83.59 億美元**的情況。[2]\n\n這不代表股息立即不安全，因為公司仍有現金、投資與融資能力，而且現金流會受到營運資金變動影響；但對「股息是否完全由當年營運現金流覆蓋」而言，這是一個需要觀察的訊號。\n\n**3. 負債與訴訟風險不能忽略**\n\n截至 2025 年底，公司長期債務約 **421.19 億美元**，另外 2026 年到期的長期債務約 **18.22 億美元**。[2]\n\n此外，公司仍涉及美國國稅局的轉讓定價訴訟：公司已支付約 **60 億美元**稅務訴訟款項；若相關立場最終不利，公司估計 2010–2025 稅務年度可能還有約 **140 億美元**的增量稅款與利息風險。[2] 這不一定會導致削減股息，但若重大現金流出真正發生，會降低財務彈性。\n\n### 我的判斷\n\n| 面向 | 判斷 |\n|---|---|\n| 配息穩定性 | **高** |\n| 股息成長速度 | **中等，可能逐步增加** |\n| 股息率 | **約 3.14%，中等** |\n| 盈餘覆蓋股息 | **尚可，但支付率約 67%** |\n| 現金流覆蓋股息 | **近期偏緊，需要觀察** |\n| 股價波動 | **相對低，beta 約 0.29** |\n| 主要風險 | **負債、稅務訴訟、成熟市場成長較慢** |\n\n因此，如果你所說的「穩定配息」是指**不追求超高殖利率、重視品牌與股息持續性**，可口可樂目前仍符合這個定位。若你要求的是**股息完全由營業現金流覆蓋、支付率很低且具高度安全邊際**，那麼它目前就不是最保守的案例。\n\n**資料品質提醒：**Finnhub 報價工具未提供明確時間戳，因此股價與股息率可能不是即時到秒；財務數據則來自可口可樂截至 **2025 年 12 月 31 日**的最新 10-K，該申報資料日期為 **2026 年 2 月 20 日**。[1][2]\n\n[1]: Finnhub 公司基本面與報價資料（KO）\n[2]: SEC Filing 工具：The Coca-Cola Company 2025 Form 10-K，財務報表與管理層討論內容&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>是， Coca-Cola（KO）目前仍可算是「穩定配息型」公司；但它的優勢主要是配息紀律與業務穩定，不代表殖利率特別高或完全沒有風險。</strong></p>
+<p>關鍵依據：</p>
+<ul>
+<li>可口可樂在 FY2025 10-K（財年截至 <strong>2025-12-31</strong>）披露，2025 年支付股利 <strong>87.79 億美元</strong>，高於 2024 年的 <strong>83.59 億美元</strong>；公司並在 2026 年將季度股利提高至每股 <strong>0.53 美元</strong>、全年 <strong>2.12 美元</strong>，這是<strong>連續第 64 年增加年度股利</strong>。[1]</li>
+<li>以目前股價約 <strong>92.94 美元</strong>計算，按全年股利 2.12 美元推算，現金殖利率約 <strong>2.28%</strong>。這比較像「穩定增長型股利」，而不是高股息股。</li>
+<li>以 Finnhub 的 TTM EPS <strong>3.3194 美元</strong>粗略估算，股利支付率約 <strong>64%</strong>（2.12 ÷ 3.3194）。這個水準通常仍有一定緩衝，但已不是非常保守的支付率。</li>
+<li>財務流動性目前仍有支撐：公司披露 2025 年底持有現金、現金等價物、短期投資及有價證券合計 <strong>158 億美元</strong>，另有 <strong>62 億美元</strong>未使用的備用信用額度；管理層也表示目前流動性足以支應未來可預見的營運及融資承諾。[2]</li>
+<li>需要留意的是，公司 2025 年底長期債務約 <strong>426.23 億美元</strong>，並非低負債公司；不過其長期債信評等為 S&amp;P <strong>A+</strong>、Moody’s <strong>A1</strong>。[3]</li>
+</ul>
+<p><strong>我的判斷：</strong></p>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th>評價</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>配息連續性</td>
+<td>很強，已連續 64 年增加</td>
+</tr>
+<tr>
+<td>股利成長</td>
+<td>穩定，但通常不會非常高</td>
+</tr>
+<tr>
+<td>殖利率</td>
+<td>中等，按最新股利與股價約 2.3%</td>
+</tr>
+<tr>
+<td>財務安全墊</td>
+<td>良好，但有相當規模的債務</td>
+</tr>
+<tr>
+<td>適合對象</td>
+<td>重視長期現金流、抗波動與股利成長的投資人</td>
+</tr>
+<tr>
+<td>不適合期待</td>
+<td>高殖利率或短期爆發性報酬的投資人</td>
+</tr>
+</tbody>
+</table>
+<p>另外，Finnhub 基本面資料顯示 KO 的股利殖利率為 <strong>3.14%</strong>，但這與公司最新公布的全年股利 2.12 美元及約 92.94 美元股價推算出的約 2.28% 不一致，可能是資料更新時間或計算口徑不同；因此我會以公司 10-K 的股利金額自行計算為主。</p>
+<p>總結來說，<strong>KO 還是穩定配息股，但目前更準確的定位是「高品質、長期增息、殖利率中等」的防禦型公司，而不是高股息股。</strong></p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: SEC 10-K excerpt</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p>**結論：算是。可口可樂（KO）目前仍屬於「相對穩定配息」的公司，但不是毫無風險的高股息股。**它的優勢在於成熟的品牌、穩定獲利與低股價波動；主要需要留意的是股息支付率偏高、自由現金流覆蓋並不寬裕，以及稅務訴訟風險。</p>
+<h3>支持「穩定配息」的因素</h3>
+<ul>
+<li><strong>股息率約 3.14%</strong>，以目前股價 <strong>92.94 美元</strong>計，屬於中等偏穩定的現金收益率。[1]</li>
+<li>2025 年每股股息為 <strong>2.04 美元</strong>，2024 年為 <strong>1.94 美元</strong>，2023 年為 <strong>1.84 美元</strong>；至少近三年呈現增加趨勢。[2]</li>
+<li>2025 年可口可樂的：
+<ul>
+<li>營收為 <strong>479.41 億美元</strong></li>
+<li>歸屬股東淨利為 <strong>131.07 億美元</strong></li>
+<li>稀釋後每股盈餘為 <strong>3.04 美元</strong></li>
+<li>營業現金流為 <strong>74.08 億美元</strong>。[2]</li>
+</ul>
+</li>
+<li>公司盈利能力仍強：TTM 淨利率約 <strong>28.56%</strong>、營業利益率約 <strong>30.35%</strong>；股價 beta 約 <strong>0.29</strong>，通常代表股價波動低於大盤。[1]</li>
+</ul>
+<h3>需要留意的地方</h3>
+<p><strong>1. 股息支付率不算低</strong></p>
+<p>以 2025 年數據估算：</p>
+<ul>
+<li>每股股息支付率約為 <strong>2.04 ÷ 3.04 = 67%</strong></li>
+<li>按公司總額計算，股息約 <strong>87.79 億美元</strong>，相對於歸屬股東淨利 <strong>131.07 億美元</strong>，支付率也約 <strong>67%</strong>。[2]</li>
+</ul>
+<p>這仍然可以接受，但代表公司約三分之二的盈餘用於派息，未來股息大幅加速成長的空間可能有限。</p>
+<p><strong>2. 2025 年營業現金流低於股息支出</strong></p>
+<p>2025 年營業現金流為 <strong>74.08 億美元</strong>，但支付股息 <strong>87.79 億美元</strong>；2024 年也出現營業現金流 <strong>68.05 億美元</strong>低於股息 <strong>83.59 億美元</strong>的情況。[2]</p>
+<p>這不代表股息立即不安全，因為公司仍有現金、投資與融資能力，而且現金流會受到營運資金變動影響；但對「股息是否完全由當年營運現金流覆蓋」而言，這是一個需要觀察的訊號。</p>
+<p><strong>3. 負債與訴訟風險不能忽略</strong></p>
+<p>截至 2025 年底，公司長期債務約 <strong>421.19 億美元</strong>，另外 2026 年到期的長期債務約 <strong>18.22 億美元</strong>。[2]</p>
+<p>此外，公司仍涉及美國國稅局的轉讓定價訴訟：公司已支付約 <strong>60 億美元</strong>稅務訴訟款項；若相關立場最終不利，公司估計 2010–2025 稅務年度可能還有約 <strong>140 億美元</strong>的增量稅款與利息風險。[2] 這不一定會導致削減股息，但若重大現金流出真正發生，會降低財務彈性。</p>
+<h3>我的判斷</h3>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>配息穩定性</td>
+<td><strong>高</strong></td>
+</tr>
+<tr>
+<td>股息成長速度</td>
+<td><strong>中等，可能逐步增加</strong></td>
+</tr>
+<tr>
+<td>股息率</td>
+<td><strong>約 3.14%，中等</strong></td>
+</tr>
+<tr>
+<td>盈餘覆蓋股息</td>
+<td><strong>尚可，但支付率約 67%</strong></td>
+</tr>
+<tr>
+<td>現金流覆蓋股息</td>
+<td><strong>近期偏緊，需要觀察</strong></td>
+</tr>
+<tr>
+<td>股價波動</td>
+<td><strong>相對低，beta 約 0.29</strong></td>
+</tr>
+<tr>
+<td>主要風險</td>
+<td><strong>負債、稅務訴訟、成熟市場成長較慢</strong></td>
+</tr>
+</tbody>
+</table>
+<p>因此，如果你所說的「穩定配息」是指<strong>不追求超高殖利率、重視品牌與股息持續性</strong>，可口可樂目前仍符合這個定位。若你要求的是<strong>股息完全由營業現金流覆蓋、支付率很低且具高度安全邊際</strong>，那麼它目前就不是最保守的案例。</p>
+<p>**資料品質提醒：**Finnhub 報價工具未提供明確時間戳，因此股價與股息率可能不是即時到秒；財務數據則來自可口可樂截至 <strong>2025 年 12 月 31 日</strong>的最新 10-K，該申報資料日期為 <strong>2026 年 2 月 20 日</strong>。[1][2]</p>
+<p>[1]: Finnhub 公司基本面與報價資料（KO）
+[2]: SEC Filing 工具：The Coca-Cola Company 2025 Form 10-K，財務報表與管理層討論內容</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v20" value="X 較好"> X 較好</label><label><input type="radio" name="v20" value="Y 較好"> Y 較好</label><label><input type="radio" name="v20" value="平手"> 平手</label><label><input type="radio" name="v20" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n20"></textarea>
@@ -79,8 +1296,230 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 24</h2>
   <p class="q">分析特斯拉和輝達，哪一邊比較像好消息幾乎都已經反映在股價上。</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：若問題是「哪一家公司對好消息的預期已大致反映在股價」，我會選特斯拉（TSLA），而不是輝達（NVDA）。**  \n原因是：特斯拉目前的估值遠高於其已實現的獲利能力與近期獲利增長；輝達雖然估值不低、股價也接近高位，但目前的營收與 EPS 增長仍能部分支撐估值。\n\n## 核心比較\n\n| 指標 | 特斯拉 TSLA | 輝達 NVDA |\n|---|---:|---:|\n| 最新股價 | $386.60 | $220.46 |\n| 距52週高點 | 約低22.5% | 約低9.4% |\n| TTM本益比 | 388.1倍 | 27.5倍 |\n| Forward P/E | 174.4倍 | 17.0倍 |\n| TTM營收年增 | 11.75% | 83.38% |\n| TTM EPS年增 | -37.66% | 125.15% |\n| 淨利率 | 3.67% | 63.66% |\n| 營業利益率 | 4.22% | 65.17% |\n| P/S | 14.26倍 | 17.50倍 |\n\n數據來源：Finnhub 公司基本面資料與即時報價。[Finnhub quote；Finnhub fundamentals]\n\n## 為什麼我認為特斯拉更像「好消息已反映」\n\n### 1. 估值與當前獲利脫節更明顯\n\n特斯拉的 trailing P/E 約 **388倍**、forward P/E 約 **174倍**，但 TTM EPS 卻年減 **37.66%**，淨利率只有 **3.67%**。換句話說，市場目前支付的價格，主要不是針對目前的汽車業務獲利，而是提前計入了相當多未來的自動駕駛、Robotaxi、Optimus 等選擇權價值。\n\n這不代表那些業務沒有潛力，而是代表：**未來只要進度延遲、商業化速度低於預期，估值就容易受到壓縮。**\n\n### 2. 特斯拉需要「大幅超預期」，不只是符合預期\n\n以 forward P/E 約 **174倍**來看，特斯拉不能只做到穩定成長；市場需要看到獲利快速反彈、汽車毛利率改善，並且新業務開始產生可量化的收入與現金流。\n\n目前可觀察到的基本面組合是：\n\n- 營收仍年增 **11.75%**\n- 但 EPS 年減 **37.66%**\n- 營業利益率僅 **4.22%**\n- ROE 約 **4.57%**\n\n這種「收入仍增長、但盈利能力明顯承壓」的情況，與 174倍 forward P/E 並不匹配，除非投資人對未來非汽車業務有極高信心。[Finnhub fundamentals]\n\n### 3. 股價沒有大幅回落，反而顯示敘事仍有溢價\n\n特斯拉目前為 **$386.60**，當日上升 **3.45%**；雖然低於52週高點 $498.83，但仍遠高於52週低點 $297.38。[Finnhub quote；Finnhub fundamentals]\n\n因此，不能只因為股價距離高點約22.5%，就認為估值便宜。以獲利指標看，特斯拉更像是「即使已經從高點回落，仍然包含大量未來好消息」。\n\n## 輝達的情況：估值高，但基本面支撐更強\n\n輝達的 P/S 約 **17.5倍**、P/B 約 **20.8倍**，絕對值仍然很高；而且市值約 **5.3兆美元**，市場對 AI 基礎設施需求、GPU 產品週期與資料中心支出已有很高期待。[Finnhub fundamentals]\n\n不過，輝達和特斯拉的關鍵差別在於：\n\n- 營收年增 **83.38%**\n- EPS年增 **125.15%**\n- 淨利率 **63.66%**\n- 營業利益率 **65.17%**\n- forward P/E 約 **17倍**\n\n因此，輝達也不是「便宜股」，但其目前的高估值有較強的盈利增長作為支撐。即使未來增長放慢，仍可能透過盈利增長消化一部分估值，而特斯拉目前則更依賴未來故事實現。\n\n## 但輝達的「好消息已反映」風險也不能忽略\n\n輝達的主要風險不是目前獲利不足，而是市場可能已經把未來幾年的 AI 資本支出與高增長預期計入股價。若出現以下情況，股價仍可能受壓：\n\n1. 雲端公司降低 AI 資本支出增速；\n2. 客戶轉向自研 ASIC 或其他替代方案；\n3. 毛利率因產品轉換、供應鏈或競爭而下降；\n4. 營收增長從目前的高80%區間明顯放慢；\n5. 供應限制或出口管制影響出貨。\n\n此外，輝達股價為 **$220.46**，距52週高點 $243.37 僅約9.4%，相對特斯拉更接近高位；所以從短線交易角度，它並不一定比特斯拉安全。[Finnhub quote；Finnhub fundamentals]\n\n## 最終判斷\n\n我的排序是：\n\n1. **特斯拉：更像「好消息大部分已被提前定價」**\n   - forward P/E 約174倍；\n   - EPS年減37.66%；\n   - 淨利率只有3.67%；\n   - 估值高度依賴 Robotaxi、AI 和機器人等尚未完全驗證的未來業務。\n\n2. **輝達：好消息已反映不少，但尚未像特斯拉那樣明顯脫離當前獲利**\n   - P/S和P/B很高；\n   - 股價接近52週高點；\n   - 但營收年增83.38%、EPS年增125.15%，且淨利率達63.66%，基本面仍在快速增長。\n\n**簡單說：特斯拉的股價更依賴「未來會發生什麼」；輝達的股價雖然已反映很高期待，但目前仍有較強的「已經發生了什麼」作支撐。**\n\n### 資料品質提示\n\nFinnhub 的即時報價與基本面資料未在輸出中提供明確時間戳，應視為最新可取得資料，而非保證即時。Tavily 搜尋結果包含年代不一致及疑似未來日期的新聞，且部分結果可追溯至較早年份，因此我沒有把那些新聞當作本次判斷的核心依據。&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;**結論：特斯拉（TSLA）更像是「大量好消息、尤其是 Robotaxi／Optimus 的遠期想像，已經反映在股價中」；輝達（NVDA）雖然估值不低，但目前的股價仍有較強的盈利增長支撐。**\n\n### 核心比較\n\n| 指標 | 特斯拉 | 輝達 |\n|---|---:|---:|\n| 現價 | $386.42 | $220.50 |\n| 市盈率（TTM） | 388倍 | 27.5倍 |\n| 預期市盈率 | 174倍 | 17.0倍 |\n| 市銷率 | 14.3倍 | 17.5倍 |\n| TTM營收增長 | 11.8% | 83.4% |\n| TTM EPS增長 | -37.7% | 125.2% |\n| 淨利率 | 3.7% | 63.7% |\n\n以上為 Finnhub 基本面與即時報價資料。單看估值與盈利增長的匹配度，**TSLA 的估值明顯更依賴未來故事，而 NVDA 的估值則較多由已實現的業績支撐**。\n\n### 為什麼我認為 TSLA 更像「好消息已反映」\n\n1. **目前盈利不足以支撐傳統估值。**  \n   TSLA 的 TTM 本益比約 388 倍、預期本益比約 174 倍，但 TTM EPS 卻下跌約 37.7%，淨利率只有約 3.7%。這意味著市場定價很大程度上不是基於目前汽車業務的盈利，而是基於 Robotaxi、FSD、Optimus 及其他 AI 業務未來大幅成功的情境。\n\n2. **公司自己也把未來增長押在尚未完全驗證的業務上。**  \n   Tesla FY2025 10-K（財政年度截至 2025-12-31）表示，未來業務高度依賴自動駕駛系統、Robotaxi／Cybercab 及 Optimus 的開發、量產和消費者採用；公司同時警告這些產品可能出現開發、推出及量產延誤。[1]  \n   10-K 也指出，Robotaxi 市場仍在發展中，成功取決於消費者是否接受自動駕駛服務，以及公司能否在競爭加劇下擴張。[2]\n\n3. **市場對 TSLA 的樂觀預期很容易受到執行進度打擊。**  \n   檢索到的市場報道也直接指出，Tesla 的估值已偏高，股價已納入相當部分 Robotaxi 和 Optimus 的未來價值；報道同時提到，FSD 監管與機器人商業化時間仍是主要疑問。[3] 這與公司的 10-K 風險披露是一致的，而不是單純的短期情緒問題。\n\n### 為什麼 NVDA 相對沒有那麼「完全反映」\n\n1. **NVDA 的盈利增長目前非常強。**  \n   NVDA TTM 營收增長約 83%、EPS 增長約 125%，淨利率約 63.7%。即使市銷率約 17.5 倍偏高，27.5 倍 TTM 本益比及約 17 倍預期本益比，相對其盈利增長而言，沒有 TSLA 那麼脫離現況。\n\n2. **AI需求已經轉化為實際收入，而不只是遠期產品構想。**  \n   NVIDIA FY2026 10-K（財政年度截至 2026-01-25）表示，當年度收入增長主要由資料中心運算及 AI 解決方案推動，Blackwell 架構已佔資料中心收入的大部分。[4] 這代表 NVDA 的主要利好——AI基礎設施需求——已經在財務報表中實現，而非完全依賴未來十年才能驗證的商業模式。\n\n3. **但 NVDA 也不是沒有「利好已反映」的風險。**  \n   公司披露，資料中心、能源及客戶資本支出不足，可能延遲 AI 基礎設施建設；產品轉換也可能導致收入波動、庫存減值和成本上升。[5] 此外，出口管制已令其基本上無法競爭中國資料中心市場，這是明確的結構性負面因素。[6] CNBC 報道亦提到，NVIDIA 管理層形容中國 AI 晶片市場對美國業者實際上已關閉，雖然全球 AI 基礎設施需求仍然強勁。[7]\n\n### 最終判斷\n\n若問題是「哪一家公司更需要未來的好消息才能維持目前估值」：\n\n- **TSLA：更像是好消息已大幅反映。**  \n  股價已經要求 Robotaxi、FSD、Optimus 等業務不只成功，還要快速商業化、規模化，並最終大幅提升盈利。\n- **NVDA：也有高預期，但目前仍較有基本面緩衝。**  \n  AI需求、資料中心收入和盈利增長已經發生；只要增長沒有顯著放緩，估值仍有較清晰的業績支撐。\n\n因此，若只作「利好反映程度」的相對判斷，我會選：\n\n&gt; **TSLA ＞ NVDA：特斯拉更像利好已反映；輝達則是高預期，但尚未完全脫離基本面。**\n\n不過，這不等同於 TSLA 必然下跌或 NVDA 必然上升。TSLA 若出現 Robotaxi 大規模落地，可能繼續享有估值溢價；NVDA 若 AI 資本開支週期、出口限制或客戶自研晶片令增長急劇放慢，也可能出現估值重估。\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: https://www.cnbc.com/2025/10/22/tesla-earnings-are-coming-wednesday-heres-what-top-analysts-expect.html \&quot;Tesla earnings are coming Wednesday. Here’s what top analysts expect\&quot;  \n[4]: SEC 10-K excerpt  \n[5]: SEC 10-K excerpt  \n[6]: SEC 10-K excerpt  \n[7]: https://www.cnbc.com/2025/05/28/nvidia-nvda-earnings-report-q1-2026.html \&quot;Nvidia (NVDA) earnings report Q1 2026\&quot;&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><p><strong>結論：特斯拉（TSLA）更像是「大量好消息、尤其是 Robotaxi／Optimus 的遠期想像，已經反映在股價中」；輝達（NVDA）雖然估值不低，但目前的股價仍有較強的盈利增長支撐。</strong></p>
+<h3>核心比較</h3>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th style="text-align:right">特斯拉</th>
+<th style="text-align:right">輝達</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>現價</td>
+<td style="text-align:right">$386.42</td>
+<td style="text-align:right">$220.50</td>
+</tr>
+<tr>
+<td>市盈率（TTM）</td>
+<td style="text-align:right">388倍</td>
+<td style="text-align:right">27.5倍</td>
+</tr>
+<tr>
+<td>預期市盈率</td>
+<td style="text-align:right">174倍</td>
+<td style="text-align:right">17.0倍</td>
+</tr>
+<tr>
+<td>市銷率</td>
+<td style="text-align:right">14.3倍</td>
+<td style="text-align:right">17.5倍</td>
+</tr>
+<tr>
+<td>TTM營收增長</td>
+<td style="text-align:right">11.8%</td>
+<td style="text-align:right">83.4%</td>
+</tr>
+<tr>
+<td>TTM EPS增長</td>
+<td style="text-align:right">-37.7%</td>
+<td style="text-align:right">125.2%</td>
+</tr>
+<tr>
+<td>淨利率</td>
+<td style="text-align:right">3.7%</td>
+<td style="text-align:right">63.7%</td>
+</tr>
+</tbody>
+</table>
+<p>以上為 Finnhub 基本面與即時報價資料。單看估值與盈利增長的匹配度，<strong>TSLA 的估值明顯更依賴未來故事，而 NVDA 的估值則較多由已實現的業績支撐</strong>。</p>
+<h3>為什麼我認為 TSLA 更像「好消息已反映」</h3>
+<ol>
+<li>
+<p><strong>目前盈利不足以支撐傳統估值。</strong><br />
+TSLA 的 TTM 本益比約 388 倍、預期本益比約 174 倍，但 TTM EPS 卻下跌約 37.7%，淨利率只有約 3.7%。這意味著市場定價很大程度上不是基於目前汽車業務的盈利，而是基於 Robotaxi、FSD、Optimus 及其他 AI 業務未來大幅成功的情境。</p>
+</li>
+<li>
+<p><strong>公司自己也把未來增長押在尚未完全驗證的業務上。</strong><br />
+Tesla FY2025 10-K（財政年度截至 2025-12-31）表示，未來業務高度依賴自動駕駛系統、Robotaxi／Cybercab 及 Optimus 的開發、量產和消費者採用；公司同時警告這些產品可能出現開發、推出及量產延誤。[1]<br />
+10-K 也指出，Robotaxi 市場仍在發展中，成功取決於消費者是否接受自動駕駛服務，以及公司能否在競爭加劇下擴張。[2]</p>
+</li>
+<li>
+<p><strong>市場對 TSLA 的樂觀預期很容易受到執行進度打擊。</strong><br />
+檢索到的市場報道也直接指出，Tesla 的估值已偏高，股價已納入相當部分 Robotaxi 和 Optimus 的未來價值；報道同時提到，FSD 監管與機器人商業化時間仍是主要疑問。[3] 這與公司的 10-K 風險披露是一致的，而不是單純的短期情緒問題。</p>
+</li>
+</ol>
+<h3>為什麼 NVDA 相對沒有那麼「完全反映」</h3>
+<ol>
+<li>
+<p><strong>NVDA 的盈利增長目前非常強。</strong><br />
+NVDA TTM 營收增長約 83%、EPS 增長約 125%，淨利率約 63.7%。即使市銷率約 17.5 倍偏高，27.5 倍 TTM 本益比及約 17 倍預期本益比，相對其盈利增長而言，沒有 TSLA 那麼脫離現況。</p>
+</li>
+<li>
+<p><strong>AI需求已經轉化為實際收入，而不只是遠期產品構想。</strong><br />
+NVIDIA FY2026 10-K（財政年度截至 2026-01-25）表示，當年度收入增長主要由資料中心運算及 AI 解決方案推動，Blackwell 架構已佔資料中心收入的大部分。[4] 這代表 NVDA 的主要利好——AI基礎設施需求——已經在財務報表中實現，而非完全依賴未來十年才能驗證的商業模式。</p>
+</li>
+<li>
+<p><strong>但 NVDA 也不是沒有「利好已反映」的風險。</strong><br />
+公司披露，資料中心、能源及客戶資本支出不足，可能延遲 AI 基礎設施建設；產品轉換也可能導致收入波動、庫存減值和成本上升。[5] 此外，出口管制已令其基本上無法競爭中國資料中心市場，這是明確的結構性負面因素。[6] CNBC 報道亦提到，NVIDIA 管理層形容中國 AI 晶片市場對美國業者實際上已關閉，雖然全球 AI 基礎設施需求仍然強勁。[7]</p>
+</li>
+</ol>
+<h3>最終判斷</h3>
+<p>若問題是「哪一家公司更需要未來的好消息才能維持目前估值」：</p>
+<ul>
+<li><strong>TSLA：更像是好消息已大幅反映。</strong><br />
+股價已經要求 Robotaxi、FSD、Optimus 等業務不只成功，還要快速商業化、規模化，並最終大幅提升盈利。</li>
+<li><strong>NVDA：也有高預期，但目前仍較有基本面緩衝。</strong><br />
+AI需求、資料中心收入和盈利增長已經發生；只要增長沒有顯著放緩，估值仍有較清晰的業績支撐。</li>
+</ul>
+<p>因此，若只作「利好反映程度」的相對判斷，我會選：</p>
+<blockquote>
+<p><strong>TSLA ＞ NVDA：特斯拉更像利好已反映；輝達則是高預期，但尚未完全脫離基本面。</strong></p>
+</blockquote>
+<p>不過，這不等同於 TSLA 必然下跌或 NVDA 必然上升。TSLA 若出現 Robotaxi 大規模落地，可能繼續享有估值溢價；NVDA 若 AI 資本開支週期、出口限制或客戶自研晶片令增長急劇放慢，也可能出現估值重估。</p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: https://www.cnbc.com/2025/10/22/tesla-earnings-are-coming-wednesday-heres-what-top-analysts-expect.html &quot;Tesla earnings are coming Wednesday. Here’s what top analysts expect&quot;<br />
+[4]: SEC 10-K excerpt<br />
+[5]: SEC 10-K excerpt<br />
+[6]: SEC 10-K excerpt<br />
+[7]: https://www.cnbc.com/2025/05/28/nvidia-nvda-earnings-report-q1-2026.html &quot;Nvidia (NVDA) earnings report Q1 2026&quot;</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p><strong>結論：若問題是「哪一家公司對好消息的預期已大致反映在股價」，我會選特斯拉（TSLA），而不是輝達（NVDA）。</strong><br />
+原因是：特斯拉目前的估值遠高於其已實現的獲利能力與近期獲利增長；輝達雖然估值不低、股價也接近高位，但目前的營收與 EPS 增長仍能部分支撐估值。</p>
+<h2>核心比較</h2>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th style="text-align:right">特斯拉 TSLA</th>
+<th style="text-align:right">輝達 NVDA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最新股價</td>
+<td style="text-align:right">$386.60</td>
+<td style="text-align:right">$220.46</td>
+</tr>
+<tr>
+<td>距52週高點</td>
+<td style="text-align:right">約低22.5%</td>
+<td style="text-align:right">約低9.4%</td>
+</tr>
+<tr>
+<td>TTM本益比</td>
+<td style="text-align:right">388.1倍</td>
+<td style="text-align:right">27.5倍</td>
+</tr>
+<tr>
+<td>Forward P/E</td>
+<td style="text-align:right">174.4倍</td>
+<td style="text-align:right">17.0倍</td>
+</tr>
+<tr>
+<td>TTM營收年增</td>
+<td style="text-align:right">11.75%</td>
+<td style="text-align:right">83.38%</td>
+</tr>
+<tr>
+<td>TTM EPS年增</td>
+<td style="text-align:right">-37.66%</td>
+<td style="text-align:right">125.15%</td>
+</tr>
+<tr>
+<td>淨利率</td>
+<td style="text-align:right">3.67%</td>
+<td style="text-align:right">63.66%</td>
+</tr>
+<tr>
+<td>營業利益率</td>
+<td style="text-align:right">4.22%</td>
+<td style="text-align:right">65.17%</td>
+</tr>
+<tr>
+<td>P/S</td>
+<td style="text-align:right">14.26倍</td>
+<td style="text-align:right">17.50倍</td>
+</tr>
+</tbody>
+</table>
+<p>數據來源：Finnhub 公司基本面資料與即時報價。[Finnhub quote；Finnhub fundamentals]</p>
+<h2>為什麼我認為特斯拉更像「好消息已反映」</h2>
+<h3>1. 估值與當前獲利脫節更明顯</h3>
+<p>特斯拉的 trailing P/E 約 <strong>388倍</strong>、forward P/E 約 <strong>174倍</strong>，但 TTM EPS 卻年減 <strong>37.66%</strong>，淨利率只有 <strong>3.67%</strong>。換句話說，市場目前支付的價格，主要不是針對目前的汽車業務獲利，而是提前計入了相當多未來的自動駕駛、Robotaxi、Optimus 等選擇權價值。</p>
+<p>這不代表那些業務沒有潛力，而是代表：<strong>未來只要進度延遲、商業化速度低於預期，估值就容易受到壓縮。</strong></p>
+<h3>2. 特斯拉需要「大幅超預期」，不只是符合預期</h3>
+<p>以 forward P/E 約 <strong>174倍</strong>來看，特斯拉不能只做到穩定成長；市場需要看到獲利快速反彈、汽車毛利率改善，並且新業務開始產生可量化的收入與現金流。</p>
+<p>目前可觀察到的基本面組合是：</p>
+<ul>
+<li>營收仍年增 <strong>11.75%</strong></li>
+<li>但 EPS 年減 <strong>37.66%</strong></li>
+<li>營業利益率僅 <strong>4.22%</strong></li>
+<li>ROE 約 <strong>4.57%</strong></li>
+</ul>
+<p>這種「收入仍增長、但盈利能力明顯承壓」的情況，與 174倍 forward P/E 並不匹配，除非投資人對未來非汽車業務有極高信心。[Finnhub fundamentals]</p>
+<h3>3. 股價沒有大幅回落，反而顯示敘事仍有溢價</h3>
+<p>特斯拉目前為 <strong>$386.60</strong>，當日上升 <strong>3.45%</strong>；雖然低於52週高點 $498.83，但仍遠高於52週低點 $297.38。[Finnhub quote；Finnhub fundamentals]</p>
+<p>因此，不能只因為股價距離高點約22.5%，就認為估值便宜。以獲利指標看，特斯拉更像是「即使已經從高點回落，仍然包含大量未來好消息」。</p>
+<h2>輝達的情況：估值高，但基本面支撐更強</h2>
+<p>輝達的 P/S 約 <strong>17.5倍</strong>、P/B 約 <strong>20.8倍</strong>，絕對值仍然很高；而且市值約 <strong>5.3兆美元</strong>，市場對 AI 基礎設施需求、GPU 產品週期與資料中心支出已有很高期待。[Finnhub fundamentals]</p>
+<p>不過，輝達和特斯拉的關鍵差別在於：</p>
+<ul>
+<li>營收年增 <strong>83.38%</strong></li>
+<li>EPS年增 <strong>125.15%</strong></li>
+<li>淨利率 <strong>63.66%</strong></li>
+<li>營業利益率 <strong>65.17%</strong></li>
+<li>forward P/E 約 <strong>17倍</strong></li>
+</ul>
+<p>因此，輝達也不是「便宜股」，但其目前的高估值有較強的盈利增長作為支撐。即使未來增長放慢，仍可能透過盈利增長消化一部分估值，而特斯拉目前則更依賴未來故事實現。</p>
+<h2>但輝達的「好消息已反映」風險也不能忽略</h2>
+<p>輝達的主要風險不是目前獲利不足，而是市場可能已經把未來幾年的 AI 資本支出與高增長預期計入股價。若出現以下情況，股價仍可能受壓：</p>
+<ol>
+<li>雲端公司降低 AI 資本支出增速；</li>
+<li>客戶轉向自研 ASIC 或其他替代方案；</li>
+<li>毛利率因產品轉換、供應鏈或競爭而下降；</li>
+<li>營收增長從目前的高80%區間明顯放慢；</li>
+<li>供應限制或出口管制影響出貨。</li>
+</ol>
+<p>此外，輝達股價為 <strong>$220.46</strong>，距52週高點 $243.37 僅約9.4%，相對特斯拉更接近高位；所以從短線交易角度，它並不一定比特斯拉安全。[Finnhub quote；Finnhub fundamentals]</p>
+<h2>最終判斷</h2>
+<p>我的排序是：</p>
+<ol>
+<li>
+<p><strong>特斯拉：更像「好消息大部分已被提前定價」</strong></p>
+<ul>
+<li>forward P/E 約174倍；</li>
+<li>EPS年減37.66%；</li>
+<li>淨利率只有3.67%；</li>
+<li>估值高度依賴 Robotaxi、AI 和機器人等尚未完全驗證的未來業務。</li>
+</ul>
+</li>
+<li>
+<p><strong>輝達：好消息已反映不少，但尚未像特斯拉那樣明顯脫離當前獲利</strong></p>
+<ul>
+<li>P/S和P/B很高；</li>
+<li>股價接近52週高點；</li>
+<li>但營收年增83.38%、EPS年增125.15%，且淨利率達63.66%，基本面仍在快速增長。</li>
+</ul>
+</li>
+</ol>
+<p><strong>簡單說：特斯拉的股價更依賴「未來會發生什麼」；輝達的股價雖然已反映很高期待，但目前仍有較強的「已經發生了什麼」作支撐。</strong></p>
+<h3>資料品質提示</h3>
+<p>Finnhub 的即時報價與基本面資料未在輸出中提供明確時間戳，應視為最新可取得資料，而非保證即時。Tavily 搜尋結果包含年代不一致及疑似未來日期的新聞，且部分結果可追溯至較早年份，因此我沒有把那些新聞當作本次判斷的核心依據。</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v24" value="X 較好"> X 較好</label><label><input type="radio" name="v24" value="Y 較好"> Y 較好</label><label><input type="radio" name="v24" value="平手"> 平手</label><label><input type="radio" name="v24" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n24"></textarea>
@@ -88,8 +1527,256 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
   <h2>Row 29</h2>
   <p class="q">分析波音和空中巴士在目前供應鏈與監管壓力下，哪一邊比較能撐過這一段亂流。</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="&quot;**結論：在目前的供應鏈與監管壓力下，空中巴士（Airbus）整體上比波音（Boeing）更能撐過這一段亂流。**  \n核心原因不是 Airbus 沒有供應鏈問題，而是它的**財務緩衝較厚、盈利能力較強、監管與品質危機較輕**；波音則同時面臨供應商瓶頸、FAA 生產限制、737 MAX 認證延遲與資產負債表壓力。\n\n## 主要比較\n\n| 面向 | 波音 | 空中巴士 | 判斷 |\n|---|---:|---:|---|\n| TTM 毛利率 | 4.68% | 19.06% | Airbus 明顯較強 |\n| TTM 營業利益率 | 4.89% | 9.04% | Airbus 較有緩衝 |\n| TTM 淨利率 | 2.59% | 5.55% | Airbus 較穩定 |\n| 流動比率 | 1.14 | 2.83 | Airbus 流動性較佳 |\n| 速動比率 | 0.33 | 1.28 | Boeing 對存貨與持續融資依賴較高 |\n| 負債／股東權益 | 7.52 | 0.50 | Boeing 槓桿壓力遠高 |\n| ROA | 1.50% | 5.79% | Airbus 資產使用效率較高 |\n| TTM 營收年增 | 24.78% | 21.97% | 兩者都有復甦，但 Boeing 的成長基礎較弱 |\n\n以上為 Finnhub 基本面資料；其中 Boeing 的負債／股東權益比為 7.52，Airbus 為 0.50，這是兩家公司抗震能力最關鍵的差異之一。Boeing 雖然營收年增 24.78%，但盈利率與流動性仍偏薄。[Finnhub 公司基本面資料]\n\n## 1. 供應鏈：Airbus 也受傷，但 Boeing 的問題更接近「系統性修復」\n\nAirbus 的主要瓶頸集中在**引擎、機身結構與客艙設備**。此前 Airbus 曾表示，持續性的供應鏈問題主要來自這幾個環節，並因此面臨交機目標壓力。[1]\n\n這代表 Airbus 並非可以順利按照需求擴產。尤其 Airbus 高度依賴 Pratt &amp; Whitney 和 CFM 等引擎供應商，任何引擎交付延遲，都可能使已完成大部分組裝的飛機無法交付。\n\n不過，Boeing 面臨的問題更廣泛，包含：\n\n- 737 MAX 生產速度受監管限制；\n- 供應鏈與勞資問題；\n- 777X 認證與交付延遲；\n- 事故後的品質管理與製造流程重建；\n- 潛在關稅或供應商停供風險。\n\n新聞資料指出，Boeing 的生產與交機曾受到罷工、監管審查與供應鏈瓶頸共同影響；其供應商 Howmet 也曾警告關稅可能導致部分出貨中斷。[2]\n\n**判斷：**  \nAirbus 主要是「需求很強但供應商跟不上」；Boeing 則是「供應商跟不上，加上自身製造與品質體系仍需重建」。前者通常比較容易透過時間、預付款、供應商協調和調整產能來修復；後者涉及監管信任與組織流程，修復時間更長。\n\n## 2. 監管壓力：Boeing 明顯處於劣勢\n\nBoeing 的監管壓力具有三個特徵：\n\n1. **直接限制產量**：FAA 曾對 737 MAX 的生產設置上限，這會直接限制 Boeing 將訂單轉化為收入與現金流的速度。  \n2. **新機型認證延遲**：Boeing 737 MAX 7 與 MAX 10 的認證預期延至 2026 年，這會推遲產品組合更新與客戶交付。[3]  \n3. **品質與治理信任尚未完全恢復**：事故後監管機構、航空公司與客戶都會要求更高的檢查和放行標準，導致生產效率低於正常狀態。\n\nBoeing 近期交付有所改善，說明公司並非沒有復甦能力；但 Reuters 報導仍指出公司面臨供應鏈干擾、關稅壓力以及新機型認證延遲。[3]\n\n相比之下，現有工具資料沒有顯示 Airbus 正面承受同等程度的機型安全危機或生產上限。Airbus 的主要監管風險更偏向一般性的航空認證、引擎適航與跨國監管，而不是 Boeing 目前面對的「品質文化與製造控制」問題。\n\n**判斷：監管面 Airbus 優勢很明顯。**\n\n## 3. 財務承受力：Airbus 有更大的緩衝空間\n\n這是 Airbus 最重要的優勢。\n\nBoeing 的速動比率只有 0.33，負債／股東權益比為 7.52；Airbus 的速動比率為 1.28，負債／股東權益比為 0.50。換言之，若供應鏈問題導致飛機延遲交付：\n\n- Airbus 較能依靠現有流動資產與營運現金流吸收延遲；\n- Boeing 更容易受到庫存、預付款、債務成本與額外品質支出的共同擠壓；\n- Boeing 若需要更久時間才能恢復生產，可能必須依賴額外融資或資產處分。\n\nAirbus 的 TTM 淨利率為 5.55%，Boeing 為 2.59%；Airbus 的 TTM ROA 也高於 Boeing，顯示同樣受到供應鏈干擾時，Airbus 更有機會維持正向盈利。[Finnhub 公司基本面資料]\n\n## 4. Boeing 的優勢：不是沒有翻身機會\n\nBoeing 仍有幾項重要優勢：\n\n- 商用飛機市場需求依然強勁；\n- Boeing 具有龐大的訂單與客戶基礎；\n- 美國國防與航太業務提供一定的業務多元性；\n- 若 FAA 逐步放寬生產限制、供應鏈恢復，營運槓桿可能很高；\n- 目前 Boeing 的 TTM 營收年增 24.78%，高於 Airbus 的 21.97%，顯示其收入修復速度並不弱。\n\n但這些優勢比較像是**復甦上行空間**，不是短期抗壓能力。高營運槓桿在正常化時能放大利潤，但在交付受阻、品質成本上升或監管延遲時，也會放大現金流風險。\n\n## 投資與產業判斷\n\n### 基準情境：Airbus 較能撐住\n\n若未來 12–24 個月仍然存在：\n\n- 引擎供應不足；\n- 航太零組件交付延誤；\n- 新機型認證較慢；\n- 航空公司要求延後交機；\n- 監管審查維持高強度；\n\n那麼 Airbus 較可能維持穩定的盈利與交付增長，Boeing 則可能繼續處於「交付改善但現金流與品質成本承壓」的狀態。\n\n### 上行情境：Boeing 的股價彈性可能更大\n\n如果 Boeing 能夠同時做到：\n\n1. 穩定提高 737 MAX 產量；\n2. 消除供應鏈瓶頸；\n3. 取得新型號認證；\n4. 降低品質與返工成本；\n5. 改善現金流與債務結構；\n\n其利潤改善幅度可能高於 Airbus，因為目前 Boeing 的營運效率與盈利率較低。但這需要更多執行證據，不能只依賴訂單或交付短期反彈。\n\n## 最終判斷\n\n**抗風險能力排名：Airbus ＞ Boeing。**  \n**復甦彈性與潛在反轉幅度：Boeing ＞ Airbus，但執行風險也更高。**\n\n因此，如果問題是「哪一邊比較能撐過這段亂流」，答案是：\n\n&gt; **選 Airbus。** 它也受到引擎和供應鏈瓶頸拖累，但財務條件較健康，且目前沒有 Boeing 同等程度的監管與品質信任危機。Boeing 更像是一項高風險的修復交易，而 Airbus 則是相對穩健但仍受供應鏈制約的產業龍頭。\n\n**資料品質提示：** Finnhub 的報價未提供明確時間戳；Airbus 使用的 `AIR` 代碼基本面資料可能對應特定市場或交易標的，因此其市值等欄位不宜直接與 Boeing 的美股資料做一比一比較。Tavily 搜尋結果的日期也不完全一致，部分資料較舊，故上述結論主要依賴仍具可比性的財務指標與已知監管／供應鏈事件，而不是把所有新聞視為同一時點的即時資訊。\n\n[1]: https://www.cnbc.com/2024/10/10/airbus-monthly-deliveries-fall-piling-pressure-on-annual-target-.html \&quot;Airbus monthly deliveries fall, piling pressure on annual target\&quot;\n[2]: https://www.cnbc.com/2025/04/08/boeing-deliveries-in-march-jump-by-41percent-compared-to-a-year-earlier.html \&quot;Boeing deliveries in March jump by 41% compared to a year earlier\&quot;\n[3]: https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29 \&quot;Boeing&#x27;s quarterly loss shrinks as jet deliveries rebound\&quot;&quot;"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="&quot;## 結論\n\n**在目前這一輪供應鏈與監管壓力下，我會判斷空中巴士（Airbus）比較能撐過去；但優勢不是因為它沒有供應鏈問題，而是波音（Boeing）同時承受更深的品質、監管、現金流與生產系統修復壓力。**\n\n簡化來說：\n\n- **短期韌性：Airbus 較強**\n- **監管與品質風險：Airbus 明顯較輕**\n- **供應鏈風險：兩者都有，Airbus目前主要卡在發動機，波音則是更廣泛的供應商、品質與生產流程問題**\n- **反彈潛力：波音較大，但也代表執行失誤風險較高**\n\n### 1. 波音面對的是「供應鏈＋品質＋監管」的疊加危機\n\n波音 FY2025 10-K（截至2025年12月31日）明確表示，公司與供應商正受到全球供應鏈限制、勞動力不穩定、通脹及部分供應商財務困難影響；這些問題已經降低生產效率，並對財務狀況、業績及現金流造成不利影響。[1]\n\n更重要的是，波音的問題不只是「零件晚到」：\n\n- 737-9 事故後，公司主動放慢737生產速度；\n- 737和787的增產計畫仍取決於生產健康指標、內部安全管理系統以及FAA同意；\n- 供應商零件缺陷、品質問題、認證延誤和監管批准延遲，都可能導致返工、成本上升及交機延誤。[2]\n\n波音也承認，其供應商依賴程度很高，部分原材料與零組件甚至存在單一供應來源；若供應商出現財務困難、交付延誤或品質問題，可能直接影響交機和項目盈利。[3]\n\n這使波音目前必須同時完成三件事：  \n**恢復產量、修復品質文化、重新取得監管機構和客戶的信任。** 這種多重修復通常比單純處理零件短缺更耗時。\n\n### 2. Airbus 的核心問題很嚴重，但更像是「產能瓶頸」\n\nAirbus目前最大的供應鏈壓力集中在A320neo家族的發動機供應，尤其是Pratt &amp; Whitney的GTF發動機。Reuters報道，Pratt發動機交付非常延遲，Airbus與Pratt甚至尚未完全確定2026及2027年的供應安排；這可能影響Airbus把窄體機產量提高至每月75架的目標。[4]\n\n而且Pratt約供應A320neo系列40%的發動機，這並非小問題。Airbus已經面臨大量完成機身等待發動機、交機延遲以及生產計畫反覆調整的情況。此前報道也指出，Airbus告知航空公司，交機延誤可能持續數年。[5]\n\n不過，Airbus的壓力目前主要表現為：\n\n- 發動機與部分供應商瓶頸；\n- 生產爬坡速度低於計畫；\n- 已完成飛機等待關鍵部件；\n- 交機目標可能下調。\n\n相較之下，波音還要處理737事故後的生產控制、品質保證、FAA監督、認證延誤以及供應商財務健康等更廣泛問題。因此，**Airbus比較像是被供應鏈「卡住」，波音則是在重建整個工業與監管信任體系。**\n\n### 3. 監管風險是兩者最重要的分水嶺\n\n波音的監管風險明顯較高。FAA仍然對波音的737生產能力和增產計畫保持高度介入；Reuters報道，FAA曾計畫在考慮是否解除737 MAX生產限制前，與波音進行基於情境的規劃。[6]\n\n此外，波音表示737 MAX 7及MAX 10的認證要到2026年才可能完成，這會限制其產品線更新和對航空公司的交付安排。[7]\n\nAirbus當然也受到航空安全、適航認證、環境規範和供應商品質要求約束；但**在本次檢索到的資料中，沒有看到Airbus面臨類似波音737 MAX事故後那種持續性的監管生產上限或全面品質重建。** 因此，在監管這一維度，Airbus目前的風險折價較小。\n\n### 4. 波音的財務緩衝較弱，令供應鏈問題更危險\n\n波音FY2025 10-K指出，供應鏈和生產問題已經對現金流造成負面影響，且公司在T-7A、KC-46A、Commercial Crew及777X項目上錄得或預期錄得重大項目損失，部分原因就是供應商成本上升。[1]\n\nReuters在2025年12月報道，波音預期2025年自由現金流流出約20億美元，並希望在2026年恢復正自由現金流；這將是公司自2023年以來首次重新實現正現金流。[8]\n\n這代表波音雖然有改善方向，但仍然需要依靠：\n\n1. 提高737和787交機量；\n2. 控制返工與品質成本；\n3. 降低供應商和生產系統的成本；\n4. 避免新的監管或品質事件。\n\n只要其中一項再次失誤，現金流復甦就可能延後。\n\n至於Airbus，本次取得的資料未包括可直接與波音比較的最新現金流、淨負債或流動性數據，因此不能單憑本次證據量化判定兩者的財務安全邊際。不過，就營運層面而言，Airbus仍能表示即使面對瓶頸，仍有機會達成當年的交機目標；Reuters在2025年6月報道，Airbus當時認為可以在供應鏈瓶頸下完成820架交機目標。[9]\n\n### 5. 什麼情況下波音反而可能跑得更快？\n\n波音並非沒有翻身機會。它目前的低基期意味著，只要以下幾點成功，改善幅度可能大於Airbus：\n\n- FAA逐步放寬生產限制；\n- 737和787產量穩定增加；\n- 737 MAX 7/10順利完成認證；\n- 供應商品質問題持續減少；\n- Spirit整合順利；\n- 2026年確實恢復正自由現金流。\n\n波音也表示，供應鏈品質改善已有進展；Reuters報道，公司稱目前修正供應鏈問題所需的工時較2024年減少約40%，自強化品質措施後下降約60%。[10] 不過，這些改善仍需經過持續交機數據、FAA審查及客戶信任來驗證，不能只看管理層的改善宣稱。\n\n## 最終判斷\n\n| 評估項目 | 較有優勢的一方 | 原因 |\n|---|---|---|\n| 供應鏈短期承受力 | Airbus | 問題主要集中在發動機及產能瓶頸 |\n| 品質與製造系統 | Airbus | 波音仍在處理737事故後的品質與流程重建 |\n| 監管壓力 | Airbus | 波音受到FAA持續介入，部分機型認證仍延遲 |\n| 財務與現金流緩衝 | Airbus，按目前證據推斷 | 波音仍處於現金流修復階段；但本次未取得Airbus可比財務數據 |\n| 反彈空間 | Boeing | 若生產、認證及品質改革成功，改善幅度可能更大 |\n| 穩健度 | **Airbus** | 目前較少同時承受品質、監管、供應鏈和資產負債表壓力 |\n\n**因此，若問題是「哪一家比較有機會較平穩地撐過這段亂流」，答案是Airbus。**  \n**若問題是「哪一家一旦改革成功，股價或盈利改善幅度可能更大」，則波音的潛在彈性較高，但那是以更高執行風險作交換。**\n\n[1]: SEC 10-K excerpt  \n[2]: SEC 10-K excerpt  \n[3]: SEC 10-K excerpt  \n[4]: https://www.reuters.com/business/aerospace-defense/pratt-engine-supply-doubts-weigh-airbus-output-goal-sources-say-2026-02-05 \&quot;Pratt engine supply doubts weigh on Airbus output goal, sources say\&quot;  \n[5]: https://www.reuters.com/business/aerospace-defense/airbus-warns-airlines-delivery-delays-to-last-three-years-sources-say-2025-05-28 \&quot;Airbus warns airlines delivery delays to last three years, sources say\&quot;  \n[6]: https://www.reuters.com/business/aerospace-defense/us-faa-conduct-scenario-based-planning-with-boeing-before-it-may-lift-737-max-2025-08-26 \&quot;US FAA to conduct scenario-based planning with Boeing before it may lift 737 MAX production cap\&quot;  \n[7]: https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29 \&quot;Boeing&#x27;s quarterly loss shrinks as jet deliveries rebound\&quot;  \n[8]: https://www.reuters.com/business/aerospace-defense/boeing-cfo-expects-higher-737-787-jet-deliveries-next-year-2025-12-02 \&quot;Boeing CFO expects higher jet deliveries, positive cash flow next year\&quot;  \n[9]: https://www.reuters.com/business/autos-transportation/airbus-can-hit-delivery-goal-despite-delays-jetmaking-ceo-says-2025-06-12 \&quot;Airbus can hit delivery goal despite delays, jetmaking CEO says\&quot;  \n[10]: https://www.reuters.com/business/aerospace-defense/boeing-sees-significant-supply-chain-quality-gains-2026-02-12 \&quot;Boeing sees significant supply chain quality gains\&quot;&quot;"></div></article>
+    <article><h3>X</h3><div class="md"><h2>結論</h2>
+<p><strong>在目前這一輪供應鏈與監管壓力下，我會判斷空中巴士（Airbus）比較能撐過去；但優勢不是因為它沒有供應鏈問題，而是波音（Boeing）同時承受更深的品質、監管、現金流與生產系統修復壓力。</strong></p>
+<p>簡化來說：</p>
+<ul>
+<li><strong>短期韌性：Airbus 較強</strong></li>
+<li><strong>監管與品質風險：Airbus 明顯較輕</strong></li>
+<li><strong>供應鏈風險：兩者都有，Airbus目前主要卡在發動機，波音則是更廣泛的供應商、品質與生產流程問題</strong></li>
+<li><strong>反彈潛力：波音較大，但也代表執行失誤風險較高</strong></li>
+</ul>
+<h3>1. 波音面對的是「供應鏈＋品質＋監管」的疊加危機</h3>
+<p>波音 FY2025 10-K（截至2025年12月31日）明確表示，公司與供應商正受到全球供應鏈限制、勞動力不穩定、通脹及部分供應商財務困難影響；這些問題已經降低生產效率，並對財務狀況、業績及現金流造成不利影響。[1]</p>
+<p>更重要的是，波音的問題不只是「零件晚到」：</p>
+<ul>
+<li>737-9 事故後，公司主動放慢737生產速度；</li>
+<li>737和787的增產計畫仍取決於生產健康指標、內部安全管理系統以及FAA同意；</li>
+<li>供應商零件缺陷、品質問題、認證延誤和監管批准延遲，都可能導致返工、成本上升及交機延誤。[2]</li>
+</ul>
+<p>波音也承認，其供應商依賴程度很高，部分原材料與零組件甚至存在單一供應來源；若供應商出現財務困難、交付延誤或品質問題，可能直接影響交機和項目盈利。[3]</p>
+<p>這使波音目前必須同時完成三件事：<br />
+<strong>恢復產量、修復品質文化、重新取得監管機構和客戶的信任。</strong> 這種多重修復通常比單純處理零件短缺更耗時。</p>
+<h3>2. Airbus 的核心問題很嚴重，但更像是「產能瓶頸」</h3>
+<p>Airbus目前最大的供應鏈壓力集中在A320neo家族的發動機供應，尤其是Pratt &amp; Whitney的GTF發動機。Reuters報道，Pratt發動機交付非常延遲，Airbus與Pratt甚至尚未完全確定2026及2027年的供應安排；這可能影響Airbus把窄體機產量提高至每月75架的目標。[4]</p>
+<p>而且Pratt約供應A320neo系列40%的發動機，這並非小問題。Airbus已經面臨大量完成機身等待發動機、交機延遲以及生產計畫反覆調整的情況。此前報道也指出，Airbus告知航空公司，交機延誤可能持續數年。[5]</p>
+<p>不過，Airbus的壓力目前主要表現為：</p>
+<ul>
+<li>發動機與部分供應商瓶頸；</li>
+<li>生產爬坡速度低於計畫；</li>
+<li>已完成飛機等待關鍵部件；</li>
+<li>交機目標可能下調。</li>
+</ul>
+<p>相較之下，波音還要處理737事故後的生產控制、品質保證、FAA監督、認證延誤以及供應商財務健康等更廣泛問題。因此，<strong>Airbus比較像是被供應鏈「卡住」，波音則是在重建整個工業與監管信任體系。</strong></p>
+<h3>3. 監管風險是兩者最重要的分水嶺</h3>
+<p>波音的監管風險明顯較高。FAA仍然對波音的737生產能力和增產計畫保持高度介入；Reuters報道，FAA曾計畫在考慮是否解除737 MAX生產限制前，與波音進行基於情境的規劃。[6]</p>
+<p>此外，波音表示737 MAX 7及MAX 10的認證要到2026年才可能完成，這會限制其產品線更新和對航空公司的交付安排。[7]</p>
+<p>Airbus當然也受到航空安全、適航認證、環境規範和供應商品質要求約束；但<strong>在本次檢索到的資料中，沒有看到Airbus面臨類似波音737 MAX事故後那種持續性的監管生產上限或全面品質重建。</strong> 因此，在監管這一維度，Airbus目前的風險折價較小。</p>
+<h3>4. 波音的財務緩衝較弱，令供應鏈問題更危險</h3>
+<p>波音FY2025 10-K指出，供應鏈和生產問題已經對現金流造成負面影響，且公司在T-7A、KC-46A、Commercial Crew及777X項目上錄得或預期錄得重大項目損失，部分原因就是供應商成本上升。[1]</p>
+<p>Reuters在2025年12月報道，波音預期2025年自由現金流流出約20億美元，並希望在2026年恢復正自由現金流；這將是公司自2023年以來首次重新實現正現金流。[8]</p>
+<p>這代表波音雖然有改善方向，但仍然需要依靠：</p>
+<ol>
+<li>提高737和787交機量；</li>
+<li>控制返工與品質成本；</li>
+<li>降低供應商和生產系統的成本；</li>
+<li>避免新的監管或品質事件。</li>
+</ol>
+<p>只要其中一項再次失誤，現金流復甦就可能延後。</p>
+<p>至於Airbus，本次取得的資料未包括可直接與波音比較的最新現金流、淨負債或流動性數據，因此不能單憑本次證據量化判定兩者的財務安全邊際。不過，就營運層面而言，Airbus仍能表示即使面對瓶頸，仍有機會達成當年的交機目標；Reuters在2025年6月報道，Airbus當時認為可以在供應鏈瓶頸下完成820架交機目標。[9]</p>
+<h3>5. 什麼情況下波音反而可能跑得更快？</h3>
+<p>波音並非沒有翻身機會。它目前的低基期意味著，只要以下幾點成功，改善幅度可能大於Airbus：</p>
+<ul>
+<li>FAA逐步放寬生產限制；</li>
+<li>737和787產量穩定增加；</li>
+<li>737 MAX 7/10順利完成認證；</li>
+<li>供應商品質問題持續減少；</li>
+<li>Spirit整合順利；</li>
+<li>2026年確實恢復正自由現金流。</li>
+</ul>
+<p>波音也表示，供應鏈品質改善已有進展；Reuters報道，公司稱目前修正供應鏈問題所需的工時較2024年減少約40%，自強化品質措施後下降約60%。[10] 不過，這些改善仍需經過持續交機數據、FAA審查及客戶信任來驗證，不能只看管理層的改善宣稱。</p>
+<h2>最終判斷</h2>
+<table>
+<thead>
+<tr>
+<th>評估項目</th>
+<th>較有優勢的一方</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>供應鏈短期承受力</td>
+<td>Airbus</td>
+<td>問題主要集中在發動機及產能瓶頸</td>
+</tr>
+<tr>
+<td>品質與製造系統</td>
+<td>Airbus</td>
+<td>波音仍在處理737事故後的品質與流程重建</td>
+</tr>
+<tr>
+<td>監管壓力</td>
+<td>Airbus</td>
+<td>波音受到FAA持續介入，部分機型認證仍延遲</td>
+</tr>
+<tr>
+<td>財務與現金流緩衝</td>
+<td>Airbus，按目前證據推斷</td>
+<td>波音仍處於現金流修復階段；但本次未取得Airbus可比財務數據</td>
+</tr>
+<tr>
+<td>反彈空間</td>
+<td>Boeing</td>
+<td>若生產、認證及品質改革成功，改善幅度可能更大</td>
+</tr>
+<tr>
+<td>穩健度</td>
+<td><strong>Airbus</strong></td>
+<td>目前較少同時承受品質、監管、供應鏈和資產負債表壓力</td>
+</tr>
+</tbody>
+</table>
+<p><strong>因此，若問題是「哪一家比較有機會較平穩地撐過這段亂流」，答案是Airbus。</strong><br />
+<strong>若問題是「哪一家一旦改革成功，股價或盈利改善幅度可能更大」，則波音的潛在彈性較高，但那是以更高執行風險作交換。</strong></p>
+<p>[1]: SEC 10-K excerpt<br />
+[2]: SEC 10-K excerpt<br />
+[3]: SEC 10-K excerpt<br />
+[4]: https://www.reuters.com/business/aerospace-defense/pratt-engine-supply-doubts-weigh-airbus-output-goal-sources-say-2026-02-05 &quot;Pratt engine supply doubts weigh on Airbus output goal, sources say&quot;<br />
+[5]: https://www.reuters.com/business/aerospace-defense/airbus-warns-airlines-delivery-delays-to-last-three-years-sources-say-2025-05-28 &quot;Airbus warns airlines delivery delays to last three years, sources say&quot;<br />
+[6]: https://www.reuters.com/business/aerospace-defense/us-faa-conduct-scenario-based-planning-with-boeing-before-it-may-lift-737-max-2025-08-26 &quot;US FAA to conduct scenario-based planning with Boeing before it may lift 737 MAX production cap&quot;<br />
+[7]: https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29 &quot;Boeing's quarterly loss shrinks as jet deliveries rebound&quot;<br />
+[8]: https://www.reuters.com/business/aerospace-defense/boeing-cfo-expects-higher-737-787-jet-deliveries-next-year-2025-12-02 &quot;Boeing CFO expects higher jet deliveries, positive cash flow next year&quot;<br />
+[9]: https://www.reuters.com/business/autos-transportation/airbus-can-hit-delivery-goal-despite-delays-jetmaking-ceo-says-2025-06-12 &quot;Airbus can hit delivery goal despite delays, jetmaking CEO says&quot;<br />
+[10]: https://www.reuters.com/business/aerospace-defense/boeing-sees-significant-supply-chain-quality-gains-2026-02-12 &quot;Boeing sees significant supply chain quality gains&quot;</p>
+</div></article>
+    <article><h3>Y</h3><div class="md"><p><strong>結論：在目前的供應鏈與監管壓力下，空中巴士（Airbus）整體上比波音（Boeing）更能撐過這一段亂流。</strong><br />
+核心原因不是 Airbus 沒有供應鏈問題，而是它的<strong>財務緩衝較厚、盈利能力較強、監管與品質危機較輕</strong>；波音則同時面臨供應商瓶頸、FAA 生產限制、737 MAX 認證延遲與資產負債表壓力。</p>
+<h2>主要比較</h2>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th style="text-align:right">波音</th>
+<th style="text-align:right">空中巴士</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TTM 毛利率</td>
+<td style="text-align:right">4.68%</td>
+<td style="text-align:right">19.06%</td>
+<td>Airbus 明顯較強</td>
+</tr>
+<tr>
+<td>TTM 營業利益率</td>
+<td style="text-align:right">4.89%</td>
+<td style="text-align:right">9.04%</td>
+<td>Airbus 較有緩衝</td>
+</tr>
+<tr>
+<td>TTM 淨利率</td>
+<td style="text-align:right">2.59%</td>
+<td style="text-align:right">5.55%</td>
+<td>Airbus 較穩定</td>
+</tr>
+<tr>
+<td>流動比率</td>
+<td style="text-align:right">1.14</td>
+<td style="text-align:right">2.83</td>
+<td>Airbus 流動性較佳</td>
+</tr>
+<tr>
+<td>速動比率</td>
+<td style="text-align:right">0.33</td>
+<td style="text-align:right">1.28</td>
+<td>Boeing 對存貨與持續融資依賴較高</td>
+</tr>
+<tr>
+<td>負債／股東權益</td>
+<td style="text-align:right">7.52</td>
+<td style="text-align:right">0.50</td>
+<td>Boeing 槓桿壓力遠高</td>
+</tr>
+<tr>
+<td>ROA</td>
+<td style="text-align:right">1.50%</td>
+<td style="text-align:right">5.79%</td>
+<td>Airbus 資產使用效率較高</td>
+</tr>
+<tr>
+<td>TTM 營收年增</td>
+<td style="text-align:right">24.78%</td>
+<td style="text-align:right">21.97%</td>
+<td>兩者都有復甦，但 Boeing 的成長基礎較弱</td>
+</tr>
+</tbody>
+</table>
+<p>以上為 Finnhub 基本面資料；其中 Boeing 的負債／股東權益比為 7.52，Airbus 為 0.50，這是兩家公司抗震能力最關鍵的差異之一。Boeing 雖然營收年增 24.78%，但盈利率與流動性仍偏薄。[Finnhub 公司基本面資料]</p>
+<h2>1. 供應鏈：Airbus 也受傷，但 Boeing 的問題更接近「系統性修復」</h2>
+<p>Airbus 的主要瓶頸集中在<strong>引擎、機身結構與客艙設備</strong>。此前 Airbus 曾表示，持續性的供應鏈問題主要來自這幾個環節，並因此面臨交機目標壓力。<a href="https://www.cnbc.com/2024/10/10/airbus-monthly-deliveries-fall-piling-pressure-on-annual-target-.html" title="Airbus monthly deliveries fall, piling pressure on annual target">1</a></p>
+<p>這代表 Airbus 並非可以順利按照需求擴產。尤其 Airbus 高度依賴 Pratt &amp; Whitney 和 CFM 等引擎供應商，任何引擎交付延遲，都可能使已完成大部分組裝的飛機無法交付。</p>
+<p>不過，Boeing 面臨的問題更廣泛，包含：</p>
+<ul>
+<li>737 MAX 生產速度受監管限制；</li>
+<li>供應鏈與勞資問題；</li>
+<li>777X 認證與交付延遲；</li>
+<li>事故後的品質管理與製造流程重建；</li>
+<li>潛在關稅或供應商停供風險。</li>
+</ul>
+<p>新聞資料指出，Boeing 的生產與交機曾受到罷工、監管審查與供應鏈瓶頸共同影響；其供應商 Howmet 也曾警告關稅可能導致部分出貨中斷。<a href="https://www.cnbc.com/2025/04/08/boeing-deliveries-in-march-jump-by-41percent-compared-to-a-year-earlier.html" title="Boeing deliveries in March jump by 41% compared to a year earlier">2</a></p>
+<p><strong>判斷：</strong><br />
+Airbus 主要是「需求很強但供應商跟不上」；Boeing 則是「供應商跟不上，加上自身製造與品質體系仍需重建」。前者通常比較容易透過時間、預付款、供應商協調和調整產能來修復；後者涉及監管信任與組織流程，修復時間更長。</p>
+<h2>2. 監管壓力：Boeing 明顯處於劣勢</h2>
+<p>Boeing 的監管壓力具有三個特徵：</p>
+<ol>
+<li><strong>直接限制產量</strong>：FAA 曾對 737 MAX 的生產設置上限，這會直接限制 Boeing 將訂單轉化為收入與現金流的速度。</li>
+<li><strong>新機型認證延遲</strong>：Boeing 737 MAX 7 與 MAX 10 的認證預期延至 2026 年，這會推遲產品組合更新與客戶交付。<a href="https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29" title="Boeing's quarterly loss shrinks as jet deliveries rebound">3</a></li>
+<li><strong>品質與治理信任尚未完全恢復</strong>：事故後監管機構、航空公司與客戶都會要求更高的檢查和放行標準，導致生產效率低於正常狀態。</li>
+</ol>
+<p>Boeing 近期交付有所改善，說明公司並非沒有復甦能力；但 Reuters 報導仍指出公司面臨供應鏈干擾、關稅壓力以及新機型認證延遲。<a href="https://www.reuters.com/business/aerospace-defense/boeings-quarterly-loss-shrinks-jet-deliveries-rebound-shares-drop-2025-07-29" title="Boeing's quarterly loss shrinks as jet deliveries rebound">3</a></p>
+<p>相比之下，現有工具資料沒有顯示 Airbus 正面承受同等程度的機型安全危機或生產上限。Airbus 的主要監管風險更偏向一般性的航空認證、引擎適航與跨國監管，而不是 Boeing 目前面對的「品質文化與製造控制」問題。</p>
+<p><strong>判斷：監管面 Airbus 優勢很明顯。</strong></p>
+<h2>3. 財務承受力：Airbus 有更大的緩衝空間</h2>
+<p>這是 Airbus 最重要的優勢。</p>
+<p>Boeing 的速動比率只有 0.33，負債／股東權益比為 7.52；Airbus 的速動比率為 1.28，負債／股東權益比為 0.50。換言之，若供應鏈問題導致飛機延遲交付：</p>
+<ul>
+<li>Airbus 較能依靠現有流動資產與營運現金流吸收延遲；</li>
+<li>Boeing 更容易受到庫存、預付款、債務成本與額外品質支出的共同擠壓；</li>
+<li>Boeing 若需要更久時間才能恢復生產，可能必須依賴額外融資或資產處分。</li>
+</ul>
+<p>Airbus 的 TTM 淨利率為 5.55%，Boeing 為 2.59%；Airbus 的 TTM ROA 也高於 Boeing，顯示同樣受到供應鏈干擾時，Airbus 更有機會維持正向盈利。[Finnhub 公司基本面資料]</p>
+<h2>4. Boeing 的優勢：不是沒有翻身機會</h2>
+<p>Boeing 仍有幾項重要優勢：</p>
+<ul>
+<li>商用飛機市場需求依然強勁；</li>
+<li>Boeing 具有龐大的訂單與客戶基礎；</li>
+<li>美國國防與航太業務提供一定的業務多元性；</li>
+<li>若 FAA 逐步放寬生產限制、供應鏈恢復，營運槓桿可能很高；</li>
+<li>目前 Boeing 的 TTM 營收年增 24.78%，高於 Airbus 的 21.97%，顯示其收入修復速度並不弱。</li>
+</ul>
+<p>但這些優勢比較像是<strong>復甦上行空間</strong>，不是短期抗壓能力。高營運槓桿在正常化時能放大利潤，但在交付受阻、品質成本上升或監管延遲時，也會放大現金流風險。</p>
+<h2>投資與產業判斷</h2>
+<h3>基準情境：Airbus 較能撐住</h3>
+<p>若未來 12–24 個月仍然存在：</p>
+<ul>
+<li>引擎供應不足；</li>
+<li>航太零組件交付延誤；</li>
+<li>新機型認證較慢；</li>
+<li>航空公司要求延後交機；</li>
+<li>監管審查維持高強度；</li>
+</ul>
+<p>那麼 Airbus 較可能維持穩定的盈利與交付增長，Boeing 則可能繼續處於「交付改善但現金流與品質成本承壓」的狀態。</p>
+<h3>上行情境：Boeing 的股價彈性可能更大</h3>
+<p>如果 Boeing 能夠同時做到：</p>
+<ol>
+<li>穩定提高 737 MAX 產量；</li>
+<li>消除供應鏈瓶頸；</li>
+<li>取得新型號認證；</li>
+<li>降低品質與返工成本；</li>
+<li>改善現金流與債務結構；</li>
+</ol>
+<p>其利潤改善幅度可能高於 Airbus，因為目前 Boeing 的營運效率與盈利率較低。但這需要更多執行證據，不能只依賴訂單或交付短期反彈。</p>
+<h2>最終判斷</h2>
+<p><strong>抗風險能力排名：Airbus ＞ Boeing。</strong><br />
+<strong>復甦彈性與潛在反轉幅度：Boeing ＞ Airbus，但執行風險也更高。</strong></p>
+<p>因此，如果問題是「哪一邊比較能撐過這段亂流」，答案是：</p>
+<blockquote>
+<p><strong>選 Airbus。</strong> 它也受到引擎和供應鏈瓶頸拖累，但財務條件較健康，且目前沒有 Boeing 同等程度的監管與品質信任危機。Boeing 更像是一項高風險的修復交易，而 Airbus 則是相對穩健但仍受供應鏈制約的產業龍頭。</p>
+</blockquote>
+<p><strong>資料品質提示：</strong> Finnhub 的報價未提供明確時間戳；Airbus 使用的 <code>AIR</code> 代碼基本面資料可能對應特定市場或交易標的，因此其市值等欄位不宜直接與 Boeing 的美股資料做一比一比較。Tavily 搜尋結果的日期也不完全一致，部分資料較舊，故上述結論主要依賴仍具可比性的財務指標與已知監管／供應鏈事件，而不是把所有新聞視為同一時點的即時資訊。</p>
+</div></article>
   </div>
   <div class="verdict"><label><input type="radio" name="v29" value="X 較好"> X 較好</label><label><input type="radio" name="v29" value="Y 較好"> Y 較好</label><label><input type="radio" name="v29" value="平手"> 平手</label><label><input type="radio" name="v29" value="兩者都差"> 兩者都差</label></div>
   <textarea placeholder="備註" name="n29"></textarea>
@@ -97,10 +1784,6 @@ button { background:var(--accent); color:var(--bg); border:0; border-radius:6px;
 <button id="export">Export CSV</button>
 </main>
 <script>
-document.querySelectorAll('.md').forEach(el => {
-  const src = JSON.parse(el.dataset.src);
-  el.innerHTML = window.marked ? marked.parse(src) : '<pre>' + src.replace(/[<&]/g, c => ({'<':'&lt;','&':'&amp;'})[c]) + '</pre>';
-});
 document.getElementById('export').onclick = () => {
   const rows = [['row_id','verdict','notes']];
   document.querySelectorAll('.card').forEach(c => {

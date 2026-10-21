@@ -16,6 +16,8 @@ import random
 import re
 from pathlib import Path
 
+from markdown_it import MarkdownIt
+
 from backend.evals.experiments.agent_config_benchmark.run import (
     ARM_A,
     ARM_B,
@@ -27,6 +29,12 @@ VERDICTS = ["X 較好", "Y 較好", "平手", "兩者都差"]
 # Only the RAG arm can emit chunk citation ids, so they would unblind every
 # pair; the sheet shows a neutral label instead (raw outputs stay untouched).
 _SEC_CHUNK_ID_RE = re.compile(r"`?sec://[^\s`)\]]+`?")
+
+
+# Answers are rendered to HTML at build time, not in the browser: viewers that
+# show the sheet as a static snapshot don't run scripts. html=False escapes any
+# raw HTML inside model output instead of passing it through.
+_MD = MarkdownIt("commonmark", {"html": False}).enable("table")
 
 
 def _mask(answer: str) -> str:
@@ -130,8 +138,8 @@ def _html(pairs: list[dict]) -> str:
   <h2>Row {rid}</h2>
   <p class="q">{html.escape(pair["question"])}</p>
   <div class="pair">
-    <article><h3>X</h3><div class="md" data-src="{html.escape(json.dumps(pair["X"], ensure_ascii=False))}"></div></article>
-    <article><h3>Y</h3><div class="md" data-src="{html.escape(json.dumps(pair["Y"], ensure_ascii=False))}"></div></article>
+    <article><h3>X</h3><div class="md">{_MD.render(pair["X"])}</div></article>
+    <article><h3>Y</h3><div class="md">{_MD.render(pair["Y"])}</div></article>
   </div>
   <div class="verdict">{radios}</div>
   <textarea placeholder="備註" name="n{rid}"></textarea>
@@ -141,7 +149,6 @@ def _html(pairs: list[dict]) -> str:
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>E1 Blind Review</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <style>
 :root {{ --bg:#fafaf9; --fg:#1c1917; --muted:#57534e; --card:#fff; --line:#e7e5e4; --accent:#0f766e; }}
 @media (prefers-color-scheme: dark) {{ :root {{ --bg:#1c1917; --fg:#f5f5f4; --muted:#a8a29e; --card:#292524; --line:#44403c; --accent:#5eead4; }} }}
@@ -153,6 +160,8 @@ main {{ max-width:1200px; margin:0 auto; }}
 @media (max-width:800px) {{ .pair {{ grid-template-columns:1fr; }} }}
 article {{ border:1px solid var(--line); border-radius:8px; padding:12px; overflow-wrap:anywhere; }}
 article h3 {{ margin-top:0; color:var(--accent); }}
+.md table {{ border-collapse:collapse; display:block; overflow-x:auto; }}
+.md th, .md td {{ border:1px solid var(--line); padding:4px 8px; }}
 .verdict label {{ margin-right:16px; white-space:nowrap; }}
 textarea {{ width:100%; min-height:60px; margin-top:8px; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px; }}
 button {{ background:var(--accent); color:var(--bg); border:0; border-radius:6px; padding:8px 14px; font-size:15px; }}
@@ -164,10 +173,6 @@ button {{ background:var(--accent); color:var(--bg); border:0; border-radius:6px
 <button id="export">Export CSV</button>
 </main>
 <script>
-document.querySelectorAll('.md').forEach(el => {{
-  const src = JSON.parse(el.dataset.src);
-  el.innerHTML = window.marked ? marked.parse(src) : '<pre>' + src.replace(/[<&]/g, c => ({{'<':'&lt;','&':'&amp;'}})[c]) + '</pre>';
-}});
 document.getElementById('export').onclick = () => {{
   const rows = [['row_id','verdict','notes']];
   document.querySelectorAll('.card').forEach(c => {{

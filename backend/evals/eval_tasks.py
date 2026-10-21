@@ -7,18 +7,23 @@ the production API code path exactly.
 from __future__ import annotations
 
 import functools
+import time
 import uuid
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from backend.agent_engine.agents.base import (
     Orchestrator,
     OrchestratorResult,
+    RunTiming,
+    RunUsage,
     ToolOutput,
 )
 from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
+    ReasoningDelta,
     StreamError,
     TextDelta,
     ToolCall,
@@ -31,6 +36,20 @@ from backend.agent_engine.streaming.domain_events_schema import (
 def _get_orchestrator(profile: str) -> Orchestrator:
     """Return a cached Orchestrator for the given profile to avoid repeated init."""
     config = ProfileConfigLoader(profile).load()
+    return Orchestrator(config, checkpointer=None)
+
+
+@functools.lru_cache(maxsize=8)
+def _get_orchestrator_from_dir(
+    config_dir: Path, prompt_path: Path | None
+) -> Orchestrator:
+    """Return a cached Orchestrator for a benchmark/experiment config directory.
+
+    ``prompt_path`` is injected explicitly (see
+    ``ProfileConfigLoader.load_from_dir``) — the caller decides which prompt
+    a config directory runs with.
+    """
+    config = ProfileConfigLoader.load_from_dir(config_dir, prompt_path=prompt_path)
     return Orchestrator(config, checkpointer=None)
 
 
@@ -50,6 +69,10 @@ async def _astream_collect(
     tool_args: dict[str, dict] = {}
     errors: list[str] = []
     finished_normally = False
+    usage = RunUsage(input_tokens=0, output_tokens=0)
+    started_at = time.perf_counter()
+    first_event_s: float | None = None
+    first_text_s: float | None = None
 
     if trace_metadata is None:
         stream = orchestrator.astream_run(
@@ -64,6 +87,12 @@ async def _astream_collect(
         )
 
     async for event in stream:
+        if isinstance(event, (ReasoningDelta, TextDelta, ToolCall)):
+            elapsed = time.perf_counter() - started_at
+            if first_event_s is None:
+                first_event_s = elapsed
+            if first_text_s is None and isinstance(event, TextDelta):
+                first_text_s = elapsed
         if isinstance(event, TextDelta):
             text_parts.append(event.delta)
         elif isinstance(event, ToolCall):
@@ -89,6 +118,10 @@ async def _astream_collect(
         elif isinstance(event, StreamError):
             errors.append(event.error_text)
         elif isinstance(event, Finish):
+            usage = RunUsage(
+                input_tokens=event.usage.input_tokens,
+                output_tokens=event.usage.output_tokens,
+            )
             if event.finish_reason == "error":
                 if errors:
                     raise RuntimeError(f"Stream error: {errors[-1]}")
@@ -101,6 +134,12 @@ async def _astream_collect(
         model=orchestrator.config.model.name,
         version=orchestrator.config.version,
         finished_normally=finished_normally,
+        timing=RunTiming(
+            first_event_s=first_event_s,
+            first_text_s=first_text_s,
+            total_s=time.perf_counter() - started_at,
+        ),
+        usage=usage,
     )
 
 
@@ -172,13 +211,30 @@ async def run_profile(input: Any, profile: str = "baseline") -> OrchestratorResu
     return await _astream_collect(orchestrator, prompt)
 
 
-async def run_baseline_behavior_diagnostic(input: Any) -> OrchestratorResult:
+async def run_baseline_behavior_diagnostic(
+    input: Any,
+    profile: str | None = None,
+    *,
+    config_dir: Path | None = None,
+    prompt_path: Path | None = None,
+) -> OrchestratorResult:
     """Task wrapper for baseline behavior diagnostic scenario rows.
 
-    Keeps the current contract deliberately small: use the baseline
-    orchestrator and extract the eval prompt from ``question``.
+    Extracts the eval prompt from ``question`` and runs it against one
+    config: the ``baseline`` profile by default, another Workflow Profile
+    via ``profile``, or a benchmark/experiment config directory via
+    ``config_dir`` (with ``prompt_path`` as its explicitly injected prompt).
+    ``profile`` and ``config_dir`` are mutually exclusive.
     """
-    orchestrator = _get_orchestrator("baseline")
+    if config_dir is not None and profile is not None:
+        raise ValueError("Pass either profile or config_dir, not both")
+    if config_dir is None and prompt_path is not None:
+        raise ValueError("prompt_path is only valid together with config_dir")
+
+    if config_dir is not None:
+        orchestrator = _get_orchestrator_from_dir(config_dir, prompt_path)
+    else:
+        orchestrator = _get_orchestrator(profile or "baseline")
     if not isinstance(input, Mapping):
         raise TypeError("baseline_behavior_diagnostic input must be a mapping")
 

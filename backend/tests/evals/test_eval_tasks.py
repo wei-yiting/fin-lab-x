@@ -7,6 +7,8 @@ correctly collects domain events into OrchestratorResult.
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from backend.agent_engine.streaming.domain_events_schema import (
     Finish,
     MessageStart,
@@ -431,3 +433,173 @@ def test_astream_collect_finished_normally_false_without_finish_event() -> None:
 
     assert result["response"] == "partial text"
     assert result.get("finished_normally") is False
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_baseline_behavior_diagnostic_defaults_to_baseline_profile(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    asyncio.run(run_baseline_behavior_diagnostic({"question": "q"}))
+
+    mock_get_orch.assert_called_once_with("baseline")
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+def test_run_baseline_behavior_diagnostic_explicit_profile_selects_orchestrator(
+    mock_get_orch: MagicMock,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-5.6-luna"
+    mock_orchestrator.config.version = "0.2.0"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_orch.return_value = mock_orchestrator
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    asyncio.run(run_baseline_behavior_diagnostic({"question": "q"}, profile="reader"))
+
+    mock_get_orch.assert_called_once_with("reader")
+
+
+def test_run_baseline_behavior_diagnostic_accepts_profile_injection() -> None:
+    from backend.evals.eval_runner import _accepts_profile
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    assert _accepts_profile(run_baseline_behavior_diagnostic)
+
+
+@patch("backend.evals.eval_tasks._get_orchestrator")
+@patch("backend.evals.eval_tasks._get_orchestrator_from_dir")
+def test_run_baseline_behavior_diagnostic_config_dir_selects_dir_orchestrator(
+    mock_get_dir_orch: MagicMock,
+    mock_get_orch: MagicMock,
+    tmp_path,
+) -> None:
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "openai:gpt-5.6-luna"
+    mock_orchestrator.config.version = "0.1.0"
+    mock_orchestrator.astream_run = MagicMock(
+        return_value=_async_gen(_mock_astream_events())
+    )
+    mock_get_dir_orch.return_value = mock_orchestrator
+    config_dir = tmp_path / "luna_medium"
+    prompt_path = tmp_path / "system_prompt.md"
+
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    asyncio.run(
+        run_baseline_behavior_diagnostic(
+            {"question": "q"}, config_dir=config_dir, prompt_path=prompt_path
+        )
+    )
+
+    mock_get_dir_orch.assert_called_once_with(config_dir, prompt_path)
+    mock_get_orch.assert_not_called()
+
+
+def test_run_baseline_behavior_diagnostic_rejects_profile_with_config_dir(
+    tmp_path,
+) -> None:
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    with pytest.raises(ValueError, match="profile"):
+        asyncio.run(
+            run_baseline_behavior_diagnostic(
+                {"question": "q"}, profile="reader", config_dir=tmp_path
+            )
+        )
+
+
+def test_run_baseline_behavior_diagnostic_rejects_prompt_path_without_config_dir(
+    tmp_path,
+) -> None:
+    from backend.evals.eval_tasks import run_baseline_behavior_diagnostic
+
+    with pytest.raises(ValueError, match="prompt_path"):
+        asyncio.run(
+            run_baseline_behavior_diagnostic(
+                {"question": "q"}, prompt_path=tmp_path / "system_prompt.md"
+            )
+        )
+
+
+@patch("backend.evals.eval_tasks.Orchestrator")
+def test_get_orchestrator_from_dir_injects_given_prompt(
+    mock_orchestrator_cls: MagicMock, tmp_path
+) -> None:
+    config_dir = tmp_path / "arm"
+    config_dir.mkdir()
+    (config_dir / "orchestrator_config.yaml").write_text(
+        'version: "0.1.0"\nname: "arm"\ndescription: "d"\n'
+        'model:\n  name: "openai:gpt-5.6-luna"\n  reasoning: "on"\n'
+        '  reasoning_effort: "medium"\n'
+    )
+    prompt_path = tmp_path / "system_prompt.md"
+    prompt_path.write_text("You are the arm prompt.\n")
+
+    from backend.evals.eval_tasks import _get_orchestrator_from_dir
+
+    _get_orchestrator_from_dir.cache_clear()
+    _get_orchestrator_from_dir(config_dir, prompt_path)
+
+    config = mock_orchestrator_cls.call_args[0][0]
+    assert config.name == "arm"
+    assert config.system_prompt == "You are the arm prompt."
+    assert config.model.reasoning_effort == "medium"
+
+
+def test_astream_collect_records_timing_and_usage() -> None:
+    events = [
+        MessageStart(message_id="msg-1", session_id="sess-1"),
+        ToolCall(tool_call_id="tc-1", tool_name="finnhub_stock_quote", args={}),
+        ToolResult(tool_call_id="tc-1", result="{}"),
+        TextStart(text_id="t-1"),
+        TextDelta(text_id="t-1", delta="hi"),
+        TextEnd(text_id="t-1"),
+        Finish(finish_reason="stop", usage=Usage(input_tokens=11, output_tokens=7)),
+    ]
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    result = asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    timing = result["timing"]
+    assert timing["first_event_s"] is not None
+    assert timing["first_text_s"] is not None
+    assert 0 <= timing["first_event_s"] <= timing["first_text_s"] <= timing["total_s"]
+    assert result["usage"] == {"input_tokens": 11, "output_tokens": 7}
+
+
+def test_astream_collect_timing_without_visible_events() -> None:
+    events = [
+        MessageStart(message_id="msg-1", session_id="sess-1"),
+        Finish(finish_reason="stop"),
+    ]
+    mock_orchestrator = MagicMock()
+    mock_orchestrator.config.model.name = "gpt-4o-mini"
+    mock_orchestrator.config.version = "baseline"
+    mock_orchestrator.astream_run = MagicMock(return_value=_async_gen(events))
+
+    from backend.evals.eval_tasks import _astream_collect
+
+    result = asyncio.run(_astream_collect(mock_orchestrator, "hello"))
+
+    assert result["timing"]["first_event_s"] is None
+    assert result["timing"]["first_text_s"] is None
+    assert result["timing"]["total_s"] >= 0

@@ -375,6 +375,24 @@ class ToolOutput(TypedDict):
     error: NotRequired[str]
 
 
+class RunTiming(TypedDict):
+    """Wall-clock offsets (seconds) from the start of a streamed run.
+
+    ``first_event_s`` is the first user-visible event (reasoning, tool call
+    or text); ``first_text_s`` the first answer text. Both are ``None`` when
+    the run never emitted such an event.
+    """
+
+    first_event_s: float | None
+    first_text_s: float | None
+    total_s: float
+
+
+class RunUsage(TypedDict):
+    input_tokens: int
+    output_tokens: int
+
+
 class OrchestratorResult(TypedDict):
     response: str
     tool_outputs: list[ToolOutput]
@@ -383,6 +401,8 @@ class OrchestratorResult(TypedDict):
     # Set by streaming collectors: True when the stream emitted a non-error
     # Finish event. NotRequired keeps the invoke path unchanged.
     finished_normally: NotRequired[bool]
+    timing: NotRequired[RunTiming]
+    usage: NotRequired[RunUsage]
 
 
 class _LangfusePropagationAttributes(TypedDict, total=False):

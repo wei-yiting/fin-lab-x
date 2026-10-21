@@ -306,23 +306,31 @@ async def prewarm() -> list[dict[str, Any]]:
     report = []
     for ticker in DEV_ROW_TICKERS:
         entry: dict[str, Any] = {"ticker": ticker}
-        started = time.perf_counter()
-        try:
-            # Both tools take an InjectedToolCallId, so they must be invoked
-            # with a full ToolCall rather than bare args.
-            listing = await asyncio.to_thread(
-                list_sections.invoke, _tool_call(list_sections.name, ticker=ticker)
-            )
-            entry["list_sections_s"] = round(time.perf_counter() - started, 1)
-            entry["list_sections_status"] = getattr(listing, "status", None)
+        # Both tools take an InjectedToolCallId, so they must be invoked with
+        # a full ToolCall rather than bare args. Each is warmed independently:
+        # one path failing for a ticker must not leave the other cold.
+        for key, call in (
+            (
+                "list_sections",
+                lambda: asyncio.to_thread(
+                    list_sections.invoke,
+                    _tool_call(list_sections.name, ticker=ticker),
+                ),
+            ),
+            (
+                "search",
+                lambda: search.ainvoke(
+                    _tool_call(search.name, query="risk factors", ticker=ticker)
+                ),
+            ),
+        ):
             started = time.perf_counter()
-            found = await search.ainvoke(
-                _tool_call(search.name, query="risk factors", ticker=ticker)
-            )
-            entry["search_s"] = round(time.perf_counter() - started, 1)
-            entry["search_status"] = getattr(found, "status", None)
-        except Exception as exc:
-            entry["error"] = f"{type(exc).__name__}: {exc}"
+            try:
+                message = await call()
+                entry[f"{key}_status"] = getattr(message, "status", None)
+            except Exception as exc:
+                entry[f"{key}_error"] = f"{type(exc).__name__}: {exc}"
+            entry[f"{key}_s"] = round(time.perf_counter() - started, 1)
         print("prewarm", entry, flush=True)
         report.append(entry)
     return report

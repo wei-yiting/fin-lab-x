@@ -21,7 +21,12 @@ from typing import Any
 
 import tiktoken
 
-from backend.evals.experiments.agent_config_benchmark.run import ARM_A, ARM_B, ARMS
+from backend.evals.experiments.agent_config_benchmark.run import (
+    ARM_A,
+    ARM_B,
+    ARMS,
+    SCENARIO_DIR,
+)
 
 SEC_TOOLS = ["sec_filing_list_sections", "sec_filing_get_section", "sec_filing_search"]
 ALL_TOOLS = [
@@ -216,6 +221,114 @@ def summarize_e2(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return summary
 
 
+def _fmt(value: Any, digits: int = 1) -> str:
+    if value in (None, ""):
+        return "–"
+    if isinstance(value, bool):
+        return "✓" if value else "✗"
+    if isinstance(value, float):
+        return f"{value:.{digits}f}"
+    return str(value)
+
+
+def _pair(a: dict | None, b: dict | None, key: str, digits: int = 1) -> str:
+    return f"{_fmt((a or {}).get(key), digits)} / {_fmt((b or {}).get(key), digits)}"
+
+
+def render_tables(summary: dict[str, Any]) -> str:
+    """Markdown tables for report.md, generated so no number is hand-copied."""
+    with open(SCENARIO_DIR / "dataset.csv", newline="") as f:
+        sources = {r["id"]: r["expected_best_source"] for r in csv.DictReader(f)}
+
+    lines = [
+        "## E1 paired (A = luna_medium, no RAG / B = reader_luna_medium, RAG bundle)",
+        "",
+        "Cells are `A / B`.",
+        "",
+        "| Row | Expected source | SEC path | Tool calls | search calls | get_section calls "
+        "| Hard tool errors | SEC evidence tokens | Input tokens | Output tokens "
+        "| TTFT s | E2E s | Cost USD | Health | No-simplified | [N] bijective |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for pair in summary["e1_pairs"]:
+        a, b = pair["A"], pair["B"]
+        lines.append(
+            f"| {pair['row_id']} | {sources.get(pair['row_id'], '')} "
+            f"| {_pair(a, b, 'sec_path')} | {_pair(a, b, 'tool_calls_total')} "
+            f"| {_pair(a, b, 'calls_sec_filing_search')} "
+            f"| {_pair(a, b, 'calls_sec_filing_get_section')} "
+            f"| {_pair(a, b, 'tool_errors_hard')} | {_pair(a, b, 'sec_evidence_tokens')} "
+            f"| {_pair(a, b, 'input_tokens')} | {_pair(a, b, 'output_tokens')} "
+            f"| {_pair(a, b, 'ttft_first_event_s')} | {_pair(a, b, 'e2e_s')} "
+            f"| {_pair(a, b, 'est_cost_usd', 4)} | {_pair(a, b, 'execution_health')} "
+            f"| {_pair(a, b, 'no_simplified_chars_score')} "
+            f"| {_pair(a, b, 'citation_bijective')} |"
+        )
+
+    complete = [p for p in summary["e1_pairs"] if p["A"] and p["B"]]
+    paths: dict[str, int] = {}
+    for pair in complete:
+        paths[pair["B"]["sec_path"]] = paths.get(pair["B"]["sec_path"], 0) + 1
+    lines += [
+        "",
+        f"## E1 aggregate ({len(complete)} complete pairs)",
+        "",
+        "| Metric | A (no RAG) | B (RAG bundle) |",
+        "|---|---|---|",
+    ]
+    for label, key, agg in [
+        ("Median SEC evidence tokens", "sec_evidence_tokens", "median"),
+        ("Median input tokens", "input_tokens", "median"),
+        ("Median output tokens", "output_tokens", "median"),
+        ("Median tool calls", "tool_calls_total", "median"),
+        ("Median TTFT s", "ttft_first_event_s", "median"),
+        ("Median E2E s", "e2e_s", "median"),
+        ("Hard tool errors (sum)", "tool_errors_hard", "sum"),
+        ("Total cost USD", "est_cost_usd", "sum"),
+    ]:
+        cells = []
+        for side in ("A", "B"):
+            values = [p[side][key] for p in complete if p[side][key] != ""]
+            if agg == "median":
+                cells.append(_fmt(_median(values)))
+            else:
+                cells.append(_fmt(round(sum(values), 4), 4 if "cost" in key else 0))
+        lines.append(f"| {label} | {cells[0]} | {cells[1]} |")
+    health = [
+        sum(1 for p in complete if p[side]["execution_health"] == 1.0)
+        for side in ("A", "B")
+    ]
+    lines.append(f"| Runs with health 1.0 | {health[0]} | {health[1]} |")
+    lines.append(
+        "| B's SEC path | – | "
+        + ", ".join(f"{k}: {v}" for k, v in sorted(paths.items()))
+        + " |"
+    )
+
+    lines += [
+        "",
+        "## E2 summary (dev 8 rows each, n=1)",
+        "",
+        "| Arm | Runs | Health mean | Task errors | Hard tool errors | Runs at tool budget "
+        "| Median tool calls | Median LLM calls | Median TTFT s | Median E2E s "
+        "| Median input tok | Median output tok | Median reasoning tok | Total cost USD "
+        "| Simplified-drift runs |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for s in summary["e2"]:
+        lines.append(
+            f"| {s['arm']} | {s['runs']} | {_fmt(s['execution_health_mean'], 2)} "
+            f"| {s['task_errors']} | {s['tool_errors_hard_total']} "
+            f"| {s['runs_hitting_budget']} | {_fmt(s['median_tool_calls'])} "
+            f"| {_fmt(s['median_llm_calls'])} | {_fmt(s['median_ttft_s'])} "
+            f"| {_fmt(s['median_e2e_s'])} | {_fmt(s['median_input_tokens'], 0)} "
+            f"| {_fmt(s['median_output_tokens'], 0)} "
+            f"| {_fmt(s['median_reasoning_tokens'], 0)} "
+            f"| {_fmt(s['total_cost_usd'], 4)} | {s['simplified_drift_runs']} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw-dir", type=Path, required=True)
@@ -254,6 +367,7 @@ def main(argv: list[str] | None = None) -> int:
     (args.out_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False, default=str)
     )
+    (args.out_dir / "tables.md").write_text(render_tables(summary))
     print(f"{len(rows)} runs -> {args.out_dir / 'metrics.csv'}")
     return 0
 

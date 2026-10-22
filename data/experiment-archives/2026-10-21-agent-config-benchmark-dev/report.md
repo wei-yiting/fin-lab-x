@@ -253,13 +253,28 @@ mid-experiment would have changed the system under test.
 
 | # | Defect | Effect on this run | Evidence |
 |---|---|---|---|
-| D1 | `sec_filing_list_sections` / `sec_filing_get_section` raise `AttributeError: 'NoneType' object has no attribute 'sections'` for **META, V, MA** FY2025 10-Ks. Root cause: edgartools' `TenK.document` returns `None` for these filings (the primary `.htm` exists in the filing index; the parser only warns), and both tools iterate `tenk.document.sections`. | Rows 9 and 13: every arm that tried the whole-section path got errors and lost health; 23 of the 31 hard tool errors in the batch | `prewarm.json`, `raw/row09__*`, `raw/row13__*` |
-| D2 | `sec_filing_search` fails for the same three tickers with `CorpusUnavailableError: Search failed: 'NoneType' object has no attribute 'download'`. JIT ingestion depends on the same edgartools fetch. | Rows 9 and 13: the RAG path is equally blind for META/V/MA, so **row 13 (an SEC-source row) has no usable SEC evidence in any arm**; 4 hard tool errors | same |
+| D1 | `sec_filing_list_sections` / `sec_filing_get_section` raise `AttributeError: 'NoneType' object has no attribute 'sections'` for the **META, V, MA** latest 10-Ks. Root cause (diagnosed 2026-10-22, see below): EDGAR's filing-index page fetch fails, so edgartools sees a filing with no documents and `TenK.document` is `None`. | Rows 9 and 13: every arm that tried the whole-section path got errors and lost health; 23 of the 31 hard tool errors in the batch | `prewarm.json`, `raw/row09__*`, `raw/row13__*` |
+| D2 | `sec_filing_search` fails for the same three tickers with `CorpusUnavailableError: Search failed: 'NoneType' object has no attribute 'download'`. Same root cause: JIT ingestion calls edgartools' `filing.html()`, which reads `homepage.primary_html_document`, and that is `None`. | Rows 9 and 13: the RAG path is equally blind for META/V/MA, so **row 13 (an SEC-source row) has no usable SEC evidence in any arm**; 4 hard tool errors | same |
 | D3 | Agents retry a failing SEC call: `luna_medium` called `list_sections` on V three times in one run. | Burns the 10-call budget (row 13 hit it in A and B) | `raw/row13__luna_medium.json` |
 | D4 | Data coverage: Airbus (`AIR.PA`) isn't an SEC filer, and Finnhub returns 403 on the current plan. | Row 29 health drops for whichever arm tries it (B and luna_none); the remaining 4 hard tool errors | `raw/row29__*` |
 
 Three of the ten SEC-filing tickers in the dev set are unreadable on both SEC paths,
 which caps what E1 can say about SEC-heavy questions on this split.
+
+**D1/D2 root cause — not specific to META/V/MA.** edgartools 5.17.1 (the locked
+version) builds the filing-index URL in its short form,
+`/Archives/edgar/data/<cik>/<accession>-index.html`. SEC now answers that form with
+**403 Forbidden** for every filing, AAPL included. Only the form inside the accession
+folder, `/data/<cik>/<accession-no-dashes>/<accession>-index.html`, returns 200.
+edgartools treats the failed page as a filing with zero documents, so
+`primary_html_document` and `TenK.document` come back `None` and both SEC tools fail.
+The 7 tickers that worked (AAPL, AMZN, BA, JNJ, KO, NVDA, TSLA) were served from
+edgartools' local HTTP cache (`~/.edgar/_tcache`) from earlier fetches. Uncached
+filings fail the same way: COST, NFLX, and ORCL all returned 0 documents on
+2026-10-22. In other words, this checkout cannot read any 10-K it has not already
+cached. Upstream fixed this in a later edgartools release, whose `homepage_url` uses
+the in-folder form with a comment citing the 403 (edgartools GH #1421; checked in
+5.62.0). The fix is a dependency bump (DEV-219), not changes to the tools.
 
 ## 6. Cost model
 

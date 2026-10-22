@@ -29,6 +29,11 @@ _RECLASSIFIED_LABEL = "reclassified leading block"
 # preview would hide it; `--section` remains the full-text path.
 _FLAT_PREVIEW_EACH_END = 300
 
+# A degraded filing's text is the whole document, so its preview budget is
+# larger: the head must reach past the body opening into real content, and
+# the tail must show whether the signature-block cut landed correctly.
+_DEGRADED_PREVIEW_EACH_END = 1500
+
 
 def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
     if item.prelude:
@@ -41,12 +46,12 @@ def _prelude_verdict(item: StructuredItem, compact: bool = False) -> str:
     return "absent"
 
 
-def _flat_preview(text: str) -> str:
-    if len(text) <= 2 * _FLAT_PREVIEW_EACH_END:
+def _flat_preview(text: str, each_end: int = _FLAT_PREVIEW_EACH_END) -> str:
+    if len(text) <= 2 * each_end:
         return text
-    head = text[:_FLAT_PREVIEW_EACH_END]
-    tail = text[-_FLAT_PREVIEW_EACH_END:]
-    skipped = len(text) - 2 * _FLAT_PREVIEW_EACH_END
+    head = text[:each_end]
+    tail = text[-each_end:]
+    skipped = len(text) - 2 * each_end
     return f"{head}\n\n… [{skipped:,} chars omitted] …\n\n{tail}"
 
 
@@ -60,13 +65,21 @@ def _structured_count(filing: ParsedFiling) -> int:
 
 def _header_lines(filing: ParsedFiling) -> list[str]:
     m = filing.metadata
-    structured = _structured_count(filing)
-    flat = len(filing.items) - structured
+    if filing.is_degraded:
+        counts = (
+            f"DEGRADED ingest — section detection: "
+            f"{m.section_detection_method or 'unrecorded'} — unstructured "
+            f"full text ({len(filing.degraded_text or ''):,} chars)"
+        )
+    else:
+        structured = _structured_count(filing)
+        flat = len(filing.items) - structured
+        counts = f"{len(filing.items)} items (structured {structured} / flat {flat})"
     return [
         f"{m.ticker} {m.filing_type} FY{m.fiscal_year} — {m.company_name}",
         f"filed {m.filing_date} · accession {m.accession_number} · CIK {m.cik}"
         f" · {m.primary_document} · parsed_at {m.parsed_at}",
-        f"{len(filing.items)} items (structured {structured} / flat {flat})",
+        counts,
     ]
 
 
@@ -78,6 +91,16 @@ def to_inspect_markdown(filing: ParsedFiling) -> str:
     prints them in full."""
     title, source_line, counts = _header_lines(filing)
     lines = [f"# {title} — inspect view", "", source_line, "", counts, ""]
+    if filing.is_degraded:
+        lines.extend(
+            [
+                "## Degraded full text",
+                "",
+                _flat_preview(filing.degraded_text or "", _DEGRADED_PREVIEW_EACH_END),
+                "",
+            ]
+        )
+        return "\n".join(lines)
     for item in filing.items:
         lines.extend(_render_item_markdown(item))
     return "\n".join(lines)
@@ -117,6 +140,10 @@ def _render_item_markdown(item: ParsedItem) -> list[str]:
 def to_summary_text(filing: ParsedFiling) -> str:
     """One-screen summary table — per-Item verdicts only, no body content."""
     header_title, source_line, counts = _header_lines(filing)
+    if filing.is_degraded:
+        # The header's counts line already carries the whole verdict; a
+        # degraded filing has no items to tabulate.
+        return "\n".join([header_title, source_line, counts])
     row_fmt = "{:<5} {:<11} {:<13} {:<28} {:>6} {:>9}"
     rows = [
         header_title,
@@ -151,6 +178,13 @@ def to_section_text(filing: ParsedFiling, section_key: str) -> str:
     listing the keys that exist.
     """
     key = section_key.strip().lower()
+    if filing.is_degraded:
+        raise ValueError(
+            f"{filing.metadata.ticker} FY{filing.metadata.fiscal_year} was "
+            f"ingested degraded (section detection: "
+            f"{filing.metadata.section_detection_method or 'unrecorded'}) and "
+            f"has no per-Item sections; use the inspect view for its full text."
+        )
     for item in filing.items:
         if item.item == key:
             return _section_text(item)

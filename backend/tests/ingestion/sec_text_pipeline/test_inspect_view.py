@@ -117,6 +117,50 @@ class TestInspectMarkdown:
         assert "600 chars omitted" in md  # explicit count, not a bare ellipsis
 
 
+def make_degraded_filing(text: str = "") -> ParsedFiling:
+    body = text or ("# PART I\n" + "Cleaned full-document body text. " * 40)
+    return ParsedFiling(
+        metadata=make_metadata(section_detection_method="pattern"),
+        items=[],
+        degraded_text=body,
+    )
+
+
+class TestDegradedRendering:
+    """A degraded filing renders as marker + full-text preview — the
+    operator must see at first glance why structure is absent (ADR-0021)."""
+
+    def test_inspect_markdown_shows_marker_and_preview(self):
+        filing = make_degraded_filing()
+        md = to_inspect_markdown(filing)
+        assert "DEGRADED" in md
+        assert "pattern" in md
+        assert "Cleaned full-document body text." in md
+        assert f"{len(filing.degraded_text):,} chars" in md
+
+    def test_inspect_markdown_long_text_shows_head_and_tail(self):
+        text = "H" * 2000 + "MIDDLE" * 500 + "T" * 2000
+        md = to_inspect_markdown(make_degraded_filing(text))
+        assert "H" * 1500 in md
+        assert "T" * 1500 in md
+        assert "MIDDLE" not in md
+        assert "chars omitted" in md
+
+    def test_summary_shows_degraded_line_instead_of_item_rows(self):
+        summary = to_summary_text(make_degraded_filing())
+        assert "DEGRADED" in summary
+        assert "pattern" in summary
+        assert "item" not in summary.splitlines()[-1]  # no item table header row
+
+    def test_summary_excludes_body_content(self):
+        summary = to_summary_text(make_degraded_filing())
+        assert "Cleaned full-document body text." not in summary
+
+    def test_section_text_raises_with_degraded_explanation(self):
+        with pytest.raises(ValueError, match="degraded"):
+            to_section_text(make_degraded_filing(), "1a")
+
+
 class TestSummaryText:
     def test_counts_and_rows(self, valid_prelude_item, flat_item):
         summary = to_summary_text(make_filing([valid_prelude_item, flat_item]))

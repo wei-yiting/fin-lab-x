@@ -82,24 +82,24 @@ export const copy = {
       "An AI research agent that reads SEC 10-K filings, live market data, and recent news, then answers with cited sources.",
     chips: {
       riskVsNews: {
-        title: "Risk disclosures vs. recent news",
+        title: "China risk: real or hype?",
         prompt:
-          "Which export-control and supply-chain risks disclosed in NVIDIA's latest 10-K have actually materialized in recent news, and which remain only potential? Map each risk to the evidence and cite your sources.",
+          "Everyone says China export bans are NVIDIA's biggest risk. What does NVIDIA itself say in its latest 10-K, and has any of it actually shown up in the news yet, or is it still a what-if?",
       },
       narrativeVsNumbers: {
-        title: "Management narrative vs. the numbers",
+        title: "Is AI actually paying off?",
         prompt:
-          "How does Microsoft's latest 10-K MD&A explain the growth drivers of its cloud business? Test that narrative against current financial metrics such as revenue growth and gross margin. Does it hold up?",
+          "Microsoft keeps saying AI is driving Azure growth. Do the actual numbers back that up, or are margins quietly paying the price?",
       },
       crossCompanyDisclosure: {
-        title: "Cross-company regulatory risk",
+        title: "Apple vs. Google antitrust",
         prompt:
-          "Compare how Apple's and Alphabet's latest 10-Ks disclose antitrust and regulatory risk. Which specific lawsuits or regulations does each company name, and which one describes the potential revenue impact more concretely?",
+          "Apple and Google are both fighting antitrust cases. Based on their own filings, which one has more revenue on the line if regulators win?",
       },
       bearCaseAudit: {
-        title: "Evidence-checked bear case",
+        title: "Tesla bear case: signal vs. noise",
         prompt:
-          "Build a bear case for Tesla: find the strongest evidence from its latest 10-K risk factors, its current valuation metrics, and recent news. Then flag which common bear arguments lack supporting evidence.",
+          "Give me the bear case on Tesla at today's price. What's backed by the numbers and filings, and what's just noise?",
       },
     },
   },

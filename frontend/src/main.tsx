@@ -1,7 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Analytics } from "@vercel/analytics/react";
 import "./index.css";
 import App from "./App.tsx";
+import { dropOptedOutEvents } from "./lib/analytics";
 
 async function enableMocking() {
   const mode = import.meta.env.MODE;
@@ -19,6 +21,7 @@ function renderApp() {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <App />
+      <Analytics beforeSend={dropOptedOutEvents} />
     </StrictMode>,
   );
 }

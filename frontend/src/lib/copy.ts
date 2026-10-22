@@ -82,24 +82,24 @@ export const copy = {
       "An AI research agent that reads SEC 10-K filings, live market data, and recent news, then answers with cited sources.",
     chips: {
       riskVsNews: {
-        title: "China risk: real or hype?",
+        title: "Risk disclosures vs. recent news",
         prompt:
-          "Everyone says China export bans are NVIDIA's biggest risk. What does NVIDIA itself say in its latest 10-K, and has any of it actually shown up in the news yet, or is it still a what-if?",
+          "Which of the export-control and China risks NVIDIA flags in its latest 10-K are already showing up in recent news, and which are still only potential? Cite the filing and the news for each.",
       },
       narrativeVsNumbers: {
-        title: "Is AI actually paying off?",
+        title: "Management narrative vs. the numbers",
         prompt:
-          "Microsoft keeps saying AI is driving Azure growth. Do the actual numbers back that up, or are margins quietly paying the price?",
+          "Microsoft attributes its cloud growth to AI demand. Do its revenue growth and gross margin trends support that story, or is AI infrastructure spending eroding margins?",
       },
       crossCompanyDisclosure: {
-        title: "Apple vs. Google antitrust",
+        title: "Cross-company regulatory risk",
         prompt:
-          "Apple and Google are both fighting antitrust cases. Based on their own filings, which one has more revenue on the line if regulators win?",
+          "Compare the antitrust exposure Apple and Alphabet disclose in their latest 10-Ks: which specific cases does each name, and whose revenue is more directly at risk?",
       },
       bearCaseAudit: {
-        title: "Tesla bear case: signal vs. noise",
+        title: "Evidence-checked bear case",
         prompt:
-          "Give me the bear case on Tesla at today's price. What's backed by the numbers and filings, and what's just noise?",
+          "Build a bear case on Tesla at its current valuation using its 10-K risk factors, fundamentals, and recent news, then flag which popular bear arguments the evidence doesn't support.",
       },
     },
   },

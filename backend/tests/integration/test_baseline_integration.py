@@ -281,7 +281,7 @@ def test_config_loading_from_yaml():
     assert config.name == "baseline"
     assert "finnhub_stock_quote" in config.tools
     assert "tavily_financial_search" in config.tools
-    assert config.model.name == "openai:gpt-5-nano"
+    assert config.model.name == "openai:gpt-5.6-luna"
     assert config.model.reasoning == "on"
 
 

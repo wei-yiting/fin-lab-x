@@ -39,6 +39,7 @@ from backend.agent_engine.agents.config_loader import (
     ModelConfig,
     WorkflowProfileConfig,
 )
+from backend.agent_engine.agents.response_language import ResponseLanguageMiddleware
 from backend.agent_engine.streaming.domain_events_schema import (
     DomainEvent,
     Finish,
@@ -416,7 +417,7 @@ class Orchestrator:
         )
         middleware = cast(
             list[AgentMiddleware[Any, Any, Any]],
-            [tool_call_limit, handle_tool_errors],
+            [tool_call_limit, handle_tool_errors, ResponseLanguageMiddleware()],
         )
         self.agent = create_agent(
             model=model,

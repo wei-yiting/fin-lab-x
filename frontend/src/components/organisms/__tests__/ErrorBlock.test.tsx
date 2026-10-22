@@ -9,7 +9,7 @@ describe("ErrorBlock", () => {
     render(
       <ErrorBlock
         friendly={{
-          title: "系統忙碌中，請稍後再試一次。",
+          title: "The system is busy. Please try again in a moment.",
           detail: "HTTP 409: session busy on backend",
           retriable: true,
         }}
@@ -19,7 +19,9 @@ describe("ErrorBlock", () => {
       />,
     );
 
-    expect(screen.getByTestId("error-title")).toHaveTextContent("系統忙碌中，請稍後再試一次。");
+    expect(screen.getByTestId("error-title")).toHaveTextContent(
+      "The system is busy. Please try again in a moment.",
+    );
     expect(screen.queryByText("HTTP 409: session busy on backend")).not.toBeInTheDocument();
   });
 
@@ -28,7 +30,7 @@ describe("ErrorBlock", () => {
     render(
       <ErrorBlock
         friendly={{
-          title: "伺服器發生錯誤，請再試一次。",
+          title: "Server error. Please try again.",
           detail: "stack trace ...",
           retriable: true,
         }}
@@ -46,7 +48,7 @@ describe("ErrorBlock", () => {
     render(
       <ErrorBlock
         friendly={{
-          title: "找不到這個對話，請重新整理頁面以開始新對話。",
+          title: "Conversation not found. Refresh to start a new one.",
           retriable: false,
         }}
         onRetry={vi.fn()}
@@ -62,7 +64,7 @@ describe("ErrorBlock", () => {
     const longDetail = "x".repeat(500);
     render(
       <ErrorBlock
-        friendly={{ title: "伺服器發生錯誤，請再試一次。", detail: longDetail, retriable: true }}
+        friendly={{ title: "Server error. Please try again.", detail: longDetail, retriable: true }}
         onRetry={vi.fn()}
         source="pre-stream"
         errorClass="pre-stream-500"
@@ -77,7 +79,7 @@ describe("ErrorBlock", () => {
   test('source="mid-stream" renders with inline-error-block testId', () => {
     render(
       <ErrorBlock
-        friendly={{ title: "回覆過程中連線中斷。", retriable: true }}
+        friendly={{ title: "Connection lost mid-response.", retriable: true }}
         onRetry={vi.fn()}
         source="mid-stream"
         errorClass="mid-stream"
@@ -94,7 +96,7 @@ describe("ErrorBlock", () => {
   test('outer container carries role="alert" so screen readers interrupt and announce errors', () => {
     render(
       <ErrorBlock
-        friendly={{ title: "伺服器發生錯誤，請再試一次。", retriable: false }}
+        friendly={{ title: "Server error. Please try again.", retriable: false }}
         source="pre-stream"
         errorClass="pre-stream-500"
       />,
@@ -106,7 +108,7 @@ describe("ErrorBlock", () => {
   test("toggle button is not rendered when friendly.detail is absent", () => {
     render(
       <ErrorBlock
-        friendly={{ title: "發生錯誤，請再試一次。", retriable: false }}
+        friendly={{ title: "Something went wrong. Please try again.", retriable: false }}
         source="pre-stream"
         errorClass="unknown"
       />,

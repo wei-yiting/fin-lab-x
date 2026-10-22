@@ -31,7 +31,9 @@ test(
       timeout: E2E_TIMEOUTS.status,
     });
     await expect(chip).toHaveAttribute("data-state", "collapsed");
-    await expect(chip.getByTestId("reasoning-chip-header")).toHaveText(/已停止 — 思考了 \d+ 秒/);
+    await expect(chip.getByTestId("reasoning-chip-header")).toHaveText(
+      /Stopped — thought for \d+s/,
+    );
 
     // Resend — the new turn streams its own chip and completes.
     await chat.sendMessage("second prompt after abort");
@@ -41,10 +43,10 @@ test(
     // chip collapsed to a clean header.
     await expect(page.getByTestId("assistant-message")).toHaveCount(2);
     await expect(
-      page.getByTestId("reasoning-chip-header").filter({ hasText: /^已停止/ }),
+      page.getByTestId("reasoning-chip-header").filter({ hasText: /^Stopped/ }),
     ).toHaveCount(1);
     await expect(
-      page.getByTestId("reasoning-chip-header").filter({ hasText: /^思考了/ }),
+      page.getByTestId("reasoning-chip-header").filter({ hasText: /^Thought for/ }),
     ).toHaveCount(1);
   },
 );

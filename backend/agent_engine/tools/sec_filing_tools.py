@@ -61,15 +61,12 @@ def _derive_item_from_name(name: str) -> str | None:
 # answering English questions in Chinese. The only anchor is the user's own
 # message.
 _LANGUAGE_DIRECTIVE_PRE = (
-    "[LANGUAGE DIRECTIVE] The following SEC filing content is in English. "
-    "Your answer must be written in the language the USER wrote their question "
-    "in (detect it from the user's message), regardless of the language of this "
-    "content."
+    "[LANGUAGE DIRECTIVE] Write your final answer in the same language as the "
+    "user's question."
 )
 _LANGUAGE_DIRECTIVE_POST = (
-    "[LANGUAGE DIRECTIVE] End of SEC filing content. Reminder: answer in the "
-    "language of the user's own message — the same language the user used, "
-    "whatever it is."
+    "[LANGUAGE DIRECTIVE] Reminder: write your final answer in the same language "
+    "as the user's question."
 )
 
 

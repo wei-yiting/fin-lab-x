@@ -1,0 +1,9 @@
+row_id,verdict,X,Y,preferred,notes
+3,X 較好,luna_medium,reader_luna_medium,A,
+6,X 較好,luna_medium,reader_luna_medium,A,
+9,Y 較好,luna_medium,reader_luna_medium,B,
+13,Y 較好,reader_luna_medium,luna_medium,A,
+17,X 較好,reader_luna_medium,luna_medium,B,
+20,Y 較好,reader_luna_medium,luna_medium,A,
+24,Y 較好,reader_luna_medium,luna_medium,A,
+29,X 較好,reader_luna_medium,luna_medium,B,

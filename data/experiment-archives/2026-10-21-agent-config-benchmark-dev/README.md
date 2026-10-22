@@ -4,9 +4,10 @@
 > RAG bundle (`sec_filing_search` + reader prompt) chose chunk search on 8/8 rows and,
 > where both arms read the same filing, used 2.3–13× fewer SEC tokens and finished
 > ~35–50% faster. It also consulted 10-Ks on questions that didn't need them, so it
-> changes tool-use policy, not just retrieval. Answer quality is **not** measured (blind
-> review pending). In the 2×2, all health failures came from tool/data defects; Gemini was
-> faster, Luna 2.3–5.6× cheaper.
+> changes tool-use policy, not just retrieval. In a blind pairwise review (one rater), the
+> no-RAG arm was preferred 5–3 (p = 0.73): cheaper and faster, but no visible quality
+> gain. In the 2×2, all health failures came from tool/data defects; Gemini was faster,
+> Luna 2.3–5.6× cheaper.
 
 This directory archives two experiments that share one batch of 40 runs (DEV-206): E1
 asks whether RAG beats reading whole 10-K sections, E2 compares model family × reasoning
@@ -17,7 +18,7 @@ tier.
 | Doc | Read this for |
 |---|---|
 | [`report.md`](report.md) | The reference: design, config alignment check, E1 paired table, E2 summary, defects found, decisions, claim boundary, reproduce instructions |
-| [`blind_review/e1_blind_review.html`](blind_review/e1_blind_review.html) | The pending human step: blind X/Y judgement of E1's 8 answer pairs |
+| [`blind_review/e1_blind_review.html`](blind_review/e1_blind_review.html) | The blind X/Y sheet for E1's 8 answer pairs (results in `report.md` §10) |
 
 ## Files
 
@@ -35,6 +36,8 @@ tier.
 | `raw/rowNN__<arm>.json` | Full per-run record: response, tool calls with args and results, scores, per-model-call usage, tool timings, run order, timestamps. Permanent record — Braintrust free-tier traces expire after 14 days, and live inputs can't be replayed |
 | `blind_review/e1_blind_review.{html,md}` | Blind pairwise review sheet (SEC chunk ids masked) |
 | `blind_review/e1_blind_review_KEY.json` | X/Y → arm key; open only after judging |
+| `blind_review/e1_blind_review_verdicts.csv` | The rater's blind verdicts as exported from the sheet |
+| `blind_review/e1_blind_review_results.csv` | Verdicts decoded against the key (preferred arm per row) |
 
 ## Reproduce
 

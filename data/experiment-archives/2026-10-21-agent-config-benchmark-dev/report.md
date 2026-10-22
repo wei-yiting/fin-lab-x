@@ -6,8 +6,11 @@
 > rows where both arms read the same filing successfully, put **2.3–13× fewer SEC tokens**
 > into context and finished **~35–50% faster**. It also pulled SEC evidence into questions
 > that didn't need it (both Finnhub-only "sanity" rows), so the bundle changes tool-use
-> *policy*, not just retrieval. **Answer quality was not measured** — that is what the
-> blind pairwise sheet is for. In the 2×2, every execution-health failure traced back to
+> *policy*, not just retrieval. **Cheaper did not mean better**: in a blind pairwise
+> review (one rater), the no-RAG arm was preferred on **5 of 8** rows, including the
+> row with the biggest token saving (row 6, 13×). That is 5–3 with no ties, sign test
+> p = 0.73, so it can't say the RAG answers were *worse*, only that its efficiency gain
+> came with no visible quality gain. In the 2×2, every execution-health failure traced back to
 > broken tools or data coverage (edgartools on META/V/MA 10-Ks, no data for Airbus), not to
 > the model; the clear differences were in latency (Gemini minimal fastest) and cost (Luna
 > 2.3–5.6× cheaper).
@@ -211,12 +214,16 @@ penalizes trying a tool that is down, so it can't reveal whether an answer is go
 Whenever an answer used `[N]` markers, every marker had a definition and vice versa
 (A: 6/6, B: 8/8).
 
-**7. What this does not say: whether B's answers are *better*.** Fewer tokens can mean
-"precise evidence" or "missed context" — a whole Item 1A has the full litigation picture,
-and eight chunks may not. Answer quality is exactly what the blind pairwise review
-([`blind_review/`](blind_review/)) is for; until it's filled in, E1 supports "the RAG
-bundle is cheaper and faster when a filing is needed, and changes when filings get used",
-and nothing about correctness.
+**7. Blind preference: A 5, B 3 (see [§10](#10-blind-pairwise-review)).** Fewer tokens can
+mean "precise evidence" or "missed context" — a whole Item 1A has the full litigation
+picture, and eight chunks may not. The blind review leans toward the second reading, but
+only weakly. On the clean SEC pairs, A was preferred on rows 6 and 20 and B on row 17. So
+the largest context cut (row 6, 71k → 5k SEC tokens) is also a row where the
+whole-section answer won. Where B added SEC that A skipped (rows 3, 24), A was preferred
+both times. B won on row 29 despite execution health 0, which shows directly that health
+is not a quality proxy. With 8 pairs and one rater, this is a hypothesis for the next
+round, not a result: *chunk retrieval saves context and time but may drop synthesis
+context that synoptic questions need.*
 
 ## 4. E2 results — model family × reasoning tier
 
@@ -292,7 +299,7 @@ What this experiment can and cannot support:
 - **Directional only.** n = 1 per (row, arm), 8 dev rows, heterogeneous questions. No significance testing, no confidence intervals. One run per cell can't separate a config effect from run-to-run sampling noise, which is not small for agent trajectories (tool choice, call count). For E1 the paired, back-to-back design reduces but does not remove this.
 - **Live, non-replayable inputs.** News, quotes, and "latest 10-K" depend on the run window (2026-10-21 15:57–16:19 UTC). A re-run is a new sample, not a replication.
 - **E1 measures the bundle** (tools + prompt), not `sec_filing_search` alone. The sanity rows show the prompt half changes tool-use policy on its own.
-- **No quality metric.** Execution health, tokens, latency, and cost are process metrics. "RAG is better" in the answer-quality sense is untested until the blind review is done (and even then: one rater, 8 pairs).
+- **Quality evidence is one human rater on 8 pairs.** Execution health, tokens, latency, and cost are process metrics. The only quality signal is the blind review (A 5 – B 3, p = 0.73): one rater, who also built the system, with no rubric beyond "more useful to the investor", and with blinding weakened by `[N]` citation density. It can't support "RAG is worse" or "RAG is better".
 - **Execution health is confounded by tool defects** (§5) on rows 9, 13, and 29; 3 of 10 SEC tickers are unreadable on both paths. Health differences between arms here are not model or prompt quality signals.
 - **E2's Luna pair differs in effective temperature** (`luna_none` 0.0 vs. `luna_medium` provider default, because langchain-openai drops temperature for reasoning-enabled GPT-5.x). The "reasoning effort" effect within Luna is entangled with a sampling change. Gemini's pair is clean on this axis (both 0.0), but `minimal` is Gemini's reasoning floor, not "off".
 - **Latency** is end-to-end wall clock, including tool and network time (Tavily, Finnhub, EDGAR, local Qdrant), measured from one machine on one night. Medians over 8 rows only.
@@ -315,11 +322,31 @@ Project `finlab-x`, one experiment per arm (row metadata includes `row_id`, `arm
 Braintrust's free tier keeps traces for 14 days. [`raw/`](raw/) is the permanent record
 (full responses, tool calls with args and results, per-model-call usage, tool timings).
 
-## 10. Blind pairwise review (pending, human)
+## 10. Blind pairwise review
 
 [`blind_review/e1_blind_review.html`](blind_review/e1_blind_review.html) (or the `.md`
 twin): 8 E1 pairs, randomly labelled X/Y (system RNG), verdict = X better / Y better /
-tie / both bad, plus notes; "Export CSV" saves the verdicts. The key is
-[`blind_review/e1_blind_review_KEY.json`](blind_review/e1_blind_review_KEY.json) — open it
-only after judging. Because [`raw/`](raw/) and [`metrics.csv`](metrics.csv) identify the
-arms, judge from the sheet alone.
+tie / both bad, plus notes. The key is
+[`blind_review/e1_blind_review_KEY.json`](blind_review/e1_blind_review_KEY.json). The rater
+judged from the sheet alone on 2026-10-22 and exported
+[`e1_blind_review_verdicts.csv`](blind_review/e1_blind_review_verdicts.csv); it was then
+decoded against the key into
+[`e1_blind_review_results.csv`](blind_review/e1_blind_review_results.csv).
+
+| Row | Expected source | SEC path A / B | SEC tokens A / B | Preferred |
+|---|---|---|---|---|
+| 3 | mixed | neither / search | 0 / 4,962 | **A** |
+| 6 | SEC | get_section / search | 70,998 / 5,341 | **A** |
+| 9 | mixed | get_section / search (META failed both) | 16,331 / 5,358 | **B** |
+| 13 | SEC | neither / search (all SEC failed) | 0 / 28 | **A** |
+| 17 | mixed | get_section / search | 41,103 / 17,582 | **B** |
+| 20 | Finnhub (sanity) | get_section / search | 52,695 / 4,651 | **A** |
+| 24 | Finnhub (sanity) | neither / search | 0 / 9,772 | **A** |
+| 29 | mixed | neither / search | 0 / 4,426 | **B** |
+
+**A (no RAG) 5 – B (RAG bundle) 3**, no ties, no "both bad". Two-sided sign test
+p = 0.73. Limits: one rater (also the system's author), no written rubric, no notes, and
+the blinding was partial. SEC chunk ids were masked, but B's `[N]` citation density can
+still identify it. The sheet was regenerated once before judging (to fix rendering),
+which re-drew the X/Y labels. No verdicts had been recorded at that point, and the key on
+file matches the sheet that was judged.

@@ -12,26 +12,28 @@ const baseProps = {
 };
 
 describe("ReasoningChip — header per state", () => {
-  test("streaming shows copy.reasoningChip.thinkingLive and the body window", () => {
+  test("streaming shows Thinking… and the body window", () => {
     render(<ReasoningChip {...baseProps} chipState="streaming" expanded={true} />);
     expect(screen.getByTestId("reasoning-chip")).toHaveAttribute("data-state", "streaming");
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("思考中…");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thinking…");
     expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("reasoning body text");
   });
 
   test("streaming + stalled swaps the degraded copy into the header", () => {
     render(<ReasoningChip {...baseProps} chipState="streaming" expanded={true} stalled={true} />);
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("仍在處理中…");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Still working…");
   });
 
-  test("done shows copy.reasoningChip.thoughtFor; stalled does not leak into collapsed headers", () => {
+  test("done shows Thought for Xs; stalled does not leak into collapsed headers", () => {
     render(<ReasoningChip {...baseProps} chipState="done" stalled={true} />);
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("思考了 3 秒");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thought for 3s");
   });
 
-  test("aborted shows copy.reasoningChip.stoppedThoughtFor", () => {
+  test("aborted shows Stopped — thought for Xs", () => {
     render(<ReasoningChip {...baseProps} chipState="aborted" />);
-    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("已停止 — 思考了 3 秒");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
+      "Stopped — thought for 3s",
+    );
   });
 });
 
@@ -76,13 +78,15 @@ describe("ReasoningChip — body and interaction", () => {
     const { rerender } = render(
       <ReasoningChip {...baseProps} chipState="streaming" expanded={true} />,
     );
-    expect(screen.getByRole("button", { name: "思考中… — 收合推理過程" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Thinking… — collapse reasoning" })).toBeVisible();
 
     rerender(<ReasoningChip {...baseProps} chipState="streaming" expanded={true} stalled={true} />);
-    expect(screen.getByRole("button", { name: "仍在處理中… — 收合推理過程" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Still working… — collapse reasoning" }),
+    ).toBeVisible();
 
     rerender(<ReasoningChip {...baseProps} chipState="done" />);
-    expect(screen.getByRole("button", { name: "思考了 3 秒 — 展開推理過程" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Thought for 3s — expand reasoning" })).toBeVisible();
   });
 });
 

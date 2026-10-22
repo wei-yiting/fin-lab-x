@@ -18,6 +18,9 @@ export function ChatHeader({
         <Badge variant="outline" className="text-[10px] uppercase">
           v1
         </Badge>
+        <span className="hidden text-sm text-muted-foreground sm:inline">
+          {copy.chatHeader.tagline}
+        </span>
       </div>
       <button
         data-testid="composer-clear-btn"

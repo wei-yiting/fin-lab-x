@@ -2,104 +2,122 @@
  * Centralized UI Copy (see CONTEXT.md "UI Copy"). Grouped by domain concept,
  * not by component location. Excludes user-generated/model content and any
  * text that originates from the backend (HTTP error `detail`, SSE error
- * messages, sanitized tool errors) — those stay untranslated at their source.
+ * messages, sanitized tool errors) — those keep their original wording.
  */
 export const copy = {
   activityIndicator: {
-    thinking: "思考中",
-    stalled: "仍在處理中",
+    thinking: "Thinking",
+    stalled: "Still working",
   },
 
   reasoningChip: {
-    thinkingLive: "思考中…",
-    stalledLive: "仍在處理中…",
-    thoughtFor: (seconds: number): string => `思考了 ${seconds} 秒`,
-    stoppedThoughtFor: (seconds: number): string => `已停止 — 思考了 ${seconds} 秒`,
+    thinkingLive: "Thinking…",
+    stalledLive: "Still working…",
+    thoughtFor: (seconds: number): string => `Thought for ${seconds}s`,
+    stoppedThoughtFor: (seconds: number): string => `Stopped — thought for ${seconds}s`,
     toggleAriaLabel: (headerLabel: string, showBody: boolean): string =>
-      `${headerLabel} — ${showBody ? "收合" : "展開"}推理過程`,
+      `${headerLabel} — ${showBody ? "collapse" : "expand"} reasoning`,
   },
 
   errorBlock: {
-    showDetails: "顯示詳情",
-    hideDetails: "隱藏詳情",
-    showMore: "顯示更多",
-    retry: "重試",
-    retryAriaLabel: "重試",
+    showDetails: "Show details",
+    hideDetails: "Hide details",
+    showMore: "Show more",
+    retry: "Retry",
+    retryAriaLabel: "Retry",
   },
 
   errorMessages: {
-    regenerateFailed: "無法重新產生這則回覆，請再試一次。",
-    conversationNotFound: "找不到這個對話，請重新整理頁面以開始新對話。",
-    sessionBusy: "系統忙碌中，請稍後再試一次。",
-    serverError: "伺服器發生錯誤，請再試一次。",
-    preStreamFallback: "發生錯誤，請再試一次。",
-    networkError: "連線中斷，請檢查網路連線後再試一次。",
-    toolBudgetReached: "這次請求的工具呼叫次數已達上限。",
-    tooManyRequests: "請求過於頻繁，請稍候片刻後再試。",
-    dataNotFound: "找不到相關資料。",
-    toolTimeout: "工具執行逾時，請再試一次。",
-    accessDenied: "沒有權限存取這項資源。",
-    toolFailedFallback: "工具執行失敗，請再試一次。",
-    conversationTooLong: "這段對話已經太長，請開啟新對話繼續。",
-    midStreamFallback: "產生回覆時發生錯誤，請再試一次。",
-    httpStatusFallback: (status: number): string => `HTTP 錯誤 ${status}`,
+    regenerateFailed: "Couldn't regenerate that message. Please try again.",
+    conversationNotFound: "Conversation not found. Refresh to start a new one.",
+    sessionBusy: "The system is busy. Please try again in a moment.",
+    serverError: "Server error. Please try again.",
+    preStreamFallback: "Something went wrong. Please try again.",
+    networkError: "Connection lost. Check your network and try again.",
+    toolBudgetReached: "Tool-call budget reached for this request.",
+    tooManyRequests: "Too many requests. Please wait a moment and try again.",
+    dataNotFound: "We couldn't find that data.",
+    toolTimeout: "The tool timed out. Please try again.",
+    accessDenied: "Access denied for this resource.",
+    toolFailedFallback: "The tool failed to run. Please try again.",
+    conversationTooLong: "This conversation is too long. Start a new chat to continue.",
+    midStreamFallback: "Something went wrong while generating the response. Please try again.",
+    httpStatusFallback: (status: number): string => `HTTP ${status}`,
   },
 
   toolStatus: {
-    running: (toolName: string): string => `執行 ${toolName} 中…`,
-    completed: (toolName: string): string => `${toolName} 已完成`,
-    error: (toolName: string): string => `${toolName} 發生錯誤`,
-    aborted: "已中止",
+    running: (toolName: string): string => `Running ${toolName}...`,
+    completed: (toolName: string): string => `Completed ${toolName}`,
+    error: (toolName: string): string => `Error in ${toolName}`,
+    aborted: "Aborted",
   },
 
   toolDetail: {
-    input: "輸入",
-    output: "輸出",
-    error: "錯誤",
+    input: "Input",
+    output: "Output",
+    error: "Error",
   },
 
   toolCard: {
-    toggleDetailsAriaLabel: "切換工具詳細資訊",
+    toggleDetailsAriaLabel: "Toggle tool details",
   },
 
   chatHeader: {
-    clearConversation: "清除對話",
-    clearConversationAriaLabel: "清除對話",
+    tagline: "US Equity Research Agent",
+    clearConversation: "Clear conversation",
+    clearConversationAriaLabel: "Clear conversation",
   },
 
   composer: {
-    inputAriaLabel: "訊息輸入框",
-    inputPlaceholder: "詢問市場、公司或財報相關問題…",
-    stopAriaLabel: "停止回應",
-    sendAriaLabel: "傳送訊息",
-    disclaimer: "AI 生成的回覆可能不準確，重要資訊請自行查證。",
+    inputAriaLabel: "Message input",
+    inputPlaceholder: "Ask about a US-listed company — filings, financials, or news...",
+    stopAriaLabel: "Stop response",
+    sendAriaLabel: "Send message",
+    disclaimer: "AI-generated responses may be inaccurate. Please verify important information.",
   },
 
   emptyState: {
-    heading: "想了解什麼？",
-    subtext: "詢問市場、公司、財報或申報文件相關問題。",
+    heading: "Research any US-listed stock",
+    subtext:
+      "An AI research agent that reads SEC 10-K filings, live market data, and recent news, then answers with cited sources.",
     chips: {
-      nvdaNews: "輝達 (Nvidia) 最新市場新聞",
-      aaplQuote: "查詢蘋果 (Apple) 股價",
-      compareFinancials: "比較輝達 (Nvidia) 和超微 (AMD) 財報",
-      msftLatest10K: "摘要微軟 (Microsoft) 最新的年度財報",
+      riskVsNews: {
+        title: "Risk disclosures vs. recent news",
+        prompt:
+          "Which export-control and supply-chain risks disclosed in NVIDIA's latest 10-K have actually materialized in recent news, and which remain only potential? Map each risk to the evidence and cite your sources.",
+      },
+      narrativeVsNumbers: {
+        title: "Management narrative vs. the numbers",
+        prompt:
+          "How does Microsoft's latest 10-K MD&A explain the growth drivers of its cloud business? Test that narrative against current financial metrics such as revenue growth and gross margin. Does it hold up?",
+      },
+      crossCompanyDisclosure: {
+        title: "Cross-company regulatory risk",
+        prompt:
+          "Compare how Apple's and Alphabet's latest 10-Ks disclose antitrust and regulatory risk. Which specific lawsuits or regulations does each company name, and which one describes the potential revenue impact more concretely?",
+      },
+      bearCaseAudit: {
+        title: "Evidence-checked bear case",
+        prompt:
+          "Build a bear case for Tesla: find the strongest evidence from its latest 10-K risk factors, its current valuation metrics, and recent news. Then flag which common bear arguments lack supporting evidence.",
+      },
     },
   },
 
   interruptedMarker: {
-    label: "已終止",
+    label: "Interrupted",
   },
 
   regenerateButton: {
-    label: "重新產生",
-    ariaLabel: "重新產生回覆",
+    label: "Regenerate",
+    ariaLabel: "Regenerate response",
   },
 
   sources: {
-    heading: "資料來源",
+    heading: "Sources",
   },
 
   chatPanel: {
-    responseComplete: "回覆已完成",
+    responseComplete: "Response complete",
   },
 } as const;

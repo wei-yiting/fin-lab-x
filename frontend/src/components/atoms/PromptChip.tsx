@@ -19,7 +19,7 @@ export function PromptChip({
       variant="outline"
       data-testid="prompt-chip"
       data-chip-index={index}
-      aria-label={`${title}：${text}`}
+      aria-label={`${title}: ${text}`}
       onClick={onClick}
       className="h-auto items-start justify-start gap-2 whitespace-normal px-3 py-2.5 text-left text-sm"
     >

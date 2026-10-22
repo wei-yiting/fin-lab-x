@@ -309,7 +309,7 @@ describe("AssistantMessage — reasoning chips", () => {
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thinking…");
   });
 
-  test("done reasoning part collapses to Thought for Xs", () => {
+  test("done reasoning part collapses to copy.reasoningChip.thoughtFor", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,
@@ -325,7 +325,7 @@ describe("AssistantMessage — reasoning chips", () => {
     expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
   });
 
-  test("aborted half-chip keeps text behind a Stopped header", () => {
+  test("aborted half-chip keeps text behind a copy.reasoningChip.stoppedThoughtFor header", () => {
     const message = {
       id: "a1",
       role: "assistant" as const,

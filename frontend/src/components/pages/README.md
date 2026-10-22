@@ -14,7 +14,7 @@ Streaming lifecycle state lives here only. Atoms / molecules / organisms never i
 
 ## `onFinish` contract
 
-AI SDK v6's `onFinish` payload carries `{ message, messages, isAbort, isDisconnect, isError }`. `ChatPanel` short-circuits `setResponseComplete(true)` whenever any of the three failure flags is `true` — otherwise the inline `role="status"` region would announce "Response complete" on user stop, network disconnect, or SSE error.
+AI SDK v6's `onFinish` payload carries `{ message, messages, isAbort, isDisconnect, isError }`. `ChatPanel` short-circuits `setResponseComplete(true)` whenever any of the three failure flags is `true` — otherwise the inline `role="status"` region would announce `copy.chatPanel.responseComplete` on user stop, network disconnect, or SSE error.
 
 ## Tests
 
@@ -22,6 +22,6 @@ AI SDK v6's `onFinish` payload carries `{ message, messages, isAbort, isDisconne
 pnpm -C frontend test -- --run ChatPanel.integration
 ```
 
-`__tests__/ChatPanel.integration.test.tsx` covers smart retry, mid-stream retry, aborted tools via stop, stop during the dead-air placeholder window, the stall-degradation wiring (mocked small threshold + MSW real time — placeholder copy and streaming chip header), stop + clear, the `onFinish` flag matrix (natural completion announces "Response complete"; abort / isError / isDisconnect do not), the reasoning chips golden path (stream → collapse), abort mid-reasoning → collapsed `Stopped — thought for Xs` half-chip, and abort-then-resend coexistence.
+`__tests__/ChatPanel.integration.test.tsx` covers smart retry, mid-stream retry, aborted tools via stop, stop during the dead-air placeholder window, the stall-degradation wiring (mocked small threshold + MSW real time — placeholder copy and streaming chip header), stop + clear, the `onFinish` flag matrix (natural completion announces `copy.chatPanel.responseComplete`; abort / isError / isDisconnect do not), the reasoning chips golden path (stream → collapse), abort mid-reasoning → collapsed `copy.reasoningChip.stoppedThoughtFor()` half-chip, and abort-then-resend coexistence.
 
 E2E specs for cross-page flows live in `frontend/tests/e2e/`.

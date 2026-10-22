@@ -12,7 +12,7 @@ const baseProps = {
 };
 
 describe("ReasoningChip — header per state", () => {
-  test("streaming shows Thinking… and the body window", () => {
+  test("streaming shows copy.reasoningChip.thinkingLive and the body window", () => {
     render(<ReasoningChip {...baseProps} chipState="streaming" expanded={true} />);
     expect(screen.getByTestId("reasoning-chip")).toHaveAttribute("data-state", "streaming");
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thinking…");
@@ -24,12 +24,12 @@ describe("ReasoningChip — header per state", () => {
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Still working…");
   });
 
-  test("done shows Thought for Xs; stalled does not leak into collapsed headers", () => {
+  test("done shows copy.reasoningChip.thoughtFor; stalled does not leak into collapsed headers", () => {
     render(<ReasoningChip {...baseProps} chipState="done" stalled={true} />);
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thought for 3s");
   });
 
-  test("aborted shows Stopped — thought for Xs", () => {
+  test("aborted shows copy.reasoningChip.stoppedThoughtFor", () => {
     render(<ReasoningChip {...baseProps} chipState="aborted" />);
     expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
       "Stopped — thought for 3s",

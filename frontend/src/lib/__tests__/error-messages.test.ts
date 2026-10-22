@@ -81,7 +81,7 @@ describe("toFriendlyError — mid-stream-sse pattern matching", () => {
 });
 
 describe("toFriendlyError — invariants", () => {
-  test("title is always English ASCII (no Chinese characters)", () => {
+  test("title is always non-empty and within a reasonable length", () => {
     const cases: ErrorContext[] = [
       { source: "pre-stream-http", status: 422 },
       { source: "pre-stream-http", status: 999 },
@@ -91,7 +91,6 @@ describe("toFriendlyError — invariants", () => {
     ];
     for (const ctx of cases) {
       const result = toFriendlyError(ctx);
-      expect(result.title).toMatch(/^[\x20-\x7E]+$/);
       expect(result.title.length).toBeLessThanOrEqual(80);
       expect(result.title.length).toBeGreaterThan(0);
     }

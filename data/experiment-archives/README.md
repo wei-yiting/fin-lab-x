@@ -34,3 +34,4 @@ runtime traces live in `data/trace-archives/`.
 |---|---|---|
 | [`2026-08-18-rag-metadata-filter-ab-eval`](2026-08-18-rag-metadata-filter-ab-eval/) | How much cross-ticker bleed does SEC 10-K dense retrieval suffer without a ticker filter? | `experiment/2026-08-18-rag-metadata-filter-ab-eval` |
 | [`2026-10-22-model-reasoning-benchmark`](2026-10-22-model-reasoning-benchmark/) | How do model family (GPT-5.6 Luna vs Gemini 3.6 Flash) and reasoning strength move execution health, latency, tokens and cost? (30 rows × 3 runs) | `experiment/2026-10-22-model-reasoning-benchmark` |
+| [`2026-10-22-rag-bundle-ablation`](2026-10-22-rag-bundle-ablation/) | With the model fixed, does RAG over 10-Ks (search + reader prompt) beat reading whole sections? (30 rows × 3 runs) | `experiment/2026-10-22-rag-bundle-ablation` |

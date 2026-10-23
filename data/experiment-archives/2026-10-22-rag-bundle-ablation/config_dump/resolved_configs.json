@@ -1,0 +1,139 @@
+{
+  "luna_medium": {
+    "arm": "luna_medium",
+    "config_dir": "evals/scenarios/baseline_behavior_diagnostic_zh/benchmark/configs/luna_medium",
+    "prompt_path": "evals/scenarios/baseline_behavior_diagnostic_zh/benchmark/prompt/system_prompt.md",
+    "identity": {
+      "name": "benchmark-luna-medium",
+      "description": "Same-family reasoning-enabled arm (openai:gpt-5.6-luna, reasoning.effort=medium, the API default) vs luna_none's minimal-reasoning arm. Also the model prompt tuning is done against (product's default reasoning-enabled posture). No prompt file here — ProfileConfigLoader.load_from_dir() injects the single canonical shared prompt from ../../prompt/system_prompt.md."
+    },
+    "config_model": {
+      "name": "openai:gpt-5.6-luna",
+      "temperature": 0.0,
+      "reasoning": "on",
+      "thinking_budget": null,
+      "reasoning_effort": "medium"
+    },
+    "built_model": {
+      "class": "ChatOpenAI",
+      "model": "gpt-5.6-luna",
+      "temperature": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": "auto"
+      },
+      "use_responses_api": true,
+      "thinking_level": null,
+      "thinking_budget": null,
+      "include_thoughts": null
+    },
+    "constraints": {
+      "max_tool_calls_per_run": 10
+    },
+    "tools": [
+      "finnhub_stock_quote",
+      "finnhub_company_basic_financials",
+      "tavily_financial_search",
+      "sec_filing_list_sections",
+      "sec_filing_get_section"
+    ],
+    "tool_contracts": {
+      "finnhub_stock_quote": {
+        "description_sha256": "82732bd291eafb1a19e83e5274f2807e19feb002b89c21f14b1d168fc2b409e7",
+        "args_schema_sha256": "18cca9ed14f4713defb71df05bbedf201dbff3fa5de812335393b4b321dbbd7d"
+      },
+      "finnhub_company_basic_financials": {
+        "description_sha256": "aecb8365e00681fb3bcc507412ed96fc6b149fc9111f0b698a27350350e327f6",
+        "args_schema_sha256": "18cca9ed14f4713defb71df05bbedf201dbff3fa5de812335393b4b321dbbd7d"
+      },
+      "tavily_financial_search": {
+        "description_sha256": "0a056a9c031ca50e5a221510df0aed6443a14a43fa5731e9327430bcad56d085",
+        "args_schema_sha256": "8d75a21f316462135ea53ffdc5d2b22c48d286998b7016751aba9c1a044157e4"
+      },
+      "sec_filing_list_sections": {
+        "description_sha256": "d05e58e36e68361b3bb8e5858837a469154f4aae60475528e37a11998746da51",
+        "args_schema_sha256": "1323a84f8b1f7a00bff7a914f4782079467b29c4c411778af775cbb72b412684"
+      },
+      "sec_filing_get_section": {
+        "description_sha256": "ebf8d249fd246086bee69516a0f6435278ac7ed5a5e1fcca6185613007bcac65",
+        "args_schema_sha256": "a2af817a00f58c94387f6c158cbef06a28e211cdf6d8530c7e6d8c38c0583c3d"
+      }
+    },
+    "prompt": {
+      "raw_sha256": "83bf45caa4ef63feb38ce2e3ff0691cb2701e2bc9b2dba2f6752b962b06bbd7a",
+      "rendered_sha256": "f11cead67324947cb094b7f97a5c8623b04fa12eb98de8af83c91de9cea66b65",
+      "raw_chars": 4516
+    }
+  },
+  "reader_luna_medium": {
+    "arm": "reader_luna_medium",
+    "config_dir": "evals/scenarios/baseline_behavior_diagnostic_zh/benchmark/ablations/reader_luna_medium",
+    "prompt_path": "agent_engine/agents/profiles/reader/system_prompt.md",
+    "identity": {
+      "name": "ablation-reader-luna-medium",
+      "description": "E1 ablation arm: the RAG capability bundle (reader tools incl. sec_filing_search + the reader profile's prompt) on luna_medium's exact model/constraints. Control arm is configs/luna_medium. No prompt file here — the run spec injects agent_engine/agents/profiles/reader/system_prompt.md via ProfileConfigLoader.load_from_dir(prompt_path=...), so the reader prompt is referenced, never copied."
+    },
+    "config_model": {
+      "name": "openai:gpt-5.6-luna",
+      "temperature": 0.0,
+      "reasoning": "on",
+      "thinking_budget": null,
+      "reasoning_effort": "medium"
+    },
+    "built_model": {
+      "class": "ChatOpenAI",
+      "model": "gpt-5.6-luna",
+      "temperature": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": "auto"
+      },
+      "use_responses_api": true,
+      "thinking_level": null,
+      "thinking_budget": null,
+      "include_thoughts": null
+    },
+    "constraints": {
+      "max_tool_calls_per_run": 10
+    },
+    "tools": [
+      "finnhub_stock_quote",
+      "finnhub_company_basic_financials",
+      "tavily_financial_search",
+      "sec_filing_list_sections",
+      "sec_filing_get_section",
+      "sec_filing_search"
+    ],
+    "tool_contracts": {
+      "finnhub_stock_quote": {
+        "description_sha256": "82732bd291eafb1a19e83e5274f2807e19feb002b89c21f14b1d168fc2b409e7",
+        "args_schema_sha256": "18cca9ed14f4713defb71df05bbedf201dbff3fa5de812335393b4b321dbbd7d"
+      },
+      "finnhub_company_basic_financials": {
+        "description_sha256": "aecb8365e00681fb3bcc507412ed96fc6b149fc9111f0b698a27350350e327f6",
+        "args_schema_sha256": "18cca9ed14f4713defb71df05bbedf201dbff3fa5de812335393b4b321dbbd7d"
+      },
+      "tavily_financial_search": {
+        "description_sha256": "0a056a9c031ca50e5a221510df0aed6443a14a43fa5731e9327430bcad56d085",
+        "args_schema_sha256": "8d75a21f316462135ea53ffdc5d2b22c48d286998b7016751aba9c1a044157e4"
+      },
+      "sec_filing_list_sections": {
+        "description_sha256": "d05e58e36e68361b3bb8e5858837a469154f4aae60475528e37a11998746da51",
+        "args_schema_sha256": "1323a84f8b1f7a00bff7a914f4782079467b29c4c411778af775cbb72b412684"
+      },
+      "sec_filing_get_section": {
+        "description_sha256": "ebf8d249fd246086bee69516a0f6435278ac7ed5a5e1fcca6185613007bcac65",
+        "args_schema_sha256": "a2af817a00f58c94387f6c158cbef06a28e211cdf6d8530c7e6d8c38c0583c3d"
+      },
+      "sec_filing_search": {
+        "description_sha256": "1410572aa195037b70aafe8eb5f0875e6206a70772ec73851f9c0120d21c4b36",
+        "args_schema_sha256": "ccf45f1ea2b877f87999411ecc59cfec34f11e252a2fedbc84cdf40eb27d305d"
+      }
+    },
+    "prompt": {
+      "raw_sha256": "33ea9c8d5b86825914a0ccead8360a5c549581f6aa9f8ef02547282352e0e613",
+      "rendered_sha256": "dfa9499de2f38c08d696165d102783cca6aeeba5a47649f35b562cd70c833f82",
+      "raw_chars": 8970
+    }
+  }
+}

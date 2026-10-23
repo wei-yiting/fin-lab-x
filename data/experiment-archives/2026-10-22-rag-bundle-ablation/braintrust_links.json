@@ -1,0 +1,30 @@
+{
+  "batch_1_initial": {
+    "rep1": {
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_luna_medium_rep1",
+      "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_reader_luna_medium_rep1"
+    },
+    "rep2": {
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_luna_medium_rep2",
+      "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_reader_luna_medium_rep2"
+    },
+    "rep3": {
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_luna_medium_rep3",
+      "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_reader_luna_medium_rep3"
+    }
+  },
+  "batch_2_resume_after_openai_credit_topup": {
+    "rep1": {
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_luna_medium_rep1-26cd5beb",
+      "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_reader_luna_medium_rep1-8a539cad"
+    },
+    "rep2": {
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_luna_medium_rep2-92ad6fd1",
+      "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_reader_luna_medium_rep2-e77a49dc"
+    },
+    "rep3": {
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_luna_medium_rep3-9e72c2b3",
+      "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/rag-bundle-ablation_20261022-all30_reader_luna_medium_rep3-6b32343a"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+version: "0.1.0"
+name: "ablation-reader-luna-medium"
+description: "E1 ablation arm: the RAG capability bundle (reader tools incl. sec_filing_search + the reader profile's prompt) on luna_medium's exact model/constraints. Control arm is configs/luna_medium. No prompt file here — the run spec injects agent_engine/agents/profiles/reader/system_prompt.md via ProfileConfigLoader.load_from_dir(prompt_path=...), so the reader prompt is referenced, never copied."
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+  - sec_filing_search
+
+model:
+  name: "openai:gpt-5.6-luna"
+  temperature: 0.0
+  reasoning: "on"
+  reasoning_effort: "medium"
+
+constraints:
+  max_tool_calls_per_run: 10

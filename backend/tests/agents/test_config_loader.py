@@ -306,6 +306,36 @@ def test_benchmark_configs_share_the_same_canonical_prompt():
 
 
 # ---------------------------------------------------------------------------
+# Ablation configs live beside (not inside) configs/, so the 2x2 matrix's
+# single-canonical-prompt guarantee above stays intact. Each ablation arm
+# must differ from its control arm only in the variable under test.
+# ---------------------------------------------------------------------------
+
+_BENCHMARK_ABLATIONS_DIR = _BENCHMARK_CONFIGS_DIR.parent / "ablations"
+
+
+def test_reader_ablation_differs_from_luna_medium_only_in_tools():
+    control = ProfileConfigLoader.load_from_dir(_BENCHMARK_CONFIGS_DIR / "luna_medium")
+    arm = ProfileConfigLoader.load_from_dir(
+        _BENCHMARK_ABLATIONS_DIR / "reader_luna_medium"
+    )
+
+    assert arm.model == control.model
+    assert arm.model.reasoning_effort == "medium"
+    assert arm.constraints == control.constraints
+    assert arm.tools == [*control.tools, "sec_filing_search"]
+    assert arm.system_prompt is None
+
+
+def test_reader_ablation_tools_match_reader_profile():
+    arm = ProfileConfigLoader.load_from_dir(
+        _BENCHMARK_ABLATIONS_DIR / "reader_luna_medium"
+    )
+
+    assert arm.tools == ProfileConfigLoader("reader").load().tools
+
+
+# ---------------------------------------------------------------------------
 # Loader contract: every shipped profile YAML parses into a valid ModelConfig
 # with a non-empty model name and a recognized reasoning literal. We
 # deliberately do NOT pin the exact model/reasoning values below — see the

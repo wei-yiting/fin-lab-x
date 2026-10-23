@@ -1,0 +1,129 @@
+{
+  "note": "Do not open before finishing the review sheet.",
+  "arms": {
+    "luna_medium": "Arm A (no RAG)",
+    "reader_luna_medium": "Arm B (RAG bundle)"
+  },
+  "key": {
+    "1": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "2": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "3": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "4": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "5": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "6": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "7": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "8": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "9": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "10": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "11": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "12": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "13": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "14": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "15": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "16": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "17": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "18": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "19": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "20": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "21": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "22": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "23": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "24": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "25": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "26": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "27": {
+      "X": "reader_luna_medium",
+      "Y": "luna_medium"
+    },
+    "28": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "29": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    },
+    "30": {
+      "X": "luna_medium",
+      "Y": "reader_luna_medium"
+    }
+  }
+}

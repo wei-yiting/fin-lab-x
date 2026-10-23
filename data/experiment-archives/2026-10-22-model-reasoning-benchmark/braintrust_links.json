@@ -1,0 +1,42 @@
+{
+  "batch_1_initial": {
+    "rep1": {
+      "luna_none": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_none_rep1",
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_medium_rep1",
+      "gemini_minimal": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_minimal_rep1",
+      "gemini_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_medium_rep1"
+    },
+    "rep2": {
+      "luna_none": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_none_rep2",
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_medium_rep2",
+      "gemini_minimal": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_minimal_rep2",
+      "gemini_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_medium_rep2"
+    },
+    "rep3": {
+      "luna_none": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_none_rep3",
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_medium_rep3",
+      "gemini_minimal": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_minimal_rep3",
+      "gemini_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_medium_rep3"
+    }
+  },
+  "batch_2_resume_after_openai_credit_topup": {
+    "rep1": {
+      "luna_none": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_none_rep1-858b2e87",
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_medium_rep1-0a6296f4",
+      "gemini_minimal": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_minimal_rep1-7e6aed53",
+      "gemini_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_medium_rep1-20b0023d"
+    },
+    "rep2": {
+      "luna_none": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_none_rep2-77d630dc",
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_medium_rep2-18b6c4e6",
+      "gemini_minimal": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_minimal_rep2-0542d1db",
+      "gemini_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_medium_rep2-d4203f10"
+    },
+    "rep3": {
+      "luna_none": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_none_rep3-e1c6e585",
+      "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_luna_medium_rep3-2ab692a1",
+      "gemini_minimal": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_minimal_rep3-659202e4",
+      "gemini_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/model-reasoning-benchmark_20261022-all30_gemini_medium_rep3-b4bcdcc0"
+    }
+  }
+}

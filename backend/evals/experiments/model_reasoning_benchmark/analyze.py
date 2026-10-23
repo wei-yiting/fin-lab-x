@@ -50,6 +50,26 @@ PRICES = {
     "gpt-5.6-luna": {"input": 0.20, "cached": 0.02, "output": 1.20},
     "gemini-3.6-flash": {"input": 0.75, "cached": 0.075, "output": 3.75},
 }
+# gpt-5.6-luna: a request with more than 272K input tokens is billed at 2x
+# input and 1.5x output for the whole request (same OpenAI model page). Cost
+# is therefore computed per model call; cached input is assumed to take the
+# input multiplier too.
+LONG_CONTEXT_TIERS = {"gpt-5.6-luna": (272_000, 2.0, 1.5)}
+
+
+def call_cost(model: str, call: dict[str, Any]) -> float:
+    price = PRICES[model]
+    in_mult, out_mult = 1.0, 1.0
+    tier = LONG_CONTEXT_TIERS.get(model)
+    if tier and call["input_tokens"] > tier[0]:
+        in_mult, out_mult = tier[1], tier[2]
+    cached = call["cache_read_tokens"]
+    return (
+        (call["input_tokens"] - cached) * price["input"] * in_mult
+        + cached * price["cached"] * in_mult
+        + call["output_tokens"] * price["output"] * out_mult
+    ) / 1_000_000
+
 
 BOOTSTRAP_SAMPLES = 2000
 BOOTSTRAP_SEED = 20261022
@@ -100,19 +120,17 @@ def metrics_for(record: dict[str, Any]) -> dict[str, Any]:
     input_tokens = sum(c["input_tokens"] for c in llm_calls)
     output_tokens = sum(c["output_tokens"] for c in llm_calls)
     cached_tokens = sum(c["cache_read_tokens"] for c in llm_calls)
-    price = PRICES.get((output.get("model") or "").split(":", 1)[-1])
+    model = (output.get("model") or "").split(":", 1)[-1]
     cost = (
-        round(
-            (
-                (input_tokens - cached_tokens) * price["input"]
-                + cached_tokens * price["cached"]
-                + output_tokens * price["output"]
-            )
-            / 1_000_000,
-            5,
-        )
-        if price and llm_calls
+        round(sum(call_cost(model, call) for call in llm_calls), 5)
+        if model in PRICES and llm_calls
         else ""
+    )
+    long_context_calls = sum(
+        1
+        for call in llm_calls
+        if model in LONG_CONTEXT_TIERS
+        and call["input_tokens"] > LONG_CONTEXT_TIERS[model][0]
     )
 
     details = record.get("score_details") or {}
@@ -153,6 +171,7 @@ def metrics_for(record: dict[str, Any]) -> dict[str, Any]:
         "finish_usage_input_tokens": usage.get("input_tokens", ""),
         "finish_usage_output_tokens": usage.get("output_tokens", ""),
         "est_cost_usd": cost,
+        "long_context_priced_calls": long_context_calls,
         "response_chars": len(response),
         "response_cjk_chars": len(_CJK_RE.findall(response)),
         "no_simplified_chars_score": record["scores"].get(

@@ -1,0 +1,20 @@
+{
+  "rep1": {
+    "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_luna_medium_rep1",
+    "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_reader_luna_medium_rep1",
+    "luna_medium_plus_search": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_luna_medium_plus_search_rep1",
+    "reader_prompt_no_search": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_reader_prompt_no_search_rep1"
+  },
+  "rep2": {
+    "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_luna_medium_rep2",
+    "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_reader_luna_medium_rep2",
+    "luna_medium_plus_search": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_luna_medium_plus_search_rep2",
+    "reader_prompt_no_search": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_reader_prompt_no_search_rep2"
+  },
+  "rep3": {
+    "luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_luna_medium_rep3",
+    "reader_luna_medium": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_reader_luna_medium_rep3",
+    "luna_medium_plus_search": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_luna_medium_plus_search_rep3",
+    "reader_prompt_no_search": "https://www.braintrust.dev/app/Dong.wyt%20Personal/p/finlab-x/experiments/prompt-tool-2x2_20261027-all30_reader_prompt_no_search_rep3"
+  }
+}

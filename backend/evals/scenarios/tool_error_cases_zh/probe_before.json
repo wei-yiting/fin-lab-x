@@ -1,0 +1,967 @@
+[
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "TSM"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TSM\", \"currentPrice\": 424.37, \"open\": 418.07, \"previousClose\": 418.51, \"change\": 5.86, \"percentChange\": 1.4002, \"dayHigh\": 428.85, \"dayLow\": 417.72}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "TSM"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TSM\", \"fiftyTwoWeekHigh\": 2590, \"fiftyTwoWeekLow\": 1375, \"peTTM\": 24.2749, \"forwardPE\": 18.88111, \"psTTM\": 12.5078, \"pb\": 9.1902, \"marketCap\": 61848700, \"enterpriseValue\": 59210319, \"beta\": 0.9549267, \"epsTTM\": 98.25160000000001, \"roeTTM\": 41.19, \"roaTTM\": 28.29, \"grossMarginTTM\": 65.85,"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "TSM"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker TSM appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker TSM appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "ASML"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"ASML\", \"currentPrice\": 1590.9, \"open\": 1588.02, \"previousClose\": 1571.8, \"change\": 19.1, \"percentChange\": 1.2152, \"dayHigh\": 1612, \"dayLow\": 1582.88}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "ASML"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"ASML\", \"fiftyTwoWeekHigh\": 1741, \"fiftyTwoWeekLow\": 822.2, \"peTTM\": 51.5987, \"forwardPE\": 30.59394, \"psTTM\": 15.2156, \"pb\": 24.0702, \"marketCap\": 537529.1, \"enterpriseValue\": 534576.9, \"beta\": 1.9802302, \"epsTTM\": 26.964399999999998, \"roeTTM\": 41.52, \"roaTTM\": 18.89, \"grossMarginTTM\": 50"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "ASML"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker ASML appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker ASML appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "SAP"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SAP\", \"currentPrice\": 238.55, \"open\": 239.89, \"previousClose\": 238.14, \"change\": 0.41, \"percentChange\": 0.1722, \"dayHigh\": 241.5, \"dayLow\": 236.5818}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "SAP"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SAP\", \"fiftyTwoWeekHigh\": 235.8, \"fiftyTwoWeekLow\": 127.5, \"peTTM\": 31.1349, \"forwardPE\": 23.11607, \"psTTM\": 6.3557, \"pb\": 4.964, \"marketCap\": 250324.64, \"enterpriseValue\": 251548.64, \"beta\": 1.0589775, \"epsTTM\": 6.9259, \"roeTTM\": 17.849999999999998, \"roaTTM\": 10.870000000000001, \"grossM"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "SAP"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker SAP appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker SAP appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "NVO"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"NVO\", \"currentPrice\": 39.13, \"open\": 39.02, \"previousClose\": 39.05, \"change\": 0.08, \"percentChange\": 0.2049, \"dayHigh\": 39.235, \"dayLow\": 38.67}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "NVO"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"NVO\", \"fiftyTwoWeekHigh\": 409.95, \"fiftyTwoWeekLow\": 224.25, \"peTTM\": 9.9036, \"forwardPE\": 11.5018, \"psTTM\": 3.5006, \"pb\": 4.8199, \"marketCap\": 1153206.1, \"enterpriseValue\": 1248851.1, \"beta\": 1.932179, \"epsTTM\": 26.180699999999998, \"roeTTM\": 59.089999999999996, \"roaTTM\": 21.08, \"grossMa"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "NVO"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker NVO appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker NVO appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "TM"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TM\", \"currentPrice\": 197.64, \"open\": 198, \"previousClose\": 196.79, \"change\": 0.85, \"percentChange\": 0.4319, \"dayHigh\": 199.135, \"dayLow\": 197.64}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "TM"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TM\", \"fiftyTwoWeekHigh\": 4000, \"fiftyTwoWeekLow\": 2686, \"peTTM\": 8.2004, \"forwardPE\": 9.28989, \"psTTM\": 0.7077, \"pb\": 1.066, \"marketCap\": 36768896, \"enterpriseValue\": 70378979, \"beta\": 0.8126098, \"epsTTM\": 351.38219999999995, \"roeTTM\": 11.67, \"roaTTM\": 4.3999999999999995, \"grossMarginTTM"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "TM"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker TM appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker TM appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "SHOP"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SHOP\", \"currentPrice\": 168.18, \"open\": 168.495, \"previousClose\": 168.68, \"change\": -0.5, \"percentChange\": -0.2964, \"dayHigh\": 171.41, \"dayLow\": 167.59}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "SHOP"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SHOP\", \"fiftyTwoWeekHigh\": 182.19, \"fiftyTwoWeekLow\": 94, \"peTTM\": 112.6289, \"forwardPE\": 64.33384, \"psTTM\": 16.3651, \"pb\": 11.6813, \"marketCap\": 217148.55, \"enterpriseValue\": 215492.55, \"beta\": 2.6847122, \"epsTTM\": 1.4829, \"roeTTM\": 15.07, \"roaTTM\": 13.11, \"grossMarginTTM\": 47.77, \"netP"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "SHOP"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SHOP\", \"doc_type\": \"10-K\", \"fiscal_year\": 2025, \"period_of_report\": \"2025-12-31\", \"filing_date\": \"2026-02-11\", \"company_name\": \"SHOPIFY INC.\", \"sections\": [{\"key\": \"1\", \"char_count\": 21545}, {\"key\": \"1b\", \"char_count\": 70}, {\"key\": \"1c\", \"char_count\": 3944}, {\"key\": \"2\", \"char_count\": 19"
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "SONY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SONY\", \"currentPrice\": 26.03, \"open\": 26.225, \"previousClose\": 26.08, \"change\": -0.05, \"percentChange\": -0.1917, \"dayHigh\": 26.25, \"dayLow\": 25.9439}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "SONY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SONY\", \"fiftyTwoWeekHigh\": 4776, \"fiftyTwoWeekLow\": 3043, \"forwardPE\": 16.52802, \"psTTM\": 1.9309, \"pb\": 2.3379, \"marketCap\": 24513932, \"enterpriseValue\": 24214511, \"beta\": 0.5970284, \"epsTTM\": -37.25569999999999, \"roeTTM\": -2.74, \"roaTTM\": -1.06, \"grossMarginTTM\": 31.82, \"netProfitMargin"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "SONY"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker SONY appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker SONY appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "BABA"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"BABA\", \"currentPrice\": 100.25, \"open\": 99.84, \"previousClose\": 99.64, \"change\": 0.61, \"percentChange\": 0.6122, \"dayHigh\": 100.9, \"dayLow\": 99.566}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "BABA"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"BABA\", \"fiftyTwoWeekHigh\": 182.5, \"fiftyTwoWeekLow\": 91.99, \"peTTM\": 22.5649, \"forwardPE\": 14.73973, \"psTTM\": 1.5834, \"pb\": 1.4647, \"marketCap\": 248128.58, \"enterpriseValue\": 1778186.9972, \"beta\": 0.39491317, \"epsTTM\": 3.8044, \"roeTTM\": 7.01, \"roaTTM\": 3.84, \"grossMarginTTM\": 38.2, \"netP"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "BABA"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.UnsupportedFilingTypeError",
+    "raw": "Ticker BABA appears to be a foreign private issuer that files 20-F; only '10-K' is supported.",
+    "model_saw": "Ticker BABA appears to be a foreign private issuer that files 20-F; only '10-K' is supported."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "RY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"RY\", \"currentPrice\": 202.47, \"open\": 200.58, \"previousClose\": 201.17, \"change\": 1.3, \"percentChange\": 0.6462, \"dayHigh\": 203, \"dayLow\": 200.12}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "RY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"RY\", \"fiftyTwoWeekHigh\": 306.38, \"fiftyTwoWeekLow\": 201.76, \"peTTM\": 17.1775, \"forwardPE\": 15.93169, \"psTTM\": 2.99661, \"pb\": 2.8051, \"marketCap\": 390702.12, \"enterpriseValue\": 788872.12, \"beta\": 0.5937952, \"epsTTM\": 16.267899999999997, \"roeTTM\": 16.11, \"roaTTM\": 0.95, \"netProfitMarginTTM"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "RY"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'RY' has no 10-K filings on SEC EDGAR.",
+    "model_saw": "Ticker 'RY' has no 10-K filings on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "TD"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TD\", \"currentPrice\": 125.32, \"open\": 124.94, \"previousClose\": 124.61, \"change\": 0.71, \"percentChange\": 0.5698, \"dayHigh\": 126.05, \"dayLow\": 124.81}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "TD"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TD\", \"fiftyTwoWeekHigh\": 176, \"fiftyTwoWeekLow\": 112.26, \"peTTM\": 18.2078, \"forwardPE\": 17.3696056607363, \"psTTM\": 2.85273, \"pb\": 2.2111, \"marketCap\": 294766.38, \"enterpriseValue\": 581499.38, \"beta\": 0.65250057, \"epsTTM\": 9.6737, \"roeTTM\": 12.83, \"roaTTM\": 0.77, \"netProfitMarginTTM\": 25."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "TD"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'TD' has no 10-K filings on SEC EDGAR.",
+    "model_saw": "Ticker 'TD' has no 10-K filings on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "CNQ"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"CNQ\", \"currentPrice\": 55.11, \"open\": 54.59, \"previousClose\": 55.06, \"change\": 0.05, \"percentChange\": 0.0908, \"dayHigh\": 55.285, \"dayLow\": 54.27}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "CNQ"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"CNQ\", \"fiftyTwoWeekHigh\": 77.7, \"fiftyTwoWeekLow\": 41.68, \"peTTM\": 13.5259, \"forwardPE\": 12.68769, \"psTTM\": 3.5586, \"pb\": 2.4892, \"marketCap\": 158982.89, \"enterpriseValue\": 176547.89, \"beta\": -0.58453095, \"epsTTM\": 5.6227, \"roeTTM\": 26.669999999999998, \"roaTTM\": 12.770000000000001, \"gros"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "CNQ"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'CNQ' has no 10-K filings on SEC EDGAR.",
+    "model_saw": "Ticker 'CNQ' has no 10-K filings on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "AIR.PA"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "AIR.PA"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "AIR.PA"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'AIR.PA' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'AIR.PA' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "NESN.SW"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "NESN.SW"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "NESN.SW"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'NESN.SW' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'NESN.SW' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "0700.HK"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "0700.HK"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "0700.HK"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker '0700.HK' not found on SEC EDGAR.",
+    "model_saw": "Ticker '0700.HK' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "7203.T"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "7203.T"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "7203.T"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker '7203.T' not found on SEC EDGAR.",
+    "model_saw": "Ticker '7203.T' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "2330.TW"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "2330.TW"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "2330.TW"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker '2330.TW' not found on SEC EDGAR.",
+    "model_saw": "Ticker '2330.TW' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "MC.PA"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "MC.PA"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "MC.PA"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'MC.PA' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'MC.PA' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "SAP.DE"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "SAP.DE"
+    },
+    "fired": true,
+    "exc_type": "finnhub.exceptions.FinnhubAPIException",
+    "raw": "FinnhubAPIException(status_code: 403): You don't have access to this resource.",
+    "model_saw": "FinnhubAPIException(status_code: 403): You don't have access to this resource."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "SAP.DE"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'SAP.DE' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'SAP.DE' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "TWTR"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'TWTR'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'TWTR'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "TWTR"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"TWTR\", \"fiftyTwoWeekHigh\": 65.98, \"fiftyTwoWeekLow\": 31.95, \"psTTM\": 7.8593, \"pb\": 4.8163, \"marketCap\": 41093.7, \"enterpriseValue\": 43659.953, \"beta\": 0.54774, \"epsTTM\": -0.1855, \"roeTTM\": -1.7000000000000002, \"roaTTM\": -0.8, \"grossMarginTTM\": 54.05, \"netProfitMarginTTM\": -22.95, \"operat"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "TWTR"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'TWTR' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'TWTR' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "FRC"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'FRC'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'FRC'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "FRC"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"FRC\", \"fiftyTwoWeekHigh\": 171.02, \"fiftyTwoWeekLow\": 3, \"peTTM\": 0.419, \"psTTM\": 0.11512, \"pb\": 1.2548, \"marketCap\": 642.33, \"enterpriseValue\": 1921.33, \"beta\": 1.1054766, \"epsTTM\": 8.3588, \"roeTTM\": 9.92, \"roaTTM\": 0.83, \"netProfitMarginTTM\": 26.99894, \"operatingMarginTTM\": 34.55442, \"d"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "FRC"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'FRC' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'FRC' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "SIVB"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'SIVB'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'SIVB'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "SIVB"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No basic financials for ticker 'SIVB'. The symbol may be invalid or not covered by Finnhub free tier.",
+    "model_saw": "No basic financials for ticker 'SIVB'. The symbol may be invalid or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "SIVB"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'SIVB' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'SIVB' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "BBBY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"BBBY\", \"currentPrice\": 3.54, \"open\": 3.57, \"previousClose\": 3.49, \"change\": 0.05, \"percentChange\": 1.4327, \"dayHigh\": 3.6, \"dayLow\": 3.4501}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "BBBY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"BBBY\", \"fiftyTwoWeekHigh\": 9.18, \"fiftyTwoWeekLow\": 3.26, \"psTTM\": 0.3539, \"pb\": 2.2025, \"marketCap\": 403.24753, \"enterpriseValue\": 340.2175, \"beta\": 0.10173289, \"epsTTM\": -1.1466999999999998, \"roeTTM\": -38.85, \"roaTTM\": -17.31, \"grossMarginTTM\": 25.3, \"netProfitMarginTTM\": -7.13, \"opera"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "BBBY"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"BBBY\", \"doc_type\": \"10-K\", \"fiscal_year\": 2025, \"period_of_report\": \"2025-12-31\", \"filing_date\": \"2026-02-24\", \"company_name\": \"NEIGHBORHOOD INTELLIGENCE, INC.\", \"sections\": [{\"key\": \"1\", \"char_count\": 28742}, {\"key\": \"1a\", \"char_count\": 129084}, {\"key\": \"1b\", \"char_count\": 44}, {\"key\": "
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "ATVI"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'ATVI'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'ATVI'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "ATVI"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"ATVI\", \"fiftyTwoWeekHigh\": 94.33999999999999, \"fiftyTwoWeekLow\": 70.945, \"peTTM\": 34.3139, \"psTTM\": 8.5331, \"pb\": 3.1873, \"marketCap\": 74289.5, \"enterpriseValue\": 67131.5, \"beta\": 0.43664676, \"epsTTM\": 2.7337, \"roeTTM\": 10.97, \"roaTTM\": 7.95, \"grossMarginTTM\": 70.28, \"netProfitMarginTTM\""
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "ATVI"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'ATVI' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'ATVI' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "APPL"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'APPL'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'APPL'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "APPL"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No basic financials for ticker 'APPL'. The symbol may be invalid or not covered by Finnhub free tier.",
+    "model_saw": "No basic financials for ticker 'APPL'. The symbol may be invalid or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "APPL"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'APPL' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'APPL' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "GOOGLE"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'GOOGLE'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'GOOGLE'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "GOOGLE"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No basic financials for ticker 'GOOGLE'. The symbol may be invalid or not covered by Finnhub free tier.",
+    "model_saw": "No basic financials for ticker 'GOOGLE'. The symbol may be invalid or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "GOOGLE"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'GOOGLE' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'GOOGLE' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "FB"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"FB\", \"currentPrice\": 45.7039, \"open\": 45.7535, \"previousClose\": 45.6626, \"change\": 0.0413, \"percentChange\": 0.0904, \"dayHigh\": 45.7535, \"dayLow\": 45.7039}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "FB"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"FB\", \"fiftyTwoWeekHigh\": 49.67, \"fiftyTwoWeekLow\": 41.3901, \"tenDayAvgVolume\": 0.00514}"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "FB"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'FB' has no 10-K filings on SEC EDGAR.",
+    "model_saw": "Ticker 'FB' has no 10-K filings on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "SQ"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'SQ'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'SQ'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "SQ"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"SQ\", \"fiftyTwoWeekHigh\": 89.95, \"fiftyTwoWeekLow\": 38.85, \"peTTM\": 47.7364, \"psTTM\": 2.2588, \"pb\": 2.0746, \"marketCap\": 53899.023, \"enterpriseValue\": 52667.173, \"beta\": 1.5409827, \"epsTTM\": 1.7770000000000001, \"roeTTM\": 5.87, \"roaTTM\": 3.15, \"grossMarginTTM\": 36.06, \"netProfitMarginTTM\":"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "SQ"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'SQ' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'SQ' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "XYZQ"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'XYZQ'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'XYZQ'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "XYZQ"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No basic financials for ticker 'XYZQ'. The symbol may be invalid or not covered by Finnhub free tier.",
+    "model_saw": "No basic financials for ticker 'XYZQ'. The symbol may be invalid or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "XYZQ"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'XYZQ' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'XYZQ' not found on SEC EDGAR."
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "PARA"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"PARA\", \"currentPrice\": 0.4101, \"open\": 0.418, \"previousClose\": 0.4251, \"change\": -0.015, \"percentChange\": -3.5286, \"dayHigh\": 0.4299, \"dayLow\": 0.3949}"
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "PARA"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"PARA\", \"fiftyTwoWeekHigh\": 1.94, \"fiftyTwoWeekLow\": 0.4212, \"psTTM\": 0.1804, \"pb\": 2883.0277, \"marketCap\": 1.916762, \"enterpriseValue\": 15.4258, \"beta\": -1.7817364, \"epsTTM\": -59.5677, \"roeTTM\": -287.40000000000003, \"roaTTM\": -76.3, \"grossMarginTTM\": 81.18, \"netProfitMarginTTM\": -228.73,"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "PARA"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"PARA\", \"doc_type\": \"10-K\", \"fiscal_year\": 2025, \"period_of_report\": \"2025-12-31\", \"filing_date\": \"2026-03-31\", \"company_name\": \"Banzai International, Inc.\", \"sections\": [{\"key\": \"1\", \"char_count\": 29671}, {\"key\": \"1a\", \"char_count\": 137691}, {\"key\": \"1b\", \"char_count\": 42}, {\"key\": \"1c\","
+  },
+  {
+    "tool": "finnhub_stock_quote",
+    "args": {
+      "ticker": "ANTM"
+    },
+    "fired": true,
+    "exc_type": "builtins.ValueError",
+    "raw": "No quote data for ticker 'ANTM'. The symbol may be invalid, delisted, or not covered by Finnhub free tier.",
+    "model_saw": "No quote data for ticker 'ANTM'. The symbol may be invalid, delisted, or not covered by Finnhub free tier."
+  },
+  {
+    "tool": "finnhub_company_basic_financials",
+    "args": {
+      "ticker": "ANTM"
+    },
+    "fired": false,
+    "result_preview": "{\"ticker\": \"ANTM\", \"psTTM\": 0.78475, \"pb\": 3.14955, \"marketCap\": 113278.5, \"beta\": 0.99085, \"roeTTM\": 6.34453, \"netProfitMarginTTM\": 4.31108, \"operatingMarginTTM\": 6.15314, \"debtToEquity\": 64.64211, \"dividendYield\": 1.08966, \"revenueGrowthTTMYoy\": 15.8741, \"epsGrowthTTMYoy\": 35.91343, \"tenDayAvgVolu"
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "ANTM"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'ANTM' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'ANTM' not found on SEC EDGAR."
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "INTC",
+      "section_key": "7"
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.SectionNotFoundError",
+    "raw": "Section '7' not found in INTC 10-K FY2025. Call sec_filing_list_sections first to see available section keys.",
+    "model_saw": "Section '7' not found in INTC 10-K FY2025. Call sec_filing_list_sections first to see available section keys."
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "JPM",
+      "section_key": "7"
+    },
+    "fired": false,
+    "result_preview": "{\"language_directive_pre\": \"[LANGUAGE DIRECTIVE] The following SEC filing content is in English. Your answer must be written in the language the USER wrote their question in (detect it from the user's message), regardless of the language of this content.\", \"period_of_report\": \"2025-12-31\", \"content\""
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "BAC",
+      "section_key": "7"
+    },
+    "fired": false,
+    "result_preview": "{\"language_directive_pre\": \"[LANGUAGE DIRECTIVE] The following SEC filing content is in English. Your answer must be written in the language the USER wrote their question in (detect it from the user's message), regardless of the language of this content.\", \"period_of_report\": \"2025-12-31\", \"content\""
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "C",
+      "section_key": "7"
+    },
+    "fired": false,
+    "result_preview": "{\"language_directive_pre\": \"[LANGUAGE DIRECTIVE] The following SEC filing content is in English. Your answer must be written in the language the USER wrote their question in (detect it from the user's message), regardless of the language of this content.\", \"period_of_report\": \"2025-12-31\", \"content\""
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "GE",
+      "section_key": "7"
+    },
+    "fired": true,
+    "exc_type": "backend.common.errors.TickerNotFoundError",
+    "raw": "Ticker 'GE' not found on SEC EDGAR.",
+    "model_saw": "Ticker 'GE' not found on SEC EDGAR."
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "WFC",
+      "section_key": "7"
+    },
+    "fired": false,
+    "result_preview": "{\"language_directive_pre\": \"[LANGUAGE DIRECTIVE] The following SEC filing content is in English. Your answer must be written in the language the USER wrote their question in (detect it from the user's message), regardless of the language of this content.\", \"period_of_report\": \"2025-12-31\", \"content\""
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "AAPL",
+      "section_key": "1c",
+      "fiscal_year": 2022
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.SectionNotFoundError",
+    "raw": "Section '1c' (Cybersecurity) was added by SEC in 2023 and is not present in FY2022.",
+    "model_saw": "Section '1c' (Cybersecurity) was added by SEC in 2023 and is not present in FY2022."
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "MSFT",
+      "section_key": "1c",
+      "fiscal_year": 2021
+    },
+    "fired": false,
+    "result_preview": "{\"language_directive_pre\": \"[LANGUAGE DIRECTIVE] The following SEC filing content is in English. Your answer must be written in the language the USER wrote their question in (detect it from the user's message), regardless of the language of this content.\", \"period_of_report\": \"2021-06-30\", \"content\""
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "NVDA",
+      "section_key": "1c",
+      "fiscal_year": 2022
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.SectionNotFoundError",
+    "raw": "Section '1c' (Cybersecurity) was added by SEC in 2023 and is not present in FY2022.",
+    "model_saw": "Section '1c' (Cybersecurity) was added by SEC in 2023 and is not present in FY2022."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "TSLA",
+      "fiscal_year": 2008
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.FilingNotFoundError",
+    "raw": "TSLA has no 10-K filing history before FY2010; fiscal year 2008 could never have one.",
+    "model_saw": "TSLA has no 10-K filing history before FY2010; fiscal year 2008 could never have one."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "META",
+      "fiscal_year": 2010
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.FilingNotFoundError",
+    "raw": "META has no 10-K filing history before FY2012; fiscal year 2010 could never have one.",
+    "model_saw": "META has no 10-K filing history before FY2012; fiscal year 2010 could never have one."
+  },
+  {
+    "tool": "sec_filing_list_sections",
+    "args": {
+      "ticker": "AAPL",
+      "fiscal_year": 2027
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.FilingNotFoundError",
+    "raw": "No 10-K filed yet for AAPL fiscal year 2027 — the most recent available is FY2025.",
+    "model_saw": "No 10-K filed yet for AAPL fiscal year 2027 — the most recent available is FY2025."
+  },
+  {
+    "tool": "sec_filing_get_section",
+    "args": {
+      "ticker": "NFLX",
+      "section_key": "1a",
+      "fiscal_year": 2001
+    },
+    "fired": true,
+    "exc_type": "backend.common.sec_core.FilingNotFoundError",
+    "raw": "NFLX has no 10-K filing history before FY2002; fiscal year 2001 could never have one.",
+    "model_saw": "NFLX has no 10-K filing history before FY2002; fiscal year 2001 could never have one."
+  }
+]

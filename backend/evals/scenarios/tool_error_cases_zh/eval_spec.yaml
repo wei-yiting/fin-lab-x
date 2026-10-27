@@ -1,0 +1,16 @@
+name: tool_error_cases_zh
+csv: dataset.csv
+regression:
+  # Experiment dataset for the tool-error-message contract, not a gate.
+  enabled: false
+diagnostic:
+  dataset_name: tool_error_cases_zh
+  dataset_version: "2026-10-27"
+  agent_version: baseline
+task:
+  function: backend.evals.eval_tasks.run_baseline_behavior_diagnostic
+column_mapping:
+  question: input.question
+scorers:
+  - name: diagnostic_execution_health
+    function: backend.evals.diagnostic.execution_scorer.execution_health

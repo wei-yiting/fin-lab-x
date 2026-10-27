@@ -7,6 +7,7 @@ import pytest
 from backend.evals.experiments.parsing_ab.analyze import (
     bootstrap_mean_ci,
     breakdown,
+    degraded_html_filings,
     expected_from_row,
     mcnemar_exact_p,
     paired_bootstrap_delta,
@@ -14,6 +15,7 @@ from backend.evals.experiments.parsing_ab.analyze import (
     row_id_for,
     score_arm,
     snippet_only_rank,
+    snippet_recall_summary,
     summarize_arms,
 )
 
@@ -213,3 +215,27 @@ class TestRowId:
 
     def test_falls_back_to_position(self) -> None:
         assert row_id_for(_row(), 3) == "row03"
+
+
+class TestDegradedHtmlFilings:
+    def test_flags_tickers_whose_html_chunks_are_mostly_unlabelled(self) -> None:
+        manifest = {
+            "filings": {
+                "COST/2025": {"html": {"chunks": 10, "items": {"_unknown": 10}}},
+                "NVDA/2026": {"html": {"chunks": 10, "items": {"_unknown": 1}}},
+                "JPM/2025": {"html": {"chunks": 10, "items": {"_unknown": 5}}},
+            }
+        }
+        assert degraded_html_filings(manifest) == ["COST", "JPM"]
+
+
+class TestSnippetRecallSummary:
+    def test_counts_snippet_rank_within_ten_regardless_of_label(self) -> None:
+        records = [
+            {"html": {"snippet_rank": 3}, "text": {"snippet_rank": 1}},
+            {"html": {"snippet_rank": None}, "text": {"snippet_rank": 11}},
+        ]
+        summary = snippet_recall_summary(records)
+        assert summary["html"][0] == pytest.approx(0.5)
+        assert summary["text"][0] == pytest.approx(0.5)
+        assert summary["delta"][0] == pytest.approx(0.0)

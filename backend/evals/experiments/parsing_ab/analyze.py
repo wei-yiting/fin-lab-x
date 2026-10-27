@@ -40,7 +40,7 @@ from backend.evals.scenarios.sec_retrieval_ab.html_arm_compat import normalize_c
 
 ARMS = ("html", "text")
 METRICS = ("recall_at_5", "recall_at_10", "mrr")
-BREAKDOWN_COLUMNS = ("query_type", "detection_source")
+BREAKDOWN_COLUMNS = ("query_type", "detection_source", "ticker")
 BOOTSTRAP_SAMPLES = 10_000
 BOOTSTRAP_SEED = 20261028
 
@@ -150,6 +150,38 @@ def summarize_arms(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return summary
 
 
+def snippet_recall_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Label-agnostic recall@10: was any expected snippet in the top 10 at all."""
+
+    def hit(scores: dict[str, Any]) -> float:
+        rank = scores["snippet_rank"]
+        return 1.0 if rank is not None and rank <= 10 else 0.0
+
+    html = [hit(r["html"]) for r in records]
+    text = [hit(r["text"]) for r in records]
+    return {
+        "n": len(records),
+        "html": bootstrap_mean_ci(html),
+        "text": bootstrap_mean_ci(text),
+        "delta": paired_bootstrap_delta(html, text),
+    }
+
+
+def degraded_html_filings(
+    manifest: dict[str, Any], threshold: float = 0.5
+) -> list[str]:
+    """Tickers whose HTML-arm chunks are mostly ``_unknown`` (Item detection failed)."""
+    degraded = []
+    for key, entry in manifest["filings"].items():
+        html = entry["html"]
+        if (
+            html.get("chunks")
+            and html["items"].get("_unknown", 0) / html["chunks"] >= threshold
+        ):
+            degraded.append(key.split("/")[0])
+    return sorted(degraded)
+
+
 def breakdown(
     records: list[dict[str, Any]], column: str, metric: str
 ) -> list[dict[str, Any]]:
@@ -241,16 +273,8 @@ def _miss_kind(scores: dict[str, Any]) -> str:
     return "retrieval-miss"
 
 
-def render_tables(records: list[dict[str, Any]]) -> str:
-    summary = summarize_arms(records)
-    lines = [
-        "## Aggregate (95% row-bootstrap CI, "
-        f"{BOOTSTRAP_SAMPLES:,} resamples, seed {BOOTSTRAP_SEED})",
-        "",
-        "| Metric | HTML (frozen) | Text | Δ text − html | text-only / html-only hits"
-        " | McNemar exact p |",
-        "|---|---:|---:|---:|---:|---:|",
-    ]
+def _aggregate_rows(summary: dict[str, dict[str, Any]]) -> list[str]:
+    lines = []
     for metric in METRICS:
         s = summary[metric]
         discordant = (
@@ -263,10 +287,52 @@ def render_tables(records: list[dict[str, Any]]) -> str:
             f"| {metric} | {_fmt_ci(s['html'])} | {_fmt_ci(s['text'])} | "
             f"{_fmt_delta(s['delta'])} | {discordant} | {p} |"
         )
-    lines += [
+    return lines
+
+
+def render_tables(
+    records: list[dict[str, Any]], degraded: list[str] | None = None
+) -> str:
+    header = [
+        "| Metric | HTML (frozen) | Text | Δ text − html | text-only / html-only hits"
+        " | McNemar exact p |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    lines = [
+        "## Aggregate (95% row-bootstrap CI, "
+        f"{BOOTSTRAP_SAMPLES:,} resamples, seed {BOOTSTRAP_SEED})",
+        "",
+        *header,
+        *_aggregate_rows(summarize_arms(records)),
         "",
         f"n = {len(records)} rows. MAP is not reported: under OR-set scoring "
         "each row has one relevant target, so MAP equals MRR.",
+        "",
+    ]
+
+    if degraded:
+        kept = [r for r in records if r["ticker"] not in degraded]
+        lines += [
+            "## Sensitivity: filings with failed HTML Item detection excluded",
+            "",
+            f"Excluded tickers (≥50% of HTML-arm chunks labelled `_unknown`): "
+            f"{', '.join(degraded)} — {len(records) - len(kept)} rows dropped.",
+            "",
+            *header,
+            *_aggregate_rows(summarize_arms(kept)),
+            "",
+            f"n = {len(kept)} rows.",
+            "",
+        ]
+
+    snippet = snippet_recall_summary(records)
+    lines += [
+        "## Sensitivity: label-agnostic recall@10 (snippet anywhere in top 10)",
+        "",
+        "| HTML (frozen) | Text | Δ text − html |",
+        "|---:|---:|---:|",
+        f"| {_fmt_ci(snippet['html'])} | {_fmt_ci(snippet['text'])} | "
+        f"{_fmt_delta(snippet['delta'])} |",
         "",
     ]
 
@@ -381,6 +447,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--raw", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, default=None)
     args = parser.parse_args(argv)
 
     records = build_records(load_dataset(args.dataset), load_retrievals(args.raw))
@@ -389,7 +456,12 @@ def main(argv: list[str] | None = None) -> int:
     (args.out_dir / "summary.json").write_text(
         json.dumps(summarize_arms(records), indent=2) + "\n", encoding="utf-8"
     )
-    tables = render_tables(records)
+    degraded = (
+        degraded_html_filings(json.loads(args.manifest.read_text(encoding="utf-8")))
+        if args.manifest
+        else None
+    )
+    tables = render_tables(records, degraded)
     (args.out_dir / "tables.md").write_text(tables + "\n", encoding="utf-8")
     print(tables)
     return 0

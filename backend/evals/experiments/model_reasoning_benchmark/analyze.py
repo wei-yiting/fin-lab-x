@@ -213,7 +213,9 @@ def _bootstrap(values_by_row: dict[str, float], stat) -> tuple[float, float, flo
     return point, lo, hi
 
 
-def arm_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def arm_summary(
+    rows: list[dict[str, Any]], arm_names: list[str] = ARM_NAMES
+) -> list[dict[str, Any]]:
     means = {
         key: per_row_means(rows, key)
         for key in [
@@ -230,7 +232,7 @@ def arm_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         ]
     }
     out = []
-    for arm in ARM_NAMES:
+    for arm in arm_names:
         arm_rows = [r for r in rows if r["arm"] == arm]
         if not arm_rows:
             continue
@@ -324,10 +326,13 @@ CONTRASTS = [
 ]
 
 
-def paired_contrasts(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def paired_contrasts(
+    rows: list[dict[str, Any]],
+    contrasts: list[tuple[str, str, str]] = CONTRASTS,
+) -> list[dict[str, Any]]:
     """Per-row paired differences (treatment − control) with bootstrap CIs."""
     out = []
-    for label, treat, control in CONTRASTS:
+    for label, treat, control in contrasts:
         entry: dict[str, Any] = {
             "contrast": label,
             "treatment": treat,
@@ -369,7 +374,7 @@ def _f(value: Any, digits: int = 1) -> str:
     return str(value)
 
 
-def render_tables(summary: dict[str, Any]) -> str:
+def render_tables(summary: dict[str, Any], arm_names: list[str] = ARM_NAMES) -> str:
     lines = [
         "## Arm summary (per-row means over repetitions; 95% CI = row-level bootstrap)",
         "",
@@ -434,12 +439,12 @@ def render_tables(summary: dict[str, Any]) -> str:
         "",
         "## Health mean by expected best source",
         "",
-        "| Source | " + " | ".join(ARM_NAMES) + " |",
-        "|---|" + "---|" * len(ARM_NAMES),
+        "| Source | " + " | ".join(arm_names) + " |",
+        "|---|" + "---|" * len(arm_names),
     ]
     for src, arms in sorted(summary["health_by_source"].items()):
         lines.append(
-            f"| {src} | " + " | ".join(_f(arms.get(a), 2) for a in ARM_NAMES) + " |"
+            f"| {src} | " + " | ".join(_f(arms.get(a), 2) for a in arm_names) + " |"
         )
     return "\n".join(lines) + "\n"
 

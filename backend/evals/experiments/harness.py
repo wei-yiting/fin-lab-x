@@ -296,6 +296,25 @@ async def run_one(
     }
 
 
+class _LocalOnlySpan:
+    def __enter__(self) -> _LocalOnlySpan:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def log(self, **kwargs: Any) -> None:
+        return None
+
+
+class _LocalOnlyExperiment:
+    """Stands in for a Braintrust experiment when logging is off; the raw
+    JSON per run is written either way."""
+
+    def start_span(self, **kwargs: Any) -> _LocalOnlySpan:
+        return _LocalOnlySpan()
+
+
 async def run_experiment(
     *,
     experiment_name: str,
@@ -308,8 +327,13 @@ async def run_experiment(
     row_mode: RowMode,
     row_ids: list[str] | None,
     extra_metadata: dict[str, Any],
+    log_to_braintrust: bool = True,
 ) -> dict[str, str | None]:
-    """Run one repetition of every row x arm, row-major. Resumable per run."""
+    """Run one repetition of every row x arm, row-major. Resumable per run.
+
+    ``log_to_braintrust=False`` keeps the raw JSONs as the only record (for
+    when the Braintrust log quota is exhausted).
+    """
     import braintrust
     from braintrust.integrations.langchain import (
         BraintrustCallbackHandler,
@@ -337,28 +361,31 @@ async def run_experiment(
         json.dumps(report, indent=2)
     )
 
-    set_global_handler(BraintrustCallbackHandler())
-    experiments = {
-        name: braintrust.init(
-            project=bt_config.project,
-            experiment=f"{experiment_name}_{label}_{name}_rep{rep}",
-            metadata={
-                "dataset_name": diagnostic.dataset_name,
-                "dataset_version": diagnostic.dataset_version,
-                "row_mode": row_mode,
-                "selected_row_ids": [row["id"] for row in rows],
-                "arm": name,
-                "config_dir": str(arm.config_dir.relative_to(BACKEND_DIR)),
-                "prompt_path": str(arm.prompt_path.relative_to(BACKEND_DIR)),
-                "git_commit": _git_sha(),
-                "run_label": label,
-                "repetition": rep,
-                "execution": "row-major",
-                **extra_metadata,
-            },
-        )
-        for name, arm in arms.items()
-    }
+    if not log_to_braintrust:
+        experiments: dict[str, Any] = {name: _LocalOnlyExperiment() for name in arms}
+    else:
+        set_global_handler(BraintrustCallbackHandler())
+        experiments = {
+            name: braintrust.init(
+                project=bt_config.project,
+                experiment=f"{experiment_name}_{label}_{name}_rep{rep}",
+                metadata={
+                    "dataset_name": diagnostic.dataset_name,
+                    "dataset_version": diagnostic.dataset_version,
+                    "row_mode": row_mode,
+                    "selected_row_ids": [row["id"] for row in rows],
+                    "arm": name,
+                    "config_dir": str(arm.config_dir.relative_to(BACKEND_DIR)),
+                    "prompt_path": str(arm.prompt_path.relative_to(BACKEND_DIR)),
+                    "git_commit": _git_sha(),
+                    "run_label": label,
+                    "repetition": rep,
+                    "execution": "row-major",
+                    **extra_metadata,
+                },
+            )
+            for name, arm in arms.items()
+        }
 
     for row in rows:
         position = all_ids.index(row["id"])
@@ -405,6 +432,8 @@ async def run_experiment(
                 flush=True,
             )
 
+    if not log_to_braintrust:
+        return {}
     links: dict[str, str | None] = {}
     for name, experiment in experiments.items():
         summary = experiment.summarize(summarize_scores=False)

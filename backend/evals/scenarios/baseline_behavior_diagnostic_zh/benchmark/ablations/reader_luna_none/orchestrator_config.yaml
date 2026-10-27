@@ -1,0 +1,20 @@
+version: "0.1.0"
+name: "ablation-reader-luna-none"
+description: "Reader 2x2 arm: reader_luna_medium with reasoning.effort=none — tests whether the reader bundle keeps quality without reasoning. Only the model block differs from reader_luna_medium. No prompt file here — the run spec injects agent_engine/agents/profiles/reader/system_prompt.md via ProfileConfigLoader.load_from_dir(prompt_path=...)."
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+  - sec_filing_search
+
+model:
+  name: "openai:gpt-5.6-luna"
+  temperature: 0.0
+  reasoning: "on"
+  reasoning_effort: "none"
+
+constraints:
+  max_tool_calls_per_run: 10

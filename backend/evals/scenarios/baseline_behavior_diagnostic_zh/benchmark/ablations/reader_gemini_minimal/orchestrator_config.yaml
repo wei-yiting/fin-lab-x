@@ -1,0 +1,20 @@
+version: "0.1.0"
+name: "ablation-reader-gemini-minimal"
+description: "Reader 2x2 arm: reader_luna_medium's bundle on gemini-3.6-flash at thinking_level=minimal (the model's floor; Gemini cannot fully disable thinking). Only the model block differs from reader_luna_medium. No prompt file here — the run spec injects agent_engine/agents/profiles/reader/system_prompt.md via ProfileConfigLoader.load_from_dir(prompt_path=...)."
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+  - sec_filing_search
+
+model:
+  name: "google_genai:gemini-3.6-flash"
+  temperature: 0.0
+  reasoning: "on"
+  reasoning_effort: "minimal"
+
+constraints:
+  max_tool_calls_per_run: 10

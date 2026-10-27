@@ -732,3 +732,56 @@ def test_get_section_parse_item_number_failure_no_event():
     assert mock_fetch.call_count == 0
     assert mock_writer.call_count == 0
     assert captured_events == []
+
+
+def test_get_section_not_found_carries_available_keys_and_fiscal_year():
+    """The error contract lists the filing's available keys inline, so the
+    raise site attaches them (in canonical order) without changing the text."""
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    tenk = _make_tenk(
+        {
+            "item 8": _make_section("8", NON_STUB_TEXT),
+            "item 1": _make_section("1", NON_STUB_TEXT),
+            "item 1a": _make_section("1A", NON_STUB_TEXT),
+        },
+        period="2025-12-27",
+    )
+
+    with (
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+            return_value=tenk,
+        ),
+        patch(
+            "backend.agent_engine.tools.sec_filing_tools._resolve_latest_fiscal_year",
+            return_value=2025,
+        ),
+    ):
+        with pytest.raises(SectionNotFoundError) as exc_info:
+            inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
+            inner(ticker="INTC", section_key="7", tool_call_id="t")
+
+    assert exc_info.value.available_keys == ("1", "1a", "8")
+    assert exc_info.value.fiscal_year == 2025
+    assert exc_info.value.first_fiscal_year is None
+    assert str(exc_info.value).startswith("Section '7' not found in INTC 10-K FY2025.")
+
+
+def test_get_section_1c_pre_2023_carries_first_fiscal_year():
+    from backend.agent_engine.tools.sec_filing_tools import sec_filing_get_section
+
+    tenk = _make_tenk(
+        {"item 1": _make_section("1", NON_STUB_TEXT)}, period="2022-09-24"
+    )
+
+    with patch(
+        "backend.agent_engine.tools.sec_filing_tools.fetch_filing_obj",
+        return_value=tenk,
+    ):
+        with pytest.raises(SectionNotFoundError) as exc_info:
+            inner = getattr(sec_filing_get_section, "func", sec_filing_get_section)
+            inner(ticker="AAPL", section_key="1c", fiscal_year=2022, tool_call_id="t")
+
+    assert exc_info.value.first_fiscal_year == 2023
+    assert exc_info.value.fiscal_year == 2022

@@ -3,13 +3,18 @@
 Pure domain layer with no LangChain dependency. `get_finnhub_client` is the
 patch seam for tests; the fetch functions encode Finnhub's free-tier quirk that
 invalid tickers do not raise (quote returns all-zero values, basic financials
-returns an empty metric map) and translate those into `ValueError`.
+returns an empty metric map) and translate those into `FinnhubNoDataError`.
 """
 
 import os
 from typing import Any, NamedTuple
 
 import finnhub
+
+
+class FinnhubNoDataError(ValueError):
+    """Finnhub answered but had no data for the symbol (invalid, delisted, or
+    uncovered). A ``ValueError`` subclass so existing callers keep working."""
 
 
 class FieldSpec(NamedTuple):
@@ -69,7 +74,7 @@ def fetch_quote(symbol: str) -> dict[str, Any]:
     # tickers. Require BOTH current and previous-close to be 0/None: checking `c`
     # alone would false-positive a legitimately-zero pre-market price.
     if not data or (data.get("c") in (0, None) and data.get("pc") in (0, None)):
-        raise ValueError(
+        raise FinnhubNoDataError(
             f"No quote data for ticker '{symbol}'. The symbol may be invalid, "
             f"delisted, or not covered by Finnhub free tier."
         )
@@ -80,7 +85,7 @@ def fetch_basic_financials(symbol: str) -> dict[str, Any]:
     data = get_finnhub_client().company_basic_financials(symbol, "all")
     metric = (data or {}).get("metric") or {}
     if not metric:
-        raise ValueError(
+        raise FinnhubNoDataError(
             f"No basic financials for ticker '{symbol}'. The symbol may be "
             f"invalid or not covered by Finnhub free tier."
         )

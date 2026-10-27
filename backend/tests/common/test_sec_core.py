@@ -21,6 +21,7 @@ from backend.common.sec_core import (
     SectionNotFoundError,
     UnsupportedFilingTypeError,
     FilingRef,
+    NoTenKFilingsError,
     _resolve_latest_fiscal_year,
     classify_stub_section,
     fetch_filing_bundle,
@@ -1122,3 +1123,36 @@ def test_fetch_filing_bundle_metadata_failure_is_not_ticker_not_found(mock_edgar
     msg = str(exc_info.value)
     assert "AAPL" in msg
     assert "SGML index corrupted" in msg
+
+
+# ---------------------------------------------------------------------------
+# Structured fields read by the tool error contract (message text unchanged)
+# ---------------------------------------------------------------------------
+
+
+def test_fiscal_year_errors_carry_the_available_range(mock_edgar):
+    tenk_cls = mock_edgar["tenk_cls"]
+    mock_edgar["set_filings"](
+        "10-K",
+        [
+            _make_indexed_filing("2024-09-28", "0000320193-24-000123", tenk_cls),
+            _make_indexed_filing("2021-09-25", "0000320193-21-000105", tenk_cls),
+        ],
+    )
+    for year in (2026, 1994):
+        with pytest.raises(FilingNotFoundError) as exc_info:
+            locate_filing_ref("AAPL", FilingType.TEN_K, year)
+        assert exc_info.value.earliest_fiscal_year == 2021
+        assert exc_info.value.latest_fiscal_year == 2024
+
+
+def test_company_without_10k_or_20f_raises_no_ten_k_filings(mock_edgar):
+    with pytest.raises(NoTenKFilingsError) as exc_info:
+        fetch_filing_obj("RY", FilingType.TEN_K, 2025)
+    assert isinstance(exc_info.value, TickerNotFoundError)
+    assert str(exc_info.value) == "Ticker 'RY' has no 10-K filings on SEC EDGAR."
+
+
+def test_resolve_latest_without_10k_or_20f_raises_no_ten_k_filings(mock_edgar):
+    with pytest.raises(NoTenKFilingsError):
+        _resolve_latest_fiscal_year("CNQ")

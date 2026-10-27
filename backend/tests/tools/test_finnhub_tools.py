@@ -8,6 +8,7 @@ import pytest
 
 from backend.agent_engine.tools.finnhub_client import (
     BASIC_FINANCIALS_CATALOG,
+    FinnhubNoDataError,
     fetch_basic_financials,
     fetch_quote,
 )
@@ -196,3 +197,14 @@ def test_live_catalog_metric_keys_resolve():
 def test_live_invalid_ticker_raises():
     with pytest.raises(ValueError):
         fetch_quote("ZZZZINVALID")
+
+
+def test_no_data_errors_are_typed_but_still_value_errors():
+    with patch(_SEAM, return_value=_mock_client(quote={"c": 0, "pc": 0})):
+        with pytest.raises(FinnhubNoDataError) as quote_info:
+            fetch_quote("TWTR")
+    with patch(_SEAM, return_value=_mock_client(basic_financials={"metric": {}})):
+        with pytest.raises(FinnhubNoDataError) as fin_info:
+            fetch_basic_financials("XYZQ")
+    assert isinstance(quote_info.value, ValueError)
+    assert isinstance(fin_info.value, ValueError)

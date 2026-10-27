@@ -48,13 +48,55 @@ class SECError(FinLabError):
     """SEC domain base exception."""
 
 
-class FilingNotFoundError(SECError): ...
+class FilingNotFoundError(SECError):
+    """No filing for the requested fiscal year.
+
+    ``earliest_fiscal_year`` / ``latest_fiscal_year`` bound the company's
+    filing history when it is known, so the tool error contract can point the
+    agent at a year that does exist.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        earliest_fiscal_year: int | None = None,
+        latest_fiscal_year: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.earliest_fiscal_year = earliest_fiscal_year
+        self.latest_fiscal_year = latest_fiscal_year
 
 
 class UnsupportedFilingTypeError(SECError): ...
 
 
-class SectionNotFoundError(SECError): ...
+class NoTenKFilingsError(TickerNotFoundError):
+    """The ticker resolves on EDGAR but the company files no 10-K and no 20-F
+    (e.g. a Canadian 40-F filer)."""
+
+
+class SectionNotFoundError(SECError):
+    """A 10-K section key is invalid or absent from the located filing.
+
+    ``fiscal_year`` is the resolved year of the filing that was searched,
+    ``available_keys`` the section keys that filing does have (canonical
+    order), and ``first_fiscal_year`` the first year the item became
+    required, when the item simply did not exist yet.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        fiscal_year: int | None = None,
+        available_keys: tuple[str, ...] | None = None,
+        first_fiscal_year: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.fiscal_year = fiscal_year
+        self.available_keys = available_keys
+        self.first_fiscal_year = first_fiscal_year
 
 
 TENK_STANDARD_TITLES: dict[str, str] = {
@@ -375,7 +417,7 @@ def _resolve_latest_fiscal_year_cached(ticker_upper: str) -> int:
                 f"Ticker {ticker_upper} appears to be a foreign private issuer "
                 f"that files 20-F; only '10-K' is supported."
             )
-        raise TickerNotFoundError(
+        raise NoTenKFilingsError(
             f"Ticker {ticker_upper!r} has no 10-K filings on SEC EDGAR."
         )
 
@@ -543,7 +585,7 @@ def _locate_filing_cached(
                 f"Ticker {ticker_upper} appears to be a foreign private issuer "
                 f"that files 20-F; only '10-K' is supported."
             )
-        raise TickerNotFoundError(
+        raise NoTenKFilingsError(
             f"Ticker {ticker_upper!r} has no 10-K filings on SEC EDGAR."
         )
 
@@ -562,7 +604,9 @@ def _locate_filing_cached(
                     raise FilingNotFoundError(
                         f"No {filing_type} filed yet for {ticker_upper} fiscal "
                         f"year {fiscal_year} — the most recent available is "
-                        f"FY{latest_year}."
+                        f"FY{latest_year}.",
+                        earliest_fiscal_year=earliest_year,
+                        latest_fiscal_year=latest_year,
                     )
                 # Structurally impossible: before this company's own filing
                 # history begins — this year could never have a filing.
@@ -570,8 +614,16 @@ def _locate_filing_cached(
                     raise FilingNotFoundError(
                         f"{ticker_upper} has no {filing_type} filing history "
                         f"before FY{earliest_year}; fiscal year {fiscal_year} "
-                        "could never have one."
+                        "could never have one.",
+                        earliest_fiscal_year=earliest_year,
+                        latest_fiscal_year=latest_year,
                     )
+                raise FilingNotFoundError(
+                    f"No {filing_type} filing for {ticker_upper} in fiscal year "
+                    f"{fiscal_year}.",
+                    earliest_fiscal_year=earliest_year,
+                    latest_fiscal_year=latest_year,
+                )
             raise FilingNotFoundError(
                 f"No {filing_type} filing for {ticker_upper} in fiscal year {fiscal_year}."
             )

@@ -253,11 +253,16 @@ def sec_filing_get_section(
         if normalized == "1c" and resolved_fy < 2023:
             raise SectionNotFoundError(
                 f"Section '1c' (Cybersecurity) was added by SEC in 2023 and is not "
-                f"present in FY{resolved_fy}."
+                f"present in FY{resolved_fy}.",
+                fiscal_year=resolved_fy,
+                first_fiscal_year=2023,
             )
+        present = {item for item, _ in _iter_resolved_sections(tenk)}
         raise SectionNotFoundError(
             f"Section {section_key!r} not found in {ticker_upper} 10-K FY{resolved_fy}. "
-            "Call sec_filing_list_sections first to see available section keys."
+            "Call sec_filing_list_sections first to see available section keys.",
+            fiscal_year=resolved_fy,
+            available_keys=tuple(k for k in TENK_STANDARD_TITLES if k in present),
         )
 
     try:

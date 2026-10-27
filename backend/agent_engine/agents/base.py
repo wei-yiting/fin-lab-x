@@ -47,6 +47,7 @@ from backend.agent_engine.streaming.domain_events_schema import (
 from backend.agent_engine.streaming.event_mapper import StreamEventMapper
 from backend.agent_engine.streaming.tool_error_sanitizer import sanitize_tool_error
 from backend.agent_engine.tools import setup_tools
+from backend.agent_engine.tools.error_contract import format_tool_error
 from backend.agent_engine.tools.registry import get_tools_by_names
 from backend.agent_engine.utils.model_context import compute_section_soft_cap_chars
 from backend.common.errors import ConfigurationError
@@ -272,7 +273,9 @@ RESPONSE FORMAT:
 
 
 class _HandleToolErrors(AgentMiddleware):
-    """Middleware that catches tool exceptions and returns sanitized error messages.
+    """Middleware that catches tool exceptions and returns them to the model
+    in the tool error contract (``tools/error_contract.py``): what failed, why,
+    retryable or not, and the next step — sanitized.
 
     Implements both sync and async to support invoke() (eval runner) and
     astream() (streaming API).
@@ -283,7 +286,7 @@ class _HandleToolErrors(AgentMiddleware):
             return handler(request)
         except Exception as e:
             return ToolMessage(
-                content=sanitize_tool_error(str(e)),
+                content=format_tool_error(e, request.tool_call),
                 tool_call_id=request.tool_call["id"],
                 status="error",
             )
@@ -293,7 +296,7 @@ class _HandleToolErrors(AgentMiddleware):
             return await handler(request)
         except Exception as e:
             return ToolMessage(
-                content=sanitize_tool_error(str(e)),
+                content=format_tool_error(e, request.tool_call),
                 tool_call_id=request.tool_call["id"],
                 status="error",
             )

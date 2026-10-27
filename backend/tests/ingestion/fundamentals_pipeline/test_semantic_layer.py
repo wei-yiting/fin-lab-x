@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from backend.ingestion.fundamentals_pipeline.duck_db.row_models import (
+    CompanyRow,
     YFinanceAnnualRow,
     YFinanceQuarterlyRow,
 )
@@ -18,7 +19,12 @@ def _quarter(ticker: str, fy: int, fq: int, end: date, **values: Any):
     )
 
 
-def _insert(conn, *rows: YFinanceQuarterlyRow) -> None:
+def _insert(conn, *rows: YFinanceQuarterlyRow, fye_month: int = 12) -> None:
+    companies = [
+        CompanyRow(ticker=t, company_name=t, fy_end_month=fye_month, fy_end_day=28)
+        for t in sorted({r.ticker for r in rows})
+    ]
+    upsert_rows(conn, "companies", ["ticker"], companies)
     upsert_rows(
         conn, "quarterly_financials", ["ticker", "fiscal_year", "fiscal_quarter"], rows
     )
@@ -55,23 +61,42 @@ def test_ratio_is_null_when_part_missing_or_denominator_zero(tmp_duckdb):
 
 
 @pytest.mark.parametrize(
-    "period_end, expected",
+    "fye_month, fiscal_year, fiscal_quarter, period_end, expected",
     [
-        pytest.param(date(2026, 3, 31), (2026, 1), id="calendar-aligned"),
-        pytest.param(date(2026, 4, 30), (2026, 1), id="NVDA-Feb-Apr"),
-        pytest.param(date(2026, 1, 31), (2025, 4), id="Nov-Jan-maps-to-prior-year"),
-        pytest.param(date(2024, 9, 1), (2024, 3), id="52-53wk-drift-into-Sep"),
-        pytest.param(date(2026, 9, 27), (2026, 3), id="drift-within-month"),
+        pytest.param(12, 2026, 1, date(2026, 3, 31), (2026, 1), id="calendar-FYE"),
+        pytest.param(9, 2026, 3, date(2026, 6, 30), (2026, 2), id="AAPL-FY-Q3-Apr-Jun"),
+        pytest.param(1, 2027, 1, date(2026, 4, 30), (2026, 1), id="NVDA-Feb-Apr"),
+        pytest.param(1, 2026, 4, date(2026, 1, 31), (2025, 4), id="Nov-Jan-prior-year"),
+        pytest.param(6, 2027, 1, date(2026, 9, 30), (2026, 3), id="MSFT-FY27-Q1"),
+        pytest.param(8, 2024, 4, date(2024, 9, 1), (2024, 3), id="COST-5253wk-drift"),
     ],
 )
-def test_calendar_quarter_by_middle_month(tmp_duckdb, period_end, expected):
-    _insert(tmp_duckdb, _quarter("AAA", 2026, 1, period_end, total_revenue_usd=1))
+def test_calendar_quarter_by_middle_month(
+    tmp_duckdb, fye_month, fiscal_year, fiscal_quarter, period_end, expected
+):
+    _insert(
+        tmp_duckdb,
+        _quarter("AAA", fiscal_year, fiscal_quarter, period_end, total_revenue_usd=1),
+        fye_month=fye_month,
+    )
     assert (
         tmp_duckdb.execute(
             "SELECT calendar_year, calendar_quarter FROM quarterly_metrics"
         ).fetchone()
         == expected
     )
+
+
+def test_window_over_period_end_with_calendar_columns(tmp_duckdb):
+    """Regression: DuckDB 1.5.2 INTERNAL binder error when a calendar column was
+    computed from period_end and the query ordered a window by period_end."""
+    _two_quarters(tmp_duckdb)
+    rows = tmp_duckdb.execute(
+        "SELECT ticker, period_end, calendar_year, calendar_quarter"
+        " FROM quarterly_metrics WHERE ticker = 'AAA'"
+        " QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY period_end DESC) = 1"
+    ).fetchall()
+    assert rows == [("AAA", date(2026, 6, 30), 2026, 2)]
 
 
 def _two_quarters(conn) -> None:
@@ -104,11 +129,12 @@ def test_period_metrics_sums_flows_takes_last_stock_and_recomputes_ratio(tmp_duc
     )
 
 
-def test_period_metrics_exposes_partial_window(tmp_duckdb):
+def test_period_metrics_partial_window_has_coverage_but_no_amounts(tmp_duckdb):
     _two_quarters(tmp_duckdb)
     assert tmp_duckdb.execute(
-        "SELECT quarters_covered, quarters_expected FROM period_metrics(2026, 1, 3)"
-    ).fetchone() == (2, 3)
+        "SELECT quarters_covered, quarters_expected, total_revenue_usd,"
+        " total_assets_usd, gross_margin_pct FROM period_metrics(2026, 1, 3)"
+    ).fetchone() == (2, 3, None, None, None)
 
 
 def test_period_metrics_flow_is_null_unless_every_quarter_reports_it(tmp_duckdb):

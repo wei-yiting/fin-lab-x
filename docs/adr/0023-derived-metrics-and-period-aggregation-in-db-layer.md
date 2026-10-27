@@ -6,7 +6,10 @@ intensity, debt-to-equity, current ratio) are defined once in DuckDB views —
 quarter by its middle month. Multi-quarter windows go through one table macro,
 `period_metrics(year, q_from, q_to)`, which encodes the aggregation rules: flow amounts sum,
 balance-sheet amounts take the window's last quarter, ratios are recomputed from the summed
-parts, and `quarters_covered` / `quarters_expected` expose partial windows. The text-to-SQL LLM
+parts, and `quarters_covered` / `quarters_expected` expose partial windows — for which every
+amount and ratio is NULL, so a partial sum can never be ranked against a full one (found in
+the prototype's first live run: a 1-of-3-quarter 2025 window produced a fake +254% "growth"
+leader). The text-to-SQL LLM
 sees these objects (plus `companies` and `market_valuations`) instead of the raw financial
 tables. This resolves the derived-metric question that Design Master §13.3 deferred to the
 text-to-SQL design.

@@ -26,6 +26,7 @@ def setup_tools() -> None:
         sec_filing_get_section,
         sec_filing_list_sections,
     )
+    from backend.agent_engine.tools.text_to_sql import text_to_sql
 
     register_tool("finnhub_stock_quote", finnhub_stock_quote)
     register_tool("finnhub_company_basic_financials", finnhub_company_basic_financials)
@@ -34,6 +35,7 @@ def setup_tools() -> None:
     register_tool("sec_filing_get_section", sec_filing_get_section)
     register_tool("sec_filing_downloader", sec_filing_downloader)
     register_tool("sec_filing_search", sec_filing_search)
+    register_tool("text_to_sql", text_to_sql)
 
     _tools_registered = True
 

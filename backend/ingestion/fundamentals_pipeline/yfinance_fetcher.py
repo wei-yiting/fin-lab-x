@@ -84,6 +84,10 @@ CASHFLOW_FIELDS: dict[str, tuple[str, ...]] = {
 }
 _FLOAT_COLUMNS = {"diluted_eps"}
 
+# yfinance emits columns for periods not yet fully reported (a few stray line items,
+# no revenue). Revenue marks a reported period; anything without it is dropped so it
+# can never become a company's "latest reported quarter".
+
 
 class TickerSource(Protocol):
     """The slice of ``yfinance.Ticker`` this fetcher reads (test seam)."""
@@ -206,7 +210,7 @@ def build_quarterly_rows(
     rows: dict[tuple[int, int], YFinanceQuarterlyRow] = {}
     for period_end in sorted(by_period):
         values = by_period[period_end]
-        if not values:
+        if values.get("total_revenue_usd") is None:
             continue
         fiscal_year, fiscal_quarter = normalize_fiscal_period(period_end, fy_end_month)
         rows[(fiscal_year, fiscal_quarter)] = YFinanceQuarterlyRow(
@@ -236,7 +240,7 @@ def build_annual_rows(
     rows: dict[int, YFinanceAnnualRow] = {}
     for period_end in sorted(by_period):
         values = by_period[period_end]
-        if not values:
+        if values.get("total_revenue_usd") is None:
             continue
         fiscal_year, _ = normalize_fiscal_period(period_end, fy_end_month)
         rows[fiscal_year] = YFinanceAnnualRow(

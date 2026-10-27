@@ -129,15 +129,20 @@ def test_ingest_ticker_records_error_audit_row_and_reraises(tmp_duckdb):
     ).fetchall() == [("XXXX", "error", "DataValidationError")]
 
 
-def test_all_empty_period_is_skipped(tmp_duckdb):
+def test_period_without_revenue_is_not_a_reported_quarter(tmp_duckdb):
     source = _apple_like()
     source.quarterly_income_stmt = _frame(
-        {"Total Revenue": [94.0e9, float("nan")]}, ["2026-06-30", "2025-03-31"]
+        {
+            "Total Revenue": [94.0e9, float("nan")],
+            "Tax Provision": [3.0e9, 1.0e9],
+        },
+        ["2026-06-30", "2026-09-30"],
     )
-    source.quarterly_balance_sheet = pd.DataFrame()
-    source.quarterly_cashflow = pd.DataFrame()
     written = ingest_ticker(tmp_duckdb, "AAPL", source, AS_OF)
     assert written["quarterly_financials"] == 1
+    assert tmp_duckdb.execute(
+        "SELECT max(period_end) FROM quarterly_financials"
+    ).fetchone() == (date(2026, 6, 30),)
 
 
 def test_company_row_snaps_52_53_week_fiscal_year_end():

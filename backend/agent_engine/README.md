@@ -116,8 +116,8 @@ Decorator stacking order: `@tool` (outer) → `@observe` (inner).
 
 Each profile has an independent `orchestrator_config.yaml` defining available tools and model settings:
 
-- **baseline (0.1.0)**: Naive single-chain financial analysis
-- **reader (0.2.0)**: Long-context document analysis with RAG
+- **baseline (0.1.0)**: Naive single-chain financial analysis with whole-section SEC filing reads (no vectorization)
+- **reader (0.2.0)**: Structured RAG over SEC 10-K filings (Qdrant dense retrieval) with chunk-level citations
 - **quant (0.3.0)**: Numerical reasoning and quantitative modeling
 - **graph (0.4.0)**: Knowledge graph-based analysis
 - **analyst (0.5.0)**: Comprehensive investment research assistant

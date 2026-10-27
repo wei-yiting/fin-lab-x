@@ -11,7 +11,7 @@ marker helpers consumed by the retrieval side.
 """
 
 from backend.ingestion.sec_dense_pipeline.common import (
-    check_commit_marker_complete,
+    async_check_commit_marker_complete,
     commit_marker_id,
     marker_status_condition,
 )
@@ -22,7 +22,7 @@ from backend.ingestion.sec_dense_pipeline.vectorizer import (
 
 __all__ = [
     "EmptyIngestError",
-    "check_commit_marker_complete",
+    "async_check_commit_marker_complete",
     "commit_marker_id",
     "ingest_filing",
     "marker_status_condition",

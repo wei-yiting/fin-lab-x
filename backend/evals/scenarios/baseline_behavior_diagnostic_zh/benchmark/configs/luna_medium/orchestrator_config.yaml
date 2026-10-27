@@ -1,0 +1,19 @@
+version: "0.1.0"
+name: "benchmark-luna-medium"
+description: "Same-family reasoning-enabled arm (openai:gpt-5.6-luna, reasoning.effort=medium, the API default) vs luna_none's minimal-reasoning arm. Also the model prompt tuning is done against (product's default reasoning-enabled posture). No prompt file here — ProfileConfigLoader.load_from_dir() injects the single canonical shared prompt from ../../prompt/system_prompt.md."
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+
+model:
+  name: "openai:gpt-5.6-luna"
+  temperature: 0.0
+  reasoning: "on"
+  reasoning_effort: "medium"
+
+constraints:
+  max_tool_calls_per_run: 10

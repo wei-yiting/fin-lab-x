@@ -12,7 +12,7 @@ A versioned config directory that fully defines an Orchestrator's behavior; the 
 _Avoid_: hardcoded agent, agent subclass, workflow version (legacy code vocabulary for the config bundle, retired by the capability-tier rename — the profile's own semver still lives in the `version` field)
 
 **Capability tier**:
-One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. Only `baseline` is implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
+One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. `baseline` and `reader` are implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
 _Avoid_: v1–v5 / bare version numbers for agents (legacy naming; collides with pipeline generations, PRD phases, and external SDK versions)
 
 **Capability**:
@@ -20,6 +20,14 @@ Anything the Orchestrator can act through — Tools, Skills, MCP, Subagents. Onl
 
 **Zero Hallucination Policy**:
 Every claim in an answer must be grounded in tool output and carry a citation.
+
+**Pinpoint question / Synoptic question**:
+The two classes of SEC information need. A pinpoint question's answer lives in a few specific passages of a filing; a synoptic question needs the overview of a whole filing section ("summarize Item 1A"). The distinction drives SEC tool routing and eval question classification.
+_Avoid_: targeted question (a whole section can also be a "target" — ambiguous)
+
+**Evidence gap annotation**:
+The claim-adjacent, in-answer note stating that a sub-question found no supporting evidence in the filing. The positive form of Legible failure for partial answers; the emphasis is the lack of evidence, stated where the missing claim would have been — never a tail disclaimer covering the whole answer.
+_Avoid_: gap annotation (drops the point — what is missing is evidence)
 
 **Language Policy**:
 Tool arguments are always English; the final answer mirrors the user's language. Measured by CJK-ratio scorers.
@@ -73,7 +81,7 @@ _Avoid_: "eval-driven" for postponing a decision (that is defer until evidence);
 The git-versioned, hand-curated set of ~30 open-ended financial questions with per-item curation rationale. Its flagship use is the cross-tier comparison — `baseline` / `reader` / `quant` under the same LLM model id — isolating architecture-caused capability gaps.
 
 **Baseline behavior diagnostic**:
-The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / reach) and the expected pass/fail behavior, scored by deterministic execution-health checks (ran to completion, every tool call succeeded) plus human trace review. Whether the agent reached for an appropriate tool is a human-review judgement, deliberately kept out of the deterministic scorer — the scorer never reads the dataset's reference hints. It diagnoses behavior and names the tuning lever; it never grades answer quality.
+The behavior-health check for an agent close to the `baseline` spec: each question carries a capability band (core / boundary / beyond_boundary) and the expected pass/fail behavior, scored by deterministic execution-health checks (ran to completion, every tool call succeeded) plus human trace review. Whether the agent reached for an appropriate tool is a human-review judgement, deliberately kept out of the deterministic scorer — the scorer never reads the dataset's reference hints. It diagnoses behavior and names the tuning lever; it never grades answer quality.
 _Avoid_: near-v1 diagnostic (legacy dataset/scenario name, to be renamed at rework)
 
 **Regression Suite**:
@@ -157,6 +165,12 @@ A transient sidecar SSE event that updates a running tool card without entering 
 **Extract-on-finish**:
 The citation strategy: source extraction runs exactly once when the stream finishes (status leaves `streaming` — ready, error, or stop), never during streaming.
 _Avoid_: defer-to-ready (superseded name)
+
+## Frontend
+
+**UI Copy**:
+The centralized text for every system-authored UI surface — status words, buttons, error titles, tooltips, modal headers, form validation, aria-labels — held in one domain-nested module as one same-shaped dictionary per **Locale** (`en`, the default, and `zh-TW`), with no i18n framework. The user picks the locale with the header language toggle; the choice persists in `localStorage` and only changes UI Copy, never existing messages. Excludes user-generated content (chat messages, LLM replies) and backend-originated error text (HTTP error `detail`, sanitized tool errors), both of which keep their original wording.
+_Avoid_: strings (collides with the `string` type), content (collides with SEC filing/document content)
 
 ## Design calibration
 

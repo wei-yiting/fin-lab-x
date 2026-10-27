@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "beautifulsoup4>=4.12.0",
     "duckdb>=1.0.0",
-    "edgartools>=5.17.1",
+    "edgartools>=5.61.0",
     "fastapi>=0.115.0",
     "finnhub-python>=2.4.28",
     "html-to-markdown>=3.0.2,<4.0.0",
@@ -42,6 +42,7 @@ dev = [
     "httpx>=0.28.0",
     "litellm>=1.83.10",
     "numpy>=1.26.0",
+    "opencc-python-reimplemented>=0.1.7",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "pytest-timeout>=2.3.0",

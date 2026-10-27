@@ -8,8 +8,8 @@ interface ChipTiming {
 }
 
 /**
- * Client-side "Thought for Xs" measurement (parts carry no timestamps —
- * ADR-0015 allows this as deliberate non-derived state).
+ * Client-side copy.reasoningChip.thoughtFor measurement (parts carry no
+ * timestamps — ADR-0015 allows this as deliberate non-derived state).
  *
  * Semantics: a chip's clock starts when its part first appears
  * and freezes at the arrival of the round's next part — for a tool round

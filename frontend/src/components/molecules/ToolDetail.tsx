@@ -1,4 +1,5 @@
 import { Badge } from "@/components/primitives/badge";
+import { useLocale } from "@/lib/locale";
 
 export function ToolDetail({
   input,
@@ -9,6 +10,7 @@ export function ToolDetail({
   output?: unknown;
   errorDetail?: string;
 }) {
+  const { copy } = useLocale();
   return (
     <div data-testid="tool-detail" className="space-y-2 p-3 text-xs">
       <div>
@@ -16,7 +18,7 @@ export function ToolDetail({
           variant="outline"
           className="mb-1 text-[10px] uppercase text-[var(--chat-fg-subtle)]"
         >
-          Input
+          {copy.toolDetail.input}
         </Badge>
         <pre
           data-testid="tool-input-json"
@@ -31,7 +33,7 @@ export function ToolDetail({
             variant="outline"
             className="mb-1 text-[10px] uppercase text-[var(--chat-fg-subtle)]"
           >
-            Output
+            {copy.toolDetail.output}
           </Badge>
           <pre
             data-testid="tool-output-json"
@@ -47,7 +49,7 @@ export function ToolDetail({
             variant="outline"
             className="mb-1 text-[10px] uppercase text-[var(--chat-fg-subtle)]"
           >
-            Error
+            {copy.toolDetail.error}
           </Badge>
           <pre
             data-testid="tool-error-detail"

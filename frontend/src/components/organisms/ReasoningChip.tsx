@@ -3,15 +3,16 @@ import { chipHeaderLabel } from "@/lib/reasoning-chips";
 import type { ChipState } from "@/lib/reasoning-chips";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/locale";
 
 interface ReasoningChipProps {
   chipState: ChipState;
   text: string;
-  /** "Thought for Xs" seconds — frozen upstream. */
+  /** Frozen seconds value used by `copy.reasoningChip.thoughtFor`/`stoppedThoughtFor`. */
   seconds: number;
   /**
    * Whether the global stall stopwatch has fired: a streaming chip's header
-   * swaps to the degraded "Still working…" copy while it is true.
+   * swaps to the degraded `copy.reasoningChip.stalledLive` copy while it is true.
    */
   stalled: boolean;
   expanded: boolean;
@@ -23,11 +24,11 @@ interface ReasoningChipProps {
 /**
  * One reasoning part = one chip (ADR-0015). While streaming: full text in a
  * ~4-line pinned-bottom window (newest text visible, older scrolled away).
- * Collapsed: "Thought for Xs" header; aborted half-chips keep their text
- * behind a "Stopped — thought for Xs" header. Body is raw
- * `white-space: pre-wrap` (never markdown) so half-streamed markup can't
- * re-parse and jitter per delta; `overflow-wrap: anywhere` keeps the
- * pinned-scroll math valid for CJK/long tokens.
+ * Collapsed: `copy.reasoningChip.thoughtFor()` header; aborted half-chips
+ * keep their text behind a `copy.reasoningChip.stoppedThoughtFor()` header.
+ * Body is raw `white-space: pre-wrap` (never markdown) so half-streamed
+ * markup can't re-parse and jitter per delta; `overflow-wrap: anywhere`
+ * keeps the pinned-scroll math valid for CJK/long tokens.
  *
  * Body visibility follows `expanded` alone, so an explicit collapse wins even
  * over a still-streaming part. `data-state` therefore tracks the part
@@ -44,6 +45,7 @@ export function ReasoningChip({
   onToggle,
   round,
 }: ReasoningChipProps) {
+  const { copy } = useLocale();
   const bodyRef = useRef<HTMLDivElement>(null);
   const streaming = chipState === "streaming";
   const showBody = expanded;
@@ -58,7 +60,7 @@ export function ReasoningChip({
   }, [text, streaming, showBody]);
 
   const dataState = streaming ? "streaming" : expanded ? "expanded" : "collapsed";
-  const headerLabel = chipHeaderLabel(chipState, seconds, streaming && stalled);
+  const headerLabel = chipHeaderLabel(chipState, seconds, streaming && stalled, copy);
 
   return (
     <div
@@ -72,7 +74,7 @@ export function ReasoningChip({
         data-testid="reasoning-chip-header"
         aria-expanded={showBody}
         aria-live="polite"
-        aria-label={`${headerLabel} — ${showBody ? "collapse" : "expand"} reasoning`}
+        aria-label={copy.reasoningChip.toggleAriaLabel(headerLabel, showBody)}
         onClick={onToggle}
         className={cn(
           "flex w-full items-center gap-1.5 px-3 py-2 text-left text-sm",

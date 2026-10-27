@@ -1,3 +1,5 @@
+import { useLocale } from "@/lib/locale";
+
 interface ActivityPlaceholderProps {
   /** Swaps in the degraded copy; driven by the global stall stopwatch. */
   stalled: boolean;
@@ -14,13 +16,14 @@ interface ActivityPlaceholderProps {
  * elements.
  */
 export function ActivityPlaceholder({ stalled }: ActivityPlaceholderProps) {
+  const { copy } = useLocale();
   return (
     <div
       data-testid="activity-placeholder"
       aria-live="polite"
       className="streaming-shimmer px-3 text-sm text-muted-foreground"
     >
-      {stalled ? "Still working" : "Thinking"}
+      {stalled ? copy.activityIndicator.stalled : copy.activityIndicator.thinking}
       {/* aria-hidden so the CSS content cycler never spams the polite queue. */}
       <span aria-hidden="true" className="thinking-dots" />
     </div>

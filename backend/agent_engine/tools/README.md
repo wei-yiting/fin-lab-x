@@ -8,11 +8,12 @@ Atomic, stateless tool functions and central registry. This module provides the 
 - `finnhub_client.py`: LangChain-free Finnhub domain core — `get_finnhub_client` (API-key seam), `fetch_quote` / `fetch_basic_financials` (invalid-ticker validation against Finnhub's all-zero/empty-metric responses), and `BASIC_FINANCIALS_CATALOG` (the curated `metric`-key → output-field map).
 - `sec_filing_tools.py`: Implements the two-step SEC 10-K access pair — `sec_filing_list_sections` (returns the canonical item table of contents with `char_count` / `is_stub` metadata) and `sec_filing_get_section` (returns one item's full content by `section_key`). Both call `edgartools`' structured `TenK` API directly via `backend.common.sec_core`.
 - `sec_filing.py`: `sec_filing_downloader` — LangChain `@tool` wrapping `SECFilingPipeline.process()`. Downloads 10-K filings on demand (JIT), returns metadata + local file path for downstream RAG. Separate from the edgartools-direct path in `sec_filing_tools.py`.
+- `sec_filing_search.py`: Implements `sec_filing_search` — wraps the dense vector retriever (`sec_dense_pipeline_html/retriever.py`) for pinpoint/RAG queries over a filing, returning evidence chunks with stable citation IDs (ADR-0019). Reader-profile only.
 - `__init__.py`: Contains the `setup_tools()` function, which serves as the central entry point for tool registration.
 
-## Why two SEC paths
+## Why three SEC paths
 
-`sec_filing_tools.py` and `sec_filing.py` both operate on 10-K filings but serve different consumers: the structured two-step pair gives the agent low-latency, item-level reads that fit inside a single chat turn, while the pipeline-backed downloader produces persistent Markdown for downstream RAG ingestion. Both share the `FilingType` enum, the `SECError` hierarchy, and edgartools-error classification through `backend.common.sec_core` — see [`sec_core.md`](../docs/sec_core.md) for the architecture diagram and the rationale that ties the two paths together.
+`sec_filing_tools.py`, `sec_filing.py`, and `sec_filing_search.py` all operate on 10-K filings but serve different consumers: the structured two-step pair gives the agent low-latency, item-level reads that fit inside a single chat turn; the pipeline-backed downloader produces persistent Markdown for downstream RAG ingestion; and `sec_filing_search.py` is the third surface — pinpoint/RAG queries answered via dense vector retrieval over that ingested Markdown, complementing rather than replacing the whole-section reads. All three share the `FilingType` enum, the `SECError` hierarchy, and edgartools-error classification through `backend.common.sec_core` — see [`sec_core.md`](../docs/sec_core.md) for the architecture diagram and the rationale that ties them together.
 
 ## Design Pattern
 - **Registry Pattern**: Tools are maintained in a central `TOOL_REGISTRY` dictionary, allowing the `Orchestrator` to dynamically load only the tools required by a specific version configuration.
@@ -25,4 +26,4 @@ Atomic, stateless tool functions and central registry. This module provides the 
 2. **Define Input Schema**: Create a Pydantic `BaseModel` to define the tool's input arguments and descriptions.
 3. **Apply Decorators**: Wrap the function with `@tool("tool_name", args_schema=YourInputModel)`. Do **not** add `@observe()` unless the tool meets one of the criteria in the Design Pattern note above; the `CallbackHandler` in `Orchestrator` already captures tool inputs, outputs, and duration automatically.
 4. **Register the Tool**: Import the new tool in `backend/agent_engine/tools/__init__.py` and add a `register_tool("tool_name", your_tool_function)` call inside `setup_tools()`.
-5. **Enable in Config**: Add the new `"tool_name"` to the `tools` list in one or more `orchestrator_config.yaml` files in the `versions/` directory.
+5. **Enable in Config**: Add the new `"tool_name"` to the `tools` list in one or more `orchestrator_config.yaml` files under `agents/profiles/`.

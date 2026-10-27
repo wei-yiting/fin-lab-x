@@ -2,6 +2,7 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ErrorBlock } from "../ErrorBlock";
+import { en as copy } from "@/lib/copy";
 
 describe("ErrorBlock", () => {
   test("displays friendly title only, raw detail hidden by default", () => {
@@ -28,14 +29,18 @@ describe("ErrorBlock", () => {
     const user = userEvent.setup();
     render(
       <ErrorBlock
-        friendly={{ title: "Server error.", detail: "stack trace ...", retriable: true }}
+        friendly={{
+          title: "Server error. Please try again.",
+          detail: "stack trace ...",
+          retriable: true,
+        }}
         onRetry={vi.fn()}
         source="pre-stream"
         errorClass="pre-stream-500"
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /show details/i }));
+    await user.click(screen.getByRole("button", { name: copy.errorBlock.showDetails }));
     expect(screen.getByTestId("error-raw-detail")).toHaveTextContent("stack trace ...");
   });
 
@@ -51,7 +56,7 @@ describe("ErrorBlock", () => {
         errorClass="pre-stream-404"
       />,
     );
-    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: copy.errorBlock.retry })).not.toBeInTheDocument();
   });
 
   test("long detail (>200 chars) is truncated with show-more affordance", async () => {
@@ -59,14 +64,14 @@ describe("ErrorBlock", () => {
     const longDetail = "x".repeat(500);
     render(
       <ErrorBlock
-        friendly={{ title: "Server error.", detail: longDetail, retriable: true }}
+        friendly={{ title: "Server error. Please try again.", detail: longDetail, retriable: true }}
         onRetry={vi.fn()}
         source="pre-stream"
         errorClass="pre-stream-500"
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /show details/i }));
+    await user.click(screen.getByRole("button", { name: copy.errorBlock.showDetails }));
     const detail = screen.getByTestId("error-raw-detail");
     expect(detail.textContent!.length).toBeLessThan(longDetail.length);
   });
@@ -91,7 +96,7 @@ describe("ErrorBlock", () => {
   test('outer container carries role="alert" so screen readers interrupt and announce errors', () => {
     render(
       <ErrorBlock
-        friendly={{ title: "Server error.", retriable: false }}
+        friendly={{ title: "Server error. Please try again.", retriable: false }}
         source="pre-stream"
         errorClass="pre-stream-500"
       />,
@@ -103,13 +108,15 @@ describe("ErrorBlock", () => {
   test("toggle button is not rendered when friendly.detail is absent", () => {
     render(
       <ErrorBlock
-        friendly={{ title: "Something went wrong.", retriable: false }}
+        friendly={{ title: "Something went wrong. Please try again.", retriable: false }}
         source="pre-stream"
         errorClass="unknown"
       />,
     );
     expect(screen.getByTestId("error-title")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /details/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: copy.errorBlock.showDetails }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId("error-raw-detail")).not.toBeInTheDocument();
   });
 });

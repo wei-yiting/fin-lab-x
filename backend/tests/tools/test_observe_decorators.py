@@ -12,6 +12,7 @@ from backend.agent_engine.tools.finnhub_tools import (
     finnhub_stock_quote,
 )
 from backend.agent_engine.tools.sec_filing import sec_filing_downloader
+from backend.agent_engine.tools.sec_filing_search import sec_filing_search
 from backend.agent_engine.tools.sec_filing_tools import (
     sec_filing_get_section,
     sec_filing_list_sections,
@@ -28,14 +29,23 @@ TOOLS_WITH_OBSERVE = [
     sec_filing_list_sections,
     sec_filing_get_section,
     sec_filing_downloader,
+    sec_filing_search,
 ]
+
+
+def _inner_callable(tool_func):
+    """Unwrap a StructuredTool to its underlying callable. Sync tools carry
+    it in .func; async tools (e.g. sec_filing_search) in .coroutine."""
+    return getattr(tool_func, "func", None) or getattr(
+        tool_func, "coroutine", tool_func
+    )
 
 
 def test_legacy_tools_have_no_observe():
     """Tools that rely on CallbackHandler auto-tracing must not wrap
     @observe — it would double-trace and break streaming."""
     for tool_func in TOOLS_WITHOUT_OBSERVE:
-        inner = getattr(tool_func, "func", tool_func)
+        inner = _inner_callable(tool_func)
         assert not hasattr(inner, "__wrapped__"), (
             f"{tool_func.name} unexpectedly has @observe() decorator"
         )
@@ -49,10 +59,11 @@ def test_new_sec_tools_have_observe():
         "sec_filing_list_sections",
         "sec_filing_get_section",
         "sec_filing_downloader",
+        "sec_filing_search",
     }
     actual_names = set()
     for tool_func in TOOLS_WITH_OBSERVE:
-        inner = getattr(tool_func, "func", tool_func)
+        inner = _inner_callable(tool_func)
         assert hasattr(inner, "__wrapped__"), (
             f"{tool_func.name} is missing @observe() decorator"
         )
@@ -70,6 +81,7 @@ def test_all_tools_have_valid_schema():
         "sec_filing_list_sections": "SecFilingListSectionsInput",
         "sec_filing_get_section": "SecFilingGetSectionInput",
         "sec_filing_downloader": "SecFilingDownloaderInput",
+        "sec_filing_search": "SecFilingSearchInput",
     }
 
     for tool_func in TOOLS_WITHOUT_OBSERVE + TOOLS_WITH_OBSERVE:

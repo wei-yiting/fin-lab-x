@@ -1,9 +1,9 @@
 ## Scope
-Workflow Profiles — the config directories the runtime loads. Each capability tier (`baseline` → `reader` → `quant` → `graph` → `analyst`) is realized as one Workflow Profile, storing the declarative definition for that agent's reasoning strategy and toolset. Only `baseline` is implemented; the rest are placeholders.
+Workflow Profiles — the config directories the runtime loads. Each capability tier (`baseline` → `reader` → `quant` → `graph` → `analyst`) is realized as one Workflow Profile, storing the declarative definition for that agent's reasoning strategy and toolset. `baseline` and `reader` are implemented; the rest are placeholders.
 
 ## Map
-- `baseline/`: Standard RAG financial analysis profile.
-- `reader/`: Profile optimized for long-context document synthesis and extraction.
+- `baseline/`: Phase 1 profile — whole-section SEC filing reads (no vectorization) plus basic quote/news tools.
+- `reader/`: Structured RAG over SEC 10-K filings (Qdrant dense retrieval) with chunk-level citations.
 - `quant/`: Profile focused on numerical reasoning and quantitative modeling.
 - `graph/`: Profile utilizing knowledge graph-based analysis.
 - `analyst/`: Comprehensive investment research assistant profile.

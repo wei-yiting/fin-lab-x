@@ -7,17 +7,31 @@ Dense vector retrieval pipeline for SEC 10-K filings. Chunks filing markdown wit
 ```bash
 # 1. Start Qdrant
 docker compose up -d qdrant
-
-# 2. Batch ingest filings (downloads from EDGAR automatically; requires EDGAR_IDENTITY in env)
-uv run python -m backend.scripts.embed_sec_filings NVDA AAPL INTC
-
-# Optional: pin a fiscal year (default: latest 10-K per ticker)
-uv run python -m backend.scripts.embed_sec_filings NVDA --year 2024
-
-# 3. Search from Python
-from backend.ingestion.sec_dense_pipeline_html.retriever import search
-chunks = await search(query="NVIDIA export control risks", top_k=10)
 ```
+
+```python
+# 2. Search from Python (JIT-ingests on a cache miss — see JIT Ingest Contract below)
+import asyncio
+
+from backend.ingestion.sec_dense_pipeline_html.retriever import search
+
+
+async def main() -> None:
+    chunks = await search(
+        query="NVIDIA export control risks", filters={"ticker": "NVDA"}, top_k=10
+    )
+    print(chunks)
+
+
+asyncio.run(main())
+```
+
+This pipeline is a frozen A/B baseline (deleted whole at sunset — see `backend/README.md`).
+`backend.scripts.embed_sec_filings` no longer targets it: batch script now targets the
+structured-contract pipeline exclusively. Operators backfilling this collection (e.g.
+pre-loading tickers for the A/B eval or a new eval dataset) use
+`backend.scripts.embed_sec_filings_html` instead — see `backend/scripts/README.md`. Beyond
+that operator path, this collection only grows via `search()`'s own JIT path on a cache miss.
 
 ## Key Components
 

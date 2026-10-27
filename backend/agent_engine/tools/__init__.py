@@ -21,6 +21,7 @@ def setup_tools() -> None:
         finnhub_stock_quote,
     )
     from backend.agent_engine.tools.sec_filing import sec_filing_downloader
+    from backend.agent_engine.tools.sec_filing_search import sec_filing_search
     from backend.agent_engine.tools.sec_filing_tools import (
         sec_filing_get_section,
         sec_filing_list_sections,
@@ -32,6 +33,7 @@ def setup_tools() -> None:
     register_tool("sec_filing_list_sections", sec_filing_list_sections)
     register_tool("sec_filing_get_section", sec_filing_get_section)
     register_tool("sec_filing_downloader", sec_filing_downloader)
+    register_tool("sec_filing_search", sec_filing_search)
 
     _tools_registered = True
 

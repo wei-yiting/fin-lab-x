@@ -1,4 +1,6 @@
+import { LanguageToggle } from "@/components/atoms/LanguageToggle";
 import { Badge } from "@/components/primitives/badge";
+import { useLocale } from "@/lib/locale";
 
 export function ChatHeader({
   onClear,
@@ -7,26 +9,33 @@ export function ChatHeader({
   onClear: () => void;
   messagesEmpty: boolean;
 }) {
+  const { copy } = useLocale();
   return (
     <header
       data-testid="chat-header"
-      className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-3 [&_*]:pointer-events-auto"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 px-4 py-3 [&_*]:pointer-events-auto"
     >
-      <div className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold text-foreground">FinLab-X</h1>
-        <Badge variant="outline" className="text-[10px] uppercase">
+      <div className="flex min-w-0 items-center gap-2">
+        <h1 className="whitespace-nowrap text-lg font-semibold text-foreground">FinLab-X</h1>
+        <Badge variant="outline" className="hidden text-[10px] uppercase sm:inline-flex">
           v1
         </Badge>
+        <span className="hidden text-sm text-muted-foreground sm:inline">
+          {copy.chatHeader.tagline}
+        </span>
       </div>
-      <button
-        data-testid="composer-clear-btn"
-        aria-label="Clear conversation"
-        disabled={messagesEmpty}
-        onClick={onClear}
-        className="rounded-md border border-[oklch(0.7282_0.1610_27.12/0.2)] bg-[oklch(0.7282_0.1610_27.12/0.08)] px-3.5 py-1.5 text-xs font-medium text-[oklch(0.7282_0.1610_27.12)] transition-all hover:border-[oklch(0.7282_0.1610_27.12/0.35)] hover:bg-[oklch(0.7282_0.1610_27.12/0.14)] disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Clear conversation
-      </button>
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <LanguageToggle />
+        <button
+          data-testid="composer-clear-btn"
+          aria-label={copy.chatHeader.clearConversationAriaLabel}
+          disabled={messagesEmpty}
+          onClick={onClear}
+          className="rounded-md border border-[oklch(0.7282_0.1610_27.12/0.2)] bg-[oklch(0.7282_0.1610_27.12/0.08)] whitespace-nowrap px-2.5 py-1.5 text-xs font-medium sm:px-3.5 text-[oklch(0.7282_0.1610_27.12)] transition-all hover:border-[oklch(0.7282_0.1610_27.12/0.35)] hover:bg-[oklch(0.7282_0.1610_27.12/0.14)] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {copy.chatHeader.clearConversation}
+        </button>
+      </div>
     </header>
   );
 }

@@ -19,6 +19,15 @@ from backend.ingestion.sec_text_pipeline.filing_models import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _unset_disable_jit(monkeypatch):
+    """Neutralize CI's global ``SEC_DISABLE_JIT=1`` so tests exercise the
+    JIT path by default. Tests that pin the disabled behavior re-set the
+    flag themselves via ``monkeypatch.setenv``, which runs after this
+    autouse fixture and therefore still wins."""
+    monkeypatch.delenv("SEC_DISABLE_JIT", raising=False)
+
+
 def numbered_text(prefix: str, count: int) -> str:
     """``count`` unique tokens sharing ``prefix`` — long bodies, no repeats."""
     return " ".join(f"{prefix}{i}" for i in range(count))

@@ -1,35 +1,85 @@
 import { PromptChip } from "@/components/atoms/PromptChip";
-import { Newspaper, DollarSign, BarChart3, FileText } from "lucide-react";
+import {
+  BadgeDollarSign,
+  Building2,
+  GitCompare,
+  Scale,
+  ShieldAlert,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react";
+import type { Copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
-const CHIPS = [
-  { icon: Newspaper, text: "Latest market news for NVDA" },
-  { icon: DollarSign, text: "Show AAPL stock quote" },
-  { icon: BarChart3, text: "Compare NVDA and AMD financials" },
-  { icon: FileText, text: "Summarize the latest 10-K of MSFT" },
-] as const;
+type ChipKey = keyof Copy["emptyState"]["chips"];
+type GroupLabelKey = "everydayGroupLabel" | "analystGroupLabel";
+
+// Plain-language questions first, research-grade ones second — the two
+// audiences the demo is shown to.
+const CHIP_GROUPS: ReadonlyArray<{
+  labelKey: GroupLabelKey;
+  chips: ReadonlyArray<{ key: ChipKey; icon: LucideIcon }>;
+}> = [
+  {
+    labelKey: "everydayGroupLabel",
+    chips: [
+      { key: "priceToday", icon: TrendingUp },
+      { key: "businessModel", icon: Building2 },
+      { key: "valuationCheck", icon: BadgeDollarSign },
+    ],
+  },
+  {
+    labelKey: "analystGroupLabel",
+    chips: [
+      { key: "riskVsNews", icon: ShieldAlert },
+      { key: "narrativeVsNumbers", icon: Scale },
+      { key: "crossCompanyDisclosure", icon: GitCompare },
+    ],
+  },
+];
 
 export function EmptyState({ onPickPrompt }: { onPickPrompt: (text: string) => void }) {
+  const { copy } = useLocale();
+  let chipIndex = 0;
   return (
-    <div
-      data-testid="empty-state"
-      className="flex flex-1 flex-col items-center justify-center px-4 py-12"
-    >
-      <h2 className="text-[28px] font-bold tracking-tight text-foreground">
-        What would you like to know?
-      </h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Ask about markets, companies, financials, or filings.
-      </p>
-      <div className="mt-8 grid w-full max-w-md grid-cols-2 gap-2">
-        {CHIPS.map((chip, i) => (
-          <PromptChip
-            key={i}
-            icon={chip.icon}
-            text={chip.text}
-            index={i}
-            onClick={() => onPickPrompt(chip.text)}
-          />
-        ))}
+    <div data-testid="empty-state" className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      {/* m-auto (not justify-center) keeps the top reachable when content overflows on short viewports */}
+      <div className="m-auto flex w-full flex-col items-center px-4 pb-8 pt-14 sm:py-12">
+        <h2 className="text-center text-[28px] font-bold tracking-tight text-foreground">
+          {copy.emptyState.heading}
+        </h2>
+        <p className="mt-2 max-w-xl text-center text-[15px] text-muted-foreground">
+          {copy.emptyState.subtext}
+        </p>
+        <div className="mt-8 flex w-full max-w-5xl flex-col gap-6">
+          {CHIP_GROUPS.map(({ labelKey, chips }) => (
+            <section
+              key={labelKey}
+              aria-label={copy.emptyState[labelKey]}
+              data-testid="prompt-chip-group"
+            >
+              <h3 className="mb-2.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {copy.emptyState[labelKey]}
+              </h3>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                {chips.map(({ key, icon }) => {
+                  const chip = copy.emptyState.chips[key];
+                  const index = chipIndex++;
+                  return (
+                    <PromptChip
+                      key={key}
+                      icon={icon}
+                      title={chip.title}
+                      text={chip.prompt}
+                      index={index}
+                      onClick={() => onPickPrompt(chip.prompt)}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   );

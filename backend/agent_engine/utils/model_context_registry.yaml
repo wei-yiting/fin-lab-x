@@ -13,3 +13,6 @@ gpt-5-mini:
 gpt-5-nano:
   max_input_tokens: 272000
   source: litellm
+gpt-5.6-luna:
+  max_input_tokens: 922000
+  source: litellm

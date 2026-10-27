@@ -213,7 +213,7 @@ def test_batch_cli_failure_isolation_and_summary(
         FilingNotFoundError,
         FilingType,
     )
-    from backend.scripts.embed_sec_filings import main
+    from backend.scripts.embed_sec_filings_html import main
     from qdrant_client import QdrantClient
 
     fixtures = {
@@ -237,7 +237,7 @@ def test_batch_cli_failure_isolation_and_summary(
     fake_pipeline.process.side_effect = fake_process
 
     with patch(
-        "backend.scripts.embed_sec_filings.SECFilingPipeline.create",
+        "backend.scripts.embed_sec_filings_html.SECFilingPipeline.create",
         return_value=fake_pipeline,
     ):
         exit_code = main(["NVDA", "FAIL_TICKER", "INTC"])

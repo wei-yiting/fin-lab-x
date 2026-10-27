@@ -40,7 +40,7 @@ The dense pipeline has two reachable surfaces:
 | Surface | Emits Langfuse traces? |
 |---|---|
 | `retriever.search()` — called during user query | Yes |
-| `vectorizer.ingest_filing()` — called from batch CLI (`embed_sec_filings.py`) or unit tests | No |
+| `vectorizer.ingest_filing()` — called from batch CLI (`embed_sec_filings_html.py`) or unit tests | No |
 
 Only `search()` carries `@observe(name="sec_retrieval")`. All helpers used inside `search()` — cache lookup, EDGAR download, chunking, embedding, upsert, query embedding — are plain functions that create spans via `traced_span()`, a context manager that **only emits when an outer OpenTelemetry trace is already active**.
 

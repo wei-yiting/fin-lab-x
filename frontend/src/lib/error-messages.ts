@@ -1,4 +1,5 @@
 import type { ErrorClass } from "@/models";
+import type { Copy } from "@/lib/copy";
 
 export interface ErrorContext {
   source: "pre-stream-http" | "mid-stream-sse" | "tool-output-error" | "network";
@@ -12,32 +13,43 @@ export interface FriendlyError {
   retriable: boolean;
 }
 
+/** Tables hold keys, not text, so the title resolves in the active locale at render time. */
+type ErrorTitleKey = {
+  [K in keyof Copy["errorMessages"]]: Copy["errorMessages"][K] extends string ? K : never;
+}[keyof Copy["errorMessages"]];
+
 interface PreStreamHttpEntry {
   class: ErrorClass;
-  title: string;
+  titleKey: ErrorTitleKey;
+  retriable: boolean;
+}
+
+interface PatternEntry {
+  pattern: RegExp;
+  titleKey: ErrorTitleKey;
   retriable: boolean;
 }
 
 export const preStreamHttpMap: Record<number, PreStreamHttpEntry> = {
   422: {
     class: "pre-stream-422",
-    title: "Couldn't regenerate that message. Please try again.",
+    titleKey: "regenerateFailed",
     retriable: true,
   },
   404: {
     class: "pre-stream-404",
-    title: "Conversation not found. Refresh to start a new one.",
+    titleKey: "conversationNotFound",
     retriable: false,
   },
   409: {
     class: "pre-stream-409",
-    title: "The system is busy. Please try again in a moment.",
+    titleKey: "sessionBusy",
     retriable: true,
   },
-  500: { class: "pre-stream-500", title: "Server error. Please try again.", retriable: true },
+  500: { class: "pre-stream-500", titleKey: "serverError", retriable: true },
 };
 
-const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boolean }> = [
+const toolOutputPatterns: PatternEntry[] = [
   {
     // Backend RunBudgetMiddleware sentinel — must be matched before
     // /rate limit/ so the budget message (which contains the phrase
@@ -45,84 +57,85 @@ const toolOutputPatterns: Array<{ pattern: RegExp; title: string; retriable: boo
     // through to the rate-limit case. Per-run budgets are not retriable
     // within the same request.
     pattern: /per-run tool-call budget reached/i,
-    title: "Tool-call budget reached for this request.",
+    titleKey: "toolBudgetReached",
     retriable: false,
   },
   {
     pattern: /rate limit/i,
-    title: "Too many requests. Please wait a moment and try again.",
+    titleKey: "tooManyRequests",
     retriable: true,
   },
-  { pattern: /not found/i, title: "We couldn't find that data.", retriable: false },
-  { pattern: /timeout/i, title: "The tool timed out. Please try again.", retriable: true },
+  { pattern: /not found/i, titleKey: "dataNotFound", retriable: false },
+  { pattern: /timeout/i, titleKey: "toolTimeout", retriable: true },
   {
     pattern: /permission denied|forbidden/i,
-    title: "Access denied for this resource.",
+    titleKey: "accessDenied",
     retriable: false,
   },
 ];
 
-const midStreamPatterns: Array<{ pattern: RegExp; title: string; retriable: boolean }> = [
+const midStreamPatterns: PatternEntry[] = [
   {
     pattern: /context length exceeded|token limit/i,
-    title: "This conversation is too long. Start a new chat to continue.",
+    titleKey: "conversationTooLong",
     retriable: false,
   },
   {
     pattern: /rate limit/i,
-    title: "The system is busy. Please try again in a moment.",
+    titleKey: "sessionBusy",
     retriable: true,
   },
 ];
 
 function matchPattern(
   rawMessage: string | undefined,
-  patterns: Array<{ pattern: RegExp; title: string; retriable: boolean }>,
-  fallback: { title: string; retriable: boolean },
-): { title: string; retriable: boolean } {
+  patterns: PatternEntry[],
+  fallback: Omit<PatternEntry, "pattern">,
+): Omit<PatternEntry, "pattern"> {
   if (rawMessage) {
-    for (const { pattern, title, retriable } of patterns) {
+    for (const { pattern, titleKey, retriable } of patterns) {
       if (pattern.test(rawMessage)) {
-        return { title, retriable };
+        return { titleKey, retriable };
       }
     }
   }
   return fallback;
 }
 
-export function toFriendlyError(ctx: ErrorContext): FriendlyError {
+export function toFriendlyError(ctx: ErrorContext, copy: Copy): FriendlyError {
   const detail = ctx.rawMessage ?? undefined;
+  const titles = copy.errorMessages;
 
   switch (ctx.source) {
     case "pre-stream-http": {
       const mapped = ctx.status !== undefined ? preStreamHttpMap[ctx.status] : undefined;
       if (mapped) {
-        return { title: mapped.title, retriable: mapped.retriable, detail };
+        return { title: titles[mapped.titleKey], retriable: mapped.retriable, detail };
       }
-      return { title: "Something went wrong. Please try again.", retriable: true, detail };
+      return { title: titles.preStreamFallback, retriable: true, detail };
     }
 
     case "network":
       return {
-        title: "Connection lost. Check your network and try again.",
+        title: titles.networkError,
         retriable: true,
         detail,
       };
 
     case "tool-output-error": {
-      const matched = matchPattern(ctx.rawMessage, toolOutputPatterns, {
-        title: "The tool failed to run. Please try again.",
+      const { titleKey, retriable } = matchPattern(ctx.rawMessage, toolOutputPatterns, {
+        titleKey: "toolFailedFallback",
         retriable: true,
       });
-      return { ...matched, detail };
+      return { title: titles[titleKey], retriable, detail };
     }
 
     case "mid-stream-sse": {
-      const matched = matchPattern(ctx.rawMessage, midStreamPatterns, {
-        title: "Something went wrong while generating the response. Please try again.",
+      const { titleKey, retriable } = matchPattern(ctx.rawMessage, midStreamPatterns, {
+        titleKey: "midStreamFallback",
         retriable: true,
       });
-      return { ...matched, detail };
+      return { title: titles[titleKey], retriable, detail };
     }
   }
 }

@@ -1,4 +1,5 @@
 import { describe, test, expect } from "vitest";
+import { en, zhTW } from "@/lib/copy";
 import {
   isReasoningPart,
   isToolPart,
@@ -172,14 +173,19 @@ describe("isChipExpanded — tail-only derivation with user override", () => {
 });
 
 describe("chipHeaderLabel", () => {
-  test("streaming: Thinking…, degraded to Still working… on stall", () => {
-    expect(chipHeaderLabel("streaming", 0, false)).toBe("Thinking…");
-    expect(chipHeaderLabel("streaming", 0, true)).toBe("Still working…");
+  test("streaming: copy.reasoningChip.thinkingLive, degraded to copy.reasoningChip.stalledLive on stall", () => {
+    expect(chipHeaderLabel("streaming", 0, false, en)).toBe("Thinking…");
+    expect(chipHeaderLabel("streaming", 0, true, en)).toBe("Still working…");
   });
 
   test("done / aborted carry the measured seconds; stall has no effect", () => {
-    expect(chipHeaderLabel("done", 7, true)).toBe("Thought for 7s");
-    expect(chipHeaderLabel("aborted", 3, false)).toBe("Stopped — thought for 3s");
+    expect(chipHeaderLabel("done", 7, true, en)).toBe("Thought for 7s");
+    expect(chipHeaderLabel("aborted", 3, false, en)).toBe("Stopped — thought for 3s");
+  });
+
+  test("labels come from the dictionary passed in", () => {
+    expect(chipHeaderLabel("streaming", 0, false, zhTW)).toBe("思考中…");
+    expect(chipHeaderLabel("done", 7, false, zhTW)).toBe("思考了 7 秒");
   });
 });
 

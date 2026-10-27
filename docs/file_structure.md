@@ -34,13 +34,14 @@ The core, independent AI logic. Designed to run independently of the FastAPI ser
 - **`agents/`**: Central reasoning engine (profile-agnostic Orchestrator).
   - `base.py`: Orchestrator built on LangChain's `create_agent` (ReAct loop) plus middleware (tool-call budget, tool error handling), prompt templating, regenerate support, and tracing wiring.
   - `config_loader.py`: Pydantic-validated profile config loader (YAML-based, `extra="forbid"`).
-  - `profiles/<name>/`: One directory per Workflow Profile (`baseline`, `reader`, `quant`, `graph`, `analyst`), each holding `orchestrator_config.yaml` + optional `system_prompt.md`. Only `baseline` is fully implemented; the rest are placeholder tiers.
+  - `profiles/<name>/`: One directory per Workflow Profile (`baseline`, `reader`, `quant`, `graph`, `analyst`), each holding `orchestrator_config.yaml` + optional `system_prompt.md`. `baseline` and `reader` are fully implemented; the rest are placeholder tiers.
 - **`tools/`**: Atomic, stateless functions for data retrieval.
   - `registry.py`: Global tool registry (`register_tool` / `get_tools_by_names`); `setup_tools()` is idempotent.
   - `finnhub_tools.py` + `finnhub_client.py`: Stock quote and basic financials (LangChain-free client).
   - `news_search.py`: Tavily financial news search with a trusted-domain allowlist.
   - `sec_filing_tools.py`: Two-step SEC access (`sec_filing_list_sections` / `sec_filing_get_section`).
   - `sec_filing.py`: Pipeline-backed SEC filing downloader tool.
+  - `sec_filing_search.py`: Dense-retrieval RAG tool (`sec_filing_search`) over SEC 10-Ks via Qdrant, reader-profile only.
 - **`streaming/`**: Three-layer streaming pipeline (see module README).
   - `domain_events_schema.py`: Frozen dataclass domain events (`TextDelta`, `ToolCall`, `Finish`, ...).
   - `event_mapper.py`: Stateful LangGraph-chunks → domain-events mapper.
@@ -63,7 +64,7 @@ Data ingestion pipelines that land source material into their respective stores.
 - **`sec_filing_pipeline_html/`**: Frozen A/B baseline (deleted whole at sunset). Downloads SEC 10-K HTML from EDGAR, converts to Markdown (heading promotion, cleanup), persists to `LocalFilingStore`. Single public entry: `SECFilingPipeline.process(ticker, filing_type, fiscal_year=None)`.
 - **`sec_dense_pipeline_html/`**: Frozen A/B baseline (deleted whole at sunset). Chunks filing Markdown, embeds via OpenAI, upserts into Qdrant. Idempotent per `(ticker, year)` commit markers ("committed or absent"). `retriever.search()` is the single trace root for RAG queries; supports JIT ingestion at question time.
 - **`sec_text_pipeline/`**: New structured parsing path — 10-K parsing on edgartools producing the frozen `ParsedFiling` schema (`filing_models.py`).
-- **`sec_dense_pipeline/`**: New structured ingest path — consumes `ParsedFiling`, per-block chunking into typed payloads, OpenAI embeddings, commit-marker lifecycle into the new-contract Qdrant collection. See module README.
+- **`sec_dense_pipeline/`**: New structured ingest + JIT retrieval path — consumes `ParsedFiling`, per-block chunking into typed payloads, OpenAI embeddings, commit-marker lifecycle into the new-contract Qdrant collection; `retriever.search()` serves JIT queries over it (fed in batch by `backend/scripts/embed_sec_filings.py`). See module README.
 - **`fundamentals_pipeline/`**: Foundation layer for structured quant data — DuckDB connection/schema (8 tables), Pydantic row DTOs, `upsert_rows()` column-level merge, `ingestion_run()` audit context manager, retry decorator, calendar-to-fiscal-period helper, error taxonomy, ticker universe YAML + loader. See module README for the full public API.
 
 ### 2.5 Cross-Pipeline Utilities (`backend/utils/`)

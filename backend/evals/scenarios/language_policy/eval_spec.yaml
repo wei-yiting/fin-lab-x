@@ -21,5 +21,7 @@ scorers:
     function: backend.evals.scenarios.language_policy.scorer.tool_arg_no_cjk
   - name: response_language
     function: backend.evals.scenarios.language_policy.scorer.response_language
+  - name: response_no_simplified_chars
+    function: backend.evals.scenarios.language_policy.scorer.response_no_simplified_chars
   - name: expected_tool_called
     function: backend.evals.scenarios.language_policy.scorer.expected_tool_called

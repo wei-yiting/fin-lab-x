@@ -14,6 +14,7 @@ import re
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from backend.common.retry import retry_transient
 from backend.common.sec_core import (
     TENK_STANDARD_TITLES,
     FetchedFiling,
@@ -106,6 +107,21 @@ def parse_filing(
     filing = ParsedFiling(metadata=metadata, items=items)
     store.save(filing)
     return filing
+
+
+@retry_transient
+def parse_filing_with_retry(
+    ticker: str, fiscal_year: int, force: bool = False
+) -> ParsedFiling:
+    """:func:`parse_filing` with a single retry on ``TransientError``.
+
+    The EDGAR fetch inside ``parse_filing`` is the one genuinely retryable
+    step of the pipeline's cold path (design-envelope §2 single-retry
+    policy, applied via the shared ``retry_transient`` decorator, ADR-0013).
+    Wraps the sync ``parse_filing`` directly; async callers run this via
+    ``asyncio.to_thread``.
+    """
+    return parse_filing(ticker, fiscal_year, force)
 
 
 # A candidate item heading: "Item" or ALL-CAPS "ITEM" (both appear as real

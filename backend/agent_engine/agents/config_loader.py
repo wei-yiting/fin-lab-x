@@ -14,6 +14,14 @@ class ModelConfig(BaseModel):
     (no ``:``) default to OpenAI. ``reasoning`` is the admin-declared
     reasoning capability: ``"on"`` / ``"off"`` / ``"unsupported"`` (the
     latter = never pass any reasoning-control kwarg to the bound model).
+    ``reasoning_effort`` is an optional strength override, only meaningful
+    when ``reasoning="on"``: OpenAI's ``reasoning.effort`` (e.g. ``"none"``,
+    ``"medium"``) or Gemini's ``thinking_level`` (e.g. ``"minimal"``,
+    ``"medium"``) — left untyped because the valid value set differs per
+    provider and model generation; ``_init_model`` maps it to the right
+    provider kwarg and rejects it outright for providers with no
+    effort-tier concept (Anthropic). Omitting it keeps each provider's
+    existing hardcoded default effort.
     The per-provider kwarg mapping, hard constraints (Anthropic budget and
     temperature rules, Gemini budget bounds), and empirically verified API
     caveats (including which models each state is valid for) are documented
@@ -27,6 +35,7 @@ class ModelConfig(BaseModel):
     temperature: float = 0.0
     reasoning: Literal["on", "off", "unsupported"] = "off"
     thinking_budget: int | None = None
+    reasoning_effort: str | None = None
 
     # ``name`` is parsed exactly once, here. Every consumer (_init_model's
     # provider branching and routing, context-window lookup, the registry
@@ -65,8 +74,11 @@ class WorkflowProfileConfig(BaseModel):
         model: LLM model configuration
         constraints: Runtime constraints. Currently enforced:
             - max_tool_calls_per_run (via ToolCallLimitMiddleware)
-        system_prompt: System prompt text, loaded from system_prompt.md
-            in the profile directory by ProfileConfigLoader
+        system_prompt: System prompt text. The profile-name constructor
+            loads it from a sibling system_prompt.md; load_from_dir()
+            injects it explicitly via its prompt_path argument instead
+            (used by benchmark/experiment configs that share one prompt
+            across several config directories).
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -109,15 +121,34 @@ class ProfileConfigLoader:
             WorkflowProfileConfig: Parsed configuration object
         """
         if self._config is None:
-            with open(self.config_path, "r") as f:
-                config_dict = yaml.safe_load(f)
-
             prompt_path = self.config_path.parent / "system_prompt.md"
-            if prompt_path.exists():
-                config_dict["system_prompt"] = prompt_path.read_text().strip()
-
-            self._config = WorkflowProfileConfig(**config_dict)
+            self._config = self._parse_config(
+                self.config_path, prompt_path if prompt_path.exists() else None
+            )
         return self._config
+
+    @staticmethod
+    def _parse_config(
+        config_path: Path, prompt_path: Optional[Path]
+    ) -> WorkflowProfileConfig:
+        """Read a profile YAML and construct its ``WorkflowProfileConfig``.
+
+        Shared by ``load()`` and ``load_from_dir()``: opens ``config_path``,
+        injects ``prompt_path``'s text as ``system_prompt`` when given, and
+        validates the result. Callers own *whether* a given ``prompt_path``
+        should exist — ``load()`` pre-filters to ``None`` when its
+        auto-discovered sibling ``system_prompt.md`` is absent (silent
+        skip); ``load_from_dir()`` passes its argument through unchanged (a
+        given path is expected to exist and fails loudly via
+        ``read_text()`` if it doesn't).
+        """
+        with open(config_path, "r") as f:
+            config_dict = yaml.safe_load(f)
+
+        if prompt_path is not None:
+            config_dict["system_prompt"] = prompt_path.read_text().strip()
+
+        return WorkflowProfileConfig(**config_dict)
 
     @property
     def config(self) -> WorkflowProfileConfig:
@@ -130,6 +161,34 @@ class ProfileConfigLoader:
     def tools(self) -> list[str]:
         """Get list of tool names for this profile."""
         return self.config.tools
+
+    @classmethod
+    def load_from_dir(
+        cls, config_dir: Path, *, prompt_path: Optional[Path] = None
+    ) -> WorkflowProfileConfig:
+        """Load a ``WorkflowProfileConfig`` from an arbitrary directory.
+
+        For benchmark/experiment configs that must NOT live under
+        ``profiles/`` — that directory is reserved for the product's
+        standing Workflow Profiles (validated, deployed defaults), while a
+        benchmark config is a one-off experiment variable. Reusing the same
+        YAML schema (and this loader) for both gets schema validation for
+        free without blurring that boundary: a benchmark config directory
+        still parses into a ``WorkflowProfileConfig``, it just doesn't get
+        to call itself a profile.
+
+        Unlike the profile-name constructor + ``load()``, this does NOT look
+        for a sibling ``system_prompt.md`` — a benchmark config directory is
+        expected to hold no prompt file at all, so that N configs sharing
+        one prompt can never drift into N slightly-different copies. Pass
+        ``prompt_path`` to inject the single canonical prompt explicitly;
+        omit it to load with no ``system_prompt`` override.
+        """
+        config_path = config_dir / "orchestrator_config.yaml"
+        if not config_path.exists():
+            raise FileNotFoundError(f"Config not found: {config_path}")
+
+        return cls._parse_config(config_path, prompt_path)
 
     @classmethod
     def list_available_profiles(cls) -> list[str]:

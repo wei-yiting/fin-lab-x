@@ -1,4 +1,4 @@
-"""Shared utilities for the SEC dense pipeline (vectorizer + retriever).
+"""Shared utilities for the SEC dense pipeline (vectorizer + retriever + JIT).
 
 Deliberately duplicates the marker/ticker helpers of the frozen
 ``sec_dense_pipeline_html`` baseline instead of importing them: the frozen
@@ -10,7 +10,19 @@ from __future__ import annotations
 
 from uuid import NAMESPACE_DNS, uuid5
 
-from qdrant_client import QdrantClient, models
+from qdrant_client import AsyncQdrantClient, models
+
+from backend.common.sec_core import SECError
+
+
+class EmbeddingServiceError(SECError):
+    """Embedding failed — at the query-embed step or inside a JIT ingest.
+
+    Lives here (not in ``retriever``) because both the retrieval and ingest
+    sides raise it, and ``vectorizer`` must not import from ``retriever``
+    (the dependency points the other way).
+    """
+
 
 # Payload ``status`` values that mark a commit-marker point. Content chunks
 # never carry a ``status`` field, so matching on these values identifies
@@ -47,22 +59,26 @@ def marker_status_condition() -> models.FieldCondition:
     )
 
 
-def check_commit_marker_complete(
-    client: QdrantClient, collection: str, ticker: str, fiscal_year: int
+async def async_check_commit_marker_complete(
+    client: AsyncQdrantClient, collection: str, ticker: str, fiscal_year: int
 ) -> bool:
     """Return True iff a 'complete' commit marker exists for (ticker, fiscal_year).
 
-    Sync Qdrant client only — the vector-search and JIT paths use the sync
-    client. Catches all exceptions and returns False so that a transient lookup
-    failure is treated as a cache miss (caller will re-ingest), not as an
-    error that aborts the search.
+    Returns False only when the retrieve call succeeds and no complete
+    marker is found (empty result, or a marker whose status isn't
+    'complete') — a genuine "not ingested yet" state. A Qdrant lookup
+    failure (transport, HTTP, or response-validation) propagates to the
+    caller instead of being folded into that same False, so a permanent
+    failure is never silently treated as "nothing ingested" and driven into
+    an unnecessary re-ingest.
+
+    Async-only, matching the pipeline's async-end-to-end JIT path — unlike
+    the frozen ``_html`` baseline which mixed a sync Qdrant client into an
+    async ``search()``.
     """
-    try:
-        points = client.retrieve(
-            collection_name=collection,
-            ids=[commit_marker_id(ticker, fiscal_year)],
-            with_payload=True,
-        )
-        return len(points) > 0 and points[0].payload.get("status") == "complete"
-    except Exception:
-        return False
+    points = await client.retrieve(
+        collection_name=collection,
+        ids=[commit_marker_id(ticker, fiscal_year)],
+        with_payload=True,
+    )
+    return bool(points) and (points[0].payload or {}).get("status") == "complete"

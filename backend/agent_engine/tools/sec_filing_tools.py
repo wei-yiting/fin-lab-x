@@ -55,16 +55,18 @@ def _derive_item_from_name(name: str) -> str | None:
     return None
 
 
+# Language sandwich around English filing content. Deliberately names NO
+# language and never says "not English": an earlier wording ("e.g. 繁體中文 …,
+# not English"), repeated once per SEC tool call, flipped gpt-4o-mini into
+# answering English questions in Chinese. The only anchor is the user's own
+# message.
 _LANGUAGE_DIRECTIVE_PRE = (
-    "[LANGUAGE DIRECTIVE] The following SEC filing section is in English. "
-    "When answering the user, respond in the user's original language per the "
-    "LANGUAGE POLICY in your system prompt. Do NOT switch to English just because "
-    "this content is in English."
+    "[LANGUAGE DIRECTIVE] Write your final answer in the same language as the "
+    "user's question."
 )
 _LANGUAGE_DIRECTIVE_POST = (
-    "[LANGUAGE DIRECTIVE] End of English filing content. "
-    "Reminder: respond to the user in their original language (e.g. 繁體中文 if the "
-    "user wrote in Chinese), not English."
+    "[LANGUAGE DIRECTIVE] Reminder: write your final answer in the same language "
+    "as the user's question."
 )
 
 
@@ -88,7 +90,7 @@ def _build_reading_guide(fiscal_year: int) -> str:
         f"- Pass fiscal_year={fiscal_year} explicitly to sec_filing_get_section so both calls hit the same cached filing.\n"
         '- Section keys are normalized item numbers (e.g. "1", "1a", "7", "7a"). Use the Key column above.\n'
         "- Stub sections (is_stub=true) have content incorporated by reference from another filing (typically DEF 14A proxy); fetching returns a brief notice.\n"
-        "- If a section's char_count is large, summarize the most relevant passages within the tool budget — sec_filing_search (RAG) is planned for large sections.\n"
+        "- If a section's char_count is large and you only need specific facts from it (pinpoint question), and a sec_filing_search tool is available in your toolset, prefer it with a focused query instead of reading the whole section.\n"
         "- This table of contents is stable; do NOT call sec_filing_list_sections again for the same (ticker, fiscal_year) in this conversation. Issue multiple sec_filing_get_section calls instead."
     )
 

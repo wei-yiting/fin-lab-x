@@ -2,7 +2,7 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ErrorBlock } from "../ErrorBlock";
-import { copy } from "@/lib/copy";
+import { en as copy } from "@/lib/copy";
 
 describe("ErrorBlock", () => {
   test("displays friendly title only, raw detail hidden by default", () => {

@@ -161,7 +161,7 @@ _Avoid_: defer-to-ready (superseded name)
 ## Frontend
 
 **UI Copy**:
-The centralized English text for every system-authored UI surface — status words, buttons, error titles, tooltips, modal headers, form validation, aria-labels — held in one domain-nested module, hardcoded with no i18n framework or language switch. Excludes user-generated content (chat messages, LLM replies) and backend-originated error text (HTTP error `detail`, sanitized tool errors), both of which keep their original wording.
+The centralized text for every system-authored UI surface — status words, buttons, error titles, tooltips, modal headers, form validation, aria-labels — held in one domain-nested module as one same-shaped dictionary per **Locale** (`en`, the default, and `zh-TW`), with no i18n framework. The user picks the locale with the header language toggle; the choice persists in `localStorage` and only changes UI Copy, never existing messages. Excludes user-generated content (chat messages, LLM replies) and backend-originated error text (HTTP error `detail`, sanitized tool errors), both of which keep their original wording.
 _Avoid_: strings (collides with the `string` type), content (collides with SEC filing/document content)
 
 ## Design calibration

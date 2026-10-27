@@ -1,10 +1,20 @@
 /**
- * Centralized UI Copy (see CONTEXT.md "UI Copy"). Grouped by domain concept,
- * not by component location. Excludes user-generated/model content and any
- * text that originates from the backend (HTTP error `detail`, SSE error
- * messages, sanitized tool errors) — those keep their original wording.
+ * Centralized UI Copy (see CONTEXT.md "UI Copy"), one dictionary per locale.
+ * Grouped by domain concept, not by component location. Excludes
+ * user-generated/model content and any text that originates from the backend
+ * (HTTP error `detail`, SSE error messages, sanitized tool errors) — those
+ * keep their original wording.
+ *
+ * Components read the active dictionary through `useLocale()`; `zhTW` is
+ * typed as `Copy`, so a missing or extra key fails `tsc`.
  */
-export const copy = {
+export type Locale = "en" | "zh-TW";
+
+export const en = {
+  meta: {
+    documentTitle: "FinLab-X — US Equity Research Agent",
+  },
+
   activityIndicator: {
     thinking: "Thinking",
     stalled: "Still working",
@@ -66,6 +76,7 @@ export const copy = {
     tagline: "US Equity Research Agent",
     clearConversation: "Clear conversation",
     clearConversationAriaLabel: "Clear conversation",
+    languageGroupAriaLabel: "Interface language",
   },
 
   composer: {
@@ -120,4 +131,130 @@ export const copy = {
   chatPanel: {
     responseComplete: "Response complete",
   },
-} as const;
+};
+
+export type Copy = typeof en;
+
+export const zhTW: Copy = {
+  meta: {
+    documentTitle: "FinLab-X — 美股研究 AI Agent",
+  },
+
+  activityIndicator: {
+    thinking: "思考中",
+    stalled: "仍在處理中",
+  },
+
+  reasoningChip: {
+    thinkingLive: "思考中…",
+    stalledLive: "仍在處理中…",
+    thoughtFor: (seconds) => `思考了 ${seconds} 秒`,
+    stoppedThoughtFor: (seconds) => `已停止 — 思考了 ${seconds} 秒`,
+    toggleAriaLabel: (headerLabel, showBody) =>
+      `${headerLabel} — ${showBody ? "收合" : "展開"}推理過程`,
+  },
+
+  errorBlock: {
+    showDetails: "顯示詳情",
+    hideDetails: "隱藏詳情",
+    showMore: "顯示更多",
+    retry: "重試",
+    retryAriaLabel: "重試",
+  },
+
+  errorMessages: {
+    regenerateFailed: "無法重新產生這則回覆，請再試一次。",
+    conversationNotFound: "找不到這個對話，請重新整理頁面以開始新對話。",
+    sessionBusy: "系統忙碌中，請稍後再試一次。",
+    serverError: "伺服器發生錯誤，請再試一次。",
+    preStreamFallback: "發生錯誤，請再試一次。",
+    networkError: "連線中斷，請檢查網路連線後再試一次。",
+    toolBudgetReached: "這次請求的工具呼叫次數已達上限。",
+    tooManyRequests: "請求過於頻繁，請稍候片刻後再試。",
+    dataNotFound: "找不到相關資料。",
+    toolTimeout: "工具執行逾時，請再試一次。",
+    accessDenied: "沒有權限存取這項資源。",
+    toolFailedFallback: "工具執行失敗，請再試一次。",
+    conversationTooLong: "這段對話已經太長，請開啟新對話繼續。",
+    midStreamFallback: "產生回覆時發生錯誤，請再試一次。",
+    httpStatusFallback: (status) => `HTTP ${status}`,
+  },
+
+  toolStatus: {
+    running: (toolName) => `執行 ${toolName} 中…`,
+    completed: (toolName) => `${toolName} 已完成`,
+    error: (toolName) => `${toolName} 發生錯誤`,
+    aborted: "已中止",
+  },
+
+  toolDetail: {
+    input: "輸入",
+    output: "輸出",
+    error: "錯誤",
+  },
+
+  toolCard: {
+    toggleDetailsAriaLabel: "切換工具詳細資訊",
+  },
+
+  chatHeader: {
+    tagline: "美股研究 AI Agent",
+    clearConversation: "清除對話",
+    clearConversationAriaLabel: "清除對話",
+    languageGroupAriaLabel: "介面語言",
+  },
+
+  composer: {
+    inputAriaLabel: "訊息輸入框",
+    inputPlaceholder: "詢問美國上市公司的財報、申報文件或新聞…",
+    stopAriaLabel: "停止回應",
+    sendAriaLabel: "傳送訊息",
+    disclaimer: "AI 生成的回覆可能不準確，重要資訊請自行查證。",
+  },
+
+  emptyState: {
+    heading: "研究任何一檔美股",
+    subtext: "AI 研究 Agent 會讀取 SEC 10-K 年報、即時市場資料與近期新聞，回答時附上引用來源。",
+    chips: {
+      riskVsNews: {
+        title: "風險揭露 vs. 近期新聞",
+        prompt:
+          "NVIDIA 在最新 10-K 揭露的出口管制與中國相關風險中，哪些已經反映在近期新聞裡，哪些仍只是潛在風險？請逐項引用 10-K 與新聞來源。",
+      },
+      narrativeVsNumbers: {
+        title: "經營團隊說法 vs. 實際數字",
+        prompt:
+          "Microsoft 將雲端業務成長歸功於 AI 需求。它的營收成長與毛利率趨勢是否支持這個說法？還是 AI 基礎建設支出正在侵蝕毛利率？",
+      },
+      crossCompanyDisclosure: {
+        title: "跨公司法規風險比較",
+        prompt:
+          "比較 Apple 與 Alphabet 在最新 10-K 中揭露的反托拉斯風險：各自點名了哪些具體案件？哪一家的營收受到更直接的威脅？",
+      },
+      bearCaseAudit: {
+        title: "經證據檢驗的看空論點",
+        prompt:
+          "以 Tesla 目前的估值，根據其 10-K 風險因子、基本面與近期新聞建立看空論點，並指出哪些常見的看空說法缺乏證據支持。",
+      },
+    },
+  },
+
+  interruptedMarker: {
+    label: "已中斷",
+  },
+
+  regenerateButton: {
+    label: "重新產生",
+    ariaLabel: "重新產生回覆",
+  },
+
+  sources: {
+    heading: "資料來源",
+  },
+
+  chatPanel: {
+    responseComplete: "回覆已完成",
+  },
+};
+
+export const copies: Record<Locale, Copy> = { en, "zh-TW": zhTW };

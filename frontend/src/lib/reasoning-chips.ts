@@ -1,7 +1,7 @@
 import { isReasoningUIPart, isToolUIPart } from "ai";
 import type { UIDataTypes, UIMessagePart, UITools } from "ai";
 import { hasVisibleReplyText } from "@/lib/markdown-sources";
-import { copy } from "@/lib/copy";
+import type { Copy } from "@/lib/copy";
 
 /**
  * Cast target at the delegation boundary below. The local predicates keep
@@ -118,7 +118,12 @@ export function isChipExpanded(chipState: ChipState, override: boolean | undefin
   return override ?? chipState === "streaming";
 }
 
-export function chipHeaderLabel(chipState: ChipState, seconds: number, stalled: boolean): string {
+export function chipHeaderLabel(
+  chipState: ChipState,
+  seconds: number,
+  stalled: boolean,
+  copy: Copy,
+): string {
   if (chipState === "streaming") {
     return stalled ? copy.reasoningChip.stalledLive : copy.reasoningChip.thinkingLive;
   }

@@ -1,4 +1,4 @@
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 interface ActivityPlaceholderProps {
   /** Swaps in the degraded copy; driven by the global stall stopwatch. */
@@ -16,6 +16,7 @@ interface ActivityPlaceholderProps {
  * elements.
  */
 export function ActivityPlaceholder({ stalled }: ActivityPlaceholderProps) {
+  const { copy } = useLocale();
   return (
     <div
       data-testid="activity-placeholder"

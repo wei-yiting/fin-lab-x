@@ -1,7 +1,12 @@
 import { ChatPanel } from "@/components/pages/ChatPanel";
+import { LocaleProvider } from "@/lib/LocaleProvider";
 
 function App() {
-  return <ChatPanel />;
+  return (
+    <LocaleProvider>
+      <ChatPanel />
+    </LocaleProvider>
+  );
 }
 
 export default App;

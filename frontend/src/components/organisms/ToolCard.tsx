@@ -8,7 +8,7 @@ import { ToolDetail } from "@/components/molecules/ToolDetail";
 import { toFriendlyError } from "@/lib/error-messages";
 import { isRunningToolState } from "@/models";
 import type { ToolUIState } from "@/models";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 export interface ToolPart {
   type: string;
@@ -35,12 +35,13 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ toolPart, isAborted, progressText }: ToolCardProps) {
+  const { copy } = useLocale();
   const visualState: ToolUIState =
     isAborted && isRunningToolState(toolPart.state) ? "aborted" : (toolPart.state as ToolUIState);
 
   const friendly =
     toolPart.state === "output-error" && toolPart.errorText
-      ? toFriendlyError({ source: "tool-output-error", rawMessage: toolPart.errorText })
+      ? toFriendlyError({ source: "tool-output-error", rawMessage: toolPart.errorText }, copy)
       : null;
 
   return (

@@ -42,6 +42,7 @@ Filter with `pnpm exec playwright test --grep @tag-name`.
 | pre-stream 409 surfaces retriable 'system busy' error                                                  | `@critical`, `@regression` |
 | mid-stream error preserves partial text + surfaces non-retriable inline error                          | `@critical`, `@regression` |
 | page refresh produces new chatId and clean state                                                       | `@critical`, `@regression` |
+| language toggle renders starter chips in both locales and survives a reload                            | `@critical`, `@regression` |
 | regenerate failure → retry succeeds without duplicate history                                          | `@critical`, `@regression` |
 | stop preserves partial text and resets Composer                                                        | `@critical`, `@regression` |
 | stop during reasoning collapses to a copy.reasoningChip.stoppedThoughtFor half-chip, resend runs clean | `@critical`, `@regression` |

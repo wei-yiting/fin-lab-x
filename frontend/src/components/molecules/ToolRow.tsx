@@ -1,7 +1,8 @@
 import { StatusDot } from "@/components/atoms/StatusDot";
 import { ChevronRight } from "lucide-react";
 import type { ToolUIState } from "@/models";
-import { copy } from "@/lib/copy";
+import type { Copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 function stateToStatusDot(state: ToolUIState): "running" | "success" | "error" | "aborted" {
   switch (state) {
@@ -18,6 +19,7 @@ function stateToStatusDot(state: ToolUIState): "running" | "success" | "error" |
 }
 
 function stateLabel(
+  copy: Copy,
   state: ToolUIState,
   toolName: string,
   progressText?: string,
@@ -44,11 +46,12 @@ interface ToolRowProps {
 }
 
 export function ToolRow({ visualState, toolName, progressText, friendlyTitle }: ToolRowProps) {
+  const { copy } = useLocale();
   return (
     <div className="flex items-center gap-2 py-1.5 px-2 text-sm">
       <StatusDot state={stateToStatusDot(visualState)} />
       <span className="truncate text-muted-foreground">
-        {stateLabel(visualState, toolName, progressText, friendlyTitle)}
+        {stateLabel(copy, visualState, toolName, progressText, friendlyTitle)}
       </span>
       <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform [[data-state=open]_&]:rotate-90" />
     </div>

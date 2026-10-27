@@ -1,4 +1,5 @@
 import { describe, test, expect } from "vitest";
+import { en, zhTW } from "@/lib/copy";
 import { toFriendlyError, type ErrorContext } from "../error-messages";
 
 describe("toFriendlyError — pre-stream HTTP errors", () => {
@@ -9,17 +10,20 @@ describe("toFriendlyError — pre-stream HTTP errors", () => {
     [500, "Server error. Please try again.", true],
     [503, "Something went wrong. Please try again.", true],
   ])('status %d → "%s" (retriable: %s)', (status, expectedTitle, expectedRetriable) => {
-    const result = toFriendlyError({ source: "pre-stream-http", status });
+    const result = toFriendlyError({ source: "pre-stream-http", status }, en);
     expect(result.title).toBe(expectedTitle);
     expect(result.retriable).toBe(expectedRetriable);
   });
 });
 
 test("network failure → connection-lost message", () => {
-  const result = toFriendlyError({
-    source: "network",
-    rawMessage: "Failed to fetch",
-  });
+  const result = toFriendlyError(
+    {
+      source: "network",
+      rawMessage: "Failed to fetch",
+    },
+    en,
+  );
   expect(result.title).toBe("Connection lost. Check your network and try again.");
   expect(result.retriable).toBe(true);
   expect(result.detail).toBe("Failed to fetch");
@@ -46,10 +50,13 @@ describe("toFriendlyError — tool-output-error pattern matching", () => {
     ["Permission denied (403)", "Access denied for this resource.", false],
     ["Some unknown error", "The tool failed to run. Please try again.", true],
   ])('rawMessage "%s" → "%s"', (rawMessage, expectedTitle, expectedRetriable) => {
-    const result = toFriendlyError({
-      source: "tool-output-error",
-      rawMessage,
-    });
+    const result = toFriendlyError(
+      {
+        source: "tool-output-error",
+        rawMessage,
+      },
+      en,
+    );
     expect(result.title).toBe(expectedTitle);
     expect(result.retriable).toBe(expectedRetriable);
     expect(result.detail).toBe(rawMessage);
@@ -71,10 +78,13 @@ describe("toFriendlyError — mid-stream-sse pattern matching", () => {
       true,
     ],
   ])('mid-stream rawMessage "%s" → "%s"', (rawMessage, expectedTitle, expectedRetriable) => {
-    const result = toFriendlyError({
-      source: "mid-stream-sse",
-      rawMessage,
-    });
+    const result = toFriendlyError(
+      {
+        source: "mid-stream-sse",
+        rawMessage,
+      },
+      en,
+    );
     expect(result.title).toBe(expectedTitle);
     expect(result.retriable).toBe(expectedRetriable);
   });
@@ -90,16 +100,30 @@ describe("toFriendlyError — invariants", () => {
       { source: "mid-stream-sse", rawMessage: "random" },
     ];
     for (const ctx of cases) {
-      const result = toFriendlyError(ctx);
+      const result = toFriendlyError(ctx, en);
       expect(result.title.length).toBeLessThanOrEqual(80);
       expect(result.title.length).toBeGreaterThan(0);
     }
   });
 
   test("detail is set only when rawMessage is provided", () => {
-    expect(toFriendlyError({ source: "pre-stream-http", status: 422 }).detail).toBeUndefined();
+    expect(toFriendlyError({ source: "pre-stream-http", status: 422 }, en).detail).toBeUndefined();
     expect(
-      toFriendlyError({ source: "pre-stream-http", status: 422, rawMessage: "x" }).detail,
+      toFriendlyError({ source: "pre-stream-http", status: 422, rawMessage: "x" }, en).detail,
     ).toBe("x");
+  });
+});
+
+describe("toFriendlyError — locale", () => {
+  test("titles resolve from the dictionary passed in; detail stays as received", () => {
+    const ctx: ErrorContext = { source: "pre-stream-http", status: 409, rawMessage: "busy" };
+    expect(toFriendlyError(ctx, zhTW)).toEqual({
+      title: "系統忙碌中，請稍後再試一次。",
+      retriable: true,
+      detail: "busy",
+    });
+    expect(
+      toFriendlyError({ source: "tool-output-error", rawMessage: "Request timeout" }, zhTW).title,
+    ).toBe("工具執行逾時，請再試一次。");
   });
 });

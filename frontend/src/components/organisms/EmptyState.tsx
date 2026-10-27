@@ -1,15 +1,19 @@
 import { PromptChip } from "@/components/atoms/PromptChip";
-import { ShieldAlert, Scale, GitCompare, TrendingDown } from "lucide-react";
-import { copy } from "@/lib/copy";
+import { ShieldAlert, Scale, GitCompare, TrendingDown, type LucideIcon } from "lucide-react";
+import type { Copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
-const CHIPS = [
-  { icon: ShieldAlert, ...copy.emptyState.chips.riskVsNews },
-  { icon: Scale, ...copy.emptyState.chips.narrativeVsNumbers },
-  { icon: GitCompare, ...copy.emptyState.chips.crossCompanyDisclosure },
-  { icon: TrendingDown, ...copy.emptyState.chips.bearCaseAudit },
-] as const;
+type ChipKey = keyof Copy["emptyState"]["chips"];
+
+const CHIPS: ReadonlyArray<{ key: ChipKey; icon: LucideIcon }> = [
+  { key: "riskVsNews", icon: ShieldAlert },
+  { key: "narrativeVsNumbers", icon: Scale },
+  { key: "crossCompanyDisclosure", icon: GitCompare },
+  { key: "bearCaseAudit", icon: TrendingDown },
+];
 
 export function EmptyState({ onPickPrompt }: { onPickPrompt: (text: string) => void }) {
+  const { copy } = useLocale();
   return (
     <div data-testid="empty-state" className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       {/* m-auto (not justify-center) keeps the top reachable when content overflows on short viewports */}
@@ -21,16 +25,19 @@ export function EmptyState({ onPickPrompt }: { onPickPrompt: (text: string) => v
           {copy.emptyState.subtext}
         </p>
         <div className="mt-8 grid w-full max-w-4xl grid-cols-1 gap-3 md:grid-cols-2">
-          {CHIPS.map((chip, i) => (
-            <PromptChip
-              key={i}
-              icon={chip.icon}
-              title={chip.title}
-              text={chip.prompt}
-              index={i}
-              onClick={() => onPickPrompt(chip.prompt)}
-            />
-          ))}
+          {CHIPS.map(({ key, icon }, i) => {
+            const chip = copy.emptyState.chips[key];
+            return (
+              <PromptChip
+                key={key}
+                icon={icon}
+                title={chip.title}
+                text={chip.prompt}
+                index={i}
+                onClick={() => onPickPrompt(chip.prompt)}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

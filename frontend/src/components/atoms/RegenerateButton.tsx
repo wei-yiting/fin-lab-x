@@ -1,8 +1,9 @@
 import { Button } from "@/components/primitives/button";
 import { RefreshCw } from "lucide-react";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 export function RegenerateButton({ onRegenerate }: { onRegenerate: () => void }) {
+  const { copy } = useLocale();
   return (
     <Button
       variant="outline"

@@ -1,0 +1,8 @@
+﻿id,question,companies,expected_tickers,finnhub_quote,finnhub_financials,tavily,sec_10k,coverage_gap,notes
+1,特斯拉這波利空到底比較像短期衝擊，還是已經傷到長期投資論點？,Tesla,TSLA,可接受,可接受,必要,必要,否,判斷長期論點要看利空打到的事業佔多少（10-K 營收結構）；報價代表市場對短期衝擊的反應
+2,迪士尼最近這些麻煩，真正該看串流、票房，還是樂園業務的訊號？,Disney,DIS,不必要,不必要,必要,必要,否,事業部拆分只在 10-K；Finnhub 只有公司整體數字
+3,波音最近的問題主要卡在監管、交付，還是需求面？,Boeing,BA,不必要,不必要,必要,必要,否,問原因（R4）；10-K 有 backlog 與 FAA 相關揭露
+4,最近 AI 產業循環跟出口限制的雜訊很多，台積電和艾司摩爾誰比較直接暴露？如果證據不夠也請直說。,TSMC / ASML Holding,"TSM (20-F), ASML (20-F)",不必要,不必要,必要,必要,是,TSMC、ASML 申報 20-F，SEC tool 只支援 10-K（tool 不支援）
+5,英特爾最近這些負面新聞，已經足夠代表基本面真的惡化了嗎？,Intel,INTC,不必要,擇一必要,必要,擇一必要,否,問「有沒有惡化」＝趨勢（R4）；INTC 10-K 讀不到 Item 7
+13,分析 Visa 跟 Mastercard 的官方揭露，有沒有直接支持「監管會壓縮刷卡網路生意的獲利能力」這個說法。,Visa / Mastercard,"V, MA",不必要,不必要,不必要,必要,否,題目限定官方揭露（R5）；查外部監管說法正是本題要測的 overreach 失敗；兩家公司，計 entity coverage
+29,分析波音和空中巴士在目前供應鏈與監管壓力下，哪一邊比較能撐過這一段亂流。,Boeing / Airbus,"BA, AIR.PA (非 SEC)",不必要,可接受,必要,必要,部分（Airbus）,波音同第 3 題；Airbus 非 SEC 申報、Finnhub 403。routing 照常計算，SEC 的 entity coverage 只要求 BA；Airbus 部分改用 coverage gap 檢查（是否說明證據不足、是否反覆呼叫必定失敗的 tool）

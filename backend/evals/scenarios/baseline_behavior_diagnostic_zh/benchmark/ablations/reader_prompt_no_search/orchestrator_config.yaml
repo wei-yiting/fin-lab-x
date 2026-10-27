@@ -1,0 +1,19 @@
+version: "0.1.0"
+name: "ablation-reader-prompt-no-search"
+description: "Prompt x tool 2x2, cell D (prompt effect only): luna_medium's exact model/constraints and 5 baseline tools, with the reader profile's prompt. The prompt is injected verbatim (agent_engine/agents/profiles/reader/system_prompt.md via ProfileConfigLoader.load_from_dir(prompt_path=...)), so it still names sec_filing_search, which this arm does not have; calls to it are recorded as unknown-tool attempts."
+
+tools:
+  - finnhub_stock_quote
+  - finnhub_company_basic_financials
+  - tavily_financial_search
+  - sec_filing_list_sections
+  - sec_filing_get_section
+
+model:
+  name: "openai:gpt-5.6-luna"
+  temperature: 0.0
+  reasoning: "on"
+  reasoning_effort: "medium"
+
+constraints:
+  max_tool_calls_per_run: 10

@@ -1,0 +1,1562 @@
+{
+  "arms": {
+    "luna_medium": {
+      "runs": 90,
+      "task_errors": 0,
+      "health": [
+        0.9111111111111111,
+        0.8222222222222222,
+        0.9888888888888889
+      ],
+      "sec_path_runs": {
+        "get_section_only": 67,
+        "neither": 23
+      },
+      "hard_tool_errors_per_run": 0.12222222222222222,
+      "runs_at_tool_budget": 9,
+      "unknown_tool_runs": 0,
+      "unknown_tool_calls": 0,
+      "unknown_tools": [],
+      "recall": [
+        0.8850574712643678,
+        0.7701149425287356,
+        0.9885057471264368
+      ],
+      "recall_success_only": [
+        0.8850574712643678,
+        0.7701149425287356,
+        0.9885057471264368
+      ],
+      "unnecessary": [
+        0.3448275862068966,
+        0.1954022988505747,
+        0.5057471264367817
+      ],
+      "entity_coverage": [
+        0.8333333333333334,
+        0.6388888888888888,
+        1.0
+      ],
+      "sec_required_runs": 69,
+      "sec_skips": 10,
+      "sec_skips_no_success": 10,
+      "sec_skips_at_budget": 0,
+      "sec_skip_rows": {
+        "3": 3,
+        "10": 1,
+        "14": 3,
+        "26": 3
+      },
+      "sec_evidence_tokens": [
+        39392.166666666664,
+        24933.244444444445,
+        59296.299999999996
+      ],
+      "e2e_s": [
+        32.97314547128626,
+        30.59702949257335,
+        35.58597079960293
+      ],
+      "est_cost_usd": [
+        0.013920444444444445,
+        0.009200222222222222,
+        0.020743444444444446
+      ],
+      "total_cost_usd": 1.25284
+    },
+    "reader_luna_medium": {
+      "runs": 90,
+      "task_errors": 0,
+      "health": [
+        0.9222222222222222,
+        0.8333333333333334,
+        0.9888888888888889
+      ],
+      "sec_path_runs": {
+        "search_only": 82,
+        "neither": 5,
+        "both": 3
+      },
+      "hard_tool_errors_per_run": 0.12222222222222222,
+      "runs_at_tool_budget": 5,
+      "unknown_tool_runs": 0,
+      "unknown_tool_calls": 0,
+      "unknown_tools": [],
+      "recall": [
+        0.9540229885057471,
+        0.8850574712643678,
+        1.0
+      ],
+      "recall_success_only": [
+        0.9425287356321839,
+        0.8735632183908046,
+        1.0
+      ],
+      "unnecessary": [
+        0.26436781609195403,
+        0.11494252873563218,
+        0.42528735632183906
+      ],
+      "entity_coverage": [
+        0.75,
+        0.5833333333333333,
+        0.9166666666666666
+      ],
+      "sec_required_runs": 69,
+      "sec_skips": 0,
+      "sec_skips_no_success": 0,
+      "sec_skips_at_budget": 0,
+      "sec_skip_rows": {},
+      "sec_evidence_tokens": [
+        9614.811111111112,
+        7538.2555555555555,
+        11907.322222222223
+      ],
+      "e2e_s": [
+        25.06651724217356,
+        22.97544199911645,
+        27.32218964585336
+      ],
+      "est_cost_usd": [
+        0.005233888888888889,
+        0.004616777777777778,
+        0.005890333333333333
+      ],
+      "total_cost_usd": 0.47105
+    },
+    "luna_medium_plus_search": {
+      "runs": 90,
+      "task_errors": 0,
+      "health": [
+        0.9333333333333333,
+        0.8444444444444444,
+        1.0
+      ],
+      "sec_path_runs": {
+        "search_only": 58,
+        "get_section_only": 4,
+        "neither": 22,
+        "both": 6
+      },
+      "hard_tool_errors_per_run": 0.13333333333333333,
+      "runs_at_tool_budget": 6,
+      "unknown_tool_runs": 0,
+      "unknown_tool_calls": 0,
+      "unknown_tools": [],
+      "recall": [
+        0.8735632183908046,
+        0.7701149425287356,
+        0.9655172413793104
+      ],
+      "recall_success_only": [
+        0.8620689655172413,
+        0.7586206896551724,
+        0.9540229885057471
+      ],
+      "unnecessary": [
+        0.27586206896551724,
+        0.13793103448275862,
+        0.41379310344827586
+      ],
+      "entity_coverage": [
+        0.8055555555555556,
+        0.611111111111111,
+        0.9722222222222222
+      ],
+      "sec_required_runs": 69,
+      "sec_skips": 7,
+      "sec_skips_no_success": 7,
+      "sec_skips_at_budget": 0,
+      "sec_skip_rows": {
+        "3": 2,
+        "7": 1,
+        "14": 2,
+        "26": 2
+      },
+      "sec_evidence_tokens": [
+        12492.711111111112,
+        9469.3,
+        15716.544444444444
+      ],
+      "e2e_s": [
+        33.11163247311035,
+        30.575549246258905,
+        35.72474365780751
+      ],
+      "est_cost_usd": [
+        0.006688444444444445,
+        0.0058831111111111115,
+        0.007550111111111112
+      ],
+      "total_cost_usd": 0.60196
+    },
+    "reader_prompt_no_search": {
+      "runs": 90,
+      "task_errors": 0,
+      "health": [
+        0.8888888888888888,
+        0.7777777777777778,
+        0.9777777777777777
+      ],
+      "sec_path_runs": {
+        "get_section_only": 81,
+        "neither": 9
+      },
+      "hard_tool_errors_per_run": 0.2,
+      "runs_at_tool_budget": 4,
+      "unknown_tool_runs": 0,
+      "unknown_tool_calls": 0,
+      "unknown_tools": [],
+      "recall": [
+        0.9655172413793104,
+        0.9080459770114943,
+        1.0
+      ],
+      "recall_success_only": [
+        0.9425287356321839,
+        0.8735632183908046,
+        1.0
+      ],
+      "unnecessary": [
+        0.22988505747126436,
+        0.10344827586206896,
+        0.3793103448275862
+      ],
+      "entity_coverage": [
+        0.8611111111111112,
+        0.6944444444444444,
+        1.0
+      ],
+      "sec_required_runs": 69,
+      "sec_skips": 2,
+      "sec_skips_no_success": 2,
+      "sec_skips_at_budget": 0,
+      "sec_skip_rows": {
+        "14": 1,
+        "26": 1
+      },
+      "sec_evidence_tokens": [
+        37514.811111111114,
+        27624.722222222223,
+        49590.74444444445
+      ],
+      "e2e_s": [
+        32.40363598061118,
+        29.160399473656433,
+        36.34536301027531
+      ],
+      "est_cost_usd": [
+        0.011222333333333334,
+        0.00913588888888889,
+        0.013689888888888889
+      ],
+      "total_cost_usd": 1.01001
+    }
+  },
+  "factorial": {
+    "recall": {
+      "rows": 29,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          3,
+          4,
+          1.0
+        ],
+        "tool, reader prompt (B − D)": [
+          2,
+          2,
+          1.0
+        ],
+        "prompt, no search (D − A)": [
+          0,
+          4,
+          0.125
+        ],
+        "prompt, with search (B − C)": [
+          1,
+          6,
+          0.125
+        ],
+        "bundle (B − A)": [
+          2,
+          4,
+          0.6875
+        ],
+        "**prompt main effect**": [
+          1,
+          7,
+          0.0703125
+        ],
+        "**tool main effect**": [
+          4,
+          4,
+          1.0
+        ],
+        "**interaction**": [
+          3,
+          4,
+          1.0
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -0.011494252873563222,
+        -0.10344827586206898,
+        0.06896551724137931
+      ],
+      "tool, reader prompt (B − D)": [
+        -0.01149425287356322,
+        -0.09195402298850576,
+        0.06896551724137932
+      ],
+      "prompt, no search (D − A)": [
+        0.08045977011494253,
+        0.011494252873563218,
+        0.1724137931034483
+      ],
+      "prompt, with search (B − C)": [
+        0.08045977011494254,
+        -0.01149425287356322,
+        0.1724137931034483
+      ],
+      "bundle (B − A)": [
+        0.06896551724137931,
+        -0.057471264367816105,
+        0.21839080459770116
+      ],
+      "**prompt main effect**": [
+        0.08045977011494253,
+        0.011494252873563216,
+        0.16666666666666669
+      ],
+      "**tool main effect**": [
+        -0.01149425287356322,
+        -0.09195402298850576,
+        0.06321839080459771
+      ],
+      "**interaction**": [
+        1.914177628664063e-18,
+        -0.06896551724137932,
+        0.06896551724137932
+      ]
+    },
+    "unnecessary": {
+      "rows": 29,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          6,
+          2,
+          0.2890625
+        ],
+        "tool, reader prompt (B − D)": [
+          3,
+          3,
+          1.0
+        ],
+        "prompt, no search (D − A)": [
+          7,
+          3,
+          0.34375
+        ],
+        "prompt, with search (B − C)": [
+          4,
+          4,
+          1.0
+        ],
+        "bundle (B − A)": [
+          4,
+          2,
+          0.6875
+        ],
+        "**prompt main effect**": [
+          6,
+          2,
+          0.2890625
+        ],
+        "**tool main effect**": [
+          4,
+          3,
+          1.0
+        ],
+        "**interaction**": [
+          3,
+          5,
+          0.7265625
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -0.06896551724137931,
+        -0.14942528735632185,
+        -1.914177628664063e-18
+      ],
+      "tool, reader prompt (B − D)": [
+        0.034482758620689655,
+        -0.06896551724137931,
+        0.14942528735632185
+      ],
+      "prompt, no search (D − A)": [
+        -0.11494252873563218,
+        -0.26436781609195403,
+        0.011494252873563211
+      ],
+      "prompt, with search (B − C)": [
+        -0.01149425287356321,
+        -0.13793103448275862,
+        0.10344827586206898
+      ],
+      "bundle (B − A)": [
+        -0.08045977011494253,
+        -0.19540229885057472,
+        0.022988505747126436
+      ],
+      "**prompt main effect**": [
+        -0.0632183908045977,
+        -0.16666666666666666,
+        0.017241379310344827
+      ],
+      "**tool main effect**": [
+        -0.01724137931034483,
+        -0.06896551724137931,
+        0.028735632183908046
+      ],
+      "**interaction**": [
+        0.10344827586206896,
+        -0.04597701149425287,
+        0.28735632183908044
+      ]
+    },
+    "sec_skip": {
+      "rows": 23,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          4,
+          1,
+          0.375
+        ],
+        "tool, reader prompt (B − D)": [
+          2,
+          0,
+          0.5
+        ],
+        "prompt, no search (D − A)": [
+          4,
+          0,
+          0.125
+        ],
+        "prompt, with search (B − C)": [
+          4,
+          0,
+          0.125
+        ],
+        "bundle (B − A)": [
+          4,
+          0,
+          0.125
+        ],
+        "**prompt main effect**": [
+          5,
+          0,
+          0.0625
+        ],
+        "**tool main effect**": [
+          4,
+          1,
+          0.375
+        ],
+        "**interaction**": [
+          1,
+          2,
+          1.0
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -0.04347826086956522,
+        -0.10144927536231885,
+        0.014492753623188403
+      ],
+      "tool, reader prompt (B − D)": [
+        -0.02898550724637681,
+        -0.07246376811594203,
+        0.0
+      ],
+      "prompt, no search (D − A)": [
+        -0.11594202898550725,
+        -0.23188405797101452,
+        -0.014492753623188404
+      ],
+      "prompt, with search (B − C)": [
+        -0.10144927536231883,
+        -0.20289855072463767,
+        -0.02898550724637681
+      ],
+      "bundle (B − A)": [
+        -0.14492753623188406,
+        -0.30434782608695654,
+        -0.014492753623188404
+      ],
+      "**prompt main effect**": [
+        -0.10869565217391304,
+        -0.21739130434782608,
+        -0.021739130434782608
+      ],
+      "**tool main effect**": [
+        -0.036231884057971016,
+        -0.08695652173913045,
+        0.0
+      ],
+      "**interaction**": [
+        0.014492753623188413,
+        -0.02898550724637681,
+        0.07246376811594203
+      ]
+    },
+    "sec_skip_no_success": {
+      "rows": 23,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          4,
+          1,
+          0.375
+        ],
+        "tool, reader prompt (B − D)": [
+          2,
+          0,
+          0.5
+        ],
+        "prompt, no search (D − A)": [
+          4,
+          0,
+          0.125
+        ],
+        "prompt, with search (B − C)": [
+          4,
+          0,
+          0.125
+        ],
+        "bundle (B − A)": [
+          4,
+          0,
+          0.125
+        ],
+        "**prompt main effect**": [
+          5,
+          0,
+          0.0625
+        ],
+        "**tool main effect**": [
+          4,
+          1,
+          0.375
+        ],
+        "**interaction**": [
+          1,
+          2,
+          1.0
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -0.04347826086956522,
+        -0.10144927536231885,
+        0.014492753623188403
+      ],
+      "tool, reader prompt (B − D)": [
+        -0.02898550724637681,
+        -0.07246376811594203,
+        0.0
+      ],
+      "prompt, no search (D − A)": [
+        -0.11594202898550725,
+        -0.23188405797101452,
+        -0.014492753623188404
+      ],
+      "prompt, with search (B − C)": [
+        -0.10144927536231883,
+        -0.20289855072463767,
+        -0.02898550724637681
+      ],
+      "bundle (B − A)": [
+        -0.14492753623188406,
+        -0.30434782608695654,
+        -0.014492753623188404
+      ],
+      "**prompt main effect**": [
+        -0.10869565217391304,
+        -0.21739130434782608,
+        -0.021739130434782608
+      ],
+      "**tool main effect**": [
+        -0.036231884057971016,
+        -0.08695652173913045,
+        0.0
+      ],
+      "**interaction**": [
+        0.014492753623188413,
+        -0.02898550724637681,
+        0.07246376811594203
+      ]
+    },
+    "sec_evidence_tokens": {
+      "rows": 30,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          20,
+          7,
+          0.0191572904586792
+        ],
+        "tool, reader prompt (B − D)": [
+          24,
+          5,
+          0.0005461126565933228
+        ],
+        "prompt, no search (D − A)": [
+          9,
+          12,
+          0.6636238098144531
+        ],
+        "prompt, with search (B − C)": [
+          20,
+          9,
+          0.06142834573984146
+        ],
+        "bundle (B − A)": [
+          20,
+          9,
+          0.06142834573984146
+        ],
+        "**prompt main effect**": [
+          18,
+          11,
+          0.26493089646101
+        ],
+        "**tool main effect**": [
+          23,
+          6,
+          0.002315700054168701
+        ],
+        "**interaction**": [
+          20,
+          9,
+          0.06142834573984146
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -26899.455555555556,
+        -46000.58888888889,
+        -13438.366666666667
+      ],
+      "tool, reader prompt (B − D)": [
+        -27900.0,
+        -39932.58888888889,
+        -18129.844444444443
+      ],
+      "prompt, no search (D − A)": [
+        -1877.3555555555552,
+        -11295.433333333332,
+        5683.433333333334
+      ],
+      "prompt, with search (B − C)": [
+        -2877.8999999999996,
+        -5102.922222222222,
+        -691.2222222222222
+      ],
+      "bundle (B − A)": [
+        -29777.355555555554,
+        -49692.4,
+        -15480.011111111111
+      ],
+      "**prompt main effect**": [
+        -2377.6277777777773,
+        -7540.633333333333,
+        2020.0555555555559
+      ],
+      "**tool main effect**": [
+        -27399.727777777778,
+        -42680.083333333336,
+        -15487.033333333333
+      ],
+      "**interaction**": [
+        -1000.5444444444448,
+        -8075.444444444444,
+        8043.633333333332
+      ]
+    },
+    "tool_calls_total": {
+      "rows": 30,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          14,
+          12,
+          0.8450189828872681
+        ],
+        "tool, reader prompt (B − D)": [
+          24,
+          5,
+          0.0005461126565933228
+        ],
+        "prompt, no search (D − A)": [
+          17,
+          9,
+          0.16863754391670227
+        ],
+        "prompt, with search (B − C)": [
+          25,
+          4,
+          0.00010371580719947815
+        ],
+        "bundle (B − A)": [
+          26,
+          4,
+          5.947612226009369e-05
+        ],
+        "**prompt main effect**": [
+          24,
+          5,
+          0.0005461126565933228
+        ],
+        "**tool main effect**": [
+          21,
+          6,
+          0.005924612283706665
+        ],
+        "**interaction**": [
+          25,
+          3,
+          2.744048833847046e-05
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -0.03333333333333333,
+        -0.41111111111111104,
+        0.34444444444444433
+      ],
+      "tool, reader prompt (B − D)": [
+        -1.4777777777777779,
+        -2.077777777777778,
+        -0.8777777777777777
+      ],
+      "prompt, no search (D − A)": [
+        -0.36666666666666664,
+        -0.7888888888888889,
+        0.044444444444444536
+      ],
+      "prompt, with search (B − C)": [
+        -1.8111111111111111,
+        -2.333333333333333,
+        -1.2666666666666666
+      ],
+      "bundle (B − A)": [
+        -1.8444444444444443,
+        -2.4444444444444446,
+        -1.2555555555555555
+      ],
+      "**prompt main effect**": [
+        -1.0888888888888888,
+        -1.4444444444444444,
+        -0.7222222222222222
+      ],
+      "**tool main effect**": [
+        -0.7555555555555555,
+        -1.15,
+        -0.35000000000000003
+      ],
+      "**interaction**": [
+        -1.4444444444444444,
+        -2.0555555555555554,
+        -0.7999999999999999
+      ]
+    },
+    "e2e_s": {
+      "rows": 30,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          14,
+          16,
+          0.855535551905632
+        ],
+        "tool, reader prompt (B − D)": [
+          29,
+          1,
+          5.774199962615967e-08
+        ],
+        "prompt, no search (D − A)": [
+          20,
+          10,
+          0.09873714670538902
+        ],
+        "prompt, with search (B − C)": [
+          30,
+          0,
+          1.862645149230957e-09
+        ],
+        "bundle (B − A)": [
+          29,
+          1,
+          5.774199962615967e-08
+        ],
+        "**prompt main effect**": [
+          25,
+          5,
+          0.00032491423189640045
+        ],
+        "**tool main effect**": [
+          25,
+          5,
+          0.00032491423189640045
+        ],
+        "**interaction**": [
+          27,
+          3,
+          8.430331945419312e-06
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        0.13848700182408838,
+        -1.1298176569489047,
+        1.4630262697658798
+      ],
+      "tool, reader prompt (B − D)": [
+        -7.337118738437615,
+        -9.782873686519451,
+        -5.210264424126621
+      ],
+      "prompt, no search (D − A)": [
+        -0.5695094906750863,
+        -2.630390857367699,
+        1.905185445960119
+      ],
+      "prompt, with search (B − C)": [
+        -8.045115230936789,
+        -9.55936174626889,
+        -6.602948550348326
+      ],
+      "bundle (B − A)": [
+        -7.906628229112702,
+        -9.195085239337965,
+        -6.555541113358536
+      ],
+      "**prompt main effect**": [
+        -4.307312360805938,
+        -5.719074715238013,
+        -2.8734538413823527
+      ],
+      "**tool main effect**": [
+        -3.599315868306763,
+        -4.918184082764007,
+        -2.3275134073554207
+      ],
+      "**interaction**": [
+        -7.475605740261703,
+        -10.388431851305198,
+        -5.1010796319447556
+      ]
+    },
+    "est_cost_usd": {
+      "rows": 30,
+      "signs": {
+        "tool, baseline prompt (C − A)": [
+          23,
+          7,
+          0.005222879350185394
+        ],
+        "tool, reader prompt (B − D)": [
+          26,
+          4,
+          5.947612226009369e-05
+        ],
+        "prompt, no search (D − A)": [
+          21,
+          9,
+          0.04277394525706768
+        ],
+        "prompt, with search (B − C)": [
+          23,
+          7,
+          0.005222879350185394
+        ],
+        "bundle (B − A)": [
+          24,
+          6,
+          0.001430906355381012
+        ],
+        "**prompt main effect**": [
+          22,
+          8,
+          0.016124801710247993
+        ],
+        "**tool main effect**": [
+          25,
+          5,
+          0.00032491423189640045
+        ],
+        "**interaction**": [
+          23,
+          7,
+          0.005222879350185394
+        ]
+      },
+      "tool, baseline prompt (C − A)": [
+        -0.007232000000000001,
+        -0.014032333333333334,
+        -0.0027311111111111112
+      ],
+      "tool, reader prompt (B − D)": [
+        -0.005988444444444445,
+        -0.008418,
+        -0.003985666666666667
+      ],
+      "prompt, no search (D − A)": [
+        -0.002698111111111111,
+        -0.007507444444444445,
+        0.0005873333333333332
+      ],
+      "prompt, with search (B − C)": [
+        -0.0014545555555555557,
+        -0.0020261111111111113,
+        -0.0008751111111111111
+      ],
+      "bundle (B − A)": [
+        -0.008686555555555555,
+        -0.015489111111111111,
+        -0.004040333333333334
+      ],
+      "**prompt main effect**": [
+        -0.0020763333333333332,
+        -0.004511111111111112,
+        -0.00033216666666666675
+      ],
+      "**tool main effect**": [
+        -0.006610222222222222,
+        -0.011086277777777778,
+        -0.0034080555555555557
+      ],
+      "**interaction**": [
+        0.001243555555555556,
+        -0.001981111111111111,
+        0.006023777777777779
+      ]
+    }
+  },
+  "per_row": [
+    {
+      "row_id": "1",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "2",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "get_section_only": 1,
+        "search_only": 2
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "3",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 3,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 2,
+        "search_only": 1
+      },
+      "C_sec_skips": 2,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "4",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "neither": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "5",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "6",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 2,
+        "both": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "7",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 1,
+        "both": 1,
+        "neither": 1
+      },
+      "C_sec_skips": 1,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "8",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "9",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 2,
+        "get_section_only": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "10",
+      "A_paths": {
+        "get_section_only": 2,
+        "neither": 1
+      },
+      "A_sec_skips": 1,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "11",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "12",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 1,
+        "both": 2
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "13",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "14",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 3,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 2,
+        "search_only": 1
+      },
+      "C_sec_skips": 2,
+      "D_paths": {
+        "get_section_only": 2,
+        "neither": 1
+      },
+      "D_sec_skips": 1
+    },
+    {
+      "row_id": "15",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "get_section_only": 1,
+        "search_only": 2
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "16",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "17",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "18",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "19",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "20",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 2,
+        "both": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "21",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "22",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "23",
+      "A_paths": {
+        "get_section_only": 2,
+        "neither": 1
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 2,
+        "search_only": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "24",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "search_only": 1,
+        "neither": 2
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "25",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "neither": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "neither": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "26",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 3,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 2,
+        "search_only": 1
+      },
+      "C_sec_skips": 2,
+      "D_paths": {
+        "neither": 1,
+        "get_section_only": 2
+      },
+      "D_sec_skips": 1
+    },
+    {
+      "row_id": "27",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 3
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "28",
+      "A_paths": {
+        "neither": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 2,
+        "search_only": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "neither": 1,
+        "get_section_only": 2
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "29",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": false,
+      "B_paths": {
+        "search_only": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "neither": 2,
+        "search_only": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    },
+    {
+      "row_id": "30",
+      "A_paths": {
+        "get_section_only": 3
+      },
+      "A_sec_skips": 0,
+      "sec_required": true,
+      "B_paths": {
+        "both": 3
+      },
+      "B_sec_skips": 0,
+      "C_paths": {
+        "search_only": 1,
+        "both": 1,
+        "get_section_only": 1
+      },
+      "C_sec_skips": 0,
+      "D_paths": {
+        "get_section_only": 3
+      },
+      "D_sec_skips": 0
+    }
+  ]
+}

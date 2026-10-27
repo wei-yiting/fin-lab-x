@@ -335,6 +335,55 @@ def test_reader_ablation_tools_match_reader_profile():
     assert arm.tools == ProfileConfigLoader("reader").load().tools
 
 
+# Prompt x tool 2x2: A = configs/luna_medium, B = reader_luna_medium, plus the
+# two single-factor cells. The prompt is injected by the run spec, so every
+# cell must hold the control's model/constraints and only its toolset varies.
+@pytest.mark.parametrize(
+    ("ablation", "has_search"),
+    [
+        ("reader_luna_medium", True),
+        ("luna_medium_plus_search", True),
+        ("reader_prompt_no_search", False),
+    ],
+)
+def test_prompt_tool_2x2_cells_differ_from_luna_medium_only_in_tools(
+    ablation, has_search
+):
+    control = ProfileConfigLoader.load_from_dir(_BENCHMARK_CONFIGS_DIR / "luna_medium")
+    arm = ProfileConfigLoader.load_from_dir(_BENCHMARK_ABLATIONS_DIR / ablation)
+
+    assert arm.model == control.model
+    assert arm.constraints == control.constraints
+    expected = [*control.tools, "sec_filing_search"] if has_search else control.tools
+    assert arm.tools == expected
+    assert arm.system_prompt is None
+
+
+@pytest.mark.parametrize(
+    ("ablation", "prompt_path"),
+    [
+        (
+            "luna_medium_plus_search",
+            _BENCHMARK_CONFIGS_DIR.parent / "prompt" / "system_prompt.md",
+        ),
+        (
+            "reader_prompt_no_search",
+            Path(__file__).parents[2]
+            / "agent_engine"
+            / "agents"
+            / "profiles"
+            / "reader"
+            / "system_prompt.md",
+        ),
+    ],
+)
+def test_prompt_tool_2x2_cells_take_their_prompt_verbatim(ablation, prompt_path):
+    config = ProfileConfigLoader.load_from_dir(
+        _BENCHMARK_ABLATIONS_DIR / ablation, prompt_path=prompt_path
+    )
+    assert config.system_prompt == prompt_path.read_text().strip()
+
+
 # ---------------------------------------------------------------------------
 # Loader contract: every shipped profile YAML parses into a valid ModelConfig
 # with a non-empty model name and a recognized reasoning literal. We

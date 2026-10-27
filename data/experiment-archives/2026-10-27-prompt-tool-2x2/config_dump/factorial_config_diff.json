@@ -1,0 +1,51 @@
+{
+  "vs_control": {
+    "reader_luna_medium": {
+      "differing_keys": [
+        "arm",
+        "config_dir",
+        "identity",
+        "prompt",
+        "prompt_path",
+        "tool_contracts",
+        "tools"
+      ],
+      "unexpected_differences": [],
+      "tools_only_in_b": [
+        "sec_filing_search"
+      ],
+      "tools_only_in_a": [],
+      "shared_tool_contracts_identical": true
+    },
+    "luna_medium_plus_search": {
+      "differing_keys": [
+        "arm",
+        "config_dir",
+        "identity",
+        "tool_contracts",
+        "tools"
+      ],
+      "unexpected_differences": [],
+      "tools_only_in_b": [
+        "sec_filing_search"
+      ],
+      "tools_only_in_a": [],
+      "shared_tool_contracts_identical": true
+    },
+    "reader_prompt_no_search": {
+      "differing_keys": [
+        "arm",
+        "config_dir",
+        "identity",
+        "prompt",
+        "prompt_path"
+      ],
+      "unexpected_differences": [],
+      "tools_only_in_b": [],
+      "tools_only_in_a": [],
+      "shared_tool_contracts_identical": true
+    }
+  },
+  "layout_errors": [],
+  "ok": true
+}

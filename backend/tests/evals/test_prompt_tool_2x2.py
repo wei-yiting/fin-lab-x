@@ -12,6 +12,7 @@ from backend.evals.experiments.prompt_tool_2x2.analyze import (
     arm_tools,
     factorial,
     run_metrics,
+    sign_test,
 )
 from backend.evals.experiments.prompt_tool_2x2.run import (
     ARM_A,
@@ -215,3 +216,27 @@ def test_factorial_effects_and_interaction() -> None:
     assert effects["**prompt main effect**"][0] == pytest.approx((1 + 2) / 2)
     assert effects["**interaction**"][0] == pytest.approx((0 + 4) / 2)
     assert effects["bundle (B − A)"][0] == pytest.approx((3 + 4) / 2)
+
+
+def test_routing_effects_leave_out_full_coverage_gap_rows(
+    tools: dict[str, set[str]],
+) -> None:
+    sheet = load_labels(LABELS)
+    news = call("tavily_financial_search", "TSLA")
+    rows = [
+        run_metrics(record(rid, arm, [news]), sheet, tools)
+        for rid in ("1", "4")
+        for arm in (ARM_A, ARM_B, ARM_C, ARM_D)
+    ]
+
+    effects = factorial(rows)
+
+    assert effects["recall"]["rows"] == 1
+    assert effects["sec_skip"]["rows"] == 1
+    assert effects["e2e_s"]["rows"] == 0
+
+
+def test_sign_test_drops_ties_and_is_two_sided() -> None:
+    assert sign_test([-1.0, -2.0, -0.5, -3.0, -1.0, 0.0, 0.0]) == (5, 0, 0.0625)
+    assert sign_test([0.0, 0.0]) == (0, 0, 1.0)
+    assert sign_test([-1.0, 1.0])[2] == 1.0

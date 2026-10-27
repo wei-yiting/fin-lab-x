@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import statistics
 from collections import Counter
 from collections.abc import Callable
@@ -55,6 +56,7 @@ from backend.evals.experiments.prompt_tool_2x2.run import (
 )
 from backend.evals.experiments.rag_ablation.analyze import _paths, sec_path
 from backend.evals.experiments.tool_selection.analyze import (
+    GAP_FULL,
     GAP_NONE,
     REQUIRED,
     LabelSheet,
@@ -158,7 +160,7 @@ def run_metrics(
 
 def _subset(rows: list[dict[str, Any]], subset: str) -> list[dict[str, Any]]:
     if subset == "routing":
-        return [r for r in rows if r["recall"] != ""]
+        return [r for r in rows if r["recall"] != "" and r["coverage_gap"] != GAP_FULL]
     if subset == "sec_required":
         return [r for r in rows if r["sec_required"]]
     return rows
@@ -179,13 +181,28 @@ def factorial(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         for (rid, arm), value in means.items():
             cells.setdefault(rid, {})[arm] = value
         complete = {rid: m for rid, m in cells.items() if len(m) == len(ARM_ORDER)}
-        out[key] = {"rows": len(complete)}
+        out[key] = {"rows": len(complete), "signs": {}}
         for name, effect in EFFECTS:
             if complete:
-                out[key][name] = _bootstrap(
-                    {rid: effect(m) for rid, m in complete.items()}, statistics.mean
-                )
+                per_row = {rid: effect(m) for rid, m in complete.items()}
+                out[key][name] = _bootstrap(per_row, statistics.mean)
+                out[key]["signs"][name] = sign_test(list(per_row.values()))
     return out
+
+
+def sign_test(values: list[float]) -> tuple[int, int, float]:
+    """(rows < 0, rows > 0, exact two-sided sign-test p); ties dropped.
+
+    A check on the bootstrap for rare-event metrics, where a handful of rows
+    carry the whole contrast and a percentile CI can be optimistic.
+    """
+    neg = sum(1 for v in values if v < -1e-12)
+    pos = sum(1 for v in values if v > 1e-12)
+    n = neg + pos
+    if n == 0:
+        return neg, pos, 1.0
+    tail = sum(math.comb(n, i) for i in range(min(neg, pos) + 1)) / 2**n
+    return neg, pos, min(1.0, 2 * tail)
 
 
 def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -335,6 +352,24 @@ def render_tables(summary: dict[str, Any]) -> str:
             + " |"
         )
 
+    routing_keys = [k for k, _, subset in FACTORIAL_METRICS if subset != "all"]
+    lines += [
+        "",
+        "Exact sign test on the per-row contrasts (rows < 0 / rows > 0, ties "
+        "dropped; two-sided p). A check on the bootstrap where few rows carry "
+        "the contrast:",
+        "",
+        "| Effect | " + " | ".join(f"{k}" for k in routing_keys) + " |",
+        "|---|" + "---|" * len(routing_keys),
+    ]
+    for name, _ in EFFECTS:
+        cells = []
+        for k in routing_keys:
+            sign = fac[k]["signs"].get(name)
+            cells.append(
+                "–" if sign is None else f"{sign[0]} / {sign[1]} (p={sign[2]:.3f})"
+            )
+        lines.append(f"| {name} | " + " | ".join(cells) + " |")
     lines += [
         "",
         "## Per row: SEC path by cell (and SEC skips on SEC-必要 rows)",

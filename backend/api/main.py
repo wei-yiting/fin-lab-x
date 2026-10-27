@@ -42,7 +42,9 @@ async def lifespan(app: FastAPI):
     async with AsyncSqliteSaver.from_conn_string(db_path) as checkpointer:
         app.state.orchestrator = Orchestrator(config, checkpointer=checkpointer)
         logger.info(
-            "Orchestrator initialized: version=%s, model=%s, checkpointer=AsyncSqliteSaver(%s)",
+            "Orchestrator initialized: profile=%s, version=%s, model=%s, "
+            "checkpointer=AsyncSqliteSaver(%s)",
+            config.name,
             config.version,
             config.model.name,
             db_path,

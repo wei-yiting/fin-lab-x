@@ -42,6 +42,7 @@ The core, independent AI logic. Designed to run independently of the FastAPI ser
   - `sec_filing_tools.py`: Two-step SEC access (`sec_filing_list_sections` / `sec_filing_get_section`).
   - `sec_filing.py`: Pipeline-backed SEC filing downloader tool.
   - `sec_filing_search.py`: Dense-retrieval RAG tool (`sec_filing_search`) over SEC 10-Ks via Qdrant, reader-profile only.
+  - `text_to_sql.py` + `text_to_sql_prompt.md`: Natural-language → read-only DuckDB SQL over the fundamentals store (fixed repair loop, ADR-0022), quant-profile only.
 - **`streaming/`**: Three-layer streaming pipeline (see module README).
   - `domain_events_schema.py`: Frozen dataclass domain events (`TextDelta`, `ToolCall`, `Finish`, ...).
   - `event_mapper.py`: Stateful LangGraph-chunks → domain-events mapper.
@@ -65,7 +66,7 @@ Data ingestion pipelines that land source material into their respective stores.
 - **`sec_dense_pipeline_html/`**: Frozen A/B baseline (deleted whole at sunset). Chunks filing Markdown, embeds via OpenAI, upserts into Qdrant. Idempotent per `(ticker, year)` commit markers ("committed or absent"). `retriever.search()` is the single trace root for RAG queries; supports JIT ingestion at question time.
 - **`sec_text_pipeline/`**: New structured parsing path — 10-K parsing on edgartools producing the frozen `ParsedFiling` schema (`filing_models.py`).
 - **`sec_dense_pipeline/`**: New structured ingest + JIT retrieval path — consumes `ParsedFiling`, per-block chunking into typed payloads, OpenAI embeddings, commit-marker lifecycle into the new-contract Qdrant collection; `retriever.search()` serves JIT queries over it (fed in batch by `backend/scripts/embed_sec_filings.py`). See module README.
-- **`fundamentals_pipeline/`**: Foundation layer for structured quant data — DuckDB connection/schema (8 tables), Pydantic row DTOs, `upsert_rows()` column-level merge, `ingestion_run()` audit context manager, retry decorator, calendar-to-fiscal-period helper, error taxonomy, ticker universe YAML + loader. See module README for the full public API.
+- **`fundamentals_pipeline/`**: Foundation layer for structured quant data — DuckDB connection/schema (8 tables + `quarterly_metrics` / `annual_metrics` views and the `period_metrics` macro, ADR-0023), `yfinance_fetcher.py` (local batch ingest of the four yfinance-owned tables, CLI `backend/scripts/ingest_yfinance_fundamentals.py`), Pydantic row DTOs, `upsert_rows()` column-level merge, `ingestion_run()` audit context manager, retry decorator, calendar-to-fiscal-period helper, error taxonomy, ticker universe YAML + loader. See module README for the full public API.
 
 ### 2.5 Cross-Pipeline Utilities (`backend/utils/`)
 
@@ -85,7 +86,7 @@ LLMOps evaluation framework, separated from deterministic software testing. Orga
 
 ### 2.7 Scripts (`backend/scripts/`)
 
-Operational and validation CLIs (e.g., `embed_sec_filings.py`, `refresh_model_context_registry.py`, `validation/` checkers).
+Operational and validation CLIs (e.g., `embed_sec_filings.py`, `ingest_yfinance_fundamentals.py`, `refresh_model_context_registry.py`, `validation/` checkers).
 
 ### 2.8 Testing (`backend/tests/`)
 

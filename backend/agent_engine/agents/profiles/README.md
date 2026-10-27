@@ -1,10 +1,10 @@
 ## Scope
-Workflow Profiles — the config directories the runtime loads. Each capability tier (`baseline` → `reader` → `quant` → `graph` → `analyst`) is realized as one Workflow Profile, storing the declarative definition for that agent's reasoning strategy and toolset. `baseline` and `reader` are implemented; the rest are placeholders.
+Workflow Profiles — the config directories the runtime loads. Each capability tier (`baseline` → `reader` → `quant` → `graph` → `analyst`) is realized as one Workflow Profile, storing the declarative definition for that agent's reasoning strategy and toolset. `baseline`, `reader` and `quant` (prototype, DEV-224) are implemented; the rest are placeholders.
 
 ## Map
 - `baseline/`: Phase 1 profile — whole-section SEC filing reads (no vectorization) plus basic quote/news tools.
 - `reader/`: Structured RAG over SEC 10-K filings (Qdrant dense retrieval) with chunk-level citations.
-- `quant/`: Profile focused on numerical reasoning and quantitative modeling.
+- `quant/`: `reader` plus `text_to_sql` over the DuckDB fundamentals store; the system prompt routes numeric/cross-company questions to text_to_sql and cites its figures in a 「資料來源」 table. Select locally with `WORKFLOW_PROFILE=quant` (API default stays `baseline`).
 - `graph/`: Profile utilizing knowledge graph-based analysis.
 - `analyst/`: Comprehensive investment research assistant profile.
 - **Key Files per Profile**:

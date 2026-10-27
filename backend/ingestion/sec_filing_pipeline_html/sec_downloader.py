@@ -42,7 +42,9 @@ class SECDownloader:
             except CompanyNotFoundError as exc:
                 raise TickerNotFoundError(f"Ticker not found: {ticker}") from exc
 
-            filings = company.get_filings(form=filing_type)
+            # amendments=False: edgartools includes 10-K/A under form="10-K"
+            # by default, and an amendment is always newer than its original.
+            filings = company.get_filings(form=filing_type, amendments=False)
 
             if fiscal_year is not None:
                 filings = filings.filter(
@@ -106,7 +108,8 @@ class SECDownloader:
             except CompanyNotFoundError as exc:
                 raise TickerNotFoundError(f"Ticker not found: {ticker}") from exc
 
-            filings = company.get_filings(form=filing_type)
+            # amendments=False: see download().
+            filings = company.get_filings(form=filing_type, amendments=False)
             filing = filings.latest()
             if filing is None:
                 raise FilingNotFoundError(f"No {filing_type} filing found for {ticker}")

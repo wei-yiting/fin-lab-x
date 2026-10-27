@@ -119,7 +119,7 @@ describe("useDeadAirPlaceholder — dead-air windows", () => {
     expect(result.current).toBe("hidden");
   });
 
-  test("window (c): tool round complete with nothing after → visible after the grace delay (DEV-109 ruling)", () => {
+  test("window (c): tool round complete with nothing after → visible after the grace delay", () => {
     const messages = [
       userMsg,
       assistantMsg("a1", [

@@ -1,5 +1,5 @@
 /**
- * Turn-level interruption marker (DEV-109 ruling 11): every user-initiated
+ * Turn-level interruption marker: every user-initiated
  * Stop leaves an explicit "Interrupted" row at the cut point, Claude
  * Code-style — regardless of whether a chip ("Stopped — thought for Xs")
  * or tool card ("Aborted") also carries abort state. Without it, a Stop

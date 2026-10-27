@@ -186,3 +186,30 @@ describe("MessageList — errorContent slot", () => {
     expect(screen.getByText("q")).toBeInTheDocument();
   });
 });
+
+describe("MessageList — chip context threading", () => {
+  test("reasoning parts render as chips via AssistantMessage", () => {
+    render(
+      <MessageList
+        messages={[
+          { id: "u1", role: "user", parts: [{ type: "text", text: "q" }] },
+          {
+            id: "a1",
+            role: "assistant",
+            parts: [{ type: "reasoning", text: "思考中", state: "streaming" }],
+          },
+        ]}
+        status="streaming"
+        toolProgress={{}}
+        abortedTools={new Set()}
+        onRegenerate={vi.fn()}
+        getChipSeconds={() => 0}
+        chipOverrides={new Map()}
+        onToggleChip={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("reasoning-chip")).toBeInTheDocument();
+    expect(screen.getByTestId("reasoning-chip")).toHaveAttribute("data-state", "streaming");
+  });
+});

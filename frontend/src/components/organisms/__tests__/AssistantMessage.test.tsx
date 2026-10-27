@@ -26,7 +26,7 @@ describe("AssistantMessage — parts dispatch", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-yfinance" as const,
           state: "input-available",
           toolCallId: "tc-1",
           toolName: "yfinance",
@@ -51,7 +51,7 @@ describe("AssistantMessage — parts dispatch", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-a" as const,
           state: "output-available",
           toolCallId: "tc-A",
           toolName: "a",
@@ -59,7 +59,7 @@ describe("AssistantMessage — parts dispatch", () => {
           output: {},
         },
         {
-          type: "tool" as const,
+          type: "tool-b" as const,
           state: "input-available",
           toolCallId: "tc-B",
           toolName: "b",
@@ -89,7 +89,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-available",
           toolCallId: "tc-aborted",
           toolName: "x",
@@ -114,7 +114,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-streaming",
           toolCallId: "tc-aborted-streaming",
           toolName: "x",
@@ -139,7 +139,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "output-available",
           toolCallId: "tc-done",
           toolName: "x",
@@ -169,7 +169,7 @@ describe("AssistantMessage — aborted tools", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-available",
           toolCallId: "tc-interrupted-fallback",
           toolName: "x",
@@ -202,7 +202,7 @@ describe("AssistantMessage — toolProgress memo comparator", () => {
       role: "assistant" as const,
       parts: [
         {
-          type: "tool" as const,
+          type: "tool-x" as const,
           state: "input-available",
           toolCallId: "tc-progress",
           toolName: "x",
@@ -266,24 +266,16 @@ describe("AssistantMessage — RegenerateButton visibility", () => {
     );
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
   });
-});
 
-// Regenerate replays the turn from the backend's checkpoint, which only
-// holds a finalized AIMessage for turns that ran to completion. The
-// turn-level interruption record (DEV-109 ruling 11) is set unconditionally
-// on every Stop, so it gates the button even when every part in the message
-// already reads "done" — the case an abort mid-flight (streaming part
-// states) does not cover.
-describe("AssistantMessage — interrupted turn hides Regenerate", () => {
+  // Regenerate replays the turn from the backend's checkpoint, which only
+  // holds a finalized AIMessage for turns that ran to completion — the
+  // turn-level `interrupted` flag gates the button off even when every part
+  // in the message already reads "done", the case an abort mid-flight
+  // (streaming part states) does not cover.
   test("interrupted turn hides Regenerate even when every part reads complete", () => {
-    const message = {
-      id: "a1",
-      role: "assistant" as const,
-      parts: [{ type: "text" as const, text: "a complete-looking answer" }],
-    };
     render(
       <AssistantMessage
-        message={message}
+        message={baseMsg}
         isStreaming={false}
         interrupted
         abortedTools={new Set()}
@@ -292,6 +284,137 @@ describe("AssistantMessage — interrupted turn hides Regenerate", () => {
       />,
     );
     expect(screen.queryByTestId("regenerate-btn")).not.toBeInTheDocument();
+  });
+});
+
+describe("AssistantMessage — reasoning chips", () => {
+  const chipProps = {
+    abortedTools: new Set<string>(),
+    toolProgress: {},
+    getChipSeconds: () => 3,
+    chipOverrides: new Map<string, boolean>(),
+    onToggleChip: vi.fn(),
+  };
+
+  test("streaming reasoning part renders an expanded streaming chip with its text", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "reasoning" as const, text: "分析 10-K 中", state: "streaming" }],
+    };
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "streaming");
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("分析 10-K 中");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thinking…");
+  });
+
+  test("done reasoning part collapses to Thought for Xs", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "done thinking", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "collapsed");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Thought for 3s");
+    expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
+  });
+
+  test("aborted half-chip keeps text behind a Stopped header", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "reasoning" as const, text: "half a thought", state: "streaming" }],
+    };
+    render(<AssistantMessage message={message} isStreaming={false} {...chipProps} />);
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "collapsed");
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
+      "Stopped — thought for 3s",
+    );
+  });
+
+  test("zero-delta reasoning part renders no chip", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
+    expect(screen.queryByTestId("reasoning-chip")).not.toBeInTheDocument();
+  });
+
+  test("whitespace-streamed chip is kept, not removed after the fact", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [{ type: "reasoning" as const, text: "  \n ", state: "done" }],
+    };
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
+    expect(screen.getByTestId("reasoning-chip")).toBeInTheDocument();
+  });
+
+  test("chips interleave with tool cards in part order", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "round 1", state: "done" },
+        {
+          type: "tool-list_sec_sections" as const,
+          state: "output-available",
+          toolCallId: "tc-1",
+          toolName: "list_sec_sections",
+          input: {},
+          output: {},
+        },
+        { type: "reasoning" as const, text: "round 2", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(<AssistantMessage message={message} isStreaming={true} {...chipProps} />);
+    const article = screen.getByTestId("assistant-message");
+    const rendered = Array.from(
+      article.querySelectorAll("[data-testid='reasoning-chip'], [data-testid='tool-card']"),
+    );
+    expect(rendered.map((el) => el.getAttribute("data-testid"))).toEqual([
+      "reasoning-chip",
+      "tool-card",
+      "reasoning-chip",
+    ]);
+    // data-round is the chip's 1-based ordinal within the message.
+    expect(rendered[0]).toHaveAttribute("data-round", "1");
+    expect(rendered[2]).toHaveAttribute("data-round", "2");
+  });
+
+  test("user override expands a collapsed chip and shows its full text", () => {
+    const message = {
+      id: "a1",
+      role: "assistant" as const,
+      parts: [
+        { type: "reasoning" as const, text: "full reasoning text", state: "done" },
+        { type: "text" as const, text: "answer" },
+      ],
+    };
+    render(
+      <AssistantMessage
+        message={message}
+        isStreaming={true}
+        {...chipProps}
+        chipOverrides={new Map([["a1:0", true]])}
+      />,
+    );
+    const chip = screen.getByTestId("reasoning-chip");
+    expect(chip).toHaveAttribute("data-state", "expanded");
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("full reasoning text");
   });
 });
 

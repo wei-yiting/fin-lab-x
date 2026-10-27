@@ -24,6 +24,7 @@ export function ErrorBlock({ friendly, onRetry, source, errorClass }: ErrorBlock
 
   return (
     <div
+      role="alert"
       data-testid={testId}
       data-error-source={source}
       data-error-class={errorClass}

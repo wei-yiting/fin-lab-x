@@ -313,7 +313,7 @@ describe("ChatPanel integration — aborted tools via stop", () => {
       { timeout: 10000 },
     );
 
-    // Turn-level marker (DEV-109 ruling 11): every user Stop leaves an
+    // Turn-level marker: every user Stop leaves an
     // explicit "Interrupted" row under the cut turn.
     expect(screen.getByTestId("interrupted-marker")).toBeInTheDocument();
     expect(screen.getByTestId("interrupted-marker")).toHaveTextContent("Interrupted");
@@ -655,4 +655,583 @@ describe("ChatPanel integration — stop + clear", () => {
       { timeout: 5000 },
     );
   });
+});
+
+describe("ChatPanel integration — onFinish does not announce non-normal completions", () => {
+  const announcerServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const onAbort = () => {
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          request.signal.addEventListener("abort", onAbort, { once: true });
+
+          controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-abrt" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+          controller.enqueue(
+            encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial..." })),
+          );
+          // Hold open so the test can click Stop while streaming.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+          controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => announcerServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => announcerServer.resetHandlers());
+  afterAll(() => announcerServer.close());
+
+  test("clicking stop while streaming → SR announcer does not say 'Response complete'", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    const textarea = screen.getByTestId("composer-textarea");
+    await user.type(textarea, "go");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/partial.../)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    // Wait for the stream to actually finish (onFinish fires asynchronously
+    // after stop()). The status returns to "ready" once the abort completes.
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId("composer-stop-btn")).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    // The aria-live polite region must not announce "Response complete" on
+    // a user-initiated abort — that text is reserved for natural completion.
+    const announcer = screen.getByRole("status");
+    expect(announcer).not.toHaveTextContent("Response complete");
+  }, 15000);
+
+  test("natural stream completion → SR announcer says 'Response complete'", async () => {
+    // Regression guard for the abort branch: make sure we did not regress
+    // the happy-path announcement by accident.
+    const happyServer = setupServer(
+      http.post("/api/v1/chat", () => sseResponse(happyStream("a-happy", "all done"))),
+    );
+    happyServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+    } finally {
+      happyServer.close();
+    }
+  }, 15000);
+
+  test("Regenerate clears the live region so a second natural completion announces again", async () => {
+    // handleRegenerate must clear the completion flag the same way handleSend
+    // does — otherwise the live region still holds the first turn's
+    // "Response complete" and the second onFinish writes identical text,
+    // which is not a DOM mutation a screen reader would pick up.
+    let call = 0;
+    const regenServer = setupServer(
+      http.post("/api/v1/chat", () => {
+        call += 1;
+        if (call === 1) {
+          return sseResponse(happyStream("a-first", "first answer"));
+        }
+        // Hold the second turn open briefly — a same-tick response would
+        // make the cleared live-region window too transient for `waitFor`
+        // to ever observe before the "finish" text reappears.
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-second" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            await new Promise((r) => setTimeout(r, 300));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "second answer" })),
+            );
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-end", id: "t1" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "finish" })));
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+    regenServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+
+      await user.click(screen.getByTestId("regenerate-btn"));
+
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+
+      await waitFor(
+        () => {
+          expect(screen.getByText("second answer")).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+      await waitFor(
+        () => {
+          expect(screen.getByRole("status")).toHaveTextContent("Response complete");
+        },
+        { timeout: 5000 },
+      );
+    } finally {
+      regenServer.close();
+    }
+  }, 15000);
+
+  test("mid-stream SSE error (isError=true) → SR announcer does not say 'Response complete'", async () => {
+    // SSE `error` chunk → useChat catches the rethrown error → onFinish
+    // fires with isError=true (isAbort=false). The ChatPanel must NOT mark
+    // the completion flag on this branch — disconnect and error paths are
+    // announced separately by ErrorBlock's role="alert", not this region.
+    // Verifying the negative: announcer never reads "Response complete".
+    const errorServer = setupServer(
+      http.post("/api/v1/chat", () => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(sseFrame({ type: "start", messageId: "a-mid-err" })));
+            controller.enqueue(encoder.encode(sseFrame({ type: "text-start", id: "t1" })));
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "text-delta", id: "t1", delta: "partial answer" })),
+            );
+            // SSE error chunk — processUIMessageStream rethrows, which
+            // useChat catches → onFinish fires with isError=true.
+            controller.enqueue(
+              encoder.encode(sseFrame({ type: "error", errorText: "rate limit exceeded" })),
+            );
+            controller.close();
+          },
+        });
+        return sseResponse(stream);
+      }),
+    );
+    errorServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      // Wait for the inline retry button (proxy for "mid-stream error
+      // reached ChatPanel + onFinish has fired").
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("error-retry-btn")).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+
+      // Negative assertion: under any onFinish path with isError=true the
+      // SR announcer must not read "Response complete".
+      expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+    } finally {
+      errorServer.close();
+    }
+  }, 15000);
+
+  test("transport network failure (isDisconnect=true) → SR announcer does not say 'Response complete'", async () => {
+    // HttpResponse.error() in MSW translates to a TypeError("fetch failed")
+    // at the fetch layer. In useChat's catch block:
+    //     err instanceof TypeError && err.message.includes("fetch")
+    // → isError=true AND isDisconnect=true. The ChatPanel must short-circuit
+    // on isDisconnect too — otherwise the "finish" event leaks and the
+    // completion announcer region could announce "Response complete" before
+    // the status flips to "error".
+    const disconnectServer = setupServer(http.post("/api/v1/chat", () => HttpResponse.error()));
+    disconnectServer.listen({ onUnhandledRequest: "bypass" });
+
+    try {
+      const user = userEvent.setup();
+      render(<ChatPanel />);
+
+      await user.type(screen.getByTestId("composer-textarea"), "go");
+      await user.click(screen.getByTestId("composer-send-btn"));
+
+      // Wait until the disconnect propagates and the stream-error block
+      // surfaces (proxy for "onFinish has fired with isDisconnect=true").
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("stream-error-block")).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+
+      expect(screen.getByRole("status")).not.toHaveTextContent("Response complete");
+    } finally {
+      disconnectServer.close();
+    }
+  }, 15000);
+});
+
+// ---------------------------------------------------------------------------
+// Stop + clear race
+//
+// During active streaming, clicking clear should stop the stream, reset the
+// chat ID, and show EmptyState with no residual messages.
+// ---------------------------------------------------------------------------
+
+describe("ChatPanel integration — reasoning chips golden path", () => {
+  const chipServer = setupServer(
+    http.post("/api/v1/chat", () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          send({ type: "start", messageId: "m-chip" });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: "Analyzing the filing" });
+          await new Promise((r) => setTimeout(r, 150));
+          send({ type: "reasoning-end", id: "reasoning-0" });
+          send({ type: "text-start", id: "t1" });
+          send({ type: "text-delta", id: "t1", delta: "the answer" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => chipServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => chipServer.resetHandlers());
+  afterAll(() => chipServer.close());
+
+  test("chip streams its text, then collapses to Thought for Xs when the answer lands", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    // Streaming: chip expanded with live reasoning text.
+    await waitFor(
+      () => {
+        const chip = screen.getByTestId("reasoning-chip");
+        expect(chip).toHaveAttribute("data-state", "streaming");
+        expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("Analyzing the filing");
+      },
+      { timeout: 5000 },
+    );
+
+    // Completed: chip collapsed to a duration header; the answer rendered;
+    // the reasoning text is no longer visible but reachable by expanding.
+    await waitFor(
+      () => {
+        expect(screen.getByText("the answer")).toBeInTheDocument();
+        expect(screen.getByTestId("reasoning-chip")).toHaveAttribute("data-state", "collapsed");
+      },
+      { timeout: 5000 },
+    );
+    expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Thought for \d+s/);
+    expect(screen.queryByTestId("reasoning-chip-body")).not.toBeInTheDocument();
+
+    // Post-hoc expand: clicking the collapsed header re-opens it via the user override.
+    await user.click(screen.getByTestId("reasoning-chip-header"));
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("Analyzing the filing");
+  }, 15000);
+});
+
+describe("ChatPanel integration — abort keeps a collapsed half-chip", () => {
+  const abortServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          request.signal.addEventListener(
+            "abort",
+            () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            },
+            { once: true },
+          );
+          send({ type: "start", messageId: "m-abort" });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: "half a thought" });
+          // Hold open (no reasoning-end) until abort.
+          for (let i = 0; i < 30; i++) {
+            await new Promise((r) => setTimeout(r, 100));
+            if (request.signal.aborted) return;
+          }
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => abortServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => abortServer.resetHandlers());
+  afterAll(() => abortServer.close());
+
+  test("stop mid-reasoning → chip collapses with Stopped header, text kept", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("half a thought");
+      },
+      { timeout: 5000 },
+    );
+
+    await user.click(screen.getByTestId("composer-stop-btn"));
+
+    await waitFor(
+      () => {
+        const chip = screen.getByTestId("reasoning-chip");
+        expect(chip).toHaveAttribute("data-state", "collapsed");
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(
+          /Stopped — thought for \d+s/,
+        );
+      },
+      { timeout: 5000 },
+    );
+
+    // The half text is preserved behind the header (expand to read).
+    await user.click(screen.getByTestId("reasoning-chip-header"));
+    expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("half a thought");
+  }, 15000);
+});
+
+describe("ChatPanel integration — chip header stall degradation (shares the file-level mocked threshold)", () => {
+  // Mock small threshold + real MSW time. The 10s default itself is locked
+  // by the useStallTimer fake-timer unit test.
+  const SMALL_THRESHOLD = 700;
+  const stallServer = setupServer(
+    http.post("/api/v1/chat", () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          send({ type: "start", messageId: "m-stall" });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: "thinking hard" });
+          // Silence beyond the mocked threshold → degraded copy on the
+          // streaming chip header; then a delta arrives and resets it. The
+          // hold is generous (threshold + 2.5s) so the degraded header stays
+          // observable even under parallel-suite load.
+          await new Promise((r) => setTimeout(r, SMALL_THRESHOLD + 2500));
+          send({ type: "reasoning-delta", id: "reasoning-0", delta: " more" });
+          await new Promise((r) => setTimeout(r, 150));
+          send({ type: "reasoning-end", id: "reasoning-0" });
+          send({ type: "text-start", id: "t1" });
+          send({ type: "text-delta", id: "t1", delta: "done" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => stallServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => stallServer.resetHandlers());
+  afterAll(() => stallServer.close());
+
+  test("silence past threshold degrades the streaming chip header; a delta restores it", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "tell me");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent("Still working…");
+      },
+      { timeout: 5000 },
+    );
+
+    // The late delta resets the stopwatch → normal copy returns (tolerance:
+    // we only assert the recovery, not frame-exact timing).
+    await waitFor(
+      () => {
+        expect(screen.getByText("done")).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  }, 15000);
+});
+
+describe("ChatPanel integration — abort-then-resend coexistence", () => {
+  let call = 0;
+  const resendServer = setupServer(
+    http.post("/api/v1/chat", ({ request }) => {
+      call++;
+      const thisCall = call;
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (d: Record<string, unknown>) =>
+            controller.enqueue(encoder.encode(sseFrame(d)));
+          request.signal.addEventListener(
+            "abort",
+            () => {
+              try {
+                controller.close();
+              } catch {
+                /* already closed */
+              }
+            },
+            { once: true },
+          );
+          send({ type: "start", messageId: `m-${thisCall}` });
+          send({ type: "reasoning-start", id: "reasoning-0" });
+          send({
+            type: "reasoning-delta",
+            id: "reasoning-0",
+            delta: thisCall === 1 ? "first turn thinking" : "second turn thinking",
+          });
+          if (thisCall === 1) {
+            // Hold open until aborted (no reasoning-end).
+            for (let i = 0; i < 30; i++) {
+              await new Promise((r) => setTimeout(r, 100));
+              if (request.signal.aborted) return;
+            }
+            controller.close();
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 100));
+          send({ type: "reasoning-end", id: "reasoning-0" });
+          send({ type: "text-start", id: "t1" });
+          send({ type: "text-delta", id: "t1", delta: "second answer" });
+          send({ type: "text-end", id: "t1" });
+          send({ type: "finish" });
+          controller.close();
+        },
+      });
+      return sseResponse(stream);
+    }),
+  );
+
+  beforeAll(() => resendServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => resendServer.resetHandlers());
+  afterAll(() => {
+    resendServer.close();
+    call = 0;
+  });
+
+  test("stop first turn → resend → both bubbles coexist; Stopped chip persists; new chip untainted", async () => {
+    const user = userEvent.setup();
+    render(<ChatPanel />);
+
+    await user.type(screen.getByTestId("composer-textarea"), "first");
+    await user.click(screen.getByTestId("composer-send-btn"));
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-chip-body")).toHaveTextContent("first turn thinking");
+      },
+      { timeout: 5000 },
+    );
+    // Real-timer test: hold a beat before stopping so the frozen duration is
+    // guaranteed to round to a non-zero number of seconds. Without this, the
+    // wiped-map regression (re-freezing at 0s) can coincidentally match a
+    // fast first turn's own near-zero duration and the assertion below would
+    // not discriminate a broken fix from a correct one.
+    await new Promise((r) => setTimeout(r, 1200));
+    await user.click(screen.getByTestId("composer-stop-btn"));
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("reasoning-chip-header")).toHaveTextContent(/Stopped/);
+      },
+      { timeout: 5000 },
+    );
+    // Pin the exact displayed duration before the second turn starts — this
+    // guards against the timing map being wiped wholesale on handleSend,
+    // which would re-freeze this already-completed chip at 0s. A loose
+    // /\d+s/ regex would still pass on "0s", so capture the literal text and
+    // require an exact match after the second send.
+    const firstHeaderTextBeforeSecondTurn =
+      screen.getByTestId("reasoning-chip-header").textContent ?? "";
+    expect(firstHeaderTextBeforeSecondTurn).toMatch(/Stopped — thought for [1-9]\d*s/);
+
+    await user.type(screen.getByTestId("composer-textarea"), "second");
+    await user.click(screen.getByTestId("composer-send-btn"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByText("second answer")).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    // Two assistant bubbles; the aborted chip's Stopped header persists on
+    // the first while the second collapsed cleanly.
+    expect(screen.getAllByTestId("assistant-message")).toHaveLength(2);
+    const headers = screen
+      .getAllByTestId("reasoning-chip-header")
+      .map((el) => el.textContent ?? "");
+    expect(headers.some((h) => /Stopped — thought for \d+s/.test(h))).toBe(true);
+    expect(headers.some((h) => /^Thought for \d+s/.test(h))).toBe(true);
+    // The first chip's duration must be byte-for-byte unchanged by the
+    // second turn's send — this is the exact assertion the old loose regex
+    // could not catch (it also matches "Stopped — thought for 0s").
+    expect(headers).toContain(firstHeaderTextBeforeSecondTurn);
+    // No degraded copy leaked into the resent turn (stopwatch reset).
+    expect(screen.queryByText("Still working…")).not.toBeInTheDocument();
+  }, 20000);
 });

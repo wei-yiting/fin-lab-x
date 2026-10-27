@@ -45,9 +45,9 @@ export function isReasoningPart(part: {
  * guard keeps the predicate total for the structurally-typed parts the hooks
  * pass, whose `type` may be absent — the SDK guard assumes a string.
  *
- * This is not the app's only tool predicate: `AssistantMessage` holds its own,
- * differently-shaped one that additionally matches a plain `"tool"` type.
- * Unifying the two is tracked separately, outside this slice.
+ * Single tool predicate for the chat UI — `AssistantMessage` imports this
+ * one rather than hand-rolling its own. Plain `"tool"` is not a real AI SDK
+ * UI part shape and is intentionally not matched.
  */
 export function isToolPart(part: { type?: unknown }): boolean {
   if (typeof part.type !== "string") return false;
@@ -90,7 +90,7 @@ export function turnHasRenderableContent(msg: ChatMessageLike): boolean {
  * happens to be whitespace-only DID stream — it stays (no flash-then-vanish
  * removal).
  */
-function isSuppressedChip(part: ReasoningPartLike): boolean {
+export function isSuppressedChip(part: ReasoningPartLike): boolean {
   return (part.text ?? "") === "";
 }
 

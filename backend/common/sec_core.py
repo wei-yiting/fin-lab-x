@@ -334,7 +334,9 @@ def _resolve_latest_fiscal_year_cached(ticker_upper: str) -> int:
 
     try:
         company = Company(ticker_upper)
-        filings = company.get_filings(form="10-K")
+        # amendments=False: edgartools includes 10-K/A under form="10-K" by
+        # default, and a Part III amendment is always newer than its original.
+        filings = company.get_filings(form="10-K", amendments=False)
     except Exception as exc:
         raise _classify_edgar_error(exc, ticker_upper) from exc
 
@@ -406,7 +408,8 @@ def _locate_filing_cached(
 
     try:
         company = Company(ticker_upper)
-        filings = company.get_filings(form=str(filing_type))
+        # amendments=False: see _resolve_latest_fiscal_year_cached.
+        filings = company.get_filings(form=str(filing_type), amendments=False)
     except Exception as exc:
         raise _classify_edgar_error(exc, ticker_upper) from exc
 

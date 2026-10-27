@@ -56,7 +56,7 @@ def _print_gate_summary(gate: GateVerdict) -> None:
     """Print per-scorer counts on every outcome — green included.
 
     A green verdict computed over a shrunken denominator (skipped or errored
-    scorers) is still a guard that partly fell over; ADR-0015 requires those
+    scorers) is still a guard that partly fell over; ADR-0016 requires those
     absences to stay visible rather than be swallowed by the pass, and naming
     the case ids is what makes them actionable (``-k <case-id>``).
     """

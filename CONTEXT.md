@@ -97,8 +97,8 @@ One execution of a scenario against a single agent configuration, persisted as o
 A scoring function `(output, expected, input) → Score` — programmatic when the criterion is structurally decidable, LLM-judge when semantic.
 
 **Metric floor**:
-The declared minimum a gated scorer's dataset-level metric value must clear for the Regression Suite to stay green — mean for per-case scorers, the metric's own aggregate for rank metrics (MRR, MAP), pass rate for binary judges.
-_Avoid_: min_score (the value gated is a metric — recall, MRR, pass rate — not a per-case "score" minimum)
+The declared minimum a gated scorer's dataset-level metric value must clear for the Regression Suite to stay green — mean for per-case scorers, the metric's own aggregate for rank metrics (MRR, MAP), pass rate for binary judges. The floor is the ADR-0008 strict default `1.0` unless explicitly calibrated; an explicitly calibrated floor must be backed by a scenario-specific recorded derivation with full provenance — a **reference measurement** record plus its raw run data under `backend/evals/regression/reference_measurements/<scenario>/` — with a margin wide enough to catch collapse, not slow erosion (current example: `backend/evals/regression/sec_retrieval-metric-floors.md`).
+_Avoid_: min_score (the value gated is a metric — recall, MRR, pass rate — not a per-case "score" minimum); baseline (overloaded — see Workflow Profile's `baseline` tier and the frozen HTML pipeline, neither of which this term means here)
 
 **Binary rubric**:
 All LLM-judge dimensions score 0/1, one LLM call per criterion — never free-form scales — to avoid halo and anchoring bias.
@@ -131,17 +131,25 @@ An end-to-end multi-tool user scenario; the unit of journey-level verification. 
 A frozen value object (`MessageStart`, `TextDelta`, `ToolCall`, `Finish`, …) forming the contract between LangGraph stream chunks and SSE serialization.
 
 **Session**:
-One conversation thread, checkpointed under a thread id. The busy-guard rejects concurrent runs on the same session (HTTP 409).
+One conversation thread, checkpointed under a thread id, made up of successive Chat turns. The busy-guard rejects concurrent runs on the same session (HTTP 409).
 
-**Waiting indicator**:
-The frontend placeholder shown between sending a message and the first streamed part arriving — it fills perceived latency and has nothing to do with model reasoning.
-_Avoid_: reasoning indicator (current component name; rename when that code is next touched), thinking indicator
+**Chat turn**:
+One user submit through to that response's terminal state (finish, abort, or error), containing any number of LLM calls and tool invocations. The unit of the root trace; reasoning part ids are unique within a Chat turn, and one turn may produce several Reasoning chips.
+_Avoid_: turn (bare word — collides with eval and ingestion vocabulary), round (reads as one LLM call), conversation (that is a Session)
+
+**Activity indicator**:
+The ephemeral placeholder line shown when the assistant is working but nothing else on screen is live — from submit until the first streamed content, and between a collapsed reasoning chip and the reply text. Never contains reasoning text; swaps to degraded copy on stream stall.
+_Avoid_: waiting indicator (superseded by this term), reasoning indicator, thinking indicator, progress indicator (collides with Tool progress)
 
 **Reasoning chip**:
 The collapsible transcript block rendering one provider reasoning segment — live and auto-scrolling while streaming, collapsed to a "Thought for Xs" header afterwards. One chip per reasoning segment; chips persist in the transcript for the session, not across reload.
 
 **Reasoning stream**:
-Provider reasoning tokens streamed as their own domain events. The word "reasoning" belongs to this feature alone — never to the waiting indicator.
+Provider reasoning tokens streamed live to the client, rendered as reasoning chips. The word "reasoning" belongs to this feature alone — never to the activity indicator's placeholder copy.
+
+**Stream stall**:
+A streaming response going 10 seconds without any stream part arriving. One global clock per response, reset by any arriving part; on entry, whichever surface is currently live — the Activity indicator or a streaming Reasoning chip's header — swaps to degraded copy. Names a quiet stream, not a dead one: a broken connection is a timeout, a wedged process is a hang.
+_Avoid_: stall (bare word — collides with eval and ingestion vocabulary), timeout, idle
 
 **Tool progress**:
 A transient sidecar SSE event that updates a running tool card without entering message history.

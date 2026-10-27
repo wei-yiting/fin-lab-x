@@ -50,7 +50,7 @@ class TestGateSummaryOutput:
     def test_green_verdict_still_reports_absence_counts(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        """A green gate must not hide a scorer that fell over (ADR-0015)."""
+        """A green gate must not hide a scorer that fell over (ADR-0016)."""
         monkeypatch.setitem(wrapper._CONFIGS, "demo", _config())
         cases = [
             CaseResult(case_id="c1", scores={"s1": 1.0}),

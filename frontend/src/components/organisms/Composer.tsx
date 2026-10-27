@@ -3,7 +3,7 @@ import { Button } from "@/components/primitives/button";
 import { Textarea } from "@/components/primitives/textarea";
 import { Send, Square } from "lucide-react";
 import type { ChatStatus } from "@/models";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 export interface ComposerHandle {
   setValue: (v: string) => void;
@@ -18,6 +18,7 @@ interface ComposerProps {
 
 export const Composer = forwardRef<ComposerHandle, ComposerProps>(
   ({ sendMessage, stop, status }, ref) => {
+    const { copy } = useLocale();
     const [text, setText] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     useImperativeHandle(

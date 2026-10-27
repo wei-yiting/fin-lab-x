@@ -1,17 +1,27 @@
-import { describe, test, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, test, expect, vi, afterEach } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EmptyState } from "../EmptyState";
-import { copy } from "@/lib/copy";
+import { en } from "@/lib/copy";
+import { LocaleProvider } from "@/lib/LocaleProvider";
+import { LOCALE_STORAGE_KEY } from "@/lib/locale";
+
+afterEach(() => {
+  localStorage.clear();
+});
 
 describe("EmptyState", () => {
-  test("renders 4 prompt chips, each showing its title", () => {
+  test("renders 6 prompt chips in an everyday and an analyst group, each showing its title", () => {
     const onPickPrompt = vi.fn();
     render(<EmptyState onPickPrompt={onPickPrompt} />);
 
     const chips = screen.getAllByTestId("prompt-chip");
-    expect(chips).toHaveLength(4);
-    for (const chip of Object.values(copy.emptyState.chips)) {
+    expect(chips).toHaveLength(6);
+    const everyday = screen.getByRole("region", { name: "Everyday questions" });
+    const analyst = screen.getByRole("region", { name: "Analyst deep dives" });
+    expect(within(everyday).getAllByTestId("prompt-chip")).toHaveLength(3);
+    expect(within(analyst).getAllByTestId("prompt-chip")).toHaveLength(3);
+    for (const chip of Object.values(en.emptyState.chips)) {
       expect(screen.getByText(chip.title)).toBeInTheDocument();
     }
   });
@@ -21,9 +31,30 @@ describe("EmptyState", () => {
     const onPickPrompt = vi.fn();
     render(<EmptyState onPickPrompt={onPickPrompt} />);
 
-    await user.click(screen.getAllByTestId("prompt-chip")[1]);
+    await user.click(screen.getAllByTestId("prompt-chip")[4]);
 
     expect(onPickPrompt).toHaveBeenCalledTimes(1);
-    expect(onPickPrompt).toHaveBeenCalledWith(copy.emptyState.chips.narrativeVsNumbers.prompt);
+    expect(onPickPrompt).toHaveBeenCalledWith(en.emptyState.chips.narrativeVsNumbers.prompt);
+  });
+
+  test("in zh-TW, heading and chips render in Traditional Chinese and a chip picks the Chinese prompt", async () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, "zh-TW");
+    const user = userEvent.setup();
+    const onPickPrompt = vi.fn();
+    render(
+      <LocaleProvider>
+        <EmptyState onPickPrompt={onPickPrompt} />
+      </LocaleProvider>,
+    );
+
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("研究任何一檔美股");
+    expect(screen.getAllByTestId("prompt-chip")).toHaveLength(6);
+    expect(screen.getByRole("region", { name: "日常提問" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "深度分析" })).toBeInTheDocument();
+    expect(screen.getByText("風險揭露 vs. 近期新聞")).toBeInTheDocument();
+
+    await user.click(screen.getAllByTestId("prompt-chip")[2]);
+
+    expect(onPickPrompt).toHaveBeenCalledWith("Tesla 現在的股價算貴嗎？請用白話的方式解釋。");
   });
 });

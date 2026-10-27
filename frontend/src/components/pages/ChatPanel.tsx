@@ -18,7 +18,7 @@ import { classifyError } from "@/lib/error-classifier";
 import { toFriendlyError } from "@/lib/error-messages";
 import { apiUrl } from "@/lib/api";
 import { ChatHttpError, statusAwareFetch } from "@/lib/chat-http";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 import { isRunningToolState } from "@/models";
 import type { ChatStatus, ToolCallId } from "@/models";
 
@@ -33,6 +33,7 @@ type LastTrigger =
   | { type: "regenerate"; messageId: string; userText: string };
 
 export function ChatPanel() {
+  const { copy } = useLocale();
   const [chatId, setChatId] = useState(() => crypto.randomUUID());
   const transport = useMemo(
     () =>
@@ -276,6 +277,7 @@ export function ChatPanel() {
               status: error instanceof ChatHttpError ? error.status : undefined,
               rawMessage: error?.message,
             },
+        copy,
       )
     : null;
   const errorBlockSource: "pre-stream" | "mid-stream" = isMidStreamError

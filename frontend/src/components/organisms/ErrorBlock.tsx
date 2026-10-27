@@ -3,7 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/primitives/button";
 import type { FriendlyError } from "@/lib/error-messages";
 import type { ErrorClass } from "@/lib/error-classifier";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 interface ErrorBlockProps {
   friendly: FriendlyError;
@@ -13,6 +13,7 @@ interface ErrorBlockProps {
 }
 
 export function ErrorBlock({ friendly, onRetry, source, errorClass }: ErrorBlockProps) {
+  const { copy } = useLocale();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [showFullDetail, setShowFullDetail] = useState(false);
 

@@ -3,7 +3,7 @@ import { chipHeaderLabel } from "@/lib/reasoning-chips";
 import type { ChipState } from "@/lib/reasoning-chips";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 interface ReasoningChipProps {
   chipState: ChipState;
@@ -45,6 +45,7 @@ export function ReasoningChip({
   onToggle,
   round,
 }: ReasoningChipProps) {
+  const { copy } = useLocale();
   const bodyRef = useRef<HTMLDivElement>(null);
   const streaming = chipState === "streaming";
   const showBody = expanded;
@@ -59,7 +60,7 @@ export function ReasoningChip({
   }, [text, streaming, showBody]);
 
   const dataState = streaming ? "streaming" : expanded ? "expanded" : "collapsed";
-  const headerLabel = chipHeaderLabel(chipState, seconds, streaming && stalled);
+  const headerLabel = chipHeaderLabel(chipState, seconds, streaming && stalled, copy);
 
   return (
     <div

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/primitives/badge";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 export function ToolDetail({
   input,
@@ -10,6 +10,7 @@ export function ToolDetail({
   output?: unknown;
   errorDetail?: string;
 }) {
+  const { copy } = useLocale();
   return (
     <div data-testid="tool-detail" className="space-y-2 p-3 text-xs">
       <div>

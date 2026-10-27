@@ -1,4 +1,4 @@
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 /**
  * Turn-level interruption marker: every user-initiated
@@ -10,6 +10,7 @@ import { copy } from "@/lib/copy";
  * truncated answer reads as a complete one.
  */
 export function InterruptedMarker() {
+  const { copy } = useLocale();
   return (
     <div
       data-testid="interrupted-marker"

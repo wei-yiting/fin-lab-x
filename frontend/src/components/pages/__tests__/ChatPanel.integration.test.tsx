@@ -16,6 +16,7 @@ import { DefaultChatTransport } from "ai";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 import { ChatPanel } from "../ChatPanel";
+import { LocaleProvider } from "@/lib/LocaleProvider";
 
 function sseFrame(data: Record<string, unknown>): string {
   return `data: ${JSON.stringify(data)}\n\n`;
@@ -1236,4 +1237,58 @@ describe("ChatPanel integration — abort-then-resend coexistence", () => {
     // No degraded copy leaked into the resent turn (stopwatch reset).
     expect(screen.queryByText("Still working…")).not.toBeInTheDocument();
   }, 20000);
+});
+
+describe("ChatPanel integration — language toggle", () => {
+  const localeServer = setupServer(
+    http.post("/api/v1/chat", () => sseResponse(happyStream("msg-locale", "NVDA revenue answer"))),
+  );
+
+  beforeAll(() => localeServer.listen({ onUnhandledRequest: "bypass" }));
+  afterEach(() => {
+    localeServer.resetHandlers();
+    localStorage.clear();
+  });
+  afterAll(() => localeServer.close());
+
+  test("switching mid-conversation translates UI chrome but leaves existing messages untouched", async () => {
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ChatPanel />
+      </LocaleProvider>,
+    );
+
+    await user.type(screen.getByTestId("composer-textarea"), "What is NVDA's revenue?");
+    await user.click(screen.getByTestId("composer-send-btn"));
+    await waitFor(() => expect(screen.getByTestId("regenerate-btn")).toBeInTheDocument(), {
+      timeout: 5000,
+    });
+
+    await user.click(screen.getByRole("button", { name: "繁體中文" }));
+
+    expect(screen.getByTestId("user-bubble")).toHaveTextContent("What is NVDA's revenue?");
+    expect(screen.getByTestId("assistant-message")).toHaveTextContent("NVDA revenue answer");
+    expect(screen.getByTestId("regenerate-btn")).toHaveTextContent("重新產生");
+    expect(screen.getByTestId("composer-textarea")).toHaveAttribute(
+      "placeholder",
+      "詢問美國上市公司的財報、申報文件或新聞…",
+    );
+  });
+
+  test("a starter chip fills the composer with the prompt in the active language", async () => {
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <ChatPanel />
+      </LocaleProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "繁體中文" }));
+    await user.click(screen.getAllByTestId("prompt-chip")[0]);
+
+    expect(screen.getByTestId("composer-textarea")).toHaveValue(
+      "Apple 今天的股價表現如何？背後有什麼相關新聞嗎？",
+    );
+  });
 });

@@ -1,8 +1,9 @@
 import type { ExtractedSources } from "@/models";
 import { SourceLink } from "@/components/atoms/SourceLink";
-import { copy } from "@/lib/copy";
+import { useLocale } from "@/lib/locale";
 
 export function Sources({ sources }: { sources: ExtractedSources }) {
+  const { copy } = useLocale();
   const safe = sources.filter((s) => /^https?:/.test(s.url));
   if (safe.length === 0) return null;
   return (

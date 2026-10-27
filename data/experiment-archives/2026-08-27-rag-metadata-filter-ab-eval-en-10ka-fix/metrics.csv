@@ -1,0 +1,19 @@
+target_ticker,target_entity_en,question,naive_precision_at_5,naive_precision_at_10,metadata_filter_precision_at_5,metadata_filter_precision_at_10,naive_top10_ticker_mix
+GOOGL,Google,What supply chain risks does Google's latest earnings report mention?,0.2,0.1,1.0,1.0,AAPL:4 NVDA:2 GOOGL:1 INTC:1 AMD:1 MSFT:1
+GOOGL,Google,What competitive pressures does Google's cloud business face?,0.8,0.4,1.0,1.0,MSFT:5 GOOGL:4 NVDA:1
+GOOGL,Google,What AI regulatory challenges has Google disclosed?,0.6,0.6,1.0,1.0,GOOGL:6 NVDA:2 AMD:1 MSFT:1
+MSFT,Microsoft,What competitive advantages does Microsoft have in generative AI?,0.8,0.6,1.0,1.0,MSFT:6 NVDA:3 GOOGL:1
+MSFT,Microsoft,Where is the revenue growth momentum in Microsoft's cloud business coming from?,1.0,1.0,1.0,1.0,MSFT:10
+MSFT,Microsoft,What risks does Microsoft's partnership with OpenAI bring to its operations?,0.6,0.6,1.0,1.0,MSFT:6 NVDA:3 INTC:1
+AAPL,Apple,What are the latest growth trends in Apple's services business?,1.0,0.8,1.0,1.0,AAPL:8 NVDA:1 GOOGL:1
+AAPL,Apple,What risks does Apple face in the Chinese market?,0.8,0.8,1.0,1.0,AAPL:8 AMD:1 GOOGL:1
+AAPL,Apple,What supply chain concentration issues affect Apple's hardware products?,0.8,0.5,1.0,1.0,AAPL:5 INTC:2 AMD:1 GOOGL:1 NVDA:1
+NVDA,NVIDIA,What customer concentration risks does NVIDIA face?,0.6,0.5,1.0,1.0,NVDA:5 AMD:3 INTC:2
+NVDA,NVIDIA,Where does NVIDIA's competitive advantage in data center GPUs come from?,1.0,0.8,1.0,1.0,NVDA:8 AMD:2
+NVDA,NVIDIA,To what extent is NVIDIA affected by US export controls?,0.8,0.8,1.0,1.0,NVDA:8 AMD:2
+AMD,AMD,What progress has AMD made competing with Intel in the data center market?,0.8,0.8,1.0,1.0,AMD:8 INTC:2
+AMD,AMD,What is AMD's strategy for its AI accelerator products?,1.0,0.7,1.0,1.0,AMD:7 INTC:2 NVDA:1
+AMD,AMD,What supply chain and manufacturing process dependency risks does AMD face?,0.6,0.5,1.0,1.0,AMD:5 NVDA:3 INTC:2
+INTC,Intel,What challenges has Intel faced in its process technology transition?,1.0,1.0,1.0,1.0,INTC:10
+INTC,Intel,What is the strategy and risk profile of Intel's foundry business?,1.0,1.0,1.0,1.0,INTC:10
+INTC,Intel,What is Intel's competitive positioning in the AI-chip market?,1.0,0.9,1.0,1.0,INTC:9 AMD:1

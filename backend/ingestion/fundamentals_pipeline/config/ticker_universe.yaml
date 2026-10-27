@@ -1,11 +1,24 @@
 tickers:
+  - AAPL   # Consumer Electronics
   - MSFT   # Software + Cloud
+  - GOOGL  # Internet / Ads
+  - AMZN   # E-commerce + Cloud
   - NVDA   # Semiconductor
-  - CRM    # SaaS
-  - WMT    # Retail
+  - TSLA   # Autos
+  - META   # Social / Ads
   - JPM    # Banking
-  - BRK.B  # Insurance / Holdco
-  - JNJ    # Pharma / Healthcare
+  - V      # Payment network
+  - MA     # Payment network
+  - WMT    # Retail
+  - COST   # Retail (52/53-week FY)
   - KO     # Consumer staples
+  - PEP    # Consumer staples
+  - JNJ    # Pharma / Healthcare
   - XOM    # Integrated Energy
+  - DIS    # Media
+  - NFLX   # Streaming
+  - INTC   # Semiconductor
+  - NKE    # Apparel
+  - CRM    # SaaS
+  - BRK.B  # Insurance / Holdco
   - CAT    # Industrial

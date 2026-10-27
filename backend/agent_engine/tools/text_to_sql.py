@@ -100,7 +100,7 @@ class TextToSqlResult(TypedDict):
     attempts: list[Attempt]
     coverage: NotRequired[dict[str, Any]]
     # ok only: the stable ID the model cites as `[N]: sql://…`, plus the
-    # provenance the UI's citation block shows (ADR-0021).
+    # provenance the UI's citation block shows (ADR-0024).
     citation_id: NotRequired[str]
     tables: NotRequired[list[str]]
     derivations: NotRequired[list[Derivation]]

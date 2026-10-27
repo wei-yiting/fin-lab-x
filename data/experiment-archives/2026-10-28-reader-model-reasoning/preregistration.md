@@ -65,3 +65,26 @@ Per-row means over the 3 repetitions first; 95% CIs from a row-level (cluster)
 bootstrap, 2,000 resamples, seed 20261022 (same as #84). Contrasts are paired
 by row. 30 rows → the CI reflects question-level variation; it does not cover
 time-of-day variation in live data.
+
+## Amendment 1 — 2026-10-27 23:30 (before any real answer was judged)
+
+The Anthropic API account had no credit, so the judge is **not** a pinned API
+call. Per the user's decision, the judge is a set of **fresh Claude Code
+subagents** (general-purpose agent type, inheriting this session's model,
+`claude-opus-5-5`) with no conversation context. Each subagent receives only
+`judge_prompt.md` and one batch file (30 shuffled items: opaque id, question,
+signals, answer) and writes one result file. One fresh subagent per batch,
+identical instructions for every batch. The 40-item re-judge set is two extra
+batches of 20, judged by two more fresh subagents.
+
+Consequences: no fixed temperature or seed, so an exact re-run is not
+guaranteed; the judge sees ~30 answers at once rather than one per request,
+so within-batch comparison effects can't be ruled out (the prompt forbids
+grading on a curve; the self-agreement re-judge uses different batch
+compositions, which partly measures this). Thresholds and the decision rule
+above are unchanged.
+
+Also: the Gemini account was out of credit when the Luna workers started
+(23:09). The Gemini workers started at 23:21 after the user topped up, so the
+Gemini arms lag the Luna arms by ~12 min to ~30 min on the same row. That is
+reported as a deviation.

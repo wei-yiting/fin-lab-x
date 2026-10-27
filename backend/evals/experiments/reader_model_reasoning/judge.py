@@ -1,9 +1,11 @@
 """Blinded signal judge for the reader model x reasoning 2x2.
 
 Each answer is judged pass/fail against its row's ``draft_pass_signals``
-by a scripted Claude judge — a model family that produced none of the
-answers. The judge sees only an opaque id, the question, the signals and
-the answer text: never the arm, model or run metadata.
+by fresh, context-free Claude Code subagents — a model family that
+produced none of the answers. A subagent receives only the judge prompt
+and one batch file: opaque ids, questions, signals and answer texts, never
+the arm, model or run metadata. The key lives in a separate directory
+the judge is never pointed at.
 
 Discrimination controls. A judge that passes everything cannot rank arms,
 so known-worse answers are mixed into the same shuffled pool, built from
@@ -19,11 +21,12 @@ one real answer per row (the *base*):
 Subcommands:
 
 - ``build-pool``: pool real + control answers, shuffle (fixed seed), write
-  ``batches/batch_N.json`` (30 items each) and ``KEY_do_not_share.json``.
-- ``judge``: call the judge for every pooled item (resumable, one request
-  per answer), write ``results/result_N.json`` and ``judge_config.json``.
-  ``--rejudge N`` re-judges a fixed random subset into ``rejudge/`` to
-  measure the judge's own run-to-run agreement.
+  ``batches/batch_N.{json,md}`` (30 items each), a re-judge set
+  (``rejudge/batch_rK``: 40 pooled items reshuffled into 2 batches, for the
+  judge's own run-to-run agreement), ``judge_prompt.md``, and the key into
+  ``--key-dir``.
+- ``collect``: validate every ``results/result_N.json`` and
+  ``rejudge/result_rK.json`` the subagents wrote against their batches.
 - ``score``: unblind with the key; per-arm signal pass rates with row
   bootstrap CIs, paired contrasts vs the control arm, the discrimination
   check, and judge self-agreement.
@@ -34,7 +37,6 @@ Subcommands:
 from __future__ import annotations
 
 import argparse
-import asyncio
 import csv
 import hashlib
 import json
@@ -42,11 +44,8 @@ import random
 import re
 import statistics
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-import anthropic
 
 from backend.evals.experiments.harness import SCENARIO_DIR
 from backend.evals.experiments.model_reasoning_benchmark.analyze import _bootstrap
@@ -57,17 +56,14 @@ from backend.evals.experiments.reader_model_reasoning.run import (
 
 POOL_SEED = 20261028
 BATCH_SIZE = 30
+REJUDGE_ITEMS = 40
+REJUDGE_BATCH_SIZE = 20
 CONTROL_KINDS = ["truncated", "evidence_stripped", "off_topic"]
 OFF_TOPIC_SHIFT = 15
 
-JUDGE_MODEL = "claude-opus-5-5"
-JUDGE_EFFORT = "medium"
-JUDGE_MAX_TOKENS = 16000
-JUDGE_CONCURRENCY = 8
+JUDGE_PROMPT = """You are grading answers produced by a financial research assistant for retail investors. The answers are in Traditional Chinese.
 
-JUDGE_SYSTEM = """You are grading answers produced by a financial research assistant for retail investors. The answers are in Traditional Chinese.
-
-For each answer you receive the user's question, a list of pass signals, and the answer. Decide independently for every signal whether the answer satisfies it.
+Each item in the batch has an id, the user's question, a numbered list of pass signals, and the answer. Decide independently for every signal whether the answer satisfies it.
 
 Grading rules:
 - Judge only the answer text in front of you. You have no access to the sources the assistant used, so do not try to verify facts; judge whether the answer itself does what the signal asks.
@@ -76,29 +72,13 @@ Grading rules:
 - A signal about a conclusion or judgement needs an explicit conclusion that answers this question, not a hedge or a list of considerations.
 - An answer that addresses a different question or company fails every signal it does not satisfy for this question.
 - Length, style and formatting are not signals. Do not reward or penalise them beyond what a signal asks.
+- Grade every item on its own. The same question can appear several times in a batch with different answers; do not compare answers with each other or grade on a curve.
 
-Write each reason as one short line in Traditional Chinese naming what in the answer made it pass or fail."""
+Write each reason as one short line in Traditional Chinese naming what in the answer made it pass or fail.
 
-JUDGE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "scores": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "signal": {"type": "integer"},
-                    "pass": {"type": "integer", "enum": [0, 1]},
-                    "reason": {"type": "string"},
-                },
-                "required": ["signal", "pass", "reason"],
-                "additionalProperties": False,
-            },
-        }
-    },
-    "required": ["scores"],
-    "additionalProperties": False,
-}
+Output: a JSON array with one object per item, in batch order:
+[{"id": "J0001", "scores": [{"signal": 0, "pass": 1, "reason": "..."}, ...]}, ...]
+Every item must appear exactly once, and every item needs exactly one score per signal, numbered as in the batch (starting at 0)."""
 
 # The reader arms cite search chunks by id; ids carry nothing the judge
 # needs, and controls must not differ from real answers by id formatting.
@@ -158,7 +138,35 @@ def _answer(record: dict[str, Any]) -> str:
     return (record.get("output") or {}).get("response") or ""
 
 
-def cmd_build_pool(raw_dir: Path, out_dir: Path) -> int:
+def render_batch_md(name: str, batch: list[dict[str, Any]]) -> str:
+    lines = [f"# Judge batch {name} — {len(batch)} items", ""]
+    for item in batch:
+        lines += [f"===== ITEM {item['id']} =====", "", "QUESTION:", item["question"]]
+        lines += ["", "SIGNALS:"]
+        lines += [f"{i}. {s}" for i, s in enumerate(item["signals"])]
+        lines += ["", f"----- BEGIN ANSWER {item['id']} -----"]
+        lines += [item["answer"] or "(empty answer)"]
+        lines += [f"----- END ANSWER {item['id']} -----", ""]
+    return "\n".join(lines)
+
+
+def _write_batches(
+    directory: Path, prefix: str, batches: list[list[dict[str, Any]]]
+) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    for n, batch in enumerate(batches, start=1):
+        name = f"{prefix}{n}"
+        (directory / f"batch_{name}.json").write_text(
+            json.dumps(batch, ensure_ascii=False, indent=1)
+        )
+        (directory / f"batch_{name}.md").write_text(render_batch_md(name, batch))
+
+
+def _chunks(items: list[Any], size: int) -> list[list[Any]]:
+    return [items[i : i + size] for i in range(0, len(items), size)]
+
+
+def cmd_build_pool(raw_dir: Path, judge_dir: Path, key_dir: Path) -> int:
     dataset = load_dataset()
     records = [json.loads(p.read_text()) for p in sorted(raw_dir.rglob("*.json"))]
     by_row: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -216,162 +224,94 @@ def cmd_build_pool(raw_dir: Path, out_dir: Path) -> int:
 
     rng.shuffle(items)
     key: dict[str, dict[str, Any]] = {}
-    batches: list[list[dict[str, Any]]] = []
+    entries = []
     for index, (item, meta) in enumerate(items, start=1):
         item_id = f"J{index:04d}"
         key[item_id] = meta
         row = dataset[item["row_id"]]
-        entry = {
-            "id": item_id,
-            "question": row["question"],
-            "signals": row["signals"],
-            "answer": item["answer"],
-        }
-        if (index - 1) % BATCH_SIZE == 0:
-            batches.append([])
-        batches[-1].append(entry)
-
-    (out_dir / "batches").mkdir(parents=True, exist_ok=True)
-    for n, batch in enumerate(batches, start=1):
-        (out_dir / "batches" / f"batch_{n}.json").write_text(
-            json.dumps(batch, ensure_ascii=False, indent=1)
+        entries.append(
+            {
+                "id": item_id,
+                "question": row["question"],
+                "signals": row["signals"],
+                "answer": item["answer"],
+            }
         )
-    (out_dir / "KEY_do_not_share.json").write_text(
+
+    batches = _chunks(entries, BATCH_SIZE)
+    _write_batches(judge_dir / "batches", "", batches)
+    rejudge = rng.sample(entries, min(REJUDGE_ITEMS, len(entries)))
+    _write_batches(judge_dir / "rejudge", "r", _chunks(rejudge, REJUDGE_BATCH_SIZE))
+    (judge_dir / "judge_prompt.md").write_text(JUDGE_PROMPT + "\n")
+    key_dir.mkdir(parents=True, exist_ok=True)
+    (key_dir / "KEY_do_not_share.json").write_text(
         json.dumps(key, ensure_ascii=False, indent=1)
     )
-    kinds = defaultdict(int)
+    kinds: dict[str, int] = defaultdict(int)
     for meta in key.values():
         kinds[meta["kind"]] += 1
-    print(f"{len(key)} items in {len(batches)} batches: {dict(kinds)}")
+    print(
+        f"{len(key)} items in {len(batches)} batches: {dict(kinds)}; "
+        f"re-judge {REJUDGE_ITEMS} items; prompt sha256 "
+        f"{hashlib.sha256(JUDGE_PROMPT.encode()).hexdigest()[:12]}"
+    )
     return 0
 
 
-def _user_message(item: dict[str, Any]) -> str:
-    signals = "\n".join(f"{i}. {s}" for i, s in enumerate(item["signals"]))
-    return (
-        f"<question>\n{item['question']}\n</question>\n\n"
-        f"<signals>\n{signals}\n</signals>\n\n"
-        f"<answer>\n{item['answer'] or '(empty answer)'}\n</answer>\n\n"
-        "Return one score per signal, using the signal numbers above."
-    )
+def _batch_pairs(judge_dir: Path) -> list[tuple[Path, Path]]:
+    pairs = []
+    for sub, results in (("batches", "results"), ("rejudge", "rejudge")):
+        for batch in sorted((judge_dir / sub).glob("batch_*.json")):
+            name = batch.stem.removeprefix("batch_")
+            pairs.append((batch, judge_dir / results / f"result_{name}.json"))
+    return pairs
 
 
-async def _judge_one(
-    client: anthropic.AsyncAnthropic, item: dict[str, Any], sem: asyncio.Semaphore
-) -> dict[str, Any]:
-    async with sem:
-        response = await client.messages.create(
-            model=JUDGE_MODEL,
-            max_tokens=JUDGE_MAX_TOKENS,
-            system=JUDGE_SYSTEM,
-            output_config={
-                "effort": JUDGE_EFFORT,
-                "format": {"type": "json_schema", "schema": JUDGE_SCHEMA},
-            },
-            messages=[{"role": "user", "content": _user_message(item)}],
-        )
-    if response.stop_reason != "end_turn":
-        raise RuntimeError(f"{item['id']}: stop_reason={response.stop_reason}")
-    text = next(b.text for b in response.content if b.type == "text")
-    scores = json.loads(text)["scores"]
-    if sorted(s["signal"] for s in scores) != list(range(len(item["signals"]))):
-        raise RuntimeError(f"{item['id']}: signal indices {scores}")
-    return {
-        "id": item["id"],
-        "scores": sorted(scores, key=lambda s: s["signal"]),
-        "usage": {
-            "input_tokens": response.usage.input_tokens,
-            "output_tokens": response.usage.output_tokens,
-        },
-        "request_id": response._request_id,
-    }
+def validate(batch: list[dict[str, Any]], result: Any) -> list[str]:
+    """Problems with a subagent's result file, empty when it is usable."""
+    if not isinstance(result, list):
+        return ["result is not a JSON array"]
+    problems = []
+    by_id = {}
+    for entry in result:
+        if entry.get("id") in by_id:
+            problems.append(f"{entry.get('id')}: duplicate")
+        by_id[entry.get("id")] = entry
+    for item in batch:
+        entry = by_id.pop(item["id"], None)
+        if entry is None:
+            problems.append(f"{item['id']}: missing")
+            continue
+        scores = entry.get("scores") or []
+        indices = sorted(s.get("signal") for s in scores)
+        if indices != list(range(len(item["signals"]))):
+            problems.append(f"{item['id']}: signal indices {indices}")
+        if any(s.get("pass") not in (0, 1) for s in scores):
+            problems.append(f"{item['id']}: pass not 0/1")
+    problems += [f"{extra}: not in batch" for extra in by_id]
+    return problems
 
 
-async def _judge_all(
-    items: list[dict[str, Any]], cache_dir: Path
-) -> dict[str, dict[str, Any]]:
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    client = anthropic.AsyncAnthropic(max_retries=6)
-    sem = asyncio.Semaphore(JUDGE_CONCURRENCY)
-    todo = [it for it in items if not (cache_dir / f"{it['id']}.json").exists()]
-    print(f"{len(items) - len(todo)} cached, {len(todo)} to judge", flush=True)
-
-    async def run(item: dict[str, Any]) -> None:
-        try:
-            result = await _judge_one(client, item, sem)
-        except Exception as exc:
-            print(f"FAILED {item['id']}: {type(exc).__name__}: {exc}", flush=True)
-            return
-        (cache_dir / f"{item['id']}.json").write_text(
-            json.dumps(result, ensure_ascii=False, indent=1)
-        )
-
-    await asyncio.gather(*(run(it) for it in todo))
-    return {
-        p.stem: json.loads(p.read_text()) for p in sorted(cache_dir.glob("J*.json"))
-    }
+def cmd_collect(judge_dir: Path) -> int:
+    ok = True
+    for batch_path, result_path in _batch_pairs(judge_dir):
+        batch = json.loads(batch_path.read_text())
+        if not result_path.exists():
+            print(f"{result_path.name}: MISSING")
+            ok = False
+            continue
+        problems = validate(batch, json.loads(result_path.read_text()))
+        print(f"{result_path.name}: {'OK' if not problems else problems[:5]}")
+        ok = ok and not problems
+    return 0 if ok else 1
 
 
-def _judge_config() -> dict[str, Any]:
-    return {
-        "model": JUDGE_MODEL,
-        "output_config": {"effort": JUDGE_EFFORT, "format": "json_schema"},
-        "thinking": "adaptive (default; cannot be disabled on this model)",
-        "temperature": "not settable on this model",
-        "max_tokens": JUDGE_MAX_TOKENS,
-        "one_request_per_answer": True,
-        "system_prompt": JUDGE_SYSTEM,
-        "system_prompt_sha256": hashlib.sha256(JUDGE_SYSTEM.encode()).hexdigest(),
-        "schema": JUDGE_SCHEMA,
-        "anthropic_sdk": anthropic.__version__,
-    }
-
-
-def _load_batches(pool_dir: Path) -> list[list[dict[str, Any]]]:
-    paths = sorted(
-        (pool_dir / "batches").glob("batch_*.json"),
-        key=lambda p: int(p.stem.split("_")[1]),
-    )
-    return [json.loads(p.read_text()) for p in paths]
-
-
-def cmd_judge(pool_dir: Path, rejudge: int | None, limit: int | None) -> int:
-    batches = _load_batches(pool_dir)
-    items = [item for batch in batches for item in batch]
-    if rejudge:
-        items = random.Random(POOL_SEED + 1).sample(items, rejudge)
-        cache_dir = pool_dir / "rejudge"
-    else:
-        cache_dir = pool_dir / "judge_cache"
-    if limit:
-        items = items[:limit]
-    results = asyncio.run(_judge_all(items, cache_dir))
-    config = {**_judge_config(), "judged_at": datetime.now(timezone.utc).isoformat()}
-    (cache_dir / "judge_config.json").write_text(
-        json.dumps(config, ensure_ascii=False, indent=1)
-    )
-    if not rejudge and not limit:
-        (pool_dir / "results").mkdir(exist_ok=True)
-        for n, batch in enumerate(batches, start=1):
-            out = [
-                {"id": it["id"], "scores": results[it["id"]]["scores"]}
-                for it in batch
-                if it["id"] in results
-            ]
-            (pool_dir / "results" / f"result_{n}.json").write_text(
-                json.dumps(out, ensure_ascii=False, indent=1)
-            )
-        (pool_dir / "judge_config.json").write_text(
-            json.dumps(config, ensure_ascii=False, indent=1)
-        )
-    usage_in = sum(r["usage"]["input_tokens"] for r in results.values())
-    usage_out = sum(r["usage"]["output_tokens"] for r in results.values())
-    missing = [it["id"] for it in items if it["id"] not in results]
-    print(
-        f"judged {len(results)}/{len(items)}; missing {missing[:10]}; "
-        f"tokens in={usage_in} out={usage_out}"
-    )
-    return 0 if not missing else 1
+def load_results(directory: Path) -> dict[str, list[dict[str, Any]]]:
+    out = {}
+    for path in directory.glob("result_*.json"):
+        for entry in json.loads(path.read_text()):
+            out[entry["id"]] = sorted(entry["scores"], key=lambda s: s["signal"])
+    return out
 
 
 def _pass_rate(scores: list[dict[str, Any]]) -> float:
@@ -399,17 +339,14 @@ def _paired(a: dict[str, float], b: dict[str, float]) -> tuple[float, float, flo
     return _ci({r: a[r] - b[r] for r in a if r in b})
 
 
-def cmd_score(pool_dir: Path, out_dir: Path) -> int:
-    key = json.loads((pool_dir / "KEY_do_not_share.json").read_text())
-    results = {
-        p.stem: json.loads(p.read_text())
-        for p in sorted((pool_dir / "judge_cache").glob("J*.json"))
-    }
+def cmd_score(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
+    key = json.loads(key_path.read_text())
+    results = load_results(judge_dir / "results")
     entries = []
     for item_id, meta in key.items():
         if item_id not in results:
             continue
-        scores = results[item_id]["scores"]
+        scores = results[item_id]
         entries.append(
             {
                 "id": item_id,
@@ -424,24 +361,26 @@ def cmd_score(pool_dir: Path, out_dir: Path) -> int:
 
     rate = _row_means(entries, "group", "pass_rate")
     all_pass = _row_means(entries, "group", "all_pass")
-    arms = {}
-    for arm in ARM_NAMES:
-        arms[arm] = {
+    arms = {
+        arm: {
             "answers": sum(1 for e in entries if e["group"] == arm),
             "signal_pass_rate": _ci(rate[arm]),
             "all_signals_pass": _ci(all_pass[arm]),
         }
+        for arm in ARM_NAMES
+        if arm in rate
+    }
     contrasts = {
         arm: {
             "signal_pass_rate": _paired(rate[arm], rate[CONTROL_ARM]),
             "all_signals_pass": _paired(all_pass[arm], all_pass[CONTROL_ARM]),
         }
         for arm in ARM_NAMES
-        if arm != CONTROL_ARM
+        if arm != CONTROL_ARM and arm in rate
     }
 
-    # Discrimination: each control vs the real answer it was built from
-    # (off_topic: vs the real answers to this row, all arms pooled).
+    # Discrimination: truncated / evidence_stripped vs the exact real answer
+    # they were built from; off_topic vs this row's real answers (all arms).
     real = {(e["row"], e["arm"], e["rep"]): e for e in entries if e["kind"] == "real"}
     real_by_row = _row_means(
         [{**e, "all": "all"} for e in entries if e["kind"] == "real"],
@@ -460,29 +399,38 @@ def cmd_score(pool_dir: Path, out_dir: Path) -> int:
                 for e in controls
                 if (e["row"], e["base_arm"], e["base_rep"]) in real
             }
+        control_rate = _ci({e["row"]: e["pass_rate"] for e in controls})
+        delta = _ci(pairs)
+        passed = (
+            control_rate[0] <= 0.15
+            if kind == "off_topic"
+            else delta[0] <= -0.25 and delta[2] < 0
+        )
         discrimination[kind] = {
             "n": len(controls),
-            "control_pass_rate": _ci({e["row"]: e["pass_rate"] for e in controls}),
-            "delta_vs_real": _ci(pairs),
+            "control_pass_rate": control_rate,
+            "delta_vs_real": delta,
+            "passed": passed,
         }
-    real_overall = _ci(real_by_row)
 
     agreement = None
-    rejudge_dir = pool_dir / "rejudge"
-    if rejudge_dir.exists():
-        same = total = items_same = items = 0
-        for p in rejudge_dir.glob("J*.json"):
-            second = json.loads(p.read_text())["scores"]
-            first = results[p.stem]["scores"]
+    rejudged = load_results(judge_dir / "rejudge")
+    if rejudged:
+        same = total = items_same = 0
+        flips = []
+        for item_id, second in rejudged.items():
+            first = results[item_id]
             matches = [a["pass"] == b["pass"] for a, b in zip(first, second)]
             same += sum(matches)
             total += len(matches)
             items_same += all(matches)
-            items += 1
+            if not all(matches):
+                flips.append(item_id)
         agreement = {
-            "items": items,
-            "signal_agreement": same / total if total else None,
-            "item_exact_agreement": items_same / items if items else None,
+            "items": len(rejudged),
+            "signal_agreement": same / total,
+            "item_exact_agreement": items_same / len(rejudged),
+            "items_with_flips": sorted(flips),
         }
 
     per_signal = defaultdict(list)
@@ -491,17 +439,21 @@ def cmd_score(pool_dir: Path, out_dir: Path) -> int:
             for i, p in enumerate(e["passes"]):
                 per_signal[(e["row"], i)].append(p)
     signal_ceiling = {
-        "signals": len(per_signal),
-        "always_pass": sum(1 for v in per_signal.values() if all(v)),
-        "always_fail": sum(1 for v in per_signal.values() if not any(v)),
+        "row_signals": len(per_signal),
+        "passed_by_every_real_answer": sum(1 for v in per_signal.values() if all(v)),
+        "failed_by_every_real_answer": sum(
+            1 for v in per_signal.values() if not any(v)
+        ),
     }
 
     summary = {
         "judged": len(entries),
-        "real_overall_signal_pass_rate": real_overall,
+        "pooled": len(key),
+        "real_overall_signal_pass_rate": _ci(real_by_row),
         "arms": arms,
         "contrasts_vs_control": contrasts,
         "discrimination": discrimination,
+        "discrimination_passed": all(d["passed"] for d in discrimination.values()),
         "judge_self_agreement": agreement,
         "signal_ceiling": signal_ceiling,
     }
@@ -518,19 +470,20 @@ def cmd_score(pool_dir: Path, out_dir: Path) -> int:
     return 0
 
 
-def cmd_spot_check(pool_dir: Path, out_dir: Path, n_per_arm: int = 3) -> int:
+def cmd_spot_check(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
     """Blinded 15-answer sample: 3 real answers per arm + 1 per control kind.
 
-    Within each arm, answers with at least one failed signal are taken
-    first (up to one), so the sample contains the judge's fails, not only
-    its passes.
+    Within each arm, one answer with at least one failed signal is taken
+    first when the arm has any, so the sample contains the judge's fails,
+    not only its passes.
     """
-    key = json.loads((pool_dir / "KEY_do_not_share.json").read_text())
-    items = {it["id"]: it for b in _load_batches(pool_dir) for it in b}
-    results = {
-        p.stem: json.loads(p.read_text())["scores"]
-        for p in (pool_dir / "judge_cache").glob("J*.json")
+    key = json.loads(key_path.read_text())
+    items = {
+        it["id"]: it
+        for p in (judge_dir / "batches").glob("batch_*.json")
+        for it in json.loads(p.read_text())
     }
+    results = load_results(judge_dir / "results")
     rng = random.Random(POOL_SEED + 2)
     picked: list[str] = []
     for arm in ARM_NAMES:
@@ -540,7 +493,7 @@ def cmd_spot_check(pool_dir: Path, out_dir: Path, n_per_arm: int = 3) -> int:
         failing = [i for i in ids if not all(s["pass"] for s in results[i])]
         chosen = rng.sample(failing, min(1, len(failing)))
         rest = [i for i in ids if i not in chosen]
-        chosen += rng.sample(rest, n_per_arm - len(chosen))
+        chosen += rng.sample(rest, 3 - len(chosen))
         picked += chosen
     for kind in CONTROL_KINDS:
         picked.append(
@@ -552,10 +505,10 @@ def cmd_spot_check(pool_dir: Path, out_dir: Path, n_per_arm: int = 3) -> int:
     lines = [
         "# Signal-judge spot check (blinded)",
         "",
-        "For each answer, read the question and answer, then for every signal "
-        "mark in `spot_check.csv` whether **you** think it passes "
-        "(`human_pass` = 1 / 0). The judge's verdict and reason are shown so "
-        "you can disagree with them; the answer's source is not shown.",
+        "For each answer, read the question and the answer, then for every "
+        "signal fill `human_pass` (1 / 0) in `spot_check.csv` with **your own** "
+        "verdict. The judge's verdict and reason are shown so you can disagree "
+        "with them; where the answer came from is not shown.",
         "",
     ]
     rows = []
@@ -596,26 +549,24 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="cmd", required=True)
     build = sub.add_parser("build-pool")
     build.add_argument("--raw-dir", type=Path, required=True)
-    build.add_argument("--out-dir", type=Path, required=True)
-    judge = sub.add_parser("judge")
-    judge.add_argument("--pool-dir", type=Path, required=True)
-    judge.add_argument("--rejudge", type=int)
-    judge.add_argument("--limit", type=int, help="Judge only the first N (smoke)")
-    score = sub.add_parser("score")
-    score.add_argument("--pool-dir", type=Path, required=True)
-    score.add_argument("--out-dir", type=Path, required=True)
-    spot = sub.add_parser("spot-check")
-    spot.add_argument("--pool-dir", type=Path, required=True)
-    spot.add_argument("--out-dir", type=Path, required=True)
+    build.add_argument("--judge-dir", type=Path, required=True)
+    build.add_argument("--key-dir", type=Path, required=True)
+    collect = sub.add_parser("collect")
+    collect.add_argument("--judge-dir", type=Path, required=True)
+    for name in ("score", "spot-check"):
+        p = sub.add_parser(name)
+        p.add_argument("--judge-dir", type=Path, required=True)
+        p.add_argument("--key", type=Path, required=True)
+        p.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args(argv)
 
     if args.cmd == "build-pool":
-        return cmd_build_pool(args.raw_dir, args.out_dir)
-    if args.cmd == "judge":
-        return cmd_judge(args.pool_dir, args.rejudge, args.limit)
+        return cmd_build_pool(args.raw_dir, args.judge_dir, args.key_dir)
+    if args.cmd == "collect":
+        return cmd_collect(args.judge_dir)
     if args.cmd == "score":
-        return cmd_score(args.pool_dir, args.out_dir)
-    return cmd_spot_check(args.pool_dir, args.out_dir)
+        return cmd_score(args.judge_dir, args.key, args.out_dir)
+    return cmd_spot_check(args.judge_dir, args.key, args.out_dir)
 
 
 if __name__ == "__main__":

@@ -1288,7 +1288,7 @@ describe("ChatPanel integration — language toggle", () => {
     await user.click(screen.getAllByTestId("prompt-chip")[0]);
 
     expect(screen.getByTestId("composer-textarea")).toHaveValue(
-      "NVIDIA 在最新 10-K 揭露的出口管制與中國相關風險中，哪些已經反映在近期新聞裡，哪些仍只是潛在風險？請逐項引用 10-K 與新聞來源。",
+      "Apple 今天的股價表現如何？背後有什麼相關新聞嗎？",
     );
   });
 });

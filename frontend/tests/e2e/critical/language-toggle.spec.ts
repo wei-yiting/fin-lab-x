@@ -1,17 +1,21 @@
 import { test, expect } from "../fixtures";
 
 const EN_CHIP_TITLES = [
+  "Today's price move",
+  "How a company makes money",
+  "Is it expensive?",
   "Risk disclosures vs. recent news",
   "Management narrative vs. the numbers",
   "Cross-company regulatory risk",
-  "Evidence-checked bear case",
 ];
 
 const ZH_CHIP_TITLES = [
+  "今日股價表現",
+  "這家公司靠什麼賺錢",
+  "現在買算貴嗎？",
   "風險揭露 vs. 近期新聞",
   "經營團隊說法 vs. 實際數字",
   "跨公司法規風險比較",
-  "經證據檢驗的看空論點",
 ];
 
 test(
@@ -21,7 +25,7 @@ test(
     await page.goto("/");
 
     const chips = page.getByTestId("prompt-chip");
-    await expect(chips).toHaveCount(4);
+    await expect(chips).toHaveCount(6);
     for (const [i, title] of EN_CHIP_TITLES.entries()) {
       await expect(chips.nth(i)).toContainText(title);
     }
@@ -30,7 +34,7 @@ test(
     await page.getByRole("button", { name: "繁體中文" }).click();
 
     await expect(page.getByRole("heading", { level: 2 })).toHaveText("研究任何一檔美股");
-    await expect(chips).toHaveCount(4);
+    await expect(chips).toHaveCount(6);
     for (const [i, title] of ZH_CHIP_TITLES.entries()) {
       await expect(chips.nth(i)).toContainText(title);
     }
@@ -45,7 +49,9 @@ test(
     );
 
     await chips.first().click();
-    await expect(page.getByTestId("composer-textarea")).toHaveValue(/^NVIDIA 在最新 10-K/);
+    await expect(page.getByTestId("composer-textarea")).toHaveValue(
+      "Apple 今天的股價表現如何？背後有什麼相關新聞嗎？",
+    );
 
     await page.getByRole("button", { name: "English" }).click();
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(

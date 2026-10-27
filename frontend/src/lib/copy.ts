@@ -91,7 +91,21 @@ export const en = {
     heading: "Research any US-listed stock",
     subtext:
       "An AI research agent that reads SEC 10-K filings, live market data, and recent news, then answers with cited sources.",
+    everydayGroupLabel: "Everyday questions",
+    analystGroupLabel: "Analyst deep dives",
     chips: {
+      priceToday: {
+        title: "Today's price move",
+        prompt: "How is Apple's stock doing today, and is there any news behind the move?",
+      },
+      businessModel: {
+        title: "How a company makes money",
+        prompt: "What does NVIDIA actually sell, and where does most of its revenue come from?",
+      },
+      valuationCheck: {
+        title: "Is it expensive?",
+        prompt: "Is Tesla's stock expensive right now? Explain it in plain terms.",
+      },
       riskVsNews: {
         title: "Risk disclosures vs. recent news",
         prompt:
@@ -106,11 +120,6 @@ export const en = {
         title: "Cross-company regulatory risk",
         prompt:
           "Compare the antitrust exposure Apple and Alphabet disclose in their latest 10-Ks: which specific cases does each name, and whose revenue is more directly at risk?",
-      },
-      bearCaseAudit: {
-        title: "Evidence-checked bear case",
-        prompt:
-          "Build a bear case on Tesla at its current valuation using its 10-K risk factors, fundamentals, and recent news, then flag which popular bear arguments the evidence doesn't support.",
       },
     },
   },
@@ -215,7 +224,21 @@ export const zhTW: Copy = {
   emptyState: {
     heading: "研究任何一檔美股",
     subtext: "AI 研究 Agent 會讀取 SEC 10-K 年報、即時市場資料與近期新聞，回答時附上引用來源。",
+    everydayGroupLabel: "日常提問",
+    analystGroupLabel: "深度分析",
     chips: {
+      priceToday: {
+        title: "今日股價表現",
+        prompt: "Apple 今天的股價表現如何？背後有什麼相關新聞嗎？",
+      },
+      businessModel: {
+        title: "這家公司靠什麼賺錢",
+        prompt: "NVIDIA 主要在賣什麼？它大部分的營收來自哪裡？",
+      },
+      valuationCheck: {
+        title: "現在買算貴嗎？",
+        prompt: "Tesla 現在的股價算貴嗎？請用白話的方式解釋。",
+      },
       riskVsNews: {
         title: "風險揭露 vs. 近期新聞",
         prompt:
@@ -230,11 +253,6 @@ export const zhTW: Copy = {
         title: "跨公司法規風險比較",
         prompt:
           "比較 Apple 與 Alphabet 在最新 10-K 中揭露的反托拉斯風險：各自點名了哪些具體案件？哪一家的營收受到更直接的威脅？",
-      },
-      bearCaseAudit: {
-        title: "經證據檢驗的看空論點",
-        prompt:
-          "以 Tesla 目前的估值，根據其 10-K 風險因子、基本面與近期新聞建立看空論點，並指出哪些常見的看空說法缺乏證據支持。",
       },
     },
   },

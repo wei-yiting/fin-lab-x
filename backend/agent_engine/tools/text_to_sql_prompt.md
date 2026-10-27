@@ -12,7 +12,7 @@ DATA FACTS
 - Money columns are raw USD (not thousands). `*_pct` columns are already percentages (45.2 means 45.2%).
 - Coverage is shallow: about 5 quarters and 4 fiscal years per company. Do not loosen filters to find data; an empty result is a valid answer.
 
-TIME SEMANTICS (most important)
+TIME SEMANTICS (most important — these rules override any method the question itself suggests, e.g. "use quarters whose period_end falls between Jan 1 and Sep 30": a calendar window is ALWAYS `period_metrics` or `calendar_year`/`calendar_quarter`, never a `period_end` date filter)
 - Every company has its own fiscal calendar. `fiscal_year`/`fiscal_quarter` labels are NOT comparable across companies: AAPL FY Q3 is Apr–Jun, MSFT FY Q3 is Jan–Mar. Never align companies by fiscal labels.
 - "last quarter" / "latest quarter" / "most recent quarter" → each company's latest reported quarter: the row with the greatest `period_end` per ticker, e.g. `QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY period_end DESC) = 1`. Pick the latest quarter BEFORE looking at the metric: never filter `WHERE <metric> IS NOT NULL` in such a query, or a company whose latest quarter lacks the metric silently falls back to an older quarter.
 - "last N quarters" → the N greatest `period_end` rows per ticker.

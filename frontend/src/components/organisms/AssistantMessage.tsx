@@ -125,7 +125,7 @@ export const AssistantMessage = memo(function AssistantMessage({
   );
 
   // Evidence behind `sec://` / `sql://` citations comes from this message's
-  // own tool results (ADR-0021), resolved once the turn completes.
+  // own tool results (ADR-0024), resolved once the turn completes.
   const citations = useMemo(
     () =>
       extractedSources.length === 0 ? NO_CITATIONS : resolveCitations(extractedSources, parts),

@@ -5,7 +5,7 @@
  * evidence behind that ID is never written by the model — it is joined, by
  * ID, against the tool results of the SAME assistant message, which already
  * reach the client as tool-part `output`. Nothing here needs a backend or
- * streaming-contract change (ADR-0021).
+ * streaming-contract change (ADR-0024).
  *
  * - `http(s)://…` → a web link (news), shown as before
  * - `sec://…`     → one `sec_filing_search` evidence chunk, keyed by its `source`

@@ -1,6 +1,6 @@
 # ADR-0020: SEC filing URLs travel as UI-only tool artifacts, never in model-visible content (2026-08-19)
 
-*(Partially revised by ADR-0021: citation evidence resolves client-side from tool output; the `data-tool-artifact` forwarding below is still unimplemented and only needed for the EDGAR URL.)*
+*(Partially revised by ADR-0024: citation evidence resolves client-side from tool output; the `data-tool-artifact` forwarding below is still unimplemented and only needed for the EDGAR URL.)*
 
 **Decision**: The EDGAR filing URL for a `sec_filing_search` result is UI-only metadata: it
 must never enter the model's context, because the model is forbidden from writing SEC URLs

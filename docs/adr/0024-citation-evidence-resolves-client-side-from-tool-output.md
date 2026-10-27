@@ -1,4 +1,4 @@
-# ADR-0021: Citation evidence resolves client-side from tool output, not a UI-only artifact channel (2026-10-27)
+# ADR-0024: Citation evidence resolves client-side from tool output, not a UI-only artifact channel (2026-10-27)
 
 *(Partially revises ADR-0020. Decided in the DEV-229 grilling session.)*
 

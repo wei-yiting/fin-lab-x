@@ -9,7 +9,9 @@ from backend.agent_engine.agents.config_loader import ProfileConfigLoader
 from backend.api.main import app
 
 
-def test_e2e_chat_flow():
+def test_e2e_chat_flow(monkeypatch):
+    # A developer .env may select another profile (WORKFLOW_PROFILE); pin baseline.
+    monkeypatch.setenv("WORKFLOW_PROFILE", "baseline")
     mock_agent = MagicMock()
     mock_agent.ainvoke = AsyncMock(
         return_value={

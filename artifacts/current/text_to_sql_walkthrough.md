@@ -245,7 +245,7 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 | Q7 | Apple 2019 年營收多少？ | text_to_sql（no_rows）→ sec_filing_search | 說明資料庫只涵蓋 FY2022 之後 → **改讀 FY2019 10-K** 回答 $260.17B | 26.9 |
 | Q8 | 台積電上一季營收多少？（名單外） | Tavily ×3 + Finnhub | ⚠️ 抓到 1 月的新聞（2025 Q4），不是最新一季 → 已知限制 | 32.7 |
 
-**修正過程中抓到、也已修好的問題**（都有對應的 commit；其中 3 個有回歸測試）：DuckDB binder bug、yfinance 半成品季度、不完整區間算出的假 +254% 成長、SQL token 串流進答案、`WHERE metric IS NOT NULL` 放錯位置、orchestrator 越權指定作法。
+**修正過程中抓到、也已修好的問題**（都有對應的 commit；前 4 個有回歸測試）：DuckDB binder bug、yfinance 半成品季度、不完整區間算出的假 +254% 成長、SQL token 串流進答案、`WHERE metric IS NOT NULL` 放錯位置、orchestrator 越權指定作法。
 
 **建議 demo 順序**：Q1 → Q6（組合工具，主軸）→ Q4（時間語意）→ Q7（誠實面對缺資料）。每題約 10–27 秒。
 

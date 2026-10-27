@@ -20,8 +20,9 @@ import json
 import time
 import traceback
 from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager, nullcontext
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
@@ -69,6 +70,9 @@ class Arm:
     name: str
     config_dir: Path
     prompt_path: Path
+    # Entered around each of this arm's task runs, for arms that differ in
+    # code rather than config (e.g. a patched-in legacy behavior).
+    run_context: Callable[[], AbstractContextManager[Any]] = field(default=nullcontext)
 
 
 def _sha256(text: str) -> str:
@@ -129,6 +133,7 @@ class RunCollector(AsyncCallbackHandler):
     def __init__(self) -> None:
         self._starts: dict[UUID, float] = {}
         self._tool_names: dict[UUID, str] = {}
+        self._tool_meta: dict[UUID, dict[str, Any]] = {}
         self.llm_calls: list[dict[str, Any]] = []
         self.tool_runs: list[dict[str, Any]] = []
 
@@ -164,6 +169,13 @@ class RunCollector(AsyncCallbackHandler):
         self._tool_names[run_id] = (serialized or {}).get("name") or kwargs.get(
             "name", "unknown"
         )
+        # turn = model calls finished before this tool started, so calls the
+        # model issued in parallel share a turn.
+        self._tool_meta[run_id] = {
+            "start_seq": len(self._tool_meta) + len(self.tool_runs),
+            "turn": len(self.llm_calls),
+            "args": kwargs.get("inputs"),
+        }
 
     async def on_tool_end(self, output, *, run_id, **kwargs):
         self._finish_tool(run_id, error=None)
@@ -180,6 +192,7 @@ class RunCollector(AsyncCallbackHandler):
                 if started is None
                 else time.perf_counter() - started,
                 "error": error,
+                **self._tool_meta.pop(run_id, {}),
             }
         )
 
@@ -190,10 +203,12 @@ _collector_var: ContextVar[RunCollector | None] = ContextVar(
 register_configure_hook(context_var=_collector_var, inheritable=True)
 
 
-def load_rows(mode: RowMode) -> list[dict[str, str]]:
-    _, rows = load_raw_csv_rows(SCENARIO_DIR / "dataset.csv")
+def load_rows(mode: RowMode, scenario_dir: Path = SCENARIO_DIR) -> list[dict[str, str]]:
+    _, rows = load_raw_csv_rows(scenario_dir / "dataset.csv")
     if mode == "all":
         return rows
+    if scenario_dir != SCENARIO_DIR:
+        raise ValueError("Row mode 'dev' is defined only for the zh diagnostic split")
     return apply_split(rows, load_split_sidecar(BENCHMARK_DIR / "split.json"))
 
 
@@ -201,7 +216,9 @@ def _tool_call(name: str, **args: Any) -> dict[str, Any]:
     return {"name": name, "args": args, "id": f"prewarm-{name}", "type": "tool_call"}
 
 
-async def prewarm(tool_names: Sequence[str]) -> list[dict[str, Any]]:
+async def prewarm(
+    tool_names: Sequence[str], tickers: Sequence[str] = DATASET_TICKERS
+) -> list[dict[str, Any]]:
     """Fetch (and, for search, index) each ticker's latest 10-K before timing.
 
     Otherwise the first arm to touch a ticker pays the EDGAR download (and
@@ -214,7 +231,7 @@ async def prewarm(tool_names: Sequence[str]) -> list[dict[str, Any]]:
 
     setup_tools()
     report = []
-    for ticker in DATASET_TICKERS:
+    for ticker in tickers:
         entry: dict[str, Any] = {"ticker": ticker}
         for name in tool_names:
             tool = get_tool(name)
@@ -260,16 +277,17 @@ async def run_one(
         metadata={**eval_row["metadata"], "arm": arm.name, **order},
     ) as span:
         try:
-            output = dict(
-                await asyncio.wait_for(
-                    run_baseline_behavior_diagnostic(
-                        eval_row["input"],
-                        config_dir=arm.config_dir,
-                        prompt_path=arm.prompt_path,
-                    ),
-                    timeout=TASK_TIMEOUT_S,
+            with arm.run_context():
+                output = dict(
+                    await asyncio.wait_for(
+                        run_baseline_behavior_diagnostic(
+                            eval_row["input"],
+                            config_dir=arm.config_dir,
+                            prompt_path=arm.prompt_path,
+                        ),
+                        timeout=TASK_TIMEOUT_S,
+                    )
                 )
-            )
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
             traceback.print_exc()
@@ -308,6 +326,8 @@ async def run_experiment(
     row_mode: RowMode,
     row_ids: list[str] | None,
     extra_metadata: dict[str, Any],
+    scenario_dir: Path = SCENARIO_DIR,
+    prewarm_tickers: Sequence[str] = DATASET_TICKERS,
 ) -> dict[str, str | None]:
     """Run one repetition of every row x arm, row-major. Resumable per run."""
     import braintrust
@@ -319,7 +339,7 @@ async def run_experiment(
     raw_dir = out_dir / "raw" / f"rep{rep}"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
-    all_rows = load_rows(row_mode)
+    all_rows = load_rows(row_mode, scenario_dir)
     all_ids = [row["id"] for row in all_rows]
     rows = all_rows
     if row_ids is not None:
@@ -328,11 +348,11 @@ async def run_experiment(
             raise SystemExit(f"Row ids not in '{row_mode}' rows: {unknown}")
         rows = [row for row in all_rows if row["id"] in row_ids]
 
-    scenario = load_scenario_config(SCENARIO_DIR / "eval_spec.yaml")
+    scenario = load_scenario_config(scenario_dir / "eval_spec.yaml")
     diagnostic = scenario.diagnostic
     bt_config = load_braintrust_config(BRAINTRUST_CONFIG_PATH)
 
-    report = await prewarm(prewarm_tools)
+    report = await prewarm(prewarm_tools, prewarm_tickers)
     (out_dir / f"prewarm_{label}_rep{rep}.json").write_text(
         json.dumps(report, indent=2)
     )

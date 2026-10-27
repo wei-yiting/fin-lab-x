@@ -7,7 +7,9 @@ from pathlib import Path
 import duckdb
 import pytest
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage
+from langgraph.constants import TAG_NOSTREAM
 
 from backend.agent_engine.tools import text_to_sql as tts
 from backend.common.errors import ConfigurationError
@@ -220,3 +222,22 @@ def test_tool_returns_contract_through_tool_call(store, monkeypatch):
         "truncated",
         "attempts",
     }
+
+
+class _TagRecorder(BaseCallbackHandler):
+    def __init__(self) -> None:
+        self.chat_model_tags: list[list[str]] = []
+
+    def on_chat_model_start(self, serialized, messages, *, tags=None, **kwargs):
+        self.chat_model_tags.append(list(tags or []))
+
+
+def test_sql_generation_is_traced_but_never_streamed(store, monkeypatch):
+    """The inner LLM inherits the caller's callbacks (nested trace) but carries
+    LangGraph's nostream tag so its SQL tokens never reach the answer stream."""
+    _script(monkeypatch, _fenced(GOOD_SQL))
+    recorder = _TagRecorder()
+    tts.answer_question("Revenue?", db_path=store, config={"callbacks": [recorder]})
+    assert recorder.chat_model_tags and all(
+        TAG_NOSTREAM in tags for tags in recorder.chat_model_tags
+    )

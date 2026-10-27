@@ -31,6 +31,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 from langchain_core.tools import InjectedToolCallId
 from langgraph.config import get_stream_writer
+from langgraph.constants import TAG_NOSTREAM
 from pydantic import BaseModel, Field
 
 from backend.common.data_paths import get_duckdb_path
@@ -260,7 +261,11 @@ def answer_question(
     failed: list[Attempt] = []
 
     def attempt(_: Any, config: RunnableConfig) -> dict[str, Any]:
-        reply = model.invoke(_sql_messages(question, schema, failed), config=config)
+        # nostream: the SQL-writing tokens must not leak into the user-visible answer
+        # stream (LangGraph streams every chat model run that inherits callbacks).
+        reply = model.with_config(tags=[TAG_NOSTREAM]).invoke(
+            _sql_messages(question, schema, failed), config=config
+        )
         unanswerable = _UNANSWERABLE_RE.search(reply.text)
         if unanswerable:
             return {"unanswerable": unanswerable.group(1).strip()}

@@ -14,7 +14,7 @@ DATA FACTS
 
 TIME SEMANTICS (most important)
 - Every company has its own fiscal calendar. `fiscal_year`/`fiscal_quarter` labels are NOT comparable across companies: AAPL FY Q3 is Apr–Jun, MSFT FY Q3 is Jan–Mar. Never align companies by fiscal labels.
-- "last quarter" / "latest quarter" / "most recent quarter" → each company's latest reported quarter: the row with the greatest `period_end` per ticker, e.g. `QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY period_end DESC) = 1`.
+- "last quarter" / "latest quarter" / "most recent quarter" → each company's latest reported quarter: the row with the greatest `period_end` per ticker, e.g. `QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY period_end DESC) = 1`. Pick the latest quarter BEFORE looking at the metric: never filter `WHERE <metric> IS NOT NULL` in such a query, or a company whose latest quarter lacks the metric silently falls back to an older quarter.
 - "last N quarters" → the N greatest `period_end` rows per ticker.
 - A calendar period ("2026 Q3", "first three quarters of 2026", "H1 2026") is the DEFAULT reading of a year/quarter. One calendar quarter → filter `quarterly_metrics` on `calendar_year`/`calendar_quarter`. A multi-quarter window inside one calendar year → `period_metrics(cal_year, q_from, q_to)`; never sum or average quarters yourself.
 - Only when the question says fiscal ("FY2026", "fiscal 2026", "fiscal Q2") use `fiscal_year`/`fiscal_quarter`; full fiscal years → `annual_metrics`.

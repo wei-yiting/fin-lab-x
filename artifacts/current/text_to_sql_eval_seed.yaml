@@ -1,0 +1,102 @@
+# Seed cases for the future text-to-SQL eval (DEV-227). NOT run in DEV-224.
+#
+# Each case: the user question, the expected tool route, a hand-checked gold SQL, and the
+# key facts its execution produced against data/fundamentals.db ingested 2026-10-27
+# (yfinance). Execution accuracy should compare result sets of gold vs generated SQL,
+# never SQL strings. Facts go stale when the store is re-ingested — re-run the gold SQL.
+
+store_snapshot: "yfinance batch ingest 2026-10-27, 23 tickers, 115 quarters, 105 annual rows"
+
+cases:
+  - id: Q1
+    question: "上一季哪家公司毛利率最高？"
+    expected_route: [text_to_sql]
+    probes: [latest_reported_quarter, null_is_not_zero, mixed_fiscal_calendars]
+    gold_sql: |
+      SELECT ticker, fiscal_year, fiscal_quarter, period_end,
+             gross_profit_usd, total_revenue_usd, gross_margin_pct
+      FROM quarterly_metrics
+      QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY period_end DESC) = 1
+      ORDER BY gross_margin_pct DESC NULLS LAST
+    key_facts:
+      - "Top: META 79.31% (FY2026 Q3, ended 2026-09-30; GP 51.232B / revenue 64.601B)"
+      - "Runner-up: MA 79.01% (FY2026 Q2, ended 2026-06-30)"
+      - "JPM and BRK.B have NULL gross margin -> excluded and named, not ranked as 0"
+    failure_modes_to_catch:
+      - "aligning companies on the same fiscal_year/fiscal_quarter label"
+      - "WHERE gross_margin_pct IS NOT NULL before picking the latest quarter"
+
+  - id: Q2
+    question: "Compare NVDA and INTC revenue over the last 4 quarters."
+    expected_route: [text_to_sql]
+    probes: [last_n_quarters_per_company, time_series]
+    gold_sql: |
+      SELECT ticker, fiscal_year, fiscal_quarter, period_end, total_revenue_usd
+      FROM quarterly_metrics WHERE ticker IN ('NVDA', 'INTC')
+      QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY period_end DESC) <= 4
+      ORDER BY ticker, period_end
+    key_facts:
+      - "INTC: 13.653B, 13.674B, 13.577B, 16.128B (2025-09-30 .. 2026-06-30)"
+      - "NVDA: 57.006B .. 96.221B (2025-10-31 .. 2026-07-31); NVDA quarters end one month later"
+
+  - id: Q3
+    question: "KO 和 PEP 誰的 forward P/E 比較低？"
+    expected_route: [text_to_sql]   # not finnhub_company_basic_financials (tool routing)
+    probes: [valuation_snapshot, routing_vs_finnhub]
+    gold_sql: |
+      SELECT ticker, as_of_date, forward_price_to_earnings FROM market_valuations
+      WHERE ticker IN ('KO', 'PEP')
+      QUALIFY row_number() OVER (PARTITION BY ticker ORDER BY as_of_date DESC) = 1
+      ORDER BY forward_price_to_earnings
+    key_facts:
+      - "PEP 15.68 < KO 26.30, as of 2026-10-27"
+
+  - id: Q4
+    question: "2026 前三季營收最高的是哪家？"
+    expected_route: [text_to_sql]
+    probes: [calendar_window_default, partial_window_not_comparable]
+    gold_sql: |
+      SELECT ticker, quarters_covered, quarters_expected,
+             first_period_end, last_period_end, total_revenue_usd
+      FROM period_metrics(2026, 1, 3)
+      ORDER BY (quarters_covered = quarters_expected) DESC, total_revenue_usd DESC NULLS LAST
+    key_facts:
+      - "Top complete window: COST 235.847B (fiscal quarters ended 2026-02-28 .. 2026-08-31)"
+      - "Then META 181.713B, TSLA 78.669B"
+      - "AAPL, MSFT, AMZN ... have 2 of 3 calendar quarters -> NULL amounts, named as not comparable"
+
+  - id: Q5
+    question: "Apple 10-K 怎麼描述供應鏈風險？"
+    expected_route: [sec_filing_search]
+    probes: [rag_not_regressed]
+    gold_sql: null
+    key_facts:
+      - "FY2025 10-K (FYE 2025-09-27); Asia manufacturing concentration; single/limited-source components"
+
+  - id: Q6
+    question: "Apple 怎麼描述它的 AI 投資？它的研發佔營收比多少？"
+    expected_route: [sec_filing_search, text_to_sql]
+    probes: [tool_composition]
+    gold_sql: |
+      SELECT 'FY' AS grain, fiscal_year, period_end, research_and_development_usd,
+             total_revenue_usd, rd_to_revenue_pct
+      FROM annual_metrics WHERE ticker = 'AAPL'
+      QUALIFY row_number() OVER (ORDER BY period_end DESC) = 1
+      UNION ALL
+      SELECT 'Q', fiscal_year, period_end, research_and_development_usd,
+             total_revenue_usd, rd_to_revenue_pct
+      FROM quarterly_metrics WHERE ticker = 'AAPL'
+      QUALIFY row_number() OVER (ORDER BY period_end DESC) = 1
+    key_facts:
+      - "FY2025: R&D 34.55B / revenue 416.161B = 8.30%"
+      - "FY2026 Q3 (2026-06-30): 11.729B / 109.417B = 10.72%"
+
+  - id: Q7
+    question: "Apple 2019 年營收多少？"
+    expected_route: [text_to_sql]
+    probes: [no_rows_is_honest, coverage_disclosure]
+    gold_sql: |
+      SELECT fiscal_year, total_revenue_usd FROM annual_metrics
+      WHERE ticker = 'AAPL' AND fiscal_year = 2019
+    key_facts:
+      - "0 rows: AAPL annual coverage is FY2022-FY2025 -> answer must say not covered (and not fetch it from news)"

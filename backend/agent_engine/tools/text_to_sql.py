@@ -60,6 +60,15 @@ _VIEW_BASE_TABLES = {
 }
 
 _PROMPT_PATH = Path(__file__).with_name("text_to_sql_prompt.md")
+_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "ingestion/fundamentals_pipeline/duck_db/schema.sql"
+)
+# The metrics views' ratio columns: `num::DOUBLE / NULLIF(den, 0) [* 100] AS metric`.
+_RATIO_COLUMN_RE = re.compile(
+    r"^\s*(\w+)::DOUBLE / NULLIF\((\w+), 0\)( \* 100)? AS (\w+),?$", re.MULTILINE
+)
+_RELATION_RE = re.compile(r"\b(?:FROM|JOIN)\s+([A-Za-z_]\w*)", re.IGNORECASE)
 _SQL_FENCE_RE = re.compile(r"```(?:sql)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 _UNANSWERABLE_RE = re.compile(r"^\s*UNANSWERABLE:\s*(.+)$", re.MULTILINE)
 
@@ -73,6 +82,14 @@ class Attempt(TypedDict):
     error: str
 
 
+class Derivation(TypedDict):
+    """How a derived output column is computed from raw columns in the same rows."""
+
+    column: str
+    expression: str
+    inputs: list[str]
+
+
 class TextToSqlResult(TypedDict):
     status: Literal["ok", "no_rows", "failed"]
     question: str
@@ -82,6 +99,41 @@ class TextToSqlResult(TypedDict):
     truncated: bool
     attempts: list[Attempt]
     coverage: NotRequired[dict[str, Any]]
+    # ok only: the stable ID the model cites as `[N]: sql://…`, plus the
+    # provenance the UI's citation block shows (ADR-0021).
+    citation_id: NotRequired[str]
+    tables: NotRequired[list[str]]
+    derivations: NotRequired[list[Derivation]]
+
+
+@functools.cache
+def _view_derivations() -> dict[str, Derivation]:
+    """Ratio columns read from the views' DDL — deterministic, never LLM-written."""
+    return {
+        column: {
+            "column": column,
+            "expression": f"{num} / {den}{' * 100' if pct else ''}",
+            "inputs": [num, den],
+        }
+        for num, den, pct, column in _RATIO_COLUMN_RE.findall(_SCHEMA_PATH.read_text())
+    }
+
+
+def derivations_for(columns: list[str]) -> list[Derivation]:
+    """Derivations whose output column and every input column were selected."""
+    selected = set(columns)
+    known = _view_derivations()
+    return [
+        known[c]
+        for c in columns
+        if c in known and all(i in selected for i in known[c]["inputs"])
+    ]
+
+
+def relations_in(sql: str) -> list[str]:
+    queryable = set(QUERYABLE_RELATIONS) | set(QUERYABLE_MACROS)
+    found = [name for name in _RELATION_RE.findall(sql) if name in queryable]
+    return list(dict.fromkeys(found))
 
 
 def validate_read_only_sql(sql: str) -> None:
@@ -358,4 +410,9 @@ def text_to_sql(
                 }
             )
 
-    return answer_question(question, config=config, on_attempt=report)
+    result = answer_question(question, config=config, on_attempt=report)
+    if result["status"] == "ok":
+        result["citation_id"] = f"sql://{tool_call_id}"
+        result["tables"] = relations_in(result["sql"] or "")
+        result["derivations"] = derivations_for(result["columns"])
+    return result

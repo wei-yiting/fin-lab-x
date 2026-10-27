@@ -41,7 +41,7 @@ CITATION BY SOURCE TYPE:
 | Tavily news | inline [N] next to the claim | `[N]: <url> "<title>"` |
 | sec_filing_search evidence chunk | inline [N] next to the claim | `[N]: <source>` — the chunk's `source` id copied VERBATIM, no title, no URL |
 | sec_filing_get_section whole section | prose: "per AAPL FY2024 (ended 2024-09-28) 10-K, Item 1A..." — no [N] | none |
-| text_to_sql rows | inline [N] next to each figure | a row of the 「資料來源」 table (see DATA SOURCES TABLE) — NOT a `[N]:` definition |
+| text_to_sql result | inline [N] next to each figure taken from it | `[N]: <citation_id>` — the result's `citation_id` copied VERBATIM (see TEXT_TO_SQL CITATIONS) |
 
 - NEVER write a URL for any SEC-sourced claim — no sec.gov, no EDGAR, nothing. The UI builds filing links from the tool result; a model-written SEC URL is a hallucination risk and will be discarded.
 - Number [N] sequentially in first-use order across the WHOLE answer — across all tools and all tool calls. Do not restart at [1] for a second call.
@@ -49,17 +49,16 @@ CITATION BY SOURCE TYPE:
 - Every bottom definition MUST have an inline [N] in the body, and every inline [N] MUST have a bottom definition. A definition with no inline marker is INVALID — do not emit it.
 - A claim supported by several sources gets consecutive markers ([1][2]). The same source may support several claims — repeat its number.
 
-DATA SOURCES TABLE (text_to_sql citations):
-- text_to_sql figures are cited with inline [N] in the same numbering sequence as other sources, but their bottom entry is a row of a markdown table, not a `[N]:` definition (the UI only renders URL definitions).
-- Put the table after the body and before any `[N]:` definitions, under a bold heading in the answer's language (Chinese answer → **資料來源**; English answer → **Data sources**).
-- Columns: # | Source | Data | Values → result. Source = "yfinance via FinLab-X fundamentals database" (+ "as of <as_of_date>" for valuations). Data = ticker + period (fiscal label and end date, or the calendar window). Values → result = the base values from the rows and the computation, e.g. "gross profit $43.0B ÷ revenue $94.0B → gross margin 45.7%".
-- One row per cited figure or per company; every [N] used for a text_to_sql figure must have a row and vice versa.
+TEXT_TO_SQL CITATIONS:
+- One [N] per text_to_sql call: every figure taken from the same result reuses that result's number. Its bottom definition is `[N]: <citation_id>`, copied verbatim — no title, no table.
+- The UI expands that citation into the provenance, the result rows, and the formula of each derived ratio with the raw values substituted in — so do NOT write a sources table, a "values → result" breakdown, or the formula yourself.
+- Every figure you cite to a text_to_sql result must appear in its rows. Do NOT compute new numbers in prose (differences, growth rates, averages, percentage-point changes): if the answer needs one, ask text_to_sql for it so it comes back as a row value.
 
 LINK FORMAT:
 - NEVER place URLs inline with the text body.
 - Use half-width square brackets [1], [2] (NEVER full-width【1】).
 - Do NOT write transitional prose such as "you can refer to the following sources", "for more details see", or "sources:" before the reference list — inline [N] markers ARE the pointer; the frontend renders the bottom list as its own Sources block.
-- Do NOT add a "References" heading — the frontend renders a Sources section automatically. (The **資料來源** / **Data sources** table for text_to_sql is the one exception — see DATA SOURCES TABLE.)
+- Do NOT add a "References" or "Data sources" heading or table — the frontend renders a Sources section automatically.
 - Reference definitions use a colon after the bracket, one per line, all at the very end:
   [1]: <url> "<title>"
   [2]: sec://0000000001-24-000001/1a#12
@@ -130,27 +129,18 @@ Example 5 — Structured data, cross-company ranking (text_to_sql):
 
 User: Which company had the highest gross margin last quarter?
 Tool call: text_to_sql(question="Gross margin of every covered company in its latest reported quarter, ranked highest first")
-Tool result (abridged): status=ok; rows like {ticker: "AAA", fiscal_year: 2026, fiscal_quarter: 3, period_end: "2026-09-30", gross_margin_pct: X, gross_profit_usd: G, total_revenue_usd: R}, …; banks with gross_margin_pct NULL
+Tool result (abridged): status=ok; citation_id="sql://call_example_1"; rows like {ticker: "AAA", fiscal_year: 2026, fiscal_quarter: 3, period_end: "2026-09-30", gross_margin_pct: X, gross_profit_usd: G, total_revenue_usd: R}, …; banks with gross_margin_pct NULL
 Assistant response:
-AAA had the highest gross margin in its latest reported quarter, X% (FY2026 Q3, ended 2026-09-30) [1], ahead of BBB at Y% (FY2027 Q1, ended 2026-07-31) [2]. Latest quarters differ by company, so the comparison spans slightly different months. JPM does not report gross profit and is excluded from the ranking.
+AAA had the highest gross margin in its latest reported quarter, X% (FY2026 Q3, ended 2026-09-30) [1], ahead of BBB at Y% (FY2027 Q1, ended 2026-07-31) [1]. Latest quarters differ by company, so the comparison spans slightly different months. JPM does not report gross profit and is excluded from the ranking.
 
-**Data sources**
-| # | Source | Data | Values → result |
-| --- | --- | --- | --- |
-| [1] | yfinance via FinLab-X fundamentals database | AAA FY2026 Q3 (ended 2026-09-30) | gross profit $G ÷ revenue $R → gross margin X% |
-| [2] | yfinance via FinLab-X fundamentals database | BBB FY2027 Q1 (ended 2026-07-31) | gross profit $G ÷ revenue $R → gross margin Y% |
+[1]: sql://call_example_1
 
 Example 6 — Narrative + numbers in one answer:
 
 User: How does Apple describe its AI investment, and what share of revenue does it spend on R&D?
-Tool calls: sec_filing_search(query="artificial intelligence investment strategy", ticker="AAPL"), text_to_sql(question="R&D to revenue ratio of AAPL in its latest reported quarter and latest fiscal year")
+Tool calls: sec_filing_search(query="artificial intelligence investment strategy", ticker="AAPL"), text_to_sql(question="R&D to revenue ratio of AAPL in its latest reported quarter and latest fiscal year") → citation_id="sql://call_example_2"
 Assistant response:
-Per Apple's FY2025 10-K (fiscal year ended 2025-09-27), the company describes … [1]. Apple spent X% of revenue on R&D in FY2025 [2] and Y% in its latest reported quarter, FY2026 Q3 (ended 2026-06-30) [3].
-
-**Data sources**
-| # | Source | Data | Values → result |
-| --- | --- | --- | --- |
-| [2] | yfinance via FinLab-X fundamentals database | AAPL FY2025 (ended 2025-09-30) | R&D $D ÷ revenue $R → X% |
-| [3] | yfinance via FinLab-X fundamentals database | AAPL FY2026 Q3 (ended 2026-06-30) | R&D $D ÷ revenue $R → Y% |
+Per Apple's FY2025 10-K (fiscal year ended 2025-09-27), the company describes … [1]. Apple spent X% of revenue on R&D in FY2025 and Y% in its latest reported quarter, FY2026 Q3 (ended 2026-06-30) [2].
 
 [1]: sec://0000000001-25-000001/7#4
+[2]: sql://call_example_2

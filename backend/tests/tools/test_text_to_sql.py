@@ -221,7 +221,11 @@ def test_tool_returns_contract_through_tool_call(store, monkeypatch):
         "rows",
         "truncated",
         "attempts",
+        "citation_id",
+        "tables",
+        "derivations",
     }
+    assert payload["citation_id"] == "sql://call-1"
 
 
 class _TagRecorder(BaseCallbackHandler):
@@ -241,3 +245,23 @@ def test_sql_generation_is_traced_but_never_streamed(store, monkeypatch):
     assert recorder.chat_model_tags and all(
         TAG_NOSTREAM in tags for tags in recorder.chat_model_tags
     )
+
+
+def test_derivations_come_from_view_ddl_and_need_their_inputs_selected():
+    selected = ["ticker", "gross_margin_pct", "gross_profit_usd", "total_revenue_usd"]
+    assert tts.derivations_for(selected) == [
+        {
+            "column": "gross_margin_pct",
+            "expression": "gross_profit_usd / total_revenue_usd * 100",
+            "inputs": ["gross_profit_usd", "total_revenue_usd"],
+        }
+    ]
+    assert tts.derivations_for(["ticker", "gross_margin_pct"]) == []
+
+
+def test_relations_in_lists_only_queryable_objects_once():
+    sql = (
+        "SELECT * FROM annual_metrics a JOIN companies c USING (ticker) "
+        "JOIN annual_metrics b USING (ticker) WHERE x IN (SELECT 1 FROM duckdb_tables())"
+    )
+    assert tts.relations_in(sql) == ["annual_metrics", "companies"]

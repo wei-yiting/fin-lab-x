@@ -1,0 +1,268 @@
+{
+  "arms": [
+    {
+      "arm": "luna_none",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9111111111111111,
+      "health_ci": [
+        0.8111111111111111,
+        0.9888888888888889
+      ],
+      "median_e2e_s": 27.251473930666787,
+      "median_e2e_ci": [
+        23.99401879166544,
+        31.40635440282737
+      ],
+      "median_ttft_s": 2.1953937360012787,
+      "median_tool_calls": 6.0,
+      "median_llm_calls": 3.0,
+      "median_input_tokens": 38553.0,
+      "median_output_tokens": 2022.3333333333335,
+      "median_reasoning_tokens": 0.0,
+      "mean_cost_per_run": 0.014230444444444445,
+      "mean_cost_ci": [
+        0.006700333333333333,
+        0.025280888888888887
+      ],
+      "total_cost_usd": 1.28074,
+      "hard_tool_errors_per_run": 0.12222222222222222,
+      "runs_at_tool_budget": 6,
+      "simplified_drift_runs": 0,
+      "health_same_across_reps": 0.9333333333333333,
+      "median_within_row_e2e_cv": 0.1359951163655259,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    },
+    {
+      "arm": "luna_medium",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9,
+      "health_ci": [
+        0.7888888888888889,
+        0.9888888888888889
+      ],
+      "median_e2e_s": 37.9641209511683,
+      "median_e2e_ci": [
+        35.07871063900045,
+        42.31808169433498
+      ],
+      "median_ttft_s": 2.485870597171015,
+      "median_tool_calls": 7.166666666666666,
+      "median_llm_calls": 3.0,
+      "median_input_tokens": 43749.16666666667,
+      "median_output_tokens": 2720.3333333333335,
+      "median_reasoning_tokens": 493.66666666666663,
+      "mean_cost_per_run": 0.016129555555555557,
+      "mean_cost_ci": [
+        0.009132555555555555,
+        0.026037777777777778
+      ],
+      "total_cost_usd": 1.45166,
+      "hard_tool_errors_per_run": 0.14444444444444443,
+      "runs_at_tool_budget": 9,
+      "simplified_drift_runs": 1,
+      "health_same_across_reps": 0.9333333333333333,
+      "median_within_row_e2e_cv": 0.13155745876544434,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    },
+    {
+      "arm": "gemini_minimal",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9666666666666667,
+      "health_ci": [
+        0.9,
+        1.0
+      ],
+      "median_e2e_s": 15.052464500001708,
+      "median_e2e_ci": [
+        13.20189647933148,
+        16.796758250168445
+      ],
+      "median_ttft_s": 1.4431438543348727,
+      "median_tool_calls": 3.6666666666666665,
+      "median_llm_calls": 2.833333333333333,
+      "median_input_tokens": 12717.0,
+      "median_output_tokens": 1421.0,
+      "median_reasoning_tokens": 0.0,
+      "mean_cost_per_run": 0.019014333333333334,
+      "mean_cost_ci": [
+        0.015652222222222224,
+        0.022822111111111112
+      ],
+      "total_cost_usd": 1.71129,
+      "hard_tool_errors_per_run": 0.06666666666666667,
+      "runs_at_tool_budget": 0,
+      "simplified_drift_runs": 0,
+      "health_same_across_reps": 1.0,
+      "median_within_row_e2e_cv": 0.13884372168376108,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    },
+    {
+      "arm": "gemini_medium",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9888888888888889,
+      "health_ci": [
+        0.9555555555555556,
+        1.0
+      ],
+      "median_e2e_s": 31.49907668750287,
+      "median_e2e_ci": [
+        29.134632756834133,
+        33.807331083162964
+      ],
+      "median_ttft_s": 2.0194594790033684,
+      "median_tool_calls": 4.5,
+      "median_llm_calls": 3.0,
+      "median_input_tokens": 15161.5,
+      "median_output_tokens": 4345.166666666666,
+      "median_reasoning_tokens": 2854.333333333333,
+      "mean_cost_per_run": 0.030312000000000002,
+      "mean_cost_ci": [
+        0.027541444444444445,
+        0.033591777777777776
+      ],
+      "total_cost_usd": 2.72808,
+      "hard_tool_errors_per_run": 0,
+      "runs_at_tool_budget": 2,
+      "simplified_drift_runs": 1,
+      "health_same_across_reps": 0.9666666666666667,
+      "median_within_row_e2e_cv": 0.10069319266868298,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    }
+  ],
+  "contrasts": [
+    {
+      "contrast": "reasoning, Luna",
+      "treatment": "luna_medium",
+      "control": "luna_none",
+      "execution_health": [
+        -0.01111111111111111,
+        -0.06666666666666667,
+        0.044444444444444446
+      ],
+      "e2e_s": [
+        11.483483380092528,
+        8.764759144926696,
+        14.243521032437599
+      ],
+      "est_cost_usd": [
+        0.0018991111111111112,
+        -0.00018699999999999942,
+        0.003704222222222222
+      ],
+      "tool_calls_total": [
+        0.5111111111111111,
+        0.03333333333333333,
+        0.9999999999999999
+      ]
+    },
+    {
+      "contrast": "reasoning, Gemini",
+      "treatment": "gemini_medium",
+      "control": "gemini_minimal",
+      "execution_health": [
+        0.02222222222222222,
+        -0.03333333333333334,
+        0.1
+      ],
+      "e2e_s": [
+        17.132950030466116,
+        15.338045011042656,
+        19.355068751212094
+      ],
+      "est_cost_usd": [
+        0.011297666666666668,
+        0.007688000000000001,
+        0.015207777777777778
+      ],
+      "tool_calls_total": [
+        0.9444444444444444,
+        0.46666666666666656,
+        1.5333333333333332
+      ]
+    },
+    {
+      "contrast": "family, low tier",
+      "treatment": "gemini_minimal",
+      "control": "luna_none",
+      "execution_health": [
+        0.05555555555555556,
+        -0.03333333333333333,
+        0.16666666666666666
+      ],
+      "e2e_s": [
+        -11.65309484716369,
+        -14.638407863396667,
+        -8.91296778458523
+      ],
+      "est_cost_usd": [
+        0.004783888888888889,
+        -0.007106666666666667,
+        0.013194444444444444
+      ],
+      "tool_calls_total": [
+        -2.1888888888888887,
+        -2.7888888888888888,
+        -1.6222222222222222
+      ]
+    },
+    {
+      "contrast": "family, medium tier",
+      "treatment": "gemini_medium",
+      "control": "luna_medium",
+      "execution_health": [
+        0.08888888888888889,
+        -3.7007434154171884e-18,
+        0.2
+      ],
+      "e2e_s": [
+        -6.003628196790103,
+        -9.185455383767678,
+        -2.761127556512171
+      ],
+      "est_cost_usd": [
+        0.014182444444444445,
+        0.005424777777777778,
+        0.02056211111111111
+      ],
+      "tool_calls_total": [
+        -1.7555555555555555,
+        -2.411111111111111,
+        -1.0666666666666667
+      ]
+    }
+  ],
+  "health_by_source": {
+    "Tavily": {
+      "luna_none": 0.6666666666666666,
+      "luna_medium": 0.5,
+      "gemini_minimal": 0.75,
+      "gemini_medium": 1.0
+    },
+    "mixed": {
+      "luna_none": 0.8888888888888888,
+      "luna_medium": 0.9444444444444444,
+      "gemini_minimal": 1.0,
+      "gemini_medium": 0.9722222222222222
+    },
+    "SEC": {
+      "luna_none": 1.0,
+      "luna_medium": 1.0,
+      "gemini_minimal": 1.0,
+      "gemini_medium": 1.0
+    },
+    "Finnhub": {
+      "luna_none": 1.0,
+      "luna_medium": 0.9333333333333333,
+      "gemini_minimal": 1.0,
+      "gemini_medium": 1.0
+    }
+  }
+}

@@ -137,6 +137,21 @@ export const en = {
     heading: "Sources",
   },
 
+  citations: {
+    jumpAriaLabel: (label: string): string => `Show source ${label}`,
+    secFiscalYear: (fiscalYear: number, fiscalYearEnd?: string): string =>
+      fiscalYearEnd ? `FY${fiscalYear} (fiscal year ended ${fiscalYearEnd})` : `FY${fiscalYear}`,
+    relevance: (score: number): string => `relevance ${score.toFixed(2)}`,
+    sqlFallbackTitle: "Database query result",
+    provenanceLabel: "Data",
+    provenance: "yfinance → FinLab-X DuckDB fundamentals store",
+    tablesLabel: "Tables",
+    formulaLabel: "Formula",
+    substitutionLabel: "Computed from",
+    truncated: (shown: number): string => `Showing the first ${shown} rows.`,
+    unresolved: "No matching retrieved result for this citation",
+  },
+
   chatPanel: {
     responseComplete: "Response complete",
   },
@@ -268,6 +283,21 @@ export const zhTW: Copy = {
 
   sources: {
     heading: "資料來源",
+  },
+
+  citations: {
+    jumpAriaLabel: (label: string): string => `顯示來源 ${label}`,
+    secFiscalYear: (fiscalYear: number, fiscalYearEnd?: string): string =>
+      fiscalYearEnd ? `FY${fiscalYear}（會計年度結束於 ${fiscalYearEnd}）` : `FY${fiscalYear}`,
+    relevance: (score: number): string => `檢索分數 ${score.toFixed(2)}`,
+    sqlFallbackTitle: "資料庫查詢結果",
+    provenanceLabel: "資料",
+    provenance: "yfinance → FinLab-X DuckDB fundamentals store",
+    tablesLabel: "資料表",
+    formulaLabel: "公式",
+    substitutionLabel: "代入",
+    truncated: (shown: number): string => `僅顯示前 ${shown} 列。`,
+    unresolved: "找不到對應的檢索結果",
   },
 
   chatPanel: {

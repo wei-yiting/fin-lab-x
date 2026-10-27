@@ -27,10 +27,14 @@ APP_VERSION = "0.1.0"
 DEFAULT_WORKFLOW_PROFILE = "baseline"
 
 
+def _workflow_profile() -> str:
+    return os.getenv("WORKFLOW_PROFILE", DEFAULT_WORKFLOW_PROFILE)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize application-level singletons on startup."""
-    config = ProfileConfigLoader(DEFAULT_WORKFLOW_PROFILE).load()
+    config = ProfileConfigLoader(_workflow_profile()).load()
 
     db_path = str(get_checkpoint_db_path())
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)

@@ -1,12 +1,6 @@
-# =============================================================================
-# NOTE: This configuration is illustrative / placeholder only.
-# The tools, model settings, and constraints below are preliminary and subject
-# to change once the quant workflow is fully implemented and validated.
-# =============================================================================
-
 version: "0.3.0"
 name: "quant"
-description: "Numerical reasoning, data visualization, and quantitative modeling"
+description: "Reader (SEC 10-K RAG) plus text_to_sql over the DuckDB fundamentals store"
 
 tools:
   - finnhub_stock_quote
@@ -14,7 +8,7 @@ tools:
   - tavily_financial_search
   - sec_filing_list_sections
   - sec_filing_get_section
-  - duckdb_query
+  - sec_filing_search
   - text_to_sql
 
 model:
@@ -24,4 +18,4 @@ model:
   thinking_budget: null
 
 constraints:
-  max_tool_calls_per_run: 8
+  max_tool_calls_per_run: 10

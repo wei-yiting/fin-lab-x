@@ -1,8 +1,9 @@
 """Tests for the tool-selection analysis over recorded agent runs.
 
-Label fixtures are rows 1–5 as decided in the annotation pass (rules R1–R4);
-row 4 is the coverage-gap row (TSMC / ASML file 20-F, the SEC tools read
-10-K only).
+Label fixtures are rows 1–5, 13 and 29 copied verbatim from the final label
+file. Row 4 is a full coverage gap (TSMC / ASML file 20-F, the SEC tools read
+10-K only); row 29 is a partial one (Airbus has no SEC filing); rows 4, 13
+and 29 are multi-company rows for entity coverage.
 """
 
 from __future__ import annotations
@@ -14,7 +15,6 @@ import tarfile
 from pathlib import Path
 from typing import Any
 
-import openpyxl
 import pytest
 
 from backend.evals.experiments.tool_selection.analyze import (
@@ -23,32 +23,13 @@ from backend.evals.experiments.tool_selection.analyze import (
     load_records,
     main,
     normalize_ticker,
+    parse_expected,
     parse_tickers,
     score_run,
     summarize,
 )
 
-HEADER = [
-    "id",
-    "題目",
-    "公司",
-    "預期 tickers（請確認）",
-    "出題時的 best source",
-    "類別",
-    "Finnhub 報價",
-    "Finnhub 財務指標",
-    "Tavily 新聞",
-    "SEC 10-K",
-    "備註",
-    "Coverage gap",
-]
-DECIDED = {
-    1: ("TSLA", "可接受", "可接受", "必要", "必要", "否"),
-    2: ("DIS", "不必要", "不必要", "必要", "必要", "否"),
-    3: ("BA", "不必要", "不必要", "必要", "必要", "否"),
-    4: ("TSM (20-F), ASML (20-F)", "不必要", "不必要", "必要", "必要", "是"),
-    5: ("INTC", "不必要", "擇一必要", "必要", "擇一必要", "否"),
-}
+FIXTURE = Path(__file__).parent / "fixtures" / "tool_routing_labels_sample.csv"
 
 QUOTE = "finnhub_stock_quote"
 FIN = "finnhub_company_basic_financials"
@@ -58,23 +39,33 @@ SECTION = "sec_filing_get_section"
 SEARCH = "sec_filing_search"
 
 
-def write_sheet(path: Path, rows: dict[int, tuple[Any, ...]], total: int = 7) -> Path:
-    wb = openpyxl.Workbook()
-    wb.active.title = "說明"
-    ws = wb.create_sheet("標註")
-    ws.append(HEADER)
-    for row_id in range(1, total + 1):
-        tickers, *labels, gap = rows.get(row_id, ("XYZ", None, None, None, None, None))
-        ws.append([row_id, "q", "c", tickers, "mixed", "cat", *labels, None, gap])
-    wb.save(path)
+def write_labels(
+    path: Path,
+    edits: dict[str, dict[str, str]] | None = None,
+    extra: list[dict[str, str]] | None = None,
+) -> Path:
+    with open(FIXTURE, newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        fields = list(reader.fieldnames or [])
+        rows = list(reader)
+    for row in rows:
+        row.update((edits or {}).get(row["id"], {}))
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=fields, restval="")
+        writer.writeheader()
+        writer.writerows(rows + (extra or []))
     return path
 
 
 @pytest.fixture
 def labels_path(tmp_path: Path) -> Path:
-    rows = dict(DECIDED)
-    rows[7] = ("JPM", "必要", None, None, None, None)
-    return write_sheet(tmp_path / "labels.xlsx", rows)
+    return write_labels(
+        tmp_path / "labels.csv",
+        extra=[
+            {"id": "6", "expected_tickers": "JNJ"},
+            {"id": "7", "expected_tickers": "GOOGL", "finnhub_quote": "不必要"},
+        ],
+    )
 
 
 def call(tool: str, ticker: str | None = None, error: str | None = None, **args: Any):
@@ -105,13 +96,12 @@ def record(
 def test_load_labels_keeps_only_fully_labelled_rows(labels_path: Path) -> None:
     sheet = load_labels(labels_path)
 
-    assert sorted(sheet.rows, key=int) == ["1", "2", "3", "4", "5"]
-    assert sheet.total_rows == 7
+    assert sorted(sheet.rows, key=int) == ["1", "2", "3", "4", "5", "13", "29"]
+    assert sheet.total_rows == 9
     assert sheet.incomplete == ["7"]
-    assert sheet.gap_column_found
 
 
-def test_load_labels_reads_sources_tickers_and_gap_flag(labels_path: Path) -> None:
+def test_load_labels_reads_sources_tickers_and_gap_kind(labels_path: Path) -> None:
     rows = load_labels(labels_path).rows
 
     assert rows["5"].labels == {
@@ -121,38 +111,30 @@ def test_load_labels_reads_sources_tickers_and_gap_flag(labels_path: Path) -> No
         "sec10k": "擇一必要",
     }
     assert rows["4"].tickers == {"TSM", "ASML"}
-    assert rows["4"].coverage_gap
-    assert not rows["1"].coverage_gap
+    assert rows["1"].coverage_gap == "none"
+    assert rows["4"].coverage_gap == "full"
+    assert rows["29"].coverage_gap == "partial"
 
 
 def test_load_labels_rejects_unknown_label_value(tmp_path: Path) -> None:
-    path = write_sheet(
-        tmp_path / "bad.xlsx", {1: ("TSLA", "可接受", "必須", "必要", "必要", "否")}
-    )
+    path = write_labels(tmp_path / "bad.csv", {"1": {"finnhub_financials": "必須"}})
 
     with pytest.raises(LabelError, match="row 1"):
         load_labels(path)
 
 
 def test_load_labels_rejects_single_either_required_source(tmp_path: Path) -> None:
-    path = write_sheet(
-        tmp_path / "bad.xlsx", {1: ("TSLA", "可接受", "擇一必要", "必要", "必要", "否")}
-    )
+    path = write_labels(tmp_path / "bad.csv", {"1": {"finnhub_financials": "擇一必要"}})
 
     with pytest.raises(LabelError, match="擇一必要"):
         load_labels(path)
 
 
-def test_load_labels_without_gap_column_marks_no_gap_rows(tmp_path: Path) -> None:
-    path = write_sheet(tmp_path / "labels.xlsx", DECIDED)
-    wb = openpyxl.load_workbook(path)
-    wb["標註"].delete_cols(len(HEADER))
-    wb.save(path)
+def test_load_labels_rejects_unknown_coverage_gap(tmp_path: Path) -> None:
+    path = write_labels(tmp_path / "bad.csv", {"1": {"coverage_gap": "maybe"}})
 
-    sheet = load_labels(path)
-
-    assert not sheet.gap_column_found
-    assert not any(r.coverage_gap for r in sheet.rows.values())
+    with pytest.raises(LabelError, match="coverage_gap"):
+        load_labels(path)
 
 
 @pytest.mark.parametrize(
@@ -166,6 +148,22 @@ def test_load_labels_without_gap_column_marks_no_gap_rows(tmp_path: Path) -> Non
 )
 def test_parse_tickers(raw: str, expected: set[str]) -> None:
     assert parse_tickers(raw) == expected
+
+
+def test_parse_expected_marks_sources_that_cannot_serve_a_ticker() -> None:
+    assert parse_expected("TSM (20-F), ASML (20-F)") == {
+        "TSM": {"sec10k"},
+        "ASML": {"sec10k"},
+    }
+    assert parse_expected("BA, AIR.PA (非 SEC)") == {
+        "BA": set(),
+        "AIR.PA": {"sec10k", "quote", "financials"},
+    }
+
+
+def test_parse_expected_rejects_unknown_annotation() -> None:
+    with pytest.raises(LabelError, match="annotation"):
+        parse_expected("TSM (ADR)")
 
 
 @pytest.mark.parametrize(
@@ -314,10 +312,83 @@ def test_repeated_calls_after_a_failure(labels_path: Path) -> None:
     assert run["retries_after_source_failure"] == 3
 
 
+# --- entity coverage ----------------------------------------------------------
+
+
+def test_entity_coverage_needs_every_ticker_on_every_required_source(
+    labels_path: Path,
+) -> None:
+    row13 = load_labels(labels_path).rows["13"]
+
+    both = score_run(
+        record("13", "a", 1, [call(SECTION, "V"), call(SEARCH, "MA")]), row13
+    )
+    visa_only = score_run(record("13", "a", 1, [call(SECTION, "V")]), row13)
+    ma_errored = score_run(
+        record("13", "a", 1, [call(SECTION, "V"), call(SECTION, "MA", error="403")]),
+        row13,
+    )
+
+    assert both["entity_coverage"] is True
+    assert both["entity_pair_share"] == 1
+    assert visa_only["entity_coverage"] is False
+    assert visa_only["entity_pair_share"] == 0.5
+    assert visa_only["entity_missing"] == "S:MA"
+    assert ma_errored["entity_coverage"] is False
+
+
+def test_entity_coverage_skips_tickers_a_source_cannot_serve(labels_path: Path) -> None:
+    rows = load_labels(labels_path).rows
+    news_both = [call(NEWS, "TSM"), call(NEWS, "ASML")]
+    boeing_and_airbus_news = [
+        call(NEWS, "BA"),
+        call(NEWS, "AIR.PA"),
+        call(SECTION, "BA"),
+    ]
+
+    row4 = score_run(record("4", "a", 1, news_both), rows["4"])
+    row29 = score_run(record("29", "a", 1, boeing_and_airbus_news), rows["29"])
+
+    assert row4["entity_coverage"] is True
+    assert row29["entity_coverage"] is True
+    assert rows["29"].entity_pairs() == {
+        ("news", "BA"),
+        ("news", "AIR.PA"),
+        ("sec10k", "BA"),
+    }
+
+
+def test_entity_coverage_blank_for_one_company_rows(labels_path: Path) -> None:
+    row1 = load_labels(labels_path).rows["1"]
+
+    run = score_run(record("1", "a", 1, [call(NEWS, "TSLA")]), row1)
+
+    assert run["entity_coverage"] == ""
+
+
+def test_partial_gap_row_stays_in_routing_and_gets_gap_checks(
+    labels_path: Path,
+) -> None:
+    sheet = load_labels(labels_path)
+    runs = [
+        score_run(
+            record("29", "cfg", 1, [call(NEWS, "BA")], "Airbus 資料不足"),
+            sheet.rows["29"],
+        )
+    ]
+
+    cfg = summarize(runs, sheet)["configs"]["cfg"]
+
+    assert cfg["routing_rows"] == 1
+    assert cfg["recall"][0] == 0.0
+    assert cfg["gap_rows"] == 1
+    assert cfg["insufficient_evidence_stated"][0] == 1.0
+
+
 # --- aggregation ------------------------------------------------------------
 
 
-def test_summarize_averages_reps_per_row_then_excludes_gap_rows(
+def test_summarize_averages_reps_per_row_then_excludes_full_gap_rows(
     labels_path: Path,
 ) -> None:
     sheet = load_labels(labels_path)
@@ -329,6 +400,7 @@ def test_summarize_averages_reps_per_row_then_excludes_gap_rows(
         record("2", "cfg", 3, bad),
         record("3", "cfg", 1, good),
         record("4", "cfg", 1, bad, response="證據不足"),
+        record("29", "cfg", 1, good),
         record("6", "cfg", 1, bad),
     ]
     runs = [
@@ -338,14 +410,30 @@ def test_summarize_averages_reps_per_row_then_excludes_gap_rows(
     summary = summarize(runs, sheet)
     cfg = summary["configs"]["cfg"]
 
-    assert cfg["routing_rows"] == 2
+    assert cfg["routing_rows"] == 3
     point, lo, hi = cfg["recall"]
-    assert point == pytest.approx((2 / 3 + 1) / 2)
+    assert point == pytest.approx((2 / 3 + 1 + 1) / 3)
     assert lo <= point <= hi
-    assert cfg["gap_rows"] == 1
-    assert cfg["insufficient_evidence_stated"][0] == 1.0
-    assert cfg["median_tool_calls"] == 1.5
-    assert cfg["runs"] == 6
+    assert cfg["gap_rows"] == 2
+    assert cfg["insufficient_evidence_stated"][0] == 0.5
+    assert cfg["median_tool_calls"] == 2
+    assert cfg["runs"] == 7
+
+
+def test_unnecessary_calls_broken_down_by_source(labels_path: Path) -> None:
+    sheet = load_labels(labels_path)
+    records = [
+        record("2", "cfg", 1, [call(QUOTE, "DIS"), call(NEWS, "DIS")]),
+        record("2", "cfg", 2, [call(NEWS, "DIS")]),
+        record("13", "cfg", 1, [call(NEWS, "V")]),
+    ]
+    runs = [score_run(r, sheet.rows[r["row_id"]]) | {"config": "cfg"} for r in records]
+
+    by_source = summarize(runs, sheet)["configs"]["cfg"]["unnecessary_by_source"]
+
+    assert by_source["quote"] == (1, 3)
+    assert by_source["news"] == (1, 1)
+    assert by_source["sec10k"] == (0, 0)
 
 
 def test_score_run_leaves_label_metrics_blank_for_unlabelled_rows() -> None:
@@ -428,8 +516,10 @@ def test_main_writes_outputs_and_reports_scored_rows(
     )
 
     stdout = capsys.readouterr().out
-    assert "5 of 7 rows labelled" in stdout
-    assert "4 scored for routing" in stdout
+    assert "7 of 9 rows labelled" in stdout
+    assert "6 scored for routing" in stdout
+    assert "partial gap kept: 29" in stdout
+    assert "full gap excluded: 4" in stdout
     tables = (out_dir / "tables.md").read_text()
     assert "PRELIMINARY" in tables
     assert "| 4 | cfg | 1 | 證據不足 |" in tables

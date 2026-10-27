@@ -1,7 +1,7 @@
 """Tool-selection metrics over recorded agent runs, scored against hand labels.
 
 Every diagnostic row is hand-labelled per data source (必要 / 擇一必要 /
-可接受 / 不必要, rules R1–R4 of the annotation pass). Each recorded run's
+可接受 / 不必要, rules R1–R6 of the annotation pass). Each recorded run's
 tool calls are mapped to sources and compared with its row's labels — no
 agent is re-run and no LLM judge is used.
 
@@ -23,9 +23,17 @@ Per-run definitions:
   normalised and share classes of one issuer are the same ticker
   (``TICKER_ALIASES``); a different listing of the same issuer (an ADR, a
   foreign exchange code) is not — fix the row's expected tickers instead.
+- *entity coverage* (rows with more than one expected ticker): every source
+  labelled 必要 was called successfully with every expected ticker that
+  source's tools can serve. Tickers annotated in the label file as out of a
+  tool's reach (``UNSERVABLE``) are left out. ``entity_pair_share`` is the
+  share of the (source, ticker) pairs that were covered.
 
-Coverage-gap rows (the data the question needs is out of reach of every
-tool) are excluded from recall and unnecessary-call rate and reported apart:
+Coverage gap (the data the question needs is out of reach of the tools)
+takes three values. 是 (full gap): the row is excluded from recall and
+unnecessary-call rate. 部分 (partial: one company is out of reach): the row
+stays in the routing metrics, and its unreachable half is judged with the
+gap checks. Both kinds of row get the gap checks:
 
 - *insufficient evidence stated*: the answer matches
   ``INSUFFICIENT_EVIDENCE_RE``, a keyword heuristic for zh-TW answers that
@@ -42,7 +50,7 @@ tool) are excluded from recall and unnecessary-call rate and reported apart:
 Usage::
 
     python -m backend.evals.experiments.tool_selection.analyze \\
-        --labels tool_routing_annotation.xlsx \\
+        --labels tool_routing_labels.csv \\
         --archives data/experiment-archives/2026-10-22-model-reasoning-benchmark \\
                    data/experiment-archives/2026-10-22-rag-bundle-ablation \\
         --out-dir <scratch dir>
@@ -61,23 +69,26 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import openpyxl
-
 from backend.evals.experiments.model_reasoning_benchmark.analyze import (
     _bootstrap,
     _num,
     per_row_means,
 )
 
-SHEET = "標註"
 SOURCE_COLUMNS = {
-    "Finnhub 報價": "quote",
-    "Finnhub 財務指標": "financials",
-    "Tavily 新聞": "news",
-    "SEC 10-K": "sec10k",
+    "finnhub_quote": "quote",
+    "finnhub_financials": "financials",
+    "tavily": "news",
+    "sec_10k": "sec10k",
 }
 SOURCES = list(SOURCE_COLUMNS.values())
 SOURCE_CODES = {"quote": "Q", "financials": "F", "news": "N", "sec10k": "S"}
+SOURCE_NAMES = {
+    "quote": "Finnhub quote",
+    "financials": "Finnhub financials",
+    "news": "Tavily news",
+    "sec10k": "SEC 10-K",
+}
 TOOL_SOURCE = {
     "finnhub_stock_quote": "quote",
     "finnhub_company_basic_financials": "financials",
@@ -92,7 +103,14 @@ EITHER = "擇一必要"
 ACCEPTABLE = "可接受"
 UNNECESSARY = "不必要"
 LABEL_CODES = {REQUIRED: "R", EITHER: "E", ACCEPTABLE: "A", UNNECESSARY: "U"}
-GAP_TRUE = {"是", "y", "yes", "true", "1"}
+
+GAP_NONE, GAP_FULL, GAP_PARTIAL = "none", "full", "partial"
+GAP_VALUES = {"否": GAP_NONE, "是": GAP_FULL, "部分": GAP_PARTIAL}
+
+# Annotation on an expected ticker -> sources whose tools cannot serve it.
+# The SEC tools read 10-Ks only; a company with no SEC filing is also outside
+# the Finnhub free tier (403).
+UNSERVABLE = {"20-F": {"sec10k"}, "非 SEC": {"sec10k", "quote", "financials"}}
 
 PER_ROW_KEYS = (
     "recall",
@@ -101,6 +119,7 @@ PER_ROW_KEYS = (
     "ticker_accuracy",
     "insufficient_evidence_stated",
     "repeated_failed_calls",
+    "entity_coverage",
 )
 
 TICKER_ALIASES = {"GOOG": "GOOGL", "BRK.A": "BRK.B"}
@@ -125,7 +144,20 @@ class RowLabel:
     row_id: str
     tickers: frozenset[str]
     labels: dict[str, str]
-    coverage_gap: bool
+    coverage_gap: str
+    unservable: dict[str, frozenset[str]]
+
+    def entity_pairs(self) -> set[tuple[str, str]]:
+        """(source, ticker) pairs a run must cover; empty for one-company rows."""
+        if len(self.tickers) < 2:
+            return set()
+        return {
+            (src, t)
+            for src, v in self.labels.items()
+            if v == REQUIRED
+            for t in self.tickers
+            if src not in self.unservable.get(t, ())
+        }
 
 
 @dataclass
@@ -133,7 +165,6 @@ class LabelSheet:
     rows: dict[str, RowLabel]
     total_rows: int
     incomplete: list[str]
-    gap_column_found: bool
 
 
 def normalize_ticker(ticker: str) -> str:
@@ -141,36 +172,49 @@ def normalize_ticker(ticker: str) -> str:
     return TICKER_ALIASES.get(t, t)
 
 
+def parse_expected(raw: str) -> dict[str, frozenset[str]]:
+    """Expected tickers -> sources that cannot serve each, e.g.
+    ``"TSM (20-F), ASML (20-F)"`` -> ``{"TSM": {"sec10k"}, "ASML": {"sec10k"}}``."""
+    expected: dict[str, frozenset[str]] = {}
+    for part in re.split(r"[,，、;；]+", raw):
+        note = re.search(r"[(（](.*?)[)）]", part)
+        name = re.sub(r"[(（].*?[)）]", "", part).strip()
+        if not name:
+            continue
+        if note and note.group(1).strip() not in UNSERVABLE:
+            raise LabelError(f"unknown ticker annotation {note.group(0)!r} in {raw!r}")
+        for t in name.split():
+            unservable = UNSERVABLE[note.group(1).strip()] if note else set()
+            expected[normalize_ticker(t)] = frozenset(unservable)
+    return expected
+
+
 def parse_tickers(raw: str) -> frozenset[str]:
-    without_notes = re.sub(r"\(.*?\)|（.*?）", "", raw)
-    return frozenset(
-        normalize_ticker(t) for t in re.split(r"[,，、;；\s]+", without_notes) if t
-    )
+    return frozenset(parse_expected(raw))
 
 
-def _text(value: Any) -> str:
-    return "" if value is None else str(value).strip()
+def _gap(row_id: str, raw: str) -> str:
+    for prefix, value in GAP_VALUES.items():
+        if raw.startswith(prefix):
+            return value
+    raise LabelError(f"row {row_id}: unknown coverage_gap {raw!r}")
 
 
 def load_labels(path: Path) -> LabelSheet:
-    ws = openpyxl.load_workbook(path, read_only=True, data_only=True)[SHEET]
-    lines = list(ws.iter_rows(values_only=True))
-    header = [_text(h) for h in lines[0]]
-    col = {name: i for i, name in enumerate(header)}
-    tickers_col = next(i for i, h in enumerate(header) if h.startswith("預期 tickers"))
-    gap_col = next(
-        (i for i, h in enumerate(header) if "coverage gap" in h.lower()), None
-    )
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        lines = list(csv.DictReader(f))
 
     rows: dict[str, RowLabel] = {}
     incomplete: list[str] = []
     total = 0
-    for line in lines[1:]:
-        row_id = _text(line[col["id"]])
+    for line in lines:
+        row_id = (line["id"] or "").strip()
         if not row_id:
             continue
         total += 1
-        labels = {src: _text(line[col[name]]) for name, src in SOURCE_COLUMNS.items()}
+        labels = {
+            src: (line[name] or "").strip() for name, src in SOURCE_COLUMNS.items()
+        }
         filled = [v for v in labels.values() if v]
         if not filled:
             continue
@@ -184,14 +228,15 @@ def load_labels(path: Path) -> LabelSheet:
             raise LabelError(
                 f"row {row_id}: a single {EITHER} source has no alternative"
             )
-        gap = gap_col is not None and _text(line[gap_col]).lower() in GAP_TRUE
+        expected = parse_expected(line["expected_tickers"] or "")
         rows[row_id] = RowLabel(
             row_id=row_id,
-            tickers=parse_tickers(_text(line[tickers_col])),
+            tickers=frozenset(expected),
             labels=labels,
-            coverage_gap=gap,
+            coverage_gap=_gap(row_id, (line["coverage_gap"] or "").strip()),
+            unservable={t: u for t, u in expected.items() if u},
         )
-    return LabelSheet(rows, total, incomplete, gap_col is not None)
+    return LabelSheet(rows, total, incomplete)
 
 
 def _experiment(archive_dir: Path) -> str:
@@ -249,6 +294,7 @@ def score_run(record: dict[str, Any], label: RowLabel | None) -> dict[str, Any]:
     repeated_failed = 0
     retries_after_failure = 0
     tickers: list[str] = []
+    served: set[tuple[str, str]] = set()
     for c in calls:
         source = TOOL_SOURCE.get(c["tool"], c["tool"])
         args = c.get("args") or {}
@@ -268,6 +314,8 @@ def score_run(record: dict[str, Any], label: RowLabel | None) -> dict[str, Any]:
                 failed_source_tickers.add((source, ticker))
         else:
             succeeded.add(source)
+            if ticker:
+                served.add((source, ticker))
 
     match = INSUFFICIENT_EVIDENCE_RE.search(response)
     run: dict[str, Any] = {
@@ -290,6 +338,9 @@ def score_run(record: dict[str, Any], label: RowLabel | None) -> dict[str, Any]:
         "ticker_correct": "",
         "ticker_accuracy": "",
         "off_list_tickers": "",
+        "entity_coverage": "",
+        "entity_pair_share": "",
+        "entity_missing": "",
         "insufficient_evidence_stated": match is not None,
         "insufficient_evidence_match": match.group(0) if match else "",
         "repeated_failed_calls": repeated_failed,
@@ -305,6 +356,16 @@ def score_run(record: dict[str, Any], label: RowLabel | None) -> dict[str, Any]:
 
     unnecessary = [s for s, v in label.labels.items() if v == UNNECESSARY]
     correct = [t for t in tickers if t in label.tickers]
+    pairs = label.entity_pairs()
+    if pairs:
+        missing = pairs - served
+        run.update(
+            entity_coverage=not missing,
+            entity_pair_share=1 - len(missing) / len(pairs),
+            entity_missing=" ".join(
+                f"{SOURCE_CODES[s]}:{t}" for s, t in sorted(missing)
+            ),
+        )
     run.update(
         recall=recall(set(called)),
         recall_success_only=recall(succeeded),
@@ -335,9 +396,10 @@ def summarize(runs: list[dict[str, Any]], sheet: LabelSheet) -> dict[str, Any]:
     configs: dict[str, Any] = {}
     for config in dict.fromkeys(r["config"] for r in runs):
         cfg_runs = [r for r in runs if r["config"] == config]
-        routing = [r for r in cfg_runs if r["labelled"] and not r["coverage_gap"]]
-        gap = [r for r in cfg_runs if r["labelled"] and r["coverage_gap"]]
-        labelled = routing + gap
+        labelled = [r for r in cfg_runs if r["labelled"]]
+        routing = [r for r in labelled if r["coverage_gap"] != GAP_FULL]
+        gap = [r for r in labelled if r["coverage_gap"] != GAP_NONE]
+        entity = [r for r in labelled if r["entity_coverage"] != ""]
         configs[config] = {
             "runs": len(cfg_runs),
             "median_tool_calls": statistics.median(
@@ -349,11 +411,30 @@ def summarize(runs: list[dict[str, Any]], sheet: LabelSheet) -> dict[str, Any]:
             "recall_success_only": _ci(routing, "recall_success_only"),
             "unnecessary_rate": _ci(routing, "unnecessary"),
             "unnecessary_calls_per_run": _ci(routing, "unnecessary_calls"),
+            "unnecessary_by_source": {
+                src: (
+                    sum(
+                        1
+                        for r in routing
+                        if sheet.rows[r["row_id"]].labels[src] == UNNECESSARY
+                        and r[f"used_{src}"]
+                    ),
+                    sum(
+                        1
+                        for r in routing
+                        if sheet.rows[r["row_id"]].labels[src] == UNNECESSARY
+                    ),
+                )
+                for src in SOURCES
+            },
             "errored_only_source_uses": sum(
                 len(r["errored_only_sources"].split()) for r in routing
             ),
             "ticker_rows": len({r["row_id"] for r in labelled if r["ticker_calls"]}),
             "ticker_accuracy": _ci(labelled, "ticker_accuracy"),
+            "entity_rows": len({r["row_id"] for r in entity}),
+            "entity_coverage": _ci(entity, "entity_coverage"),
+            "entity_pair_share": _ci(entity, "entity_pair_share"),
             "gap_rows": len({r["row_id"] for r in gap}),
             "gap_runs": len(gap),
             "insufficient_evidence_stated": _ci(gap, "insufficient_evidence_stated"),
@@ -382,10 +463,15 @@ def summarize(runs: list[dict[str, Any]], sheet: LabelSheet) -> dict[str, Any]:
     return {
         "labelled_rows": len(sheet.rows),
         "total_rows": sheet.total_rows,
-        "routing_rows": sum(not r.coverage_gap for r in sheet.rows.values()),
-        "gap_rows": sum(r.coverage_gap for r in sheet.rows.values()),
+        "routing_rows": sum(r.coverage_gap != GAP_FULL for r in sheet.rows.values()),
+        "gap_rows": {
+            kind: sorted(
+                (rid for rid, r in sheet.rows.items() if r.coverage_gap == kind),
+                key=int,
+            )
+            for kind in (GAP_FULL, GAP_PARTIAL)
+        },
         "incomplete_rows": sheet.incomplete,
-        "gap_column_found": sheet.gap_column_found,
         "configs": configs,
         "per_row": per_row,
         "off_list_tickers": {rid: dict(c) for rid, c in off_list.items()},
@@ -395,8 +481,21 @@ def summarize(runs: list[dict[str, Any]], sheet: LabelSheet) -> dict[str, Any]:
                 for k in ("row_id", "config", "rep", "insufficient_evidence_match")
             }
             for r in runs
-            if r["labelled"] and r["coverage_gap"]
+            if r["labelled"] and r["coverage_gap"] != GAP_NONE
         ],
+        "entity_missing": {
+            rid: dict(
+                Counter(
+                    m
+                    for r in runs
+                    if r["row_id"] == rid
+                    for m in str(r["entity_missing"]).split()
+                )
+            )
+            for rid in sorted(
+                {r["row_id"] for r in runs if r["entity_coverage"] != ""}, key=int
+            )
+        },
     }
 
 
@@ -417,6 +516,18 @@ def _label_codes(label: RowLabel) -> str:
     )
 
 
+def _rows_line(summary: dict[str, Any]) -> str:
+    gaps = summary["gap_rows"]
+    return (
+        f"{summary['labelled_rows']} of {summary['total_rows']} rows labelled: "
+        f"{summary['routing_rows']} scored for routing "
+        f"(partial gap kept: {', '.join(gaps[GAP_PARTIAL]) or '–'}; "
+        f"full gap excluded: {', '.join(gaps[GAP_FULL]) or '–'}), "
+        f"{len(summary['incomplete_rows'])} partially labelled skipped "
+        f"({', '.join(summary['incomplete_rows']) or '–'})."
+    )
+
+
 def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
     configs = summary["configs"]
     lines: list[str] = []
@@ -427,21 +538,13 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
             "interpret.**",
             "",
         ]
-    if not summary["gap_column_found"]:
-        lines += [
-            "> No `Coverage gap` column in the label sheet: every labelled row is "
-            "scored for routing.",
-            "",
-        ]
     lines += [
-        f"Rows: {summary['routing_rows']} scored for routing, "
-        f"{summary['gap_rows']} coverage-gap, "
-        f"{len(summary['incomplete_rows'])} partially labelled (skipped).",
+        _rows_line(summary),
         "",
         "Cells are means over rows of per-row means over repetitions; "
         "[95% CI] = row-level bootstrap.",
         "",
-        "## Routing (coverage-gap rows excluded)",
+        "## Routing (full coverage-gap rows excluded)",
         "",
         "| Config | Rows | Runs | Recall | Recall (successful calls only) "
         "| Unnecessary-call rate | Unnecessary calls/run | Errored-only source uses "
@@ -458,6 +561,24 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
         )
     lines += [
         "",
+        "## Unnecessary calls by source",
+        "",
+        "Runs that called the source / runs on rows where it is labelled 不必要 "
+        "(routing rows).",
+        "",
+        "| Config | " + " | ".join(SOURCE_NAMES[s] for s in SOURCES) + " |",
+        "|---|" + "---|" * len(SOURCES),
+    ]
+    for name, c in configs.items():
+        cells = []
+        for src in SOURCES:
+            used, eligible = c["unnecessary_by_source"][src]
+            cells.append(
+                f"{used}/{eligible}" + (f" ({used / eligible:.0%})" if eligible else "")
+            )
+        lines.append(f"| {name} | " + " | ".join(cells) + " |")
+    lines += [
+        "",
         "## Ticker-argument accuracy (all labelled rows)",
         "",
         "| Config | Rows | Accuracy |",
@@ -469,7 +590,20 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
         )
     lines += [
         "",
-        "## Coverage-gap rows",
+        "## Entity coverage (multi-company rows; 必要 sources × servable tickers, "
+        "successful calls)",
+        "",
+        "| Config | Rows | All pairs covered | Share of pairs covered |",
+        "|---|---|---|---|",
+    ]
+    for name, c in configs.items():
+        lines.append(
+            f"| {name} | {c['entity_rows']} | {_fmt_ci(c['entity_coverage'])} "
+            f"| {_fmt_ci(c['entity_pair_share'])} |"
+        )
+    lines += [
+        "",
+        "## Coverage-gap checks (full and partial gap rows)",
         "",
         "| Config | Rows | Runs | Insufficient evidence stated "
         "| Repeated failed calls/run | Runs with a repeated failed call "
@@ -493,7 +627,7 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
         "Labels: Q = Finnhub quote, F = Finnhub financials, N = Tavily news, "
         "S = SEC 10-K; R = 必要, E = 擇一必要, A = 可接受, U = 不必要.",
         "Routing cells: recall / unnecessary-call rate / mean tool calls. "
-        "Gap cells: insufficient evidence stated / repeated failed calls / "
+        "Full-gap cells: insufficient evidence stated / repeated failed calls / "
         "mean tool calls.",
         "",
         "| Row | Labels | Gap | " + " | ".join(names) + " |",
@@ -506,7 +640,7 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
             m = summary["per_row"][rid].get(name)
             if m is None:
                 cells.append("–")
-            elif label.coverage_gap:
+            elif label.coverage_gap == GAP_FULL:
                 cells.append(
                     f"{_fmt(m['insufficient_evidence_stated'])} / "
                     f"{_fmt(m['repeated_failed_calls'], 1)} / "
@@ -517,7 +651,7 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
                     f"{_fmt(m['recall'])} / {_fmt(m['unnecessary'])} / "
                     f"{_fmt(m['tool_calls_total'], 1)}"
                 )
-        gap = "yes" if label.coverage_gap else ""
+        gap = "" if label.coverage_gap == GAP_NONE else label.coverage_gap
         lines.append(
             f"| {rid} | {_label_codes(label)} | {gap} | " + " | ".join(cells) + " |"
         )
@@ -537,6 +671,30 @@ def render_tables(summary: dict[str, Any], sheet: LabelSheet) -> str:
         lines.append(f"| {rid} | {expected} | {found} |")
     if not summary["off_list_tickers"]:
         lines.append("| – | – | none |")
+
+    lines += [
+        "",
+        "## Entity coverage per row × config (share of runs with all pairs covered)",
+        "",
+        "Missed pairs are counted over all configs; Q/F/N/S as above.",
+        "",
+        "| Row | Tickers | " + " | ".join(names) + " | Missed pairs (runs) |",
+        "|---|---|" + "---|" * (len(names) + 1),
+    ]
+    for rid, missed in summary["entity_missing"].items():
+        label = sheet.rows[rid]
+        cells = [
+            _fmt((summary["per_row"][rid].get(name) or {}).get("entity_coverage"))
+            for name in names
+        ]
+        missed_text = ", ".join(
+            f"{k} ×{n}" for k, n in sorted(missed.items(), key=lambda x: -x[1])
+        )
+        lines.append(
+            f"| {rid} | {', '.join(sorted(label.tickers))} | "
+            + " | ".join(cells)
+            + f" | {missed_text or 'none'} |"
+        )
 
     lines += [
         "",
@@ -572,15 +730,7 @@ def main(argv: list[str] | None = None) -> int:
     summary = summarize(runs, sheet)
     (args.out_dir / "tables.md").write_text(render_tables(summary, sheet))
 
-    print(
-        f"{summary['labelled_rows']} of {summary['total_rows']} rows labelled: "
-        f"{summary['routing_rows']} scored for routing, "
-        f"{summary['gap_rows']} coverage-gap, "
-        f"{len(summary['incomplete_rows'])} partially labelled (skipped "
-        f"{', '.join(summary['incomplete_rows']) or '–'})"
-    )
-    if not sheet.gap_column_found:
-        print("warning: no 'Coverage gap' column; no row is treated as a coverage gap")
+    print(_rows_line(summary))
     print(f"{len(runs)} runs -> {args.out_dir / 'metrics.csv'}, tables.md")
     return 0
 

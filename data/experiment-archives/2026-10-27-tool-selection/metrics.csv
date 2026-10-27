@@ -1,0 +1,541 @@
+row_id,config,arm,rep,labelled,coverage_gap,tool_calls_total,used_quote,used_financials,used_news,used_sec10k,errored_only_sources,recall,recall_success_only,unnecessary,unnecessary_calls,ticker_calls,ticker_correct,ticker_accuracy,off_list_tickers,entity_coverage,entity_pair_share,entity_missing,insufficient_evidence_stated,insufficient_evidence_match,repeated_failed_calls,retries_after_source_failure
+1,gemini_medium,gemini_medium,1,True,none,4,True,True,True,False,,False,False,False,0,4,4,1.0,,,,,False,,0,0
+1,gemini_medium,gemini_medium,2,True,none,4,True,True,True,False,,False,False,False,0,4,4,1.0,,,,,False,,0,0
+1,gemini_medium,gemini_medium,3,True,none,4,True,True,True,False,,False,False,False,0,4,4,1.0,,,,,False,,0,0
+1,gemini_minimal,gemini_minimal,1,True,none,4,True,True,True,False,,False,False,False,0,4,4,1.0,,,,,False,,0,0
+1,gemini_minimal,gemini_minimal,2,True,none,3,True,True,True,False,,False,False,False,0,3,3,1.0,,,,,False,,0,0
+1,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,False,False,False,0,3,3,1.0,,,,,False,,0,0
+1,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+1,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,6,True,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+1,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,9,True,True,True,True,,True,True,False,0,9,9,1.0,,,,,False,,0,0
+1,luna_none,luna_none,1,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+1,luna_none,luna_none,2,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+1,luna_none,luna_none,3,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+1,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,True,無法確認,0,0
+1,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,True,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+1,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,9,True,True,True,True,,True,True,False,0,9,9,1.0,,,,,False,,0,0
+1,reader_luna_medium,reader_luna_medium,1,True,none,4,True,True,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+1,reader_luna_medium,reader_luna_medium,2,True,none,4,True,True,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+1,reader_luna_medium,reader_luna_medium,3,True,none,4,True,True,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+2,gemini_medium,gemini_medium,1,True,none,4,True,True,True,False,,False,False,True,2,4,4,1.0,,,,,False,,0,0
+2,gemini_medium,gemini_medium,2,True,none,4,True,True,True,False,,False,False,True,2,4,4,1.0,,,,,False,,0,0
+2,gemini_medium,gemini_medium,3,True,none,4,True,True,True,False,,False,False,True,2,4,4,1.0,,,,,False,,0,0
+2,gemini_minimal,gemini_minimal,1,True,none,5,True,True,True,True,,True,True,True,2,5,5,1.0,,,,,False,,0,0
+2,gemini_minimal,gemini_minimal,2,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+2,gemini_minimal,gemini_minimal,3,True,none,4,True,True,True,False,,False,False,True,2,4,4,1.0,,,,,False,,0,0
+2,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,8,True,True,True,True,,True,True,True,2,8,8,1.0,,,,,False,,0,0
+2,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,7,True,True,True,True,,True,True,True,2,7,7,1.0,,,,,False,,0,0
+2,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,9,True,True,True,True,,True,True,True,2,9,9,1.0,,,,,False,,0,0
+2,luna_none,luna_none,1,True,none,7,True,True,True,True,,True,True,True,2,7,7,1.0,,,,,False,,0,0
+2,luna_none,luna_none,2,True,none,6,True,True,True,True,,True,True,True,2,6,6,1.0,,,,,False,,0,0
+2,luna_none,luna_none,3,True,none,5,True,True,True,True,,True,True,True,2,5,5,1.0,,,,,False,,0,0
+2,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,7,True,True,True,True,,True,True,True,2,7,7,1.0,,,,,False,,0,0
+2,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,7,True,True,True,False,,False,False,True,2,7,7,1.0,,,,,False,,0,0
+2,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,7,True,True,True,True,,True,True,True,2,7,7,1.0,,,,,False,,0,0
+2,reader_luna_medium,reader_luna_medium,1,True,none,6,True,True,True,True,,True,True,True,2,6,6,1.0,,,,,False,,0,0
+2,reader_luna_medium,reader_luna_medium,2,True,none,6,True,True,True,True,,True,True,True,2,6,6,1.0,,,,,False,,0,0
+2,reader_luna_medium,reader_luna_medium,3,True,none,4,True,True,True,True,,True,True,True,2,4,4,1.0,,,,,False,,0,0
+3,gemini_medium,gemini_medium,1,True,none,4,True,False,True,False,,False,False,True,1,4,4,1.0,,,,,False,,0,0
+3,gemini_medium,gemini_medium,2,True,none,3,True,False,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+3,gemini_medium,gemini_medium,3,True,none,4,True,True,True,False,,False,False,True,2,4,4,1.0,,,,,False,,0,0
+3,gemini_minimal,gemini_minimal,1,True,none,3,True,False,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+3,gemini_minimal,gemini_minimal,2,True,none,3,True,False,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+3,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+3,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,False,False,True,False,,False,False,False,0,6,6,1.0,,,,,False,,0,0
+3,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,6,False,False,True,False,,False,False,False,0,6,6,1.0,,,,,False,,0,0
+3,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,5,False,False,True,False,,False,False,False,0,5,5,1.0,,,,,False,,0,0
+3,luna_none,luna_none,1,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+3,luna_none,luna_none,2,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+3,luna_none,luna_none,3,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+3,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,6,False,False,True,False,,False,False,False,0,6,6,1.0,,,,,False,,0,0
+3,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,3,False,False,True,False,,False,False,False,0,3,3,1.0,,,,,False,,0,0
+3,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,8,False,False,True,True,,True,True,False,0,8,8,1.0,,,,,False,,0,0
+3,reader_luna_medium,reader_luna_medium,1,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+3,reader_luna_medium,reader_luna_medium,2,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+3,reader_luna_medium,reader_luna_medium,3,True,none,5,False,False,True,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+4,gemini_medium,gemini_medium,1,True,full,6,False,True,True,False,,False,False,True,2,6,6,1.0,,True,1.0,,False,,0,0
+4,gemini_medium,gemini_medium,2,True,full,6,True,False,True,False,,False,False,True,2,6,6,1.0,,True,1.0,,False,,0,0
+4,gemini_medium,gemini_medium,3,True,full,5,False,True,True,False,,False,False,True,2,5,5,1.0,,True,1.0,,True,數據說明與潛在限制,0,0
+4,gemini_minimal,gemini_minimal,1,True,full,4,False,False,True,True,sec10k,True,False,False,0,4,4,1.0,,True,1.0,,True,數據/資訊限制,0,0
+4,gemini_minimal,gemini_minimal,2,True,full,7,False,True,True,True,sec10k,True,False,True,2,7,7,1.0,,True,1.0,,True,資料品質與限制,0,0
+4,gemini_minimal,gemini_minimal,3,True,full,7,False,True,True,True,sec10k,True,False,True,2,7,7,1.0,,True,1.0,,True,數據品質與資訊限制,0,0
+4,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,full,8,False,True,True,True,sec10k,True,False,True,2,8,8,1.0,,True,1.0,,True,資料不足,0,0
+4,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,full,10,False,True,True,True,sec10k,True,False,True,2,10,10,1.0,,True,1.0,,True,證據不足,0,0
+4,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,full,8,False,True,True,True,sec10k,True,False,True,2,8,8,1.0,,True,1.0,,True,證據不足,0,0
+4,luna_none,luna_none,1,True,full,5,False,True,True,True,sec10k,True,False,True,2,5,5,1.0,,True,1.0,,True,資料不足,0,0
+4,luna_none,luna_none,2,True,full,5,False,True,True,False,,False,False,True,2,5,5,1.0,,True,1.0,,True,證據不足,0,0
+4,luna_none,luna_none,3,True,full,6,True,True,True,False,,False,False,True,4,6,6,1.0,,True,1.0,,True,資料不足,0,0
+4,luna_medium @ rag-bundle-ablation,luna_medium,1,True,full,8,False,True,True,True,sec10k,True,False,True,2,8,8,1.0,,True,1.0,,True,證據不足,0,0
+4,luna_medium @ rag-bundle-ablation,luna_medium,2,True,full,8,False,True,True,False,,False,False,True,2,8,8,1.0,,True,1.0,,True,資料不足,0,0
+4,luna_medium @ rag-bundle-ablation,luna_medium,3,True,full,8,False,True,True,True,sec10k,True,False,True,2,8,8,1.0,,True,1.0,,True,資料不足,0,0
+4,reader_luna_medium,reader_luna_medium,1,True,full,7,False,False,True,True,sec10k,True,False,False,0,7,7,1.0,,True,1.0,,True,證據，**不足,0,0
+4,reader_luna_medium,reader_luna_medium,2,True,full,6,False,False,True,True,sec10k,True,False,False,0,6,6,1.0,,True,1.0,,True,證據不足,0,0
+4,reader_luna_medium,reader_luna_medium,3,True,full,10,False,True,True,True,sec10k,True,False,True,2,10,10,1.0,,True,1.0,,True,無法取得,0,0
+5,gemini_medium,gemini_medium,1,True,none,4,True,True,True,False,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+5,gemini_medium,gemini_medium,2,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+5,gemini_medium,gemini_medium,3,True,none,4,True,True,True,False,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+5,gemini_minimal,gemini_minimal,1,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+5,gemini_minimal,gemini_minimal,2,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+5,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+5,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,2
+5,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,True,無法取得,0,2
+5,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,2
+5,luna_none,luna_none,1,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+5,luna_none,luna_none,2,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,True,證據仍不足,0,2
+5,luna_none,luna_none,3,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,2
+5,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,8,True,True,True,True,,True,True,True,1,8,8,1.0,,,,,False,,0,2
+5,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+5,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,True,無法取得,0,2
+5,reader_luna_medium,reader_luna_medium,1,True,none,6,True,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+5,reader_luna_medium,reader_luna_medium,2,True,none,4,True,True,True,True,,True,True,True,1,4,4,1.0,,,,,True,無法取得,0,0
+5,reader_luna_medium,reader_luna_medium,3,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+6,gemini_medium,gemini_medium,1,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+6,gemini_medium,gemini_medium,2,True,none,5,True,False,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+6,gemini_medium,gemini_medium,3,True,none,5,True,False,True,False,,False,False,True,1,5,5,1.0,,,,,False,,0,0
+6,gemini_minimal,gemini_minimal,1,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+6,gemini_minimal,gemini_minimal,2,True,none,3,False,False,False,True,,False,False,False,0,3,3,1.0,,,,,False,,0,0
+6,gemini_minimal,gemini_minimal,3,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+6,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,7,False,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+6,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,9,False,True,True,True,,True,True,False,0,9,9,1.0,,,,,False,,0,0
+6,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,6,False,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+6,luna_none,luna_none,1,True,none,6,False,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+6,luna_none,luna_none,2,True,none,6,False,True,True,True,,True,True,False,0,6,6,1.0,,,,,True,資料不足,0,0
+6,luna_none,luna_none,3,True,none,6,False,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+6,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,7,False,False,True,True,,True,True,False,0,7,7,1.0,,,,,True,資料不足,0,0
+6,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,8,False,False,True,True,,True,True,False,0,8,8,1.0,,,,,False,,0,0
+6,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,9,True,True,True,True,,True,True,True,1,9,9,1.0,,,,,True,資料不足,0,0
+6,reader_luna_medium,reader_luna_medium,1,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+6,reader_luna_medium,reader_luna_medium,2,True,none,2,False,False,True,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+6,reader_luna_medium,reader_luna_medium,3,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+7,gemini_medium,gemini_medium,1,True,none,5,False,False,True,False,,False,False,False,0,5,5,1.0,,,,,False,,0,0
+7,gemini_medium,gemini_medium,2,True,none,4,True,True,True,False,,False,False,True,2,4,4,1.0,,,,,False,,0,0
+7,gemini_medium,gemini_medium,3,True,none,4,True,False,True,False,,False,False,True,1,4,4,1.0,,,,,False,,0,0
+7,gemini_minimal,gemini_minimal,1,True,none,2,False,False,True,False,,False,False,False,0,2,2,1.0,,,,,False,,0,0
+7,gemini_minimal,gemini_minimal,2,True,none,4,True,False,True,False,,False,False,True,1,4,4,1.0,,,,,True,數據整合限制,0,0
+7,gemini_minimal,gemini_minimal,3,True,none,2,False,False,True,False,,False,False,False,0,2,2,1.0,,,,,False,,0,0
+7,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,9,False,False,True,True,,True,True,False,0,9,9,1.0,,,,,False,,0,0
+7,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,7,False,False,True,True,,True,True,False,0,7,7,1.0,,,,,True,資料分享限制,0,0
+7,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,7,False,False,True,True,,True,True,False,0,7,7,1.0,,,,,True,資料並限制,0,0
+7,luna_none,luna_none,1,True,none,7,False,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+7,luna_none,luna_none,2,True,none,8,False,False,True,True,,True,True,False,0,8,8,1.0,,,,,True,資料，且限制,0,0
+7,luna_none,luna_none,3,True,none,7,False,True,True,True,,True,True,True,1,7,7,1.0,,,,,True,資料不足,0,0
+7,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,8,False,False,True,True,,True,True,False,0,8,8,1.0,,,,,True,資料分享與限制,0,0
+7,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,False,False,True,True,,True,True,False,0,6,6,1.0,,,,,True,資料分享與分銷限制,0,0
+7,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,7,False,False,True,True,,True,True,False,0,7,7,1.0,,,,,True,資料分享與合約限制,0,0
+7,reader_luna_medium,reader_luna_medium,1,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+7,reader_luna_medium,reader_luna_medium,2,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+7,reader_luna_medium,reader_luna_medium,3,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+8,gemini_medium,gemini_medium,1,True,none,4,False,True,True,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+8,gemini_medium,gemini_medium,2,True,none,4,False,True,True,True,,True,True,True,2,4,4,1.0,,,,,False,,0,0
+8,gemini_medium,gemini_medium,3,True,none,5,True,True,True,True,,True,True,True,3,5,5,1.0,,,,,False,,0,0
+8,gemini_minimal,gemini_minimal,1,True,none,4,True,True,False,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+8,gemini_minimal,gemini_minimal,2,True,none,3,False,True,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+8,gemini_minimal,gemini_minimal,3,True,none,4,False,True,True,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+8,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,5,False,True,False,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+8,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+8,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,True,數據還不足,0,0
+8,luna_none,luna_none,1,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+8,luna_none,luna_none,2,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,True,資料限制,0,0
+8,luna_none,luna_none,3,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+8,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+8,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+8,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+8,reader_luna_medium,reader_luna_medium,1,True,none,5,False,True,False,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+8,reader_luna_medium,reader_luna_medium,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+8,reader_luna_medium,reader_luna_medium,3,True,none,5,False,True,False,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+9,gemini_medium,gemini_medium,1,True,none,6,False,True,True,False,,False,False,False,0,6,6,1.0,,False,0.5,S:AAPL S:META,False,,0,0
+9,gemini_medium,gemini_medium,2,True,none,6,False,True,True,False,,False,False,False,0,6,6,1.0,,False,0.5,S:AAPL S:META,True,數據追蹤的限制,0,0
+9,gemini_medium,gemini_medium,3,True,none,4,False,True,True,False,,False,False,False,0,4,4,1.0,,False,0.5,S:AAPL S:META,False,,0,0
+9,gemini_minimal,gemini_minimal,1,True,none,7,False,True,True,True,,True,True,False,0,7,7,1.0,,False,0.75,N:META,False,,0,0
+9,gemini_minimal,gemini_minimal,2,True,none,6,False,False,True,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+9,gemini_minimal,gemini_minimal,3,True,none,3,False,False,True,True,,True,True,False,0,3,3,1.0,,False,0.75,N:META,False,,0,0
+9,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,False,,0,0
+9,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,False,,0,0
+9,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,10,False,False,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,True,資料使用限制,0,0
+9,luna_none,luna_none,1,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,False,,0,0
+9,luna_none,luna_none,2,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,True,數據限制,0,0
+9,luna_none,luna_none,3,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,False,,0,0
+9,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,12,True,True,True,True,,True,True,True,2,12,12,1.0,,True,1.0,,True,資料整合限制,0,1
+9,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,False,,0,0
+9,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,10,False,True,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,True,資料使用的限制,0,0
+9,reader_luna_medium,reader_luna_medium,1,True,none,8,False,False,True,True,,True,True,False,0,8,8,1.0,,True,1.0,,True,數據限制,0,0
+9,reader_luna_medium,reader_luna_medium,2,True,none,6,False,False,True,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,資料限制,0,0
+9,reader_luna_medium,reader_luna_medium,3,True,none,8,False,False,True,True,,True,True,False,0,8,8,1.0,,True,1.0,,True,數據使用限制,0,0
+10,gemini_medium,gemini_medium,1,True,none,6,False,True,True,False,,False,False,True,3,6,6,1.0,,False,0.5,S:AAPL S:GOOGL S:META,True,資料追蹤與限制,0,0
+10,gemini_medium,gemini_medium,2,True,none,6,True,False,True,False,,False,False,True,3,6,6,1.0,,False,0.5,S:AAPL S:GOOGL S:META,False,,0,0
+10,gemini_medium,gemini_medium,3,True,none,6,True,False,True,False,,False,False,True,3,6,6,1.0,,False,0.5,S:AAPL S:GOOGL S:META,False,,0,0
+10,gemini_minimal,gemini_minimal,1,True,none,3,False,False,True,False,,False,False,False,0,3,3,1.0,,False,0.33333333333333337,N:META S:AAPL S:GOOGL S:META,False,,0,0
+10,gemini_minimal,gemini_minimal,2,True,none,2,False,False,True,True,,True,True,False,0,2,2,1.0,,False,0.33333333333333337,N:GOOGL N:META S:GOOGL S:META,False,,0,0
+10,gemini_minimal,gemini_minimal,3,True,none,2,False,False,True,True,,True,True,False,0,2,2,1.0,,False,0.33333333333333337,N:GOOGL N:META S:AAPL S:META,False,,0,0
+10,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,9,False,False,True,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+10,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,9,False,False,True,True,,True,True,False,0,9,9,1.0,,True,1.0,,True,資料限制,0,0
+10,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,10,False,False,True,True,,True,True,False,0,10,10,1.0,,True,1.0,,True,數據限制,0,0
+10,luna_none,luna_none,1,True,none,6,False,True,True,False,,False,False,True,3,6,6,1.0,,False,0.5,S:AAPL S:GOOGL S:META,False,,0,0
+10,luna_none,luna_none,2,True,none,6,False,True,True,False,,False,False,True,3,6,6,1.0,,False,0.5,S:AAPL S:GOOGL S:META,False,,0,0
+10,luna_none,luna_none,3,True,none,15,False,True,True,True,,True,True,True,3,15,15,1.0,,True,1.0,,False,,0,3
+10,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,9,False,False,True,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+10,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,9,False,False,True,True,,True,True,False,0,9,9,1.0,,True,1.0,,True,資料使用限制,0,0
+10,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,9,False,False,True,True,,True,True,False,0,9,9,1.0,,True,1.0,,True,資料使用、限制,0,0
+10,reader_luna_medium,reader_luna_medium,1,True,none,6,False,False,True,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+10,reader_luna_medium,reader_luna_medium,2,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,False,0.6666666666666667,N:GOOGL N:META,False,,0,0
+10,reader_luna_medium,reader_luna_medium,3,True,none,6,False,False,True,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,資料使用限制,0,0
+11,gemini_medium,gemini_medium,1,True,none,6,True,False,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+11,gemini_medium,gemini_medium,2,True,none,7,True,False,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+11,gemini_medium,gemini_medium,3,True,none,5,False,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+11,gemini_minimal,gemini_minimal,1,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+11,gemini_minimal,gemini_minimal,2,True,none,5,False,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+11,gemini_minimal,gemini_minimal,3,True,none,5,False,False,True,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+11,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,True,資料限制,0,0
+11,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+11,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,True,資料限制,0,0
+11,luna_none,luna_none,1,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+11,luna_none,luna_none,2,True,none,5,False,False,True,True,,True,True,False,0,5,5,1.0,,,,,True,資料限制,0,0
+11,luna_none,luna_none,3,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,True,數據品質與解讀限制,0,0
+11,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+11,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+11,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+11,reader_luna_medium,reader_luna_medium,1,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+11,reader_luna_medium,reader_luna_medium,2,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+11,reader_luna_medium,reader_luna_medium,3,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+12,gemini_medium,gemini_medium,1,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+12,gemini_medium,gemini_medium,2,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+12,gemini_medium,gemini_medium,3,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+12,gemini_minimal,gemini_minimal,1,True,none,6,True,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+12,gemini_minimal,gemini_minimal,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+12,gemini_minimal,gemini_minimal,3,True,none,5,False,False,True,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+12,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+12,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+12,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,True,資料範圍限制,0,0
+12,luna_none,luna_none,1,True,none,6,False,False,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+12,luna_none,luna_none,2,True,none,6,False,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+12,luna_none,luna_none,3,True,none,5,False,False,True,True,,True,True,False,0,5,5,1.0,,,,,False,,0,0
+12,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+12,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,True,資料品質與解讀限制,0,0
+12,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+12,reader_luna_medium,reader_luna_medium,1,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+12,reader_luna_medium,reader_luna_medium,2,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+12,reader_luna_medium,reader_luna_medium,3,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+13,gemini_medium,gemini_medium,1,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+13,gemini_medium,gemini_medium,2,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+13,gemini_medium,gemini_medium,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+13,gemini_minimal,gemini_minimal,1,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+13,gemini_minimal,gemini_minimal,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+13,gemini_minimal,gemini_minimal,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+13,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,資料不足,0,0
+13,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,8,False,False,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,True,資料不足,0,0
+13,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+13,luna_none,luna_none,1,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,數據不足,0,0
+13,luna_none,luna_none,2,True,none,8,False,False,True,True,,True,True,True,2,8,8,1.0,,True,1.0,,False,,0,0
+13,luna_none,luna_none,3,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,數據不足,0,0
+13,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,證據不足,0,0
+13,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,True,證據不足,0,0
+13,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+13,reader_luna_medium,reader_luna_medium,1,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+13,reader_luna_medium,reader_luna_medium,2,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+13,reader_luna_medium,reader_luna_medium,3,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+14,gemini_medium,gemini_medium,1,True,none,3,True,False,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+14,gemini_medium,gemini_medium,2,True,none,3,True,False,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+14,gemini_medium,gemini_medium,3,True,none,3,True,False,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+14,gemini_minimal,gemini_minimal,1,True,none,2,True,False,True,False,,False,False,True,1,2,2,1.0,,,,,False,,0,0
+14,gemini_minimal,gemini_minimal,2,True,none,2,False,False,True,False,,False,False,False,0,2,2,1.0,,,,,False,,0,0
+14,gemini_minimal,gemini_minimal,3,True,none,1,False,False,True,False,,False,False,False,0,1,1,1.0,,,,,False,,0,0
+14,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,5,False,False,True,False,,False,False,False,0,5,5,1.0,,,,,False,,0,0
+14,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,6,False,False,True,False,,False,False,False,0,6,6,1.0,,,,,True,無法確認,0,0
+14,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,3,False,False,True,False,,False,False,False,0,3,3,1.0,,,,,False,,0,0
+14,luna_none,luna_none,1,True,none,2,False,True,True,False,,False,False,True,1,2,2,1.0,,,,,False,,0,0
+14,luna_none,luna_none,2,True,none,3,False,True,True,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+14,luna_none,luna_none,3,True,none,2,False,True,True,False,,False,False,True,1,2,2,1.0,,,,,False,,0,0
+14,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,5,False,False,True,False,,False,False,False,0,5,5,1.0,,,,,False,,0,0
+14,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,8,False,False,True,False,,False,False,False,0,8,8,1.0,,,,,False,,0,0
+14,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,5,False,False,True,False,,False,False,False,0,5,5,1.0,,,,,False,,0,0
+14,reader_luna_medium,reader_luna_medium,1,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+14,reader_luna_medium,reader_luna_medium,2,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+14,reader_luna_medium,reader_luna_medium,3,True,none,4,False,False,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+15,gemini_medium,gemini_medium,1,True,none,4,True,True,False,True,,True,True,True,2,4,4,1.0,,,,,False,,0,0
+15,gemini_medium,gemini_medium,2,True,none,3,False,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+15,gemini_medium,gemini_medium,3,True,none,4,True,True,False,True,,True,True,True,2,4,4,1.0,,,,,False,,0,0
+15,gemini_minimal,gemini_minimal,1,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+15,gemini_minimal,gemini_minimal,2,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+15,gemini_minimal,gemini_minimal,3,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+15,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+15,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+15,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+15,luna_none,luna_none,1,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+15,luna_none,luna_none,2,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+15,luna_none,luna_none,3,True,none,6,False,True,True,True,,True,True,True,2,6,6,1.0,,,,,False,,0,0
+15,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+15,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+15,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+15,reader_luna_medium,reader_luna_medium,1,True,none,4,False,True,False,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+15,reader_luna_medium,reader_luna_medium,2,True,none,1,False,False,False,True,,True,True,False,0,1,1,1.0,,,,,False,,0,0
+15,reader_luna_medium,reader_luna_medium,3,True,none,3,False,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+16,gemini_medium,gemini_medium,1,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+16,gemini_medium,gemini_medium,2,True,none,2,False,True,False,False,,False,False,True,2,2,1,0.5,JPM,,,,False,,0,0
+16,gemini_medium,gemini_medium,3,True,none,3,False,True,True,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+16,gemini_minimal,gemini_minimal,1,True,none,3,False,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+16,gemini_minimal,gemini_minimal,2,True,none,4,True,True,False,True,,True,True,True,2,4,4,1.0,,,,,False,,0,0
+16,gemini_minimal,gemini_minimal,3,True,none,3,False,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+16,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,False,True,False,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+16,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,luna_none,luna_none,1,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,luna_none,luna_none,2,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,luna_none,luna_none,3,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,False,True,False,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+16,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+16,reader_luna_medium,reader_luna_medium,1,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+16,reader_luna_medium,reader_luna_medium,2,True,none,3,False,False,False,True,,True,True,False,0,3,2,0.6666666666666666,JPM,,,,False,,0,0
+16,reader_luna_medium,reader_luna_medium,3,True,none,3,False,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+17,gemini_medium,gemini_medium,1,True,none,8,True,True,True,True,,True,True,True,2,8,8,1.0,,,,,False,,0,0
+17,gemini_medium,gemini_medium,2,True,none,8,True,True,True,True,,True,True,True,2,8,8,1.0,,,,,False,,0,0
+17,gemini_medium,gemini_medium,3,True,none,4,False,True,True,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+17,gemini_minimal,gemini_minimal,1,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+17,gemini_minimal,gemini_minimal,2,True,none,3,False,False,False,True,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+17,gemini_minimal,gemini_minimal,3,True,none,4,False,True,False,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+17,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+17,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,7,True,True,True,True,,True,True,True,2,7,7,1.0,,,,,False,,0,0
+17,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,6,True,True,False,True,,True,True,True,2,6,6,1.0,,,,,True,數據不足,0,0
+17,luna_none,luna_none,1,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,True,資料限制,0,0
+17,luna_none,luna_none,2,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,True,無法確認,0,0
+17,luna_none,luna_none,3,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,,,,True,資料限制,0,0
+17,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+17,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,5,False,True,False,True,,True,True,True,1,5,5,1.0,,,,,True,資料不足,0,0
+17,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,6,True,True,False,True,,True,True,True,2,6,6,1.0,,,,,False,,0,0
+17,reader_luna_medium,reader_luna_medium,1,True,none,7,True,True,False,True,,True,True,True,2,7,7,1.0,,,,,False,,0,0
+17,reader_luna_medium,reader_luna_medium,2,True,none,3,False,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+17,reader_luna_medium,reader_luna_medium,3,True,none,4,False,True,False,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+18,gemini_medium,gemini_medium,1,True,none,3,False,True,True,False,,False,False,True,1,3,3,1.0,,False,0.0,S:KO S:PEP,False,,0,0
+18,gemini_medium,gemini_medium,2,True,none,4,False,True,True,False,,False,False,True,2,4,4,1.0,,False,0.0,S:KO S:PEP,False,,0,0
+18,gemini_medium,gemini_medium,3,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+18,gemini_minimal,gemini_minimal,1,True,none,5,False,True,False,True,,True,True,False,0,5,5,1.0,,True,1.0,,False,,0,0
+18,gemini_minimal,gemini_minimal,2,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,True,1.0,,False,,0,0
+18,gemini_minimal,gemini_minimal,3,True,none,6,False,True,True,True,,True,True,True,1,6,6,1.0,,True,1.0,,False,,0,0
+18,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,True,無法確認,0,0
+18,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_none,luna_none,1,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_none,luna_none,2,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_none,luna_none,3,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+18,reader_luna_medium,reader_luna_medium,1,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+18,reader_luna_medium,reader_luna_medium,2,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+18,reader_luna_medium,reader_luna_medium,3,True,none,2,False,False,False,True,,True,True,False,0,2,2,1.0,,True,1.0,,False,,0,0
+19,gemini_medium,gemini_medium,1,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+19,gemini_medium,gemini_medium,2,True,none,4,True,True,True,False,,False,False,True,3,4,4,1.0,,,,,False,,0,0
+19,gemini_medium,gemini_medium,3,True,none,3,True,True,True,False,,False,False,True,2,3,3,1.0,,,,,False,,0,0
+19,gemini_minimal,gemini_minimal,1,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,gemini_minimal,gemini_minimal,2,True,none,4,True,True,False,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+19,gemini_minimal,gemini_minimal,3,True,none,2,True,True,False,False,,False,False,True,1,2,2,1.0,,,,,False,,0,0
+19,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,True,True,False,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+19,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_none,luna_none,1,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_none,luna_none,2,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_none,luna_none,3,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+19,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,6,True,True,False,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+19,reader_luna_medium,reader_luna_medium,1,True,none,3,True,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+19,reader_luna_medium,reader_luna_medium,2,True,none,3,True,True,False,True,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+19,reader_luna_medium,reader_luna_medium,3,True,none,2,False,True,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+20,gemini_medium,gemini_medium,1,True,none,4,True,True,True,False,,False,False,True,1,4,4,1.0,,,,,False,,0,0
+20,gemini_medium,gemini_medium,2,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+20,gemini_medium,gemini_medium,3,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+20,gemini_minimal,gemini_minimal,1,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+20,gemini_minimal,gemini_minimal,2,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+20,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+20,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+20,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+20,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,2,True,True,False,False,,False,False,True,1,2,2,1.0,,,,,False,,0,0
+20,luna_none,luna_none,1,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,True,工具資料不足，無法,0,0
+20,luna_none,luna_none,2,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+20,luna_none,luna_none,3,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+20,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+20,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,True,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+20,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,5,True,True,False,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+20,reader_luna_medium,reader_luna_medium,1,True,none,2,False,True,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+20,reader_luna_medium,reader_luna_medium,2,True,none,2,False,True,False,True,,True,True,False,0,2,2,1.0,,,,,False,,0,0
+20,reader_luna_medium,reader_luna_medium,3,True,none,4,True,True,False,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+21,gemini_medium,gemini_medium,1,True,none,10,True,True,True,True,,True,True,True,6,10,10,1.0,,True,1.0,,False,,0,0
+21,gemini_medium,gemini_medium,2,True,none,11,True,True,True,True,,True,True,True,5,11,11,1.0,,True,1.0,,False,,0,0
+21,gemini_medium,gemini_medium,3,True,none,8,False,True,True,True,,True,True,True,4,8,8,1.0,,True,1.0,,False,,0,0
+21,gemini_minimal,gemini_minimal,1,True,none,4,False,True,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+21,gemini_minimal,gemini_minimal,2,True,none,4,False,True,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+21,gemini_minimal,gemini_minimal,3,True,none,4,False,True,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+21,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_none,luna_none,1,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_none,luna_none,2,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_none,luna_none,3,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,8,False,True,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+21,reader_luna_medium,reader_luna_medium,1,True,none,4,False,False,False,True,,True,True,False,0,4,4,1.0,,True,1.0,,False,,0,0
+21,reader_luna_medium,reader_luna_medium,2,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+21,reader_luna_medium,reader_luna_medium,3,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+22,gemini_medium,gemini_medium,1,True,none,6,False,True,True,False,,False,False,False,0,6,6,1.0,,False,0.0,S:AAPL S:GOOGL S:MSFT,False,,0,0
+22,gemini_medium,gemini_medium,2,True,none,6,False,True,True,False,,False,False,False,0,6,6,1.0,,False,0.0,S:AAPL S:GOOGL S:MSFT,False,,0,0
+22,gemini_medium,gemini_medium,3,True,none,4,False,True,True,False,,False,False,False,0,4,4,1.0,,False,0.0,S:AAPL S:GOOGL S:MSFT,False,,0,0
+22,gemini_minimal,gemini_minimal,1,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+22,gemini_minimal,gemini_minimal,2,True,none,3,False,True,False,False,,False,False,False,0,3,3,1.0,,False,0.0,S:AAPL S:GOOGL S:MSFT,False,,0,0
+22,gemini_minimal,gemini_minimal,3,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+22,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_none,luna_none,1,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_none,luna_none,2,True,none,6,False,True,True,False,,False,False,False,0,6,6,1.0,,False,0.0,S:AAPL S:GOOGL S:MSFT,False,,0,0
+22,luna_none,luna_none,3,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+22,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,10,False,True,False,True,,True,True,False,0,10,10,1.0,,True,1.0,,False,,0,0
+22,reader_luna_medium,reader_luna_medium,1,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+22,reader_luna_medium,reader_luna_medium,2,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+22,reader_luna_medium,reader_luna_medium,3,True,none,6,False,True,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+23,gemini_medium,gemini_medium,1,True,none,4,True,True,True,False,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,gemini_medium,gemini_medium,2,True,none,4,True,True,True,False,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,gemini_medium,gemini_medium,3,True,none,4,True,True,True,False,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,gemini_minimal,gemini_minimal,1,True,none,3,True,True,True,False,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+23,gemini_minimal,gemini_minimal,2,True,none,4,True,True,True,False,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+23,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,4,True,True,True,False,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,6,True,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+23,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,3,True,True,True,False,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+23,luna_none,luna_none,1,True,none,6,True,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+23,luna_none,luna_none,2,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+23,luna_none,luna_none,3,True,none,6,True,True,True,True,,True,True,False,0,6,6,1.0,,,,,False,,0,0
+23,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,False,,0,0
+23,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,7,True,True,True,True,,True,True,False,0,7,7,1.0,,,,,True,資料不足,0,0
+23,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,3,True,True,True,False,,True,True,False,0,3,3,1.0,,,,,False,,0,0
+23,reader_luna_medium,reader_luna_medium,1,True,none,4,True,True,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,reader_luna_medium,reader_luna_medium,2,True,none,4,True,True,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+23,reader_luna_medium,reader_luna_medium,3,True,none,4,True,True,True,True,,True,True,False,0,4,4,1.0,,,,,False,,0,0
+24,gemini_medium,gemini_medium,1,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,gemini_medium,gemini_medium,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,gemini_medium,gemini_medium,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,gemini_minimal,gemini_minimal,1,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:NVDA N:TSLA,False,,0,0
+24,gemini_minimal,gemini_minimal,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,gemini_minimal,gemini_minimal,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,12,True,True,True,True,,True,True,False,0,12,12,1.0,,True,1.0,,False,,0,1
+24,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_none,luna_none,1,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_none,luna_none,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_none,luna_none,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,True,無法確認,0,0
+24,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+24,reader_luna_medium,reader_luna_medium,1,True,none,8,True,True,True,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+24,reader_luna_medium,reader_luna_medium,2,True,none,9,True,True,True,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+24,reader_luna_medium,reader_luna_medium,3,True,none,6,True,True,False,True,,False,False,False,0,6,6,1.0,,False,0.5,N:NVDA N:TSLA,False,,0,0
+25,gemini_medium,gemini_medium,1,True,none,5,True,True,True,False,,True,True,False,0,5,5,1.0,,False,0.75,N:NFLX,False,,0,0
+25,gemini_medium,gemini_medium,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,gemini_medium,gemini_medium,3,True,none,5,True,True,True,False,,True,True,False,0,5,5,1.0,,False,0.75,N:NFLX,False,,0,0
+25,gemini_minimal,gemini_minimal,1,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,gemini_minimal,gemini_minimal,2,True,none,5,True,True,True,False,,True,True,False,0,5,5,1.0,,False,0.75,N:DIS,False,,0,0
+25,gemini_minimal,gemini_minimal,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,luna_none,luna_none,1,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,luna_none,luna_none,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,luna_none,luna_none,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+25,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,reader_luna_medium,reader_luna_medium,1,True,none,4,True,True,False,False,,False,False,False,0,4,4,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,reader_luna_medium,reader_luna_medium,2,True,none,2,False,True,False,False,,False,False,False,0,2,2,1.0,,False,0.5,N:DIS N:NFLX,False,,0,0
+25,reader_luna_medium,reader_luna_medium,3,True,none,6,True,True,True,False,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+26,gemini_medium,gemini_medium,1,True,none,7,True,True,True,False,,False,False,False,0,7,7,1.0,,False,0.4444444444444444,N:LLY N:NVDA S:COST S:LLY S:NVDA,False,,0,0
+26,gemini_medium,gemini_medium,2,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,gemini_medium,gemini_medium,3,True,none,8,True,True,True,False,,False,False,False,0,8,8,1.0,,False,0.5555555555555556,N:NVDA S:COST S:LLY S:NVDA,False,,0,0
+26,gemini_minimal,gemini_minimal,1,True,none,8,True,True,True,False,,False,False,False,0,8,8,1.0,,False,0.5555555555555556,N:NVDA S:COST S:LLY S:NVDA,False,,0,0
+26,gemini_minimal,gemini_minimal,2,True,none,8,True,True,True,False,,False,False,False,0,8,8,1.0,,False,0.5555555555555556,N:NVDA S:COST S:LLY S:NVDA,False,,0,0
+26,gemini_minimal,gemini_minimal,3,True,none,6,True,True,False,False,,False,False,False,0,6,6,1.0,,False,0.33333333333333337,N:COST N:LLY N:NVDA S:COST S:LLY S:NVDA,False,,0,0
+26,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,luna_none,luna_none,1,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,luna_none,luna_none,2,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,luna_none,luna_none,3,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,True,沒有取得,0,0
+26,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,True,沒有取得,0,0
+26,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,9,True,True,True,False,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,S:COST S:LLY S:NVDA,False,,0,0
+26,reader_luna_medium,reader_luna_medium,1,True,none,9,True,True,False,True,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,N:COST N:LLY N:NVDA,False,,0,0
+26,reader_luna_medium,reader_luna_medium,2,True,none,9,True,True,False,True,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,N:COST N:LLY N:NVDA,False,,0,0
+26,reader_luna_medium,reader_luna_medium,3,True,none,9,True,True,False,True,,False,False,False,0,9,9,1.0,,False,0.6666666666666667,N:COST N:LLY N:NVDA,False,,0,0
+27,gemini_medium,gemini_medium,1,True,none,5,True,True,True,False,,False,False,True,1,5,3,0.6,BAC C,,,,False,,0,0
+27,gemini_medium,gemini_medium,2,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+27,gemini_medium,gemini_medium,3,True,none,6,True,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+27,gemini_minimal,gemini_minimal,1,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+27,gemini_minimal,gemini_minimal,2,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+27,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,False,False,True,1,3,3,1.0,,,,,False,,0,0
+27,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+27,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,8,False,True,True,True,,True,True,False,0,8,5,0.625,BAC C WFC,,,,False,,0,0
+27,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+27,luna_none,luna_none,1,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+27,luna_none,luna_none,2,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+27,luna_none,luna_none,3,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+27,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,True,資料不足,0,0
+27,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,7,True,True,True,True,,True,True,True,1,7,7,1.0,,,,,False,,0,0
+27,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,9,False,True,True,True,,True,True,False,0,9,6,0.6666666666666666,BAC C WFC,,,,False,,0,0
+27,reader_luna_medium,reader_luna_medium,1,True,none,5,True,True,True,True,,True,True,True,1,5,5,1.0,,,,,False,,0,0
+27,reader_luna_medium,reader_luna_medium,2,True,none,7,True,True,True,True,,True,True,True,1,7,4,0.5714285714285714,BAC C WFC,,,,False,,0,0
+27,reader_luna_medium,reader_luna_medium,3,True,none,6,True,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+28,gemini_medium,gemini_medium,1,True,none,4,True,True,True,False,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+28,gemini_medium,gemini_medium,2,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,gemini_medium,gemini_medium,3,True,none,4,True,True,True,False,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+28,gemini_minimal,gemini_minimal,1,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,gemini_minimal,gemini_minimal,2,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,gemini_minimal,gemini_minimal,3,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,4,True,True,True,False,,True,True,True,1,4,4,1.0,,,,,True,證據仍不足,0,0
+28,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,5,True,True,True,False,,True,True,True,1,5,5,1.0,,,,,True,證據不足,0,0
+28,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,luna_none,luna_none,1,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,luna_none,luna_none,2,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,luna_none,luna_none,3,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,6,True,True,True,True,,True,True,True,1,6,6,1.0,,,,,False,,0,0
+28,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,True,證據不足,0,0
+28,reader_luna_medium,reader_luna_medium,1,True,none,3,True,True,True,False,,True,True,True,1,3,3,1.0,,,,,False,,0,0
+28,reader_luna_medium,reader_luna_medium,2,True,none,4,True,True,True,False,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+28,reader_luna_medium,reader_luna_medium,3,True,none,4,True,True,True,True,,True,True,True,1,4,4,1.0,,,,,False,,0,0
+29,gemini_medium,gemini_medium,1,True,partial,5,True,True,True,False,,False,False,True,1,5,3,0.6,EADSY,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,gemini_medium,gemini_medium,2,True,partial,7,True,True,True,False,,False,False,True,2,7,5,0.7142857142857143,EADSY,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,gemini_medium,gemini_medium,3,True,partial,7,True,True,True,False,,False,False,True,2,7,3,0.42857142857142855,EADSY,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,gemini_minimal,gemini_minimal,1,True,partial,4,True,True,True,False,,False,False,True,1,4,3,0.75,EADSY,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,gemini_minimal,gemini_minimal,2,True,partial,6,True,True,True,False,,False,False,True,2,6,3,0.5,EADSY,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,gemini_minimal,gemini_minimal,3,True,partial,6,True,True,True,False,,False,False,True,2,6,3,0.5,EADSY,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,partial,10,True,True,True,True,,True,True,True,2,10,6,0.6,AIR,False,0.6666666666666667,N:AIR.PA,False,,0,0
+29,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,partial,12,True,True,True,True,,True,True,True,2,12,11,0.9166666666666666,AIR,True,1.0,,True,沒有找到,0,1
+29,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,partial,10,True,True,True,True,,True,True,True,2,10,10,1.0,,True,1.0,,True,無法取得,0,0
+29,luna_none,luna_none,1,True,partial,6,True,True,True,False,,False,False,True,2,6,6,1.0,,False,0.6666666666666667,S:BA,True,資料不足,0,0
+29,luna_none,luna_none,2,True,partial,6,True,True,True,False,,False,False,True,2,6,6,1.0,,False,0.6666666666666667,S:BA,True,未能取得,0,0
+29,luna_none,luna_none,3,True,partial,11,True,True,True,True,,True,True,True,2,11,10,0.9090909090909091,EADSY,True,1.0,,True,未能取得,0,0
+29,luna_medium @ rag-bundle-ablation,luna_medium,1,True,partial,10,True,True,True,True,,True,True,True,3,10,8,0.8,EADSY,True,1.0,,False,,0,0
+29,luna_medium @ rag-bundle-ablation,luna_medium,2,True,partial,10,True,True,True,True,,True,True,True,2,10,10,1.0,,True,1.0,,True,資料不足,0,0
+29,luna_medium @ rag-bundle-ablation,luna_medium,3,True,partial,8,True,True,True,False,,False,False,True,2,8,4,0.5,AIR,False,0.33333333333333337,N:AIR.PA S:BA,False,,0,0
+29,reader_luna_medium,reader_luna_medium,1,True,partial,8,False,True,True,True,,True,True,False,0,8,3,0.375,AIR EADSY,False,0.6666666666666667,N:AIR.PA,True,資料限制,0,0
+29,reader_luna_medium,reader_luna_medium,2,True,partial,5,False,False,True,True,,True,True,False,0,5,5,1.0,,True,1.0,,True,沒有取得,0,0
+29,reader_luna_medium,reader_luna_medium,3,True,partial,10,True,True,True,True,quote,True,True,True,1,10,7,0.7,AIR,True,1.0,,False,,0,0
+30,gemini_medium,gemini_medium,1,True,none,7,True,True,True,False,,False,False,True,4,7,7,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,gemini_medium,gemini_medium,2,True,none,7,True,True,True,False,,False,False,True,4,7,7,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,gemini_medium,gemini_medium,3,True,none,7,True,True,True,False,,False,False,True,4,7,7,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,gemini_minimal,gemini_minimal,1,True,none,4,False,True,True,False,,False,False,True,1,4,4,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,gemini_minimal,gemini_minimal,2,True,none,4,False,True,True,False,,False,False,True,1,4,4,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,gemini_minimal,gemini_minimal,3,True,none,3,False,True,False,False,,False,False,False,0,3,3,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,luna_medium @ model-reasoning-benchmark,luna_medium,1,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+30,luna_medium @ model-reasoning-benchmark,luna_medium,2,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+30,luna_medium @ model-reasoning-benchmark,luna_medium,3,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+30,luna_none,luna_none,1,True,none,10,False,True,True,True,,True,True,True,1,10,10,1.0,,True,1.0,,False,,0,0
+30,luna_none,luna_none,2,True,none,4,False,True,True,False,,False,False,True,1,4,4,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,luna_none,luna_none,3,True,none,4,False,True,True,False,,False,False,True,1,4,4,1.0,,False,0.0,S:COST S:MCD S:WMT,False,,0,0
+30,luna_medium @ rag-bundle-ablation,luna_medium,1,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+30,luna_medium @ rag-bundle-ablation,luna_medium,2,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+30,luna_medium @ rag-bundle-ablation,luna_medium,3,True,none,9,False,True,False,True,,True,True,False,0,9,9,1.0,,True,1.0,,False,,0,0
+30,reader_luna_medium,reader_luna_medium,1,True,none,8,False,False,False,True,,True,True,False,0,8,8,1.0,,True,1.0,,False,,0,0
+30,reader_luna_medium,reader_luna_medium,2,True,none,6,False,False,False,True,,True,True,False,0,6,6,1.0,,True,1.0,,False,,0,0
+30,reader_luna_medium,reader_luna_medium,3,True,none,7,False,False,False,True,,True,True,False,0,7,7,1.0,,True,1.0,,False,,0,0

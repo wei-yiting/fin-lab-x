@@ -1,0 +1,195 @@
+{
+  "A/en": {
+    "pass": 71,
+    "n": 78,
+    "rate": 0.91,
+    "wilson95": [
+      0.826,
+      0.956
+    ],
+    "detected": {
+      "en": 72,
+      "es": 5,
+      "ru": 1
+    },
+    "errors": 0,
+    "questions_with_failures": {
+      "d06": 2,
+      "d07": 1,
+      "d15": 1,
+      "s1": 2,
+      "s3": 1
+    },
+    "questions_failing_any_rep": 5
+  },
+  "A/en_sec_in_context": {
+    "pass": 70,
+    "n": 77,
+    "rate": 0.909,
+    "wilson95": [
+      0.824,
+      0.955
+    ],
+    "detected": {
+      "en": 71,
+      "es": 5,
+      "ru": 1
+    },
+    "errors": 0,
+    "questions_with_failures": {
+      "d06": 2,
+      "d07": 1,
+      "d15": 1,
+      "s1": 2,
+      "s3": 1
+    },
+    "questions_failing_any_rep": 5
+  },
+  "A/zh-Hant": {
+    "pass": 24,
+    "n": 24,
+    "rate": 1.0,
+    "wilson95": [
+      0.862,
+      1.0
+    ],
+    "detected": {
+      "zh-Hant": 24
+    },
+    "errors": 0,
+    "questions_with_failures": {},
+    "questions_failing_any_rep": 0
+  },
+  "B/en": {
+    "pass": 78,
+    "n": 78,
+    "rate": 1.0,
+    "wilson95": [
+      0.953,
+      1.0
+    ],
+    "detected": {
+      "en": 78
+    },
+    "errors": 0,
+    "questions_with_failures": {},
+    "questions_failing_any_rep": 0
+  },
+  "B/en_sec_in_context": {
+    "pass": 78,
+    "n": 78,
+    "rate": 1.0,
+    "wilson95": [
+      0.953,
+      1.0
+    ],
+    "detected": {
+      "en": 78
+    },
+    "errors": 0,
+    "questions_with_failures": {},
+    "questions_failing_any_rep": 0
+  },
+  "B/zh-Hant": {
+    "pass": 24,
+    "n": 24,
+    "rate": 1.0,
+    "wilson95": [
+      0.862,
+      1.0
+    ],
+    "detected": {
+      "zh-Hant": 24
+    },
+    "errors": 0,
+    "questions_with_failures": {},
+    "questions_failing_any_rep": 0
+  },
+  "C/en": {
+    "pass": 65,
+    "n": 78,
+    "rate": 0.833,
+    "wilson95": [
+      0.735,
+      0.9
+    ],
+    "detected": {
+      "ru": 3,
+      "es": 9,
+      "en": 65,
+      "ja": 1
+    },
+    "errors": 0,
+    "questions_with_failures": {
+      "d06": 3,
+      "d07": 1,
+      "d12": 2,
+      "d15": 1,
+      "d17": 2,
+      "d18": 1,
+      "s1": 1,
+      "s3": 2
+    },
+    "questions_failing_any_rep": 8
+  },
+  "C/en_sec_in_context": {
+    "pass": 65,
+    "n": 78,
+    "rate": 0.833,
+    "wilson95": [
+      0.735,
+      0.9
+    ],
+    "detected": {
+      "ru": 3,
+      "es": 9,
+      "en": 65,
+      "ja": 1
+    },
+    "errors": 0,
+    "questions_with_failures": {
+      "d06": 3,
+      "d07": 1,
+      "d12": 2,
+      "d15": 1,
+      "d17": 2,
+      "d18": 1,
+      "s1": 1,
+      "s3": 2
+    },
+    "questions_failing_any_rep": 8
+  },
+  "C/zh-Hant": {
+    "pass": 24,
+    "n": 24,
+    "rate": 1.0,
+    "wilson95": [
+      0.862,
+      1.0
+    ],
+    "detected": {
+      "zh-Hant": 24
+    },
+    "errors": 0,
+    "questions_with_failures": {},
+    "questions_failing_any_rep": 0
+  },
+  "A/cost": {
+    "runs": 102,
+    "total_usd": 0.465,
+    "median_latency_s": 18.2
+  },
+  "B/cost": {
+    "runs": 102,
+    "total_usd": 0.476,
+    "median_latency_s": 21.2
+  },
+  "C/cost": {
+    "runs": 102,
+    "total_usd": 0.466,
+    "median_latency_s": 18.2
+  },
+  "fisher_en_A_vs_B": 0.01358,
+  "fisher_en_C_vs_B": 0.00014,
+  "fisher_en_A_vs_C": 0.23061
+}

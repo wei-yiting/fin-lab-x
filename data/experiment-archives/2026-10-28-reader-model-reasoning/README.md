@@ -22,6 +22,7 @@ with answer quality scored by a blinded signal judge and a pre-registered decisi
 | `judge/` | Judge prompt, blinded batches (`poolA/`, `poolB/`, `.json` + `.md`), subagent results, re-judge set |
 | `judge/KEY_do_not_share/` | Opaque id → (row, arm, repetition, kind). Not shown to the judge |
 | `judge/judge_summary.json`, `judge/judge_scores.csv` | Unblinded judge results: per-arm pass rates, contrasts, discrimination check, self-agreement |
+| `grounding/` | Secondary quality (Amendment 2): faithfulness (`faith/`: prompt, batches with each run's evidence, results; perturbed-figure control) and completeness (`nuggets/` checklists, `coverage/` scoring, truncated control); keys in `grounding/KEY_do_not_share/`; `grounding_summary.json` |
 | `decision.json` | The pre-registered rule applied mechanically |
 | `config_dump/` | All four arms as resolved + the alignment check (only model settings differ: PASS) |
 | `prewarm/`, `run_logs/` | Per-worker SEC pre-warm reports; code commit per launch |

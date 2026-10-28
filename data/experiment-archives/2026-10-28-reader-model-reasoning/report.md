@@ -1,6 +1,6 @@
 # Reader config: does a lower model / reasoning tier keep answer quality?
 
-> **One-line takeaway:** Under the reader configuration, **no cheaper or faster arm met the pre-registered bar, so the recommendation is to stay on `reader_luna_medium`**. `reader_luna_none` came closest: 28% cheaper per run, 5.9 s faster, routing recall no worse, and a signal-judge pass rate indistinguishable from the control (+0.004). But the lower CI bound (−0.033) missed the −0.03 non-inferiority margin by 0.003, so non-inferiority is *not established*. Both Gemini 3.6 Flash arms scored clearly lower on the judge (−0.13 to −0.15), skipped required sources more often, and cost 3.6–6.4× more per run. See [§5](#5-secondary-quality-faithfulness-and-completeness) for the faithfulness and completeness checks added after the user's review.
+> **One-line takeaway:** Under the reader configuration, **no cheaper or faster arm met the pre-registered bar, so the recommendation is to stay on `reader_luna_medium`**. `reader_luna_none` came closest: 28% cheaper per run, 5.9 s faster, routing recall no worse, and a signal-judge pass rate indistinguishable from the control (+0.004). But the lower CI bound (−0.033) missed the −0.03 non-inferiority margin by 0.003, so non-inferiority is *not established*. Both Gemini 3.6 Flash arms scored clearly lower on the judge (−0.13 to −0.15), skipped required sources more often, and cost 3.6–6.4× more per run. Faithfulness and completeness checks, added after the user's review ([§5](#5-secondary-quality-faithfulness-and-completeness)), show no significant loss for `reader_luna_none` either. But they lean the same way: vital key-point recall −0.03, and 5 of 30 answers with a contradicted claim vs 1 of 30, including an entity mix-up (Airbus ↔ AAR Corp).
 
 This is the reference report: design, controlled variables, results with
 uncertainty, judge method and validity checks, the decision, deviations and the
@@ -20,6 +20,7 @@ and thresholds were committed before any answer was judged:
 | Process metrics | `python -m backend.evals.experiments.reader_model_reasoning.analyze --raw-dir <dir>/raw --out-dir <archive>` |
 | Tool selection | `python -m backend.evals.experiments.tool_selection.analyze --labels tool_routing_labels.csv --archives <archive> --out-dir <archive>/tool_selection` |
 | Judge | `… reader_model_reasoning.judge build-pool / collect / score / spot-check` (see module docstring); grading itself was done by fresh Claude Code subagents ([§4.1](#41-method)) |
+| Faithfulness / completeness | `… reader_model_reasoning.grounding build-faith / build-nuggets / build-coverage / score` (grading by fresh subagents, as for the judge) |
 | Decision | `python -m backend.evals.experiments.reader_model_reasoning.decide --toolsel-metrics … --process-summary … --judge-summary … --out-dir <archive>` |
 | Model spend | ≈ US$5.58 for 360 runs (luna_none $0.35, luna_medium $0.48, gemini_minimal $1.72, gemini_medium $3.03), plus ~321 Tavily calls on pay-as-you-go. Judge: Claude Code subagents (no API bill). |
 
@@ -198,7 +199,80 @@ arms, and 81 by every Luna answer.
 [Amendment 2](preregistration.md) before being run. These do not change the
 decision rule.*
 
-SECONDARY_RESULTS_PLACEHOLDER
+Both judged by fresh Claude Code subagents over blinded, shuffled batches with
+opaque ids, using the same setup as §4.1. Prompts, batches, keys and results are
+in [`grounding/`](grounding/). Scope is **repetition 1 only** (30 rows per arm).
+
+### 5.1 Faithfulness: are the answer's claims supported by the evidence *that run* retrieved?
+
+Each Luna answer was shown with every tool output its own run received. The
+judge listed up to 25 checkable factual claims (figures, dates, named events,
+attributions to filings or news) and labelled each supported, unsupported or
+contradicted. Gemini was left out: it already fails on cost and routing.
+
+| | reader_luna_none | **reader_luna_medium** |
+|---|---|---|
+| Claims checked (30 answers) | 427 | 446 |
+| Support rate [95% CI] | 0.977 [0.956, 0.992] | 0.983 [0.971, 0.994] |
+| Contradicted claims | 9 | 1 |
+| Answers with ≥ 1 contradicted claim | **5 / 30** | 1 / 30 |
+| Paired Δ support rate (none − medium) | −0.006 [−0.030, +0.015] | — |
+
+- **Judge validity: PASS.** 28 answers had one figure altered by ~+40%. The
+  judge flagged 26 of 28 (93% ≥ 80%). The 2 misses were construction errors,
+  not claims: "10-K" turned into "14-K" (a `\b` boundary bug before a CJK
+  character) and a ranking-table index. All valid altered figures were caught.
+- **Average support: non-inferior** at the pre-set −0.05 margin.
+- **The tail differs.** `reader_luna_none`'s contradictions are synthesis and
+  attribution errors, not invented numbers:
+  - **row 29:** used ticker `AIR` (AAR Corp, an aviation MRO company) as
+    *Airbus*, with 4 claims citing AAR's 10-K and Finnhub data as Airbus's;
+  - **row 20:** "cash flow covers the dividend" while its evidence shows OCF
+    $7.4B < dividends $8.8B;
+  - **row 28:** a North America segment margin quoted as Nike Brand overall;
+  - **row 17:** advertising ranked 3rd when AWS is larger;
+  - **row 7:** a forced sale called "still possible" after the evidence
+    reported it was rejected.
+
+  `reader_luna_medium`'s one contradiction was a −3% vs −2% slip. With n = 30
+  this 5 vs 1 is descriptive, not significant. It is also the kind of error the
+  signal judge cannot see: row 29 passes "cite the official disclosure" while
+  citing the wrong company's.
+
+### 5.2 Completeness: key-point (nugget) recall, exploratory
+
+For each row a fresh subagent wrote 7–8 key points (≥ 4 vital) from the
+question and the four arms' rep-1 answers, anonymised and shuffled. Each rep-1
+answer (120) was then scored per point: covered 1, partial 0.5, missing 0.
+
+| Arm | Vital recall [95% CI] | All-point recall | Δ vital vs control [95% CI] |
+|---|---|---|---|
+| reader_luna_none | 0.919 [0.880, 0.955] | 0.864 | −0.032 [−0.077, +0.008] |
+| **reader_luna_medium** | 0.951 [0.923, 0.976] | 0.868 | — |
+| reader_gemini_minimal | 0.868 [0.818, 0.913] | 0.756 | **−0.083 [−0.146, −0.023]** |
+| reader_gemini_medium | 0.871 [0.812, 0.923] | 0.792 | **−0.080 [−0.155, −0.012]** |
+
+- **Judge validity: PASS.** 30 truncated answers scored 0.51 vital recall, −0.42
+  [−0.47, −0.37] vs their bases. Unlike the signals, the checklist sees that an
+  opening paragraph is not a complete answer.
+- **Limits.** The checklists were **not reviewed by a human**. They are drawn
+  from the four arms' own answers, so they reward the facts any arm found.
+  Repetition 1 only.
+
+### 5.3 What the three quality lenses say together
+
+| Lens | luna_none vs luna_medium | Gemini vs luna_medium |
+|---|---|---|
+| Signal pass rate (primary, 3 reps) | +0.004 (no difference) | −0.13 to −0.15 (worse) |
+| Faithfulness support (rep 1) | −0.006 (no difference); contradictions 5 vs 1 answers | not measured |
+| Vital completeness (rep 1, exploratory) | −0.032, CI [−0.077, +0.008] | −0.08 (worse) |
+
+For Gemini all lenses agree: lower quality. For `reader_luna_none`, no lens shows
+a significant loss. But the two depth-sensitive lenses both point the same way
+(fewer key points, more contradicted claims), which is what one would expect if
+dropping reasoning makes synthesis shallower. This doesn't meet a significance
+bar; it does mean the "no detectable difference" in §4.3 should not be read as
+"no difference".
 
 ## 6. Decision (pre-registered rule, applied mechanically: [`decision.json`](decision.json))
 
@@ -215,9 +289,13 @@ difference"**, not "non-inferior". The point estimate is +0.004. The miss is
 0.003 on a margin the 30-row design can barely resolve: the CI half-width is
 ~0.037, so even a true Δ of 0 would fail a −0.03 margin about as often as it
 passes. Switching to `reader_luna_none` would save ~$0.0015 and ~6 s per
-question. The cost of being wrong is answer quality the signals cannot see
-(depth, completeness). [§5](#5-secondary-quality-faithfulness-and-completeness)
-is the first look at that.
+question. The cost of being wrong is answer quality the signals cannot see.
+[§5](#5-secondary-quality-faithfulness-and-completeness) finds no significant
+loss there either, but the depth-sensitive measures lean against
+`reader_luna_none`: vital recall −0.03, and contradicted claims in 5/30 vs 1/30
+answers. **If the product wants `reader_luna_none`'s savings, the next step is
+a powered test, not a switch:** a frozen holdout, more rows, a human-reviewed
+checklist, and the faithfulness check on all repetitions.
 
 ## 7. Deviations during execution
 
@@ -255,8 +333,11 @@ is the first look at that.
   self-agreement 0.95 and cross-pool 0.98 bound the noise. Human agreement is
   pending the spot check.
 - **No fact-checking against the world.** The signal judge doesn't verify facts.
-  Faithfulness ([§5](#5-secondary-quality-faithfulness-and-completeness)) checks
-  only against each run's own tool outputs, on a subset.
+  Faithfulness ([§5.1](#51-faithfulness-are-the-answers-claims-supported-by-the-evidence-that-run-retrieved))
+  checks claims only against each run's own tool outputs, Luna arms, rep 1.
+  "Supported" means "in the evidence", not "true".
+- **Completeness is exploratory.** The checklists come from the arms' own
+  answers and were not human-reviewed.
 - **Time.** The Gemini/Luna time gap (deviation 2) affects Tavily/Finnhub-dependent
   rows in the family comparison.
 - **Prices** are list prices read 2026-10-21 (same table as #84). Gemini's

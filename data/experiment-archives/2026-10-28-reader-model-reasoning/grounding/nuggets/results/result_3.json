@@ -1,0 +1,50 @@
+[
+  {"row": "11", "nuggets": [
+    {"nugget": "沃爾瑪將電商定位為全通路零售的核心，整合門店、網站/App、供應鏈與取貨/配送，目的是讓顧客以偏好方式購物，而非以線上取代實體門店", "importance": "vital"},
+    {"nugget": "電商被視為長期成長引擎：公司在成長/財務優先事項中明確提到要加速電商銷售成長、擴大全通路業務", "importance": "vital"},
+    {"nugget": "廣告被定位為建立在零售流量、購物數據與品牌供應商/Marketplace 賣家關係上的變現業務，向品牌與賣家提供廣告方案及數據洞察服務", "importance": "vital"},
+    {"nugget": "公司將廣告、Marketplace、履約服務、會員等描述為彼此強化（mutually reinforcing）的零售生態系組成部分，而非獨立於零售主業的副業", "importance": "vital"},
+    {"nugget": "10-K 指出數位廣告等屬較高毛利業務，在 Growth/Margin/Returns 框架下用於改善業務組合與整體毛利率/營業利潤率", "importance": "vital"},
+    {"nugget": "引用電商對可比（同店）銷售的具體貢獻，例如 Walmart U.S. 電商貢獻約 4.3 個百分點", "importance": "okay"},
+    {"nugget": "指出 10-K 未單獨揭露廣告業務的利潤率、長期營收目標或對營業利益的具體貢獻，不能據此斷言廣告已是主要利潤來源", "importance": "okay"},
+    {"nugget": "提及相關風險：電商、科技與廣告投資需大量資本，線上銷售增加可能降低門店流量與交叉銷售機會", "importance": "okay"}
+  ]},
+  {"row": "12", "nuggets": [
+    {"nugget": "埃克森美孚稱淨零/能源轉型情境建立在政策、技術、需求等大量假設上，沒有單一路徑可合理預測；若缺乏穩定政策與技術創新，淨零目標對社會及公司可能無法達成", "importance": "vital"},
+    {"nugget": "政策與監管風險：碳稅、排放交易、電動車強制令/燃油車限制、許可限制等可能提高合規成本、延誤項目、降低油氣需求或投資回報", "importance": "vital"},
+    {"nugget": "低碳業務（碳捕集與封存、氫/氨、低排放燃料、鋰等）的商業化與回報高度依賴政策支持、市場機制與技術成本，政策撤回或延遲會影響其可行性", "importance": "vital"},
+    {"nugget": "若在需求未相應下降前限制油氣供給，可能造成價格波動、通膨與能源短缺", "importance": "okay"},
+    {"nugget": "平衡原則：低排放投資的實際規模取決於項目機會、公共政策支持與以回報為導向的資本配置，公司保留調整彈性以在多種情境下最大化股東價值", "importance": "vital"},
+    {"nugget": "持續投資低供應成本的上游油氣（如圭亞那、二疊紀、LNG）與整合型業務，以維持現金流支撐轉型投資與股東回報", "importance": "vital"},
+    {"nugget": "股東回報具體數字：FY2025 每股股息 4.00 美元（總額約 172 億美元）、回購約 200 億美元，並預計在合理市場條件下 2026 年維持約每年 200 億美元回購", "importance": "vital"},
+    {"nugget": "低碳相關資本支出規模相對很小（約 6 億美元 vs 總資本支出約 290 億美元），顯示轉型投資謹慎；並指出轉型不足之聲譽風險與投資低回報業務削弱股東回報之間的取捨", "importance": "okay"}
+  ]},
+  {"row": "13", "nuggets": [
+    {"nugget": "明確結論：兩家公司的 10-K 風險揭露直接支持此說法，且 Mastercard 的措辭（明文寫到 impact our profitability）比 Visa 更直接", "importance": "vital"},
+    {"nugget": "Visa 揭露監管會增加合規成本與營運複雜度、減少營收機會，並影響支付量、淨營收與財務結果", "importance": "vital"},
+    {"nugget": "區分交換費並非 Visa/Mastercard 的直接收入（由收單行付給發卡行），但其被監管壓低會影響發卡、收單與商戶參與及交易量，因此是間接傳導", "importance": "vital"},
+    {"nugget": "傳導機制：監管壓力下需提供更多客戶激勵、折扣與回饋，若無法以成本控制或交易量成長抵銷，將損害淨營收與利潤", "importance": "vital"},
+    {"nugget": "Mastercard 指出監管機構開始審查其網路費（network fees），對網路費的監管可能對營運結果造成重大不利影響", "importance": "vital"},
+    {"nugget": "路由規定（如 Durbin Amendment、擬議中的 Credit Card Competition Act）削弱網路的定價能力與競爭地位", "importance": "okay"},
+    {"nugget": "提醒這些屬前瞻性風險陳述，支持的是監管具有壓縮獲利的機制與重大風險，而非證明監管已實際或必然造成利潤率下降", "importance": "vital"}
+  ]},
+  {"row": "14", "nuggets": [
+    {"nugget": "指出最近一次會員費調漲已於 2024 年 9 月 1 日在美國與加拿大生效", "importance": "vital"},
+    {"nugget": "調漲金額：Gold Star/商業會員年費 60 → 65 美元，Executive 會員 120 → 130 美元，為 2017 年以來首次調漲", "importance": "okay"},
+    {"nugget": "管理層與最新 10-K 均未公布下一次調漲的年份、季度或生效日", "importance": "vital"},
+    {"nugget": "管理層過去（如前 CFO Galanti）僅表示調漲是「何時而非是否」的問題，未給具體時間表", "importance": "okay"},
+    {"nugget": "依歷史約 5.5 年調一次的週期推估下次約在 2029–2030 年前後，但這只是歷史推算而非公司指引", "importance": "vital"},
+    {"nugget": "直接回答：「快要調」屬市場推測，2024 年剛調過，短期內再調缺乏證據", "importance": "vital"},
+    {"nugget": "提及高續約率（美加約 92.3%）與 Executive 會員滲透率高等條件，使未來調漲具備空間", "importance": "okay"}
+  ]},
+  {"row": "15", "nuggets": [
+    {"nugget": "核心是會員制支撐的低價、高周轉零售飛輪：以低商品毛利吸引會員高頻購物，會員費提供穩定利潤並支撐低價策略", "importance": "vital"},
+    {"nugget": "商品毛利率很低（FY2026 約 11.09%），扣除 SG&A 後零售本業利潤率很薄", "importance": "vital"},
+    {"nugget": "會員費收入約 59.07 億美元，僅占總營收約 2%，但約相當於營業利益（約 116.85 億美元）的一半，對獲利重要性遠高於其營收占比", "importance": "vital"},
+    {"nugget": "釐清會員費「相當於」營業利益一半不等於會員費單獨貢獻一半利潤，10-K 未提供會員費的獨立利潤數字，營運成本仍需商品毛利覆蓋", "importance": "okay"},
+    {"nugget": "會員黏著度數據：美加續約率約 92.3%、全球約 89.8%，付費會員約 8,410 萬", "importance": "vital"},
+    {"nugget": "Executive 會員約占付費會員一半，卻貢獻約 75.2% 的全球淨銷售", "importance": "okay"},
+    {"nugget": "會員費年增約 11%，來源包括新會員、2024 年調費與升級 Executive 會員", "importance": "okay"},
+    {"nugget": "公司在 10-K 表示最重要的獲利驅動因素是淨銷售（尤其同店銷售）成長以攤薄 SG&A，且會員制對業務與獲利不可或缺", "importance": "okay"}
+  ]}
+]

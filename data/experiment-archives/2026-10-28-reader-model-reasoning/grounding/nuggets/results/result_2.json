@@ -1,0 +1,51 @@
+[
+  {"row": "6", "nuggets": [
+    {"nugget": "明確指出嬌生最大的官司風險是滑石粉（talc）產品致癌訴訟", "importance": "vital"},
+    {"nugget": "已看得到的成本：截至 FY2025 年底（2025-12-28）滑石粉訴訟準備金現值約 34 億美元，涵蓋已簽和解、辯護費等，約三分之一列為流動負債", "importance": "vital"},
+    {"nugget": "說明德州破產法院 2025 年 3 月駁回 Red River Talc 預包裝破產和解（約 64.75 億美元現值／80 億名目），嬌生回沖約 70 億美元準備金，且指出回沖不代表風險消失", "importance": "vital"},
+    {"nugget": "不確定擴大部分：約 74,360 名美國原告的未決案件，案件重回一般侵權訴訟體系、卵巢癌案件 2026 年起陸續開庭，陪審團（含懲罰性賠償）判決結果難測", "importance": "vital"},
+    {"nugget": "指出嬌生表示無法估計超出已提列金額的可能損失或範圍，34 億美元不是損失上限，未來可能對單期獲利與現金流造成重大影響", "importance": "vital"},
+    {"nugget": "提到 MDL 中 Daubert／專家證詞與因果關係裁定（2026 年 1 月 Special Master 報告、其餘於 2026 上半年裁定）是風險放大或收斂的關鍵節點", "importance": "okay"},
+    {"nugget": "提到其他衍生或次要不確定因素，如證券集體訴訟（已向最高法院申請調卷令）、Imerys/Cyprus 和解的保險上訴，或近期大額陪審團判決（如加州約 9.66 億、馬里蘭約 15.6 億美元）屬可上訴的潛在暴露而非確定成本", "importance": "okay"},
+    {"nugget": "提及歷史已支付的大額賠償（如 Ingham 案 2021 年支付約 25 億美元）作為已發生成本", "importance": "okay"}
+  ]},
+  {"row": "7", "nuggets": [
+    {"nugget": "美國 DOJ 搜尋案已發生：2024 年 8 月被判違反反壟斷法，2025 年 12 月最終判決要求限制分發方式、分享部分搜尋資料並提供 syndication 服務", "importance": "vital"},
+    {"nugget": "美國 DOJ 廣告技術案：2025 年 4 月認定 publisher tools 違法（廣告主工具及 DoubleClick/AdMeld 收購未違法），已發生部分責任認定", "importance": "vital"},
+    {"nugget": "歐盟廣告技術案已裁罰 30 億歐元（2025 年 9 月，自我偏好），Google 已上訴並以銀行擔保處理", "importance": "vital"},
+    {"nugget": "潛在壓力：廣告技術案最終補救未定，DOJ 提出可能包含資產剝離／拆分的結構性補救，不能視為已發生", "importance": "vital"},
+    {"nugget": "潛在壓力：搜尋案雙方上訴（Google 2026 年 1 月、DOJ/各州 2026 年 2 月），補救範圍可能擴大或縮小", "importance": "vital"},
+    {"nugget": "Google Play／Epic 案補救措施已於 2025 年實施（上訴被駁回、尋求最高法院審理），屬已落地的商業模式約束", "importance": "okay"},
+    {"nugget": "其他已發生的國際處分或歐盟舊案：日本 JFTC 停止命令、澳洲 ACCC 和解、Shopping 罰款已付、Android 41 億歐元仍在上訴、AdSense 罰款撤銷後執委會上訴", "importance": "okay"},
+    {"nugget": "其他潛在壓力：歐盟 DMA 初步不合規認定但最終處分未定、德州廣告技術案待審、私人集體訴訟，公司表示無法估計可能損失", "importance": "okay"}
+  ]},
+  {"row": "8", "nuggets": [
+    {"nugget": "明確結論：官方揭露（FY2025 10-K）尚不足以證明監管與資本要求已對摩根大通造成明確的長期傷害，但已顯示結構性約束或成本", "importance": "vital"},
+    {"nugget": "引用資本現況說明仍有緩衝：如 CET1 資本約 2,884.69 億美元、實際 CET1 比率高於 11.5% 的標準法要求（含 2.5% SCB 與 GSIB 附加資本），SLR／槓桿率高於要求", "importance": "vital"},
+    {"nugget": "指出已揭露的約束機制：若未維持最低要求加緩衝（SCB、GSIB、TLAC、SLR），監管可限制股利、回購及高管酌情獎金", "importance": "vital"},
+    {"nugget": "說明監管資本影響業務資本配置與 ROE（各業務線按 RWA／GSIB 配置資本，資本基數擴大壓低資本效率）", "importance": "vital"},
+    {"nugget": "提到監管規則變動的不確定性：美國 Basel III 最終方案、GSIB 附加資本計算、長期債務／TLAC 等仍可能改變，影響尚在評估", "importance": "okay"},
+    {"nugget": "指出 Advanced 法 RWA 上升（與 Apple Card 交易相關）使比率更具約束力，且 CET1 比率下降不能全歸因於監管", "importance": "okay"},
+    {"nugget": "提到 JPM 將強資本描述為「fortress balance sheet」競爭優勢，或以獲利數據（如 ROE）佐證未見獲利能力長期受損", "importance": "okay"},
+    {"nugget": "區分官方揭露內容與管理層公開批評（如資本提案可能多鎖定約 200 億美元資本）屬不同性質的證據", "importance": "okay"}
+  ]},
+  {"row": "9", "nuggets": [
+    {"nugget": "明確給出結論：哪家公司的直接商業衝擊較大，並附上判斷依據（如收入依賴度、受影響業務的核心程度）", "importance": "vital"},
+    {"nugget": "說明 Meta 收入幾乎全來自廣告，監管（GDPR、DMA、美國州級隱私法等）直接限制資料使用與廣告定向／成效衡量", "importance": "vital"},
+    {"nugget": "提到歐盟因 Meta「付費或同意」無廣告訂閱模式違反 DMA 罰款 2 億歐元，並被迫推出較少個人化廣告（LPA），公司警告進一步修改可能重大影響歐洲收入", "importance": "vital"},
+    {"nugget": "說明 Apple 衝擊集中在 Services／App Store：DMA 被罰 5 億歐元（anti-steering）、被迫開放替代支付與分發並調整費率，另一 DMA 調查罰款上限達全球營收 10%", "importance": "vital"},
+    {"nugget": "提到美國 Epic 案禁令禁止 Apple 對 App 外購買收佣或限制導流，以及 DOJ 反壟斷訴訟", "importance": "okay"},
+    {"nugget": "指出 Apple 的 Google 搜尋授權收入可能因 Google 搜尋案救濟措施受到不利影響", "importance": "okay"},
+    {"nugget": "提到 Meta 在美國面臨 FTC 反壟斷訴訟可能要求剝離或重組 Instagram／WhatsApp，以及 FTC 同意令與青少年規範的合規成本", "importance": "okay"},
+    {"nugget": "指出兩家 10-K 均未量化監管造成的收入損失，結論屬敏感度比較；或指出 Apple 硬體為主的收入結構提供緩衝", "importance": "okay"}
+  ]},
+  {"row": "10", "nuggets": [
+    {"nugget": "明確指出三家中哪家風險最難量化並給出排序，且有合理理由支撐", "importance": "vital"},
+    {"nugget": "界定「難量化」的意義：指影響範圍與傳導路徑難估（產品、資料、商業模式、結構性救濟），而非罰款金額最大", "importance": "vital"},
+    {"nugget": "Meta：監管直接觸及資料使用—個人化—廣告變現鏈條（DMA 2 億歐元罰款、LPA、可能進一步修改），以及 FTC 可能要求剝離 Instagram／WhatsApp 等結構性救濟", "importance": "vital"},
+    {"nugget": "Google：搜尋案補救（分發限制、資料分享、syndication）與上訴、廣告技術案可能的結構性補救，以及公司表示無法估計可能損失", "importance": "vital"},
+    {"nugget": "Apple：風險集中於 App Store 抽成、導流、替代支付（DMA 5 億歐元罰款、最高 10% 營收罰款、Epic 禁令）與 Google 搜尋授權收入，傳導路徑較可對應具體財報科目，相對容易做情境模型", "importance": "vital"},
+    {"nugget": "提到 AI 法規（如 EU AI Act）、青少年保護、隱私與跨司法管轄區規則衝突等增加量化難度的新變數", "importance": "okay"},
+    {"nugget": "提到可能的抵銷效果或建模框架，如 Google 失去預設地位可能節省 TAC，或 Apple 可透過調降抽成率做敏感度測試", "importance": "okay"}
+  ]}
+]

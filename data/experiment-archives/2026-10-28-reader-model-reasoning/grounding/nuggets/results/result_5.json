@@ -1,0 +1,48 @@
+[
+  {"row": "21", "nuggets": [
+    {"nugget": "明確結論：好市多（COST）在現金流品質與資本配置韌性上較沃爾瑪穩，並說明沃爾瑪在規模或融資能力上仍有優勢", "importance": "vital"},
+    {"nugget": "比較兩家營運現金流（沃爾瑪約 415 億美元、好市多約 158 億美元）及其與淨利的轉換（OCF/淨利約 1.87 倍 vs 1.71 倍）", "importance": "vital"},
+    {"nugget": "資本支出強度與自由現金流：沃爾瑪 Capex 約 266 億美元、占 OCF 約 64%，FCF 約 149 億；好市多 Capex 約 64 億、占 OCF 約 41%，FCF 約 94 億", "importance": "vital"},
+    {"nugget": "資產負債表與流動性：好市多負債權益比約 0.17、流動比率約 1.06、現金與短期投資約 213 億美元；沃爾瑪負債權益比約 0.58、流動比率約 0.77", "importance": "vital"},
+    {"nugget": "股東回報與現金流覆蓋：沃爾瑪股利約 75 億加回購約 81 億，接近或超過 FCF；好市多股利加回購約 33 億，遠低於 FCF，並有彈性特別股利機制", "importance": "okay"},
+    {"nugget": "營運資金特性：沃爾瑪營運資金赤字約 226 億美元、依賴供應商信用與資本市場；指出負營運資金或付款時點／稅款因素使部分現金流品質須打折", "importance": "okay"},
+    {"nugget": "沃爾瑪融資能力強（S&P AA / Moody's Aa2 等頂級信評），低流動比率不必然代表危險", "importance": "okay"},
+    {"nugget": "說明兩家財年截止日不同（沃爾瑪 2026-01-31、好市多 2026-08-30），或提及好市多 FY2027 Capex 約 75 億美元的擴張計畫", "importance": "okay"}
+  ]},
+  {"row": "22", "nuggets": [
+    {"nugget": "明確結論：Google（Alphabet）最有餘裕維持回購且財務風險最低，並給出三家排序（通常 Google > 微軟 > 蘋果）", "importance": "vital"},
+    {"nugget": "比較三家流動性與槓桿指標：Google 負債權益比約 0.15、流動比率約 2.72；微軟約 0.24、1.23；蘋果約 0.78、1.00", "importance": "vital"},
+    {"nugget": "比較回購規模相對營運現金流：Google 回購約 454 億 vs OCF 約 1,647 億；微軟回購約 167–223 億 vs OCF 約 1,829 億；蘋果回購約 900 億 vs OCF 約 1,115 億", "importance": "vital"},
+    {"nugget": "指出蘋果回購加股利已接近或超過自由現金流，採淨現金中性策略，並有約 913 億美元票據與 80 億商業本票，財務緩衝最薄", "importance": "vital"},
+    {"nugget": "納入 AI 資本支出壓力：Google Capex 約 914 億美元、微軟 Capex／投資支出大幅上升，會壓縮未來回購彈性", "importance": "okay"},
+    {"nugget": "提及現金緩衝（Google 約 1,268 億、蘋果約 1,324 億、微軟約 768 億）或剩餘回購授權（Google 約 695 億、微軟約 406 億）", "importance": "okay"},
+    {"nugget": "指出三家財年截止日不同，比較非同一時點，或提及微軟在回購可預測性與保守度上是均衡選項", "importance": "okay"}
+  ]},
+  {"row": "23", "nuggets": [
+    {"nugget": "明確結論：特斯拉目前較接近市場已提前反映大量好消息，只有在 AI／自駕／Robotaxi／Optimus 轉型成功前提下估值才算有道理", "importance": "vital"},
+    {"nugget": "引用估值倍數：TTM 本益比約 450–480 倍、預估本益比約 174 倍、市銷率約 14–15 倍，遠高於傳統車廠與大型科技股", "importance": "vital"},
+    {"nugget": "指出基本面與估值脫節：EPS 年減約 39%、淨利率約 3%、營業利益率約 3.4%，汽車銷售收入下滑且毛利率下降", "importance": "vital"},
+    {"nugget": "說明支撐高估值的多頭因素：FSD、Robotaxi／Cybercab、Optimus 的商業化潛力與能源儲存業務成長（營收約 128 億美元、毛利率約 29.8%、部署 46.7 GWh）", "importance": "vital"},
+    {"nugget": "列出執行與風險因素：自駕監管與消費者接受度、Optimus 尚早期、電動車需求放緩、競爭與關稅、產能爬坡等，容錯空間很小", "importance": "vital"},
+    {"nugget": "提出未來驗證點或情境分析（交付量回升、汽車毛利改善、Robotaxi 可量化收入；牛／基準／熊情境）", "importance": "okay"},
+    {"nugget": "提及 FY2025 交付約 164 萬輛或 2026 年資本支出逾 200 億美元投入 AI 基礎設施等 10-K 資訊", "importance": "okay"}
+  ]},
+  {"row": "24", "nuggets": [
+    {"nugget": "明確結論：特斯拉比輝達更像好消息已幾乎反映（甚至預支）在股價上", "importance": "vital"},
+    {"nugget": "估值倍數對比：特斯拉 TTM 本益比約 450–480 倍、預估本益比約 174 倍；輝達 TTM 約 27 倍、預估約 17 倍", "importance": "vital"},
+    {"nugget": "成長與獲利對比：特斯拉營收年增約 8%、EPS 年減約 39%、淨利率約 3%；輝達營收年增約 83%、EPS 年增約 125%、淨利率約 64%", "importance": "vital"},
+    {"nugget": "說明特斯拉估值依賴尚未驗證的遠期敘事（Robotaxi、FSD、Optimus），若進度延遲或僅符合預期即易回檔", "importance": "vital"},
+    {"nugget": "強調輝達並不便宜、市場期待也很高，只是有實際獲利成長支撐估值", "importance": "okay"},
+    {"nugget": "列出輝達自身風險：客戶集中、自研晶片與競爭、出口管制、AI 資本支出週期反轉、庫存與訂單取消", "importance": "okay"},
+    {"nugget": "補充其他觀察：輝達市銷率約 17 倍略高於特斯拉，或輝達 beta 較高，短期波動兩者皆大", "importance": "okay"}
+  ]},
+  {"row": "25", "nuggets": [
+    {"nugget": "明確結論：迪士尼（DIS）的市場期待較沒那麼滿，Netflix（NFLX）期待較高", "importance": "vital"},
+    {"nugget": "估值對比：迪士尼預估本益比約 13.9 倍、市銷率約 1.9 倍；Netflix 預估本益比約 19.2 倍、市銷率約 5.2–5.3 倍（市淨率約 1.56 vs 9.89 亦可）", "importance": "vital"},
+    {"nugget": "基本面對比：Netflix 營收年增約 14.7%、EPS 年增約 44.6%、營業利益率約 37%、淨利率約 30%；迪士尼營收年增約 4.6%、EPS 年減約 24%、淨利率約 8.7%", "importance": "vital"},
+    {"nugget": "解釋含意：Netflix 期待高、容錯率低，指引稍弱即可能修正；迪士尼期待低，營運改善即可能帶來估值修復", "importance": "vital"},
+    {"nugget": "指出迪士尼期待低的原因與不確定性：傳統電視／有線電視衰退、ESPN 轉型與體育版權成本、樂園客流、串流獲利尚待確認", "importance": "okay"},
+    {"nugget": "指出估值口徑差異：Netflix TTM 本益比約 17.8 倍反而低於迪士尼約 22.2 倍，或 Netflix 拆股使絕對股價不可直接比較", "importance": "okay"},
+    {"nugget": "提及 Netflix 的期待來源，如廣告方案、價格調漲、停止公布訂戶數轉向營收與利潤指標", "importance": "okay"}
+  ]}
+]

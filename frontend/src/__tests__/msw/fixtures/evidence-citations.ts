@@ -69,7 +69,7 @@ const sqlOutput = JSON.stringify({
 
 const fixture: SSEStreamFixture = {
   description:
-    "SEC chunk + text_to_sql result + web citation + one unresolved ID, cited as expandable blocks",
+    "SEC chunk + company_fundamentals_query result + web citation + one unresolved ID, cited as expandable blocks",
   scenarios: ["DEV-229"],
   chunks: [
     { data: { type: "start", messageId: "asst-evidence-1" } },
@@ -89,7 +89,7 @@ const fixture: SSEStreamFixture = {
       data: {
         type: "tool-input-available",
         toolCallId: "call_sql",
-        toolName: "text_to_sql",
+        toolName: "company_fundamentals_query",
         input: { question: "AAPL annual gross margin, fiscal years 2022-2024" },
       },
     },

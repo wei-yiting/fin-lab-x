@@ -9,7 +9,7 @@
  *
  * - `http(s)://…` → a web link (news), shown as before
  * - `sec://…`     → one `sec_filing_search` evidence chunk, keyed by its `source`
- * - `sql://{toolCallId}` → one whole `text_to_sql` result (status `ok` only)
+ * - `sql://{toolCallId}` → one whole `company_fundamentals_query` result (status `ok` only)
  *
  * An ID that matches no tool result still resolves — with `evidence: null` —
  * so the UI can say so instead of silently dropping the citation.
@@ -159,7 +159,7 @@ function buildRegistry(parts: ReadonlyArray<MessagePart>): EvidenceRegistry {
   const registry: EvidenceRegistry = { sec: new Map(), sql: new Map() };
   for (const part of parts) {
     const toolName = completedToolName(part);
-    if (toolName !== "sec_filing_search" && toolName !== "text_to_sql") continue;
+    if (toolName !== "sec_filing_search" && toolName !== "company_fundamentals_query") continue;
     const output = parseOutput(part.output);
     if (!output) continue;
     if (toolName === "sec_filing_search") {

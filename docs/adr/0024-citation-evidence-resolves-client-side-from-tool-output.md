@@ -6,7 +6,7 @@
 the frontend by joining the model's reference definition (`[N]: sec://…` / `[N]: sql://…`) against
 the tool results of the **same assistant message**, which already reach the client as the tool
 part's `output` (`tool-output-available`). The evidence shown is exactly what the model read:
-SEC chunk text, title, fiscal year and fiscal-year end for `sec://`; the `text_to_sql` result
+SEC chunk text, title, fiscal year and fiscal-year end for `sec://`; the `company_fundamentals_query` result
 (columns, rows, tables, **Derivations**) for `sql://{toolCallId}`. No new stream part is added
 and the streaming contract is unchanged. The `data-tool-artifact` forwarding that ADR-0020
 prescribed for the EDGAR URL stays unimplemented and is downgraded to a follow-up; its only
@@ -31,7 +31,7 @@ payload is `edgar_url`, which a citation block does not need.
 
 - Everything a block shows must live in model-visible tool content. Fine for evidence (it is
   what the model read); anything UI-only (the EDGAR URL) still needs the artifact channel.
-- `text_to_sql` must hand the model `citation_id = "sql://{tool_call_id}"`, and any
+- `company_fundamentals_query` must hand the model `citation_id = "sql://{tool_call_id}"`, and any
   `derivations` it reports must be extracted deterministically (SQL AST / view definitions),
   never LLM-written. Without `derivations`, the block falls back to provenance + result table.
 - An ID that matches no tool result renders an explicit "no matching result" entry instead of

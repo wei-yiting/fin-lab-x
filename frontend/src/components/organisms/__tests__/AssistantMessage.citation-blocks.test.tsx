@@ -39,10 +39,10 @@ const secPart = {
 
 function sqlPart(toolCallId: string, extra: Record<string, unknown> = {}) {
   return {
-    type: "tool-text_to_sql" as const,
+    type: "tool-company_fundamentals_query" as const,
     state: "output-available",
     toolCallId,
-    toolName: "text_to_sql",
+    toolName: "company_fundamentals_query",
     input: {},
     output: {
       status: "ok",
@@ -154,7 +154,7 @@ describe("AssistantMessage — SEC citation blocks", () => {
   });
 });
 
-describe("AssistantMessage — text_to_sql citation blocks", () => {
+describe("AssistantMessage — company_fundamentals_query citation blocks", () => {
   const text = "Apple's FY2024 gross margin was 46.2% [1].\n\n[1]: sql://call_sql";
 
   test("shows provenance, formula, raw values and per-row substitution", async () => {

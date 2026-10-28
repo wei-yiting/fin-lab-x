@@ -1,5 +1,5 @@
 /**
- * Display helpers for a text_to_sql citation block: value formatting by
+ * Display helpers for a company_fundamentals_query citation block: value formatting by
  * column-name convention, and a derivation's formula with each row's raw
  * values substituted in.
  *

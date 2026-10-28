@@ -230,7 +230,7 @@ The shipped strategy is **extract-on-finish**:
 
 The UX is a "pop-in" at stream end, similar to ChatGPT / Claude.ai. Partial sources on error/stop are preserved because the `useMemo` also fires when the stream stops on error.
 
-**Evidence citations (ADR-0024).** `extractSources` keeps `sec://` and `sql://` definitions alongside `http(s)` ones. `resolveCitations` (`lib/citations.ts`) then joins each against the same message's tool parts — `sec://` by chunk `source` in `sec_filing_search` output, `sql://{toolCallId}` to that `text_to_sql` call's `ok` result — and the `Sources` molecule renders one entry per `[N]`: web sources as `SourceLink`, evidence sources as an expandable `CitationBlock` (unresolved IDs render an explicit "no matching result" row). An evidence `RefSup` is a button: through `CitationJumpContext` it asks `AssistantMessage` to expand that entry, and the entry scrolls into view and flashes.
+**Evidence citations (ADR-0024).** `extractSources` keeps `sec://` and `sql://` definitions alongside `http(s)` ones. `resolveCitations` (`lib/citations.ts`) then joins each against the same message's tool parts — `sec://` by chunk `source` in `sec_filing_search` output, `sql://{toolCallId}` to that `company_fundamentals_query` call's `ok` result — and the `Sources` molecule renders one entry per `[N]`: web sources as `SourceLink`, evidence sources as an expandable `CitationBlock` (unresolved IDs render an explicit "no matching result" row). An evidence `RefSup` is a button: through `CitationJumpContext` it asks `AssistantMessage` to expand that entry, and the entry scrolls into view and flashes.
 
 ### 7.1 Parse flow — raw text to Sources block and RefSup
 

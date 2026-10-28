@@ -158,6 +158,14 @@ A transient sidecar SSE event that updates a running tool card without entering 
 The citation strategy: source extraction runs exactly once when the stream finishes (status leaves `streaming` — ready, error, or stop), never during streaming.
 _Avoid_: defer-to-ready (superseded name)
 
+**Citation block**:
+The expandable entry behind an evidence `[N]` in the citation list under an answer: the evidence the model actually read for that citation — an SEC chunk, or a company_fundamentals_query result with its Derivations — resolved by ID from the same message's tool results, never written by the model. An ID that matches no tool result shows as an explicit unresolved entry. Web (news) citations are not citation blocks; they stay external links.
+_Avoid_: source card, footnote, popover
+
+**Derivation**:
+How a derived metric in a company_fundamentals_query result is computed from the raw columns selected alongside it (e.g. gross margin = gross profit ÷ revenue), extracted deterministically from the query or view definition and shown in a Citation block with each row's raw values substituted in.
+_Avoid_: formula (fine in UI text, but ambiguous in code), calculation
+
 ## Frontend
 
 **UI Copy**:

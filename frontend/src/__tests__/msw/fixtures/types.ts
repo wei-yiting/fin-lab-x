@@ -7,7 +7,8 @@ export type UIMessageChunk =
   | { type: "reasoning-delta"; id: string; delta: string }
   | { type: "reasoning-end"; id: string }
   | { type: "tool-input-available"; toolCallId: string; toolName: string; input: object }
-  | { type: "tool-output-available"; toolCallId: string; output: object }
+  // The backend serializes dict tool results to a JSON string; both shapes reach the client.
+  | { type: "tool-output-available"; toolCallId: string; output: object | string }
   | { type: "tool-output-error"; toolCallId: string; errorText: string }
   | { type: "data-tool-progress"; id: string; data: { message: string }; transient: true }
   | { type: "error"; errorText: string }

@@ -94,6 +94,22 @@ See [1] for the report.
     expect(result).toHaveLength(2);
     expect(result.map((r) => r.url)).toEqual(["http://example.com/a", "https://example.com/b"]);
   });
+
+  test("keeps sec:// and sql:// evidence IDs, which have no web hostname", () => {
+    const md = `
+Risk [1] and margin [2].
+
+[1]: sec://0000320193-24-000123/1a#12
+[2]: sql://call_abc123
+    `.trim();
+
+    const result = extractSources(md);
+
+    expect(result.map((r) => r.url)).toEqual([
+      "sec://0000320193-24-000123/1a#12",
+      "sql://call_abc123",
+    ]);
+  });
 });
 
 describe("extractSources — incremental parse robustness", () => {

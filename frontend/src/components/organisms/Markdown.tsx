@@ -8,6 +8,7 @@ import type { Components } from "react-markdown";
 import { RefSup } from "@/components/atoms/RefSup";
 import { Cursor } from "@/components/atoms/Cursor";
 import { markdownSourcesPlugin } from "@/lib/markdown-sources";
+import type { SourceKind } from "@/lib/citations";
 import { cn } from "@/lib/utils";
 import type { ExtractedSources } from "@/models";
 
@@ -25,7 +26,8 @@ const MARKDOWN_COMPONENTS: Components = {
     const attrs = props as Record<string, unknown>;
     if (attrs["data-citation"] === "true") {
       const label = attrs["data-source-label"] as string;
-      return <RefSup label={label} href={href ?? "#"} />;
+      const kind = attrs["data-source-kind"] as SourceKind | undefined;
+      return <RefSup label={label} href={href ?? "#"} kind={kind} />;
     }
     return (
       <a href={href} target="_blank" rel="noopener noreferrer">

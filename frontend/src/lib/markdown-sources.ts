@@ -3,8 +3,12 @@ import remarkParse from "remark-parse";
 import { visit } from "unist-util-visit";
 import type { Root } from "mdast";
 import type { SourceRef, ExtractedSources } from "@/models";
+import { sourceKind } from "@/lib/citations";
 
-const ALLOWED_PROTOCOLS = new Set(["http:", "https:"]);
+const WEB_PROTOCOLS = new Set(["http:", "https:"]);
+// Stable evidence IDs (ADR-0019 `sec://`, `sql://`) — resolved against tool
+// results, never navigated to, so they need no hostname.
+const EVIDENCE_PROTOCOLS = new Set(["sec:", "sql:"]);
 
 const parser = unified().use(remarkParse);
 
@@ -33,7 +37,11 @@ function addSource(
     return;
   }
 
-  if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) return;
+  if (EVIDENCE_PROTOCOLS.has(parsed.protocol)) {
+    seen.set(label, { label, url: rawUrl, hostname: "" });
+    return;
+  }
+  if (!WEB_PROTOCOLS.has(parsed.protocol)) return;
   if (!parsed.hostname.includes(".")) return;
 
   seen.set(label, {
@@ -118,6 +126,7 @@ export function markdownSourcesPlugin(sources: ExtractedSources) {
           ...((data.hProperties as Record<string, unknown>) ?? {}),
           "data-citation": "true",
           "data-source-label": src.label,
+          "data-source-kind": sourceKind(src.url),
           href: src.url,
         };
       });

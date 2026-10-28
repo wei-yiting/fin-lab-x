@@ -1,10 +1,12 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Markdown } from "@/components/organisms/Markdown";
 import { ToolCard } from "@/components/organisms/ToolCard";
 import { ReasoningChip } from "@/components/organisms/ReasoningChip";
-import { Sources } from "@/components/molecules/Sources";
+import { Sources, type CitationFocus } from "@/components/molecules/Sources";
 import { RegenerateButton } from "@/components/atoms/RegenerateButton";
 import { extractSources, normalizeRefDefs, REF_DEF_LINE_RE } from "@/lib/markdown-sources";
+import { resolveCitations, type Citation } from "@/lib/citations";
+import { CitationJumpContext } from "@/lib/citation-jump";
 import {
   chipKey,
   chipStateOf,
@@ -20,6 +22,7 @@ type MessagePart = Record<string, unknown>;
 
 /** Shared empty-sources reference — see the note at its use site. */
 const NO_SOURCES: ExtractedSources = [];
+const NO_CITATIONS: ReadonlyArray<Citation> = [];
 
 interface AssistantMessageMessage {
   id: string;
@@ -121,6 +124,32 @@ export const AssistantMessage = memo(function AssistantMessage({
     [concatenatedText, isStreaming],
   );
 
+  // Evidence behind `sec://` / `sql://` citations comes from this message's
+  // own tool results (ADR-0024), resolved once the turn completes.
+  const citations = useMemo(
+    () =>
+      extractedSources.length === 0 ? NO_CITATIONS : resolveCitations(extractedSources, parts),
+    [extractedSources, parts],
+  );
+
+  const [expandedCitations, setExpandedCitations] = useState<ReadonlySet<string>>(() => new Set());
+  const [citationFocus, setCitationFocus] = useState<CitationFocus | null>(null);
+
+  const toggleCitation = useCallback((label: string) => {
+    setExpandedCitations((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(label)) next.add(label);
+      return next;
+    });
+  }, []);
+
+  // Stable identity: the inline markers that call this live inside the
+  // memoized Markdown tree, which must not re-render when it changes.
+  const jumpToCitation = useCallback((label: string) => {
+    setExpandedCitations((prev) => (prev.has(label) ? prev : new Set(prev).add(label)));
+    setCitationFocus((prev) => ({ label, seq: (prev?.seq ?? 0) + 1 }));
+  }, []);
+
   const displayText = useMemo(() => {
     // Normalize bullet-prefixed ref defs and strip source headers,
     // then strip definition lines — always, even during streaming, to prevent flickering
@@ -195,17 +224,24 @@ export const AssistantMessage = memo(function AssistantMessage({
         return null;
       })}
 
-      {displayText && (
-        <div className="pl-3">
-          <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
-        </div>
-      )}
+      <CitationJumpContext.Provider value={jumpToCitation}>
+        {displayText && (
+          <div className="pl-3">
+            <Markdown text={displayText} isStreaming={isStreaming} sources={extractedSources} />
+          </div>
+        )}
 
-      {!isStreaming && extractedSources.length > 0 && (
-        <div className="pl-3">
-          <Sources sources={extractedSources} />
-        </div>
-      )}
+        {!isStreaming && citations.length > 0 && (
+          <div className="pl-3">
+            <Sources
+              citations={citations}
+              expanded={expandedCitations}
+              onToggle={toggleCitation}
+              focus={citationFocus}
+            />
+          </div>
+        )}
+      </CitationJumpContext.Provider>
 
       {/*
         Regenerate gating: Regenerating replays the turn from the backend's

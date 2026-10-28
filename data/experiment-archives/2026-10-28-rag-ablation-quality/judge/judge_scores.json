@@ -1,0 +1,2642 @@
+[
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0134",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0156",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0069",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0119",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0259",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0255",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0236",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0072",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "18",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0098",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0251",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 2,
+  "id": "Q0105",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0108",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0131",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0121",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0182",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0250",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0205",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0026",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "7",
+  "kind": "off_topic",
+  "source_row": "22",
+  "base_arm": "luna_medium",
+  "base_rep": 2,
+  "id": "Q0137",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0209",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0126",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0053",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0263",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0269",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0240",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0168",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "2",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0153",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0052",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "off_topic",
+  "source_row": "27",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0038",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "18",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0008",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0237",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0086",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0128",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0049",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0233",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0035",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0170",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "19",
+  "kind": "off_topic",
+  "source_row": "4",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0184",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0158",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "22",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0016",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "4",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0006",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0030",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "6",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0047",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0215",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "1",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0159",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0112",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0221",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0107",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0087",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0093",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0117",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0124",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0046",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0078",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0017",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0039",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0157",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "7",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0002",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "6",
+  "kind": "off_topic",
+  "source_row": "21",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0091",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0100",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0148",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "2",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0079",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0180",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0118",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "17",
+  "kind": "off_topic",
+  "source_row": "2",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0013",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0199",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0196",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0113",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0114",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "off_topic",
+  "source_row": "5",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0213",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0070",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0066",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0206",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0022",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0025",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0076",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0132",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0058",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0247",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0222",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0201",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0081",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0267",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0044",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0099",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0116",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0041",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0246",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "9",
+  "kind": "off_topic",
+  "source_row": "24",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0248",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0004",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "17",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0253",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "1",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0190",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0193",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "off_topic",
+  "source_row": "11",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0067",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "14",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0210",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0166",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0056",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "6",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0147",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": true,
+  "id": "Q0018",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0059",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0242",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0054",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 2,
+  "id": "Q0194",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0229",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0160",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0103",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0172",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0029",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0090",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0089",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0179",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0254",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0241",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0238",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0104",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "11",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0192",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0037",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0195",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0020",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "off_topic",
+  "source_row": "29",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0230",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "20",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0061",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0011",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "4",
+  "kind": "off_topic",
+  "source_row": "19",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0095",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0202",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "off_topic",
+  "source_row": "13",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0138",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "25",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0258",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0228",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0065",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0171",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "22",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0212",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "13",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0177",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "5",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0218",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "27",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0073",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0176",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0175",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0028",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0085",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0186",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0024",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "16",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0163",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0092",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0012",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0264",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0165",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0136",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "11",
+  "kind": "off_topic",
+  "source_row": "26",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0261",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "29",
+  "kind": "off_topic",
+  "source_row": "14",
+  "base_arm": "luna_medium",
+  "base_rep": 2,
+  "id": "Q0031",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0244",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0133",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0014",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "29",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0224",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "10",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0188",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0167",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0048",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "7",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0178",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0164",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0122",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "30",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0226",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "25",
+  "kind": "off_topic",
+  "source_row": "10",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0060",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0075",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0088",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0071",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0055",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "off_topic",
+  "source_row": "25",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0033",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0183",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0198",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0181",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "27",
+  "kind": "off_topic",
+  "source_row": "12",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0135",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0034",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0129",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0127",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0197",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0252",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0077",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0097",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0109",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0260",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0021",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "25",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0243",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0045",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0019",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0074",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "off_topic",
+  "source_row": "8",
+  "base_arm": "luna_medium",
+  "base_rep": 2,
+  "id": "Q0262",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0096",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0146",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0185",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "off_topic",
+  "source_row": "30",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0208",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0161",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "30",
+  "kind": "off_topic",
+  "source_row": "15",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0234",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "27",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0068",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0051",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0015",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0257",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0217",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0189",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0036",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "30",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0256",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0023",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0149",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0216",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "21",
+  "kind": "off_topic",
+  "source_row": "6",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0101",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0266",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "16",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0225",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0140",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "1",
+  "kind": "off_topic",
+  "source_row": "16",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0009",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0083",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "off_topic",
+  "source_row": "3",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0220",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0080",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0143",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0007",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "17",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0173",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0145",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0174",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0155",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0050",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0187",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0265",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0110",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0003",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3,
+  "id": "Q0227",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "24",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0232",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "13",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0162",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0219",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0040",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "off_topic",
+  "source_row": "9",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0082",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0094",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0111",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "16",
+  "kind": "off_topic",
+  "source_row": "1",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0064",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0169",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0245",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "19",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0151",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0204",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0203",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0123",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "5",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0062",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "off_topic",
+  "source_row": "18",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0268",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "5",
+  "kind": "off_topic",
+  "source_row": "20",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0130",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0043",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0001",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0207",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0125",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0150",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0231",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0214",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0106",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0032",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "29",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0139",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "2",
+  "kind": "off_topic",
+  "source_row": "17",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0235",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0120",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0249",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "off_topic",
+  "source_row": "23",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2,
+  "id": "Q0211",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0042",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1,
+  "id": "Q0270",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0084",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "19",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0027",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0223",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "22",
+  "kind": "off_topic",
+  "source_row": "7",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0144",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0115",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0154",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "11",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3,
+  "id": "Q0010",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0142",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0200",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0063",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0152",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false,
+  "id": "Q0141",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false,
+  "id": "Q0005",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0191",
+  "pass_rate": 0.3333333333333333,
+  "all_pass": 0.0
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0102",
+  "pass_rate": 0.6666666666666666,
+  "all_pass": 0.0
+ },
+ {
+  "row": "13",
+  "kind": "off_topic",
+  "source_row": "28",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1,
+  "id": "Q0239",
+  "pass_rate": 0,
+  "all_pass": 0.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false,
+  "id": "Q0057",
+  "pass_rate": 1,
+  "all_pass": 1.0
+ }
+]

@@ -1,0 +1,49 @@
+[
+  {"row": "1", "nuggets": [
+    {"nugget": "給出明確結論：這波利空不只是短期衝擊，已傷及長期投資論點的部分前提，但尚不足以判定長期故事失效", "importance": "vital"},
+    {"nugget": "指出汽車本業基本面實際轉弱：交付量下滑、汽車營收下降、平均售價降低或需靠降價／融資優惠撐需求、毛利率承壓", "importance": "vital"},
+    {"nugget": "說明估值極高（如本益比數百倍），代表市場仍在為 Robotaxi／FSD／AI／Optimus 等未來業務定價，汽車本業轉弱會讓估值面臨下修風險", "importance": "vital"},
+    {"nugget": "指出 Robotaxi、FSD、Optimus 仍屬未驗證的長期選擇權，面臨監管、消費者接受度、商業化延遲等不確定性", "importance": "vital"},
+    {"nugget": "區分哪些屬短期因素（如股價波動、Model Y 改款空窗、單季交付不如預期、品牌爭議）與哪些屬長期結構問題（競爭加劇、利潤率下滑、成長放緩）", "importance": "okay"},
+    {"nugget": "提及抵銷因素：能源儲能業務成長且毛利改善，或公司現金充足、營業現金流為正，短期無流動性危機", "importance": "okay"},
+    {"nugget": "提出後續判斷的觀察指標，如交付量能否回升、汽車毛利率是否止跌、Robotaxi／FSD 是否產生可驗證收入、大幅資本支出能否帶來回報", "importance": "okay"}
+  ]},
+  {"row": "2", "nuggets": [
+    {"nugget": "給出明確排序或結論：樂園／體驗業務是目前最關鍵的獲利與現金流訊號，串流次之，票房是波動大、較短期的訊號而非判斷基本面的核心", "importance": "vital"},
+    {"nugget": "以數據說明樂園是最大獲利來源（如 Experiences 營業利益約 100 億美元、年增約 8%）", "importance": "vital"},
+    {"nugget": "指出樂園成長主要來自單客消費提升而非人流增加（國內入場人數微降），因此需觀察人流、入住率與定價能力是否能維持", "importance": "vital"},
+    {"nugget": "說明串流應看獲利品質而非訂戶數：DTC 營業利益已大幅轉好（約 1.4 億升至 13 億美元），但需留意成長部分來自提價、廣告收入與內容成本", "importance": "vital"},
+    {"nugget": "說明票房受檔期與個別作品影響、季度波動大，主要反映內容／IP 健康度及其對串流、授權、樂園的外溢效果，不宜單獨作為反轉證據", "importance": "vital"},
+    {"nugget": "指出傳統電視（Linear Networks）收入與利潤持續衰退，串流能否補上這個缺口是長期結構性問題", "importance": "okay"},
+    {"nugget": "提及樂園大幅增加資本支出（如郵輪、新景點），投資回報是需追蹤的風險", "importance": "okay"}
+  ]},
+  {"row": "3", "nuggets": [
+    {"nugget": "給出明確結論：主要卡在交付／生產執行，監管是限制產能恢復的關鍵約束，需求面並非主要問題", "importance": "vital"},
+    {"nugget": "說明生產與交付瓶頸的具體內容：品質問題、供應鏈與供應商零件缺陷、返工、交機延遲影響收入與現金流", "importance": "vital"},
+    {"nugget": "說明監管約束：門塞事故後 FAA 加強監督，將 737 MAX 月產量上限定在 38 架，提高產量需 FAA 同意", "importance": "vital"},
+    {"nugget": "以訂單／積壓數據（如積壓數千架或 backlog 數千億美元、持續有新淨訂單）佐證需求仍強", "importance": "vital"},
+    {"nugget": "指出監管與交付並非互相獨立，監管會放大交付瓶頸，使波音無法靠快速增產消化積壓", "importance": "okay"},
+    {"nugget": "提及需求面仍有局部風險，如中國交機暫停／地緣政治，或交付延誤導致取消訂單", "importance": "okay"},
+    {"nugget": "提及特定機型問題，如 777X 首次交付延後至 2027 年並認列大額虧損", "importance": "okay"},
+    {"nugget": "提出觀察指標：FAA 是否放寬產量上限、737／787 月產量能否穩定提升、品質與供應商問題是否減少", "importance": "okay"}
+  ]},
+  {"row": "4", "nuggets": [
+    {"nugget": "給出拆面向的結論：台積電對 AI 需求循環的暴露較直接，ASML 對出口限制的暴露較直接", "importance": "vital"},
+    {"nugget": "說明台積電的 AI 暴露機制：替 Nvidia 等客戶製造 AI 加速器，AI 晶片需求變化會直接反映在晶圓訂單、產能利用率與營收上", "importance": "vital"},
+    {"nugget": "說明 ASML 的出口限制暴露機制：其設備本身就是管制對象（EUV 不能出口中國、部分 DUV 受限），政策可直接決定產品能否出貨", "importance": "vital"},
+    {"nugget": "提及 ASML 中國銷售占比曾很高並預期下降（如 2025 年回落至約 20%），顯示出口限制對其營收影響", "importance": "okay"},
+    {"nugget": "區分 ASML 暴露的是 AI 帶動的半導體資本支出／設備訂單循環，與終端 AI 晶片需求之間有時間落差與訂單遞延風險", "importance": "okay"},
+    {"nugget": "說明台積電的出口管制風險屬間接型態，透過客戶、中國業務與合規／轉運問題傳導（如 Huawei 事件）", "importance": "okay"},
+    {"nugget": "明確承認證據不足之處：缺乏兩家公司可比的 AI 營收占比、中國營收拆分等數據，或未能取得 20-F 原文，因此無法精確量化", "importance": "vital"}
+  ]},
+  {"row": "5", "nuggets": [
+    {"nugget": "給出明確結論：負面新聞已有財報數據支持，基本面確實存在結構性壓力，但不足以斷定轉型必然失敗或整家公司全面崩壞", "importance": "vital"},
+    {"nugget": "指出 Intel Foundry 巨額虧損（2025 年約 103 億美元營業虧損，雖較 2024 年約 133 億美元收窄）", "importance": "vital"},
+    {"nugget": "指出 Foundry 外部客戶營收極低（約 3 億美元），公司承認尚未取得重大外部客戶、14A 前景高度不確定", "importance": "vital"},
+    {"nugget": "提及資產減損、加速折舊或產能過剩費用，反映產能與需求不匹配、資本配置過度擴張", "importance": "okay"},
+    {"nugget": "指出產品業務並非全面崩壞：DCAI 營業利益改善、產品業務仍獲利、營業現金流為正，但 CCG 有所下滑", "importance": "okay"},
+    {"nugget": "說明 2025 年虧損收窄部分來自一次性因素（如出售 Altera 收益、減損基期降低、成本削減），不能完全視為核心營運復甦", "importance": "okay"},
+    {"nugget": "提及 AI 加速器市場競爭落後（如 Gaudi 庫存相關費用、未能成為 AI 加速器重要參與者）", "importance": "okay"},
+    {"nugget": "提出判斷轉折的觀察指標：外部代工營收增加、Foundry 虧損持續收窄、18A／14A 良率與量產進度及取得大型客戶", "importance": "vital"}
+  ]}
+]

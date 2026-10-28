@@ -1,0 +1,122 @@
+[
+{"id": "Q0237", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 CNBC/Reuters 報導的 AI 營收占比、ASML 中國營收 20% 等具體新聞做分面向相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明列缺少台積電中國客戶與受限晶片營收占比，總體風險無法判定"},
+{"signal": 2, "pass": 1, "reason": "標明 Finnhub 增速非因果證明，區分管理層判斷與已發生事件"}]},
+{"id": "Q0086", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出現金與國庫券 3,690 億、債務／權益約 18% 等指標"},
+{"signal": 1, "pass": 1, "reason": "開頭明確結論「算是」保守型財務體質"},
+{"signal": 2, "pass": 1, "reason": "數據皆來自 10-K 與 Finnhub，並註明報價無時間戳不作精確解讀"}]},
+{"id": "Q0128", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 10-K 明載的 2024/9/1 生效與市場 5～6 年週期推估"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有講明下一次調費時間點"},
+{"signal": 2, "pass": 1, "reason": "明說週期推算不是管理層承諾，未包裝成結論"}]},
+{"id": "Q0049", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家 CFO、FCF、Capex/CFO、股利回購占 FCF 等"},
+{"signal": 1, "pass": 1, "reason": "明確結論好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出 10-K 現金流數據、Finnhub 槓桿與流動比率作依據"}]},
+{"id": "Q0233", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 TTM/Forward P/E、營收與 EPS 成長等多項指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已大多反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "Q0035", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億現金國庫券、debt-to-equity 17.2% 等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論相當保守、流動性極強"},
+{"signal": 2, "pass": 1, "reason": "僅用 10-K 與 Finnhub 數據，並註明流動比率不宜單獨解讀"}]},
+{"id": "Q0170", "scores": [
+{"signal": 0, "pass": 0, "reason": "完全未引用任何新聞，只有結構性推論"},
+{"signal": 1, "pass": 0, "reason": "未指出任何目前無法確認的部分"},
+{"signal": 2, "pass": 1, "reason": "僅做產業位置推論，未把宏觀敘事說成已發生事件"}]},
+{"id": "Q0184", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答台積電與 ASML，未提供波克夏財務指標"},
+{"signal": 1, "pass": 0, "reason": "未對波克夏是否保守下結論，答非所問"},
+{"signal": 2, "pass": 0, "reason": "回答的是不同公司與問題"}]},
+{"id": "Q0158", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出營收年減 3%、汽車收入年減 9%、儲能年增 27% 等訊號"},
+{"signal": 1, "pass": 1, "reason": "表格區分股價波動偏短期與汽車利潤下滑偏長期"},
+{"signal": 2, "pass": 0, "reason": "自承未取得近期新聞，結論僅依 10-K 與 Finnhub"}]},
+{"id": "Q0016", "scores": [
+{"signal": 0, "pass": 1, "reason": "對 Google、Microsoft、Apple 三家都有排名與判斷"},
+{"signal": 1, "pass": 0, "reason": "表格與數據缺漏，回購與風險比較僅泛泛描述"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏直接數據的細節做保留"}]},
+{"id": "Q0006", "scores": [
+{"signal": 0, "pass": 0, "reason": "ASML 量化證據內容缺漏，判斷多為結構推論，新聞依據不足"},
+{"signal": 1, "pass": 1, "reason": "明說無足夠證據量化出口限制對台積電營收的影響"},
+{"signal": 2, "pass": 1, "reason": "區分產業總需求與 ASML 實際可售，未把敘事當已發生事實"}]},
+{"id": "Q0030", "scores": [
+{"signal": 0, "pass": 1, "reason": "分列已確認的基本面惡化與尚未確認的長期結論"},
+{"signal": 1, "pass": 1, "reason": "明說不足以證明 Intel 長期價值已永久消失"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 與財報數據描述已確認的虧損與重組風險層級"}]},
+{"id": "Q0047", "scores": [
+{"signal": 0, "pass": 1, "reason": "結論區分已可量化的 34 億準備金與未來案件、判決的難估部分"},
+{"signal": 1, "pass": 1, "reason": "以 FY2025 10-K 準備金揭露為依據"},
+{"signal": 2, "pass": 1, "reason": "明確結論滑石粉訴訟為最大官司風險"}]},
+{"id": "Q0215", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到股息 87.79 億、FCF 52.96 億、派息率 67% 等"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍屬穩定配息型公司"},
+{"signal": 2, "pass": 1, "reason": "以覆蓋率、fairlife 付款、槓桿分析而非 defensive 印象"}]},
+{"id": "Q0159", "scores": [
+{"signal": 0, "pass": 0, "reason": "具體數據段落缺漏，只剩泛泛列舉的壓力類型"},
+{"signal": 1, "pass": 1, "reason": "分短期、中期、長期三層區分衝擊與結構性壓力"},
+{"signal": 2, "pass": 0, "reason": "未引用任何近期新聞支撐結論"}]},
+{"id": "Q0112", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋串流 DTC 利益、樂園收入人次、票房內容等分部數據"},
+{"signal": 1, "pass": 1, "reason": "明說最該看串流獲利"},
+{"signal": 2, "pass": 1, "reason": "對票房不宜判定完全復甦、資料期間與新聞時效做保留"}]},
+{"id": "Q0221", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格與段落區分 34 億準備金與 74,360 名原告等未決部分"},
+{"signal": 1, "pass": 1, "reason": "大量引用 10-K Item 7、Note 19 揭露"},
+{"signal": 2, "pass": 1, "reason": "明確排序滑石粉為最高風險"}]},
+{"id": "Q0107", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋串流營業利益、樂園收入與人次、內容銷售等分部"},
+{"signal": 1, "pass": 1, "reason": "表格明列串流獲利為第一優先"},
+{"signal": 2, "pass": 1, "reason": "指出內容銷售數據不能證明票房已恢復穩定"}]},
+{"id": "Q0087", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明會員費加高周轉低毛利商品銷售的飛輪"},
+{"signal": 1, "pass": 1, "reason": "會員費占營收 1.95% 但約營業利益 50.5%"},
+{"signal": 2, "pass": 1, "reason": "用毛利率、Executive 會員占比等數據而非泛泛描述"}]},
+{"id": "Q0093", "scores": [
+{"signal": 0, "pass": 0, "reason": "僅分析輝達，禮來與好市多只有排名無內容"},
+{"signal": 1, "pass": 0, "reason": "只說明輝達的敏感性，缺少三家比較邏輯"},
+{"signal": 2, "pass": 0, "reason": "未對跨產業不可直接比較做保留"}]},
+{"id": "Q0117", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、廣告科技案及歐盟 DMA 等戰線"},
+{"signal": 1, "pass": 1, "reason": "總結表逐項標示已發生與潛在風險"},
+{"signal": 2, "pass": 1, "reason": "明說 Chrome、Android、AdX 出售未成定局"}]},
+{"id": "Q0124", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出公司描述的政策、技術、情境不確定性等轉型風險"},
+{"signal": 1, "pass": 1, "reason": "說明低碳投資以回報為條件與資本配置排序"},
+{"signal": 2, "pass": 1, "reason": "以公司風險揭露與 MD&A 表述為主"}]},
+{"id": "Q0046", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明沃爾瑪低價必需品、好市多會員續會率、麥當勞加盟模式"},
+{"signal": 1, "pass": 1, "reason": "明確排序沃爾瑪 > 好市多 > 麥當勞"},
+{"signal": 2, "pass": 1, "reason": "說明 beta 不等於基本面風險、財報期間不一致等保留"}]},
+{"id": "Q0078", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 Meta 資料廣告閉環、Google 搜尋與廣告科技、Apple App Store"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化因影響用戶行為與廣告效率"},
+{"signal": 2, "pass": 1, "reason": "說明損失上限 Google 不一定低於 Meta，並註明依據限制"}]},
+{"id": "Q0017", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較 price/mix 定價與濃縮液 85% 的業務結構"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 銷量、利潤率、裝瓶占比數據支撐"}]},
+{"id": "Q0039", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 Reuters 報導 ASML 中國占比 50% 降至 20% 等新聞"},
+{"signal": 1, "pass": 1, "reason": "明說無法量化出口限制對台積電營收影響"},
+{"signal": 2, "pass": 1, "reason": "區分長期需求情境與 ASML 實際可售，未誇大事實"}]},
+{"id": "Q0157", "scores": [
+{"signal": 0, "pass": 0, "reason": "只比較估值與股價指標，缺少近期敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較不滿"},
+{"signal": 2, "pass": 1, "reason": "註明 Netflix 報價與 52 週區間更新時間不一"}]},
+{"id": "Q0002", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，只涵蓋搜尋案一條戰線"},
+{"signal": 1, "pass": 1, "reason": "結論明分已發生判決整改與潛在拆分、上訴結果"},
+{"signal": 2, "pass": 1, "reason": "指出最終範圍可能因上訴改變，未把推測當結果"}]},
+{"id": "Q0091", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答沃爾瑪與好市多現金流，未涉嬌生官司"},
+{"signal": 1, "pass": 0, "reason": "無嬌生官方揭露依據，答非所問"},
+{"signal": 2, "pass": 0, "reason": "未給出嬌生官司風險結論"}]},
+{"id": "Q0100", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到中國競爭、銷量下滑、Robotaxi 推出、46.7 GWh 儲能等"},
+{"signal": 1, "pass": 1, "reason": "分短期、中期、長期區分情緒衝擊與結構壓力"},
+{"signal": 2, "pass": 1, "reason": "結論連回 CNBC 交車報導的競爭與品牌壓力"}]}
+]

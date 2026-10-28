@@ -1,0 +1,332 @@
+[
+ {
+  "id": "F0022",
+  "claims": [
+   {
+    "claim": "歐盟要求蘋果允許開發者自由告知用戶 App Store 外的替代方案，並移除相關技術與商業限制（反引導義務）",
+    "verdict": "supported",
+    "note": "tool 7 CNBC 2025-04-23: anti-steering obligations; ordered to remove technical and commercial restrictions on steering"
+   },
+   {
+    "claim": "蘋果已在歐盟開放第三方 App 商店、替代支付方式，以及更容易更換預設瀏覽器",
+    "verdict": "supported",
+    "note": "tool 6 Bloomberg 2024-01-25: third-party app stores, alternative payment systems, choose new default browser"
+   },
+   {
+    "claim": "蘋果歐盟方案曾包括把 App Store 抽成降至最低 10%",
+    "verdict": "supported",
+    "note": "tool 6 Bloomberg: reduces App Store commissions to as low as 10% in EU"
+   },
+   {
+    "claim": "蘋果 2025 財年服務收入為 1,091.58 億美元",
+    "verdict": "supported",
+    "note": "tool 11 AAPL 10-K Item 7: Services 109,158"
+   },
+   {
+    "claim": "服務毛利率為 75.4%",
+    "verdict": "supported",
+    "note": "tool 11: Services gross margin percentage 75.4% (2025)"
+   },
+   {
+    "claim": "歐洲區總銷售額為 1,110.32 億美元，年增 10%",
+    "verdict": "supported",
+    "note": "tool 11: Europe 111,032, 10%"
+   },
+   {
+    "claim": "歐盟在 2025 年對 Meta 的監管處分，要求其修改「較少個人化廣告」方案",
+    "verdict": "supported",
+    "note": "tool 7 CNBC 2025-04-23: cease-and-desist ordering changes to its less personalized ads option within 60 days"
+   },
+   {
+    "claim": "歐盟表示仍在評估該方案的實際影響",
+    "verdict": "supported",
+    "note": "tool 7: 'The Commission is currently assessing this new option... evidence of the impact'"
+   },
+   {
+    "claim": "Meta 宣布自 2025 年 10 月起停止在歐盟投放政治、選舉和社會議題廣告",
+    "verdict": "supported",
+    "note": "tool 7 Reuters 2025-07-25: from early October 2025 no political, electoral and social issue ads in EU"
+   },
+   {
+    "claim": "理由是新的政治廣告透明度和定向規則帶來法律不確定性與營運挑戰",
+    "verdict": "supported",
+    "note": "tool 7 Reuters: TTPA regulation introduces significant operational challenges and legal uncertainties"
+   },
+   {
+    "claim": "Meta 的 TTM 營收年增 27.65%",
+    "verdict": "supported",
+    "note": "tool 4 META revenueGrowthTTMYoy 27.65"
+   },
+   {
+    "claim": "Meta 營業利益率 38.08%、淨利率 29.84%",
+    "verdict": "supported",
+    "note": "tool 4 operatingMarginTTM 38.08, netProfitMarginTTM 29.84"
+   },
+   {
+    "claim": "蘋果營收年增 14.24%",
+    "verdict": "supported",
+    "note": "tool 5 AAPL revenueGrowthTTMYoy 14.24"
+   },
+   {
+    "claim": "蘋果營業利益率 33.17%、淨利率 27.62%",
+    "verdict": "supported",
+    "note": "tool 5 operatingMarginTTM 33.17, netProfitMarginTTM 27.62"
+   }
+  ]
+ },
+ {
+  "id": "F0023",
+  "claims": [
+   {
+    "claim": "Costco 10-K 表示最重要的獲利驅動因素是增加淨銷售額，特別是同店銷售",
+    "verdict": "supported",
+    "note": "Item 7: 'most important driver of our profitability is increasing net sales, particularly comparable sales'"
+   },
+   {
+    "claim": "2026 財年淨銷售 2,972.47 億美元，年增 10%",
+    "verdict": "supported",
+    "note": "Item 7: Net sales increased 10% to $297,247"
+   },
+   {
+    "claim": "同店銷售增長 8%，同店銷售增加 224.57 億美元",
+    "verdict": "supported",
+    "note": "Item 7: increase in comparable sales of $22,457 or 8%"
+   },
+   {
+    "claim": "平均客單價增長 5%、購買頻率增長 3%",
+    "verdict": "supported",
+    "note": "Item 7: increases of 5% in average ticket and 3% in shopping frequency"
+   },
+   {
+    "claim": "淨利 92.26 億美元",
+    "verdict": "supported",
+    "note": "Net income $9,226"
+   },
+   {
+    "claim": "營業利益 116.85 億美元",
+    "verdict": "supported",
+    "note": "Item 8 income statement: Operating income 11,685"
+   },
+   {
+    "claim": "新增 25 家淨倉庫",
+    "verdict": "supported",
+    "note": "Item 7: 25 net new warehouses"
+   },
+   {
+    "claim": "Costco 只維持不到 4,000 個核心 SKU",
+    "verdict": "supported",
+    "note": "Item 1: less than 4,000 active SKUs per warehouse in core business"
+   },
+   {
+    "claim": "商品成本 2,642.79 億美元，商品毛利 329.68 億美元，毛利率 11.09%",
+    "verdict": "supported",
+    "note": "Item 7 Gross Margin table: 264,279; 32,968; 11.09%"
+   },
+   {
+    "claim": "公司經常在付錢給供應商之前就已把庫存賣掉，並透過大量採購、交叉轉運、托盤展示、自助式倉庫降低成本",
+    "verdict": "supported",
+    "note": "Item 1: sell inventory before required to pay; volume purchasing; cross-docking; pallets; self-service warehouses"
+   },
+   {
+    "claim": "2026 財年會員費收入 59.07 億美元，占總收入 3,031.54 億美元約 1.95%",
+    "verdict": "supported",
+    "note": "Membership fees 5,907; Total revenue 303,154 (5,907/303,154≈1.95%)"
+   },
+   {
+    "claim": "會員費約相當於營業利益 116.85 億美元的 50.5%",
+    "verdict": "supported",
+    "note": "computed 5,907/11,685≈50.5%"
+   },
+   {
+    "claim": "會員費約相當於 SG&A 271.90 億美元的 21.7%",
+    "verdict": "supported",
+    "note": "SG&A 27,190; 5,907/27,190≈21.7%"
+   },
+   {
+    "claim": "會員費收入年增 11%，由 2025 年 53.23 億美元增至 2026 年 59.07 億美元",
+    "verdict": "supported",
+    "note": "Item 7: membership fee revenue increased 11%; 5,323 → 5,907"
+   },
+   {
+    "claim": "會員費按一年期間遞延認列；2026 年底遞延會員費負債為 30.06 億美元",
+    "verdict": "supported",
+    "note": "Item 8: deferred basis ratably over one-year; deferred membership fees $3,006"
+   },
+   {
+    "claim": "公司不以短期最大化商品價格為目標，而是維持會員心中的「定價權威」",
+    "verdict": "supported",
+    "note": "Item 7: do not focus short-term on maximizing prices... 'pricing authority'"
+   },
+   {
+    "claim": "付費會員 8,410 萬、持卡人總數 1.504 億",
+    "verdict": "supported",
+    "note": "Item 1: Paid members 84,100; Total cardholders 150,400 (thousands)"
+   },
+   {
+    "claim": "全球續費率 89.8%、美國及加拿大續費率 92.3%",
+    "verdict": "supported",
+    "note": "Item 1/7: 92.3% U.S. and Canada, 89.8% worldwide"
+   },
+   {
+    "claim": "Executive 會員 4,230 萬",
+    "verdict": "supported",
+    "note": "Item 1: Executive members represented 42,300 (thousands)"
+   },
+   {
+    "claim": "Executive 會員需支付額外年費，通常可獲符合資格消費額 2% 回饋",
+    "verdict": "supported",
+    "note": "Item 1: additional annual fee; reward generally 2% on qualified purchases"
+   },
+   {
+    "claim": "Executive 會員占付費會員約 50.3%",
+    "verdict": "supported",
+    "note": "computed 42,300/84,100≈50.3%"
+   },
+   {
+    "claim": "Executive 會員貢獻約 75.2% 的全球淨銷售",
+    "verdict": "supported",
+    "note": "Item 1: approximately 75.2% of worldwide net sales in 2026"
+   },
+   {
+    "claim": "Executive 回饋使公司銷售額減少 33.83 億美元",
+    "verdict": "supported",
+    "note": "Item 8: Executive reward accounted as reduction in sales; net reduction in sales $3,383"
+   },
+   {
+    "claim": "報告期截至 2026 年 8 月 30 日",
+    "verdict": "supported",
+    "note": "Item 8: 52 weeks ended August 30, 2026"
+   }
+  ]
+ },
+ {
+  "id": "F0024",
+  "claims": [
+   {
+    "claim": "Finnhub TTM 營業利益率 Boeing 4.89%、Airbus 9.37%",
+    "verdict": "supported",
+    "note": "tool 3 BA operatingMarginTTM 4.89; tool 7 EADSY 9.37"
+   },
+   {
+    "claim": "Finnhub TTM 淨利率 Boeing 2.59%、Airbus 7.71%",
+    "verdict": "supported",
+    "note": "BA netProfitMarginTTM 2.59; EADSY 7.71"
+   },
+   {
+    "claim": "債務／股東權益 Boeing 7.52 倍、Airbus 0.70 倍",
+    "verdict": "supported",
+    "note": "BA debtToEquity 7.5246; EADSY 0.6996"
+   },
+   {
+    "claim": "流動比率 Boeing 1.14、Airbus 1.15",
+    "verdict": "supported",
+    "note": "BA currentRatio 1.1375; EADSY 1.1464"
+   },
+   {
+    "claim": "ROE Boeing 132.92%、Airbus 23.36%",
+    "verdict": "supported",
+    "note": "BA roeTTM 132.92; EADSY 23.36"
+   },
+   {
+    "claim": "TTM 營收年增 Boeing 24.78%、Airbus 9.96%",
+    "verdict": "supported",
+    "note": "BA revenueGrowthTTMYoy 24.78; EADSY 9.96"
+   },
+   {
+    "claim": "ROA Airbus 4.38%、Boeing 1.50%",
+    "verdict": "supported",
+    "note": "EADSY roaTTM 4.38; BA roaTTM 1.5"
+   },
+   {
+    "claim": "Boeing 2025 年營收 894.63 億美元，高於 2024 年的 665.17 億美元",
+    "verdict": "supported",
+    "note": "tool 9 BA 10-K Item 7: Revenues $89,463 vs $66,517"
+   },
+   {
+    "claim": "營業利益由 2024 年虧損 107.07 億美元轉為 2025 年獲利 42.81 億美元",
+    "verdict": "supported",
+    "note": "tool 9: earnings/(loss) from operations $4,281 vs ($10,707)"
+   },
+   {
+    "claim": "BCA 2025 年營業虧損 70.79 億美元，營業利益率 -17.1%",
+    "verdict": "supported",
+    "note": "tool 9: BCA loss from operations ($7,079); operating margins (17.1)%"
+   },
+   {
+    "claim": "2025 年 777X 與 767 計畫合計 52.83 億美元 reach-forward losses",
+    "verdict": "supported",
+    "note": "tool 9: combined reach-forward losses of $5,283 million on the 777X and 767 programs"
+   },
+   {
+    "claim": "777X 首次交付延至 2027 年，並在 2025 年認列約 48.99 億美元增量損失",
+    "verdict": "supported",
+    "note": "tool 9: first delivery of 777-9 delayed to 2027; incremental reach-forward loss $4,899 million; also CNBC tool 5"
+   },
+   {
+    "claim": "Boeing 2025 年營業現金流轉正至 10.65 億美元",
+    "verdict": "supported",
+    "note": "tool 9: net cash provided by operating activities 1,065"
+   },
+   {
+    "claim": "截至年底債務達 541 億美元",
+    "verdict": "supported",
+    "note": "tool 9: debt balances totaled $54.1 billion at Dec 31, 2025"
+   },
+   {
+    "claim": "出售 Digital Aviation Solutions 產生約 95.66 億美元收益",
+    "verdict": "supported",
+    "note": "tool 9: gain on Digital Aviation Solutions Divestiture of $9,566 million"
+   },
+   {
+    "claim": "737-9 門塞事故後 FAA 對品質控制系統展開調查，Boeing 放慢生產並延後產能提升",
+    "verdict": "supported",
+    "note": "tool 9: FAA investigation into 737 quality control system; slowed production rates and delayed rate increases"
+   },
+   {
+    "claim": "737 生產率由每月低於 38 架恢復至第四季約 42 架，2026 年計畫提升至 47 架需 FAA 同意",
+    "verdict": "supported",
+    "note": "tool 9: below 38 to 42 per month in Q4; 42→47 in 2026 with concurrence of FAA"
+   },
+   {
+    "claim": "737-7 與 737-10 仍在認證流程中，時程由監管機構決定",
+    "verdict": "supported",
+    "note": "tool 9: continuing certification process of 737-7 and 737-10; following the lead of the FAA"
+   },
+   {
+    "claim": "777X 認證飛行測試仍在進行，且發現引擎可能有耐久性問題，需與供應商釐清原因及修正方案",
+    "verdict": "supported",
+    "note": "tool 9: potential durability issue on the engine; continuing certification flight testing; working with supplier on root cause and corrective action"
+   },
+   {
+    "claim": "CNBC 報導 FAA 曾對 737 MAX 設下生產上限，後由每月 38 架提高至 42 架，進一步增產需監管批准",
+    "verdict": "supported",
+    "note": "tool 5 CNBC 2025-10-29: FAA lifted cap to 42 from 38; increase beyond with FAA approval"
+   },
+   {
+    "claim": "Reuters 報導 Airbus 2024 年交付 766 架，略低於約 770 架目標",
+    "verdict": "supported",
+    "note": "tool 4 Reuters 2025-01-09: 766 jets, fractionally short of 'around 770'"
+   },
+   {
+    "claim": "引擎、客艙內裝與機體結構仍是供應鏈瓶頸，供應商與勞動力短缺仍待修復",
+    "verdict": "supported",
+    "note": "tool 4 Reuters: engines, interiors and aerostructural parts pressure points; parts and labour shortages"
+   },
+   {
+    "claim": "Reuters 引述 Airbus 管理層表示供應鏈情況正在改善，並計畫提升 A320 系列產能",
+    "verdict": "supported",
+    "note": "tool 4 Reuters 2024-01-11: supply chain improving; target 75 A320 jets a month; backlog 8,600"
+   },
+   {
+    "claim": "Boeing 2025 年商用飛機積壓訂單 5,672.9 億美元，總積壓訂單 6,822.1 億美元",
+    "verdict": "supported",
+    "note": "tool 9 backlog: Commercial Airplanes $567,290; Total $682,207 million"
+   },
+   {
+    "claim": "Finnhub 顯示 Boeing TTM P/E 約 62.4 倍，Airbus（EADSY）約 25.8 倍；AIR.PA 未提供權限",
+    "verdict": "supported",
+    "note": "BA peTTM 62.4344; EADSY peTTM 25.7981; AIR.PA 403 error"
+   }
+  ]
+ }
+]

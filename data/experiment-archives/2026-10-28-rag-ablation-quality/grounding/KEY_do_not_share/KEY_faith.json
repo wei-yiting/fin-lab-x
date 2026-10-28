@@ -1,0 +1,470 @@
+{
+ "F0001": {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0002": {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0003": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0004": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0005": {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0006": {
+  "row": "19",
+  "kind": "perturbed",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "original": "7",
+  "altered": "10",
+  "context": "財務報表；公司也明確表示，維持「充足流動性」及「安全性優先於收益」是其短期投資原則。[SEC 10-K Section 7、Section 8]  另外，Berkshire 的股票回購政策規定，若回購會使現金、現金等價物與美國國庫券低於 **"
+ },
+ "F0007": {
+  "row": "2",
+  "kind": "perturbed",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "original": "13",
+  "altered": "18",
+  "context": "mer 收入為 **246.14億美元**，年增 **8%**；營業利益從前一年的 **1.43億美元**大幅升至 **13.27億美元**。[6] 訂閱收入年增 **11%**，但廣告收入下降 **1%**。[7]  這代表串流轉型目前方向是"
+ },
+ "F0008": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0009": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0010": {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0011": {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0012": {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0013": {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0014": {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0015": {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0016": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0017": {
+  "row": "29",
+  "kind": "perturbed",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "original": "787",
+  "altered": "1102",
+  "context": "量恢復並不是單純「零件到位」就能解決。公司表示，737 產量提升須視生產健康指標、安全管理系統及 FAA 是否同意而定；787 的增產也可能延遲。[3] Reuters 亦報導，FAA 正與波音進行情境規劃，之後才可能考慮解除 737 產量上限。"
+ },
+ "F0018": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0019": {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0020": {
+  "row": "22",
+  "kind": "perturbed",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "original": "695",
+  "altered": "973",
+  "context": "億美元**、股利約 **102 億美元**，合計約 **556 億美元**，明顯低於上述自由現金流； - 公司仍有 **695 億美元**的回購授權額度； - 債務帳面金額約 **485 億美元**，且商業本票為零、10 億美元的循環額度沒有動用"
+ },
+ "F0021": {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0022": {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0023": {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0024": {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0025": {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0026": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0027": {
+  "row": "25",
+  "kind": "perturbed",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "original": "52",
+  "altered": "73",
+  "context": "高品質成長、但容錯率較低」。  資料品質上，Finnhub 顯示 NFLX 的現價約 65.04 美元，略低於其報出的 52 週低點 65.08 美元，兩者存在小幅不一致；因此我不把 52 週位置作為主要判斷依據。"
+ },
+ "F0028": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0029": {
+  "row": "23",
+  "kind": "perturbed",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "original": "386.47",
+  "altered": "541.06",
+  "context": "已經很高？  根據 Finnhub 基本面資料：  | 指標 | Tesla | |---|---:| | 股價 | $386.47 | | 市值 | 約 $1.477 兆 | | TTM 本益比 | 388.1 倍 | | 預估本益比 | 174.4"
+ },
+ "F0030": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0031": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0032": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0033": {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0034": {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0035": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0036": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0037": {
+  "row": "26",
+  "kind": "perturbed",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "original": "25",
+  "altered": "35",
+  "context": "來給出的2026年營收指引為**800億至830億美元**，高於分析師預期的**776.2億美元**；指引中點代表約**25%**的年增長。[2]  這使禮來目前比輝達多一層緩衝：市場對它的樂觀期待，仍有減重藥與糖尿病藥需求、產品滲透率以及醫療"
+ },
+ "F0038": {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0039": {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0040": {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0041": {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0042": {
+  "row": "18",
+  "kind": "perturbed",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "original": "2",
+  "altered": "3",
+  "context": "**，但北美食品、北美飲料及部分國際業務同時出現銷量下滑；例如北美食品銷量跌 2%，北美飲料銷量跌 3%。整體營收只增 2%，營業利潤反而跌 11%。[2][3]  這不能簡化成「PEP 沒有定價能力」——PEP 顯然仍能提價。但從目前的結果"
+ },
+ "F0043": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0044": {
+  "row": "24",
+  "kind": "perturbed",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "original": "83.4",
+  "altered": "116.8",
+  "context": "率 | 4.2% | 65.2% | | 淨利率 | 3.7% | 63.7% | | 營收年增率 | 11.8% | 83.4% |  以上為 Finnhub 基本面資料；兩家公司股價當日都上漲，但特斯拉的估值明顯更依賴未來的自駕、Robotax"
+ },
+ "F0045": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0046": {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0047": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0048": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0049": {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0050": {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0051": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0052": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0053": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0054": {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0055": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0056": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0057": {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0058": {
+  "row": "7",
+  "kind": "perturbed",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "original": "2,946.91",
+  "altered": "4,125.67",
+  "context": ". 由于 Alphabet 超过 **70% 的 2025 年收入来自线上广告**，而 Google 广告收入达到 **2,946.91 亿美元**，反垄断风险对核心盈利模式具有实质相关性，而非边缘法律问题。[SEC 10-K，Item 1A；Item 7"
+ },
+ "F0059": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0060": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0061": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0062": {
+  "row": "20",
+  "kind": "perturbed",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "original": "92.68",
+  "altered": "129.75",
+  "context": "- **股息率約 3.14%**：Finnhub 基本面資料顯示，KO 股息率約 **3.14%**；最新股價約 **$92.68**。（根據 Finnhub 公司基本面及即時報價資料） - **盈利能力仍強**：Finnhub 顯示 KO 的 TT"
+ },
+ "F0063": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0064": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0065": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0066": {
+  "row": "16",
+  "kind": "perturbed",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "original": "33.63",
+  "altered": "47.08",
+  "context": "付基礎設施與高毛利平台。** 不過，目前估值也反映了這種品質：Finnhub 顯示 Visa 的 TTM 本益比約 **33.63 倍**，因此「生意穩」不等於「股票任何價格都值得買」。[2]  **資料品質提醒：** 上述 SEC 數據來自 Vis"
+ },
+ "F0067": {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0068": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0069": {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0070": {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ },
+ "F0071": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "F0072": {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1
+ }
+}

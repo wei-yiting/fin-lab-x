@@ -1,0 +1,602 @@
+[
+ {
+  "id": "Q0134",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "明確對比 Visa 不放款不承擔信用風險、發卡行承擔還款風險"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "以收入隨交易量而非利差、網路效應等商業模式說明穩定性"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "結論扣回 Visa 收費網路結構與銀行資產負債表結構對照"
+   }
+  ]
+ },
+ {
+  "id": "Q0156",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "說明 Visa 不發卡不放款、收入來自網路處理費而非利差"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "以交易量驅動收入、不承擔信用風險、網路規模解釋穩定來源"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "總結扣回 Visa 為交易基礎設施、銀行承擔借款違約的業務結構"
+   }
+  ]
+ },
+ {
+  "id": "Q0069",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "引用 FY2026 營收持平、批發回升、毛利率改善、Direct 下滑等近期數據"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確分層：最壞可能過去、已回穩偏早、復甦未確認"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "指出 Direct 與中國仍弱，未硬下已回穩結論"
+   }
+  ]
+ },
+ {
+  "id": "Q0119",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "分別討論交付/生產、監管、需求三條主線"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確指出交付與生產執行為主因"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "以交付數、訂單、FAA 產量上限等報導為據並附資料時點說明"
+   }
+  ]
+ },
+ {
+  "id": "Q0259",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "分別比較 price/mix 定價表現與濃縮液占比等業務結構"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確判斷 KO 結構較乾淨"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "引用 10-K 的 price/mix +4%、濃縮液占營收 59%、PEP 自有裝瓶 36% 等數據"
+   }
+  ]
+ },
+ {
+  "id": "Q0255",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "Google、Microsoft、Apple 三家皆有分析"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "同時比較回購股利與流動比率、負債權益比等風險指標"
+   },
+   {
+    "signal": 2,
+    "pass": 0,
+    "reason": "未對財報期間不一致或資料缺口作保留說明，直接排序"
+   }
+  ]
+ },
+ {
+  "id": "Q0236",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "微軟、Alphabet、蘋果三家皆有分析"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "比較回購/股利占現金流與負債權益比、流動比率"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "明確指出三家 10-K 財年不同、非嚴格同期比較"
+   }
+  ]
+ },
+ {
+  "id": "Q0072",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 0,
+    "reason": "重點條列缺乏任何股息或現金流具體數據"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確結論仍屬穩定配息型公司"
+   },
+   {
+    "signal": 2,
+    "pass": 0,
+    "reason": "僅列出覆蓋度偏緊等斷句，無數據支撐分析"
+   }
+  ]
+ },
+ {
+  "id": "Q0098",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "分別討論定價能力轉化效率與業務結構複雜度"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確判斷 KO > PEP"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "以濃縮液/裝瓶商模式與 PEP 自營製造配送結構論證，非僅品牌印象"
+   }
+  ]
+ },
+ {
+  "id": "Q0251",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "以表格比較營業現金流、自由現金流、資本配置"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確判斷好市多較穩"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "列出 FCF/淨利、淨現金、流動比率、負債權益比等依據"
+   }
+  ]
+ },
+ {
+  "id": "Q0105",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "說明會員費加高周轉低成本商品銷售的飛輪為核心"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "點出會員費為獲利底盤、支撐低價與續費的角色"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "提及庫存周轉、供應商付款條件、Executive 會員、Kirkland 等具體機制"
+   }
+  ]
+ },
+ {
+  "id": "Q0108",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "比較本益比、預期本益比、營收與 EPS 成長等多項指標"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確判斷特斯拉較像好消息已反映"
+   },
+   {
+    "signal": 2,
+    "pass": 0,
+    "reason": "僅說不代表必漲必跌，未聲明這只是期待值檢查而非投資建議"
+   }
+  ]
+ },
+ {
+  "id": "Q0131",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "以本益比 388 倍等估值與營收/EPS 成長數據支撐"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確結論偏向市場已把太多好消息算進去"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "將 Robotaxi、AI 等明確視為執行假設並引 10-K 風險揭露"
+   }
+  ]
+ },
+ {
+  "id": "Q0121",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "依引用的 CNBC/Reuters 報導數據做相對判斷"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確指出台積電中國營收占比與 20-F 資料無法確認"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "區分公司揭露數據與機制推論，未把宏觀敘事當已發生事實"
+   }
+  ]
+ },
+ {
+  "id": "Q0182",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "詳列 10-K 對需求、政策、技術不確定性的轉型風險描述"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "說明以回報為前提、保留投資靈活性與股東價值的取捨"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "結論大量引用 10-K Item 1A 與 Item 7 的公司揭露"
+   }
+  ]
+ },
+ {
+  "id": "Q0250",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "以摩根大通 10-K 的 RWA、CET1、SLR 數據回答"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "區分資本效率下降與尚未證明長期結構性傷害"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "明言尚未看到足以證明長期傷害的結果，未硬推"
+   }
+  ]
+ },
+ {
+  "id": "Q0205",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "分別說明 Meta 資料廣告、Google 搜尋廣告技術、Apple App Store 的風險來源"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確指出 Meta 最難量化並說明傳導鏈原因"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "說明不等於罰款最大、並註明財年與新聞時點差異"
+   }
+  ]
+ },
+ {
+  "id": "Q0026",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "開頭即回答官方揭露直接支持該說法"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確區分風險揭露的「可能」與未量化的實際影響"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "引用兩家 10-K 原文表述，並區分可延伸與不可延伸部分"
+   }
+  ]
+ },
+ {
+  "id": "Q0137",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 0,
+    "reason": "答案談蘋果微軟 Google 回購，未涉及 Google 反壟斷"
+   },
+   {
+    "signal": 1,
+    "pass": 0,
+    "reason": "未回答反壟斷已發生與潛在壓力的區分"
+   },
+   {
+    "signal": 2,
+    "pass": 0,
+    "reason": "答非所問，未處理媒體推測與已落地結果"
+   }
+  ]
+ },
+ {
+  "id": "Q0209",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "蘋果、微軟、Alphabet 三家皆有分析"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "比較回購占自由現金流與流動比率、負債權益比"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "註明自由現金流為粗估且三家財報期間不同"
+   }
+  ]
+ },
+ {
+  "id": "Q0126",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "依 FY2026 10-K 摘要管理層的全通路生態系定位"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "分別說明電商與廣告的長期角色"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "以 10-K 公司揭露為主並註明未披露廣告目標"
+   }
+  ]
+ },
+ {
+  "id": "Q0053",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "明確結論已是高品質獲利引擎但未被財報完全驗證"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "說明廣告占營收 9.6% 並嵌入北美與國際部門"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "指出未單獨披露廣告利潤，利潤率無法驗證"
+   }
+  ]
+ },
+ {
+  "id": "Q0263",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "好市多、禮來、輝達三家皆有分析"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "以估值相對成長、利潤緩衝、事件風險說明下修邏輯"
+   },
+   {
+    "signal": 2,
+    "pass": 0,
+    "reason": "直接跨產業比較本益比，未保留跨產業不可直接比的說明"
+   }
+  ]
+ },
+ {
+  "id": "Q0269",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "引用股東權益、現金 3,733 億、總借款、營運現金流等指標"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確結論財務體質偏保守"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "註明合併口徑限制並排除 Finnhub 異常欄位"
+   }
+  ]
+ },
+ {
+  "id": "Q0240",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "涵蓋樂園、串流、票房三個分部的訊號"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確指出最該先看樂園業務"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "指出單片票房不足以證明復甦、訂戶揭露減少需改看利潤"
+   }
+  ]
+ },
+ {
+  "id": "Q0168",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "以表格比較兩家營業現金流、資本支出與自由現金流"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確判斷好市多較穩"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "列出營業現金流/淨利、FCF/營業現金流等數據依據"
+   }
+  ]
+ },
+ {
+  "id": "Q0153",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "涵蓋串流、樂園、票房三個分部"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確指出先看串流獲利品質"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "以條件式判斷標準處理並提及訂戶揭露減少，未硬下結論"
+   }
+  ]
+ },
+ {
+  "id": "Q0052",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 1,
+    "reason": "分別說明 Meta、Google、Apple 的風險來源差異"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確指出 Meta 最難量化並說明非線性傳導原因"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "區分整體業務與單一案件損失兩種口徑的不同排序"
+   }
+  ]
+ },
+ {
+  "id": "Q0038",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 0,
+    "reason": "答案談摩根大通穩健性，未提埃克森美孚轉型風險"
+   },
+   {
+    "signal": 1,
+    "pass": 0,
+    "reason": "未涉及埃克森美孚股東回報與投資取捨"
+   },
+   {
+    "signal": 2,
+    "pass": 0,
+    "reason": "答非所問，無埃克森美孚公司揭露"
+   }
+  ]
+ },
+ {
+  "id": "Q0008",
+  "scores": [
+   {
+    "signal": 0,
+    "pass": 0,
+    "reason": "僅以毛利率等 TTM 指標代替，未具體分析定價能力"
+   },
+   {
+    "signal": 1,
+    "pass": 1,
+    "reason": "明確判斷 KO 比 PEP 乾淨"
+   },
+   {
+    "signal": 2,
+    "pass": 1,
+    "reason": "以毛利率、營業利益率、淨利率與結構差異為據"
+   }
+  ]
+ }
+]

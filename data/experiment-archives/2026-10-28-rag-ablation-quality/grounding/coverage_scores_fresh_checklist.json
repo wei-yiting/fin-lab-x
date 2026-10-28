@@ -1,0 +1,812 @@
+[
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0001",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0002",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0003",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0004",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0005",
+  "vital_recall": 1.0,
+  "all_recall": 0.9375
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0006",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0007",
+  "vital_recall": 0.8,
+  "all_recall": 0.7142857142857143
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0008",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0009",
+  "vital_recall": 1.0,
+  "all_recall": 0.8125
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0010",
+  "vital_recall": 1.0,
+  "all_recall": 0.9285714285714286
+ },
+ {
+  "row": "10",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0011",
+  "vital_recall": 0.5,
+  "all_recall": 0.42857142857142855
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0012",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0013",
+  "vital_recall": 0.875,
+  "all_recall": 0.7857142857142857
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0014",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "7",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0015",
+  "vital_recall": 0.5,
+  "all_recall": 0.5
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0016",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "15",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0017",
+  "vital_recall": 0.4,
+  "all_recall": 0.3125
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0018",
+  "vital_recall": 1.0,
+  "all_recall": 0.75
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0019",
+  "vital_recall": 1.0,
+  "all_recall": 0.9166666666666666
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0020",
+  "vital_recall": 0.875,
+  "all_recall": 0.7857142857142857
+ },
+ {
+  "row": "26",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0021",
+  "vital_recall": 0.625,
+  "all_recall": 0.35714285714285715
+ },
+ {
+  "row": "16",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0022",
+  "vital_recall": 0.5,
+  "all_recall": 0.3125
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0023",
+  "vital_recall": 0.8,
+  "all_recall": 0.8571428571428571
+ },
+ {
+  "row": "21",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0024",
+  "vital_recall": 0.625,
+  "all_recall": 0.5625
+ },
+ {
+  "row": "3",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0025",
+  "vital_recall": 0.5,
+  "all_recall": 0.3125
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0026",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0027",
+  "vital_recall": 1.0,
+  "all_recall": 0.75
+ },
+ {
+  "row": "6",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0028",
+  "vital_recall": 0.7,
+  "all_recall": 0.4375
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0029",
+  "vital_recall": 1.0,
+  "all_recall": 0.9285714285714286
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0030",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0031",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0032",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "1",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0033",
+  "vital_recall": 0.625,
+  "all_recall": 0.42857142857142855
+ },
+ {
+  "row": "9",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0034",
+  "vital_recall": 0.625,
+  "all_recall": 0.5
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0035",
+  "vital_recall": 1.0,
+  "all_recall": 0.875
+ },
+ {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0036",
+  "vital_recall": 1.0,
+  "all_recall": 0.875
+ },
+ {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0037",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0038",
+  "vital_recall": 1.0,
+  "all_recall": 0.8571428571428571
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0039",
+  "vital_recall": 0.875,
+  "all_recall": 0.875
+ },
+ {
+  "row": "30",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0040",
+  "vital_recall": 0.375,
+  "all_recall": 0.25
+ },
+ {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0041",
+  "vital_recall": 1.0,
+  "all_recall": 0.9285714285714286
+ },
+ {
+  "row": "27",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0042",
+  "vital_recall": 0.375,
+  "all_recall": 0.1875
+ },
+ {
+  "row": "14",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0043",
+  "vital_recall": 0.6666666666666666,
+  "all_recall": 0.3333333333333333
+ },
+ {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0044",
+  "vital_recall": 1.0,
+  "all_recall": 0.875
+ },
+ {
+  "row": "29",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0045",
+  "vital_recall": 0.7,
+  "all_recall": 0.5
+ },
+ {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0046",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0047",
+  "vital_recall": 1.0,
+  "all_recall": 0.8571428571428571
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0048",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0049",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0050",
+  "vital_recall": 1.0,
+  "all_recall": 0.875
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0051",
+  "vital_recall": 1.0,
+  "all_recall": 0.8333333333333334
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0052",
+  "vital_recall": 1.0,
+  "all_recall": 0.8125
+ },
+ {
+  "row": "5",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0053",
+  "vital_recall": 0.5,
+  "all_recall": 0.3125
+ },
+ {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0054",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0055",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0056",
+  "vital_recall": 1.0,
+  "all_recall": 0.75
+ },
+ {
+  "row": "19",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0057",
+  "vital_recall": 0.5,
+  "all_recall": 0.25
+ },
+ {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0058",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0059",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0060",
+  "vital_recall": 1.0,
+  "all_recall": 0.8333333333333334
+ },
+ {
+  "row": "11",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0061",
+  "vital_recall": 0.4,
+  "all_recall": 0.2857142857142857
+ },
+ {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0062",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0063",
+  "vital_recall": 1.0,
+  "all_recall": 0.875
+ },
+ {
+  "row": "25",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0064",
+  "vital_recall": 0.5,
+  "all_recall": 0.3333333333333333
+ },
+ {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0065",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "8",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0066",
+  "vital_recall": 0.375,
+  "all_recall": 0.1875
+ },
+ {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0067",
+  "vital_recall": 0.875,
+  "all_recall": 0.7857142857142857
+ },
+ {
+  "row": "4",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0068",
+  "vital_recall": 0.625,
+  "all_recall": 0.5
+ },
+ {
+  "row": "20",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0069",
+  "vital_recall": 0.25,
+  "all_recall": 0.1875
+ },
+ {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0070",
+  "vital_recall": 1.0,
+  "all_recall": 0.75
+ },
+ {
+  "row": "17",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0071",
+  "vital_recall": 0.7,
+  "all_recall": 0.4375
+ },
+ {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0072",
+  "vital_recall": 1.0,
+  "all_recall": 0.9375
+ },
+ {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0073",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0074",
+  "vital_recall": 0.875,
+  "all_recall": 0.6428571428571429
+ },
+ {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0075",
+  "vital_recall": 1.0,
+  "all_recall": 0.8571428571428571
+ },
+ {
+  "row": "13",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0076",
+  "vital_recall": 0.7,
+  "all_recall": 0.7142857142857143
+ },
+ {
+  "row": "2",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0077",
+  "vital_recall": 0.7,
+  "all_recall": 0.5
+ },
+ {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0078",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "23",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0079",
+  "vital_recall": 0.8,
+  "all_recall": 0.5
+ },
+ {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0080",
+  "vital_recall": 1.0,
+  "all_recall": 0.875
+ },
+ {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0081",
+  "vital_recall": 1.0,
+  "all_recall": 0.9166666666666666
+ },
+ {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0082",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0083",
+  "vital_recall": 1.0,
+  "all_recall": 0.9375
+ },
+ {
+  "row": "22",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0084",
+  "vital_recall": 0.75,
+  "all_recall": 0.5
+ },
+ {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0085",
+  "vital_recall": 1.0,
+  "all_recall": 0.8571428571428571
+ },
+ {
+  "row": "24",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0086",
+  "vital_recall": 0.625,
+  "all_recall": 0.5
+ },
+ {
+  "row": "18",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1,
+  "id": "C0087",
+  "vital_recall": 0.6,
+  "all_recall": 0.5
+ },
+ {
+  "row": "12",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0088",
+  "vital_recall": 0.5,
+  "all_recall": 0.375
+ },
+ {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "id": "C0089",
+  "vital_recall": 1.0,
+  "all_recall": 1.0
+ },
+ {
+  "row": "28",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "rep": 1,
+  "id": "C0090",
+  "vital_recall": 0.5,
+  "all_recall": 0.35714285714285715
+ }
+]

@@ -1,0 +1,362 @@
+[
+ {
+  "id": "F0058",
+  "claims": [
+   {
+    "claim": "美國法院在2024年8月裁定 Google 搜尋與搜尋廣告行為違反反壟斷法",
+    "verdict": "supported",
+    "note": "10-K Item 1A: In August 2024, the US District Court ... ruled against Google"
+   },
+   {
+    "claim": "2025年12月作出最終判決",
+    "verdict": "supported",
+    "note": "10-K: in December 2025, entered a final judgment requiring remedies"
+   },
+   {
+    "claim": "判決限制 Google 如何分發其服務",
+    "verdict": "supported",
+    "note": "10-K: imposes restrictions on how we distribute our services"
+   },
+   {
+    "claim": "Google 必須向部分競爭者分享特定搜尋資料，並提供搜尋 syndication 服務",
+    "verdict": "supported",
+    "note": "10-K: share certain search data with and offer syndication services to certain competitors"
+   },
+   {
+    "claim": "Google 在2026年1月提出上訴，並要求暫停部分補救措施",
+    "verdict": "supported",
+    "note": "10-K: In January 2026, we appealed ... moved to pause implementation of certain remedies"
+   },
+   {
+    "claim": "DOJ 與州檢察長在2026年2月提出上訴",
+    "verdict": "supported",
+    "note": "10-K: In February 2026, the DOJ and state Attorneys General also appealed"
+   },
+   {
+    "claim": "新聞報導稱，類似 Apple 的搜尋協議期限不得超過一年",
+    "verdict": "supported",
+    "note": "CNBC: agreement terminates no more than one year after the date it is entered"
+   },
+   {
+    "claim": "Alphabet 2025年 Google Search & other 收入為 2,245.32 億美元",
+    "verdict": "supported",
+    "note": "10-K revenue table: Google Search & other $224,532M (2025)"
+   },
+   {
+    "claim": "Google 廣告總收入為 2,946.91 億美元",
+    "verdict": "supported",
+    "note": "10-K revenue table: Google advertising $294,691M (2025)"
+   },
+   {
+    "claim": "2025年4月，法院認定 Google 的出版商工具不當排除競爭者",
+    "verdict": "supported",
+    "note": "10-K: April 2025 mixed decision ... publisher tools unfairly excluded rivals"
+   },
+   {
+    "claim": "法院沒有認定其廣告主工具，或 DoubleClick、AdMeld 收購本身具有反競爭性",
+    "verdict": "supported",
+    "note": "10-K: neither our advertiser tools nor the DoubleClick and AdMeld acquisitions were anticompetitive"
+   },
+   {
+    "claim": "2025年9月已進行補救措施審理",
+    "verdict": "supported",
+    "note": "10-K: remedies proceeding took place in September 2025"
+   },
+   {
+    "claim": "DOJ 提出的補救方案包括可能傷害 Google 業務的結構性措施",
+    "verdict": "supported",
+    "note": "10-K: DOJ's remedy proposal includes structural remedies that could harm our business"
+   },
+   {
+    "claim": "截至該 10-K，廣告科技案最終補救判決仍待作出",
+    "verdict": "supported",
+    "note": "10-K: we are awaiting a final judgment"
+   },
+   {
+    "claim": "德州州檢察長主導的廣告科技案件將在 DOJ 案補救判決後審理",
+    "verdict": "supported",
+    "note": "10-K: Texas AG-led case trial will take place after a decision on remedies in the DOJ case"
+   },
+   {
+    "claim": "DOJ 曾要求剝離部分廣告科技資產，Google 主張其提出的補救已足夠並反對強制出售",
+    "verdict": "supported",
+    "note": "CNBC: Google says its proposed ad tech remedy fully addresses liability; DOJ proposals to force divestiture go beyond findings"
+   },
+   {
+    "claim": "Alphabet 2025年一般及行政費用增加 73 億美元，主要因法律與其他事項費用增加",
+    "verdict": "supported",
+    "note": "10-K Item 7: G&A increased $7.3 billion ... driven by legal and other matters of $6.2 billion"
+   },
+   {
+    "claim": "其中包括第三季計提的 35 億美元歐盟罰款及第二季 14 億美元法律準備",
+    "verdict": "supported",
+    "note": "10-K Item 7: $3.5 billion EC fine accrued in Q3 2025 and $1.4 billion legal accrual in Q2 2025"
+   },
+   {
+    "claim": "截至2025年12月31日，短期法律及監管罰款與和解準備為 156 億美元",
+    "verdict": "supported",
+    "note": "10-K: short-term accrued legal and regulatory fines and settlements of $15.6 billion"
+   },
+   {
+    "claim": "Alphabet 表示相關訴訟可能導致產品修改、業務模式改變、罰款、禁制令甚至資產剝離",
+    "verdict": "supported",
+    "note": "10-K Item 1A: fines, injunctive relief, changes to products, alterations to business models ... including divestiture"
+   },
+   {
+    "claim": "DOJ 曾提出包括剝離 Chrome 在內的嚴厲方案",
+    "verdict": "supported",
+    "note": "CNBC 2024/11/21: DOJ push for Google to divest Chrome"
+   },
+   {
+    "claim": "2025年9月法院拒絕強制出售 Chrome，並在2025年12月定案時採取資料分享與限制分發協議等補救",
+    "verdict": "supported",
+    "note": "CNBC: In September 2025, Mehta ruled against ... forced sale of Chrome; finalized remedies in December incl. data sharing and one-year deal limit"
+   },
+   {
+    "claim": "歐盟 DMA 要求跨產品合併用戶數據需取得同意，並向競爭者提供匿名搜尋資料；另有影響 Google Play 計費與費用的規範",
+    "verdict": "supported",
+    "note": "10-K Item 1A: DMA requires consent for combining data and search engines to share anonymized data; regulations affect Google Play billing policies, fees"
+   },
+   {
+    "claim": "Alphabet 超過 70% 的 2025 年收入來自線上廣告",
+    "verdict": "supported",
+    "note": "10-K Item 1A: more than 70% of total revenues from online advertising in 2025"
+   },
+   {
+    "claim": "Google 廣告收入達到 4,125.67 億美元",
+    "verdict": "contradicted",
+    "note": "10-K revenue table shows Google advertising $294,691M; total revenues were $402,836M; no 412,567 figure"
+   }
+  ]
+ },
+ {
+  "id": "F0059",
+  "claims": [
+   {
+    "claim": "美國地方法院在2024年裁定 Google 在搜尋案敗訴",
+    "verdict": "supported",
+    "note": "10-K: In August 2024, the US District Court ... ruled against Google"
+   },
+   {
+    "claim": "2025年12月作出最終判決，限制服務分發方式、分享搜尋資料、提供 syndication 服務",
+    "verdict": "supported",
+    "note": "10-K: final judgment December 2025 ... restrictions on distribution, share search data, offer syndication services"
+   },
+   {
+    "claim": "Google 已在2026年1月提出上訴並要求暫停部分救濟措施",
+    "verdict": "supported",
+    "note": "10-K: In January 2026, we appealed ... moved to pause implementation of certain remedies"
+   },
+   {
+    "claim": "DOJ 與州政府在2026年2月提出上訴",
+    "verdict": "supported",
+    "note": "10-K: In February 2026, the DOJ and state AGs also appealed"
+   },
+   {
+    "claim": "2025年4月廣告科技案判決：廣告主工具及 DoubleClick、AdMeld 收購未被判定為反競爭",
+    "verdict": "supported",
+    "note": "10-K: April 2025 mixed decision ... neither advertiser tools nor DoubleClick and AdMeld acquisitions anticompetitive"
+   },
+   {
+    "claim": "Google 的出版商工具被判定為不公平排除競爭者",
+    "verdict": "supported",
+    "note": "10-K: publisher tools unfairly excluded rivals"
+   },
+   {
+    "claim": "救濟程序在2025年9月進行，DOJ 方案包括結構性救濟",
+    "verdict": "supported",
+    "note": "10-K: remedies proceeding September 2025; DOJ proposal includes structural remedies"
+   },
+   {
+    "claim": "截至 FY2025 10-K，廣告科技案最終救濟判決仍待作出",
+    "verdict": "supported",
+    "note": "10-K: awaiting a final judgment"
+   },
+   {
+    "claim": "Google 計畫就廣告科技案不利部分上訴",
+    "verdict": "supported",
+    "note": "10-K: we plan to appeal the adverse portion of the April 2025 decision"
+   },
+   {
+    "claim": "州政府在德州的相關廣告科技案件將在後續進行",
+    "verdict": "supported",
+    "note": "10-K: trial in state AG case in Eastern District of Texas after remedies decision"
+   },
+   {
+    "claim": "歐盟在2025年9月裁定 Google 廣告科技涉及自我優待，處以30億歐元罰款並要求停止相關做法",
+    "verdict": "supported",
+    "note": "10-K: September 2025 EC decision on self-preferencing, €3.0 billion fine, cease and desist"
+   },
+   {
+    "claim": "Google 已就歐盟廣告科技罰款提出上訴",
+    "verdict": "supported",
+    "note": "10-K: We appealed the ruling in November 2025"
+   },
+   {
+    "claim": "Epic 案法院要求 Google 修改 Android 與 Google Play 的業務模式、操作方式和合約安排",
+    "verdict": "supported",
+    "note": "10-K: remedies decision October 2024 ordering alterations to business models, operations and contractual agreements"
+   },
+   {
+    "claim": "Google 的上訴在2025年7月被駁回",
+    "verdict": "supported",
+    "note": "10-K: in July 2025, the Court of Appeals denied our appeal"
+   },
+   {
+    "claim": "Google 已於2025年10月實施相關整改",
+    "verdict": "supported",
+    "note": "10-K: implemented the ordered remedies in October 2025"
+   },
+   {
+    "claim": "Google 與 Epic 達成和解，但修改禁制令仍待法院批准",
+    "verdict": "supported",
+    "note": "10-K: October 2025 settlement contingent on court approving modified injunction; motion pending"
+   },
+   {
+    "claim": "Google 與50個州及地區政府的 Google Play 和解已獲初步批准，最終批准仍待法院處理",
+    "verdict": "supported",
+    "note": "10-K: settlement with 50 state AGs and three territories preliminarily approved November 2025, final approval pending"
+   },
+   {
+    "claim": "歐盟執委會在2024年針對 Google Play 和 Search 開啟兩項 DMA 調查",
+    "verdict": "supported",
+    "note": "10-K: In March 2024, the EC opened two investigations ... Google Play and Search"
+   },
+   {
+    "claim": "2025年3月發布兩項初步不合規結論，Google 已提交回應",
+    "verdict": "supported",
+    "note": "10-K: In March 2025, the EC issued preliminary findings of non-compliance in both, to which we responded"
+   },
+   {
+    "claim": "Google 表示 DMA 等案件目前無法估計可能損失",
+    "verdict": "supported",
+    "note": "10-K: Given the nature of this matter, we cannot estimate a possible loss"
+   },
+   {
+    "claim": "歐盟針對 Google 搜尋反垃圾政策展開反壟斷調查，關注新聞媒體及出版商被降權並影響收入",
+    "verdict": "supported",
+    "note": "Reuters 2025-11-13: EU antitrust investigation into spam policy; Google demoting news media and publishers' content"
+   },
+   {
+    "claim": "日本公平交易委員會在2025年4月要求 Google 修改 Android 協議以符合日本反壟斷法",
+    "verdict": "supported",
+    "note": "10-K: In April 2025, the JFTC issued a cease-and-desist order requiring changes to Android agreements"
+   },
+   {
+    "claim": "澳洲 ACCC 調查在2025年達成和解，Google 須修改部分 Android 協議，和解在2025年12月獲法院批准",
+    "verdict": "supported",
+    "note": "10-K: August 2025 settlement with ACCC requiring changes to Android agreements; approved by court December 2025"
+   },
+   {
+    "claim": "美國及其他地區有與政府指控重疊的私人個人訴訟和集體訴訟，可能帶來損害賠償等，公司無法估計可能損失",
+    "verdict": "supported",
+    "note": "10-K: private individual and collective actions overlapping regulator claims pending; monetary damages; cannot estimate a possible loss"
+   }
+  ]
+ },
+ {
+  "id": "F0060",
+  "claims": [
+   {
+    "claim": "CET1 資本比率為 14.6%（標準法）",
+    "verdict": "supported",
+    "note": "10-K capital table: CET1 14.6% Standardized, Dec 31 2025"
+   },
+   {
+    "claim": "CET1 資本比率為 14.1%（進階法）",
+    "verdict": "supported",
+    "note": "10-K capital table: CET1 14.1% Advanced"
+   },
+   {
+    "claim": "CET1 適用最低要求為 11.5%",
+    "verdict": "supported",
+    "note": "10-K capital table requirement column: 11.5%"
+   },
+   {
+    "claim": "SLR 為 5.8%，高於 5.0% 要求",
+    "verdict": "supported",
+    "note": "10-K leverage table: SLR 5.8%, requirement 5.0%"
+   },
+   {
+    "claim": "CET1 比率低於2024年的 15.7%",
+    "verdict": "supported",
+    "note": "10-K capital table: CET1 15.7% at Dec 31 2024 (Standardized)"
+   },
+   {
+    "claim": "Apple Card 交易使資本比率受到影響",
+    "verdict": "supported",
+    "note": "10-K footnote: decreases of ~25 bps Standardized and ~90 bps Advanced related to Apple Card transaction"
+   },
+   {
+    "claim": "10-K 稱存款是相對穩定的資金來源",
+    "verdict": "supported",
+    "note": "10-K: deposits provide a stable source of funding"
+   },
+   {
+    "claim": "期末存款較2024年增加",
+    "verdict": "supported",
+    "note": "10-K: Period-end deposits increased from December 31, 2024"
+   },
+   {
+    "claim": "估計未受存款保險保障的存款為 1.5586 兆美元，主要是批發營運存款",
+    "verdict": "supported",
+    "note": "10-K: estimated uninsured deposits $1,558.6 billion, primarily wholesale operating deposits"
+   },
+   {
+    "claim": "JPM 的 TTM ROE 約 17.9%",
+    "verdict": "supported",
+    "note": "Finnhub: roeTTM 17.91"
+   },
+   {
+    "claim": "淨利率約 33.3%",
+    "verdict": "supported",
+    "note": "Finnhub: netProfitMarginTTM 33.26"
+   },
+   {
+    "claim": "本益比約 13.5 倍",
+    "verdict": "supported",
+    "note": "Finnhub: peTTM 13.48"
+   },
+   {
+    "claim": "股價淨值比約 2.36 倍",
+    "verdict": "supported",
+    "note": "Finnhub: pb 2.3617"
+   },
+   {
+    "claim": "2026年第一季信貸損失準備為 25 億美元，低於市場預期",
+    "verdict": "supported",
+    "note": "CNBC 1Q 2026: provision for credit losses $2.5 billion, about half a billion less than StreetAccount estimate"
+   },
+   {
+    "claim": "消費者部門釋放部分準備金",
+    "verdict": "supported",
+    "note": "CNBC 1Q 2026: released reserves for consumers by $139 million"
+   },
+   {
+    "claim": "銀行下調全年淨利息收入指引至約 1,030 億美元",
+    "verdict": "supported",
+    "note": "CNBC 1Q 2026: lowered 2026 NII guidance from $104.5 billion to about $103 billion"
+   },
+   {
+    "claim": "銀行指出地緣政治、貿易不確定性和其他宏觀風險仍然重要",
+    "verdict": "supported",
+    "note": "CNBC: Dimon cites complex geopolitical conditions, tariffs and trade uncertainty"
+   },
+   {
+    "claim": "信用損失估計高度依賴失業率、GDP、房價、企業信用利差等宏觀假設",
+    "verdict": "supported",
+    "note": "10-K: key MEVs include unemployment, real GDP, HPI, corporate credit spreads"
+   },
+   {
+    "claim": "JPM 股價約為 335.19 美元",
+    "verdict": "supported",
+    "note": "Finnhub quote: currentPrice 335.19"
+   },
+   {
+    "claim": "距52週高點 366.50 美元低約 8.5%",
+    "verdict": "supported",
+    "note": "Finnhub: fiftyTwoWeekHigh 366.5; 335.19/366.5 implies ~8.5% below"
+   }
+  ]
+ }
+]

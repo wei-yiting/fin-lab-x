@@ -1,0 +1,222 @@
+[
+ {
+  "id": "F0025",
+  "claims": [
+   {
+    "claim": "Visa 10-K 表示它不是金融機構、不發卡、不提供信用、不設定持卡人利率與費用，也不承擔這些活動的信用風險",
+    "verdict": "supported",
+    "note": "Item 1: 'Visa is not a financial institution... nor do we earn revenue from or bear credit risk'"
+   },
+   {
+    "claim": "典型交易中發卡銀行核准信用額度、收單銀行負責商戶端，VisaNet 負責授權、清算與結算",
+    "verdict": "supported",
+    "note": "Item 1 Our Core Business: acquirer presents data via VisaNet, issuer checks credit line for authorization; Visa provides authorization, clearing and settlement"
+   },
+   {
+    "claim": "Visa 2025 財年淨營收為 400 億美元",
+    "verdict": "supported",
+    "note": "MD&A: Net revenue $40,000 million"
+   },
+   {
+    "claim": "服務收入 175.39 億美元",
+    "verdict": "supported",
+    "note": "Service revenue $17,539 million"
+   },
+   {
+    "claim": "資料處理收入 199.93 億美元",
+    "verdict": "supported",
+    "note": "Data processing revenue 19,993"
+   },
+   {
+    "claim": "國際交易收入 141.66 億美元",
+    "verdict": "supported",
+    "note": "International transaction revenue 14,166"
+   },
+   {
+    "claim": "客戶激勵抵減 157.51 億美元",
+    "verdict": "supported",
+    "note": "Client incentives (15,751)"
+   },
+   {
+    "claim": "支付量主要推動服務收入，處理交易筆數主要推動資料處理收入",
+    "verdict": "supported",
+    "note": "MD&A: 'Payments volume is the primary driver for our service revenue...processed transactions...data processing revenue'"
+   },
+   {
+    "claim": "Visa 品牌支付與現金交易共處理 3290 億筆",
+    "verdict": "supported",
+    "note": "Item 1: 329 billion payments and cash transactions"
+   },
+   {
+    "claim": "其中 Visa 網路處理 2580 億筆",
+    "verdict": "supported",
+    "note": "Of the 329 billion, 258 billion were processed by Visa"
+   },
+   {
+    "claim": "支付與現金交易量約 17 兆美元",
+    "verdict": "supported",
+    "note": "total payments and cash volume was $17 trillion"
+   },
+   {
+    "claim": "接近 50 億個支付憑證",
+    "verdict": "supported",
+    "note": "nearly 5 billion payment credentials"
+   },
+   {
+    "claim": "可在超過 1.75 億個商戶據點使用",
+    "verdict": "supported",
+    "note": "more than 175 million merchant locations"
+   },
+   {
+    "claim": "覆蓋超過 200 個國家與地區",
+    "verdict": "supported",
+    "note": "more than 200 countries and territories"
+   },
+   {
+    "claim": "處理交易筆數年增 10% 至 2,575.45 億筆",
+    "verdict": "supported",
+    "note": "Visa processed transactions 257,545 million, 10%"
+   },
+   {
+    "claim": "淨營收年增 11%",
+    "verdict": "supported",
+    "note": "Net revenue increased 11%"
+   },
+   {
+    "claim": "Finnhub TTM 營業利益率約 60.68%、淨利率約 50.78%、營收年增 14.39%",
+    "verdict": "supported",
+    "note": "Finnhub: operatingMarginTTM 60.68, netProfitMarginTTM 50.78, revenueGrowthTTMYoy 14.39"
+   },
+   {
+    "claim": "10-K 指出衰退、失業上升、通膨、利率、貿易中斷或跨境支出下降可能壓低支付量與營收",
+    "verdict": "supported",
+    "note": "Item 1A macroeconomic risk factor lists recessions, inflation, rising interest rates, high unemployment, trade disruption, decline in cross-border travel and spend"
+   },
+   {
+    "claim": "GAAP 淨利 200.58 億美元",
+    "verdict": "supported",
+    "note": "Net income $20,058 million"
+   },
+   {
+    "claim": "營業活動現金流 230.59 億美元",
+    "verdict": "supported",
+    "note": "Operating activities $23,059 million"
+   },
+   {
+    "claim": "現金及現金等價物 172 億美元，另有 24 億美元可供出售債務證券",
+    "verdict": "supported",
+    "note": "cash and cash equivalents $17.2 billion; available-for-sale debt securities $2.4 billion"
+   },
+   {
+    "claim": "Finnhub TTM ROE 約 61.26%、ROA 約 23.41%、負債權益比約 0.68",
+    "verdict": "supported",
+    "note": "roeTTM 61.26, roaTTM 23.41, debtToEquity 0.6782"
+   },
+   {
+    "claim": "10-K 指出美國、歐洲及其他地區存在交換費上限、路由、網路費及商戶收費監管風險",
+    "verdict": "supported",
+    "note": "Item 1A: Dodd-Frank debit cap and routing, EU IFR, network fees (UK/EU/Australia), Greek acquirer fee limits"
+   },
+   {
+    "claim": "2025 財年因交換費多區訴訟額外計提約 22 億美元",
+    "verdict": "supported",
+    "note": "MD&A: additional accruals of $2.2 billion for interchange multidistrict litigation"
+   },
+   {
+    "claim": "Finnhub 顯示 Visa TTM 本益比約 33.63 倍",
+    "verdict": "supported",
+    "note": "peTTM 33.6336"
+   }
+  ]
+ },
+ {
+  "id": "F0026",
+  "claims": [
+   {
+    "claim": "DIS 預估本益比 13.9 倍、NFLX 19.2 倍",
+    "verdict": "supported",
+    "note": "forwardPE DIS 13.907, NFLX 19.214"
+   },
+   {
+    "claim": "DIS 市銷率 1.94 倍、NFLX 5.62 倍",
+    "verdict": "supported",
+    "note": "psTTM DIS 1.9389, NFLX 5.6157"
+   },
+   {
+    "claim": "TTM 營收成長 DIS 4.6%、NFLX 16.0%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy DIS 4.58, NFLX 16.02"
+   },
+   {
+    "claim": "TTM EPS 成長 DIS -24.0%、NFLX 35.3%",
+    "verdict": "supported",
+    "note": "epsGrowthTTMYoy DIS -24, NFLX 35.26"
+   },
+   {
+    "claim": "淨利率 DIS 8.7%、NFLX 28.2%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM DIS 8.7, NFLX 28.22"
+   },
+   {
+    "claim": "DIS 股價約 111.83 美元",
+    "verdict": "supported",
+    "note": "DIS currentPrice 111.83"
+   },
+   {
+    "claim": "NFLX 股價約 65.04 美元",
+    "verdict": "supported",
+    "note": "NFLX currentPrice 65.04"
+   },
+   {
+    "claim": "Finnhub 顯示 NFLX 現價 65.04 美元略低於其 52 週低點 65.08 美元",
+    "verdict": "supported",
+    "note": "NFLX fiftyTwoWeekLow 65.08, currentPrice 65.04"
+   }
+  ]
+ },
+ {
+  "id": "F0027",
+  "claims": [
+   {
+    "claim": "DIS 預估本益比 13.9 倍、NFLX 19.2 倍",
+    "verdict": "supported",
+    "note": "forwardPE DIS 13.907, NFLX 19.214"
+   },
+   {
+    "claim": "DIS 市銷率 1.94 倍、NFLX 5.62 倍",
+    "verdict": "supported",
+    "note": "psTTM DIS 1.9389, NFLX 5.6157"
+   },
+   {
+    "claim": "TTM 營收成長 DIS 4.6%、NFLX 16.0%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy DIS 4.58, NFLX 16.02"
+   },
+   {
+    "claim": "TTM EPS 成長 DIS -24.0%、NFLX 35.3%",
+    "verdict": "supported",
+    "note": "epsGrowthTTMYoy DIS -24, NFLX 35.26"
+   },
+   {
+    "claim": "淨利率 DIS 8.7%、NFLX 28.2%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM DIS 8.7, NFLX 28.22"
+   },
+   {
+    "claim": "DIS 股價約 111.83 美元",
+    "verdict": "supported",
+    "note": "DIS currentPrice 111.83"
+   },
+   {
+    "claim": "NFLX 股價約 65.04 美元",
+    "verdict": "supported",
+    "note": "NFLX currentPrice 65.04"
+   },
+   {
+    "claim": "Finnhub 顯示 NFLX 現價 65.04 美元略低於其 73 週低點 65.08 美元",
+    "verdict": "contradicted",
+    "note": "Evidence gives 65.08 as fiftyTwoWeekLow (52-week), not a 73-week low"
+   }
+  ]
+ }
+]

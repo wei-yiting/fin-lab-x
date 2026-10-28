@@ -1,0 +1,267 @@
+[
+ {
+  "id": "F0001",
+  "claims": [
+   {
+    "claim": "迪士尼本益比（TTM）22.3 倍",
+    "verdict": "supported",
+    "note": "DIS peTTM 22.2883"
+   },
+   {
+    "claim": "Netflix 本益比（TTM）19.9 倍",
+    "verdict": "supported",
+    "note": "NFLX peTTM 19.9005"
+   },
+   {
+    "claim": "迪士尼預估本益比 13.9 倍",
+    "verdict": "supported",
+    "note": "DIS forwardPE 13.90736"
+   },
+   {
+    "claim": "Netflix 預估本益比 19.2 倍",
+    "verdict": "supported",
+    "note": "NFLX forwardPE 19.21432"
+   },
+   {
+    "claim": "迪士尼市銷率 1.94 倍",
+    "verdict": "supported",
+    "note": "DIS psTTM 1.9389"
+   },
+   {
+    "claim": "Netflix 市銷率 5.62 倍",
+    "verdict": "supported",
+    "note": "NFLX psTTM 5.6157"
+   },
+   {
+    "claim": "Netflix 市銷率約為迪士尼的 2.9 倍",
+    "verdict": "supported",
+    "note": "5.6157/1.9389 ≈ 2.90"
+   },
+   {
+    "claim": "迪士尼營收年增率 4.58%",
+    "verdict": "supported",
+    "note": "DIS revenueGrowthTTMYoy 4.58"
+   },
+   {
+    "claim": "Netflix 營收年增率 16.02%",
+    "verdict": "supported",
+    "note": "NFLX revenueGrowthTTMYoy 16.02"
+   },
+   {
+    "claim": "迪士尼 EPS 年增率 -24.0%（TTM EPS 年減 24%）",
+    "verdict": "supported",
+    "note": "DIS epsGrowthTTMYoy -24"
+   },
+   {
+    "claim": "Netflix EPS 年增率 35.26%",
+    "verdict": "supported",
+    "note": "NFLX epsGrowthTTMYoy 35.26"
+   },
+   {
+    "claim": "迪士尼淨利率 8.7%",
+    "verdict": "supported",
+    "note": "DIS netProfitMarginTTM 8.7"
+   },
+   {
+    "claim": "Netflix 淨利率 28.22%",
+    "verdict": "supported",
+    "note": "NFLX netProfitMarginTTM 28.22"
+   },
+   {
+    "claim": "DIS 報價 111.83 美元、當日上漲 0.14%",
+    "verdict": "supported",
+    "note": "DIS currentPrice 111.83, percentChange 0.1433"
+   },
+   {
+    "claim": "NFLX 報價 65.04 美元、當日下跌 5.31%",
+    "verdict": "supported",
+    "note": "NFLX currentPrice 65.04, percentChange -5.3137"
+   }
+  ]
+ },
+ {
+  "id": "F0002",
+  "claims": [
+   {
+    "claim": "根據 2025 年 10-K，資料截至 2025 年 12 月 31 日",
+    "verdict": "supported",
+    "note": "10-K fiscal_year 2025 sections 7/8, figures at December 31, 2025"
+   },
+   {
+    "claim": "現金、現金等價物與美國國庫券 3,690 億美元",
+    "verdict": "supported",
+    "note": "MD&A: insurance and other businesses held cash, cash equivalents and U.S. Treasury Bills of $369.0 billion"
+   },
+   {
+    "claim": "現金部位約為股東權益的 51%",
+    "verdict": "supported",
+    "note": "369.0/717.4 ≈ 51% (computed from evidence figures)"
+   },
+   {
+    "claim": "Berkshire 股東權益 7,174 億美元，2025 年增加 681 億美元",
+    "verdict": "supported",
+    "note": "shareholders' equity $717.4 billion, increase of $68.1 billion"
+   },
+   {
+    "claim": "合併債務約 1,291 億美元（保險及其他 458 億、鐵路/公用事業/能源 833 億）",
+    "verdict": "supported",
+    "note": "Notes payable and other borrowings 45,763 + 83,318 = 129,081 million"
+   },
+   {
+    "claim": "債務／股東權益約 18%",
+    "verdict": "supported",
+    "note": "129.1/717.4 ≈ 18% (computed)"
+   },
+   {
+    "claim": "2025 年營運現金流 460 億美元",
+    "verdict": "supported",
+    "note": "net operating cash flows of $46.0 billion"
+   },
+   {
+    "claim": "資本支出 209 億美元；營運現金流約為資本支出的 2.2 倍",
+    "verdict": "supported",
+    "note": "consolidated capital expenditures $20.9 billion; 46.0/20.9 ≈ 2.2"
+   },
+   {
+    "claim": "保險浮存金約 1,760 億美元",
+    "verdict": "supported",
+    "note": "Float was approximately $176 billion at December 31, 2025"
+   },
+   {
+    "claim": "2023—2025 年保險業務均產生承保利益",
+    "verdict": "supported",
+    "note": "pre-tax underwriting gains in each of the three years ending December 31, 2025"
+   },
+   {
+    "claim": "公司表示維持充足流動性及安全性優先於收益是短期投資原則",
+    "verdict": "supported",
+    "note": "maintaining ample liquidity is paramount and insist on safety over yield with respect to short-term investments"
+   },
+   {
+    "claim": "若回購會使現金、現金等價物與美國國庫券低於 300 億美元，公司就不會回購",
+    "verdict": "supported",
+    "note": "repurchases will not be made if they would reduce ... below $30 billion"
+   },
+   {
+    "claim": "Finnhub 債務／股東權益 0.1719",
+    "verdict": "supported",
+    "note": "debtToEquity 0.1719"
+   },
+   {
+    "claim": "Finnhub 流動比率 1.228、速動比率 0.9569",
+    "verdict": "supported",
+    "note": "currentRatio 1.228, quickRatio 0.9569"
+   },
+   {
+    "claim": "Finnhub ROE 11.87%",
+    "verdict": "supported",
+    "note": "roeTTM 11.87"
+   },
+   {
+    "claim": "Finnhub Beta 0.092",
+    "verdict": "supported",
+    "note": "beta 0.09189403"
+   },
+   {
+    "claim": "BHE 與 BNSF 合計債務約 833 億美元",
+    "verdict": "supported",
+    "note": "railroad, utilities and energy notes payable $83,318 million (BHE + BNSF)"
+   },
+   {
+    "claim": "2025 年 BHE 利息支出 26 億美元",
+    "verdict": "supported",
+    "note": "BHE statement interest expense 2,642 million in 2025"
+   },
+   {
+    "claim": "2025 年 BNSF 利息支出 11 億美元",
+    "verdict": "supported",
+    "note": "BNSF interest expense (1,098) million in 2025"
+   },
+   {
+    "claim": "2025 年底保險未決賠款及理賠費用約 1,207 億美元",
+    "verdict": "supported",
+    "note": "Unpaid losses and LAE $120,713 million"
+   },
+   {
+    "claim": "追溯再保險負債約 310 億美元",
+    "verdict": "supported",
+    "note": "retroactive reinsurance unpaid losses $31.0 billion / 31,048 million"
+   },
+   {
+    "claim": "股票投資約 2,978 億美元",
+    "verdict": "supported",
+    "note": "Investments in equity securities $297,778 million"
+   },
+   {
+    "claim": "前五大持股占股票投資公允價值約 65%",
+    "verdict": "supported",
+    "note": "approximately 65% ... concentrated in five companies"
+   },
+   {
+    "claim": "若股票投資價格整體下跌 30%，稅後淨收益可能受約 686 億美元影響",
+    "verdict": "supported",
+    "note": "30% decrease → (68,562) million after income taxes"
+   },
+   {
+    "claim": "BRK.B 報價 538.99 美元，且報價未提供時間戳",
+    "verdict": "supported",
+    "note": "currentPrice 538.99; quote output has no timestamp field"
+   }
+  ]
+ },
+ {
+  "id": "F0003",
+  "claims": [
+   {
+    "claim": "台積電管理層表示 AI 加速器在 2024 年占總營收接近中十位數百分比",
+    "verdict": "supported",
+    "note": "CNBC Jan 2025: 'close to a mid-teens percentage' of total revenue in 2024"
+   },
+   {
+    "claim": "預期 AI 加速器營收在 2025 年再翻倍",
+    "verdict": "supported",
+    "note": "CNBC: forecast revenue from AI accelerators to double in 2025"
+   },
+   {
+    "claim": "台積電預期 2025 全年美元營收成長約 30%，由 AI 與先進製程需求支撐",
+    "verdict": "supported",
+    "note": "CNBC Jul 2025: full-year 2025 revenue to rise by around 30% in USD, supported by AI and advanced technologies"
+   },
+   {
+    "claim": "台積電承認關稅政策存在不確定性",
+    "verdict": "supported",
+    "note": "Wei: 'uncertainties and risk from the potential impact of tariff policies'"
+   },
+   {
+    "claim": "ASML 的 EUV 設備是製造最先進 AI 晶片不可或缺的工具",
+    "verdict": "supported",
+    "note": "CNBC: EUV the only tools capable of lithography for most advanced chips used for AI; chip designs can't be made without EUV"
+   },
+   {
+    "claim": "ASML 2024 年新增訂單來自準備擴充 AI 晶片產能的客戶",
+    "verdict": "supported",
+    "note": "Reuters 2024-01-24: new orders from chip-makers bringing capacity online in late 2024/2025 amid AI chip demand (timing of '2024 orders' is loosely paraphrased)"
+   },
+   {
+    "claim": "Reuters 報導 ASML 預期中國銷售占比在 2025 年降至約 20%",
+    "verdict": "supported",
+    "note": "Reuters: expects China sales to fall towards 20% in 2025"
+   },
+   {
+    "claim": "ASML 年度報告指出出口限制疑慮已影響客戶支出",
+    "verdict": "supported",
+    "note": "Reuters headline: annual report says export curb worries hit customer spending"
+   },
+   {
+    "claim": "美國出口限制已影響台積電對中國的業務，也影響 Nvidia、AMD 對中國出貨",
+    "verdict": "supported",
+    "note": "CNBC: U.S. export controls restricted TSMC's business with China, as well as key clients Nvidia and AMD"
+   },
+   {
+    "claim": "台積電與 ASML 為外國私人發行人，主要年報為 20-F；SEC 工具只支援 10-K",
+    "verdict": "supported",
+    "note": "sec_filing_search: foreign private issuer that files 20-F; only '10-K' is supported"
+   }
+  ]
+ }
+]

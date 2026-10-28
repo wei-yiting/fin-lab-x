@@ -1,0 +1,382 @@
+[
+ {
+  "id": "F0046",
+  "claims": [
+   {
+    "claim": "TSLA 股價 $386.47",
+    "verdict": "supported",
+    "note": "finnhub quote currentPrice 386.47"
+   },
+   {
+    "claim": "NVDA 股價 $221.97",
+    "verdict": "supported",
+    "note": "finnhub quote currentPrice 221.97"
+   },
+   {
+    "claim": "TSLA 本益比（TTM）388.1 倍",
+    "verdict": "supported",
+    "note": "peTTM 388.1174"
+   },
+   {
+    "claim": "NVDA 本益比（TTM）27.5 倍",
+    "verdict": "supported",
+    "note": "peTTM 27.4887"
+   },
+   {
+    "claim": "TSLA 預估本益比 174.4 倍",
+    "verdict": "supported",
+    "note": "forwardPE 174.42851"
+   },
+   {
+    "claim": "NVDA 預估本益比 17.0 倍",
+    "verdict": "supported",
+    "note": "forwardPE 17.02191"
+   },
+   {
+    "claim": "TSLA 市銷率 14.3 倍",
+    "verdict": "supported",
+    "note": "psTTM 14.2558"
+   },
+   {
+    "claim": "NVDA 市銷率 17.5 倍",
+    "verdict": "supported",
+    "note": "psTTM 17.5001"
+   },
+   {
+    "claim": "TSLA TTM營收年增 11.8%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy 11.75"
+   },
+   {
+    "claim": "NVDA TTM營收年增 83.4%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy 83.38"
+   },
+   {
+    "claim": "TSLA TTM EPS年增 -37.7%",
+    "verdict": "supported",
+    "note": "epsGrowthTTMYoy -37.66"
+   },
+   {
+    "claim": "NVDA TTM EPS年增 +125.2%",
+    "verdict": "supported",
+    "note": "epsGrowthTTMYoy 125.15"
+   },
+   {
+    "claim": "TSLA 淨利率 3.67%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM 3.67"
+   },
+   {
+    "claim": "NVDA 淨利率 63.66%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM 63.66"
+   },
+   {
+    "claim": "TSLA 營業利益率 4.22%",
+    "verdict": "supported",
+    "note": "operatingMarginTTM 4.22"
+   },
+   {
+    "claim": "NVDA 營業利益率 65.17%",
+    "verdict": "supported",
+    "note": "operatingMarginTTM 65.17"
+   },
+   {
+    "claim": "TSLA 較前收上漲 3.41%",
+    "verdict": "supported",
+    "note": "percentChange 3.4144"
+   },
+   {
+    "claim": "TSLA 52週高點 $498.83",
+    "verdict": "supported",
+    "note": "fiftyTwoWeekHigh 498.83"
+   },
+   {
+    "claim": "NVDA 較前收上漲 2.54%",
+    "verdict": "supported",
+    "note": "percentChange 2.5408"
+   },
+   {
+    "claim": "NVDA 52週區間 $164.27至$243.37",
+    "verdict": "supported",
+    "note": "fiftyTwoWeekLow 164.27 / High 243.37"
+   },
+   {
+    "claim": "相較特斯拉，輝達距離近期高點較近",
+    "verdict": "supported",
+    "note": "NVDA ~9% below 52w high vs TSLA ~22.5% below, computed from finnhub data"
+   },
+   {
+    "claim": "市場擔心AI資本支出是否放緩、客戶自研晶片（custom AI solutions）",
+    "verdict": "supported",
+    "note": "CNBC 2026-01-14: concerns about sustainability of AI spending and share losses to custom AI solutions"
+   },
+   {
+    "claim": "Finnhub報價輸出未提供時間戳",
+    "verdict": "supported",
+    "note": "quote JSON has no timestamp field"
+   },
+   {
+    "claim": "特斯拉新聞結果包含較早的2025年文章",
+    "verdict": "supported",
+    "note": "BofA downgrade article dated 2025-01-07 (also 2018/2021 articles)"
+   },
+   {
+    "claim": "輝達新聞結果出現未來日期的內容",
+    "verdict": "unsupported",
+    "note": "NVDA results dated 2026-01 to 2026-08; evidence gives no current date to establish these are future-dated"
+   }
+  ]
+ },
+ {
+  "id": "F0047",
+  "claims": [
+   {
+    "claim": "TSLA 最新股價 $386.47",
+    "verdict": "supported",
+    "note": "finnhub quote 386.47"
+   },
+   {
+    "claim": "NVDA 最新股價 $221.97",
+    "verdict": "supported",
+    "note": "finnhub quote 221.97"
+   },
+   {
+    "claim": "TSLA 市值約 $1.48 兆",
+    "verdict": "supported",
+    "note": "marketCap 1,477,174.8 (millions)"
+   },
+   {
+    "claim": "NVDA 市值約 $5.30 兆",
+    "verdict": "supported",
+    "note": "marketCap 5,302,000 (millions)"
+   },
+   {
+    "claim": "TSLA 本益比（TTM）388 倍、NVDA 27.5 倍",
+    "verdict": "supported",
+    "note": "peTTM 388.1174 / 27.4887"
+   },
+   {
+    "claim": "TSLA 預估本益比 174 倍、NVDA 17.0 倍",
+    "verdict": "supported",
+    "note": "forwardPE 174.43 / 17.02"
+   },
+   {
+    "claim": "TSLA EPS 年增 -37.7%、NVDA 125.2%",
+    "verdict": "supported",
+    "note": "epsGrowthTTMYoy -37.66 / 125.15"
+   },
+   {
+    "claim": "營業利益率 TSLA 4.2%、NVDA 65.2%",
+    "verdict": "supported",
+    "note": "operatingMarginTTM 4.22 / 65.17"
+   },
+   {
+    "claim": "淨利率 TSLA 3.7%、NVDA 63.7%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM 3.67 / 63.66"
+   },
+   {
+    "claim": "營收年增率 TSLA 11.8%、NVDA 83.4%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy 11.75 / 83.38"
+   },
+   {
+    "claim": "兩家公司股價當日都上漲",
+    "verdict": "supported",
+    "note": "TSLA +3.41%, NVDA +2.54%"
+   },
+   {
+    "claim": "特斯拉 FY2025 10-K 財政年度結束於 2025-12-31",
+    "verdict": "supported",
+    "note": "fiscal_year_end 2025-12-31"
+   },
+   {
+    "claim": "10-K 表示未來成長依賴 FSD、Robotaxi、Cybercab、AI 及 Optimus 等的開發、推出和量產",
+    "verdict": "supported",
+    "note": "TSLA 10-K Item 1A: future business depends on autonomous driving, Cybercab; growth dependent on Optimus; AI capabilities"
+   },
+   {
+    "claim": "公司承認這些產品可能延遲、無法達成成本目標或無法獲得廣泛消費者採用",
+    "verdict": "supported",
+    "note": "10-K: launch/production ramp delays, may be unable to control manufacturing costs, no guarantee of widespread consumer adoption"
+   },
+   {
+    "claim": "Robotaxi 的成功取決於消費者接受度、採用速度及競爭環境",
+    "verdict": "supported",
+    "note": "10-K: success dependent on acceptance and adoption by consumers... amid growing competition; uptake rate"
+   },
+   {
+    "claim": "特斯拉面臨愈來愈多汽車、自駕、AI 和機器人競爭者",
+    "verdict": "supported",
+    "note": "10-K: growing list of competitors incl. self-driving; competition in AI and robotics"
+   },
+   {
+    "claim": "競爭可能導致降價、銷量下降和市占流失",
+    "verdict": "supported",
+    "note": "10-K: lower vehicle unit sales, price reductions... loss of market share"
+   },
+   {
+    "claim": "輝達市銷率約 17.5 倍、市淨率約 20.8 倍",
+    "verdict": "supported",
+    "note": "psTTM 17.5001, pb 20.768"
+   },
+   {
+    "claim": "輝達有客戶集中、出口管制及客戶自研晶片等風險",
+    "verdict": "supported",
+    "note": "NVDA 10-K: customer concentration, export controls, customers develop their own solutions"
+   },
+   {
+    "claim": "輝達 FY2026 10-K 財政年度結束於 2026-01-25",
+    "verdict": "supported",
+    "note": "fiscal_year_end 2026-01-25"
+   },
+   {
+    "claim": "兩個直接客戶分別占營收 22% 和 14%",
+    "verdict": "supported",
+    "note": "NVDA 10-K: one direct customer 22%, another 14% of FY2026 revenue"
+   },
+   {
+    "claim": "客戶可能延後、取消訂單或自行開發替代方案",
+    "verdict": "supported",
+    "note": "NVDA 10-K: customers can cancel, change, or delay purchase commitments; may develop their own solutions"
+   },
+   {
+    "claim": "若需求預估過高、客戶取消或延後訂單，可能造成庫存減記、價格下降及毛利率受壓",
+    "verdict": "supported",
+    "note": "NVDA 10-K: overestimate demand... reduce ASPs, write down inventory... negatively impact gross margins"
+   }
+  ]
+ },
+ {
+  "id": "F0048",
+  "claims": [
+   {
+    "claim": "英特爾 FY2025 10-K 財年截至 2025-12-27",
+    "verdict": "supported",
+    "note": "fiscal_year_end 2025-12-27"
+   },
+   {
+    "claim": "Intel Foundry 2025 年營收 178.26 億美元",
+    "verdict": "supported",
+    "note": "Foundry revenue $17,826M"
+   },
+   {
+    "claim": "Intel Foundry 2025 營業虧損 103.18 億美元，營業利益率 -58%",
+    "verdict": "supported",
+    "note": "operating loss $(10,318)M, (58)%"
+   },
+   {
+    "claim": "2024 年虧損 132.91 億美元、營業利益率 -77%",
+    "verdict": "supported",
+    "note": "$(13,291)M, (77)%"
+   },
+   {
+    "claim": "虧損收窄主要因資產減損減少、裁員後營業費用下降",
+    "verdict": "supported",
+    "note": "10-K: reduction in asset impairments/accelerated depreciation; $1.2B lower opex from headcount reductions"
+   },
+   {
+    "claim": "Foundry 營收中只有 3.07 億美元是外部營收",
+    "verdict": "supported",
+    "note": "External revenue $307M"
+   },
+   {
+    "claim": "其餘約 175 億美元為內部交易",
+    "verdict": "supported",
+    "note": "Intersegment revenue $17.5B"
+   },
+   {
+    "claim": "尚未成功取得任何節點的大型外部晶圓代工客戶，Intel 14A 取得重要客戶具高度不確定性",
+    "verdict": "supported",
+    "note": "10-K: unsuccessful to date in securing any significant external foundry customers for any of our nodes; prospects for 14A uncertain"
+   },
+   {
+    "claim": "2025 年因預期需求低於現有製造能力，縮短部分設備使用年限並加速折舊",
+    "verdict": "supported",
+    "note": "10-K PP&E: asset portfolio exceeded capacity requirements, shortened useful lives, accelerated depreciation"
+   },
+   {
+    "claim": "2025 年相關資產減損及加速折舊約 9.5 億美元，2024 年約 33 億美元",
+    "verdict": "supported",
+    "note": "$950M in 2025 vs $3.3B in 2024"
+   },
+   {
+    "claim": "截至 2025-12-27 仍有 345 億美元在建工程尚未投入使用",
+    "verdict": "supported",
+    "note": "construction in progress $34.5B as of Dec 27, 2025, not yet placed into service"
+   },
+   {
+    "claim": "若營收無法抵銷新增折舊與製造成本，毛利率及營業利益會承壓",
+    "verdict": "supported",
+    "note": "10-K: to the extent unable to grow revenues to offset production costs, gross margin and operating income unfavorably affected"
+   },
+   {
+    "claim": "FY2025 Intel Products 營業利益 127 億美元，比前一年少約 2.69 億美元",
+    "verdict": "supported",
+    "note": "$12.7B, down $269M"
+   },
+   {
+    "claim": "DCAI 營業利益改善約 20 億美元",
+    "verdict": "supported",
+    "note": "DCAI operating income increased $2.0B"
+   },
+   {
+    "claim": "CCG 營業利益下降約 23 億美元",
+    "verdict": "supported",
+    "note": "CCG operating income decreased $2.3B"
+   },
+   {
+    "claim": "CCG 受營收下降、新產品成本較高及庫存提列影響",
+    "verdict": "supported",
+    "note": "lower revenue, higher client unit costs from newer generation mix, higher inventory reserves"
+   },
+   {
+    "claim": "FY2025 總營收 529 億美元，較 2024 年少 2.48 億美元",
+    "verdict": "supported",
+    "note": "2025 revenue $52.9B, down $248M"
+   },
+   {
+    "claim": "Intel 7、Intel 3 等節點的晶圓供應限制預計延續至 2026 年",
+    "verdict": "supported",
+    "note": "supply constraints primarily Intel 7 and Intel 3; expect to persist into 2026"
+   },
+   {
+    "claim": "INTC 最新報價約 92.96 美元",
+    "verdict": "supported",
+    "note": "currentPrice 92.96"
+   },
+   {
+    "claim": "52 週區間 32.89–142.35 美元",
+    "verdict": "supported",
+    "note": "fiftyTwoWeekLow 32.89 / High 142.35"
+   },
+   {
+    "claim": "TTM EPS 為 -2.12 美元",
+    "verdict": "supported",
+    "note": "epsTTM -2.1202"
+   },
+   {
+    "claim": "淨利率 -19.79%、ROE -10.76%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM -19.79, roeTTM -10.76"
+   },
+   {
+    "claim": "TTM 營收年增 7.47%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy 7.47"
+   },
+   {
+    "claim": "預期本益比約 63 倍",
+    "verdict": "supported",
+    "note": "forwardPE 63.01586"
+   },
+   {
+    "claim": "Reuters 報導把裁員、縮減製造投資、Altera 股權出售及尋求外部資本描述為重整的一部分",
+    "verdict": "supported",
+    "note": "Reuters timeline: headcount cut to 75,000, build capacity only with demand, sell 51% of Altera, SoftBank $2B, US gov stake, Nvidia $5B"
+   }
+  ]
+ }
+]

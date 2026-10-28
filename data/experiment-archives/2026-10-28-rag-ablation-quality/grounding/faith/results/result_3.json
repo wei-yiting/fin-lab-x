@@ -1,0 +1,377 @@
+[
+ {
+  "id": "F0007",
+  "claims": [
+   {
+    "claim": "FY2025 截至 2025-09-27",
+    "verdict": "supported",
+    "note": "fiscal_year_end 2025-09-27 in DIS FY2025 10-K search results"
+   },
+   {
+    "claim": "Experiences 營業利益達 99.95億美元，年增 8%",
+    "verdict": "supported",
+    "note": "Experiences operating income 9,995 vs 9,272, 8%"
+   },
+   {
+    "claim": "國內業務營業利益年增 8%",
+    "verdict": "supported",
+    "note": "Supplemental operating income detail: Domestic 6,375 vs 5,878, 8%"
+   },
+   {
+    "claim": "國際業務營業利益年增 6%",
+    "verdict": "supported",
+    "note": "International 1,442 vs 1,354, 6%"
+   },
+   {
+    "claim": "主題樂園門票收入年增 5%",
+    "verdict": "supported",
+    "note": "Theme park admissions 11,707 vs 11,171, 5%"
+   },
+   {
+    "claim": "平均每位遊客收入上升 4%",
+    "verdict": "supported",
+    "note": "admissions increase due to 4% from higher average per capita ticket revenue"
+   },
+   {
+    "claim": "國內樂園入場人數下降 1%",
+    "verdict": "supported",
+    "note": "Attendance table: Domestic 2025 (1)%"
+   },
+   {
+    "claim": "國際入場人數上升 1%",
+    "verdict": "supported",
+    "note": "Attendance table: International 2025 1%"
+   },
+   {
+    "claim": "飯店入住率由 85% 升至 87%",
+    "verdict": "supported",
+    "note": "Domestic hotel occupancy 87% (2025) vs 85% (2024)"
+   },
+   {
+    "claim": "近期報導指出國內樂園參觀人數偏弱，受國際遊客減少影響",
+    "verdict": "supported",
+    "note": "CNBC: domestic park visitation declined 1%; international visitation at domestic parks was softer"
+   },
+   {
+    "claim": "Direct-to-Consumer 收入 246.14億美元，年增 8%",
+    "verdict": "supported",
+    "note": "DTC revenue 24,614 vs 22,776, 8%"
+   },
+   {
+    "claim": "DTC 營業利益從 1.43億美元升至 18.27億美元",
+    "verdict": "contradicted",
+    "note": "Evidence: DTC operating income 1,327 vs 143 (i.e. 13.27億, not 18.27億); 1,827 not found"
+   },
+   {
+    "claim": "訂閱收入年增 11%",
+    "verdict": "supported",
+    "note": "Subscription fees 20,772 vs 18,796, 11%"
+   },
+   {
+    "claim": "廣告收入下降 1%",
+    "verdict": "supported",
+    "note": "DTC Advertising 3,684 vs 3,707, (1)%"
+   },
+   {
+    "claim": "10-K 承認傳統有線電視收視率、訂戶與廣告收入下降",
+    "verdict": "supported",
+    "note": "10-K: industry-wide decline in ratings, declines in subscriber levels, decreased advertising and affiliate revenue at linear networks"
+   },
+   {
+    "claim": "公司提醒 DTC 模式未必能長期維持過去傳統業務的盈利能力",
+    "verdict": "supported",
+    "note": "10-K: no assurance DTC model will be or remain profitable or be as profitable over long term as historic business models"
+   },
+   {
+    "claim": "迪士尼近期已減少披露串流訂戶的季度細節",
+    "verdict": "supported",
+    "note": "CNBC: Disney stopped reporting quarterly streaming subscriber numbers"
+   },
+   {
+    "claim": "Content Sales/Licensing 收入年增 10%",
+    "verdict": "supported",
+    "note": "Content Sales/Licensing and Other revenue 8,488 vs 7,718, 10%"
+   },
+   {
+    "claim": "Content Sales/Licensing 營業利益年增 20%",
+    "verdict": "supported",
+    "note": "Content Sales/Licensing and Other operating income 392 vs 328, 20%"
+   },
+   {
+    "claim": "當年上映數量較多，包括 Moana 2、Lilo & Stitch、Mufasa: The Lion King",
+    "verdict": "supported",
+    "note": "10-K: more releases in current year; titles included Moana 2, Lilo & Stitch, Mufasa"
+   },
+   {
+    "claim": "電影上映前就要承擔大量行銷成本，可能造成單片院線虧損",
+    "verdict": "supported",
+    "note": "10-K: significant marketing costs before and throughout release, expensed as incurred, may result in a loss on theatrical distribution of a film"
+   },
+   {
+    "claim": "《Avatar: Fire and Ash》和《Zootopia 2》等電影成功改善娛樂部門表現",
+    "verdict": "supported",
+    "note": "CNBC: recent box-office wins incl. Avatar: Fire and Ash and Zootopia 2 helped lift the unit's revenue"
+   }
+  ]
+ },
+ {
+  "id": "F0008",
+  "claims": [
+   {
+    "claim": "FY2026 10-K，財年截至 2026-08-30",
+    "verdict": "supported",
+    "note": "fiscal year ended August 30, 2026"
+   },
+   {
+    "claim": "商品銷售 2,972.47 億美元",
+    "verdict": "supported",
+    "note": "Net sales 297,247"
+   },
+   {
+    "claim": "商品成本 2,642.79 億美元",
+    "verdict": "supported",
+    "note": "Merchandise costs 264,279"
+   },
+   {
+    "claim": "商品毛利 329.68 億美元",
+    "verdict": "supported",
+    "note": "Gross margin 32,968"
+   },
+   {
+    "claim": "商品毛利率 11.09%",
+    "verdict": "supported",
+    "note": "Gross margin percentage 11.09%"
+   },
+   {
+    "claim": "SG&A 費用 271.90 億美元",
+    "verdict": "supported",
+    "note": "SG&A 27,190"
+   },
+   {
+    "claim": "營業利益 116.85 億美元",
+    "verdict": "supported",
+    "note": "Operating income 11,685"
+   },
+   {
+    "claim": "公司表示提升淨銷售（尤其可比銷售）是獲利最重要的驅動因素，可比銷售成長來自購買頻率與每次購買金額",
+    "verdict": "supported",
+    "note": "10-K: most important driver of profitability is increasing net sales, particularly comparable sales; achieved via shopping frequency and average ticket"
+   },
+   {
+    "claim": "銷售越大越能攤薄 SG&A",
+    "verdict": "supported",
+    "note": "10-K: higher comparable sales, the more we can leverage SG&A"
+   },
+   {
+    "claim": "FY2026 會員費收入 59.07 億美元，FY2025 53.23 億美元，成長 11%",
+    "verdict": "supported",
+    "note": "Membership fees 5,907 vs 5,323; increased 11%"
+   },
+   {
+    "claim": "會員費占總收入約 1.95%、淨銷售約 1.99%",
+    "verdict": "supported",
+    "note": "Derived: 5,907/303,154 = 1.95%; 5,907/297,247 = 1.99%"
+   },
+   {
+    "claim": "會員費約等於營業利益的 50.5%",
+    "verdict": "supported",
+    "note": "Derived: 5,907/11,685 ≈ 50.6% (rounding)"
+   },
+   {
+    "claim": "商品毛利減 SG&A 剩約 57.78 億美元",
+    "verdict": "supported",
+    "note": "Derived: 32,968 − 27,190 = 5,778"
+   },
+   {
+    "claim": "會員費按一年會員期間遞延並按月認列",
+    "verdict": "supported",
+    "note": "10-K: membership fee revenue on a deferred basis, recognized ratably over the one-year membership period"
+   },
+   {
+    "claim": "付費會員 8,410 萬",
+    "verdict": "supported",
+    "note": "Paid members 84,100 (thousands)"
+   },
+   {
+    "claim": "總持卡人 1.504 億",
+    "verdict": "supported",
+    "note": "Total cardholders 150,400 (thousands)"
+   },
+   {
+    "claim": "美國與加拿大續卡率 92.3%",
+    "verdict": "supported",
+    "note": "renewal rate 92.3% in U.S. and Canada"
+   },
+   {
+    "claim": "全球續卡率 89.8%",
+    "verdict": "supported",
+    "note": "89.8% worldwide"
+   },
+   {
+    "claim": "會員基礎成長、Executive 滲透率與高續卡率實質影響獲利能力",
+    "verdict": "supported",
+    "note": "10-K: ...materially influences our profitability"
+   },
+   {
+    "claim": "Executive 會員 4,230 萬",
+    "verdict": "supported",
+    "note": "Executive members 42,300 (thousands)"
+   },
+   {
+    "claim": "Executive 會員約占付費會員 50.3%",
+    "verdict": "supported",
+    "note": "Derived: 42,300/84,100 = 50.3%"
+   },
+   {
+    "claim": "Executive 會員貢獻約 75.2% 全球淨銷售",
+    "verdict": "supported",
+    "note": "approximately 75.2% of worldwide net sales in 2026"
+   },
+   {
+    "claim": "Executive 會員支付更高年費並取得約 2% 回饋",
+    "verdict": "supported",
+    "note": "additional annual fee; Executive reward generally 2% on qualified purchases"
+   },
+   {
+    "claim": "淨銷售成長 10%，可比銷售成長 8%",
+    "verdict": "supported",
+    "note": "Net sales increased $27,335 or 10%; comparable sales $22,457 or 8%"
+   },
+   {
+    "claim": "平均客單價提高 5%，購買頻率提高 3%",
+    "verdict": "supported",
+    "note": "increases of 5% in average ticket and 3% in shopping frequency"
+   }
+  ]
+ },
+ {
+  "id": "F0009",
+  "claims": [
+   {
+    "claim": "Meta FY2025 10-K 截至 2025 年 12 月 31 日",
+    "verdict": "supported",
+    "note": "fiscal_year_end 2025-12-31; Year Ended December 31, 2025"
+   },
+   {
+    "claim": "Meta 廣告收入 1,961.75 億美元",
+    "verdict": "supported",
+    "note": "Advertising 196,175"
+   },
+   {
+    "claim": "Meta 總收入 2,009.66 億美元",
+    "verdict": "supported",
+    "note": "Total revenue 200,966"
+   },
+   {
+    "claim": "約 97.6% 收入來自廣告",
+    "verdict": "supported",
+    "note": "Derived: 196,175/200,966 = 97.6%"
+   },
+   {
+    "claim": "Meta 表示 GDPR、DMA、ePrivacy Directive 及美國州級隱私法已影響其使用數據訊號定向/衡量廣告的能力，進一步限制可能不利廣告業務",
+    "verdict": "supported",
+    "note": "META 10-K Item 1A: GDPR, ePrivacy Directive, DMA, U.S. state privacy laws have impacted ability to use signals in ad products"
+   },
+   {
+    "claim": "Meta 付費免廣告模式被認定不符合 DMA，2025 年 4 月被處 2 億歐元罰款",
+    "verdict": "supported",
+    "note": "April 2025 final decision; fine of EUR €200 million"
+   },
+   {
+    "claim": "Meta 推出較少個人化廣告選項，10-K 稱其相關性和有效性較低",
+    "verdict": "supported",
+    "note": "LPA ... less relevant and effective than our premium ad offerings"
+   },
+   {
+    "claim": "若進一步修改，可能對歐洲業務和收入造成重大影響",
+    "verdict": "supported",
+    "note": "further modifications ... could result in ... a significant impact to our European business and revenue"
+   },
+   {
+    "claim": "Meta FY2025 歐洲收入 465.69 億美元，約占總收入 23%",
+    "verdict": "supported",
+    "note": "Europe 46,569; 46,569/200,966 = 23.2%"
+   },
+   {
+    "claim": "歐洲收入按客戶所在地計算，且包括俄羅斯和土耳其",
+    "verdict": "supported",
+    "note": "revenue by geography based on addresses of customers; Europe includes Russia and Turkey"
+   },
+   {
+    "claim": "Apple FY2025 10-K 截至 2025 年 9 月 27 日",
+    "verdict": "supported",
+    "note": "AAPL fiscal_year_end 2025-09-27"
+   },
+   {
+    "claim": "Apple Services 收入 1,091.58 億美元，年增 14%",
+    "verdict": "supported",
+    "note": "Services 109,158, 14%"
+   },
+   {
+    "claim": "Services 增長主要來自廣告、App Store 和雲端服務",
+    "verdict": "supported",
+    "note": "primarily due to higher net sales from advertising, the App Store and cloud services"
+   },
+   {
+    "claim": "Apple 因 DMA 改變 iOS、iPadOS、App Store 和 Safari，包括替代商店/分發、替代支付處理、新開發者費率和商業條款",
+    "verdict": "supported",
+    "note": "AAPL 10-K: changes incl. new business terms, alternative fee structures, alternative distribution, alternative payment processing"
+   },
+   {
+    "claim": "Apple 表示這些改變可能對其業務、財務表現和競爭優勢造成重大不利影響",
+    "verdict": "supported",
+    "note": "Changes in response to DMA could materially adversely affect business, reputation, results of operations... (competitive position wording not explicit)"
+   },
+   {
+    "claim": "2025 年 4 月歐盟因 Apple 限制開發者引導用戶到 App Store 外交易處以 5 億歐元罰款並要求移除限制",
+    "verdict": "supported",
+    "note": "April 23, 2025 fined €500 million; cease and desist to remove restrictions preventing steering outside App Store"
+   },
+   {
+    "claim": "若另一項 DMA 案最終認定違規，最高罰款可達全球年銷售額 10%",
+    "verdict": "supported",
+    "note": "Article 6(4): fines up to 10% of annual worldwide net sales"
+   },
+   {
+    "claim": "Epic 案法院命令禁止 Apple 對 App 外部購買收取佣金或費用，並限制干預引導",
+    "verdict": "supported",
+    "note": "April 30, 2025: enjoined from imposing any commission or fee on purchases outside an app; restricting how developers guide consumers"
+   },
+   {
+    "claim": "美國司法部及多州檢察長已對 Apple 提出智慧型手機市場壟斷或企圖壟斷訴訟",
+    "verdict": "supported",
+    "note": "March 21, 2024 DOJ and state AGs lawsuit alleging monopolization or attempted monopolization in smartphones"
+   },
+   {
+    "claim": "政府尋求的是行為性救濟，而不只是罰款",
+    "verdict": "supported",
+    "note": "DOJ is seeking equitable relief (paraphrase of 'equitable relief')"
+   },
+   {
+    "claim": "Apple 從 Google 取得搜尋授權收入，若法院禁止 Google 提供某些商業條款，相關收入可能受重大影響",
+    "verdict": "supported",
+    "note": "remedies prohibiting Google from offering commercial terms could materially adversely affect ability to earn licensing revenue"
+   },
+   {
+    "claim": "FTC 曾要求包括拆分或重建 Instagram 和 WhatsApp 在內的救濟",
+    "verdict": "supported",
+    "note": "equitable relief including divestiture or reconstruction of Instagram and WhatsApp"
+   },
+   {
+    "claim": "2025 年 11 月法院判 Meta 勝訴",
+    "verdict": "supported",
+    "note": "November 18, 2025 court granted judgment in our favor"
+   },
+   {
+    "claim": "FTC 在 2026 年 1 月提出上訴",
+    "verdict": "supported",
+    "note": "January 20, 2026 FTC filed notice of appeal"
+   },
+   {
+    "claim": "Meta 美國風險包括隱私及未成年人數據限制",
+    "verdict": "supported",
+    "note": "FTC proposed order includes prohibition on use of minors' data; state laws on users under 18"
+   }
+  ]
+ }
+]

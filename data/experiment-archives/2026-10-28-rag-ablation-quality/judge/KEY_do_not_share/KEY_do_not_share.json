@@ -1,0 +1,1832 @@
+{
+ "Q0001": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0002": {
+  "row": "7",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0003": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0004": {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0005": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0006": {
+  "row": "4",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0007": {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0008": {
+  "row": "18",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0009": {
+  "row": "1",
+  "kind": "off_topic",
+  "source_row": "16",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0010": {
+  "row": "11",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0011": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0012": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0013": {
+  "row": "17",
+  "kind": "off_topic",
+  "source_row": "2",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0014": {
+  "row": "14",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0015": {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0016": {
+  "row": "22",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0017": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0018": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": true
+ },
+ "Q0019": {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0020": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0021": {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0022": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0023": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0024": {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0025": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0026": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0027": {
+  "row": "19",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0028": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0029": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0030": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0031": {
+  "row": "29",
+  "kind": "off_topic",
+  "source_row": "14",
+  "base_arm": "luna_medium",
+  "base_rep": 2
+ },
+ "Q0032": {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0033": {
+  "row": "10",
+  "kind": "off_topic",
+  "source_row": "25",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0034": {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0035": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0036": {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0037": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0038": {
+  "row": "12",
+  "kind": "off_topic",
+  "source_row": "27",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0039": {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0040": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0041": {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0042": {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0043": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0044": {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0045": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0046": {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0047": {
+  "row": "6",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0048": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0049": {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0050": {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0051": {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0052": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0053": {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0054": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0055": {
+  "row": "3",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0056": {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0057": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0058": {
+  "row": "14",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0059": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0060": {
+  "row": "25",
+  "kind": "off_topic",
+  "source_row": "10",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0061": {
+  "row": "20",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0062": {
+  "row": "5",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0063": {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0064": {
+  "row": "16",
+  "kind": "off_topic",
+  "source_row": "1",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0065": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0066": {
+  "row": "9",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0067": {
+  "row": "26",
+  "kind": "off_topic",
+  "source_row": "11",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0068": {
+  "row": "27",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0069": {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0070": {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0071": {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0072": {
+  "row": "20",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0073": {
+  "row": "27",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0074": {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0075": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0076": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0077": {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0078": {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0079": {
+  "row": "2",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0080": {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0081": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0082": {
+  "row": "24",
+  "kind": "off_topic",
+  "source_row": "9",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0083": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0084": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0085": {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0086": {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0087": {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0088": {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0089": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0090": {
+  "row": "8",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0091": {
+  "row": "6",
+  "kind": "off_topic",
+  "source_row": "21",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0092": {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0093": {
+  "row": "26",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0094": {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0095": {
+  "row": "4",
+  "kind": "off_topic",
+  "source_row": "19",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0096": {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0097": {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0098": {
+  "row": "18",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0099": {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0100": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0101": {
+  "row": "21",
+  "kind": "off_topic",
+  "source_row": "6",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0102": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0103": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0104": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0105": {
+  "row": "15",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 2
+ },
+ "Q0106": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0107": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0108": {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0109": {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0110": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0111": {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0112": {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0113": {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0114": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0115": {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0116": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0117": {
+  "row": "7",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0118": {
+  "row": "2",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0119": {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0120": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0121": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0122": {
+  "row": "28",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0123": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0124": {
+  "row": "12",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0125": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0126": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0127": {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0128": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0129": {
+  "row": "24",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0130": {
+  "row": "5",
+  "kind": "off_topic",
+  "source_row": "20",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0131": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0132": {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0133": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0134": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0135": {
+  "row": "27",
+  "kind": "off_topic",
+  "source_row": "12",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0136": {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0137": {
+  "row": "7",
+  "kind": "off_topic",
+  "source_row": "22",
+  "base_arm": "luna_medium",
+  "base_rep": 2
+ },
+ "Q0138": {
+  "row": "28",
+  "kind": "off_topic",
+  "source_row": "13",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0139": {
+  "row": "29",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0140": {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0141": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0142": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0143": {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0144": {
+  "row": "22",
+  "kind": "off_topic",
+  "source_row": "7",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0145": {
+  "row": "23",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0146": {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0147": {
+  "row": "6",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0148": {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0149": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0150": {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0151": {
+  "row": "19",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0152": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0153": {
+  "row": "2",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0154": {
+  "row": "17",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0155": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0156": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0157": {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0158": {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0159": {
+  "row": "1",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0160": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0161": {
+  "row": "3",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0162": {
+  "row": "13",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0163": {
+  "row": "16",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0164": {
+  "row": "5",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0165": {
+  "row": "11",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0166": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0167": {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0168": {
+  "row": "21",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0169": {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0170": {
+  "row": "4",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0171": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0172": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0173": {
+  "row": "17",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0174": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0175": {
+  "row": "9",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0176": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0177": {
+  "row": "13",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0178": {
+  "row": "7",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0179": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0180": {
+  "row": "1",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0181": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0182": {
+  "row": "12",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0183": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0184": {
+  "row": "19",
+  "kind": "off_topic",
+  "source_row": "4",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0185": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0186": {
+  "row": "28",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0187": {
+  "row": "10",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0188": {
+  "row": "10",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0189": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0190": {
+  "row": "1",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0191": {
+  "row": "24",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0192": {
+  "row": "11",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0193": {
+  "row": "27",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0194": {
+  "row": "15",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 2
+ },
+ "Q0195": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0196": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0197": {
+  "row": "25",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0198": {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0199": {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0200": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0201": {
+  "row": "28",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0202": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0203": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0204": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0205": {
+  "row": "10",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0206": {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0207": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0208": {
+  "row": "15",
+  "kind": "off_topic",
+  "source_row": "30",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0209": {
+  "row": "22",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0210": {
+  "row": "14",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0211": {
+  "row": "8",
+  "kind": "off_topic",
+  "source_row": "23",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0212": {
+  "row": "22",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0213": {
+  "row": "20",
+  "kind": "off_topic",
+  "source_row": "5",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0214": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0215": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0216": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0217": {
+  "row": "29",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0218": {
+  "row": "5",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0219": {
+  "row": "20",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0220": {
+  "row": "18",
+  "kind": "off_topic",
+  "source_row": "3",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0221": {
+  "row": "6",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0222": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0223": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0224": {
+  "row": "29",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0225": {
+  "row": "16",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0226": {
+  "row": "30",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0227": {
+  "row": "23",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0228": {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0229": {
+  "row": "3",
+  "kind": "evidence_stripped",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0230": {
+  "row": "14",
+  "kind": "off_topic",
+  "source_row": "29",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0231": {
+  "row": "13",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0232": {
+  "row": "24",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0233": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0234": {
+  "row": "30",
+  "kind": "off_topic",
+  "source_row": "15",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0235": {
+  "row": "2",
+  "kind": "off_topic",
+  "source_row": "17",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0236": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0237": {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0238": {
+  "row": "15",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0239": {
+  "row": "13",
+  "kind": "off_topic",
+  "source_row": "28",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0240": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0241": {
+  "row": "23",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0242": {
+  "row": "21",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0243": {
+  "row": "25",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0244": {
+  "row": "16",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0245": {
+  "row": "8",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0246": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0247": {
+  "row": "9",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0248": {
+  "row": "9",
+  "kind": "off_topic",
+  "source_row": "24",
+  "base_arm": "luna_medium",
+  "base_rep": 3
+ },
+ "Q0249": {
+  "row": "4",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0250": {
+  "row": "8",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0251": {
+  "row": "21",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0252": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0253": {
+  "row": "17",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0254": {
+  "row": "18",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0255": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0256": {
+  "row": "30",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0257": {
+  "row": "26",
+  "kind": "evidence_stripped",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 2
+ },
+ "Q0258": {
+  "row": "25",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 1
+ },
+ "Q0259": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0260": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0261": {
+  "row": "11",
+  "kind": "off_topic",
+  "source_row": "26",
+  "base_arm": "reader_luna_medium",
+  "base_rep": 3
+ },
+ "Q0262": {
+  "row": "23",
+  "kind": "off_topic",
+  "source_row": "8",
+  "base_arm": "luna_medium",
+  "base_rep": 2
+ },
+ "Q0263": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0264": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1,
+  "empty_answer": false
+ },
+ "Q0265": {
+  "row": "26",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0266": {
+  "row": "30",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0267": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 2,
+  "empty_answer": false
+ },
+ "Q0268": {
+  "row": "3",
+  "kind": "off_topic",
+  "source_row": "18",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ },
+ "Q0269": {
+  "row": "19",
+  "kind": "real",
+  "arm": "luna_medium",
+  "rep": 3,
+  "empty_answer": false
+ },
+ "Q0270": {
+  "row": "12",
+  "kind": "truncated",
+  "base_arm": "luna_medium",
+  "base_rep": 1
+ }
+}

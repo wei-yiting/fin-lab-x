@@ -1,0 +1,257 @@
+{
+  "signal": {
+    "items_judged": 270,
+    "expected": 270,
+    "all_reps": {
+      "luna_medium": {
+        "answers": 90,
+        "pass_rate": [
+          0.959,
+          0.919,
+          0.989
+        ],
+        "all_pass": [
+          0.878,
+          0.756,
+          0.967
+        ]
+      },
+      "reader_luna_medium": {
+        "answers": 90,
+        "pass_rate": [
+          0.952,
+          0.915,
+          0.981
+        ],
+        "all_pass": [
+          0.878,
+          0.789,
+          0.956
+        ]
+      },
+      "delta_B_minus_A": [
+        -0.007,
+        -0.044,
+        0.033
+      ],
+      "delta_all_pass_B_minus_A": [
+        -0.0,
+        -0.089,
+        0.1
+      ],
+      "rows_B_lower": 4,
+      "rows_B_higher": 3
+    },
+    "rep1": {
+      "luna_medium": {
+        "answers": 30,
+        "pass_rate": [
+          0.956,
+          0.911,
+          0.989
+        ],
+        "all_pass": [
+          0.867,
+          0.733,
+          0.967
+        ]
+      },
+      "reader_luna_medium": {
+        "answers": 30,
+        "pass_rate": [
+          0.967,
+          0.933,
+          1
+        ],
+        "all_pass": [
+          0.9,
+          0.8,
+          1.0
+        ]
+      },
+      "delta_B_minus_A": [
+        0.011,
+        -0.022,
+        0.056
+      ],
+      "delta_all_pass_B_minus_A": [
+        0.033,
+        -0.067,
+        0.167
+      ],
+      "rows_B_lower": 1,
+      "rows_B_higher": 2
+    },
+    "controls": {
+      "truncated": {
+        "n": 30,
+        "rate": 0.622,
+        "delta_vs_base": [
+          -0.344,
+          -0.444,
+          -0.244
+        ]
+      },
+      "evidence_stripped": {
+        "n": 30,
+        "rate": 0.767,
+        "delta_vs_base": [
+          -0.2,
+          -0.289,
+          -0.111
+        ]
+      },
+      "off_topic": {
+        "n": 30,
+        "rate": 0,
+        "delta_vs_base": [
+          -0.956,
+          -0.983,
+          -0.924
+        ]
+      }
+    },
+    "signals_passed_by_all_real": "79/90"
+  },
+  "faithfulness": {
+    "items_judged": 72,
+    "expected": 72,
+    "luna_medium": {
+      "answers": 30,
+      "claims": 621,
+      "support_rate": [
+        0.99,
+        0.984,
+        0.996
+      ],
+      "pooled_support": 0.989,
+      "unsupported_claims": 4,
+      "contradicted_claims": 3,
+      "answers_with_contradiction": 3
+    },
+    "reader_luna_medium": {
+      "answers": 30,
+      "claims": 537,
+      "support_rate": [
+        0.993,
+        0.983,
+        1.0
+      ],
+      "pooled_support": 0.993,
+      "unsupported_claims": 1,
+      "contradicted_claims": 3,
+      "answers_with_contradiction": 1
+    },
+    "delta_support_B_minus_A": [
+      0.003,
+      -0.01,
+      0.014
+    ],
+    "perturbed": {
+      "luna_medium": "5/6",
+      "reader_luna_medium": "6/6"
+    }
+  },
+  "completeness": {
+    "fresh_checklist": {
+      "items_scored": 90,
+      "luna_medium": {
+        "vital_recall": [
+          0.988,
+          0.975,
+          1.0
+        ],
+        "all_recall": [
+          0.931,
+          0.893,
+          0.965
+        ]
+      },
+      "reader_luna_medium": {
+        "vital_recall": [
+          0.978,
+          0.956,
+          0.996
+        ],
+        "all_recall": [
+          0.898,
+          0.866,
+          0.928
+        ]
+      },
+      "delta_vital_B_minus_A": [
+        -0.009,
+        -0.035,
+        0.014
+      ],
+      "delta_all_B_minus_A": [
+        -0.033,
+        -0.081,
+        0.019
+      ],
+      "truncated": {
+        "n": 30,
+        "vital_recall": [
+          0.558,
+          0.511,
+          0.604
+        ],
+        "delta_vs_base": [
+          -0.431,
+          -0.481,
+          -0.384
+        ]
+      }
+    },
+    "prior_checklist": {
+      "items_scored": 90,
+      "luna_medium": {
+        "vital_recall": [
+          0.902,
+          0.854,
+          0.946
+        ],
+        "all_recall": [
+          0.839,
+          0.786,
+          0.887
+        ]
+      },
+      "reader_luna_medium": {
+        "vital_recall": [
+          0.932,
+          0.903,
+          0.959
+        ],
+        "all_recall": [
+          0.833,
+          0.793,
+          0.871
+        ]
+      },
+      "delta_vital_B_minus_A": [
+        0.03,
+        -0.028,
+        0.091
+      ],
+      "delta_all_B_minus_A": [
+        -0.006,
+        -0.069,
+        0.06
+      ],
+      "truncated": {
+        "n": 30,
+        "vital_recall": [
+          0.496,
+          0.45,
+          0.544
+        ],
+        "delta_vs_base": [
+          -0.421,
+          -0.471,
+          -0.37
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,302 @@
+[
+ {
+  "id": "F0043",
+  "claims": [
+   {
+    "claim": "標準法 CET1 比率由 2024 年的 15.7% 降至 2025 年的 14.6%",
+    "verdict": "supported",
+    "note": "Capital tables: Standardized CET1 ratio 15.7% (2024), 14.6% (2025)"
+   },
+   {
+    "claim": "進階法 CET1 比率由 15.8% 降至 14.1%",
+    "verdict": "supported",
+    "note": "Advanced CET1 ratio 15.8% (2024), 14.1% (2025)"
+   },
+   {
+    "claim": "標準法風險加權資產約由 1.757 兆美元增至 1.982 兆美元，增幅約 13%",
+    "verdict": "supported",
+    "note": "RWA 1,757,460 (2024) vs 1,981,692 (2025) million; ~12.8%"
+   },
+   {
+    "claim": "CET1 資本由 2,755 億美元增至 2,885 億美元，增幅約 5%",
+    "verdict": "supported",
+    "note": "CET1 capital $275,513M (2024) vs $288,469M (2025)"
+   },
+   {
+    "claim": "截至 2025 年底控股公司標準法 CET1 要求為 11.5%",
+    "verdict": "supported",
+    "note": "Capital ratio requirements table: CET1 11.5% BHC"
+   },
+   {
+    "claim": "CET1 要求包括基本要求、4.5% GSIB 附加費及 2.5% 壓力資本緩衝",
+    "verdict": "supported",
+    "note": "Footnote (a): minimum plus GSIB surcharge 4.5% plus 2.5% SCB for Standardized"
+   },
+   {
+    "claim": "Tier 1 總要求為 13.0%，總資本要求為 15.0%",
+    "verdict": "supported",
+    "note": "Requirements table: Tier 1 13.0, Total capital 15.0"
+   },
+   {
+    "claim": "控股公司的 SLR 要求為 5.0%",
+    "verdict": "supported",
+    "note": "Leverage table: SLR 5.0 for BHC (3.0% min + 2.0% buffer)"
+   },
+   {
+    "claim": "2025 年淨利為 570 億美元，較 2024 年下降 2%",
+    "verdict": "supported",
+    "note": "Net income $57.0B for 2025, down 2%"
+   },
+   {
+    "claim": "ROE 由 18% 降至 17%",
+    "verdict": "supported",
+    "note": "Return on common equity 17% (2025) vs 18% (2024)"
+   },
+   {
+    "claim": "ROTCE 由 22% 降至 20%",
+    "verdict": "supported",
+    "note": "ROTCE 20 (2025) vs 22 (2024)"
+   },
+   {
+    "claim": "公司提到利息收入、存款利差、信用損失、Markets 收入及營業費用等因素",
+    "verdict": "supported",
+    "note": "Firmwide overview: NII, deposit margin compression, Markets revenue; provision for credit losses up 33%, noninterest expense up 4%"
+   },
+   {
+    "claim": "標準法 CET1 14.6% 高於 11.5% 要求約 3.1 個百分點；進階法 14.1% 高於 11.5% 約 2.6 個百分點",
+    "verdict": "supported",
+    "note": "Arithmetic from 14.6%/14.1% vs 11.5% requirement"
+   },
+   {
+    "claim": "截至 2025 年底摩根大通及其主要銀行子公司均符合所有適用資本要求並維持 well-capitalized",
+    "verdict": "supported",
+    "note": "'As of December 31, 2025 and 2024, JPMorgan Chase & Co. and JPMorgan Chase Bank, N.A. were well-capitalized and met all capital requirements'"
+   },
+   {
+    "claim": "約 2,885 億美元 CET1 資本",
+    "verdict": "supported",
+    "note": "CET1 capital was $288.5 billion"
+   },
+   {
+    "claim": "約 9,150 億美元高品質流動資產",
+    "verdict": "supported",
+    "note": "HQLA of approximately $915 billion"
+   },
+   {
+    "claim": "約 1.5 兆美元的流動性來源",
+    "verdict": "supported",
+    "note": "approximately $1.5 trillion of liquidity sources"
+   }
+  ]
+ },
+ {
+  "id": "F0044",
+  "claims": [
+   {
+    "claim": "特斯拉最新股價 $386.47",
+    "verdict": "supported",
+    "note": "TSLA quote currentPrice 386.47"
+   },
+   {
+    "claim": "輝達最新股價 $221.97",
+    "verdict": "supported",
+    "note": "NVDA quote currentPrice 221.97"
+   },
+   {
+    "claim": "特斯拉市值約 $1.48 兆",
+    "verdict": "supported",
+    "note": "TSLA marketCap 1,477,174.8 (million)"
+   },
+   {
+    "claim": "輝達市值約 $5.30 兆",
+    "verdict": "supported",
+    "note": "NVDA marketCap 5,302,000 (million)"
+   },
+   {
+    "claim": "特斯拉本益比（TTM）388 倍、預估本益比 174 倍",
+    "verdict": "supported",
+    "note": "TSLA peTTM 388.12, forwardPE 174.43"
+   },
+   {
+    "claim": "輝達本益比（TTM）27.5 倍、預估本益比 17.0 倍",
+    "verdict": "supported",
+    "note": "NVDA peTTM 27.49, forwardPE 17.02"
+   },
+   {
+    "claim": "特斯拉 EPS 年增 -37.7%",
+    "verdict": "supported",
+    "note": "TSLA epsGrowthTTMYoy -37.66"
+   },
+   {
+    "claim": "輝達 EPS 年增 125.2%",
+    "verdict": "supported",
+    "note": "NVDA epsGrowthTTMYoy 125.15"
+   },
+   {
+    "claim": "特斯拉營業利益率 4.2%、淨利率 3.7%",
+    "verdict": "supported",
+    "note": "TSLA operatingMarginTTM 4.22, netProfitMarginTTM 3.67"
+   },
+   {
+    "claim": "輝達營業利益率 65.2%、淨利率 63.7%",
+    "verdict": "supported",
+    "note": "NVDA operatingMarginTTM 65.17, netProfitMarginTTM 63.66"
+   },
+   {
+    "claim": "特斯拉營收年增率 11.8%",
+    "verdict": "supported",
+    "note": "TSLA revenueGrowthTTMYoy 11.75"
+   },
+   {
+    "claim": "輝達營收年增率 116.8%（表格）",
+    "verdict": "contradicted",
+    "note": "NVDA revenueGrowthTTMYoy is 83.38 in evidence"
+   },
+   {
+    "claim": "兩家公司股價當日都上漲",
+    "verdict": "supported",
+    "note": "NVDA change +5.5 (+2.54%), TSLA change +12.76 (+3.41%)"
+   },
+   {
+    "claim": "特斯拉 FY2025 10-K（財年結束 2025-12-31）表示未來成長依賴 FSD、Robotaxi、Cybercab、AI 及 Optimus 等項目",
+    "verdict": "supported",
+    "note": "TSLA 10-K Item 1A: future business depends on autonomous driving, Cybercab; growth dependent on Optimus; need to advance AI"
+   },
+   {
+    "claim": "特斯拉承認這些產品可能延遲、無法達成成本目標或無法獲得廣泛消費者採用",
+    "verdict": "supported",
+    "note": "Item 1A: launch/production ramp delays, cost-effective manufacturing, no guarantee of widespread consumer adoption"
+   },
+   {
+    "claim": "10-K 指出 Robotaxi 的成功取決於消費者接受度、採用速度及競爭環境",
+    "verdict": "supported",
+    "note": "'success will be dependent upon various factors, including the acceptance and adoption by consumers of autonomous driving solutions, and Robotaxi'"
+   },
+   {
+    "claim": "特斯拉面臨汽車、自駕、AI 和機器人競爭者，競爭可能導致降價、銷量下降和市占流失",
+    "verdict": "supported",
+    "note": "'face competition in the fields of AI and robotics'; 'Increased competition could result in our lower vehicle unit sales, price reductions... loss of market share'"
+   },
+   {
+    "claim": "輝達市銷率約 17.5 倍、市淨率約 20.8 倍",
+    "verdict": "supported",
+    "note": "NVDA psTTM 17.50, pb 20.77"
+   },
+   {
+    "claim": "輝達 FY2026 10-K（財年結束 2026-01-25）披露兩個直接客戶分別占營收 22% 和 14%",
+    "verdict": "supported",
+    "note": "'sales to one direct customer represented 22%... another direct customer represented 14%'; fiscal_year_end 2026-01-25"
+   },
+   {
+    "claim": "輝達客戶可能延後、取消訂單或自行開發替代方案",
+    "verdict": "supported",
+    "note": "Item 1A: customers can cancel, change, or delay purchase commitments; may develop their own solutions"
+   },
+   {
+    "claim": "輝達面臨出口管制風險",
+    "verdict": "supported",
+    "note": "Item 1A: export controls restrict China offerings and impact demand"
+   },
+   {
+    "claim": "輝達營收年增約 83%、EPS 年增約 125%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy 83.38, epsGrowthTTMYoy 125.15"
+   },
+   {
+    "claim": "輝達警告若需求預估過高、客戶取消或延後訂單，可能造成庫存減記、價格下降及毛利率受壓",
+    "verdict": "supported",
+    "note": "'If we overestimate demand, or if customers cancel or defer orders... reduce average selling prices... write down our inventory... negatively impact our gross margins'"
+   }
+  ]
+ },
+ {
+  "id": "F0045",
+  "claims": [
+   {
+    "claim": "Visa FY2025 10-K（財年截至 2025-09-30）",
+    "verdict": "supported",
+    "note": "V fiscal_year_end 2025-09-30"
+   },
+   {
+    "claim": "Visa 表示監管會增加合規成本與營運複雜度",
+    "verdict": "supported",
+    "note": "'Complying with these and other regulations increases our costs and operational complexity'"
+   },
+   {
+    "claim": "Visa 表示監管會限制其執行網路規則的能力",
+    "verdict": "supported",
+    "note": "'could limit our ability to enforce our payments system rules'"
+   },
+   {
+    "claim": "Visa 表示監管會減少收入機會",
+    "verdict": "supported",
+    "note": "'reduces our revenue opportunities'"
+   },
+   {
+    "claim": "Visa 表示監管可能傷害公司的業務與財務結果",
+    "verdict": "supported",
+    "note": "'complex and evolving global regulations that could harm our business and financial results'"
+   },
+   {
+    "claim": "Visa 表示交換費通常不是 Visa 收取的收入，但會影響交易量，交換費改變可能實質影響支付量與淨收入",
+    "verdict": "supported",
+    "note": "'we generally do not receive any revenue related to IRFs... changes to these fees, whether voluntarily or by mandate, can substantially affect our overall payments volume and net revenue'"
+   },
+   {
+    "claim": "Visa 表示若監管使支付系統對發卡行或收單行吸引力下降，交易可能轉往競爭網路",
+    "verdict": "supported",
+    "note": "'issuers and acquirers may find our payments system less attractive... increase the attractiveness of other payments systems, such as our competitors'"
+   },
+   {
+    "claim": "Visa 表示發卡行或收單行可能要求更高的回饋、折扣或優惠，這些費用減免直接影響淨收入",
+    "verdict": "supported",
+    "note": "'some issuers and acquirers have obtained... incentives from us, including reductions in the fees that we charge, which directly impacts our net revenue'"
+   },
+   {
+    "claim": "Visa 表示定價壓力、折扣、rebates 與 incentives 若無法抵銷可能傷害淨收入與利潤",
+    "verdict": "supported",
+    "note": "'fee discounts, rebates... incentives... that impact our net revenue and profitability'; cost containment offset language"
+   },
+   {
+    "claim": "Visa 揭露監管可能降低支付量、淨收入、競爭地位及產品使用程度",
+    "verdict": "supported",
+    "note": "'could negatively impact or reduce the number of Visa products our clients issue, the volume of payments we process, our net revenue... our competitive positioning'"
+   },
+   {
+    "claim": "Mastercard FY2025 10-K（財年截至 2025-12-31）",
+    "verdict": "supported",
+    "note": "MA fiscal_year_end 2025-12-31"
+   },
+   {
+    "claim": "Mastercard 表示監管會增加合規與治理負擔、提高成本",
+    "verdict": "supported",
+    "note": "'significant compliance and governance burdens or otherwise increase our costs'"
+   },
+   {
+    "claim": "Mastercard 表示監管可能降低客戶參與意願、減少國內與跨境交易量、影響創新與差異化、影響獲利能力",
+    "verdict": "supported",
+    "note": "'customers could be less willing to participate... reduce the volume of domestic and cross-border transactions... impact our profitability and/or limit our ability to innovate'"
+   },
+   {
+    "claim": "Mastercard 表示若監管其 network fees 可能對經營結果造成重大不利影響",
+    "verdict": "supported",
+    "note": "'any regulation... related to the type and level of network fees... could also materially and adversely impact our results of operations'"
+   },
+   {
+    "claim": "Mastercard 表示交換費不是其收入，但交換費過高會使商戶拒絕接受或導離交易",
+    "verdict": "supported",
+    "note": "'Although we do not earn revenues from interchange... If interchange rates are too high, merchants may stop accepting our products or route transactions away'"
+   },
+   {
+    "claim": "Mastercard 表示交換費過低可能讓發卡行減少推廣、削減回饋或要求 Mastercard 降低費用，最終降低交易量與獲利能力",
+    "verdict": "supported",
+    "note": "'issuers may stop promoting... reduce loyalty rewards'; 'seek a fee reduction from us'; 'ultimately reducing the volume of transactions over our network and our profitability'"
+   },
+   {
+    "claim": "Mastercard 表示若無法維持設定交換費的能力，結果可能對業務與經營結果造成重大不利影響",
+    "verdict": "supported",
+    "note": "'If we are ultimately unsuccessful in defending our ability to establish interchange rates... material adverse impact on our overall business and results of operations'"
+   }
+  ]
+ }
+]

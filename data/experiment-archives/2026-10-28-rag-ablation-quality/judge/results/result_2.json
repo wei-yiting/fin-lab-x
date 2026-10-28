@@ -1,0 +1,122 @@
+[
+{"id": "Q0253", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭明確結論：廣告業務已是高品質獲利引擎（附條件）"},
+{"signal": 1, "pass": 1, "reason": "指出廣告收入686億美元、占總收入約9.6%且增速高於整體"},
+{"signal": 2, "pass": 1, "reason": "明說無法像AWS直接驗證其獨立營業利潤率"}]},
+{"id": "Q0190", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出汽車收入年減9%、交付年減8%、監管積分減28%等具體訊號"},
+{"signal": 1, "pass": 0, "reason": "僅在結論一句帶過，內文只列短期壓力，未具體拆解結構性壓力"},
+{"signal": 2, "pass": 0, "reason": "依據僅為10-K年度數據，未連回任何近期新聞"}]},
+{"id": "Q0193", "scores": [
+{"signal": 0, "pass": 1, "reason": "以CET1、LCR、信用成本等數據檢驗，而非重述印象"},
+{"signal": 1, "pass": 1, "reason": "涵蓋業務組合、資本水位與信用/Apple Card等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷「仍然是合理的相對判斷」"}]},
+{"id": "Q0067", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在講沃爾瑪電商與廣告，未涵蓋輝達、禮來、好市多"},
+{"signal": 1, "pass": 0, "reason": "答非所問，沒有期待下修的比較邏輯"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對跨產業比較做保留"}]},
+{"id": "Q0210", "scores": [
+{"signal": 0, "pass": 0, "reason": "只說管理層未講明，未區分市場揣測內容"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有公開講明下次調價日期"},
+{"signal": 2, "pass": 1, "reason": "明說沒有足夠證據說快要再調，未把推測當結論"}]},
+{"id": "Q0166", "scores": [
+{"signal": 0, "pass": 1, "reason": "以CET1、SLR、未承保存款等揭露數據支持，非僅重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、存款結構與2026Q1信用/NII指引等風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法目前仍大致站得住並界定範圍"}]},
+{"id": "Q0056", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較波音FAA產量上限/罰款與空巴引擎結構件供應問題"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過亂流"},
+{"signal": 2, "pass": 1, "reason": "指出空巴估值受幣別單位影響不宜直接比較等資料限制"}]},
+{"id": "Q0147", "scores": [
+{"signal": 0, "pass": 1, "reason": "分「已看得到的成本」與「還不確定可能擴大」兩部分"},
+{"signal": 1, "pass": 0, "reason": "僅泛稱公司表示，未具名文件、數字缺漏，官方揭露證據未實際呈現"},
+{"signal": 2, "pass": 1, "reason": "明確結論最大風險為滑石粉訴訟並給上下行情境"}]},
+{"id": "Q0018", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案為空"},
+{"signal": 1, "pass": 0, "reason": "答案為空"},
+{"signal": 2, "pass": 0, "reason": "答案為空"}]},
+{"id": "Q0059", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答有直接支持，並界定為風險揭露"},
+{"signal": 1, "pass": 1, "reason": "明說風險揭露不足以證明監管已造成利潤率下滑"},
+{"signal": 2, "pass": 1, "reason": "強調10-K為could/may前瞻語言，未說成公司已承認事實"}]},
+{"id": "Q0242", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家現金流、資產負債表與資本配置"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多比較穩"},
+{"signal": 2, "pass": 1, "reason": "說明資本支出占營業現金流、現金部位、無短期借款等結構因素"}]},
+{"id": "Q0054", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較波音FAA監管/認證延誤與空巴引擎結構件瓶頸"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較有韌性"},
+{"signal": 2, "pass": 1, "reason": "指出未取得空巴10-K、判斷主要依新聞與Finnhub"}]},
+{"id": "Q0194", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明會員費加高周轉低成本商品銷售的飛輪"},
+{"signal": 1, "pass": 1, "reason": "指出會員費占營收約2%但相當營業利益50.5%"},
+{"signal": 2, "pass": 1, "reason": "以少SKU、大量採購、交叉轉運等具體機制說明"}]},
+{"id": "Q0229", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分交付為主症狀、監管為深層制約、需求為次要風險"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是交付/生產執行"},
+{"signal": 2, "pass": 1, "reason": "提醒FAA放寬不等於已恢復正常交付，未把情緒當事實"}]},
+{"id": "Q0160", "scores": [
+{"signal": 0, "pass": 1, "reason": "以FY2025 10-K資本配置、回購與ROE數據回答"},
+{"signal": 1, "pass": 1, "reason": "分已證實、初步可見、尚未證實三層區分"},
+{"signal": 2, "pass": 1, "reason": "明說ROE下降未被揭露歸因於監管，不硬推長期傷害"}]},
+{"id": "Q0103", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別討論交付、監管、需求三條並排序"},
+{"signal": 1, "pass": 1, "reason": "明確指出生產與交付為主因"},
+{"signal": 2, "pass": 1, "reason": "以10-K backlog與777X虧損等揭露為據，非市場情緒"}]},
+{"id": "Q0172", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到2025Q1交付年減13%、2026Q1回升6%、馬斯克品牌反彈等"},
+{"signal": 1, "pass": 1, "reason": "分列短期衝擊與已傷到長期論點的項目"},
+{"signal": 2, "pass": 1, "reason": "結論連回Reuters與CNBC交付報導及10-K"}]},
+{"id": "Q0029", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述Meta內容/青少年、Google搜尋/廣告技術、Apple App Store風險來源"},
+{"signal": 1, "pass": 1, "reason": "指出Meta最難量化並說明監管穿透互動與廣告鏈條"},
+{"signal": 2, "pass": 1, "reason": "區分最難量化與最大絕對金額，並說罰金總額不等於實際負債"}]},
+{"id": "Q0090", "scores": [
+{"signal": 0, "pass": 0, "reason": "表格與數字缺漏，僅泛稱公司披露，官方揭露證據未實際呈現"},
+{"signal": 1, "pass": 1, "reason": "分已造成成本、壓低資本效率與長期傷害尚無充分證據"},
+{"signal": 2, "pass": 1, "reason": "明說不能確認監管已使長期盈利少某特定金額"}]},
+{"id": "Q0089", "scores": [
+{"signal": 0, "pass": 1, "reason": "以本益比、市銷率與成長數據比較兩家市場期待"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 1, "reason": "指出NFLX報價與52週低點不一致故不作主要依據"}]},
+{"id": "Q0179", "scores": [
+{"signal": 0, "pass": 1, "reason": "以營收年增-1.18%、大中華區年減7%等近期訊號判斷"},
+{"signal": 1, "pass": 1, "reason": "區分局部回穩跡象與基本面已確認反轉"},
+{"signal": 2, "pass": 1, "reason": "明說說已經回穩仍太早，列出需再確認的條件"}]},
+{"id": "Q0254", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較定價能力與業務結構兩面向"},
+{"signal": 1, "pass": 1, "reason": "明確判斷KO結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以毛利率、營業利益率、槓桿與10-K業務結構支持"}]},
+{"id": "Q0241", "scores": [
+{"signal": 0, "pass": 0, "reason": "只呈現本益比等估值數據，未提出成長類訊號"},
+{"signal": 1, "pass": 1, "reason": "明確結論更接近好消息已被提前定價"},
+{"signal": 2, "pass": 1, "reason": "以條件句說明需相信自駕等才合理，未當成確定事實"}]},
+{"id": "Q0238", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明低毛利高周轉商品銷售加會員費的飛輪"},
+{"signal": 1, "pass": 1, "reason": "會員費59.07億約占營業利益50.5%及其支撐低價等角色"},
+{"signal": 2, "pass": 1, "reason": "以11.09%毛利率、續費率92.3%、Executive占銷售75.2%等具體數據"}]},
+{"id": "Q0104", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答有且相當直接的支持"},
+{"signal": 1, "pass": 1, "reason": "明說10-K不足以證明已發生的利潤率壓縮"},
+{"signal": 2, "pass": 1, "reason": "強調為條件式前瞻揭露，未說成已承認事實"}]},
+{"id": "Q0192", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要沃爾瑪將電商與廣告納入全通路生態系的定位"},
+{"signal": 1, "pass": 1, "reason": "同時說明電商為增長引擎、廣告為變現與商業服務層"},
+{"signal": 2, "pass": 1, "reason": "依據為公司自身表述，非外部評論"}]},
+{"id": "Q0037", "scores": [
+{"signal": 0, "pass": 1, "reason": "拆解營收核心、利潤核心與護城河"},
+{"signal": 1, "pass": 1, "reason": "指出會員費約相當營業利益50.5%且支撐低毛利"},
+{"signal": 2, "pass": 1, "reason": "以商品毛利減SG&A約57.78億等具體損益結構說明"}]},
+{"id": "Q0195", "scores": [
+{"signal": 0, "pass": 1, "reason": "以CET1 2,885億、LCR 111%等揭露數據檢驗"},
+{"signal": 1, "pass": 1, "reason": "涵蓋資本、流動性、存款與信用成本、房地產曝險等風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法目前仍然成立並界定範圍"}]},
+{"id": "Q0020", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出10-K中政策、需求替代、技術、轉型失序等風險描述"},
+{"signal": 1, "pass": 1, "reason": "說明低碳投資服從回報、股息4美元與200億回購並行"},
+{"signal": 2, "pass": 1, "reason": "全文依FY2025 10-K揭露歸納結論"}]},
+{"id": "Q0230", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在比較波音與空巴，未談好市多會員費"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未說明調價時間點"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理會員費推測問題"}]}
+]

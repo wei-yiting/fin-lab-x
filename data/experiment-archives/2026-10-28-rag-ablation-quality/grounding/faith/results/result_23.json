@@ -1,0 +1,302 @@
+[
+ {
+  "id": "F0067",
+  "claims": [
+   {
+    "claim": "好市多最近一次美國、加拿大調價是在 2024 年 9 月",
+    "verdict": "supported",
+    "note": "CNBC 2024-07-10: fee increase in U.S. and Canada as of Sept. 1; Q1 2026 article: took effect in September 2024"
+   },
+   {
+    "claim": "Gold Star 會員由 60 美元調至 65 美元",
+    "verdict": "supported",
+    "note": "CNBC 2024-07-10: increase to $65 from $60"
+   },
+   {
+    "claim": "Executive 會員由 120 美元調至 130 美元",
+    "verdict": "supported",
+    "note": "CNBC 2024-07-10: Executive Membership will increase to $130 from $120"
+   },
+   {
+    "claim": "CFO Gary Millerchip 在 2025 年第四季財報電話會議中表示，該次調價貢獻了當季會員費收入增長中「略低於一半」",
+    "verdict": "supported",
+    "note": "CNBC Q4 2025 earnings: fee increase accounted for a little less than half of membership fee income growth in the quarter"
+   },
+   {
+    "claim": "該次調價仍在逐步反映於會員續費與會籍收入",
+    "verdict": "supported",
+    "note": "CNBC Q1 2026: increase kicked in as new members signed up or existing customers renewed"
+   },
+   {
+    "claim": "好市多過去大約每 5 年半調一次會員費",
+    "verdict": "supported",
+    "note": "CNBC 2024-07-10 and Cramer article: raised rates roughly every five and a half years"
+   },
+   {
+    "claim": "2022 年時，前 CFO Richard Galanti 曾說調價是「早晚的問題」",
+    "verdict": "supported",
+    "note": "CNBC 2022-12-13: Galanti said hike is 'a question of when, not if'"
+   },
+   {
+    "claim": "Galanti 同時明確表示「沒有決定何時實施」",
+    "verdict": "supported",
+    "note": "CNBC 2022-12-13: no decisions have been made about when the fee increase will be implemented"
+   },
+   {
+    "claim": "Galanti 甚至說如果等六個月也可以",
+    "verdict": "supported",
+    "note": "CNBC 2022-12-13 quote: 'If we want to do it six months from now, we can'"
+   }
+  ]
+ },
+ {
+  "id": "F0068",
+  "claims": [
+   {
+    "claim": "Tesla（TSLA）目前約 386.47 美元",
+    "verdict": "supported",
+    "note": "finnhub_stock_quote currentPrice 386.47"
+   },
+   {
+    "claim": "市值約 1.477 兆美元",
+    "verdict": "supported",
+    "note": "finnhub marketCap 1477174.8 (millions)"
+   },
+   {
+    "claim": "本益比約 388 倍",
+    "verdict": "supported",
+    "note": "peTTM 388.1174"
+   },
+   {
+    "claim": "預期本益比約 174 倍",
+    "verdict": "supported",
+    "note": "forwardPE 174.43"
+   },
+   {
+    "claim": "市銷率約 14.3 倍",
+    "verdict": "supported",
+    "note": "psTTM 14.2558 (rounds to 14.3)"
+   },
+   {
+    "claim": "TTM 營收年增約 11.75%",
+    "verdict": "supported",
+    "note": "revenueGrowthTTMYoy 11.75"
+   },
+   {
+    "claim": "TTM EPS 年減約 37.66%",
+    "verdict": "supported",
+    "note": "epsGrowthTTMYoy -37.66"
+   },
+   {
+    "claim": "淨利率約 3.67%",
+    "verdict": "supported",
+    "note": "netProfitMarginTTM 3.67"
+   },
+   {
+    "claim": "營業利益率約 4.22%",
+    "verdict": "supported",
+    "note": "operatingMarginTTM 4.22"
+   },
+   {
+    "claim": "Tesla 最新 FY2025 10-K 截至 2025-12-31",
+    "verdict": "supported",
+    "note": "sec_filing_search fiscal_year_end 2025-12-31"
+   },
+   {
+    "claim": "10-K 把下一階段成長寄託於自動駕駛、Robotaxi、新一代車款、能源儲能及 Optimus",
+    "verdict": "supported",
+    "note": "Item 7: next phase of production growth initiated by autonomy, next gen platform; Optimus; energy storage; Item 1A Robotaxi/Bots"
+   },
+   {
+    "claim": "Robotaxi 服務已於 2025 年 6 月推出",
+    "verdict": "supported",
+    "note": "Item 1A: Upon launching our Robotaxi service in June 2025"
+   },
+   {
+    "claim": "公司計畫量產 Cybercab",
+    "verdict": "supported",
+    "note": "Item 1A: plans to mass produce Cybercab"
+   },
+   {
+    "claim": "公司希望利用 AI 資料、下一代平台和自製電池降低成本、提高產量",
+    "verdict": "supported",
+    "note": "Item 7: next generation platform, own cells with high-volume output and lower costs; real-world AI data"
+   },
+   {
+    "claim": "Megapack 3、Megablock 等產品已推出",
+    "verdict": "supported",
+    "note": "Item 7: In 2025, we introduced Megapack 3 and Megablock"
+   },
+   {
+    "claim": "正在擴大上海、加州 Lathrop 等 Megafactory 的產能",
+    "verdict": "supported",
+    "note": "Item 7: ramps of our Megafactories in Shanghai and Lathrop, California"
+   },
+   {
+    "claim": "AI 基礎設施帶動電力需求，可能增加儲能需求",
+    "verdict": "supported",
+    "note": "Item 7: as AI infrastructure drives rapid load growth, we see opportunities for energy storage"
+   },
+   {
+    "claim": "10-K 承認新產品、AI 功能、Robotaxi 和產能爬坡可能出現延遲，且不保證消費者會廣泛採用",
+    "verdict": "supported",
+    "note": "Item 1A: no guarantee ... widespread consumer adoption; launch and production ramp delays"
+   },
+   {
+    "claim": "若無法按計畫量產或控制成本，可能達不到原先的收入和盈利目標",
+    "verdict": "supported",
+    "note": "Item 1A: could be unable to meet related cost and profitability targets"
+   },
+   {
+    "claim": "競爭來自傳統車廠、新能源車廠及自動駕駛和軟體平台公司",
+    "verdict": "supported",
+    "note": "Item 1A: established and new automobile manufacturers ... self-driving technology and services and software platforms"
+   },
+   {
+    "claim": "競爭可能導致降價、銷量下降、收入短缺和市佔率流失",
+    "verdict": "supported",
+    "note": "Item 1A: lower vehicle unit sales, price reductions, revenue shortfalls, loss of market share"
+   },
+   {
+    "claim": "電池供應仍依賴少數供應商",
+    "verdict": "supported",
+    "note": "Item 1A: fully qualified only a very limited number of such suppliers (Panasonic, CATL)"
+   },
+   {
+    "claim": "電池原材料價格和供應變化可能壓縮盈利能力",
+    "verdict": "supported",
+    "note": "Item 1A: increases in raw material prices may reduce our profitability"
+   }
+  ]
+ },
+ {
+  "id": "F0069",
+  "claims": [
+   {
+    "claim": "2025 年底 CET1 標準法 14.6%、進階法 14.1%",
+    "verdict": "supported",
+    "note": "10-K capital table: CET1 ratio 14.6% Standardized, 14.1% Advanced"
+   },
+   {
+    "claim": "適用的 CET1 要求為 11.5%",
+    "verdict": "supported",
+    "note": "10-K: Standardized CET1 requirement including buffers 11.5%; Advanced 11.5%"
+   },
+   {
+    "claim": "LCR 公司整體 111%，JPMorgan Chase Bank, N.A. 為 115%，均高於 100% 最低要求",
+    "verdict": "supported",
+    "note": "10-K selected ratios: Firm LCR 111, Bank LCR 115; minimum of 100%"
+   },
+   {
+    "claim": "約 1.5 兆美元流動性來源，包括約 9150 億美元 HQLA 與約 5480 億美元未抵押可出售證券",
+    "verdict": "supported",
+    "note": "10-K: HQLA ~$915B, unencumbered securities ~$548B, ~$1.5T liquidity sources"
+   },
+   {
+    "claim": "存款約 2.559 兆美元，按年增長 6%；貸存比 58%，高於前一年的 56%",
+    "verdict": "supported",
+    "note": "Deposits $2,559,320M vs $2,406,032M (6%); loans-to-deposits ratio 58 vs 56"
+   },
+   {
+    "claim": "2025 年淨收入約 1824 億美元，包括消費與社區銀行淨收入 182 億美元、商業與投資銀行 278 億美元、資產與財富管理 65 億美元",
+    "verdict": "supported",
+    "note": "Total net revenue $182,447M; segment figures match segment net income (CCB $18.2B, CIB $27.8B, AWM $6.5B), though the answer frames them as components of revenue (segment net revenues were $76.0B/$78.5B/$24.1B)"
+   },
+   {
+    "claim": "商業投資銀行收入按年增長 12%，資產與財富管理淨收入增長 20%",
+    "verdict": "supported",
+    "note": "CIB net revenue up 12%; AWM net income up 20%"
+   },
+   {
+    "claim": "2025 年淨利潤 570 億美元，ROE 17%，ROTCE 20%",
+    "verdict": "supported",
+    "note": "Net income $57,048M; ROE 17%; ROTCE 20"
+   },
+   {
+    "claim": "Finnhub TTM ROE 約 17.91%、淨利率約 33.26%",
+    "verdict": "supported",
+    "note": "roeTTM 17.91, netProfitMarginTTM 33.26"
+   },
+   {
+    "claim": "信用損失準備金 142 億美元，較 2024 年 107 億美元增加約 33%",
+    "verdict": "supported",
+    "note": "Provision for credit losses 14,212 vs 10,678, 33%"
+   },
+   {
+    "claim": "淨沖銷由 86 億美元升至 98 億美元，淨沖銷率由 0.68% 升至 0.74%",
+    "verdict": "supported",
+    "note": "Net charge-offs 9,849 vs 8,638; rate 0.74% vs 0.68%"
+   },
+   {
+    "claim": "信用卡業務淨沖銷率 3.31%，30 天以上逾期率 2.16%，與前一年大致相近",
+    "verdict": "supported",
+    "note": "Card Services NCO rate 3.31%; 30+ day delinquency 2.16% vs 2.17%"
+   },
+   {
+    "claim": "標準法 CET1 由 15.7% 降至 14.6%；進階法由 15.8% 降至 14.1%",
+    "verdict": "supported",
+    "note": "Capital table: 14.6 vs 15.7; 14.1 vs 15.8"
+   },
+   {
+    "claim": "2025 年底貸款按年增長 11%，總資產增長 11%",
+    "verdict": "supported",
+    "note": "Loans net of allowance 1,467,664 vs 1,323,643 (11); Total assets $4,424,900 vs $4,002,814, 11%"
+   },
+   {
+    "claim": "批發貸款淨沖銷率由 0.12% 升至 0.22%；批發不良貸款由 39 億美元增至 44 億美元",
+    "verdict": "supported",
+    "note": "Wholesale NCO rate 0.22% vs 0.12%; wholesale nonperforming loans 4,398 vs 3,942"
+   },
+   {
+    "claim": "科技、媒體與電訊、能源等行業出現信用評級下調",
+    "verdict": "supported",
+    "note": "Nonperforming exposure up driven by TMT, Oil & Gas, Utilities, primarily from downgrades"
+   },
+   {
+    "claim": "醫療行業出現信用評級下調或壓力",
+    "verdict": "contradicted",
+    "note": "10-K says Healthcare exposures were an offset (charge-off activity, upgrades, loan sales), not a source of downgrades"
+   },
+   {
+    "claim": "批發信用組合總額約 1.54 兆美元",
+    "verdict": "supported",
+    "note": "Total wholesale credit portfolio $1,544,441M"
+   },
+   {
+    "claim": "Markets 收入 2025 年增長 19% 至約 358 億美元，其中股票市場收入增長 33%",
+    "verdict": "supported",
+    "note": "Markets revenue $35.8B up 19%; Equity Markets $13.3B up 33%"
+   },
+   {
+    "claim": "2025 年總 VaR 平均約 40 百萬美元，最高 136 百萬美元",
+    "verdict": "supported",
+    "note": "Total VaR Avg $40M, Max $136M"
+   },
+   {
+    "claim": "10-K 提醒 VaR 在市場劇烈或流動性枯竭時可能低估損失",
+    "verdict": "supported",
+    "note": "10-K: VaR inherently limited in predicting losses, particularly market illiquidity and sudden or severe shifts"
+   },
+   {
+    "claim": "JPMorgan 預計成為 Apple Card 新發卡行，交易使其增加約 22 億美元信貸承諾準備金",
+    "verdict": "supported",
+    "note": "Chase to become new issuer of Apple Card; provision for lending-related commitments of $2.2B related to Apple Card"
+   },
+   {
+    "claim": "交易完成時總信用曝險約 1040 億美元，其中約 230 億美元為已提取貸款",
+    "verdict": "supported",
+    "note": "~$104B total credit exposure including ~$23B estimated drawn loans"
+   },
+   {
+    "claim": "股價 335.19 美元、TTM P/E 13.48 倍、P/B 2.36 倍、市值約 8895 億美元、52 週高點 366.50、低點 279.10 美元",
+    "verdict": "supported",
+    "note": "Finnhub: 335.19, peTTM 13.48, pb 2.3617, marketCap 889455.75M, 52w high 366.5, low 279.1"
+   },
+   {
+    "claim": "10-K 報告期截至 2025 年 12 月 31 日、申報日為 2026 年 2 月 13 日",
+    "verdict": "supported",
+    "note": "sec_filing_list_sections: period_of_report 2025-12-31, filing_date 2026-02-13"
+   }
+  ]
+ }
+]

@@ -1,0 +1,152 @@
+[
+{"id": "K0026", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭直接回答「是的」，官方揭露直接支持"},
+{"signal": 1, "pass": 0, "reason": "把風險因素中的「可能」說成「明確且直接地證實」，完全沒有保留"},
+{"signal": 2, "pass": 1, "reason": "主要論點都附上兩家 10-K 風險因素原文引述，有歸屬到公司揭露"}
+]},
+{"id": "K0045", "scores": [
+{"signal": 0, "pass": 1, "reason": "同時用 P/E 480 倍、Forward P/E 174 倍與 EPS -39%、營收下滑等成長數據"},
+{"signal": 1, "pass": 1, "reason": "明確結論是已提前反映極度樂觀預期"},
+{"signal": 2, "pass": 1, "reason": "把 Robotaxi、Optimus 寫成期待，並說明若商業化不如預期會回檔"}
+]},
+{"id": "K0256", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別點出沃爾瑪降級消費、好市多會員費、麥當勞平價替代與加盟現金流"},
+{"signal": 1, "pass": 1, "reason": "明確排序：沃爾瑪微幅領先，好市多次之，麥當勞再次"},
+{"signal": 2, "pass": 0, "reason": "沒有提到零售與餐飲商業模式不能直接比較；表格與結論也是空的"}
+]},
+{"id": "K0195", "scores": [
+{"signal": 0, "pass": 1, "reason": "用 CET1 14.6%、SLR、HQLA、ROTCE 等 10-K 數據支撐，不只是印象"},
+{"signal": 1, "pass": 1, "reason": "涵蓋資本水位與信用卡壞帳、提存增加等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法依然成立"}
+]},
+{"id": "K0087", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明核心是會員制，商品以近成本賣出，毛利率約 11%"},
+{"signal": 1, "pass": 1, "reason": "量化會員費約占營業利潤 50.56%，續約率 92.3%"},
+{"signal": 2, "pass": 1, "reason": "用會員費占比、續約率、黑鑽卡銷售占比等具體數據"}
+]},
+{"id": "K0008", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在第一個小標題後就斷掉，沒有實際比較兩個面向"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂的結構比較乾淨"},
+{"signal": 2, "pass": 0, "reason": "只提到輕資產標籤，沒有數據或揭露支撐"}
+]},
+{"id": "K0153", "scores": [
+{"signal": 0, "pass": 1, "reason": "談到樂園、串流、票房三個分部各自的訊號"},
+{"signal": 1, "pass": 0, "reason": "樂園與串流並列，排序的標題缺失，沒有明確單一核心"},
+{"signal": 2, "pass": 0, "reason": "沒有對證據不足的分部保留，引用也是空的"}
+]},
+{"id": "K0179", "scores": [
+{"signal": 0, "pass": 1, "reason": "用 FY2026 批發 +14%、直營 -6%、大中華區 -11%、關稅 15 億美元等訊號"},
+{"signal": 1, "pass": 1, "reason": "區分批發回溫的「局部曙光」與尚未確認的整體轉折"},
+{"signal": 2, "pass": 1, "reason": "結論是為時過早，沒有硬說已經回穩"}
+]},
+{"id": "K0068", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案被截斷，只有一個 CET1 金額，主要還是結論式斷言"},
+{"signal": 1, "pass": 0, "reason": "只碰到資本水位一項，而且沒有展開"},
+{"signal": 2, "pass": 1, "reason": "明確判斷依舊站得住腳"}
+]},
+{"id": "J0251", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 OCF/淨利、FCF/OCF、股東回饋負擔與流動性"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩，但不是壓倒性勝出"},
+{"signal": 2, "pass": 1, "reason": "列出營業現金流、資本支出、負債/權益、續卡率等數據"}
+]},
+{"id": "K0105", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明核心是會員訂閱制，商品以近成本賣出"},
+{"signal": 1, "pass": 1, "reason": "點出會員費高毛利、貢獻大部分營業利潤"},
+{"signal": 2, "pass": 0, "reason": "完全沒有數據，只有飛輪、低價引流等泛泛描述"}
+]},
+{"id": "K0228", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭直接回答官方揭露直接支持"},
+{"signal": 1, "pass": 0, "reason": "結論說「完全證實」，沒有保留風險因素只是可能性"},
+{"signal": 2, "pass": 1, "reason": "引述兩家 10-K 原文，並區分直接與間接壓縮"}
+]},
+{"id": "K0002", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案被截斷，只涵蓋 DOJ 搜尋案一條戰線"},
+{"signal": 1, "pass": 0, "reason": "只有已發生的部分，潛在壓力的內容沒寫出來"},
+{"signal": 2, "pass": 1, "reason": "唯一提到的事件是法院判決，不是媒體推測"}
+]},
+{"id": "K0145", "scores": [
+{"signal": 0, "pass": 1, "reason": "用 P/E、P/S 估值與營收 +8.3%、EPS -39% 等成長數據"},
+{"signal": 1, "pass": 1, "reason": "明確結論是已預先計入大量好消息"},
+{"signal": 2, "pass": 1, "reason": "說明 Robotaxi、Optimus 仍有落地不確定性，可能回檔"}
+]},
+{"id": "K0252", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、廣告技術案、歐盟罰款、日本與澳洲等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分成「已發生」與「潛在壓力」兩節，例如判決對上訴和救濟"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 揭露為依據，拆分方案標為待決，沒有當成已落地"}
+]},
+{"id": "K0018", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家的 OCF、CapEx、FCF 與回購、股利配置"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多比較穩健"},
+{"signal": 2, "pass": 1, "reason": "列出 CapEx 占 OCF 64% 對 41%、現金 213 億美元等具體數據"}
+]},
+{"id": "K0121", "scores": [
+{"signal": 0, "pass": 1, "reason": "依據 CNBC、Bloomberg 的出口管制新聞，判斷 ASML 較直接暴露"},
+{"signal": 1, "pass": 1, "reason": "明說無法檢視 20-F 風險因素，分析來自新聞推論"},
+{"signal": 2, "pass": 1, "reason": "管制影響都附上具體新聞來源，沒有把宏觀敘事包裝成已發生事實"}
+]},
+{"id": "J0255", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析 Alphabet、Microsoft、Apple 三家"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購、股利規模與流動比率、負債權益比"},
+{"signal": 2, "pass": 0, "reason": "Alphabet 資本支出等沒給數據的部分沒有保留，也沒說明資料缺口"}
+]},
+{"id": "K0073", "scores": [
+{"signal": 0, "pass": 0, "reason": "內容殘缺，只有泛泛的收入多元與 P/B 溢價印象，沒有數據"},
+{"signal": 1, "pass": 0, "reason": "只提到業務組合，資本與風險章節都是空的"},
+{"signal": 2, "pass": 1, "reason": "明確判斷論點依然成立"}
+]},
+{"id": "K0041", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家都有槓桿、現金流與回購數據"},
+{"signal": 1, "pass": 1, "reason": "比較回購加股利對 FCF 的比例與 D/E、流動比率"},
+{"signal": 2, "pass": 0, "reason": "沒有對缺乏直接數據的推論保留，例如斷言微軟回購沒有擴張空間"}
+]},
+{"id": "K0071", "scores": [
+{"signal": 0, "pass": 1, "reason": "分成已付與已提列的 34 億美元準備金，以及陪審團、Daubert、無法估計損失等未決部分"},
+{"signal": 1, "pass": 1, "reason": "主要依據 FY2025 10-K 揭露"},
+{"signal": 2, "pass": 0, "reason": "最後只列出不確定性，沒有收斂出整體的風險結論"}
+]},
+{"id": "J0007", "scores": [
+{"signal": 0, "pass": 1, "reason": "用本益比 457 倍、Forward 174 倍與營收 +8.3%、EPS -39% 等數據"},
+{"signal": 1, "pass": 1, "reason": "二選一明確選「已先算進太多好消息」"},
+{"signal": 2, "pass": 1, "reason": "明說 Robotaxi 等是未驗證的未來選擇權，並引用 10-K 的延遲風險"}
+]},
+{"id": "J0102", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家都有分析與排名"},
+{"signal": 1, "pass": 1, "reason": "比較回購、股利金額與流動性、槓桿指標"},
+{"signal": 2, "pass": 0, "reason": "沒有指出哪些細節缺乏直接數據，也沒有對此保留"}
+]},
+{"id": "J0004", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 FY2026 10-K 摘要管理層把電商定位成全通路核心，廣告是變現層"},
+{"signal": 1, "pass": 1, "reason": "分節說明電商與廣告各自的角色和彼此關係"},
+{"signal": 2, "pass": 1, "reason": "以公司 10-K 為依據，並指出揭露沒有給出廣告的長期目標"}
+]},
+{"id": "K0263", "scores": [
+{"signal": 0, "pass": 1, "reason": "輝達、禮來、好市多三家都有分析"},
+{"signal": 1, "pass": 1, "reason": "用前瞻 P/E 對比成長率與容錯率，說明下修邏輯"},
+{"signal": 2, "pass": 0, "reason": "直接跨產業比較 P/E，沒有保留不能直接比的部分"}
+]},
+{"id": "K0213", "scores": [
+{"signal": 0, "pass": 0, "reason": "答的是英特爾，沒有可口可樂的股息或現金流數據"},
+{"signal": 1, "pass": 0, "reason": "沒有回答可口可樂是否仍屬穩定配息公司"},
+{"signal": 2, "pass": 0, "reason": "答錯公司，完全沒有可口可樂的分析"}
+]},
+{"id": "K0253", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論是已經是高品質獲利引擎"},
+{"signal": 1, "pass": 0, "reason": "答案被截斷，沒有具體說明廣告在整體業務組合中的位置或數據"},
+{"signal": 2, "pass": 0, "reason": "承認沒有分部利潤揭露，卻仍說「絕對」「無疑」，沒有保留"}
+]},
+{"id": "K0197", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家估值倍數、成長率與近期市場敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼的期待比較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "沒有對證據不夠直接的部分保留，例如「已被計價」只是斷言"}
+]},
+{"id": "K0160", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 FY2025 10-K 的 CET1 與風險因素為主要依據"},
+{"signal": 1, "pass": 1, "reason": "區分目前資本充裕、沒有長期傷害，與潛在的長期約束"},
+{"signal": 2, "pass": 0, "reason": "結論說官方「確實證實」長期壓制 ROE，第二節卻沒有引用，屬於硬推"}
+]},
+{"id": "J0081", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析監管、交付/生產、需求三條敘事"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是監管加交付，不是需求"},
+{"signal": 2, "pass": 1, "reason": "明說單靠股價下跌不能判定是哪個因素造成"}
+]}
+]

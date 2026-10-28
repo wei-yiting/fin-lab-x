@@ -1,0 +1,122 @@
+[
+{"id": "J0215", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出季度股息0.53美元、營業現金流74.08億、股息支出87.79億等數據"},
+{"signal": 1, "pass": 1, "reason": "明確結論仍屬相對穩定的配息公司"},
+{"signal": 2, "pass": 1, "reason": "以配息年資、現金流覆蓋、負債比與債評做分析，非只靠防禦印象"}]},
+{"id": "K0185", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明核心是會員費加低毛利規模經濟，並以營業利潤組成佐證"},
+{"signal": 1, "pass": 1, "reason": "指出會員費59.07億占營業利潤約50.6%、續約率92.3%"},
+{"signal": 2, "pass": 1, "reason": "用毛利率11.09%、SKU精簡、續約率等具體機制而非泛泛描述"}]},
+{"id": "J0198", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較Meta個人化廣告與Apple App Store抽成、分發、支付等業務面"},
+{"signal": 1, "pass": 1, "reason": "區分已被迫修改與已罰款項目，和未來潛在補救措施及尾部風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷Meta直接商業衝擊較大，並附比較表"}]},
+{"id": "K0201", "scores": [
+{"signal": 0, "pass": 0, "reason": "股價段落空白、無具體數字，近期訊號僅泛述且引用缺失"},
+{"signal": 1, "pass": 1, "reason": "區分階段性打底與全面回穩恢復成長"},
+{"signal": 2, "pass": 1, "reason": "結論為現在說回穩還太早，未硬下結論"}]},
+{"id": "K0059", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭直接回答官方揭露有直接支持"},
+{"signal": 1, "pass": 0, "reason": "把風險因素中的可能性語句說成一致證實，未作任何保留"},
+{"signal": 2, "pass": 1, "reason": "論據引用兩家公司10-K自身文字，而非外部敘事"}]},
+{"id": "J0155", "scores": [
+{"signal": 0, "pass": 1, "reason": "以出口管制新聞與Finnhub數據做分項相對判斷並標信心"},
+{"signal": 1, "pass": 1, "reason": "明說無法取得20-F，台積電受限細節與暴露比例無法確認"},
+{"signal": 2, "pass": 1, "reason": "提醒成長不能全歸因AI、beta不等於基本面脆弱"}]},
+{"id": "K0124", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明官方對淨零情境不確定、政策成本、低碳業務依賴政策等描述"},
+{"signal": 1, "pass": 0, "reason": "股東回報部分內容殘缺，無具體股息回購數據，取捨關係僅泛述"},
+{"signal": 2, "pass": 1, "reason": "論述以公司揭露的returns-focused與風險描述為主"}]},
+{"id": "J0083", "scores": [
+{"signal": 0, "pass": 1, "reason": "分章區分34億準備等已見成本與卵巢癌、間皮瘤等未決不確定性"},
+{"signal": 1, "pass": 1, "reason": "大量引用FY2025 10-K的準備金、索賠人數與程序揭露"},
+{"signal": 2, "pass": 1, "reason": "明確結論滑石粉為最大風險且34億不是損失上限"}]},
+{"id": "K0269", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用3,690億現金國債、負債權益比0.17、300億回購底線"},
+{"signal": 1, "pass": 1, "reason": "明確結論財務體質極為保守"},
+{"signal": 2, "pass": 1, "reason": "註明未取得子公司債務到期細節，未硬延伸"}]},
+{"id": "K0237", "scores": [
+{"signal": 0, "pass": 1, "reason": "以出口管制新聞與中國營收占比做出口限制與AI循環的相對判斷"},
+{"signal": 1, "pass": 0, "reason": "只說明無法取得20-F，未指出哪些具體結論無法確認"},
+{"signal": 2, "pass": 0, "reason": "台積電中國占比低、易被美系需求消化等敘事當成事實陳述"}]},
+{"id": "K0004", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要10-K中全通路生態系、相互強化的官方定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商為成長核心、廣告為高毛利利潤引擎"},
+{"signal": 2, "pass": 1, "reason": "以FY2026 10-K為依據，非外部評論"}]},
+{"id": "K0081", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析需求、交付、監管三條敘事"},
+{"signal": 1, "pass": 1, "reason": "明確排序交付≥監管≫需求"},
+{"signal": 2, "pass": 1, "reason": "以backlog、取消金額、FAA限制等揭露為據，未把股價情緒當事實"}]},
+{"id": "K0133", "scores": [
+{"signal": 0, "pass": 1, "reason": "分監管、交付、需求三面向說明"},
+{"signal": 1, "pass": 1, "reason": "指出監管為最直接原因、交付為執行瓶頸，需求不是問題"},
+{"signal": 2, "pass": 1, "reason": "以10-K backlog與FAA產能限制為據，未把市場情緒當事實"}]},
+{"id": "K0131", "scores": [
+{"signal": 0, "pass": 1, "reason": "用P/E 480倍、Forward P/E 174倍與營收、EPS -39%等成長數據"},
+{"signal": 1, "pass": 1, "reason": "結論為市場已將大量長期遠景提前計入"},
+{"signal": 2, "pass": 1, "reason": "指出Robotaxi、Optimus成功是前提而非確定"}]},
+{"id": "K0144", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是Google反壟斷，未涵蓋三家公司回購"},
+{"signal": 1, "pass": 0, "reason": "未比較資本回饋與財務風險"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無相關保留"}]},
+{"id": "K0115", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到關稅成本逾4億、碳積分收入減少、EPS -39%等訊號"},
+{"signal": 1, "pass": 1, "reason": "分章區分EV業務短期衝擊與AI轉向的結構性風險"},
+{"signal": 2, "pass": 1, "reason": "結論連回Reuters獲利不如預期與關稅新聞"}]},
+{"id": "K0168", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家資產負債表、資本支出與回購結構"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "說明依據為淨現金、低負債、CapEx規模與回購槓桿等結構因素"}]},
+{"id": "K0211", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是特斯拉估值，非摩根大通"},
+{"signal": 1, "pass": 0, "reason": "未討論銀行監管的短期與長期影響"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "J0108", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較P/E、Forward P/E、營收與EPS成長等多項指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉更像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "K0170", "scores": [
+{"signal": 0, "pass": 0, "reason": "內容截斷，只有結論無任何新聞依據"},
+{"signal": 1, "pass": 0, "reason": "僅泛稱無法取得20-F，未指出哪些部分無法確認"},
+{"signal": 2, "pass": 0, "reason": "內容殘缺，無法判斷是否區分敘事與事實"}]},
+{"id": "K0245", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用10-K的CET1、SLR 5.8%及Basel III提案揭露"},
+{"signal": 1, "pass": 1, "reason": "區分目前ROE與資本仍強健和長期結構性潛在傷害"},
+{"signal": 2, "pass": 1, "reason": "結論表示未見長期實質損害，長期影響仍不確定"}]},
+{"id": "K0117", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋DOJ搜尋、AdTech、Epic、歐盟DMA等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分章區分已裁決執行與等待判決、上訴中的潛在壓力"},
+{"signal": 2, "pass": 1, "reason": "以10-K揭露為據，未把媒體推測當落地結果"}]},
+{"id": "K0220", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是波音，未比較可口可樂與百事"},
+{"signal": 1, "pass": 0, "reason": "無兩家飲料公司的相對判斷"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "K0011", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較FAA限產、供應鏈成本與引擎延遲等差異"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過"},
+{"signal": 2, "pass": 0, "reason": "空巴監管環境穩定等點無揭露依據也未保留"}]},
+{"id": "K0044", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分Galanti的when not if說法與2024年7月官方公告"},
+{"signal": 1, "pass": 0, "reason": "未直接說明下一次調漲管理層是否有明確時間點"},
+{"signal": 2, "pass": 1, "reason": "以已公告的2024年9月調漲為事實，未包裝推測"}]},
+{"id": "K0057", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要10-K中全通路生態系與利潤推動力的官方定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商與數位廣告的長期角色"},
+{"signal": 2, "pass": 1, "reason": "以FY2026 10-K為主要依據"}]},
+{"id": "K0200", "scores": [
+{"signal": 0, "pass": 0, "reason": "未區分管理層明講與市場揣測，直接斷言近期無調漲計畫"},
+{"signal": 1, "pass": 0, "reason": "未直說下一次調漲沒有明確時間點"},
+{"signal": 2, "pass": 0, "reason": "以歷史週期推測短期不會調漲卻當成確定結論"}]},
+{"id": "K0127", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用3,690億現金國債、負債權益比17.19%、300億底線"},
+{"signal": 1, "pass": 1, "reason": "明確結論極度保守"},
+{"signal": 2, "pass": 1, "reason": "內容限於10-K與Finnhub數據，未硬延伸"}]},
+{"id": "K0140", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明Visa不放款、不承擔信用風險，對比銀行賺利差"},
+{"signal": 1, "pass": 1, "reason": "以輕資產、網路效應、按交易量收費等商業模式解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "結論連回收費結構與基礎設施業務"}]},
+{"id": "K0258", "scores": [
+{"signal": 0, "pass": 0, "reason": "內容截斷，未比較兩家近期敘事與市場期待"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "無任何證據保留說明"}]}
+]

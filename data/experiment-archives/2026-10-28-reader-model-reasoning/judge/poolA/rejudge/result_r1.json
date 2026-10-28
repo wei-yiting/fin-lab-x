@@ -1,0 +1,82 @@
+[
+{"id": "J0121", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 EUV 對中禁售新聞與 Finnhub 數據做分項相對排序，並標示推論性質"},
+{"signal": 1, "pass": 1, "reason": "明說無法取得 20-F、缺台積電 AI 營收占比、無法判斷總體下行風險"},
+{"signal": 2, "pass": 1, "reason": "明確把估值收縮等標為市場推論，不代表已發生的營運損失"}]},
+{"id": "J0037", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明低毛利高周轉飛輪與同店銷售為最重要獲利驅動"},
+{"signal": 1, "pass": 1, "reason": "列出會員費 59.07 億美元、遞延認列、支撐低價策略等角色"},
+{"signal": 2, "pass": 1, "reason": "用 11.09% 毛利率、續費率 92.3%、Executive 占銷售 75.2% 等具體數據"}]},
+{"id": "J0177", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即答「有，Mastercard 更直接」"},
+{"signal": 1, "pass": 1, "reason": "保留說明揭露的是風險機制，不是宣稱已全面壓縮獲利率"},
+{"signal": 2, "pass": 1, "reason": "依 Visa 10-K 自身揭露內容，並區分風險揭露與已發生事實"}]},
+{"id": "J0214", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出股息 87.79 億美元、營業現金流 74.08 億美元、殖利率 3.14%"},
+{"signal": 1, "pass": 1, "reason": "明確結論「算是」仍屬穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "以連續 64 年增息、現金流覆蓋、信評等分析支撐，並指出覆蓋不寬裕"}]},
+{"id": "J0269", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用現金與國庫券 3,690 億美元、股東權益 7,174 億、負債權益比 0.17"},
+{"signal": 1, "pass": 1, "reason": "明確結論財務結構非常保守，並點出投資集中例外"},
+{"signal": 2, "pass": 1, "reason": "註明 Finnhub 資料無日期、流動比率不宜直接解讀，未硬延伸"}]},
+{"id": "J0196", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論「算是高品質獲利引擎，但為推定型」"},
+{"signal": 1, "pass": 1, "reason": "說明廣告占總營收 9.6%、混在北美/國際分部，並與 AWS 比較"},
+{"signal": 2, "pass": 1, "reason": "指出公司未揭露廣告營業利益，30–40% 利潤率僅為分析師估算"}]},
+{"id": "J0084", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋美國搜尋案、廣告技術案、Google Play、歐盟等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分「已經發生」「正在落地」「潛在壓力」三層並逐案說明"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 揭露之判決、罰款與上訴狀態為據，未落地部分標為未定"}]},
+{"id": "J0054", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較波音 FAA 限產與認證延誤 vs 空巴供應鏈瓶頸，並附表格"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較可能平穩穿越亂流"},
+{"signal": 2, "pass": 1, "reason": "註明兩家 Finnhub 比率非同口徑、不能視為壓力測試結果"}]},
+{"id": "J0105", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明會員驅動的銷售飛輪與規模攤薄成本機制"},
+{"signal": 1, "pass": 1, "reason": "指出會員費占營收小但為支撐低毛利的獲利支柱"},
+{"signal": 2, "pass": 0, "reason": "完全沒有具體數據，「由此可計算」後內容空白，停留在概念描述"}]},
+{"id": "J0143", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 10-K 摘要電商為全通路核心、廣告為生態系擴張一環"},
+{"signal": 1, "pass": 1, "reason": "分節說明電商與廣告各自角色及兩者關係"},
+{"signal": 2, "pass": 1, "reason": "內容皆引自沃爾瑪 FY2026 10-K，非外部評論"}]},
+{"id": "J0268", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是可口可樂與百事比較，未談波音"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未指出波音問題主因"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理波音相關市場情緒與事實"}]},
+{"id": "J0253", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論已是高品質但尚未完全透明的獲利引擎"},
+{"signal": 1, "pass": 0, "reason": "只列廣告營收與成長，未說明在亞馬遜整體業務組合中的位置"},
+{"signal": 2, "pass": 1, "reason": "指出未單獨揭露廣告營業利益率與自由現金流"}]},
+{"id": "J0019", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節討論交付/生產、監管、需求三條敘事"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是交付與生產執行，監管為約束"},
+{"signal": 2, "pass": 1, "reason": "以 10-K backlog 與損失數據為據，CNBC 觀點標明來源"}]},
+{"id": "J0210", "scores": [
+{"signal": 0, "pass": 0, "reason": "只說管理層未公布時間表，未區分或提及市場揣測"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有公開下一次調價的明確時間表"},
+{"signal": 2, "pass": 1, "reason": "未做推測，僅陳述 2024 年 9 月已調整的事實"}]},
+{"id": "J0032", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明路徑不可預測、政策壓低油氣回報、低碳商業化風險三面向"},
+{"signal": 1, "pass": 1, "reason": "說明低碳投資以回報為重點、情境評估、持續投資低成本油氣的取捨"},
+{"signal": 2, "pass": 1, "reason": "結論逐點引用 FY2025 10-K 揭露"}]},
+{"id": "J0052", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述 Meta 資料/廣告、Google 多戰線與 AI、Apple App Store/DMA 差異"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因監管直接衝擊廣告個人化與用戶互動"},
+{"signal": 2, "pass": 1, "reason": "說明難量化不等於損失最大、法律請求上限非預期損失、依不同面向排序不同"}]},
+{"id": "J0015", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 JPM FY2025 10-K 的 CET1、RWA、ROE 等揭露為基準"},
+{"signal": 1, "pass": 1, "reason": "分已發生負擔、未實現風險、尚未證明的長期傷害三層"},
+{"signal": 2, "pass": 1, "reason": "指出 10-K 未把 ROE 下降歸因於監管，不硬推長期傷害"}]},
+{"id": "J0069", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用最近一季營收 +1%、庫存 -2%、獲利 -31%、毛利率 42.2%"},
+{"signal": 1, "pass": 1, "reason": "區分初步止跌訊號與已確認反轉，並分營收/庫存/毛利三層"},
+{"signal": 2, "pass": 1, "reason": "明說稱已回穩太早，需連續數季確認"}]},
+{"id": "J0270", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明官方視轉型為高度不確定、受政策與技術制約、無單一路徑"},
+{"signal": 1, "pass": 0, "reason": "僅在結論一句帶過回報要求，未具體說明股東回報與投資取捨"},
+{"signal": 2, "pass": 1, "reason": "依 FY2025 10-K 揭露描述"}]},
+{"id": "J0109", "scores": [
+{"signal": 0, "pass": 1, "reason": "用本益比 456.9 倍、預期本益比 174.4 倍對照營收 +8.3%、EPS -39.2%"},
+{"signal": 1, "pass": 1, "reason": "明確結論偏向市場已算進大量好消息"},
+{"signal": 2, "pass": 1, "reason": "把 Robotaxi、Optimus 等標為執行假設，並以情境分析呈現"}]}
+]

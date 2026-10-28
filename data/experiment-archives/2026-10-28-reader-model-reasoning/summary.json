@@ -1,0 +1,334 @@
+{
+  "arms": [
+    {
+      "arm": "reader_luna_none",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9666666666666667,
+      "health_ci": [
+        0.9,
+        1.0
+      ],
+      "median_e2e_s": 18.53048277100121,
+      "median_e2e_ci": [
+        17.121725166497832,
+        21.39008177766421
+      ],
+      "median_ttft_s": 2.561180757164645,
+      "median_tool_calls": 4.0,
+      "median_llm_calls": 2.0,
+      "median_input_tokens": 13563.5,
+      "median_output_tokens": 1557.8333333333333,
+      "median_reasoning_tokens": 0.0,
+      "mean_cost_per_run": 0.003842222222222222,
+      "mean_cost_ci": [
+        0.003417888888888889,
+        0.0042973333333333336
+      ],
+      "total_cost_usd": 0.3458,
+      "hard_tool_errors_per_run": 0.06666666666666667,
+      "runs_at_tool_budget": 0,
+      "simplified_drift_runs": 2,
+      "health_same_across_reps": 1.0,
+      "median_within_row_e2e_cv": 0.10247347582375392,
+      "median_within_row_tool_calls_sd": 0.28867513459481287
+    },
+    {
+      "arm": "reader_luna_medium",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9222222222222223,
+      "health_ci": [
+        0.8222222222222222,
+        1.0
+      ],
+      "median_e2e_s": 24.52314586784147,
+      "median_e2e_ci": [
+        21.456951541670907,
+        27.53554987500926
+      ],
+      "median_ttft_s": 2.1984957916720305,
+      "median_tool_calls": 4.833333333333334,
+      "median_llm_calls": 2.6666666666666665,
+      "median_input_tokens": 22489.0,
+      "median_output_tokens": 2153.1666666666665,
+      "median_reasoning_tokens": 487.33333333333337,
+      "mean_cost_per_run": 0.005341,
+      "mean_cost_ci": [
+        0.004746777777777778,
+        0.005980555555555556
+      ],
+      "total_cost_usd": 0.48069,
+      "hard_tool_errors_per_run": 0.14444444444444443,
+      "runs_at_tool_budget": 4,
+      "simplified_drift_runs": 0,
+      "health_same_across_reps": 0.9666666666666667,
+      "median_within_row_e2e_cv": 0.11512522852113904,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    },
+    {
+      "arm": "reader_gemini_minimal",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9666666666666667,
+      "health_ci": [
+        0.9,
+        1.0
+      ],
+      "median_e2e_s": 15.02314388215503,
+      "median_e2e_ci": [
+        13.904836618001962,
+        15.894736569345696
+      ],
+      "median_ttft_s": 1.6970953126729,
+      "median_tool_calls": 3.0,
+      "median_llm_calls": 2.0,
+      "median_input_tokens": 17447.166666666668,
+      "median_output_tokens": 1637.1666666666665,
+      "median_reasoning_tokens": 0.0,
+      "mean_cost_per_run": 0.019154,
+      "mean_cost_ci": [
+        0.017815333333333332,
+        0.020503333333333332
+      ],
+      "total_cost_usd": 1.72386,
+      "hard_tool_errors_per_run": 0.06666666666666667,
+      "runs_at_tool_budget": 0,
+      "simplified_drift_runs": 2,
+      "health_same_across_reps": 1.0,
+      "median_within_row_e2e_cv": 0.11917028405241097,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    },
+    {
+      "arm": "reader_gemini_medium",
+      "rows": 30,
+      "runs": 90,
+      "task_errors": 0,
+      "health_mean": 0.9666666666666667,
+      "health_ci": [
+        0.9,
+        1.0
+      ],
+      "median_e2e_s": 34.63488619449587,
+      "median_e2e_ci": [
+        31.622692138674516,
+        36.95833268716039
+      ],
+      "median_ttft_s": 2.0751368261602083,
+      "median_tool_calls": 4.0,
+      "median_llm_calls": 2.3333333333333335,
+      "median_input_tokens": 20441.0,
+      "median_output_tokens": 5291.0,
+      "median_reasoning_tokens": 3605.1666666666665,
+      "mean_cost_per_run": 0.03365866666666666,
+      "mean_cost_ci": [
+        0.031501666666666664,
+        0.036109444444444444
+      ],
+      "total_cost_usd": 3.02928,
+      "hard_tool_errors_per_run": 0.08888888888888889,
+      "runs_at_tool_budget": 0,
+      "simplified_drift_runs": 0,
+      "health_same_across_reps": 1.0,
+      "median_within_row_e2e_cv": 0.14496461195774646,
+      "median_within_row_tool_calls_sd": 0.5773502691896257
+    }
+  ],
+  "contrasts": [
+    {
+      "contrast": "vs control: Luna, no reasoning",
+      "treatment": "reader_luna_none",
+      "control": "reader_luna_medium",
+      "execution_health": [
+        0.044444444444444446,
+        0.0,
+        0.12222222222222222
+      ],
+      "e2e_s": [
+        -5.8698163518022435,
+        -8.109438146695418,
+        -3.682457229555843
+      ],
+      "est_cost_usd": [
+        -0.0014987777777777777,
+        -0.0019906666666666666,
+        -0.0010136666666666666
+      ],
+      "tool_calls_total": [
+        -0.8555555555555556,
+        -1.4111111111111112,
+        -0.3444444444444444
+      ]
+    },
+    {
+      "contrast": "vs control: Gemini minimal",
+      "treatment": "reader_gemini_minimal",
+      "control": "reader_luna_medium",
+      "execution_health": [
+        0.044444444444444446,
+        0.0,
+        0.12222222222222222
+      ],
+      "e2e_s": [
+        -10.337049460618033,
+        -12.821999617610386,
+        -8.009611794417207
+      ],
+      "est_cost_usd": [
+        0.013813,
+        0.012695444444444445,
+        0.014968
+      ],
+      "tool_calls_total": [
+        -1.5111111111111113,
+        -2.0,
+        -1.0555555555555556
+      ]
+    },
+    {
+      "contrast": "vs control: Gemini medium",
+      "treatment": "reader_gemini_medium",
+      "control": "reader_luna_medium",
+      "execution_health": [
+        0.044444444444444446,
+        0.0,
+        0.12222222222222222
+      ],
+      "e2e_s": [
+        8.586971788454361,
+        6.318909273755788,
+        10.65687151574077
+      ],
+      "est_cost_usd": [
+        0.028317666666666665,
+        0.026571444444444443,
+        0.030290222222222222
+      ],
+      "tool_calls_total": [
+        -0.7666666666666667,
+        -1.2111111111111112,
+        -0.33333333333333326
+      ]
+    },
+    {
+      "contrast": "reasoning, Gemini",
+      "treatment": "reader_gemini_medium",
+      "control": "reader_gemini_minimal",
+      "execution_health": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "e2e_s": [
+        18.924021249072393,
+        17.016808330604626,
+        20.963687188899428
+      ],
+      "est_cost_usd": [
+        0.014504666666666666,
+        0.012679666666666667,
+        0.016324
+      ],
+      "tool_calls_total": [
+        0.7444444444444445,
+        0.4555555555555556,
+        1.0444444444444445
+      ]
+    },
+    {
+      "contrast": "family, low tier",
+      "treatment": "reader_gemini_minimal",
+      "control": "reader_luna_none",
+      "execution_health": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "e2e_s": [
+        -4.467233108815789,
+        -6.373321569078446,
+        -2.7525619704243987
+      ],
+      "est_cost_usd": [
+        0.015311777777777778,
+        0.014131444444444445,
+        0.016503777777777777
+      ],
+      "tool_calls_total": [
+        -0.6555555555555556,
+        -1.0555555555555556,
+        -0.2666666666666668
+      ]
+    }
+  ],
+  "health_by_source": {
+    "Tavily": {
+      "reader_luna_none": 0.75,
+      "reader_luna_medium": 0.75,
+      "reader_gemini_minimal": 0.75,
+      "reader_gemini_medium": 0.75
+    },
+    "mixed": {
+      "reader_luna_none": 1.0,
+      "reader_luna_medium": 0.8888888888888888,
+      "reader_gemini_minimal": 1.0,
+      "reader_gemini_medium": 1.0
+    },
+    "SEC": {
+      "reader_luna_none": 1.0,
+      "reader_luna_medium": 1.0,
+      "reader_gemini_minimal": 1.0,
+      "reader_gemini_medium": 1.0
+    },
+    "Finnhub": {
+      "reader_luna_none": 1.0,
+      "reader_luna_medium": 1.0,
+      "reader_gemini_minimal": 1.0,
+      "reader_gemini_medium": 1.0
+    }
+  },
+  "citations": {
+    "reader_luna_none": {
+      "runs": 90,
+      "runs_with_citations": 90,
+      "bijective": 90,
+      "sec_path_runs": {
+        "search_only": 87,
+        "neither": 3
+      }
+    },
+    "reader_luna_medium": {
+      "runs": 90,
+      "runs_with_citations": 87,
+      "bijective": 87,
+      "sec_path_runs": {
+        "search_only": 83,
+        "neither": 5,
+        "both": 2
+      }
+    },
+    "reader_gemini_minimal": {
+      "runs": 90,
+      "runs_with_citations": 89,
+      "bijective": 86,
+      "sec_path_runs": {
+        "search_only": 83,
+        "both": 1,
+        "neither": 6
+      }
+    },
+    "reader_gemini_medium": {
+      "runs": 90,
+      "runs_with_citations": 90,
+      "bijective": 89,
+      "sec_path_runs": {
+        "search_only": 79,
+        "neither": 9,
+        "both": 2
+      }
+    }
+  }
+}

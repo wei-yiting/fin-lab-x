@@ -1,0 +1,152 @@
+[
+{"id": "J0253", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭明確結論為已是高品質獲利引擎"},
+{"signal": 1, "pass": 0, "reason": "只給廣告收入規模與成長，未說明其在整體業務組合（零售、AWS）中的位置"},
+{"signal": 2, "pass": 1, "reason": "明說亞馬遜未單獨揭露廣告營業利益率與自由現金流，無法精確判斷"}
+]},
+{"id": "J0190", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出汽車銷售收入年減9%、總收入與淨利下滑等具體訊號"},
+{"signal": 1, "pass": 0, "reason": "只主張屬結構性傷害，未具體拆分哪些屬短期衝擊"},
+{"signal": 2, "pass": 0, "reason": "依據只有FY2025 10-K，未連到任何近期新聞"}
+]},
+{"id": "J0193", "scores": [
+{"signal": 0, "pass": 1, "reason": "以CET1、LCR、ROE、信貸準備等數據支撐，非重述印象"},
+{"signal": 1, "pass": 1, "reason": "同時連到資本水位、業務組合與信用成本上升等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法仍大致成立並界定適用範圍"}
+]},
+{"id": "J0067", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講沃爾瑪電商與廣告，完全未涵蓋輝達、禮來、好市多"},
+{"signal": 1, "pass": 0, "reason": "答非所問，沒有期待下修的比較邏輯"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對跨產業比較做任何保留"}
+]},
+{"id": "J0210", "scores": [
+{"signal": 0, "pass": 0, "reason": "只說管理層未公布時間表，未提及或區分市場揣測"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有公開下一次調價的明確時間表"},
+{"signal": 2, "pass": 1, "reason": "只陳述已生效的2024年9月調價，未把推測包裝成結論"}
+]},
+{"id": "J0166", "scores": [
+{"signal": 0, "pass": 1, "reason": "以10-K資本要求、風控框架及CNBC財報新聞支撐，非重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、業務多元化與信用損失準備變化等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷仍是第一梯隊穩健銀行但非低風險"}
+]},
+{"id": "J0056", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較FAA監管、供應商問題與財務緩衝的差異"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過"},
+{"signal": 2, "pass": 1, "reason": "明說未取得足夠證據證明Airbus面臨同等級監管危機"}
+]},
+{"id": "J0147", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節及表格區分已知成本（和解金、準備）與可能擴大部分"},
+{"signal": 1, "pass": 0, "reason": "僅泛稱公司表示，未引用具體揭露文件或金額，滑石粉成本數字缺失"},
+{"signal": 2, "pass": 0, "reason": "開頭主結論缺失，答案殘缺，未給出清楚的整體風險結論"}
+]},
+{"id": "J0018", "scores": [
+{"signal": 0, "pass": 1, "reason": "以表格比較兩家營業現金流、資本支出、自由現金流與資本配置"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出流動比率、負債權益比、資本支出占比等具體數據"}
+]},
+{"id": "J0059", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露直接支持"},
+{"signal": 1, "pass": 1, "reason": "保留指出是風險揭露，未證明或量化實際利潤率下降"},
+{"signal": 2, "pass": 1, "reason": "明說10-K表述的是可能風險，不是公司承認必然下降"}
+]},
+{"id": "J0242", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家資本支出負擔、現金流轉換與融資能力"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多整體較穩"},
+{"signal": 2, "pass": 1, "reason": "說明資本密集度、會員費收入、存貨週轉與供應商條件等結構因素"}
+]},
+{"id": "J0054", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明Boeing的FAA限產、認證延誤與Airbus的供應瓶頸差異"},
+{"signal": 1, "pass": 1, "reason": "明確判斷Airbus較可能平穩穿越"},
+{"signal": 2, "pass": 1, "reason": "提醒Finnhub比率與兩家規模組合非完全同口徑"}
+]},
+{"id": "J0194", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明核心是會員驅動的銷售飛輪、量大低成本高週轉"},
+{"signal": 1, "pass": 1, "reason": "點出會員費占營收小但對獲利極關鍵、提供穩定現金流與忠誠度"},
+{"signal": 2, "pass": 1, "reason": "引用10-K同店銷售、購物頻率與客單價驅動，及成本攤薄機制"}
+]},
+{"id": "J0229", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格分別評估交付、監管、需求三條敘事"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是交付與生產執行"},
+{"signal": 2, "pass": 0, "reason": "答案殘缺，backlog強勁等論點完全無證據，未區分已確認事實"}
+]},
+{"id": "J0160", "scores": [
+{"signal": 0, "pass": 1, "reason": "大量引用FY2025 10-K的資本要求、SCB、SLR與CET1數字"},
+{"signal": 1, "pass": 1, "reason": "分已確認、已有跡象、尚未確認，區分資本效率壓力與長期獲利傷害"},
+{"signal": 2, "pass": 1, "reason": "明說尚無長期ROE下滑的證據，不硬推傷害"}
+]},
+{"id": "J0103", "scores": [
+{"signal": 0, "pass": 1, "reason": "分列交付、監管、需求三條並各附證據"},
+{"signal": 1, "pass": 1, "reason": "明確指出交付與生產執行為主因"},
+{"signal": 2, "pass": 1, "reason": "明說單日股價下跌不能證明問題來源"}
+]},
+{"id": "J0172", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到交付低於預期、Model Y改款停產、稅務優惠取消、品牌忠誠度下滑等"},
+{"signal": 1, "pass": 1, "reason": "分短期、中期、長期三層區分衝擊與結構性壓力"},
+{"signal": 2, "pass": 1, "reason": "結論連回Reuters交付與品牌忠誠度報導"}
+]},
+{"id": "J0029", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家監管風險來源（廣告資料、搜尋AI、App Store抽成）"},
+{"signal": 1, "pass": 1, "reason": "明確指出Meta最難量化並說明二階效應原因"},
+{"signal": 2, "pass": 0, "reason": "未對三家無法直接比較的部分明確保留"}
+]},
+{"id": "J0090", "scores": [
+{"signal": 0, "pass": 0, "reason": "僅泛稱JPM揭露，無具體文件引用或數字，內容殘缺"},
+{"signal": 1, "pass": 1, "reason": "區分結構性拖累與已證實的長期盈利傷害"},
+{"signal": 2, "pass": 1, "reason": "明說不能直接下結論說監管已傷害盈利能力"}
+]},
+{"id": "J0089", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家估值、成長數據與近期財報新聞敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較不滿"},
+{"signal": 2, "pass": 1, "reason": "提醒股價資料可能涉及拆股口徑差異不宜直接比較"}
+]},
+{"id": "J0179", "scores": [
+{"signal": 0, "pass": 1, "reason": "以北美營收、毛利率、中國與Converse跌幅等可確認數據判斷"},
+{"signal": 1, "pass": 1, "reason": "明確區分局部初步回穩與尚未確認的全面反轉"},
+{"signal": 2, "pass": 1, "reason": "結論加上局部、初步限定並列出待驗證點"}
+]},
+{"id": "J0254", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較定價能力與業務結構兩面向"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以price/mix 4%、濃縮液占59%、Walmart占14%等數據支撐"}
+]},
+{"id": "J0241", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案截斷，只有股價與市值，缺估值倍數與成長訊號"},
+{"signal": 1, "pass": 1, "reason": "明確結論為大量好消息已先被計入"},
+{"signal": 2, "pass": 1, "reason": "把Robotaxi、FSD等寫成合理性依賴的條件，而非確定事實"}
+]},
+{"id": "J0238", "scores": [
+{"signal": 0, "pass": 1, "reason": "說清會員費支撐的低價高週轉零售飛輪"},
+{"signal": 1, "pass": 1, "reason": "量化會員費約等於營業利益50.5%並說明三層角色"},
+{"signal": 2, "pass": 1, "reason": "以商品毛利率11.09%、續費率、Executive貢獻75.2%等具體數據說明"}
+]},
+{"id": "J0104", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露直接支持"},
+{"signal": 1, "pass": 1, "reason": "保留指出摘錄未量化margin compression，只支持風險機制"},
+{"signal": 2, "pass": 1, "reason": "明說公司表述為可能重大不利風險，非宣稱必然壓縮"}
+]},
+{"id": "J0192", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要管理層對電商與廣告的官方定位"},
+{"signal": 1, "pass": 1, "reason": "同時說明電商與廣告兩者的長期角色"},
+{"signal": 2, "pass": 1, "reason": "以沃爾瑪自身表述與可比銷售定義為依據，非外部評論"}
+]},
+{"id": "J0037", "scores": [
+{"signal": 0, "pass": 1, "reason": "說清低價高週轉、大量採購與成本攤薄的賺錢核心"},
+{"signal": 1, "pass": 1, "reason": "分三層說明會員費角色並指出缺乏獨立利潤數字"},
+{"signal": 2, "pass": 1, "reason": "引用毛利率11.09%、會員費59.07億、續費率等具體數據"}
+]},
+{"id": "J0195", "scores": [
+{"signal": 0, "pass": 1, "reason": "以10-K存款、未保險存款與CNBC準備金數據支撐，非重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本流動性、業務組合與信用損失準備等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法仍合理但界定為高品質複雜銀行"}
+]},
+{"id": "J0020", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明10-K描述的政策、技術、需求三類轉型不確定性"},
+{"signal": 1, "pass": 1, "reason": "說明低碳投資須聚焦回報、保留彈性以最大化股東價值的取捨"},
+{"signal": 2, "pass": 1, "reason": "全文以FY2025 10-K為依據並說明摘錄缺回購股息數字"}
+]},
+{"id": "J0230", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講波音與空中巴士，未回答好市多會員費問題"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未說明是否有明確調價時間點"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未針對會員費推測做任何處理"}
+]}
+]

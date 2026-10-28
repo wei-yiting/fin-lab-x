@@ -1,0 +1,122 @@
+[
+{"id": "K0209", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別列出 Google、微軟、蘋果三家的數據與排名"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購股利金額與負債權益比、流動比率等風險指標"},
+{"signal": 2, "pass": 0, "reason": "全文未對缺乏直接數據的部分做任何保留或說明"}]},
+{"id": "K0189", "scores": [
+{"signal": 0, "pass": 1, "reason": "分成已看得到的 34 億美元準備金與不確定擴大部分兩節"},
+{"signal": 1, "pass": 1, "reason": "主要引用 FY2025 10-K 的準備金、原告人數與 ASC 450 揭露"},
+{"signal": 2, "pass": 1, "reason": "總結明確指出侵權訴訟體系下的裁決與和解擴大是最大風險"}]},
+{"id": "J0166", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 CET1 要求、信用損失準備等數據支撐而非只重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、業務多元化與信用準備等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷仍大致站得住但屬相對穩健"}]},
+{"id": "K0135", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是埃克森美孚能源轉型，非摩根大通"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未談摩根大通業務或資本"},
+{"signal": 2, "pass": 0, "reason": "未對摩根大通穩健說法給出判斷"}]},
+{"id": "K0101", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是嬌生訴訟，未比較沃爾瑪與好市多"},
+{"signal": 1, "pass": 0, "reason": "未給出沃爾瑪與好市多誰較穩的判斷"},
+{"signal": 2, "pass": 0, "reason": "無兩家公司的比較依據"}]},
+{"id": "K0030", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 10-K 代工虧損與減值數據對應新聞所報導的事件"},
+{"signal": 1, "pass": 0, "reason": "直接下「絕對足以」的強結論，未保留"},
+{"signal": 2, "pass": 0, "reason": "以「絕對」定調結構性惡化，超出可確認風險層級"}]},
+{"id": "K0207", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 10-K 大中華區與 Converse 狀況、股價與分析師降評"},
+{"signal": 1, "pass": 1, "reason": "區分階段性打底與全面回穩"},
+{"signal": 2, "pass": 1, "reason": "結論為現在說回穩還太早，未硬下結論"}]},
+{"id": "K0230", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答波音與空巴，未談好市多會員費"},
+{"signal": 1, "pass": 0, "reason": "未說明會員費調漲時間點"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "K0225", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案中斷，只寫到銀行收存款做放款，未說清差異"},
+{"signal": 1, "pass": 0, "reason": "未展開商業模式層面的穩定性來源"},
+{"signal": 2, "pass": 0, "reason": "無結論連回 Visa 業務結構"}]},
+{"id": "K0072", "scores": [
+{"signal": 0, "pass": 0, "reason": "各節標題下皆無股息或現金流具體數據"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍是穩定配息公司"},
+{"signal": 2, "pass": 0, "reason": "缺乏數據分析，僅以穩定、低波動印象作結"}]},
+{"id": "K0248", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答特斯拉與輝達估值，未談蘋果與 Meta"},
+{"signal": 1, "pass": 0, "reason": "未區分監管合規措施與商業影響"},
+{"signal": 2, "pass": 0, "reason": "未對蘋果與 Meta 衝擊給出相對判斷"}]},
+{"id": "K0238", "scores": [
+{"signal": 0, "pass": 1, "reason": "以毛利扣 SG&A 與營業利潤拆解說明會員費為獲利核心"},
+{"signal": 1, "pass": 1, "reason": "算出會員費約占營業利潤 50.56% 並列續約率"},
+{"signal": 2, "pass": 1, "reason": "用財報數據與會員結構分析，非泛泛描述"}]},
+{"id": "K0246", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 PE、Forward PE、EPS 與營收成長率"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非投資建議"}]},
+{"id": "J0103", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別論述交付、監管、需求三條敘事"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是交付與生產執行"},
+{"signal": 2, "pass": 1, "reason": "說明單日股價下跌不能證明問題來源"}]},
+{"id": "K0009", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答 Visa 商業模式，未提特斯拉事件"},
+{"signal": 1, "pass": 0, "reason": "未區分特斯拉短期與結構性壓力"},
+{"signal": 2, "pass": 0, "reason": "無連回特斯拉新聞的結論"}]},
+{"id": "K0017", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較業務結構與定價能力兩節"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以濃縮液占 85% 銷量、裝瓶合約定價權等結構因素支撐"}]},
+{"id": "K0166", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 CET1 14.6%、信貸準備等數據支撐"},
+{"signal": 1, "pass": 1, "reason": "涵蓋資本水位、收入多元化與信用卡利率上限等風險"},
+{"signal": 2, "pass": 1, "reason": "明確結論論點依然成立"}]},
+{"id": "J0132", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 CET1、LCR、信用損失準備等數據分析"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、業務分散與私募信貸等近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷大致站得住並界定成立範圍"}]},
+{"id": "K0159", "scores": [
+{"signal": 0, "pass": 0, "reason": "短期衝擊段落為空，只泛提關稅與 FSD，無具體事件數據"},
+{"signal": 1, "pass": 1, "reason": "分出短期衝擊與長期結構性風險兩部分"},
+{"signal": 2, "pass": 0, "reason": "結論未引用任何近期新聞依據"}]},
+{"id": "K0092", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、廣告技術案、Play、歐盟等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分成已發生裁決與潛在壓力兩節"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 與法院進度為據，拆分等列為潛在可能"}]},
+{"id": "K0014", "scores": [
+{"signal": 0, "pass": 0, "reason": "內容大多為空，僅一句前財務長說法，未區分揣測"},
+{"signal": 1, "pass": 0, "reason": "未說明管理層是否給出明確時間點"},
+{"signal": 2, "pass": 0, "reason": "標題寫詳細調漲時間點卻無內容，無法判斷是否區分推測"}]},
+{"id": "J0041", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格與分段涵蓋 Google、微軟、蘋果三家"},
+{"signal": 1, "pass": 1, "reason": "比較回購規模與流動比率、負債權益比"},
+{"signal": 2, "pass": 0, "reason": "未明確指出哪些細節缺乏直接數據"}]},
+{"id": "K0239", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答 Nike 是否回穩，未談 Visa 與 Mastercard 揭露"},
+{"signal": 1, "pass": 0, "reason": "答非所問"},
+{"signal": 2, "pass": 0, "reason": "未處理監管敘事"}]},
+{"id": "K0080", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 10-K 數據為主，媒體報導另行標註"},
+{"signal": 1, "pass": 0, "reason": "開頭即「是的」下強結論，未保留"},
+{"signal": 2, "pass": 0, "reason": "定調為結構性惡化，超出可確認風險層級描述"}]},
+{"id": "K0100", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到淨利率 3.11%、交付 164 萬輛、稅收抵免取消等訊號"},
+{"signal": 1, "pass": 1, "reason": "分成短期衝擊與長期論點兩節"},
+{"signal": 2, "pass": 1, "reason": "結論引用 CNBC 新聞與 10-K 依據"}]},
+{"id": "K0222", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述 Google 搜尋與廣告技術、Meta 廣告模式、蘋果 App Store"},
+{"signal": 1, "pass": 1, "reason": "指出 Google 最難量化並說明拆分與無法估算損失"},
+{"signal": 2, "pass": 0, "reason": "未對三家無法直接比較之處做保留"}]},
+{"id": "K0079", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案中斷，僅概念性提到樂園與串流，無具體訊號"},
+{"signal": 1, "pass": 1, "reason": "明確說樂園業務決定獲利基本盤"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足分部做保留"}]},
+{"id": "J0179", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用北美營收、毛利率、大中華區跌幅等近期數據"},
+{"signal": 1, "pass": 1, "reason": "區分局部初步穩定與尚未確認的全面反轉"},
+{"signal": 2, "pass": 1, "reason": "結論加上局部、初步限定，未硬下結論"}]},
+{"id": "J0146", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述沃爾瑪必需品、好市多會員制、麥當勞加盟模式"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪、好市多、麥當勞排序"},
+{"signal": 2, "pass": 1, "reason": "說明業務韌性不等於股價報酬並依不同重視面向區分"}]},
+{"id": "K0262", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答摩根大通監管資本，未談特斯拉估值"},
+{"signal": 1, "pass": 0, "reason": "未對特斯拉估值給出結論"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]}
+]

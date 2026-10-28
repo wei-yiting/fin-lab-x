@@ -1,0 +1,170 @@
+[
+  {
+    "ticker": "TSLA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 4.1,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 3.9
+  },
+  {
+    "ticker": "DIS",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 4.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "BA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 5.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "INTC",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 9.3,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "JNJ",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 5.5,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "GOOGL",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "JPM",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 43.5,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 123.6
+  },
+  {
+    "ticker": "AAPL",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 2.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "META",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 10.0,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'META' not found on SEC EDGAR.",
+    "sec_filing_search_s": 71.7
+  },
+  {
+    "ticker": "WMT",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'WMT' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 15.8,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'WMT' not found on SEC EDGAR.",
+    "sec_filing_search_s": 16.1
+  },
+  {
+    "ticker": "XOM",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'XOM' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 16.3,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'XOM' not found on SEC EDGAR.",
+    "sec_filing_search_s": 15.7
+  },
+  {
+    "ticker": "V",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'V' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 16.0,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'V' not found on SEC EDGAR.",
+    "sec_filing_search_s": 16.0
+  },
+  {
+    "ticker": "MA",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'MA' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 16.5,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'MA' not found on SEC EDGAR.",
+    "sec_filing_search_s": 16.2
+  },
+  {
+    "ticker": "COST",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'COST' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 15.6,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'COST' not found on SEC EDGAR.",
+    "sec_filing_search_s": 16.6
+  },
+  {
+    "ticker": "AMZN",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'AMZN' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 15.9,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'AMZN' not found on SEC EDGAR.",
+    "sec_filing_search_s": 15.9
+  },
+  {
+    "ticker": "KO",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'KO' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 15.7,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'KO' not found on SEC EDGAR.",
+    "sec_filing_search_s": 16.0
+  },
+  {
+    "ticker": "PEP",
+    "sec_filing_list_sections_error": "TickerNotFoundError: Ticker 'PEP' not found on SEC EDGAR.",
+    "sec_filing_list_sections_s": 15.7,
+    "sec_filing_search_error": "TickerNotFoundError: Ticker 'PEP' not found on SEC EDGAR.",
+    "sec_filing_search_s": 16.2
+  },
+  {
+    "ticker": "BRK-B",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 32.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 2.3
+  },
+  {
+    "ticker": "MSFT",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 1.0
+  },
+  {
+    "ticker": "NVDA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.8,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "NFLX",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 6.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "LLY",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "NKE",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 2.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.8
+  },
+  {
+    "ticker": "MCD",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.4,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  }
+]

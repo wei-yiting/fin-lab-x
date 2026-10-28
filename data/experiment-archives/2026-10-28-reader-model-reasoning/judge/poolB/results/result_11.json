@@ -1,0 +1,42 @@
+[
+{"id": "K0066", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，表格只列一列主要獲利來源，未具體說明各業務如何受衝擊"},
+{"signal": 1, "pass": 0, "reason": "完全沒有區分已執行的合規措施與潛在商業影響"},
+{"signal": 2, "pass": 1, "reason": "開頭明確結論 Meta 的直接商業衝擊較大"}]},
+{"id": "K0096", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格比較 P/E、Forward P/E、營收與 EPS 成長率等多項指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已反映在股價上"},
+{"signal": 2, "pass": 0, "reason": "沒有說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "K0243", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較迪士尼線性電視/ESPN 轉型擔憂與 Netflix 廣告、體育、停報訂戶數等敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼的期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "數據表為空仍斷言結論，未對證據不足處保留"}]},
+{"id": "K0119", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別以需求、監管、交付/生產三段分析"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因為 FAA 監管與交付受阻，需求面不是瓶頸"},
+{"signal": 2, "pass": 1, "reason": "論點以 10-K 與報導為據，股價下跌僅陳述數據未當成原因事實"}]},
+{"id": "K0149", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 P/E、Forward P/E、EPS 成長率、淨利率等指標"},
+{"signal": 1, "pass": 1, "reason": "最終結論明確指出特斯拉較像好消息已反映在股價"},
+{"signal": 2, "pass": 0, "reason": "沒有說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "K0176", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 FY2026 10-K 與 MD&A 摘要管理層對全通路生態的定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商為成長引擎、廣告為高毛利業務組合優化"},
+{"signal": 2, "pass": 1, "reason": "內容以公司 10-K 揭露為主，非外部評論"}]},
+{"id": "K0142", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 2024 年管理層正式宣布與先前市場猜測及 5 年半規律"},
+{"signal": 1, "pass": 0, "reason": "只說 2024 年已調漲，未直接說明下一次調漲管理層並無明確時間點"},
+{"signal": 2, "pass": 1, "reason": "已確認事項附 10-K 與報導來源，未把推測包裝成結論"}]},
+{"id": "K0110", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家估值、成長與線性電視衰退、Netflix 高成長等敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼的市場期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "未對證據不夠直接的部分做任何保留"}]},
+{"id": "K0065", "scores": [
+{"signal": 0, "pass": 0, "reason": "ASML 部分有新聞來源，但台積電 AI 循環暴露判斷多為推論且引用 ASML 報導"},
+{"signal": 1, "pass": 1, "reason": "證據侷限段落明說 20-F 無法調閱、細部營收影響無法驗證"},
+{"signal": 2, "pass": 1, "reason": "AI 循環風險以條件句表述，未把宏觀敘事寫成已發生事實"}]},
+{"id": "K0270", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 10-K 將轉型描述為重大不確定性、依賴政策與技術，並提 2050 淨零目標"},
+{"signal": 1, "pass": 0, "reason": "回答截斷，股東回報平衡只有一句策略標題，未說明取捨關係"},
+{"signal": 2, "pass": 1, "reason": "現有內容以 10-K 官方揭露為基礎"}]}
+]

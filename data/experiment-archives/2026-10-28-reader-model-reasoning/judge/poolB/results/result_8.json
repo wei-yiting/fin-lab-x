@@ -1,0 +1,122 @@
+[
+{"id": "K0010", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 FY2026 10-K 摘要管理層將兩者定位為全通路生態系利潤擴張核心引擎"},
+{"signal": 1, "pass": 0, "reason": "僅將電商與廣告合併一句帶過，回答截斷未分別說明各自角色"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 官方揭露為依據，非僅外部評論"}]},
+{"id": "K0152", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、票房三分部並附 FY2025 數據"},
+{"signal": 1, "pass": 1, "reason": "明確指出樂園與體驗業務為第一優先"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的分部判斷作任何保留"}]},
+{"id": "K0088", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家公司皆有分析與排序"},
+{"signal": 1, "pass": 1, "reason": "以本益比與成長率錯配說明下修邏輯"},
+{"signal": 2, "pass": 0, "reason": "直接跨產業比較本益比，未保留不可比之處"}]},
+{"id": "K0241", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，僅泛稱數百倍本益比與成長壓力，無具體數據"},
+{"signal": 1, "pass": 1, "reason": "明確結論為已預先反映大量好消息"},
+{"signal": 2, "pass": 1, "reason": "將 Robotaxi、Optimus 等描述為市場預期而非已實現事實"}]},
+{"id": "K0194", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明核心為會員訂閱制，商品近成本售出"},
+{"signal": 1, "pass": 1, "reason": "指出會員費貢獻絕大部分營業利潤與穩定現金流"},
+{"signal": 2, "pass": 1, "reason": "以低毛利商品搭配會員費的獲利機制說明，非泛泛描述"}]},
+{"id": "K0108", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 TTM/Forward P/E、營收與 EPS 成長、利潤率"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已大多反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非投資建議"}]},
+{"id": "J0244", "scores": [
+{"signal": 0, "pass": 1, "reason": "清楚區分 Visa 不放款不承擔信用風險與銀行放款模式"},
+{"signal": 1, "pass": 1, "reason": "以收入來源、資本密集度、網路效應等商業模式解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "總結將結論連到支付網路收費與銀行資產負債表結構"}]},
+{"id": "J0109", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 P/E、預期 P/E 與營收、EPS 成長數據"},
+{"signal": 1, "pass": 1, "reason": "結論明確偏向市場已算進大量好消息"},
+{"signal": 2, "pass": 1, "reason": "明說多數仍是執行假設，並以情境分析區分"}]},
+{"id": "K0040", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 FY2025 10-K 資本比率與揭露為主"},
+{"signal": 1, "pass": 0, "reason": "未區分短期壓力與長期獲利傷害，只說沒有傷害"},
+{"signal": 2, "pass": 0, "reason": "斷言未造成任何實質損害、轉化為競爭優勢，超出證據"}]},
+{"id": "K0204", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明四方模式下 Visa 不發卡不承擔違約風險"},
+{"signal": 1, "pass": 1, "reason": "以輕資產、營運槓桿、網路效應解釋穩定來源"},
+{"signal": 2, "pass": 1, "reason": "總結連到過路費模式與銀行利差模式的結構差異"}]},
+{"id": "K0082", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是 Meta 與 Apple 監管衝擊，非特斯拉與輝達"},
+{"signal": 1, "pass": 0, "reason": "未對特斯拉與輝達作任何判斷"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無相關說明"}]},
+{"id": "J0245", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 FY2025 10-K 資本比率、RWA、SCB 等揭露回答"},
+{"signal": 1, "pass": 1, "reason": "區分資本效率負擔與尚未證實的長期獲利傷害"},
+{"signal": 2, "pass": 1, "reason": "明說 10-K 未量化 ROE 損失，不能視為永久傷害"}]},
+{"id": "K0094", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節列出已支付與準備金 34 億美元及未決訴訟不確定性"},
+{"signal": 1, "pass": 1, "reason": "以 FY2025 10-K 揭露為主要依據"},
+{"signal": 2, "pass": 0, "reason": "未給出總結性的風險結論，結尾僅附股價"}]},
+{"id": "K0198", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告業務與蘋果 App Store 及搜尋授權金"},
+{"signal": 1, "pass": 1, "reason": "區分已推出 LPA、已調整抽成與可能罰款及授權金風險"},
+{"signal": 2, "pass": 1, "reason": "明確判定 Meta 衝擊較大、蘋果相對可控"}]},
+{"id": "K0257", "scores": [
+{"signal": 0, "pass": 0, "reason": "僅開頭點名三家，分析內容殘缺且未標明對應公司"},
+{"signal": 1, "pass": 0, "reason": "比較表空白，下修邏輯只剩零碎片段"},
+{"signal": 2, "pass": 0, "reason": "無任何跨產業不可比的保留"}]},
+{"id": "K0164", "scores": [
+{"signal": 0, "pass": 0, "reason": "將新聞與財報混為一談，斷言報導真實反映基本面"},
+{"signal": 1, "pass": 0, "reason": "直接下結構性惡化的強結論，未談證據限制"},
+{"signal": 2, "pass": 0, "reason": "超出可確認層級，將新聞內容作為確定事實"}]},
+{"id": "K0111", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家公司皆有分析與排序"},
+{"signal": 1, "pass": 1, "reason": "以估值與成長脫節、PEG 與盈餘消化能力說明邏輯"},
+{"signal": 2, "pass": 0, "reason": "直接跨產業比較本益比，未保留不可比之處"}]},
+{"id": "K0064", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是特斯拉利空，非 Visa 與銀行比較"},
+{"signal": 1, "pass": 0, "reason": "未談 Visa 商業模式"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未連到 Visa 業務結構"}]},
+{"id": "K0205", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明 Meta 廣告與拆分、Google 搜尋與 Ad Tech、蘋果抽成與 TAC"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因競價廣告動態與拆分網路效應難估"},
+{"signal": 2, "pass": 0, "reason": "未對三家無法直接比較之處作保留"}]},
+{"id": "K0203", "scores": [
+{"signal": 0, "pass": 0, "reason": "未區分負面新聞與已確認事實，直接定調為結構性惡化"},
+{"signal": 1, "pass": 0, "reason": "直接下強結論，未說明證據限制"},
+{"signal": 2, "pass": 0, "reason": "以結構性惡化定調，超出可確認風險層級"}]},
+{"id": "K0137", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是三家公司回購餘裕，非 Google 反壟斷"},
+{"signal": 1, "pass": 0, "reason": "未區分反壟斷已發生與潛在壓力"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "K0231", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露直接支持該說法"},
+{"signal": 1, "pass": 0, "reason": "將風險因子的可能性敘述當直接證據，未作保留"},
+{"signal": 2, "pass": 0, "reason": "把可能性風險說成官方直接證實，總結另加未引用的外部監管敘事"}]},
+{"id": "J0046", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明沃爾瑪必需品、好市多會員制、麥當勞加盟品牌"},
+{"signal": 1, "pass": 1, "reason": "明確排序沃爾瑪≈好市多＞麥當勞，並選沃爾瑪"},
+{"signal": 2, "pass": 1, "reason": "分面向排序、註明非股價排名並依情境保留"}]},
+{"id": "K0212", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，只有結論與 Google 標題，未分析三家"},
+{"signal": 1, "pass": 0, "reason": "未實際比較資本回饋與財務風險"},
+{"signal": 2, "pass": 0, "reason": "無任何數據保留說明"}]},
+{"id": "K0249", "scores": [
+{"signal": 0, "pass": 1, "reason": "以中國營收佔比等可引用新聞做相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明說 20-F 內文未檢索，資料僅來自新聞"},
+{"signal": 2, "pass": 1, "reason": "MATCH Act 標明為提案，未把宏觀敘事當已發生事實"}]},
+{"id": "K0219", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出每股股利、殖利率、股利總額與營業現金流"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍屬穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "以連續 64 年調升與現金流數據分析，非僅防禦印象"}]},
+{"id": "K0078", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家風險來源與 10-K 揭露"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因廣告模式與拆分衝擊非線性"},
+{"signal": 2, "pass": 0, "reason": "未對無法直接比較的部分作保留"}]},
+{"id": "K0046", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家韌性來源並附數據"},
+{"signal": 1, "pass": 1, "reason": "明確指出好市多綜合韌性最強"},
+{"signal": 2, "pass": 1, "reason": "指出三者韌性展現在不同維度並依面向給條件式判斷"}]},
+{"id": "K0123", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家估值與線性電視、廣告成長等敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "未對證據不夠直接的部分作保留"}]},
+{"id": "K0062", "scores": [
+{"signal": 0, "pass": 0, "reason": "內容殘缺，未區分負面新聞與已確認事實"},
+{"signal": 1, "pass": 0, "reason": "直接下結構性惡化強結論，無證據限制說明"},
+{"signal": 2, "pass": 0, "reason": "超出可確認層級定調，且缺乏具體證據"}]}
+]

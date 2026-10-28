@@ -1,0 +1,82 @@
+{
+  "control": "reader_luna_medium",
+  "quality_margin": -0.03,
+  "routing_margin": -0.1,
+  "arms": {
+    "reader_luna_none": {
+      "signal_pass_rate_delta": [
+        0.0037037037037037017,
+        -0.03333333333333334,
+        0.04074074074074074
+      ],
+      "routing_recall_delta": [
+        0.044444444444444446,
+        -0.011111111111111112,
+        0.11111111111111112
+      ],
+      "mean_cost_per_run": 0.003842222222222222,
+      "mean_cost_ci": [
+        0.003417888888888889,
+        0.0042973333333333336
+      ],
+      "median_e2e_s": 18.53048277100121,
+      "checks": {
+        "quality_non_inferior": false,
+        "discrimination_passed": true,
+        "routing_not_worse": true
+      },
+      "acceptable": false
+    },
+    "reader_gemini_minimal": {
+      "signal_pass_rate_delta": [
+        -0.15185185185185185,
+        -0.23703703703703705,
+        -0.07407407407407408
+      ],
+      "routing_recall_delta": [
+        -0.14444444444444446,
+        -0.2777777777777778,
+        -0.03333333333333333
+      ],
+      "mean_cost_per_run": 0.019154,
+      "mean_cost_ci": [
+        0.017815333333333332,
+        0.020503333333333332
+      ],
+      "median_e2e_s": 15.02314388215503,
+      "checks": {
+        "quality_non_inferior": false,
+        "discrimination_passed": true,
+        "routing_not_worse": false
+      },
+      "acceptable": false
+    },
+    "reader_gemini_medium": {
+      "signal_pass_rate_delta": [
+        -0.12962962962962962,
+        -0.2111111111111111,
+        -0.06296296296296296
+      ],
+      "routing_recall_delta": [
+        -0.05555555555555556,
+        -0.15555555555555556,
+        0.02222222222222223
+      ],
+      "mean_cost_per_run": 0.03365866666666666,
+      "mean_cost_ci": [
+        0.031501666666666664,
+        0.036109444444444444
+      ],
+      "median_e2e_s": 34.63488619449587,
+      "checks": {
+        "quality_non_inferior": false,
+        "discrimination_passed": true,
+        "routing_not_worse": false
+      },
+      "acceptable": false
+    }
+  },
+  "acceptable": [],
+  "recommendation": "reader_luna_medium",
+  "recommendation_reason": "no arm met every condition; stay on the control"
+}

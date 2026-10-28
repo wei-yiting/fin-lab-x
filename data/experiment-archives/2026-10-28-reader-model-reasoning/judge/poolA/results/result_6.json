@@ -1,0 +1,122 @@
+[
+{"id": "J0134", "scores": [
+{"signal": 0, "pass": 1, "reason": "引 10-K 說明 Visa 不發卡不放款、發卡行承擔信用風險，對比銀行利差模式"},
+{"signal": 1, "pass": 1, "reason": "以信用風險轉移、網路規模、收入結構解釋穩定來源"},
+{"signal": 2, "pass": 1, "reason": "結論連到 VisaNet 處理收費與收入分類等業務結構"}]},
+{"id": "J0156", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確對比過路費網路與承擔信用損失的放款銀行"},
+{"signal": 1, "pass": 1, "reason": "用四方模式、交易量乘費率、網路效應說明穩定來源"},
+{"signal": 2, "pass": 1, "reason": "總結列出不直接放款、交易收費等業務結構因素"}]},
+{"id": "J0069", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用最近一季營收+1%、庫存-2%、毛利率降3.2個百分點等訊號"},
+{"signal": 1, "pass": 1, "reason": "明確區分初步止跌與已確認反轉，並分營收/庫存/獲利三層"},
+{"signal": 2, "pass": 1, "reason": "結論為稱已回穩仍太早，並列出待確認條件"}]},
+{"id": "J0119", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別討論交付生產、監管、需求三條敘事"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是生產／交付"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 與 Reuters 事實為據，需求風險標為中長期風險"}]},
+{"id": "J0259", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節比較定價能力（price/mix）與業務結構（濃縮液占比、裝瓶）"},
+{"signal": 1, "pass": 1, "reason": "明確判斷 KO 較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以 85% 濃縮液、PEP 36% 裝瓶營收、利潤率等數據支撐"}]},
+{"id": "J0255", "scores": [
+{"signal": 0, "pass": 1, "reason": "Alphabet、Microsoft、Apple 三家皆有分析"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購金額與流動比率、負債權益比等風險指標"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏直接數據的細節（如資本支出規模）做明確保留"}]},
+{"id": "J0236", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家公司均有獨立段落"},
+{"signal": 1, "pass": 1, "reason": "比較回購股利與流動性、槓桿指標"},
+{"signal": 2, "pass": 0, "reason": "未說明資料缺口，且蘋果回購 907 與 893 億數字不一致未交代"}]},
+{"id": "J0072", "scores": [
+{"signal": 0, "pass": 0, "reason": "只泛稱股息高於營業現金流，沒有任何具體股息或現金流數字"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍屬相對穩定配息公司"},
+{"signal": 2, "pass": 0, "reason": "論據殘缺薄弱，主要仍以防禦型標籤作結"}]},
+{"id": "J0098", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格與內文比較定價能力與業務複雜度"},
+{"signal": 1, "pass": 1, "reason": "明確選 KO 較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以濃縮液與成品毛利差異、PEP 分部與原物料曝險論證"}]},
+{"id": "J0251", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 OCF、FCF、資本支出、股東回饋比較兩家"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩但非壓倒性"},
+{"signal": 2, "pass": 1, "reason": "列出 FCF/OCF 59% vs 36%、負債權益比等依據"}]},
+{"id": "J0105", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明會員驅動的銷售飛輪與薄利高周轉為核心"},
+{"signal": 1, "pass": 1, "reason": "指出會員費占營收小但為獲利支柱"},
+{"signal": 2, "pass": 1, "reason": "以會員費邊際利潤、續會鎖定、Executive 會員等機制說明"}]},
+{"id": "J0108", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 P/E、Forward P/E、營收與 EPS 成長等多項指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "J0131", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 P/E 456.9 倍與營收+8.3%、EPS-39.2% 等估值與成長數據"},
+{"signal": 1, "pass": 1, "reason": "結論為更接近好消息已被提前反映"},
+{"signal": 2, "pass": 1, "reason": "Robotaxi 等以條件式情境呈現並列出不確定性"}]},
+{"id": "J0121", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 EUV 出口管制報導與 Finnhub 數據做相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明說無法量化營收影響、缺 20-F 與 AI 占比資料"},
+{"signal": 2, "pass": 1, "reason": "估值收縮明確標為市場推論而非已發生損失"}]},
+{"id": "J0182", "scores": [
+{"signal": 0, "pass": 1, "reason": "整理 10-K 中政策、技術、市場、轉型速度四類風險"},
+{"signal": 1, "pass": 1, "reason": "說明回報紀律、200 億回購與股息的資本配置取捨"},
+{"signal": 2, "pass": 1, "reason": "結論以 FY2025 10-K 揭露為主"}]},
+{"id": "J0250", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案中斷，未提出任何具體官方揭露內容"},
+{"signal": 1, "pass": 0, "reason": "未實際區分短期壓力與長期獲利傷害"},
+{"signal": 2, "pass": 1, "reason": "結論明說揭露不足以證明長期傷害"}]},
+{"id": "J0205", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明 Meta、Google、Apple 不同監管風險來源"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因風險連鎖影響廣告與互動"},
+{"signal": 2, "pass": 1, "reason": "區分難量化與損失最大，指出 Google 可能結構性補救最具破壞性"}]},
+{"id": "J0026", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答有直接支持"},
+{"signal": 1, "pass": 1, "reason": "說明 10-K 為前瞻風險陳述，非已證明利潤下降"},
+{"signal": 2, "pass": 1, "reason": "引用公司自身措辭，區分機制風險與必然結果"}]},
+{"id": "J0137", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談三家公司回購，未涉及反壟斷戰線"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未區分已發生與潛在反壟斷行動"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理媒體推測問題"}]},
+{"id": "J0209", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家公司均有分析"},
+{"signal": 1, "pass": 1, "reason": "比較回購占自由現金流比例與槓桿流動性"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏直接數據的細節做明確保留"}]},
+{"id": "J0126", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要 10-K 中管理層對全通路與生態系的定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商與廣告的長期角色"},
+{"signal": 2, "pass": 1, "reason": "依據 FY2026 10-K 官方說法而非外部評論"}]},
+{"id": "J0053", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論為高品質獲利引擎並附條件"},
+{"signal": 1, "pass": 1, "reason": "說明廣告收入占比約 9.6% 及對北美與國際分部利益的作用"},
+{"signal": 2, "pass": 1, "reason": "明說公司未披露廣告獨立利潤率，無法量化"}]},
+{"id": "J0263", "scores": [
+{"signal": 0, "pass": 1, "reason": "輝達、禮來、好市多三家皆有分析"},
+{"signal": 1, "pass": 1, "reason": "以預期集中度、觸發點與估值敏感度說明排序邏輯"},
+{"signal": 2, "pass": 0, "reason": "未明確對跨產業不可直接比較的部分做保留"}]},
+{"id": "J0269", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億現金國庫券、負債權益比 0.17 等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論為財務結構非常保守"},
+{"signal": 2, "pass": 1, "reason": "註明 Finnhub 無資料日期、流動比率不宜直接解讀"}]},
+{"id": "J0240", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋串流、樂園、票房三分部訊號與數據"},
+{"signal": 1, "pass": 1, "reason": "明確排序串流獲利化為第一"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足之處做保留，引用 2022 年舊報導未說明"}]},
+{"id": "J0168", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案中斷，只呈現沃爾瑪現金流數據，未實際比較好市多"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "說明依據為資本支出負擔、資產負債表與現金緩衝，並列沃爾瑪數據"}]},
+{"id": "J0153", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋串流、樂園、票房訊號"},
+{"signal": 1, "pass": 1, "reason": "明確指出串流獲利最該看"},
+{"signal": 2, "pass": 0, "reason": "完全無數據也未對證據不足做保留"}]},
+{"id": "J0052", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家監管風險來源與傳導路徑"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化及其資料、廣告、結構性救濟原因"},
+{"signal": 2, "pass": 1, "reason": "註明求償上限非預期損失、難量化不代表風險較大"}]},
+{"id": "J0038", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談摩根大通，未描述埃克森美孚轉型風險"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未談埃克森股東回報取捨"},
+{"signal": 2, "pass": 0, "reason": "未引用埃克森美孚任何揭露"}]},
+{"id": "J0008", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案中斷，只談 KO 定價能力，未比較業務結構"},
+{"signal": 1, "pass": 1, "reason": "明確選 KO 較乾淨"},
+{"signal": 2, "pass": 0, "reason": "僅一項 price/mix 數據，結構判斷缺乏論證"}]}
+]

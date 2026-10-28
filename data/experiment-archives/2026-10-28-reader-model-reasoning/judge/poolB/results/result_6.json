@@ -1,0 +1,122 @@
+[
+{"id": "K0167", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出每股股息、股息總額、營運現金流與資本支出數據"},
+{"signal": 1, "pass": 1, "reason": "開頭明確回答仍是穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "以 64 年調升紀錄、支付率 67.1% 與現金流數據分析"}]},
+{"id": "K0129", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格比較 P/E、Forward P/E、營收與 EPS 成長等指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明僅為期待值檢查而非投資建議"}]},
+{"id": "K0037", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明低毛利 11.09% 與會員費構成主要利潤的商業模式"},
+{"signal": 1, "pass": 1, "reason": "量化會員費占營業利潤 50.56%、續約率 92.3%"},
+{"signal": 2, "pass": 1, "reason": "以毛利率、SG&A、會員費占比等數據具體分析"}]},
+{"id": "K0098", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節比較業務結構乾淨度與定價能力兩面向"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以再特許經營、濃縮液模式與 DSD 重資產等結構因素論證"}]},
+{"id": "K0232", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，僅列股價與市值，無估值或成長指標比較"},
+{"signal": 1, "pass": 1, "reason": "開頭判斷特斯拉較像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查"}]},
+{"id": "K0191", "scores": [
+{"signal": 0, "pass": 0, "reason": "表格為空，未提出具體估值或成長數字比較"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉好消息透支程度較高"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非投資建議"}]},
+{"id": "K0146", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明會員費、生鮮剛需、加盟地產模式等韌性來源"},
+{"signal": 1, "pass": 1, "reason": "給出好市多、沃爾瑪、麥當勞的排名"},
+{"signal": 2, "pass": 0, "reason": "直接並列比較零售與餐飲利潤率，未保留跨模式不可比之處"}]},
+{"id": "K0051", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出股利、殖利率、支付率與營運現金流數據"},
+{"signal": 1, "pass": 1, "reason": "開頭明確回答仍是穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "以支付率 61.4%、現金流與信評等數據分析"}]},
+{"id": "K0089", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較估值倍數及 ESPN 轉型、廣告方案等敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "未對間接或不足的證據做任何保留"}]},
+{"id": "K0056", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較 FAA 產能上限、認證延誤與引擎供應延誤"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過"},
+{"signal": 2, "pass": 1, "reason": "註明空巴無 10-K，供應鏈資料來自新聞"}]},
+{"id": "J0136", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較自由現金流轉換與股東回饋占 FCF 比例"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出營業現金流、資本支出、回購與現金負債等數據"}]},
+{"id": "K0070", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、AdTech、Google Play 與 DMA 多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分成已判決執行與潛在壓力兩節"},
+{"signal": 2, "pass": 1, "reason": "拆分方案與 AI 審查標示為潛在，依 10-K 揭露"}]},
+{"id": "K0158", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到交付量年減 8%、碳權收入下降、Robotaxi 啟動等"},
+{"signal": 1, "pass": 1, "reason": "分節區分汽車主業短期逆風與長期論點轉型"},
+{"signal": 2, "pass": 0, "reason": "結論主要依 10-K 數據，未明確連回近期新聞"}]},
+{"id": "K0047", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，只有已知準備金，無未決不確定部分"},
+{"signal": 1, "pass": 1, "reason": "以 FY2025 10-K 揭露的 34 億美元準備金為依據"},
+{"signal": 2, "pass": 0, "reason": "截斷後沒有風險結論"}]},
+{"id": "J0030", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 10-K 確認數據與 CNBC 報導並註明期間不同"},
+{"signal": 1, "pass": 1, "reason": "明確說證據不足以斷言無法復甦，限定結論範圍"},
+{"signal": 2, "pass": 1, "reason": "以代工虧損、減損等可確認數據描述高風險轉型層級"}]},
+{"id": "K0147", "scores": [
+{"signal": 0, "pass": 0, "reason": "已知成本段落空白，只有不確定部分"},
+{"signal": 1, "pass": 0, "reason": "無任何具體官方揭露數字或引用"},
+{"signal": 2, "pass": 1, "reason": "總結指出陪審團裁決與和解擴大為最大風險"}]},
+{"id": "K0023", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格與分析涵蓋輝達、禮來、好市多三家"},
+{"signal": 1, "pass": 1, "reason": "以估值與成長不對稱說明下修邏輯"},
+{"signal": 2, "pass": 0, "reason": "未保留跨產業估值不可直接比較之處"}]},
+{"id": "K0054", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較監管上限與供應鏈擴產不及的差異"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士抗壓能力較強"},
+{"signal": 2, "pass": 0, "reason": "空巴財務健康僅為斷言無數據，且未保留"}]},
+{"id": "K0156", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明發卡行承擔信用風險、Visa 只收交易費"},
+{"signal": 1, "pass": 1, "reason": "從無信用風險、輕資產、利率敏感度低等模式解釋"},
+{"signal": 2, "pass": 1, "reason": "連結 VisaNet 網絡與手續費收入結構"}]},
+{"id": "K0178", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋、AdTech 與 DMA 等戰線"},
+{"signal": 1, "pass": 0, "reason": "已發生段落空白，只在總結中帶過"},
+{"signal": 2, "pass": 1, "reason": "將 DOJ 拆分提案與州級訴訟標為潛在壓力"}]},
+{"id": "J0267", "scores": [
+{"signal": 0, "pass": 1, "reason": "整理 10-K 中需求、政策、CCS 商業化等轉型風險"},
+{"signal": 1, "pass": 1, "reason": "說明股息 172 億、回購 200 億與回報導向低碳投資取捨"},
+{"signal": 2, "pass": 1, "reason": "結論以 FY2025 10-K 揭露為依據"}]},
+{"id": "K0265", "scores": [
+{"signal": 0, "pass": 1, "reason": "分析好市多、禮來、輝達三家"},
+{"signal": 1, "pass": 1, "reason": "以估值是否透支成長排序下修敏感度"},
+{"signal": 2, "pass": 0, "reason": "未保留跨產業不可直接比較之處"}]},
+{"id": "K0095", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答波克夏財務體質，答非所問"},
+{"signal": 1, "pass": 0, "reason": "未提及台積電或艾司摩爾的不確定部分"},
+{"signal": 2, "pass": 0, "reason": "回答不同公司，未處理本題"}]},
+{"id": "K0120", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明會員費、必需品龍頭、特許經營等韌性來源"},
+{"signal": 1, "pass": 1, "reason": "給出好市多第一、沃爾瑪第二、麥當勞第三"},
+{"signal": 2, "pass": 0, "reason": "並列比較跨模式指標，未明確保留不可比之處"}]},
+{"id": "K0250", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 FY2025 10-K 官方揭露為出發點"},
+{"signal": 1, "pass": 0, "reason": "回答截斷，未區分短期壓力與長期獲利傷害"},
+{"signal": 2, "pass": 0, "reason": "結論無任何數據或揭露內容佐證"}]},
+{"id": "K0038", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答摩根大通穩健度，答非所問"},
+{"signal": 1, "pass": 0, "reason": "未討論埃克森美孚股東回報取捨"},
+{"signal": 2, "pass": 0, "reason": "未依埃克森美孚揭露作結論"}]},
+{"id": "K0148", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明 Meta 拆分與定向廣告、Google 搜尋/AdTech、Apple App Store 風險"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化並說明非線性原因"},
+{"signal": 2, "pass": 0, "reason": "未保留三家無法直接比較之處"}]},
+{"id": "K0180", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到 EPS 年減 39%、交付 164 萬輛、Robotaxi 奧斯汀試點等"},
+{"signal": 1, "pass": 1, "reason": "分節區分短期週期逆風與長期論點質變"},
+{"signal": 2, "pass": 0, "reason": "總結評估未明確連回具體近期新聞"}]},
+{"id": "J0039", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 CNBC 報導的中國占比與訂單數據做相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明說缺 20-F 證據、無法比較營收敏感度"},
+{"signal": 2, "pass": 1, "reason": "註明 AI 需求受益不能推論反轉後跌幅"}]},
+{"id": "K0084", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、Google Play、AdTech、DMA 等戰線"},
+{"signal": 1, "pass": 1, "reason": "分成已落地與潛在壓力兩節"},
+{"signal": 2, "pass": 1, "reason": "AdTech 拆分標為等待判決，依 10-K 揭露"}]}
+]

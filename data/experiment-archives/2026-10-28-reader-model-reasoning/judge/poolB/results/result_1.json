@@ -1,0 +1,122 @@
+[
+{"id": "K0028", "scores": [
+{"signal": 0, "pass": 1, "reason": "逐項比較兩家 OCF、FCF、資本支出與資產負債表"},
+{"signal": 1, "pass": 1, "reason": "明確判定好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出 OCF/淨利、CapEx 佔 OCF、負債權益比、營運資金赤字等數據"}]},
+{"id": "K0192", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要公司財務優先事項中電商與廣告的官方定位"},
+{"signal": 1, "pass": 1, "reason": "電商與廣告的戰略角色皆有說明"},
+{"signal": 2, "pass": 1, "reason": "內容以公司自身戰略表述為主，未依賴外部評論"}]},
+{"id": "K0125", "scores": [
+{"signal": 0, "pass": 0, "reason": "把併購傳聞等新聞一併說成已被 10-K 印證，未清楚區分"},
+{"signal": 1, "pass": 0, "reason": "直接下「是的、結構性惡化」強結論，未說明證據限制"},
+{"signal": 2, "pass": 0, "reason": "超出可確認範圍斷言結構性惡化，未界定風險層級"}]},
+{"id": "J0260", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明沃爾瑪必需品、好市多會員制、麥當勞平價外食的韌性來源"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪≈好市多＞麥當勞排序"},
+{"signal": 2, "pass": 1, "reason": "註明財年不一致、Finnhub 指標不能證明衰退表現，並區分營運韌性與估值"}]},
+{"id": "K0163", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 Visa 不發卡不放款、信用風險由發卡行承擔"},
+{"signal": 1, "pass": 1, "reason": "以四方模式、手續費抽成、網路效應解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "總結連回利差與過路費的業務結構差異"}]},
+{"id": "K0190", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，僅標題提及關稅政策，無具體事件"},
+{"signal": 1, "pass": 1, "reason": "區分 EV 利潤下滑為短期、AI 轉型執行為結構性風險"},
+{"signal": 2, "pass": 0, "reason": "未引用任何近期新聞依據"}]},
+{"id": "K0157", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家估值倍數與敘事（線性電視衰退、高估值期待）"},
+{"signal": 1, "pass": 1, "reason": "明確判定迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "以估值倍數直接推論期待，未對證據間接性保留"}]},
+{"id": "K0033", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為迪士尼與 Netflix，未談三家科技公司"},
+{"signal": 1, "pass": 0, "reason": "未回答哪家監管風險最難量化"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無相關保留"}]},
+{"id": "K0139", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較波音產能上限與 Spirit 整合 vs 空巴正常認證與發動機缺貨"},
+{"signal": 1, "pass": 1, "reason": "明確判定空中巴士較能撐過"},
+{"signal": 2, "pass": 0, "reason": "空巴財務健康等論點無數據且未保留"}]},
+{"id": "J0018", "scores": [
+{"signal": 0, "pass": 1, "reason": "以表格比較兩家現金流品質與資本配置"},
+{"signal": 1, "pass": 1, "reason": "明確判定好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出 FCF、流動/速動比率、CapEx 佔比、營運資金赤字等依據"}]},
+{"id": "K0063", "scores": [
+{"signal": 0, "pass": 1, "reason": "引述 10-K 淨零情境不確定、政策依賴、供給限制波動等描述"},
+{"signal": 1, "pass": 1, "reason": "說明 LCS 以回報為導向、CapEx 配置與 372 億回饋的取捨"},
+{"signal": 2, "pass": 1, "reason": "結論均以 10-K 揭露為依據"}]},
+{"id": "J0116", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告個人化與 Apple App Store 抽成、搜尋分發"},
+{"signal": 1, "pass": 1, "reason": "區分已調整訂閱模式/DMA 合規與罰款，以及若進一步修改的潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判定 Meta 直接衝擊較大"}]},
+{"id": "K0020", "scores": [
+{"signal": 0, "pass": 1, "reason": "引述 10-K 淨零落後、政策撤回、融資限制等轉型風險描述"},
+{"signal": 1, "pass": 1, "reason": "說明低碳投資須達報酬門檻與股利回購的取捨"},
+{"signal": 2, "pass": 1, "reason": "結論以 10-K 揭露為主"}]},
+{"id": "K0150", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明低毛利零售加高毛利會員費的利潤結構"},
+{"signal": 1, "pass": 1, "reason": "會員費佔營業利益 50.56%、淨利 64%"},
+{"signal": 2, "pass": 1, "reason": "以毛利率、SG&A、續約率等數據支撐"}]},
+{"id": "K0244", "scores": [
+{"signal": 0, "pass": 1, "reason": "引 10-K 說明 Visa 不放款不承擔信用風險，對比銀行利差"},
+{"signal": 1, "pass": 1, "reason": "以輕資本、網路效應、收費機制解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "對比表連回兩者業務結構"}]},
+{"id": "K0208", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是三家衰退韌性比較，非好市多賺錢核心"},
+{"signal": 1, "pass": 0, "reason": "未針對會員費重要性作答"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "J0131", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 P/E、P/S 估值與營收、EPS、交付量成長數據"},
+{"signal": 1, "pass": 1, "reason": "明確判定好消息已被提前反映"},
+{"signal": 2, "pass": 1, "reason": "Robotaxi/FSD 以多空情境與驗證點呈現，未當確定事實"}]},
+{"id": "K0013", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為迪士尼業務，非亞馬遜廣告"},
+{"signal": 1, "pass": 0, "reason": "未談亞馬遜業務組合"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "K0055", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，僅監管有展開，需求與交付未實質分析"},
+{"signal": 1, "pass": 1, "reason": "指出主因為監管與交付、需求非瓶頸"},
+{"signal": 2, "pass": 0, "reason": "需求旺盛等論點無證據支撐"}]},
+{"id": "J0228", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即答「有直接支持，但要精確表述」"},
+{"signal": 1, "pass": 1, "reason": "對 interchange 直接削減收入的說法明確保留"},
+{"signal": 2, "pass": 1, "reason": "逐條引述兩家 10-K 原意，區分間接傳導與直接收入"}]},
+{"id": "K0122", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，僅有股價與 Win Now 計畫，缺營運確認訊號"},
+{"signal": 1, "pass": 0, "reason": "未具體區分初步改善與已確認轉折"},
+{"signal": 2, "pass": 1, "reason": "明確表示現在說回穩還太早"}]},
+{"id": "K0267", "scores": [
+{"signal": 0, "pass": 1, "reason": "引述 10-K 淨零不確定、法規、融資與供給限制風險"},
+{"signal": 1, "pass": 1, "reason": "說明回報導向低碳投資與股利回購優先的平衡"},
+{"signal": 2, "pass": 1, "reason": "內容以 10-K 揭露為主"}]},
+{"id": "K0036", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較業務結構（濃縮液 59% vs 自營裝瓶）與定價能力（Price/Mix）"},
+{"signal": 1, "pass": 1, "reason": "明確判定可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以營收結構、利潤率、10-K 數據支撐"}]},
+{"id": "K0053", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論「是」"},
+{"signal": 1, "pass": 1, "reason": "說明廣告佔總營收 9.57% 且納入北美/國際分部"},
+{"signal": 2, "pass": 0, "reason": "斷言高利潤率但未保留亞馬遜未揭露廣告利潤"}]},
+{"id": "K0161", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節討論需求、交付產能、監管三條敘事"},
+{"signal": 1, "pass": 1, "reason": "指出主因為交付與產能，根源受監管限制"},
+{"signal": 2, "pass": 1, "reason": "以 backlog 金額、FAA 產能上限等可查證事實佐證"}]},
+{"id": "K0007", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 P/E、P/S 與營收、EPS、毛利率變化"},
+{"signal": 1, "pass": 1, "reason": "結論為已提前算入樂觀預期"},
+{"signal": 2, "pass": 1, "reason": "Robotaxi/Optimus 以條件情境呈現並指出尚未商業化"}]},
+{"id": "K0067", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為沃爾瑪電商廣告，未涵蓋三家公司"},
+{"signal": 1, "pass": 0, "reason": "未說明期待下修邏輯"},
+{"signal": 2, "pass": 0, "reason": "答非所問"}]},
+{"id": "K0058", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分管理層「時間問題」表態、正式公告與歷史週期推估"},
+{"signal": 1, "pass": 0, "reason": "未直接說明下一次調漲管理層沒有給時間點"},
+{"signal": 2, "pass": 0, "reason": "以歷史規律推論「管理層預計短期不會再調」，把推測包裝成定論"}]},
+{"id": "K0050", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家估值、指引放緩與已定價負面因素"},
+{"signal": 1, "pass": 1, "reason": "明確判定迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "以分析師評論與估值直接推論，未對證據間接性保留"}]},
+{"id": "K0264", "scores": [
+{"signal": 0, "pass": 1, "reason": "三家公司皆有分析"},
+{"signal": 1, "pass": 1, "reason": "以營收集中度、客戶集中、會員續約率說明下修順序邏輯"},
+{"signal": 2, "pass": 0, "reason": "直接跨產業排序，未保留不可直接比較之處"}]}
+]

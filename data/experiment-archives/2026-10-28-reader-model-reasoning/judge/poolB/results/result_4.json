@@ -1,0 +1,122 @@
+[
+{"id": "K0235", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是亞馬遜廣告，未談迪士尼任何分部"},
+{"signal": 1, "pass": 0, "reason": "答非所問，沒有指出迪士尼核心分部"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無迪士尼分部判斷的保留"}]},
+{"id": "J0181", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出每股2.12美元股息、連續64年增息、87.79億美元配息與現金部位"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍屬相對穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "以股息紀錄、流動性、信評與槓桿數據分析，而非僅靠防禦印象"}]},
+{"id": "K0224", "scores": [
+{"signal": 0, "pass": 0, "reason": "內文只寫波音監管限制，空巴僅有標題未實際比較"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過亂流"},
+{"signal": 2, "pass": 0, "reason": "回答中斷，未對證據不足的比較點做任何保留"}]},
+{"id": "K0005", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較業務結構(濃縮液85%銷量、自營裝瓶36%)與定價能力(Price/Mix +4%)"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "引用10-K營收結構、銷量與定價數據支撐結論"}]},
+{"id": "K0022", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明沃爾瑪消費降級、好市多會員費、麥當勞加盟模式的韌性來源"},
+{"signal": 1, "pass": 1, "reason": "明確排序沃爾瑪略勝、好市多次之、麥當勞再次"},
+{"signal": 2, "pass": 0, "reason": "直接並列比較零售與加盟模式的利潤率等指標，未提醒跨模式不可直接比較"}]},
+{"id": "K0114", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到汽車銷售營收年減9%、利潤率下滑、OBBBA政策與Robotaxi推出等具體訊號"},
+{"signal": 1, "pass": 1, "reason": "分節區分短期財務衝擊與長期投資論點結構性變化"},
+{"signal": 2, "pass": 0, "reason": "結論主要依據10-K與Finnhub數據，未具體連回近期新聞事件"}]},
+{"id": "K0206", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明Visa不發卡不放貸不承擔信用風險，銀行則靠利差並承擔呆帳"},
+{"signal": 1, "pass": 1, "reason": "從過路費收費結構、輕資產、網路效應說明穩定性來源"},
+{"signal": 2, "pass": 1, "reason": "連結10-K所列服務費、資料處理費、國際交易費等業務結構"}]},
+{"id": "K0183", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論廣告業務已是高品質獲利引擎"},
+{"signal": 1, "pass": 1, "reason": "說明廣告占總營收約9.57%、歸屬北美與國際分部且與AWS並列"},
+{"signal": 2, "pass": 0, "reason": "雖提到未揭露營業利潤率，仍以業界估算斷言『絕對』高品質，未保留"}]},
+{"id": "K0099", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節列出10-K已確認的虧損減損數據與新聞報導的裁員、高層變動"},
+{"signal": 1, "pass": 0, "reason": "直接斷言基本面顯著惡化，未說明哪些地方不能下強結論"},
+{"signal": 2, "pass": 0, "reason": "延伸至市佔持續流失等新聞敘事，未限定在可確認的風險層級"}]},
+{"id": "K0227", "scores": [
+{"signal": 0, "pass": 0, "reason": "估值與成長數據區塊為空，只泛稱數百倍本益比"},
+{"signal": 1, "pass": 1, "reason": "明確結論市場已預先反映大量好消息"},
+{"signal": 2, "pass": 1, "reason": "將Robotaxi、Optimus描述為市場期待且尚在早期，並列出落空風險"}]},
+{"id": "K0107", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、票房三分部並附FY2025營業利潤數據"},
+{"signal": 1, "pass": 1, "reason": "明確指出樂園業務(Experiences)為最核心指標"},
+{"signal": 2, "pass": 0, "reason": "未對任何分部判斷標示證據不足或保留"}]},
+{"id": "K0042", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較業務結構(85%銷量濃縮液、食品58%)與定價能力(incidence pricing、利潤率)"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂勝出"},
+{"signal": 2, "pass": 1, "reason": "以10-K結構與毛利率61.89%對54.33%等數據支撐"}]},
+{"id": "K0128", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分市場推估每5.5年調漲與管理層『還不到時間點』及7/10正式公告"},
+{"signal": 1, "pass": 0, "reason": "只回顧2024已調漲，未直接說明下一次調漲管理層並無明確時間點"},
+{"signal": 2, "pass": 1, "reason": "已調漲事實有公告來源，未把推測包裝成確認結論"}]},
+{"id": "K0075", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家營運現金流、資本支出、自由現金流轉化率與股東回報"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "說明依據FCF轉化率59.3%對35.9%、D/E 0.17對0.58、營運資金赤字等"}]},
+{"id": "K0184", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是台積電與艾司摩爾，未提波克夏財務指標"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未判斷波克夏是否保守"},
+{"signal": 2, "pass": 0, "reason": "答非所問，與波克夏題目無關"}]},
+{"id": "K0112", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、票房並引用營業利潤數據"},
+{"signal": 1, "pass": 0, "reason": "明言『不是三選一』，依不同目的分派，未明確指出單一最該看的分部"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的分部判斷做保留"}]},
+{"id": "K0024", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分管理層『時間問題』的表態與市場長年猜測及正式公告"},
+{"signal": 1, "pass": 0, "reason": "未直接說明下一次調漲管理層並未給出時間點，只以歷史規律推估"},
+{"signal": 2, "pass": 1, "reason": "下次調漲以『按規律預計』表述，未包裝成確認事實"}]},
+{"id": "K0103", "scores": [
+{"signal": 0, "pass": 1, "reason": "分三節分別說明監管、交付產能、需求"},
+{"signal": 1, "pass": 1, "reason": "指出主因是供給端交付瓶頸在監管下，需求非瓶頸"},
+{"signal": 2, "pass": 1, "reason": "以FAA產量上限、10-K積壓訂單與虧損數據支撐，非市場情緒"}]},
+{"id": "K0229", "scores": [
+{"signal": 0, "pass": 0, "reason": "監管敘事只在首句提及，無內容展開"},
+{"signal": 1, "pass": 0, "reason": "只說卡在監管與交付兩者，未指出單一主因且內容殘缺"},
+{"signal": 2, "pass": 0, "reason": "需求旺盛等說法無數據或來源支撐"}]},
+{"id": "K0048", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論廣告業務已是高品質獲利引擎"},
+{"signal": 1, "pass": 1, "reason": "說明廣告營收成長與AWS、北美零售比較，並歸入北美與國際分部"},
+{"signal": 2, "pass": 0, "reason": "承認未揭露營業利潤卻仍斷言『超高利潤』，未保留"}]},
+{"id": "K0221", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節區分34億美元準備金、已付判決與未決審判、Daubert裁定、證券訴訟"},
+{"signal": 1, "pass": 1, "reason": "以10-K原告人數、準備金、破產駁回等揭露為依據"},
+{"signal": 2, "pass": 1, "reason": "明確指出滑石粉為最大風險且超出準備金部分仍可能顯著擴大"}]},
+{"id": "K0268", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是可口可樂與百事，未談波音"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未指出波音主因"},
+{"signal": 2, "pass": 0, "reason": "答非所問，與波音題目無關"}]},
+{"id": "K0193", "scores": [
+{"signal": 0, "pass": 1, "reason": "以CET1 14.6%、LCR 111%、ROTCE 20%等數據分析，非僅重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、業務分散與信貸撥備上升風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法仍然站得住"}]},
+{"id": "K0061", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答中斷，只泛稱股息君王，無具體股息或現金流數據"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍是穩定配息公司"},
+{"signal": 2, "pass": 0, "reason": "僅以股息君王名號支撐，沒有實際分析"}]},
+{"id": "K0118", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、票房並附營收與營業利潤數據"},
+{"signal": 1, "pass": 0, "reason": "以短中長期分配三個分部，未明確指出單一最該看的核心分部"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的分部判斷做保留"}]},
+{"id": "K0016", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答殘缺，微軟未被具名分析"},
+{"signal": 1, "pass": 0, "reason": "僅零星提到回購與槓桿，無具體數據比較"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏數據的細節做任何保留"}]},
+{"id": "K0031", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是好市多會員費，未談波音與空巴"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未判斷哪邊較能撐過"},
+{"signal": 2, "pass": 0, "reason": "答非所問，與題目無關"}]},
+{"id": "K0006", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答殘缺，判斷無可確認的新聞來源支撐"},
+{"signal": 1, "pass": 0, "reason": "未明確指出哪些部分目前無法確認"},
+{"signal": 2, "pass": 0, "reason": "出口管制與擴產放緩等敘事無具體出處，直接當作事實"}]},
+{"id": "K0151", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答中斷，未列出任何具體財務指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論財務體質非常保守"},
+{"signal": 2, "pass": 1, "reason": "未延伸到工具拿不到的細節"}]},
+{"id": "K0039", "scores": [
+{"signal": 0, "pass": 1, "reason": "以ASML中國營收占比49%、台積電HPC占60%等引用新聞做相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明確聲明無法取得兩家20-F原文，分析僅基於新聞與Finnhub"},
+{"signal": 2, "pass": 1, "reason": "將中國營收降至20%標為分析師預估，未包裝成已發生事實"}]}
+]

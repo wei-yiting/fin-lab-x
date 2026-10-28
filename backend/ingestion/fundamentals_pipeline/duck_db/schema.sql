@@ -561,7 +561,7 @@ COMMENT ON COLUMN ingestion_runs.metadata IS
 
 -- ============================================================
 -- Semantic layer (ADR-0023): derived metrics + calendar-window aggregation.
--- The text_to_sql tool exposes these to the LLM instead of the raw tables.
+-- The company_fundamentals_query tool exposes these to the LLM instead of the raw tables.
 -- ============================================================
 
 -- quarterly_metrics (view)

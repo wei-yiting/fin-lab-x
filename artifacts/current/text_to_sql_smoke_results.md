@@ -1,5 +1,7 @@
 # text_to_sql smoke results（DEV-224）
 
+> 歷史紀錄：這份結果是在 tool 還叫 `text_to_sql`、引用還用「資料來源」表格的時候錄的。tool 已改名為 `company_fundamentals_query`，引用也改成 `[N]: sql://…`。
+
 本機 quant profile，透過 `POST /api/v1/chat/invoke` 執行。每題使用新的 session。資料是 2026-10-27 的 yfinance ingest。**這不是 eval**：每題只跑一次，沒有 grader；標準答案見 `text_to_sql_eval_seed.yaml`。
 
 | # | 問題 | 預期路由 | 實際 tool 呼叫 | text_to_sql status / 失敗次數 / rows | 秒 |

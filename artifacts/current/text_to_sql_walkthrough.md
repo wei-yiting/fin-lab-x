@@ -1,4 +1,6 @@
-# text_to_sql prototype walkthrough（DEV-224）
+# text-to-SQL prototype walkthrough（DEV-224）
+
+> Tool 名稱：`company_fundamentals_query`（10/28 由 `text_to_sql` 改名）。工具依「查什麼」命名、不依「用什麼方法」，跟 `sec_filing_search` 不叫 `rag` 同理，ADR-0022 有記錄。
 
 > 讀者：Dong（明天 10/28 16:00 面試要 demo、要能講清楚每一步）。預計閱讀 30 分鐘。
 > 範圍：本機 prototype，**沒有做 eval**。設計決策來自 10/27 的 grilling（Q1–Q18），正式紀錄在 ADR-0022、ADR-0023、`CONTEXT.md`，以及 Linear DEV-224。
@@ -44,11 +46,11 @@ pnpm --dir frontend dev
           │ period_metrics(year, q_from, q_to) TABLE MACRO    │  ← 區間加總規則、coverage
           └────────────────────────────────────────────────┘
                                    ▲ 唯讀查詢
- 使用者問題 ─► Orchestrator（quant profile：reader 的工具 + text_to_sql）
+ 使用者問題 ─► Orchestrator（quant profile：reader 的工具 + company_fundamentals_query）
                 │  依 system prompt 的分工選工具
                 ├─ 10-K 文字 ─────► sec_filing_search（RAG，原本的）
                 ├─ 即時股價 / 名單外公司 ─► Finnhub / Tavily
-                └─ 結構化數字 ────► text_to_sql(question) ── ADR-0022
+                └─ 結構化數字 ────► company_fundamentals_query(question) ── ADR-0022
                                      ┌ attempt 1..3 ───────────────────────────┐
                                      │ LLM 寫 SQL（schema 由 DB 的 COMMENT 產生）│
                                      │ → 檢查：DuckDB parser 只允許 1 個 SELECT │
@@ -58,7 +60,7 @@ pnpm --dir frontend dev
                                      回傳 {status, sql, rows≤50, attempts, coverage?}
                 │
                 ▼
- 答案：本文的數字標 [N]，底部「資料來源」表格列出 yfinance、公司、期間、原始數值 → 結果
+ 答案：本文的數字標 [N]，底部定義是 `[N]: sql://<tool_call_id>`，前端把它對回 tool 結果，渲染成可展開的 citation block（公式 + 代入值）
 ```
 
 **一句話版本**：LLM 只負責「**解讀**問題、選對物件和期間」；公式、加總規則、時間對齊都由 **DB 層**決定；安全性由 **DB 引擎層**保證，不依賴 prompt。
@@ -79,7 +81,7 @@ pnpm --dir frontend dev
 | yfinance 怪值 | `dividendYield` 已經是百分比，直接存（design 寫 ×100，但新版 yfinance 已經改了）；機構持股是小數 → ×100；`Infinity` → NULL；BRK.B ↔ BRK-B | 用實測確認，不靠記憶 |
 | 失敗處理 | 依序跑、單檔失敗不中斷、每檔寫一筆 `ingestion_runs`、**不做 retry**（upsert 是 idempotent，重跑即可） | 本機一次性 batch，加 retry 屬於超出規模需要（envelope） |
 
-**為什麼還用 yfinance，而不是 DEV-69 的 Finnhub**：rate limit 只發生在**雲端 IP 或 JIT**。text_to_sql 的查詢路徑只讀 DuckDB，永遠不碰外部 API；ingest 在 Mac 上跑一次就好。這是有期限的過渡決定，等要做 on-demand ingestion（DEV-228，blocked by DEV-69）時再換 Finnhub。schema 不用改。
+**為什麼還用 yfinance，而不是 DEV-69 的 Finnhub**：rate limit 只發生在**雲端 IP 或 JIT**。company_fundamentals_query 的查詢路徑只讀 DuckDB，永遠不碰外部 API；ingest 在 Mac 上跑一次就好。這是有期限的過渡決定，等要做 on-demand ingestion（DEV-228，blocked by DEV-69）時再換 Finnhub。schema 不用改。
 
 ---
 
@@ -124,9 +126,9 @@ pnpm --dir frontend dev
 
 ---
 
-## 4. `text_to_sql` tool（ADR-0022）
+## 4. `company_fundamentals_query` tool（ADR-0022）
 
-檔案：`backend/agent_engine/tools/text_to_sql.py` + `text_to_sql_prompt.md`。
+檔案：`backend/agent_engine/tools/company_fundamentals_query.py` + `company_fundamentals_query_prompt.md`。
 
 ### 為什麼是「tool 內的固定 loop」，而不是讓 orchestrator 自己寫 SQL，也不是 ReAct sub-agent
 
@@ -181,7 +183,7 @@ for attempt in 1..3:
 每次 attempt 都是一個具名的 LangChain runnable，callback 也會往下傳：
 
 ```
-tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
+tools → company_fundamentals_query → company_fundamentals_query_attempt_1 → ChatOpenAI (GENERATION)
 ```
 
 用同一套機制，Braintrust 在 eval 實驗時也會收到同一棵 trace 樹（`BraintrustCallbackHandler` 是 global handler）。這部分要在 DEV-227 實際驗證。
@@ -205,11 +207,11 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 
 ## 5. 接進 Orchestrator：quant profile
 
-- `quant/orchestrator_config.yaml`：tools = reader 的全部工具加上 `text_to_sql`；移除不存在的 `duckdb_query`（DEV-99）；預算 10 次。
+- `quant/orchestrator_config.yaml`：tools = reader 的全部工具加上 `company_fundamentals_query`；移除不存在的 `duckdb_query`（DEV-99）；預算 10 次。
 - `quant/system_prompt.md`：以 reader 的 prompt 為基礎，新增三段：
-  - **TOOL ROUTING**：名單內的財報、估值、比率、跨公司比較 → text_to_sql；10-K 文字 → RAG；即時股價、名單外公司 → Finnhub；需要兩種資料時就組合。
+  - **TOOL ROUTING**：名單內的財報、估值、比率、跨公司比較 → company_fundamentals_query；10-K 文字 → RAG；即時股價、名單外公司 → Finnhub；需要兩種資料時就組合。
   - **STRUCTURED DATA**：怎麼讀 `status`、「上一季」的語意、日曆期間預設、不完整區間怎麼說明、NULL 不是 0、估值要寫 as_of、不要在答案裡貼 SQL。
-  - **DATA SOURCES TABLE**：數字用 [N] 引用；底部的「資料來源」是 markdown 表格，不用 `[N]:` 語法。原因是前端的 Sources 區塊只接受 http(s) 網址，而且會刪掉所有 `[N]` 開頭的行（`markdown-sources.ts`）。這是過渡方案，之後由 citation-blocks session 的可展開 block 取代。
+  - **引用（10/28 更新）**：每次呼叫的結果算一個 [N]，底部是 `[N]: sql://<tool_call_id>`。tool 會回傳 `citation_id`、`tables`、`derivations`，其中 derivations 是從 `schema.sql` 的 view 定義確定性地解析出來的公式。前端（DEV-229 / PR #92）把它渲染成可展開的 citation block。⚠️ **DEV-229 merge 之前，只跑這個 branch 的前端會把 `sql://` 引用丟掉**，因為 Sources 區塊只接受 http(s)。最早的版本用的是 markdown「資料來源」表格作為過渡方案，下面 §7 的 smoke 紀錄就是那個版本的結果。
 - `backend/api/main.py`：`WORKFLOW_PROFILE` 環境變數，預設 `baseline`，所以**正式站行為不變**。
 
 ---
@@ -236,13 +238,13 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 
 | # | 問題 | 實際路由 | 結果重點 | 秒 |
 |---|---|---|---|---|
-| Q1 | 上一季哪家公司毛利率最高？ | text_to_sql（23 列，0 次重試） | META 79.31%（FY2026 Q3，2026-09-30），有說明各家期間不同；JPM、BRK.B 排除 | 10.9 |
-| Q2 | Compare NVDA and INTC revenue over the last 4 quarters. | text_to_sql（8 列） | 逐季列表，有註明 NVDA 的季度晚 1 個月 | 17.6 |
-| Q3 | KO 和 PEP 誰的 forward P/E 比較低？ | text_to_sql（**不是** Finnhub） | PEP 15.68 < KO 26.30，as of 2026-10-27 | 9.6 |
-| Q4 | 2026 前三季營收最高的是哪家？ | text_to_sql → `period_metrics` | COST $235.8B，**實際涵蓋 2025/12–2026/08**；其他不完整的公司不列入比較 | 13.2 |
+| Q1 | 上一季哪家公司毛利率最高？ | company_fundamentals_query（23 列，0 次重試） | META 79.31%（FY2026 Q3，2026-09-30），有說明各家期間不同；JPM、BRK.B 排除 | 10.9 |
+| Q2 | Compare NVDA and INTC revenue over the last 4 quarters. | company_fundamentals_query（8 列） | 逐季列表，有註明 NVDA 的季度晚 1 個月 | 17.6 |
+| Q3 | KO 和 PEP 誰的 forward P/E 比較低？ | company_fundamentals_query（**不是** Finnhub） | PEP 15.68 < KO 26.30，as of 2026-10-27 | 9.6 |
+| Q4 | 2026 前三季營收最高的是哪家？ | company_fundamentals_query → `period_metrics` | COST $235.8B，**實際涵蓋 2025/12–2026/08**；其他不完整的公司不列入比較 | 13.2 |
 | Q5 | Apple 10-K 怎麼描述供應鏈風險？ | sec_filing_search | RAG 沒有退化，FY2025 10-K，有 [N] 引用 | 12.2 |
-| Q6 | Apple 怎麼描述 AI 投資？研發佔營收比？ | sec_filing_search → text_to_sql | **組合**：10-K 沒有單獨揭露 AI 金額；R&D 8.30%（FY2025）、10.72%（FY2026 Q3） | 17.7 |
-| Q7 | Apple 2019 年營收多少？ | text_to_sql（no_rows）→ sec_filing_search | 說明資料庫只涵蓋 FY2022 之後 → **改讀 FY2019 10-K** 回答 $260.17B | 26.9 |
+| Q6 | Apple 怎麼描述 AI 投資？研發佔營收比？ | sec_filing_search → company_fundamentals_query | **組合**：10-K 沒有單獨揭露 AI 金額；R&D 8.30%（FY2025）、10.72%（FY2026 Q3） | 17.7 |
+| Q7 | Apple 2019 年營收多少？ | company_fundamentals_query（no_rows）→ sec_filing_search | 說明資料庫只涵蓋 FY2022 之後 → **改讀 FY2019 10-K** 回答 $260.17B | 26.9 |
 | Q8 | 台積電上一季營收多少？（名單外） | Tavily ×3 + Finnhub | ⚠️ 抓到 1 月的新聞（2025 Q4），不是最新一季 → 已知限制 | 32.7 |
 
 **修正過程中抓到、也已修好的問題**（都有對應的 commit；前 4 個有回歸測試）：DuckDB binder bug、yfinance 半成品季度、不完整區間算出的假 +254% 成長、SQL token 串流進答案、`WHERE metric IS NOT NULL` 放錯位置、orchestrator 越權指定作法。
@@ -257,7 +259,7 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 |---|---|---|
 | 8 張表 | 只填 4 張 yfinance 表；SEC 三張和 SEC 專屬欄位留空，而且不讓 LLM 看到 | SEC XBRL subsystem 是 DEV-225；normalization（§13.2）還沒決定 |
 | 每個子系統都要用 `with_retry`（§8） | 不做 retry | 本機一次性 batch，失敗重跑即可 |
-| 子系統的 `traced_span` 和 `yf_*` span 命名（§7.8） | ingest 不開 trace；text_to_sql 用 LangChain run tree | ingest 是 CLI，§7.8 本來就說 CLI 不開 trace；query 端用 LangChain run 才能 Langfuse / Braintrust 共用 |
+| 子系統的 `traced_span` 和 `yf_*` span 命名（§7.8） | ingest 不開 trace；company_fundamentals_query 用 LangChain run tree | ingest 是 CLI，§7.8 本來就說 CLI 不開 trace；query 端用 LangChain run 才能 Langfuse / Braintrust 共用 |
 | 衍生指標延後決定（§13.3） | **已決定**：放在 DB 層（view + macro），ADR-0023 | text-to-SQL 設計需要這個答案 |
 | `dividendYield` ×100（§3.2） | 不乘 | 新版 yfinance 已經是百分比（實測） |
 | Hybrid batch + JIT | 只有 batch | JIT 要在雲端跑，必須先完成 Finnhub 遷移（DEV-228 / DEV-69） |
@@ -273,7 +275,7 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 4. **ToolCard 的 output 是跳脫過的 JSON 字串**，SQL 不好讀。demo 時可以講 SQL，或打開 Langfuse trace 展示。這屬於前端通用元件，不在這次範圍。
 5. **快照有日期**：估值是 ingest 當天的快照；財報要重跑 ingest 才會更新。
 6. **SQL 的時間語意靠 prompt**：例如「上一季要先取最新一季，再看指標」是寫在 prompt 裡的，LLM 偶爾會用不同但等價的寫法。這正是 eval 要量的東西。
-7. **Language Policy 偶爾出錯**：tool argument 有時混入中文（例如「上一季」）；繁體中文的問題也出現過**用簡體中文回答**一次（既有的 language policy 問題，不是 text_to_sql 造成的）。
+7. **Language Policy 偶爾出錯**：tool argument 有時混入中文（例如「上一季」）；繁體中文的問題也出現過**用簡體中文回答**一次（既有的 language policy 問題，不是 company_fundamentals_query 造成的）。
 7b. **非決定性**：同一題在不同次執行中，SQL 寫法可能不同（Q4 曾經出現過一次錯誤寫法，修完 prompt 後連續 6 次都正確）。沒有 eval，就沒辦法量化穩定度。
 8. **DuckDB 1.5.2 binder bug** 是用設計避開的，沒有升級版本；之後如果有人在 view 裡用 `period_end` 計算欄位，會再踩到（回歸測試會擋下）。
 9. 已知的 DuckDB 單一 writer 限制：ingest 期間如果剛好有查詢，查詢會失敗（錯誤訊息會說明）。
@@ -283,8 +285,8 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 ## 10. 下一步：怎麼加上 execution-accuracy eval（DEV-227）
 
 1. **Dataset**：從 `artifacts/current/text_to_sql_eval_seed.yaml` 的 7 題開始。每題都有人工檢查過的 gold SQL、key facts，以及**要抓的 failure mode**（例：fiscal 標籤跨公司對齊、margin 取平均、`WHERE metric IS NOT NULL` 放錯位置）。依 failure taxonomy 擴充到 30–50 題：時間語意、NULL、不完整區間、名單外、schema 外。
-2. **Grader（不用 LLM judge）**：分別執行 gold SQL 和生成的 SQL，**比較結果集**，不比 SQL 字串。比較時忽略欄位順序、浮點數設容差、多出來的欄位允許。因為 text_to_sql 是可以單獨評估的單元，可以不經 orchestrator，直接呼叫 `answer_question()`，又快又便宜。
-3. **第二個指標：tool routing accuracy**：在 quant profile 下，數字題選中 text_to_sql、10-K 題選中 RAG 的比率。這要經過 orchestrator 跑。
+2. **Grader（不用 LLM judge）**：分別執行 gold SQL 和生成的 SQL，**比較結果集**，不比 SQL 字串。比較時忽略欄位順序、浮點數設容差、多出來的欄位允許。因為 company_fundamentals_query 是可以單獨評估的單元，可以不經 orchestrator，直接呼叫 `answer_question()`，又快又便宜。
+3. **第二個指標：tool routing accuracy**：在 quant profile 下，數字題選中 company_fundamentals_query、10-K 題選中 RAG 的比率。這要經過 orchestrator 跑。
 4. **答案層**（之後才做）：引用完整性，也就是每個 [N] 都有對應的資料來源列、數值跟 rows 一致。可以用 deterministic scorer 檢查。
 5. **固定資料快照**：eval 要對一份**凍結**的 DuckDB 跑，不然重新 ingest 後 gold 答案就變了。
 6. **第一個驗收項**：Braintrust 實驗裡看得到完整的巢狀 trace。
@@ -306,7 +308,7 @@ tools → text_to_sql → text_to_sql_attempt_1 → ChatOpenAI (GENERATION)
 
 - Ingest：`fundamentals_pipeline/yfinance_fetcher.py`、`scripts/ingest_yfinance_fundamentals.py`、`calendar_to_fiscal_period.py`（snap）、`config/ticker_universe.yaml`（23 檔）
 - 語意層：`fundamentals_pipeline/duck_db/schema.sql`（檔案最後的 Semantic layer 段落）
-- Tool：`agent_engine/tools/text_to_sql.py`、`text_to_sql_prompt.md`、`tools/__init__.py`（註冊）
+- Tool：`agent_engine/tools/company_fundamentals_query.py`、`company_fundamentals_query_prompt.md`、`tools/__init__.py`（註冊）
 - Profile：`profiles/quant/orchestrator_config.yaml`、`profiles/quant/system_prompt.md`、`api/main.py`（`WORKFLOW_PROFILE`）
-- 測試：`tests/tools/test_text_to_sql.py`（22）、`tests/ingestion/fundamentals_pipeline/test_semantic_layer.py`、`test_yfinance_fetcher.py`、`test_calendar_to_fiscal_period.py`（新增案例）、profile 和 env 的測試。全部 backend 測試 1436 passed。
+- 測試：`tests/tools/test_company_fundamentals_query.py`（22）、`tests/ingestion/fundamentals_pipeline/test_semantic_layer.py`、`test_yfinance_fetcher.py`、`test_calendar_to_fiscal_period.py`（新增案例）、profile 和 env 的測試。全部 backend 測試 1436 passed。
 - 文件：ADR-0022、ADR-0023、`CONTEXT.md`（Ticker universe、Derived metric、Fiscal / Calendar / Latest reported quarter）、各模組 README、`docs/file_structure.md`

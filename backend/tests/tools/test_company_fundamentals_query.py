@@ -1,4 +1,4 @@
-"""Tests for the text_to_sql tool: read-only guard, repair loop, return contract."""
+"""Tests for the company_fundamentals_query tool: read-only guard, repair loop, return contract."""
 
 import json
 from datetime import date
@@ -11,7 +11,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage
 from langgraph.constants import TAG_NOSTREAM
 
-from backend.agent_engine.tools import text_to_sql as tts
+from backend.agent_engine.tools import company_fundamentals_query as tts
 from backend.common.errors import ConfigurationError
 from backend.ingestion.fundamentals_pipeline.duck_db.connection import get_connection
 from backend.ingestion.fundamentals_pipeline.duck_db.row_models import (
@@ -202,10 +202,10 @@ def test_schema_prompt_shows_only_queryable_objects(store):
 def test_tool_returns_contract_through_tool_call(store, monkeypatch):
     monkeypatch.setattr(tts, "get_duckdb_path", lambda: store)
     _script(monkeypatch, _fenced(GOOD_SQL))
-    message = tts.text_to_sql.invoke(
+    message = tts.company_fundamentals_query.invoke(
         {
             "args": {"question": "Revenue of AAA?"},
-            "name": "text_to_sql",
+            "name": "company_fundamentals_query",
             "type": "tool_call",
             "id": "call-1",
         }

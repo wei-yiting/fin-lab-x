@@ -1,4 +1,4 @@
-"""text_to_sql: natural-language question → read-only DuckDB query over the fundamentals store.
+"""company_fundamentals_query: natural-language question → read-only DuckDB query over the fundamentals store.
 
 The Orchestrator passes a self-contained English question. Inside the tool a fixed
 generate → validate → execute → repair loop runs (ADR-0022):
@@ -59,7 +59,7 @@ _VIEW_BASE_TABLES = {
     "annual_metrics": "annual_financials",
 }
 
-_PROMPT_PATH = Path(__file__).with_name("text_to_sql_prompt.md")
+_PROMPT_PATH = Path(__file__).with_name("company_fundamentals_query_prompt.md")
 _SCHEMA_PATH = (
     Path(__file__).resolve().parents[2]
     / "ingestion/fundamentals_pipeline/duck_db/schema.sql"
@@ -90,7 +90,7 @@ class Derivation(TypedDict):
     inputs: list[str]
 
 
-class TextToSqlResult(TypedDict):
+class CompanyFundamentalsQueryResult(TypedDict):
     status: Literal["ok", "no_rows", "failed"]
     question: str
     sql: str | None
@@ -305,7 +305,7 @@ def answer_question(
     db_path: Path | None = None,
     config: RunnableConfig | None = None,
     on_attempt: Any = None,
-) -> TextToSqlResult:
+) -> CompanyFundamentalsQueryResult:
     """Run the fixed repair loop for one question (the evaluable unit, ADR-0022)."""
     path = db_path or get_duckdb_path()
     schema = build_schema_prompt(path)
@@ -333,7 +333,7 @@ def answer_question(
             on_attempt(number)
         outcome = (
             RunnableLambda(attempt)
-            .with_config(run_name=f"text_to_sql_attempt_{number}")
+            .with_config(run_name=f"company_fundamentals_query_attempt_{number}")
             .invoke(question, config=config)
         )
         if "unanswerable" in outcome:
@@ -344,7 +344,7 @@ def answer_question(
         if "error" in outcome:
             failed.append({"sql": outcome["sql"], "error": outcome["error"]})
             continue
-        result: TextToSqlResult = {
+        result: CompanyFundamentalsQueryResult = {
             "status": "ok" if outcome["rows"] else "no_rows",
             "question": question,
             "sql": outcome["sql"],
@@ -369,8 +369,8 @@ def answer_question(
     }
 
 
-class TextToSqlInput(BaseModel):
-    """Input schema for the text_to_sql tool."""
+class CompanyFundamentalsQueryInput(BaseModel):
+    """Input schema for the company_fundamentals_query tool."""
 
     question: str = Field(
         ...,
@@ -382,12 +382,12 @@ class TextToSqlInput(BaseModel):
     )
 
 
-@tool("text_to_sql", args_schema=TextToSqlInput)
-def text_to_sql(
+@tool("company_fundamentals_query", args_schema=CompanyFundamentalsQueryInput)
+def company_fundamentals_query(
     question: str,
     config: RunnableConfig,
     tool_call_id: Annotated[str, InjectedToolCallId],
-) -> TextToSqlResult:
+) -> CompanyFundamentalsQueryResult:
     """Answer a structured financial-data question from the FinLab-X fundamentals store (DuckDB, sourced from yfinance) by generating and running a read-only SQL query.
 
     Covers the Ticker universe only (~23 large US companies: AAPL MSFT GOOGL AMZN NVDA TSLA META JPM V MA WMT COST KO PEP JNJ XOM DIS NFLX INTC NKE CRM BRK.B CAT): quarterly (~5 latest) and annual (~4 fiscal years) income statement, balance sheet and cash flow; derived ratios (gross/operating/net/FCF margin, R&D intensity, debt-to-equity, current ratio); calendar-quarter windows; valuation snapshot (P/E, forward P/E, P/B, P/S, EV/EBITDA, PEG, dividend yield, beta, market cap). One call can compare many companies and periods.
@@ -405,7 +405,7 @@ def text_to_sql(
                 {
                     "status": "generating_sql",
                     "message": f"Writing SQL (attempt {number}/{MAX_ATTEMPTS})...",
-                    "toolName": "text_to_sql",
+                    "toolName": "company_fundamentals_query",
                     "toolCallId": tool_call_id,
                 }
             )

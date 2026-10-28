@@ -10,7 +10,7 @@ store_snapshot: "yfinance batch ingest 2026-10-27, 23 tickers, 115 quarters, 105
 cases:
   - id: Q1
     question: "上一季哪家公司毛利率最高？"
-    expected_route: [text_to_sql]
+    expected_route: [company_fundamentals_query]
     probes: [latest_reported_quarter, null_is_not_zero, mixed_fiscal_calendars]
     gold_sql: |
       SELECT ticker, fiscal_year, fiscal_quarter, period_end,
@@ -28,7 +28,7 @@ cases:
 
   - id: Q2
     question: "Compare NVDA and INTC revenue over the last 4 quarters."
-    expected_route: [text_to_sql]
+    expected_route: [company_fundamentals_query]
     probes: [last_n_quarters_per_company, time_series]
     gold_sql: |
       SELECT ticker, fiscal_year, fiscal_quarter, period_end, total_revenue_usd
@@ -41,7 +41,7 @@ cases:
 
   - id: Q3
     question: "KO 和 PEP 誰的 forward P/E 比較低？"
-    expected_route: [text_to_sql]   # not finnhub_company_basic_financials (tool routing)
+    expected_route: [company_fundamentals_query]   # not finnhub_company_basic_financials (tool routing)
     probes: [valuation_snapshot, routing_vs_finnhub]
     gold_sql: |
       SELECT ticker, as_of_date, forward_price_to_earnings FROM market_valuations
@@ -53,7 +53,7 @@ cases:
 
   - id: Q4
     question: "2026 前三季營收最高的是哪家？"
-    expected_route: [text_to_sql]
+    expected_route: [company_fundamentals_query]
     probes: [calendar_window_default, partial_window_not_comparable]
     gold_sql: |
       SELECT ticker, quarters_covered, quarters_expected,
@@ -75,7 +75,7 @@ cases:
 
   - id: Q6
     question: "Apple 怎麼描述它的 AI 投資？它的研發佔營收比多少？"
-    expected_route: [sec_filing_search, text_to_sql]
+    expected_route: [sec_filing_search, company_fundamentals_query]
     probes: [tool_composition]
     gold_sql: |
       SELECT 'FY' AS grain, fiscal_year, period_end, research_and_development_usd,
@@ -93,7 +93,7 @@ cases:
 
   - id: Q7
     question: "Apple 2019 年營收多少？"
-    expected_route: [text_to_sql]
+    expected_route: [company_fundamentals_query]
     probes: [no_rows_is_honest, coverage_disclosure]
     gold_sql: |
       SELECT fiscal_year, total_revenue_usd FROM annual_metrics

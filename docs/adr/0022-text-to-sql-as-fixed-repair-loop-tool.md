@@ -1,7 +1,7 @@
 # ADR-0022: Text-to-SQL is a tool with an internal fixed generate–validate–execute–repair loop (2026-10-27)
 
 **Decision**: The `quant` profile reaches the fundamentals store through one Orchestrator tool,
-`text_to_sql(question)`. The Orchestrator passes a self-contained English question; inside the
+`company_fundamentals_query(question)`. The Orchestrator passes a self-contained English question; inside the
 tool a fixed loop runs: an LLM writes DuckDB SQL from the LLM-visible schema (column
 `COMMENT`s) and a dedicated SQL prompt → the SQL is validated as a single read-only `SELECT` →
 executed on a read-only connection → on a validation or execution error the error text is fed
@@ -28,6 +28,10 @@ question → SQL → result unit is also independently evaluable (execution accu
 running the whole Orchestrator.
 
 **Consequences**:
+
+- The tool is named for what it queries (`company_fundamentals_query`), not for the technique
+  (text-to-SQL), following the other tools (`sec_filing_search` is not called `rag`): the
+  Orchestrator routes on the data source, and the method behind it may change.
 
 - Follow-up questions work only if the Orchestrator rewrites them into self-contained
   questions; the inner LLM does not see the conversation.

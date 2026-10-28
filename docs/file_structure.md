@@ -42,7 +42,7 @@ The core, independent AI logic. Designed to run independently of the FastAPI ser
   - `sec_filing_tools.py`: Two-step SEC access (`sec_filing_list_sections` / `sec_filing_get_section`).
   - `sec_filing.py`: Pipeline-backed SEC filing downloader tool.
   - `sec_filing_search.py`: Dense-retrieval RAG tool (`sec_filing_search`) over SEC 10-Ks via Qdrant, reader-profile only.
-  - `text_to_sql.py` + `text_to_sql_prompt.md`: Natural-language → read-only DuckDB SQL over the fundamentals store (fixed repair loop, ADR-0022), quant-profile only.
+  - `company_fundamentals_query.py` + `company_fundamentals_query_prompt.md`: Natural-language → read-only DuckDB SQL over the fundamentals store (fixed repair loop, ADR-0022), quant-profile only.
 - **`streaming/`**: Three-layer streaming pipeline (see module README).
   - `domain_events_schema.py`: Frozen dataclass domain events (`TextDelta`, `ToolCall`, `Finish`, ...).
   - `event_mapper.py`: Stateful LangGraph-chunks → domain-events mapper.

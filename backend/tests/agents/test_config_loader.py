@@ -329,12 +329,12 @@ def test_all_shipped_profiles_load_into_valid_model_config(profile):
 
 
 def test_quant_profile_declares_only_registered_tools():
-    """quant = reader's tools + text_to_sql, and none of them is silently skipped."""
+    """quant = reader's tools + company_fundamentals_query, and none of them is silently skipped."""
     from backend.agent_engine.tools import setup_tools
     from backend.agent_engine.tools.registry import list_registered_tools
 
     setup_tools()
     quant = ProfileConfigLoader("quant").load()
     reader = ProfileConfigLoader("reader").load()
-    assert set(quant.tools) == set(reader.tools) | {"text_to_sql"}
+    assert set(quant.tools) == set(reader.tools) | {"company_fundamentals_query"}
     assert set(quant.tools) <= set(list_registered_tools())

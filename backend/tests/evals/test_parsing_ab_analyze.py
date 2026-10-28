@@ -9,13 +9,15 @@ from backend.evals.experiments.parsing_ab.analyze import (
     breakdown,
     degraded_html_filings,
     expected_from_row,
+    format_insensitive_rank,
+    miss_kind,
     mcnemar_exact_p,
     paired_bootstrap_delta,
     row_buckets,
     row_id_for,
     score_arm,
     snippet_only_rank,
-    snippet_recall_summary,
+    rank_recall_summary,
     summarize_arms,
 )
 
@@ -241,13 +243,49 @@ class TestDegradedHtmlFilings:
         assert degraded_html_filings(manifest) == ["COST", "JPM"]
 
 
-class TestSnippetRecallSummary:
-    def test_counts_snippet_rank_within_ten_regardless_of_label(self) -> None:
+class TestRankRecallSummary:
+    def test_counts_given_rank_within_ten(self) -> None:
         records = [
             {"html": {"snippet_rank": 3}, "text": {"snippet_rank": 1}},
             {"html": {"snippet_rank": None}, "text": {"snippet_rank": 11}},
         ]
-        summary = snippet_recall_summary(records)
+        summary = rank_recall_summary(records, "snippet_rank")
         assert summary["html"][0] == pytest.approx(0.5)
         assert summary["text"][0] == pytest.approx(0.5)
         assert summary["delta"][0] == pytest.approx(0.0)
+
+
+class TestFormatInsensitiveRank:
+    def test_requires_path_but_ignores_table_syntax(self) -> None:
+        expected = {"header_paths": [ITEM_7], "answer_snippets": ["Fixed income $ 40"]}
+        chunks = [
+            _text_chunk("NVDA / 2026 / Item 1A. Risk Factors", "Fixed income $ 40"),
+            _text_chunk(ITEM_7, "| Fixed income | $ | 40 |"),
+        ]
+        assert format_insensitive_rank("text", chunks, expected) == 2
+
+    def test_html_paths_go_through_the_compat_wrapper(self) -> None:
+        raw = (
+            "NVDA / 2026 / Part II / Item 7. Management’s Discussion and "
+            "Analysis of Financial Condition and Results of Operations"
+        )
+        chunks = [_html_chunk(raw, "| " + SNIPPET + " |")]
+        assert format_insensitive_rank("html", chunks, expected_from_row(_row())) == 1
+
+
+class TestMissKind:
+    def _scores(self, **ranks: float | None) -> dict:
+        base = {"recall_at_10": 0.0, "format_rank": None, "snippet_rank": None}
+        return base | ranks
+
+    def test_hit(self) -> None:
+        assert miss_kind(self._scores(recall_at_10=1.0)) == "hit"
+
+    def test_format_miss_when_path_right_but_text_differs_in_formatting(self) -> None:
+        assert miss_kind(self._scores(format_rank=2, snippet_rank=2)) == "format-miss"
+
+    def test_label_miss_when_evidence_found_under_another_label(self) -> None:
+        assert miss_kind(self._scores(snippet_rank=4)) == "label-miss"
+
+    def test_retrieval_miss(self) -> None:
+        assert miss_kind(self._scores()) == "retrieval-miss"

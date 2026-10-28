@@ -94,6 +94,39 @@ def snippet_only_rank(chunks: list[dict], expected: dict[str, list[str]]) -> int
     return None
 
 
+def format_insensitive_rank(
+    arm: str, chunks: list[dict], expected: dict[str, list[str]]
+) -> int | None:
+    """Scorer hit rule with snippet matching relaxed to ignore formatting.
+
+    Same (header_path prefix, snippet) alternative pairing as the scorer,
+    HTML paths through the compat wrapper, but the snippet comparison ignores
+    case, whitespace and markdown table syntax. Separates "right Item, text
+    rendered differently" (format) from a wrong Item label.
+    """
+    scored = normalize_chunks(chunks) if arm == "html" else chunks
+    pairs = [
+        (path, _match_key(snippet))
+        for path, snippet in zip(expected["header_paths"], expected["answer_snippets"])
+    ]
+    for rank, chunk in enumerate(scored, start=1):
+        text = _match_key(chunk["text"])
+        if any(chunk["header_path"].startswith(p) and s in text for p, s in pairs):
+            return rank
+    return None
+
+
+def miss_kind(scores: dict[str, Any]) -> str:
+    """Where a row's @10 outcome falls in the strict → format → label → retrieval ladder."""
+    if scores["recall_at_10"]:
+        return "hit"
+    if scores["format_rank"] is not None:
+        return "format-miss"
+    if scores["snippet_rank"] is not None:
+        return "label-miss"
+    return "retrieval-miss"
+
+
 def row_buckets(row: dict[str, Any], column: str) -> list[str]:
     """Bucket values a row belongs to; list-valued (OR-set) columns give a set."""
     value = row[column]
@@ -162,11 +195,11 @@ def summarize_arms(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return summary
 
 
-def snippet_recall_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
-    """Label-agnostic recall@10: was any expected snippet in the top 10 at all."""
+def rank_recall_summary(records: list[dict[str, Any]], key: str) -> dict[str, Any]:
+    """Recall@10 from a per-arm rank field (a diagnostic rank, not the scorer's)."""
 
     def hit(scores: dict[str, Any]) -> float:
-        rank = scores["snippet_rank"]
+        rank = scores[key]
         return 1.0 if rank is not None and rank <= 10 else 0.0
 
     html = [hit(r["html"]) for r in records]
@@ -260,6 +293,7 @@ def build_records(
             chunks = retrieval["chunks"]
             scores = score_arm(arm, chunks, expected)
             scores["snippet_rank"] = snippet_only_rank(chunks, expected)
+            scores["format_rank"] = format_insensitive_rank(arm, chunks, expected)
             scored = normalize_chunks(chunks) if arm == "html" else chunks
             scores["top_paths"] = [c["header_path"] for c in scored[:3]]
             record[arm] = scores
@@ -275,14 +309,6 @@ def _fmt_ci(ci: tuple[float, float, float]) -> str:
 def _fmt_delta(ci: tuple[float, float, float]) -> str:
     point, lo, hi = ci
     return f"{point:+.3f} [{lo:+.3f}, {hi:+.3f}]"
-
-
-def _miss_kind(scores: dict[str, Any]) -> str:
-    if scores["recall_at_10"]:
-        return "hit"
-    if scores["snippet_rank"] is not None:
-        return "label-miss"
-    return "retrieval-miss"
 
 
 def _aggregate_rows(summary: dict[str, dict[str, Any]]) -> list[str]:
@@ -337,17 +363,31 @@ def render_tables(
             "",
         ]
 
-    snippet = snippet_recall_summary(records)
-    lines += [
-        "## Sensitivity: label-agnostic recall@10 (snippet anywhere in top 10, "
-        "case/whitespace/table-syntax insensitive)",
-        "",
-        "| HTML (frozen) | Text | Δ text − html |",
-        "|---:|---:|---:|",
-        f"| {_fmt_ci(snippet['html'])} | {_fmt_ci(snippet['text'])} | "
-        f"{_fmt_delta(snippet['delta'])} |",
-        "",
+    strict = summarize_arms(records)["recall_at_10"]
+    ladder = [
+        ("strict (primary: scorer as-is)", strict),
+        (
+            "format-insensitive (Item path required; snippet ignores "
+            "case/whitespace/table syntax)",
+            rank_recall_summary(records, "format_rank"),
+        ),
+        (
+            "label-agnostic (snippet anywhere in top 10, same relaxed matching)",
+            rank_recall_summary(records, "snippet_rank"),
+        ),
     ]
+    lines += [
+        "## Decomposition: recall@10 under progressively relaxed hit rules",
+        "",
+        "| hit rule | HTML (frozen) | Text | Δ text − html |",
+        "|---|---:|---:|---:|",
+    ]
+    for label, s in ladder:
+        lines.append(
+            f"| {label} | {_fmt_ci(s['html'])} | {_fmt_ci(s['text'])} | "
+            f"{_fmt_delta(s['delta'])} |"
+        )
+    lines.append("")
 
     for column in BREAKDOWN_COLUMNS:
         lines += [
@@ -370,19 +410,20 @@ def render_tables(
     lines += [
         "## Miss diagnosis (@10)",
         "",
-        "`label-miss` = an expected snippet is inside a top-10 chunk (matched "
-        "ignoring case, whitespace and table syntax), but the "
-        "chunk's header_path does not start with any expected Item path; "
-        "`retrieval-miss` = no top-10 chunk contains any expected snippet.",
+        "`format-miss` = a top-10 chunk under an expected Item path holds the "
+        "snippet once case, whitespace and table syntax are ignored; "
+        "`label-miss` = the snippet is in a top-10 chunk (same relaxed matching) "
+        "but none under an expected Item path; `retrieval-miss` = no top-10 "
+        "chunk holds the snippet.",
         "",
-        "| arm | hit | label-miss | retrieval-miss |",
-        "|---|---:|---:|---:|",
+        "| arm | hit | format-miss | label-miss | retrieval-miss |",
+        "|---|---:|---:|---:|---:|",
     ]
     for arm in ARMS:
-        kinds = [_miss_kind(r[arm]) for r in records]
+        kinds = [miss_kind(r[arm]) for r in records]
         lines.append(
-            f"| {arm} | {kinds.count('hit')} | {kinds.count('label-miss')} | "
-            f"{kinds.count('retrieval-miss')} |"
+            f"| {arm} | {kinds.count('hit')} | {kinds.count('format-miss')} | "
+            f"{kinds.count('label-miss')} | {kinds.count('retrieval-miss')} |"
         )
     lines.append("")
 
@@ -405,7 +446,7 @@ def render_tables(
             f"- Question: {r['question']}",
             f"- Expected: {' | '.join(r['expected_header_paths'])}",
             f"- {winner} rank: {r[winner]['rank']}",
-            f"- {loser} miss kind: {_miss_kind(r[loser])}"
+            f"- {loser} miss kind: {miss_kind(r[loser])}"
             + (
                 f" (snippet at rank {r[loser]['snippet_rank']})"
                 if r[loser]["snippet_rank"]
@@ -425,6 +466,8 @@ def write_per_row(records: list[dict[str, Any]], path: Path) -> None:
         "detection_source",
         "html_rank",
         "text_rank",
+        "html_format_rank",
+        "text_format_rank",
         "html_snippet_rank",
         "text_snippet_rank",
         "html_mrr",
@@ -445,12 +488,14 @@ def write_per_row(records: list[dict[str, Any]], path: Path) -> None:
                     "detection_source": "|".join(r["detection_source"]),
                     "html_rank": r["html"]["rank"] or "",
                     "text_rank": r["text"]["rank"] or "",
+                    "html_format_rank": r["html"]["format_rank"] or "",
+                    "text_format_rank": r["text"]["format_rank"] or "",
                     "html_snippet_rank": r["html"]["snippet_rank"] or "",
                     "text_snippet_rank": r["text"]["snippet_rank"] or "",
                     "html_mrr": f"{r['html']['mrr']:.4f}",
                     "text_mrr": f"{r['text']['mrr']:.4f}",
-                    "html_miss_kind": _miss_kind(r["html"]),
-                    "text_miss_kind": _miss_kind(r["text"]),
+                    "html_miss_kind": miss_kind(r["html"]),
+                    "text_miss_kind": miss_kind(r["text"]),
                     "question": r["question"],
                 }
             )

@@ -49,7 +49,6 @@ export interface SqlEvidence {
   columns: string[];
   rows: Record<string, unknown>[];
   truncated: boolean;
-  tables: string[];
   derivations: SqlDerivation[];
 }
 
@@ -145,7 +144,6 @@ function toSqlEvidence(output: Record<string, unknown>): SqlEvidence | null {
     columns,
     rows,
     truncated: output.truncated === true,
-    tables: stringList(output.tables),
     derivations: parseDerivations(output.derivations, columns),
   };
 }

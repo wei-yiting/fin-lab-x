@@ -57,7 +57,6 @@ const sqlOutput = JSON.stringify({
   ],
   truncated: false,
   attempts: [],
-  tables: ["annual_metrics"],
   derivations: [
     {
       column: "gross_margin_pct",

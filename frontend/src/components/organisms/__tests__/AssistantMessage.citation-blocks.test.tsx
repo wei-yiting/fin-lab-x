@@ -158,18 +158,14 @@ describe("AssistantMessage — company_fundamentals_query citation blocks", () =
   const text = "Apple's FY2024 gross margin was 46.2% [1].\n\n[1]: sql://call_sql";
 
   test("shows provenance, formula, raw values and per-row substitution", async () => {
-    renderMessage(
-      [sqlPart("call_sql", { tables: ["annual_metrics"], derivations: DERIVATIONS })],
-      text,
-    );
+    renderMessage([sqlPart("call_sql", { derivations: DERIVATIONS })], text);
     const block = entry("1");
 
     await userEvent.click(within(block).getByRole("button"));
 
     expect(
-      within(block).getByText(/yfinance → FinLab-X DuckDB fundamentals store/),
+      within(block).getByText(/yfinance → FinLab-X Company Fundamentals Database/),
     ).toBeInTheDocument();
-    expect(within(block).getByText(/annual_metrics/)).toBeInTheDocument();
     expect(
       within(block).getByText("gross_margin_pct = gross_profit_usd ÷ total_revenue_usd × 100"),
     ).toBeInTheDocument();

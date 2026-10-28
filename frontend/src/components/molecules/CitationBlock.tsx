@@ -132,8 +132,6 @@ function SqlBody({ evidence }: { evidence: SqlEvidence }) {
     <>
       <p className={META_CLASS}>
         {copy.citations.provenanceLabel}: {copy.citations.provenance}
-        {evidence.tables.length > 0 &&
-          ` · ${copy.citations.tablesLabel}: ${evidence.tables.join(", ")}`}
       </p>
       {evidence.derivations.length > 0 && (
         <div>

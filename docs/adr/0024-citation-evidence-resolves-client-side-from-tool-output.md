@@ -7,7 +7,7 @@ the frontend by joining the model's reference definition (`[N]: sec://…` / `[N
 the tool results of the **same assistant message**, which already reach the client as the tool
 part's `output` (`tool-output-available`). The evidence shown is exactly what the model read:
 SEC chunk text, title, fiscal year and fiscal-year end for `sec://`; the `company_fundamentals_query` result
-(columns, rows, tables, **Derivations**) for `sql://{toolCallId}`. No new stream part is added
+(columns, rows, **Derivations**) for `sql://{toolCallId}`. No new stream part is added
 and the streaming contract is unchanged. The `data-tool-artifact` forwarding that ADR-0020
 prescribed for the EDGAR URL stays unimplemented and is downgraded to a follow-up; its only
 payload is `edgar_url`, which a citation block does not need.

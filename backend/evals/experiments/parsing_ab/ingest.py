@@ -30,6 +30,7 @@ import json
 import os
 import sys
 from collections import Counter
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
@@ -140,6 +141,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--only", nargs="*", default=None, help="Ticker subset")
+    parser.add_argument(
+        "--arms", nargs="+", choices=["text", "html"], default=["text", "html"]
+    )
     args = parser.parse_args(argv)
 
     configure_environment()
@@ -153,6 +157,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     manifest["collections"] = {"html": HTML_COLLECTION, "text": TEXT_COLLECTION}
     manifest["embedding"] = embedding_config()
+    manifest.setdefault("edgartools", {}).update(
+        {arm: version("edgartools") for arm in args.arms}
+    )
     manifest["chunking"] = {
         "html": {
             "size_tokens": int(os.environ.get("SEC_CHUNK_SIZE", "512")),
@@ -169,8 +176,8 @@ def main(argv: list[str] | None = None) -> int:
     client = QdrantClient(url="http://localhost:6333")
     for ticker, fiscal_year in filings:
         key = f"{ticker}/{fiscal_year}"
-        entry: dict[str, Any] = {}
-        for arm in ("text", "html"):
+        entry: dict[str, Any] = dict(filings_out.get(key, {}))
+        for arm in args.arms:
             try:
                 info = (
                     ingest_text(ticker, fiscal_year)

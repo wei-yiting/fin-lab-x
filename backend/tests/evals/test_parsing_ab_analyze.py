@@ -114,6 +114,18 @@ class TestSnippetOnlyRank:
         ]
         assert snippet_only_rank(chunks, expected_from_row(_row())) == 2
 
+    def test_matches_across_table_pipes_and_whitespace(self) -> None:
+        # HTML arm renders tables as pipe-delimited markdown; the store has
+        # plain text. The diagnostic ignores both, symmetrically for each arm.
+        expected = {
+            "header_paths": [ITEM_7],
+            "answer_snippets": ["Fixed income  $ 40 Foreign exchange 12"],
+        }
+        chunks = [
+            _text_chunk(ITEM_7, "| Fixed income | $ | 40 |\n| Foreign exchange | 12 |")
+        ]
+        assert snippet_only_rank(chunks, expected) == 1
+
     def test_none_when_no_chunk_contains_any_snippet(self) -> None:
         chunks = [_text_chunk(ITEM_7, "noise")]
         assert snippet_only_rank(chunks, expected_from_row(_row())) is None

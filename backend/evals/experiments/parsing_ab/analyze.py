@@ -26,6 +26,7 @@ import csv
 import json
 import math
 import random
+import re
 import statistics
 from collections import defaultdict
 from pathlib import Path
@@ -68,15 +69,26 @@ def score_arm(
     }
 
 
+_TABLE_NOISE_RE = re.compile(r"\||-{3,}|\s+")
+
+
+def _match_key(text: str) -> str:
+    return _TABLE_NOISE_RE.sub("", text.lower())
+
+
 def snippet_only_rank(chunks: list[dict], expected: dict[str, list[str]]) -> int | None:
     """Rank of the first chunk containing any expected snippet, ignoring paths.
 
     Diagnostic only: separates "the evidence was retrieved but labelled with a
-    different Item" from "the evidence was not retrieved at all".
+    different Item" from "the evidence was not retrieved at all". Matching
+    ignores case, whitespace and markdown table syntax (``|``, ``---``) on
+    both arms alike, so a table-anchored snippet the HTML arm renders as a
+    pipe table still counts as retrieved evidence here — the primary metrics
+    keep the scorer's strict containment.
     """
-    snippets = [s.lower() for s in expected["answer_snippets"]]
+    snippets = [_match_key(s) for s in expected["answer_snippets"]]
     for rank, chunk in enumerate(chunks, start=1):
-        text = chunk["text"].lower()
+        text = _match_key(chunk["text"])
         if any(s in text for s in snippets):
             return rank
     return None
@@ -327,7 +339,8 @@ def render_tables(
 
     snippet = snippet_recall_summary(records)
     lines += [
-        "## Sensitivity: label-agnostic recall@10 (snippet anywhere in top 10)",
+        "## Sensitivity: label-agnostic recall@10 (snippet anywhere in top 10, "
+        "case/whitespace/table-syntax insensitive)",
         "",
         "| HTML (frozen) | Text | Δ text − html |",
         "|---:|---:|---:|",
@@ -357,7 +370,8 @@ def render_tables(
     lines += [
         "## Miss diagnosis (@10)",
         "",
-        "`label-miss` = an expected snippet is inside a top-10 chunk, but the "
+        "`label-miss` = an expected snippet is inside a top-10 chunk (matched "
+        "ignoring case, whitespace and table syntax), but the "
         "chunk's header_path does not start with any expected Item path; "
         "`retrieval-miss` = no top-10 chunk contains any expected snippet.",
         "",

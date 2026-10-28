@@ -44,7 +44,9 @@ with get_connection(":memory:") as conn:
 | `MarketValuationRow` | `.duck_db.row_models` | DTO for the `market_valuations` table (market cap, ratios, beta). |
 | `YFinanceQuarterlyRow` | `.duck_db.row_models` | DTO for the `quarterly_financials` table (income, balance sheet, cash flow). |
 | `YFinanceAnnualRow` | `.duck_db.row_models` | DTO for the `annual_financials` table (same schema as quarterly, no `fiscal_quarter`). |
-| `normalize_fiscal_period` | `.calendar_to_fiscal_period` | Convert a calendar `period_end` date to `(fiscal_year, fiscal_quarter)` using FYE month. |
+| `normalize_fiscal_period` | `.calendar_to_fiscal_period` | Convert a calendar `period_end` date to `(fiscal_year, fiscal_quarter)` using FYE month; 52/53-week drift into days 1–7 of the next month snaps back (`snap_period_end`). |
+| `ingest_ticker` / `open_ticker` | `.yfinance_fetcher` | Fetch one ticker from yfinance and upsert `companies`, `market_valuations`, `quarterly_financials`, `annual_financials` (SEC-only columns stay NULL; periods without revenue are skipped). Batch CLI: `python -m backend.scripts.ingest_yfinance_fundamentals`. Local machine only — no retry, no JIT. |
+| `quarterly_metrics` / `annual_metrics` / `period_metrics()` | `duck_db/schema.sql` | Semantic layer (ADR-0023): derived ratios, calendar quarter labels, and calendar-window aggregation (partial windows return NULL amounts). What `company_fundamentals_query` queries. |
 | `load_ticker_universe` | `.ticker_universe_loader` | Load the canonical ticker list from `config/ticker_universe.yaml`. |
 | `track_ingestion_run` | `.ingestion_run_tracker` | Context manager that writes one `ingestion_runs` audit row (success or error). Yields a `RunReport` dataclass (`rows_written_total: int`, `metadata: dict`) the caller mutates during the block. |
 | `FundamentalsPipelineError` | `.errors` | Base exception for all pipeline errors. |

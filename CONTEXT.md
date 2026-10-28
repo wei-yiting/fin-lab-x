@@ -12,7 +12,7 @@ A versioned config directory that fully defines an Orchestrator's behavior; the 
 _Avoid_: hardcoded agent, agent subclass, workflow version (legacy code vocabulary for the config bundle, retired by the capability-tier rename — the profile's own semver still lives in the `version` field)
 
 **Capability tier**:
-One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. `baseline` and `reader` are implemented; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
+One of the five cumulative agent stages — `baseline` → `reader` → `quant` → `graph` → `analyst` — each a Workflow Profile that adds one new capability class. `baseline` and `reader` are implemented, `quant` is a prototype; the rest are placeholders. Roadmap phases keep their numbers ("Phase 2 delivers `reader`"); agents keep their names.
 _Avoid_: v1–v5 / bare version numbers for agents (legacy naming; collides with pipeline generations, PRD phases, and external SDK versions)
 
 **Capability**:
@@ -66,7 +66,20 @@ The hierarchical section locator attached to each chunk; retrieval scoring match
 The preprocessing stage that promotes raw 10-K markup to semantic heading levels; tickers are bucketed Class A/B/C by markup difficulty.
 
 **Ticker universe**:
-The curated ~10–20 ticker set eligible for batch ingestion; anything outside it is served by JIT only.
+The single curated ticker set (~20–25, cross-industry) eligible for batch ingestion on both paths. Outside it, the RAG path may still serve a filing by JIT; the fundamentals path has no JIT, so a fundamentals question about an outside ticker is reported as not covered.
+
+**Derived metric**:
+A ratio or aggregate computed from stored columns (e.g. gross margin = gross profit / revenue), defined exactly once in the database layer (a view or parameterized view) and never stored as a column. A source-precomputed ratio (e.g. a vendor-supplied P/E) is a stored column, not a derived metric. Over a multi-quarter window, flow amounts sum, balance-sheet amounts take the window's last quarter, and ratios are recomputed from the summed parts — never averaged.
+_Avoid_: calculated column, computed field
+
+**Fiscal quarter**:
+A quarter labelled on the company's own fiscal calendar (FY ends where the company's fiscal year ends). Comparable within one company; never used to align periods across companies.
+
+**Calendar quarter**:
+The calendar quarter a fiscal quarter is mapped to by its middle month, used to compare the same stretch of time across companies with different fiscal year-ends. A calendar-period question ("2026 前三季") is answered in calendar quarters by default, disclosing any company whose quarters do not align exactly.
+
+**Latest reported quarter**:
+A company's quarter with the most recent period end in the store. "Last quarter" across companies means each company's latest reported quarter, which may cover different months per company.
 
 **Ingestion run**:
 One audited ETL invocation on the fundamentals path, recorded as a row (success or error) in the `ingestion_runs` table. The RAG path keeps no run audit; its integrity mechanism is the commit marker.

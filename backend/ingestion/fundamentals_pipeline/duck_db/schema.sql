@@ -558,3 +558,213 @@ COMMENT ON COLUMN ingestion_runs.rows_written_total IS
   'Total rows upserted across all target tables for this run. May be partial on error.';
 COMMENT ON COLUMN ingestion_runs.metadata IS
   'Per-run summary. Free-form JSON: {periods_covered, rows_per_table, api_latency_ms, ...}.';
+
+-- ============================================================
+-- Semantic layer (ADR-0023): derived metrics + calendar-window aggregation.
+-- The company_fundamentals_query tool exposes these to the LLM instead of the raw tables.
+-- ============================================================
+
+-- quarterly_metrics (view)
+-- quarterly_metrics: calendar_year/calendar_quarter come from the fiscal labels and the
+-- company's FYE month (middle month of the fiscal quarter = fiscal-year-end month
+-- - 3*(4 - fiscal_quarter) - 1), not from period_end: ingest already normalized the
+-- fiscal labels (incl. 52/53-week drift), and DuckDB 1.5.2 raises an INTERNAL binder
+-- error when a view column computed from period_end meets a window ORDER BY period_end.
+CREATE OR REPLACE VIEW quarterly_metrics AS
+SELECT
+    ticker,
+    q.fiscal_year,
+    q.fiscal_quarter,
+    q.period_end,
+    CAST((q.fiscal_year * 12 + c.fy_end_month - 3 * (4 - q.fiscal_quarter) - 2) // 12 AS INTEGER) AS calendar_year,
+    CAST(((q.fiscal_year * 12 + c.fy_end_month - 3 * (4 - q.fiscal_quarter) - 2) % 12) // 3 + 1 AS INTEGER) AS calendar_quarter,
+    total_revenue_usd,
+    cost_of_revenue_usd,
+    gross_profit_usd,
+    research_and_development_usd,
+    selling_general_admin_usd,
+    operating_income_usd,
+    ebit_usd,
+    net_income_usd,
+    interest_income_usd,
+    interest_expense_usd,
+    tax_provision_usd,
+    ebitda_usd,
+    diluted_eps,
+    diluted_avg_shares,
+    total_assets_usd,
+    goodwill_usd,
+    net_ppe_usd,
+    total_debt_usd,
+    long_term_debt_usd,
+    net_debt_usd,
+    cash_and_equivalents_usd,
+    stockholders_equity_usd,
+    current_assets_usd,
+    current_liabilities_usd,
+    accounts_receivable_usd,
+    inventory_usd,
+    deferred_revenue_usd,
+    operating_cash_flow_usd,
+    capital_expenditure_usd,
+    free_cash_flow_usd,
+    depreciation_amortization_usd,
+    stock_buyback_usd,
+    dividends_paid_usd,
+    stock_based_compensation_usd,
+    gross_profit_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS gross_margin_pct,
+    operating_income_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS operating_margin_pct,
+    net_income_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS net_margin_pct,
+    free_cash_flow_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS fcf_margin_pct,
+    research_and_development_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS rd_to_revenue_pct,
+    total_debt_usd::DOUBLE / NULLIF(stockholders_equity_usd, 0) AS debt_to_equity,
+    current_assets_usd::DOUBLE / NULLIF(current_liabilities_usd, 0) AS current_ratio
+FROM quarterly_financials AS q
+LEFT JOIN companies AS c USING (ticker);
+
+-- annual_metrics (view)
+CREATE OR REPLACE VIEW annual_metrics AS
+SELECT
+    ticker,
+    fiscal_year,
+    period_end,
+    total_revenue_usd,
+    cost_of_revenue_usd,
+    gross_profit_usd,
+    research_and_development_usd,
+    selling_general_admin_usd,
+    operating_income_usd,
+    ebit_usd,
+    net_income_usd,
+    interest_income_usd,
+    interest_expense_usd,
+    tax_provision_usd,
+    ebitda_usd,
+    diluted_eps,
+    diluted_avg_shares,
+    total_assets_usd,
+    goodwill_usd,
+    net_ppe_usd,
+    total_debt_usd,
+    long_term_debt_usd,
+    net_debt_usd,
+    cash_and_equivalents_usd,
+    stockholders_equity_usd,
+    current_assets_usd,
+    current_liabilities_usd,
+    accounts_receivable_usd,
+    inventory_usd,
+    deferred_revenue_usd,
+    operating_cash_flow_usd,
+    capital_expenditure_usd,
+    free_cash_flow_usd,
+    depreciation_amortization_usd,
+    stock_buyback_usd,
+    dividends_paid_usd,
+    stock_based_compensation_usd,
+    gross_profit_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS gross_margin_pct,
+    operating_income_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS operating_margin_pct,
+    net_income_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS net_margin_pct,
+    free_cash_flow_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS fcf_margin_pct,
+    research_and_development_usd::DOUBLE / NULLIF(total_revenue_usd, 0) * 100 AS rd_to_revenue_pct,
+    total_debt_usd::DOUBLE / NULLIF(stockholders_equity_usd, 0) AS debt_to_equity,
+    current_assets_usd::DOUBLE / NULLIF(current_liabilities_usd, 0) AS current_ratio
+FROM annual_financials;
+
+-- period_metrics (table macro)
+CREATE OR REPLACE MACRO period_metrics(cal_year, q_from, q_to) AS TABLE
+SELECT
+    ticker,
+    cal_year AS calendar_year,
+    q_from AS calendar_quarter_from,
+    q_to AS calendar_quarter_to,
+    CAST(count(*) AS INTEGER) AS quarters_covered,
+    CAST(q_to - q_from + 1 AS INTEGER) AS quarters_expected,
+    min(period_end) AS first_period_end,
+    max(period_end) AS last_period_end,
+    -- Every amount below is NULL for a partial window (quarters_covered <
+    -- quarters_expected): a partial sum must never be compared with a full one.
+    -- flows: summed, NULL unless every quarter reports the item
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(total_revenue_usd) = count(*) THEN sum(total_revenue_usd) END AS total_revenue_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(cost_of_revenue_usd) = count(*) THEN sum(cost_of_revenue_usd) END AS cost_of_revenue_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(gross_profit_usd) = count(*) THEN sum(gross_profit_usd) END AS gross_profit_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(research_and_development_usd) = count(*) THEN sum(research_and_development_usd) END AS research_and_development_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(selling_general_admin_usd) = count(*) THEN sum(selling_general_admin_usd) END AS selling_general_admin_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(operating_income_usd) = count(*) THEN sum(operating_income_usd) END AS operating_income_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(ebit_usd) = count(*) THEN sum(ebit_usd) END AS ebit_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(net_income_usd) = count(*) THEN sum(net_income_usd) END AS net_income_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(interest_income_usd) = count(*) THEN sum(interest_income_usd) END AS interest_income_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(interest_expense_usd) = count(*) THEN sum(interest_expense_usd) END AS interest_expense_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(tax_provision_usd) = count(*) THEN sum(tax_provision_usd) END AS tax_provision_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(ebitda_usd) = count(*) THEN sum(ebitda_usd) END AS ebitda_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(operating_cash_flow_usd) = count(*) THEN sum(operating_cash_flow_usd) END AS operating_cash_flow_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(capital_expenditure_usd) = count(*) THEN sum(capital_expenditure_usd) END AS capital_expenditure_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(free_cash_flow_usd) = count(*) THEN sum(free_cash_flow_usd) END AS free_cash_flow_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(depreciation_amortization_usd) = count(*) THEN sum(depreciation_amortization_usd) END AS depreciation_amortization_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(stock_buyback_usd) = count(*) THEN sum(stock_buyback_usd) END AS stock_buyback_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(dividends_paid_usd) = count(*) THEN sum(dividends_paid_usd) END AS dividends_paid_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(stock_based_compensation_usd) = count(*) THEN sum(stock_based_compensation_usd) END AS stock_based_compensation_usd,
+    -- balance-sheet stocks: the window's last quarter
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(total_assets_usd, period_end) END AS total_assets_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(goodwill_usd, period_end) END AS goodwill_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(net_ppe_usd, period_end) END AS net_ppe_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(total_debt_usd, period_end) END AS total_debt_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(long_term_debt_usd, period_end) END AS long_term_debt_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(net_debt_usd, period_end) END AS net_debt_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(cash_and_equivalents_usd, period_end) END AS cash_and_equivalents_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(stockholders_equity_usd, period_end) END AS stockholders_equity_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(current_assets_usd, period_end) END AS current_assets_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(current_liabilities_usd, period_end) END AS current_liabilities_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(accounts_receivable_usd, period_end) END AS accounts_receivable_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(inventory_usd, period_end) END AS inventory_usd,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(deferred_revenue_usd, period_end) END AS deferred_revenue_usd,
+    -- ratios: recomputed from summed (or last-quarter) parts, never averaged
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(gross_profit_usd) = count(*) THEN sum(gross_profit_usd) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 AND count(total_revenue_usd) = count(*) THEN sum(total_revenue_usd) END, 0) * 100 AS gross_margin_pct,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(operating_income_usd) = count(*) THEN sum(operating_income_usd) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 AND count(total_revenue_usd) = count(*) THEN sum(total_revenue_usd) END, 0) * 100 AS operating_margin_pct,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(net_income_usd) = count(*) THEN sum(net_income_usd) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 AND count(total_revenue_usd) = count(*) THEN sum(total_revenue_usd) END, 0) * 100 AS net_margin_pct,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(free_cash_flow_usd) = count(*) THEN sum(free_cash_flow_usd) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 AND count(total_revenue_usd) = count(*) THEN sum(total_revenue_usd) END, 0) * 100 AS fcf_margin_pct,
+    CASE WHEN count(*) = q_to - q_from + 1 AND count(research_and_development_usd) = count(*) THEN sum(research_and_development_usd) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 AND count(total_revenue_usd) = count(*) THEN sum(total_revenue_usd) END, 0) * 100 AS rd_to_revenue_pct,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(total_debt_usd, period_end) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(stockholders_equity_usd, period_end) END, 0) AS debt_to_equity,
+    CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(current_assets_usd, period_end) END::DOUBLE / NULLIF(CASE WHEN count(*) = q_to - q_from + 1 THEN arg_max_null(current_liabilities_usd, period_end) END, 0) AS current_ratio
+FROM quarterly_metrics
+WHERE calendar_year = cal_year AND calendar_quarter BETWEEN q_from AND q_to
+GROUP BY ticker;
+
+COMMENT ON VIEW quarterly_metrics IS
+  'Per-quarter financials plus derived ratios. Grain: one row per (ticker, fiscal_year, fiscal_quarter). Query this instead of quarterly_financials.';
+COMMENT ON COLUMN quarterly_metrics.calendar_year IS
+  'Calendar year of the calendar quarter this fiscal quarter maps to (by its middle month). Use calendar_year/calendar_quarter to compare the same stretch of time across companies.';
+COMMENT ON COLUMN quarterly_metrics.calendar_quarter IS
+  'Calendar quarter 1-4 this fiscal quarter maps to (by its middle month). E.g. NVDA quarter Feb-Apr 2026 -> calendar 2026 Q1 (off by one month: disclose).';
+COMMENT ON COLUMN quarterly_metrics.gross_margin_pct IS
+  'Gross margin in percent = gross_profit_usd / total_revenue_usd * 100. NULL when gross profit is not reported (e.g. banks, payment networks) or revenue is 0/NULL.';
+COMMENT ON COLUMN quarterly_metrics.operating_margin_pct IS
+  'Operating margin in percent = operating_income_usd / total_revenue_usd * 100.';
+COMMENT ON COLUMN quarterly_metrics.net_margin_pct IS
+  'Net margin in percent = net_income_usd / total_revenue_usd * 100.';
+COMMENT ON COLUMN quarterly_metrics.fcf_margin_pct IS
+  'Free-cash-flow margin in percent = free_cash_flow_usd / total_revenue_usd * 100.';
+COMMENT ON COLUMN quarterly_metrics.rd_to_revenue_pct IS
+  'R&D intensity in percent = research_and_development_usd / total_revenue_usd * 100. NULL when R&D is not reported.';
+COMMENT ON COLUMN quarterly_metrics.debt_to_equity IS
+  'Debt-to-equity ratio = total_debt_usd / stockholders_equity_usd. Negative when equity is negative.';
+COMMENT ON COLUMN quarterly_metrics.current_ratio IS
+  'Current ratio = current_assets_usd / current_liabilities_usd. NULL for banks/insurers that do not report a classified balance sheet.';
+COMMENT ON VIEW annual_metrics IS
+  'Per-fiscal-year financials plus derived ratios. Grain: one row per (ticker, fiscal_year). Query this instead of annual_financials.';
+COMMENT ON COLUMN annual_metrics.gross_margin_pct IS
+  'Gross margin in percent = gross_profit_usd / total_revenue_usd * 100. NULL when gross profit is not reported (e.g. banks, payment networks) or revenue is 0/NULL.';
+COMMENT ON COLUMN annual_metrics.operating_margin_pct IS
+  'Operating margin in percent = operating_income_usd / total_revenue_usd * 100.';
+COMMENT ON COLUMN annual_metrics.net_margin_pct IS
+  'Net margin in percent = net_income_usd / total_revenue_usd * 100.';
+COMMENT ON COLUMN annual_metrics.fcf_margin_pct IS
+  'Free-cash-flow margin in percent = free_cash_flow_usd / total_revenue_usd * 100.';
+COMMENT ON COLUMN annual_metrics.rd_to_revenue_pct IS
+  'R&D intensity in percent = research_and_development_usd / total_revenue_usd * 100. NULL when R&D is not reported.';
+COMMENT ON COLUMN annual_metrics.debt_to_equity IS
+  'Debt-to-equity ratio = total_debt_usd / stockholders_equity_usd. Negative when equity is negative.';
+COMMENT ON COLUMN annual_metrics.current_ratio IS
+  'Current ratio = current_assets_usd / current_liabilities_usd. NULL for banks/insurers that do not report a classified balance sheet.';
+COMMENT ON MACRO TABLE period_metrics IS
+  'Calendar-window aggregate per ticker: period_metrics(cal_year, q_from, q_to), e.g. period_metrics(2026, 1, 3) = calendar 2026 Q1-Q3 ("2026 前三季"). Flow amounts (revenue, income, cash flow) are summed; balance-sheet amounts are the window''s last quarter; ratio columns (same names as quarterly_metrics) are recomputed from the aggregated parts. A partial window (quarters_covered < quarters_expected, e.g. a company has not reported that calendar quarter yet, or history is too short) returns NULL for every amount and ratio: report that company as not comparable. first_period_end/last_period_end are the END dates of the first and last fiscal quarters in the window, so the window starts about three months before first_period_end (e.g. 2026-02-28 .. 2026-08-31 covers Dec 2025 - Aug 2026).';

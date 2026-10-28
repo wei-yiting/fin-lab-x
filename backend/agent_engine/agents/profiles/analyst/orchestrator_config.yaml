@@ -15,7 +15,7 @@ tools:
   - sec_filing_list_sections
   - sec_filing_get_section
   - duckdb_query
-  - text_to_sql
+  - company_fundamentals_query
   - neo4j_query
   - text_to_cypher
 

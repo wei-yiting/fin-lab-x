@@ -7,15 +7,28 @@ from backend.ingestion.fundamentals_pipeline.ticker_universe_loader import (
 )
 
 EXPECTED_TICKERS = [
+    "AAPL",
     "MSFT",
+    "GOOGL",
+    "AMZN",
     "NVDA",
-    "CRM",
-    "WMT",
+    "TSLA",
+    "META",
     "JPM",
-    "BRK.B",
-    "JNJ",
+    "V",
+    "MA",
+    "WMT",
+    "COST",
     "KO",
+    "PEP",
+    "JNJ",
     "XOM",
+    "DIS",
+    "NFLX",
+    "INTC",
+    "NKE",
+    "CRM",
+    "BRK.B",
     "CAT",
 ]
 

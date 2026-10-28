@@ -146,10 +146,10 @@ EXPECTED_TOOLS_BY_PROFILE = {
     # The remaining placeholder profiles stay on the two-step pair until real.
     "baseline": _BASELINE_TOOLS,
     "reader": _BASELINE_TOOLS + ["sec_filing_search"],
-    "quant": _BASELINE_TOOLS + ["duckdb_query", "text_to_sql"],
+    "quant": _BASELINE_TOOLS + ["sec_filing_search", "company_fundamentals_query"],
     "graph": _BASELINE_TOOLS + ["neo4j_query", "text_to_cypher"],
     "analyst": _BASELINE_TOOLS
-    + ["duckdb_query", "text_to_sql", "neo4j_query", "text_to_cypher"],
+    + ["duckdb_query", "company_fundamentals_query", "neo4j_query", "text_to_cypher"],
 }
 
 

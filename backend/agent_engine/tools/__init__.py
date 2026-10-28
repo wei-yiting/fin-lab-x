@@ -26,6 +26,9 @@ def setup_tools() -> None:
         sec_filing_get_section,
         sec_filing_list_sections,
     )
+    from backend.agent_engine.tools.company_fundamentals_query import (
+        company_fundamentals_query,
+    )
 
     register_tool("finnhub_stock_quote", finnhub_stock_quote)
     register_tool("finnhub_company_basic_financials", finnhub_company_basic_financials)
@@ -34,6 +37,7 @@ def setup_tools() -> None:
     register_tool("sec_filing_get_section", sec_filing_get_section)
     register_tool("sec_filing_downloader", sec_filing_downloader)
     register_tool("sec_filing_search", sec_filing_search)
+    register_tool("company_fundamentals_query", company_fundamentals_query)
 
     _tools_registered = True
 

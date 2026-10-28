@@ -12,6 +12,18 @@ independent LLM reviewers with the user deciding their disagreements — not a
 full human review. See [Review provenance](#review-provenance-round-2) before
 quoting results from this dataset.
 
+**Re-anchored to edgartools 5.62 (2026-10-28).** The rows were assembled
+against a filing store parsed under edgartools 5.17.1. Both A/B arms run on
+edgartools 5.62, so the store was re-parsed and every row re-anchored to it
+(`curation/reanchor_to_store.py`): questions, answer requirements and
+evidence are unchanged. 5.62 fixes Item mis-assignments (`n04` Item 16 → 7,
+`n10` Items 1/15 → 7, `n01`'s Item 6 copies now sit only in Item 7) and
+changes table whitespace (`a16`, `n10`, `p48` spans/snippets re-extracted;
+`p48`'s Item 16 snippet widened within its span to stay ≥ 50 chars).
+`block_heading` / `detection_source` were refreshed from the 5.62 parse; it
+produces no `markdown_h4` items, so the detection-path distribution changed.
+Each changed row records this in `review_provenance`.
+
 ## Ground-truth contract (ADR-0016)
 
 Ground truth is a **pipeline-independent document span**, validated against
@@ -218,27 +230,25 @@ from round-1 generation and `round2-curation-agent` for `n01`–`n10`.
 
 | value | rows |
 |---|---|
-| markdown_h3 | 21 |
-| markdown_h4 | 13 |
-| text_fallback | 7 |
-| flat | 3 |
-| **total (rows)** | **44** |
+| markdown_h3 | 25 |
+| text_fallback | 16 |
+| flat | 2 |
+| **total (rows)** | **43** |
 
 ### Item (rows touching each Item)
 
 | value | rows |
 |---|---|
-| 7 | 25 |
-| 1 | 9 |
-| 16 | 3 |
+| 7 | 27 |
+| 1 | 8 |
 | 1A | 3 |
 | 7A | 3 |
-| 15 | 2 |
+| 16 | 2 |
 | 1C | 2 |
+| 15 | 1 |
 | 5 | 1 |
-| 6 | 1 |
 | 9A | 1 |
-| **total (rows)** | **50** |
+| **total (rows)** | **48** |
 
 ### Query type
 

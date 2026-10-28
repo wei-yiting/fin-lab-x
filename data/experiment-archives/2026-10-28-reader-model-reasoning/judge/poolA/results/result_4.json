@@ -1,0 +1,122 @@
+[
+{"id": "J0019", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別以交付／生產、監管、需求三節討論並附排序表"},
+{"signal": 1, "pass": 1, "reason": "明確指出交付／生產執行是主因"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 數據與 backlog 為據，管理層看法標明為其認為"}]},
+{"id": "J0074", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 ROE、CET1 要求、壓力測試與同業比較，非只重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位（CET1、fortress balance sheet）與近期私人信貸風險"},
+{"signal": 2, "pass": 1, "reason": "明確結論為大致仍站得住，並加以修正"}]},
+{"id": "J0262", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講摩根大通監管資本，未分析特斯拉估值與成長"},
+{"signal": 1, "pass": 0, "reason": "未對特斯拉估值給出任何結論"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理特斯拉未來敘事"}]},
+{"id": "J0096", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較本益比、預估本益比、營收與 EPS 成長等多項指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉比輝達更像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "J0146", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述沃爾瑪必需品低價、好市多會員續會率、麥當勞加盟模式"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪＞好市多＞麥當勞排序"},
+{"signal": 2, "pass": 0, "reason": "只區分業務韌性與股價報酬，未對跨商業模式不可直接比較保留"}]},
+{"id": "J0185", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明低毛利高周轉加會員費與可比銷售的獲利飛輪"},
+{"signal": 1, "pass": 1, "reason": "以會員費收入59.07億、續費率92.3%等說明其角色"},
+{"signal": 2, "pass": 1, "reason": "以毛利率11.09%、會員費、Executive 占比等具體數據說明"}]},
+{"id": "J0208", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案是三家衰退韌性比較，未說明好市多賺錢核心"},
+{"signal": 1, "pass": 0, "reason": "僅順帶提會員制，未分析會員費在獲利中的角色"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未針對好市多獲利結構"}]},
+{"id": "J0161", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述交付／生產、監管、需求並另提中國局部風險"},
+{"signal": 1, "pass": 1, "reason": "明確指出交付／生產為主卡點"},
+{"signal": 2, "pass": 1, "reason": "以 10-K、FAA 報導為據，需求面標為潛在風險而非定論"}]},
+{"id": "J0234", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講好市多獲利核心，未涵蓋三家公司衰退韌性"},
+{"signal": 1, "pass": 0, "reason": "未給出三家相對韌性判斷"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理跨商業模式比較"}]},
+{"id": "J0068", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 10-K fortress balance sheet 並指出交易與批發曝險，非僅重述印象"},
+{"signal": 1, "pass": 0, "reason": "答案截斷，僅資本一項有實際依據，業務組合與近期風險只是帶過"},
+{"signal": 2, "pass": 1, "reason": "明確結論為大致仍站得住，屬相對穩健"}]},
+{"id": "J0051", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出每股股息2.12美元、股息支付87.79億與營業現金流74.08億"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍屬穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "分析現金流覆蓋不足等實際數據，而非只靠防禦印象"}]},
+{"id": "J0015", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 JPM FY2025 10-K 的 CET1、RWA、ROE 揭露為主"},
+{"signal": 1, "pass": 1, "reason": "分成已發生負擔、潛在風險與未證明的長期傷害三層"},
+{"signal": 2, "pass": 1, "reason": "明說 10-K 未將 ROE 下降歸因於監管、不能量化"}]},
+{"id": "J0257", "scores": [
+{"signal": 0, "pass": 1, "reason": "雖內容殘缺，仍分別討論輝達、禮來、好市多"},
+{"signal": 1, "pass": 1, "reason": "以誰需持續交出最驚人結果為比較邏輯，並各列下修觸發點"},
+{"signal": 2, "pass": 0, "reason": "未對跨產業不可直接比較做保留"}]},
+{"id": "J0217", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較空巴引擎瓶頸與波音品質、FAA 限制、負債的差異"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過"},
+{"signal": 2, "pass": 1, "reason": "明說缺乏空巴 EASA 監管資料，不能斷言其監管壓力較低"}]},
+{"id": "J0189", "scores": [
+{"signal": 0, "pass": 1, "reason": "分已知成本（34億準備、阿片八成已付）與未決擴大部分"},
+{"signal": 1, "pass": 1, "reason": "以 JNJ FY2025 10-K 揭露為主要依據"},
+{"signal": 2, "pass": 1, "reason": "結論明確：最大風險為滑石粉回到逐案訴訟的波動"}]},
+{"id": "J0036", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較定價能力（price/mix 4%）與業務結構（濃縮液85%、自有裝瓶36%）"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 業務結構與銷量、利潤數據支撐，非品牌印象"}]},
+{"id": "J0256", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述沃爾瑪必需品、好市多會員制、麥當勞平價外食的韌性來源"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪＞好市多＞麥當勞排序"},
+{"signal": 2, "pass": 0, "reason": "只說是營運韌性非報酬排名，未對跨商業模式不可直接比較保留"}]},
+{"id": "J0023", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析輝達、禮來、好市多並排序"},
+{"signal": 1, "pass": 1, "reason": "以期待高度、beta、產品集中度與可觀察指標說明下修邏輯"},
+{"signal": 2, "pass": 0, "reason": "未提及跨產業估值或指標不可直接比較的保留"}]},
+{"id": "J0149", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較本益比、預估本益比、營收與 EPS 成長、利潤率"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉更像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "J0216", "scores": [
+{"signal": 0, "pass": 1, "reason": "說清低毛利高周轉、同店銷售與會員費共同構成獲利核心"},
+{"signal": 1, "pass": 1, "reason": "量化會員費約為商品毛利18%並說明其戰略角色"},
+{"signal": 2, "pass": 1, "reason": "以淨銷售、毛利率、續卡率、Executive 占比等具體數據說明"}]},
+{"id": "J0101", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講嬌生官司，未比較沃爾瑪與好市多現金流"},
+{"signal": 1, "pass": 0, "reason": "未給出兩家誰較穩的判斷"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未提供兩家比較依據"}]},
+{"id": "J0266", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述沃爾瑪低價必需品、好市多續約率與會員費、麥當勞加盟模式"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪≳好市多＞麥當勞排序"},
+{"signal": 2, "pass": 1, "reason": "指出麥當勞負債權益比受資本結構影響不能直接比較，並依定義區分結論"}]},
+{"id": "J0225", "scores": [
+{"signal": 0, "pass": 1, "reason": "指出 Visa 不發卡不放款、信用風險由發卡行承擔"},
+{"signal": 1, "pass": 1, "reason": "以支付基礎設施收費平台的商業模式解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "結論連到其不承擔信用、利率與存款風險的業務結構"}]},
+{"id": "J0140", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 Visa 不承擔信用風險、收入掛鉤交易量而非利差"},
+{"signal": 1, "pass": 1, "reason": "以網路效應、輕資產與交易收費模式解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "結論以收過路費、信用風險留給銀行連回業務結構"}]},
+{"id": "J0009", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講 Visa 商業模式，未提特斯拉任何事件"},
+{"signal": 1, "pass": 0, "reason": "未區分特斯拉短期衝擊與結構性壓力"},
+{"signal": 2, "pass": 0, "reason": "未連回任何特斯拉近期新聞"}]},
+{"id": "J0083", "scores": [
+{"signal": 0, "pass": 1, "reason": "分已見成本（34億準備、70億沖回、25億判決）與未決擴大部分"},
+{"signal": 1, "pass": 1, "reason": "以 JNJ FY2025 10-K 揭露為主要依據"},
+{"signal": 2, "pass": 1, "reason": "明確結論：滑石粉轉為長期逐案的尾部風險，34億非上限"}]},
+{"id": "J0220", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講波音交付問題，未比較可口可樂與百事"},
+{"signal": 1, "pass": 0, "reason": "未給出兩家結構誰較乾淨的判斷"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未針對兩家公司分析"}]},
+{"id": "J0080", "scores": [
+{"signal": 0, "pass": 1, "reason": "明說負面新聞非充分證據，並以 10-K 營收、虧損、FCF 區分已確認事實"},
+{"signal": 1, "pass": 1, "reason": "表明不會說新聞已證明會持續崩壞，轉型成功與否尚未證明"},
+{"signal": 2, "pass": 1, "reason": "分成已確認惡化、改善中、未證明轉型三層風險"}]},
+{"id": "J0143", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 FY2026 10-K 摘要管理層的全通路與生態系定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商為增長核心、廣告為生態變現業務"},
+{"signal": 2, "pass": 1, "reason": "以公司官方揭露為主，未依賴外部評論"}]},
+{"id": "J0007", "scores": [
+{"signal": 0, "pass": 1, "reason": "以本益比456.9倍、預估本益比與營收、EPS 成長數據支撐"},
+{"signal": 1, "pass": 1, "reason": "明確選擇市場已把太多好消息先算進去"},
+{"signal": 2, "pass": 1, "reason": "將 Robotaxi、FSD 等稱為未來選擇權並引 10-K 延遲風險"}]}
+]

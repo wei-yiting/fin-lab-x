@@ -1,0 +1,902 @@
+{
+ "C0001": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0002": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0003": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0004": {
+  "row": "25",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0005": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0006": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0007": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0008": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0009": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0010": {
+  "row": "12",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0011": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0012": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0013": {
+  "row": "21",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0014": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0015": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0016": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0017": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0018": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0019": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0020": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0021": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0022": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0023": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0024": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0025": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0026": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0027": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0028": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0029": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0030": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0031": {
+  "row": "9",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0032": {
+  "row": "15",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0033": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0034": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0035": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0036": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0037": {
+  "row": "16",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0038": {
+  "row": "20",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0039": {
+  "row": "5",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0040": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0041": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0042": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0043": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0044": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0045": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0046": {
+  "row": "30",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0047": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0048": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0049": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0050": {
+  "row": "18",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0051": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0052": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0053": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0054": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0055": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0056": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0057": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0058": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0059": {
+  "row": "2",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0060": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0061": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0062": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0063": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0064": {
+  "row": "22",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0065": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0066": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0067": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0068": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0069": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0070": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0071": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0072": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0073": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0074": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0075": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0076": {
+  "row": "28",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0077": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0078": {
+  "row": "11",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0079": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0080": {
+  "row": "29",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0081": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0082": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0083": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0084": {
+  "row": "26",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0085": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0086": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0087": {
+  "row": "15",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0088": {
+  "row": "13",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0089": {
+  "row": "1",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0090": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0091": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0092": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0093": {
+  "row": "6",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0094": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0095": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0096": {
+  "row": "14",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0097": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0098": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0099": {
+  "row": "19",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0100": {
+  "row": "2",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0101": {
+  "row": "18",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0102": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0103": {
+  "row": "17",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0104": {
+  "row": "27",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0105": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0106": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0107": {
+  "row": "19",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0108": {
+  "row": "29",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0109": {
+  "row": "10",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0110": {
+  "row": "11",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0111": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0112": {
+  "row": "8",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0113": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0114": {
+  "row": "20",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0115": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0116": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0117": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0118": {
+  "row": "21",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0119": {
+  "row": "23",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0120": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0121": {
+  "row": "27",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0122": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0123": {
+  "row": "22",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0124": {
+  "row": "24",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0125": {
+  "row": "14",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0126": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0127": {
+  "row": "3",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0128": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0129": {
+  "row": "28",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0130": {
+  "row": "4",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0131": {
+  "row": "7",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0132": {
+  "row": "26",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ },
+ "C0133": {
+  "row": "8",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0134": {
+  "row": "24",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0135": {
+  "row": "16",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0136": {
+  "row": "4",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0137": {
+  "row": "7",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0138": {
+  "row": "6",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0139": {
+  "row": "9",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0140": {
+  "row": "13",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0141": {
+  "row": "3",
+  "kind": "truncated",
+  "base_arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0142": {
+  "row": "17",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0143": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0144": {
+  "row": "5",
+  "kind": "real",
+  "arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0145": {
+  "row": "30",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0146": {
+  "row": "1",
+  "kind": "real",
+  "arm": "reader_gemini_minimal",
+  "rep": 1
+ },
+ "C0147": {
+  "row": "12",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0148": {
+  "row": "10",
+  "kind": "real",
+  "arm": "reader_luna_none",
+  "rep": 1
+ },
+ "C0149": {
+  "row": "23",
+  "kind": "truncated",
+  "base_arm": "reader_luna_medium",
+  "rep": 1
+ },
+ "C0150": {
+  "row": "25",
+  "kind": "real",
+  "arm": "reader_gemini_medium",
+  "rep": 1
+ }
+}

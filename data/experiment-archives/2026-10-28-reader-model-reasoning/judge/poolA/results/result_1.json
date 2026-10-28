@@ -1,0 +1,122 @@
+[
+{"id": "J0148", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明 Meta 商業模式、Google 多案件、Apple App Store/DMA 的風險來源差異"},
+{"signal": 1, "pass": 1, "reason": "明確指出 Meta 最難量化，因監管改變用戶與廣告效率的二階效應"},
+{"signal": 2, "pass": 1, "reason": "區分「最難量化」與「尾部損失」判準，並註明 Apple 仍有難量化部分"}]},
+{"id": "J0079", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案被截斷，只實質分析串流，樂園與票房僅在結論一句帶過"},
+{"signal": 1, "pass": 1, "reason": "明確說最該看串流獲利能否持續"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的分部做任何保留說明"}]},
+{"id": "J0180", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到 Q1 交車年減 13%、歐洲銷量減 37%、BYD 超越等具體訊號"},
+{"signal": 1, "pass": 1, "reason": "分短期情緒/交付、中期基本面重估、長期自駕能源三層"},
+{"signal": 2, "pass": 1, "reason": "結論連回 CNBC 交車與競爭報導並註明新聞時間精確度限制"}]},
+{"id": "J0118", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋串流、樂園、票房三個分部並附 10-K 數據"},
+{"signal": 1, "pass": 1, "reason": "明說若只能選一個訊號就選串流獲利"},
+{"signal": 2, "pass": 1, "reason": "對漲價支撐的獲利品質、EPS 基期效應與樂園需求做出保留"}]},
+{"id": "J0013", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講迪士尼，未回答亞馬遜廣告是否為高品質獲利引擎"},
+{"signal": 1, "pass": 0, "reason": "完全未提亞馬遜廣告業務在業務組合中的位置"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無針對亞馬遜廣告獲利品質的保留"}]},
+{"id": "J0199", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告定向/LPA 與 Apple App Store 抽成/支付分發等具體業務"},
+{"signal": 1, "pass": 1, "reason": "區分已推出 DMA 措施與罰款，和 DOJ 訴訟等尚未實現的潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判斷直接商業衝擊 Meta 略高於 Apple"}]},
+{"id": "J0196", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論：算是高品質獲利引擎但屬推定型"},
+{"signal": 1, "pass": 1, "reason": "說明廣告收入 686 億、佔總收入 9.6%，並與 AWS、零售對照"},
+{"signal": 2, "pass": 1, "reason": "指出亞馬遜未單獨揭露廣告利潤，30-40% 利潤率僅為分析師估算"}]},
+{"id": "J0113", "scores": [
+{"signal": 0, "pass": 1, "reason": "Google、微軟、蘋果三家皆有分析與數據"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購/營業現金流比與流動比率、負債權益比"},
+{"signal": 2, "pass": 1, "reason": "註明三家財年結束日不同，不應視為同一時點比較"}]},
+{"id": "J0114", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到 Model Y 改款停產、品牌忠誠度下滑、EPS 年減 39% 等具體訊號"},
+{"signal": 1, "pass": 1, "reason": "分列短期可修復因素與傷到長期論點的結構性問題"},
+{"signal": 2, "pass": 1, "reason": "結論引用 Reuters 對需求疲弱與品牌忠誠度的報導作依據"}]},
+{"id": "J0213", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講英特爾，未提可口可樂股息或現金流數據"},
+{"signal": 1, "pass": 0, "reason": "未回答可口可樂是否仍屬穩定配息公司"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無針對可口可樂的分析"}]},
+{"id": "J0070", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋美國搜尋案、廣告技術案、歐盟、Google Play 等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "以已確定發生、正在執行、潛在壓力三層表格明確區分"},
+{"signal": 2, "pass": 1, "reason": "明說廣告技術拆分仍是潛在情境、DMA 僅初步結論尚未最終裁決"}]},
+{"id": "J0066", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案截斷，只分析 Meta，未具體說明 Apple 受衝擊業務"},
+{"signal": 1, "pass": 0, "reason": "僅對 Meta 部分提及已調整模式與進一步修改風險，未完整區分兩家"},
+{"signal": 2, "pass": 1, "reason": "結論明確判斷近期直接衝擊 Meta 大於 Apple"}]},
+{"id": "J0206", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 Visa 不放款不承擔信用風險，對比銀行賺利差承擔違約"},
+{"signal": 1, "pass": 1, "reason": "以交易量收費、輕資產網路效應、收入分散等商業模式解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "結論連回 Visa 作為支付網路的業務結構與交易量數據"}]},
+{"id": "J0022", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明沃爾瑪必需品低價、好市多會員制、麥當勞低價外食的韌性來源"},
+{"signal": 1, "pass": 1, "reason": "明確排序沃爾瑪 > 好市多 > 麥當勞"},
+{"signal": 2, "pass": 1, "reason": "註明是營運韌性非報酬排名，並說明麥當勞為服務性消費且證據不足信心較低"}]},
+{"id": "J0025", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出需求下降、政策監管、投資回報、低碳商業化等官方風險描述"},
+{"signal": 1, "pass": 1, "reason": "說明低碳投資以回報為門檻、維持低成本油氣現金流的取捨"},
+{"signal": 2, "pass": 1, "reason": "依 FY2025 10-K 揭露為主，並註明摘錄未含分配金額"}]},
+{"id": "J0076", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億現金與國庫券、D/E 約 0.17、浮存金 1,760 億等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論：算，而且非常保守"},
+{"signal": 2, "pass": 1, "reason": "依 10-K 與 Finnhub 數據論述，未延伸到無法取得的細節"}]},
+{"id": "J0132", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 CET1、LCR、信用損失準備等數據分析而非重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、業務分散度與私募信貸近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷仍大致站得住，並界定成立範圍"}]},
+{"id": "J0058", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 10-K 與 CFO 發言和市場依歷史週期的推估"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有公開下一次調費的確切日期"},
+{"signal": 2, "pass": 1, "reason": "強調歷史頻率推演不是公司時程，不宜視為已確認事件"}]},
+{"id": "J0247", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告收入池與 Apple Services/App Store/搜尋授權的具體業務面"},
+{"signal": 1, "pass": 1, "reason": "區分 Apple 已在歐盟推出替代支付等措施與 DOJ 勝訴等潛在影響"},
+{"signal": 2, "pass": 1, "reason": "給出整體 Meta > Apple、短期 Apple 約等或略高的排序"}]},
+{"id": "J0222", "scores": [
+{"signal": 0, "pass": 1, "reason": "說清 Meta 資料廣告閉環、Google 多業務線、Apple App Store 集中風險"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因損失來自轉換率、資料可用性等非罰款途徑"},
+{"signal": 2, "pass": 1, "reason": "註明「最大單一事件損失」是不同判準，Google 不一定低於 Meta"}]},
+{"id": "J0201", "scores": [
+{"signal": 0, "pass": 0, "reason": "只泛稱北美毛利改善與批發亮點，無具體數據或可確認事件"},
+{"signal": 1, "pass": 1, "reason": "區分「局部修復」與「全面復甦/轉折確立」"},
+{"signal": 2, "pass": 1, "reason": "明說尚無足夠證據宣布轉折已確立"}]},
+{"id": "J0081", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別討論 FAA 監管、737/787 生產交付、積壓訂單需求"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因是監管加交付生產執行，非需求"},
+{"signal": 2, "pass": 1, "reason": "說明股價下跌 10% 不能判定由哪項單獨造成"}]},
+{"id": "J0267", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出需求轉移、政策監管、低碳商業化、供應波動等官方風險"},
+{"signal": 1, "pass": 1, "reason": "以股息 172 億、回購 200 億對照資本支出與低碳投資說明取捨"},
+{"signal": 2, "pass": 1, "reason": "全文依 FY2025 10-K 揭露整理，並註明無固定比例目標"}]},
+{"id": "J0044", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 10-K 記載與市場依 5.5 年週期的推測"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有講明下一次調費年份、季度或生效日"},
+{"signal": 2, "pass": 1, "reason": "強調歷史頻率不是管理層承諾，不能視為正式時間表"}]},
+{"id": "J0099", "scores": [
+{"signal": 0, "pass": 1, "reason": "分列 10-K 已印證的 Foundry 虧損、減值與新聞中的待驗證事項"},
+{"signal": 1, "pass": 1, "reason": "指出不能據此判定流動性危機或不可逆崩潰"},
+{"signal": 2, "pass": 1, "reason": "將風險層級界定為高風險轉型股，而非已失去翻身可能"}]},
+{"id": "J0116", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告個人化與 Apple App Store、支付、搜尋分發等業務面"},
+{"signal": 1, "pass": 1, "reason": "區分已調整無廣告訂閱、已改 iOS 與罰款，和進一步修改的潛在風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷直接商業衝擊 Meta 較大"}]},
+{"id": "J0041", "scores": [
+{"signal": 0, "pass": 1, "reason": "Google、微軟、蘋果三家皆有表格與分段分析"},
+{"signal": 1, "pass": 1, "reason": "比較回購規模/營業現金流與流動比率、負債、商業本票"},
+{"signal": 2, "pass": 0, "reason": "未對資料缺口或財年不一致做保留，微軟「另有大額股東回報」語焉不詳"}]},
+{"id": "J0246", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 P/E、Forward P/E、營收與 EPS 成長、利潤率"},
+{"signal": 1, "pass": 1, "reason": "明確判斷 TSLA 比 NVDA 更像利多已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "J0248", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案講特斯拉與輝達估值，未比較蘋果與 Meta 業務"},
+{"signal": 1, "pass": 0, "reason": "未區分蘋果與 Meta 的已執行合規措施與潛在影響"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對蘋果與 Meta 給出相對判斷"}]},
+{"id": "J0004", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 FY2026 10-K 摘要電商為全通路核心、廣告為生態系變現層的官方定位"},
+{"signal": 1, "pass": 1, "reason": "分節說明電商與廣告各自角色及兩者關係"},
+{"signal": 2, "pass": 1, "reason": "內容以公司 10-K 揭露為主，非外部評論"}]}
+]

@@ -1,0 +1,122 @@
+[
+{"id": "J0125", "scores": [
+{"signal": 0, "pass": 1, "reason": "以10-K與Finnhub數據為已確認事實，並標明新聞日期有資料品質疑慮"},
+{"signal": 1, "pass": 1, "reason": "明說不能等同全面崩壞，且不把未驗證新聞當長期反轉證據"},
+{"signal": 2, "pass": 1, "reason": "以Foundry虧損、14A客戶不確定等可確認風險定位為高風險轉型股"}]},
+{"id": "J0150", "scores": [
+{"signal": 0, "pass": 1, "reason": "以規模、周轉、費用效率與會員制飛輪說明賺錢核心並附FY2026數據"},
+{"signal": 1, "pass": 1, "reason": "會員費約占營收1.95%卻約等於營業利益50.5%，並說明續約率"},
+{"signal": 2, "pass": 1, "reason": "用商品毛利率11.09%、SKU、同店銷售驅動等具體機制而非泛泛描述"}]},
+{"id": "J0231", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即答官方揭露提供直接但屬風險情境式的支持"},
+{"signal": 1, "pass": 1, "reason": "列出揭露不足以支持已造成利潤率下降、量化幅度等更強說法"},
+{"signal": 2, "pass": 1, "reason": "明確區分10-K風險警告與已發生的利潤壓縮，未誇大為公司承認事實"}]},
+{"id": "J0214", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出股息支付87.79億、營運現金流74.08億、連續64年加息等數據"},
+{"signal": 1, "pass": 1, "reason": "明確回答算是相對穩定的配息型公司"},
+{"signal": 2, "pass": 1, "reason": "以現金流覆蓋、流動性、信評等分析支撐而非只憑防禦印象"}]},
+{"id": "J0106", "scores": [
+{"signal": 0, "pass": 1, "reason": "對比波音FAA限產、認證延誤與空巴供應鏈瓶頸及財務比率"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過這段亂流"},
+{"signal": 2, "pass": 1, "reason": "註明本次資料未見空巴同等監管事件，並保留空巴供應鏈風險"}]},
+{"id": "J0032", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明轉型路徑不可預測、政策法規與低碳商業化風險"},
+{"signal": 1, "pass": 1, "reason": "說明以回報為前提的選擇性低碳投資與保留彈性最大化股東價值"},
+{"signal": 2, "pass": 1, "reason": "結論與論點均以FY2025 10-K揭露為依據"}]},
+{"id": "J0139", "scores": [
+{"signal": 0, "pass": 1, "reason": "以表格比較供應鏈、監管、財務緩衝差異，如FAA直接限產"},
+{"signal": 1, "pass": 1, "reason": "明確判斷Airbus較可能平穩穿越亂流"},
+{"signal": 2, "pass": 1, "reason": "註明Finnhub比率非同口徑，不能當完整壓力測試"}]},
+{"id": "J0235", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談亞馬遜廣告業務，未涵蓋迪士尼任何分部"},
+{"signal": 1, "pass": 0, "reason": "未針對迪士尼指出最該看的分部，答非所問"},
+{"signal": 2, "pass": 0, "reason": "未對迪士尼分部證據作任何保留，答非所問"}]},
+{"id": "J0120", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明沃爾瑪低價必需品、好市多會員續約、麥當勞平價外食的韌性來源"},
+{"signal": 1, "pass": 1, "reason": "明確排序沃爾瑪＞好市多＞麥當勞"},
+{"signal": 2, "pass": 1, "reason": "指出麥當勞高利潤率不能直接解讀為韌性，並依不同衡量角度分列判斷"}]},
+{"id": "J0249", "scores": [
+{"signal": 0, "pass": 1, "reason": "依CNBC、Reuters報導如中國占ASML銷售36%做相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明說無法取得20-F，無法精確計算AI營收占比與受限營收金額"},
+{"signal": 2, "pass": 1, "reason": "以傳導方向描述風險，未將宏觀敘事說成已發生事實"}]},
+{"id": "J0211", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在分析特斯拉估值，未談摩根大通官方揭露"},
+{"signal": 1, "pass": 0, "reason": "未區分大型銀行監管的短期壓力與長期獲利傷害"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理銀行監管證據"}]},
+{"id": "J0042", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較price/mix +4%等定價能力與濃縮液vs自有瓶裝36%的結構"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以10-K銷量、營收結構等數據支撐而非品牌印象"}]},
+{"id": "J0270", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案截斷，僅一段提及情境假設不確定，轉型風險描述不完整"},
+{"signal": 1, "pass": 0, "reason": "僅結論一句提及平衡，未說明股東回報與投資取捨的關係"},
+{"signal": 2, "pass": 1, "reason": "結論與僅有內容均以FY2025 10-K揭露為依據"}]},
+{"id": "J0084", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋美國搜尋案、廣告技術案、Google Play、歐盟等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分列已發生與潛在壓力，並以表格區分三個層次"},
+{"signal": 2, "pass": 1, "reason": "以10-K記載的裁決、罰款為依據，結構性拆分明列為未定案"}]},
+{"id": "J0027", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案未列出任何具體財務指標或數字"},
+{"signal": 1, "pass": 1, "reason": "明確結論為非常保守、流動性極強"},
+{"signal": 2, "pass": 1, "reason": "未延伸到工具拿不到的細節"}]},
+{"id": "J0223", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出現金與國庫券約3,690億、負債權益比0.17等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論為非常保守的堡壘型財務體質"},
+{"signal": 2, "pass": 1, "reason": "指出流動比率對保險集團不完整，未硬推未取得細節"}]},
+{"id": "J0144", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談Google反壟斷，未涵蓋蘋果、微軟、Google回購比較"},
+{"signal": 1, "pass": 0, "reason": "未比較資本回饋與財務風險"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對回購數據作保留"}]},
+{"id": "J0115", "scores": [
+{"signal": 0, "pass": 1, "reason": "提到汽車銷售收入年減9%、淨利減33億、EPS年減39.2%等具體訊號"},
+{"signal": 1, "pass": 1, "reason": "以表格區分短期股價波動與汽車需求、毛利的結構性問題"},
+{"signal": 2, "pass": 0, "reason": "結論主要連回10-K與Finnhub，唯一新聞被降為方向性補充，未明確連回近期新聞"}]},
+{"id": "J0154", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論為算是，但以候選者/未完全驗證作限定"},
+{"signal": 1, "pass": 1, "reason": "說明廣告占總收入9.6%、與第三方賣家及北美國際分部關係、與AWS比較"},
+{"signal": 2, "pass": 1, "reason": "明說公司未單獨披露廣告利潤，無法直接驗證利潤率"}]},
+{"id": "J0010", "scores": [
+{"signal": 0, "pass": 1, "reason": "結論句摘要電商為全通路核心增長引擎、廣告為高附加值業務"},
+{"signal": 1, "pass": 1, "reason": "結論同時涵蓋電商與廣告角色"},
+{"signal": 2, "pass": 0, "reason": "答案截斷，未呈現任何官方揭露或來源依據"}]},
+{"id": "J0142", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分10-K記載與CFO「何時而非是否」說法，市場「快要調」屬推測"},
+{"signal": 1, "pass": 1, "reason": "直說未公布下一次調價日期或月份"},
+{"signal": 2, "pass": 1, "reason": "明言歷史週期推測不能當管理層確認時間表"}]},
+{"id": "J0200", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分CFO 2022年說法與外界依五年半週期推估"},
+{"signal": 1, "pass": 1, "reason": "直說管理層沒有把時間點講明"},
+{"signal": 2, "pass": 1, "reason": "明言近期一定調仍屬市場推測而非正式指引"}]},
+{"id": "J0063", "scores": [
+{"signal": 0, "pass": 1, "reason": "分政策、技術、市場、轉型速度四類說明官方轉型風險"},
+{"signal": 1, "pass": 1, "reason": "說明回報門檻、條件式低碳投資及股息172億、回購200億的取捨"},
+{"signal": 2, "pass": 1, "reason": "以FY2025 10-K為主並註明摘錄未提供的資料"}]},
+{"id": "J0152", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋串流DTC、樂園、票房三個分部訊號"},
+{"signal": 1, "pass": 1, "reason": "明確指出串流獲利為第一優先"},
+{"signal": 2, "pass": 0, "reason": "樂園、票房缺乏數據卻未明確標示證據不足，只給觀察指標"}]},
+{"id": "J0141", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋、廣告技術、Google Play、DMA等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "逐項標示已發生/潛在並以清單表格區分"},
+{"signal": 2, "pass": 1, "reason": "明言拆分廣告技術業務不能當已確定事實"}]},
+{"id": "J0005", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較price/mix、銷量與業務分部、自有瓶裝占比"},
+{"signal": 1, "pass": 1, "reason": "明確判斷選可口可樂"},
+{"signal": 2, "pass": 1, "reason": "以10-K數據與Finnhub毛利率、營業利益率表格支撐"}]},
+{"id": "J0191", "scores": [
+{"signal": 0, "pass": 0, "reason": "比較表格為空，未列出任何估值或成長指標數字"},
+{"signal": 1, "pass": 1, "reason": "明確判斷TSLA比NVDA更像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "J0102", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析Google、微軟、蘋果並排名"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購金額與流動比率、負債權益比等風險指標"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏直接數據的細節作任何保留說明"}]},
+{"id": "J0239", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談Nike復甦，未回答Visa與Mastercard揭露"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未就刷卡網路監管證據作保留"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未處理監管敘事與公司承認的區分"}]},
+{"id": "J0057", "scores": [
+{"signal": 0, "pass": 1, "reason": "依FY2026 10-K摘要電商為全通路基礎、廣告為變現業務的官方定位"},
+{"signal": 1, "pass": 1, "reason": "同時說明電商與廣告及兩者互相強化的角色"},
+{"signal": 2, "pass": 1, "reason": "全部引用10-K官方揭露而非外部評論"}]}
+]

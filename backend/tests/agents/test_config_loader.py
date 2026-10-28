@@ -335,6 +335,21 @@ def test_reader_ablation_tools_match_reader_profile():
     assert arm.tools == ProfileConfigLoader("reader").load().tools
 
 
+@pytest.mark.parametrize(
+    "arm_name", ["reader_luna_none", "reader_gemini_minimal", "reader_gemini_medium"]
+)
+def test_reader_2x2_arms_differ_from_reader_luna_medium_only_in_model(arm_name):
+    control = ProfileConfigLoader.load_from_dir(
+        _BENCHMARK_ABLATIONS_DIR / "reader_luna_medium"
+    )
+    arm = ProfileConfigLoader.load_from_dir(_BENCHMARK_ABLATIONS_DIR / arm_name)
+
+    assert arm.model != control.model
+    assert arm.tools == control.tools
+    assert arm.constraints == control.constraints
+    assert arm.system_prompt is None
+
+
 # ---------------------------------------------------------------------------
 # Loader contract: every shipped profile YAML parses into a valid ModelConfig
 # with a non-empty model name and a recognized reasoning literal. We

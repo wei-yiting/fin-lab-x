@@ -1,0 +1,122 @@
+[
+{"id": "K0162", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答為片段，開頭未先明確回答官方揭露是否直接支持"},
+{"signal": 1, "pass": 0, "reason": "未區分直接與間接證據，也沒有任何保留說法"},
+{"signal": 2, "pass": 0, "reason": "條列機制如「降低整體經營利潤率」未標來源，直接當成事實陳述"}]},
+{"id": "K0025", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明淨零情境落差、政策監管與供需失衡等官方轉型風險描述"},
+{"signal": 1, "pass": 1, "reason": "以報酬率導向資本配置、LCS 資本支出約 6 億美元對比股利 172 億與回購 200 億說明取捨"},
+{"signal": 2, "pass": 1, "reason": "全文以 FY2025 10-K 的風險因素與 MD&A 為依據"}]},
+{"id": "K0187", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答中斷，只談到 Google，未說明蘋果與 Meta 的風險來源"},
+{"signal": 1, "pass": 1, "reason": "明確指出 Google 最難量化，並以搜尋案結構性救濟與上訴為原因"},
+{"signal": 2, "pass": 0, "reason": "沒有對無法直接比較之處做任何保留"}]},
+{"id": "K0136", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家 OCF/淨利、Capex 占比、FCF 與槓桿"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多比沃爾瑪更穩"},
+{"signal": 2, "pass": 1, "reason": "列出 OCF、Capex 占比 64.1% vs 40.7%、負債權益比與特別股利等依據"}]},
+{"id": "K0116", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告變現與 Apple App Store 抽成、搜尋授權費等業務面"},
+{"signal": 1, "pass": 1, "reason": "區分已推出 LPA、已開放第三方商店與已裁罰，對比 6(4) 調查與 Google 授權費等潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判定 Meta 直接商業衝擊較大"}]},
+{"id": "K0049", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家現金流品質、FCF 轉換率與資本配置"},
+{"signal": 1, "pass": 1, "reason": "明確結論好市多比沃爾瑪更穩健"},
+{"signal": 2, "pass": 1, "reason": "列出 OCF/淨利、Capex 占 OCF、負債權益比、淨現金等數據"}]},
+{"id": "K0236", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析 Alphabet、微軟、蘋果三家"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購規模與負債權益比、流動比率等財務風險"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏直接數據的細節做任何保留"}]},
+{"id": "K0138", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是 Visa/Mastercard 監管，與 Nike 問題無關"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未談 Nike 初步改善與轉折"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未針對 Nike 證據做判斷"}]},
+{"id": "K0113", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋 Alphabet、微軟、蘋果三家"},
+{"signal": 1, "pass": 1, "reason": "以 FCF 覆蓋回購股利與負債權益比比較兩個面向"},
+{"signal": 2, "pass": 0, "reason": "全部以確定口吻陳述，沒有對缺乏數據之處保留"}]},
+{"id": "J0174", "scores": [
+{"signal": 0, "pass": 1, "reason": "分開列出已認列約 34 億美元準備與卵巢癌審判、懲罰性賠償等未決部分"},
+{"signal": 1, "pass": 1, "reason": "主要依據 FY2025 10-K 的準備金、索賠人數與無法估計損失的揭露"},
+{"signal": 2, "pass": 1, "reason": "明確結論滑石粉為最大風險，並以分級表說明尾部風險"}]},
+{"id": "K0216", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明低毛利商品銷售加會員費的獲利結構，含毛利率 11.09% 等數據"},
+{"signal": 1, "pass": 1, "reason": "指出會員費 59.07 億美元約占營業利潤 50.56% 並說明續約率"},
+{"signal": 2, "pass": 1, "reason": "用營業利潤占比、續約率、高階會員銷售占比等具體數據，而非泛泛描述"}]},
+{"id": "K0035", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億美元現金國債、負債權益比 0.17 等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論財務體質極度保守"},
+{"signal": 2, "pass": 1, "reason": "論點限於 10-K 與 Finnhub 數據，未硬延伸"}]},
+{"id": "K0141", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋 DOJ 搜尋案、AdTech 案、Epic 案與歐盟多案"},
+{"signal": 1, "pass": 1, "reason": "分成已裁決/已執行與上訴中/待判決兩大類"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 揭露為據，拆分方案標示為 DOJ 提案、仍待判決"}]},
+{"id": "K0021", "scores": [
+{"signal": 0, "pass": 1, "reason": "以北美營收成長 5% 與大中華區、Converse 拖累延續至 FY2027 等訊號判斷"},
+{"signal": 1, "pass": 1, "reason": "區分北美與批發通路的局部回穩與尚未達成的全面回穩"},
+{"signal": 2, "pass": 1, "reason": "結論為言之過早，並列出仍待觀察的條件"}]},
+{"id": "K0234", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是好市多會員費，未涵蓋沃爾瑪與麥當勞"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未給衰退下的相對韌性判斷"},
+{"signal": 2, "pass": 0, "reason": "未談跨商業模式比較的保留"}]},
+{"id": "K0188", "scores": [
+{"signal": 0, "pass": 1, "reason": "總結表列出三家主要監管威脅與不確定性來源的差異"},
+{"signal": 1, "pass": 1, "reason": "指出 Google 最難量化，原因是結構性拆分與公司表示無法估算損失"},
+{"signal": 2, "pass": 0, "reason": "未對無法直接比較的部分做保留"}]},
+{"id": "J0074", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 ROE、CET1、流動性壓測等數據檢驗，而非重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、盈利能力與私人信貸近期風險"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法大致仍站得住並加上修正"}]},
+{"id": "K0177", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露明確且直接支持"},
+{"signal": 1, "pass": 0, "reason": "回答中斷未呈現任何揭露原文，卻直接斷言支持，沒有保留"},
+{"signal": 2, "pass": 0, "reason": "未提出證據就把損害獲利能力說成公司已直接承認"}]},
+{"id": "K0259", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較業務結構（濃縮液模式 vs 食品飲料自營裝瓶）與定價能力"},
+{"signal": 1, "pass": 1, "reason": "明確判斷可口可樂結構較乾淨"},
+{"signal": 2, "pass": 1, "reason": "以濃縮液占營收 59%、毛利率與營業利潤率等數據支撐"}]},
+{"id": "K0173", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論廣告業務已是高品質獲利引擎"},
+{"signal": 1, "pass": 0, "reason": "只泛稱與 AWS 並列雙核心，數據段落為空，定位說明模糊"},
+{"signal": 2, "pass": 0, "reason": "以「絕對」斷言，未對無法驗證的獲利品質保留"}]},
+{"id": "K0029", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 Google 拆分與分銷、Meta 併購拆分與數據限制、Apple 抽成與罰款的差異"},
+{"signal": 1, "pass": 1, "reason": "指出 Google 最難量化，並引用 10-K 無法估計損失的說法"},
+{"signal": 2, "pass": 0, "reason": "未對跨公司無法直接比較之處做保留"}]},
+{"id": "K0132", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 CET1 14.6%、LCR、ROTCE 等數據，而非只重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、信貸撥備與業務組合"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法仍站得住"}]},
+{"id": "K0086", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億美元現金國債與負債權益比 0.17 等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論財務體質非常保守"},
+{"signal": 2, "pass": 1, "reason": "主要依 10-K 與 Finnhub 數據，未延伸到拿不到的細節"}]},
+{"id": "K0169", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露明確且直接支持"},
+{"signal": 1, "pass": 1, "reason": "引用 Visa、Mastercard 10-K 原文，並說明交換費屬間接影響"},
+{"signal": 2, "pass": 1, "reason": "論點附 10-K 引文與出處，並區分 Visa 不直接收取交換費"}]},
+{"id": "J0056", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Boeing FAA 監管與供應商問題和 Airbus 交付瓶頸"},
+{"signal": 1, "pass": 1, "reason": "明確判斷 Airbus 較能撐過"},
+{"signal": 2, "pass": 1, "reason": "明說未取得證據證明 Airbus 面臨同級監管危機，不能等同比較"}]},
+{"id": "K0266", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家的雜貨剛需、會員費、加盟模式等韌性來源"},
+{"signal": 1, "pass": 0, "reason": "只依不同面向各給首選，沒有單一相對韌性結論"},
+{"signal": 2, "pass": 0, "reason": "未明確保留跨商業模式不可直接比較之處"}]},
+{"id": "K0175", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告精準度與 Apple App Store、搜尋授權費"},
+{"signal": 1, "pass": 1, "reason": "區分已推出 LPA、已開放第三方商店，與後續修改、授權金可能被禁的潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判定 Meta 衝擊較大"}]},
+{"id": "K0074", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 CET1、HQLA、ROE 等數據，而非只重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位、流動性與業務多元化"},
+{"signal": 2, "pass": 1, "reason": "明確判斷說法依然站得住"}]},
+{"id": "K0085", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 FAA 生產上限、債務與兩家供應鏈引擎瓶頸"},
+{"signal": 1, "pass": 1, "reason": "明確結論空中巴士較能撐過"},
+{"signal": 2, "pass": 0, "reason": "Airbus 監管與現金流論點證據薄弱，卻未做任何保留"}]},
+{"id": "K0260", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家的會員制、雜貨平價、加盟高利潤等韌性來源"},
+{"signal": 1, "pass": 1, "reason": "明確排序好市多最強、沃爾瑪次之、麥當勞較弱"},
+{"signal": 2, "pass": 0, "reason": "直接用同一組指標比較，未保留跨商業模式不可比之處"}]}
+]

@@ -1,0 +1,122 @@
+[
+{"id": "K0202", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 JPM FY2025 10-K 的 CET1 要求、SCB、資本分配限制等揭露作答"},
+{"signal": 1, "pass": 0, "reason": "只區分毀滅性傷害與資本約束，未明確區分短期壓力與長期獲利傷害"},
+{"signal": 2, "pass": 0, "reason": "斷言監管直接壓低 ROA 與資本效率，未附揭露證據"}]},
+{"id": "K0218", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，直接斷言基本面惡化，未區分新聞與已確認事實"},
+{"signal": 1, "pass": 0, "reason": "未提供證據即下「是的、結構性惡化」強結論"},
+{"signal": 2, "pass": 0, "reason": "直接宣稱結構性惡化，未描述可確認的風險層級"}]},
+{"id": "K0102", "scores": [
+{"signal": 0, "pass": 1, "reason": "Google、微軟、蘋果三家皆有分段分析"},
+{"signal": 1, "pass": 1, "reason": "以回購金額對照 D/E、流動比率、債務比較兩面向"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏數據之處保留，如微軟頂級信用評等等直接斷言"}]},
+{"id": "K0130", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是可口可樂配息，非英特爾負面新聞"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未討論英特爾證據是否足夠"},
+{"signal": 2, "pass": 0, "reason": "未描述英特爾任何風險層級"}]},
+{"id": "K0043", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較蘋果 App Store 抽成、搜尋分潤與 Meta 個人化廣告等具體業務"},
+{"signal": 1, "pass": 1, "reason": "區分已調整 DMA 營運、罰款與 LPA 選項，以及潛在 6(4) 調查、拆分風險"},
+{"signal": 2, "pass": 1, "reason": "明確結論 Meta 直接商業衝擊較大"}]},
+{"id": "K0001", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用北美成長 9%、中國跌 17%、淨利減 32% 等近期季報訊號"},
+{"signal": 1, "pass": 1, "reason": "明確區分局部改善築底與完全回穩"},
+{"signal": 2, "pass": 1, "reason": "結論為現在講完全回穩還太早，未硬下轉折結論"}]},
+{"id": "K0226", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，未說明三家各自的韌性來源"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪＞好市多＞麥當勞的排序"},
+{"signal": 2, "pass": 0, "reason": "未對跨商業模式不可直接比較之處保留"}]},
+{"id": "K0109", "scores": [
+{"signal": 0, "pass": 1, "reason": "使用 P/E 480 倍、Forward P/E 174 倍與營收、EPS 下滑等成長數據"},
+{"signal": 1, "pass": 1, "reason": "開頭明確表示市場已提前計入大量遠期好消息"},
+{"signal": 2, "pass": 1, "reason": "Robotaxi、Optimus 以多頭觀點與風險呈現，未當成確定事實"}]},
+{"id": "K0134", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 Visa 不承擔信用風險、按交易抽成與銀行靠利差放款的差異"},
+{"signal": 1, "pass": 1, "reason": "以無信用風險、資產輕、網路效應等商業模式解釋穩定性"},
+{"signal": 2, "pass": 1, "reason": "總結賣基礎設施 vs 賣信用，連回 Visa 業務結構"}]},
+{"id": "J0044", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 10-K 記載與市場依歷史週期推測"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層未講明下一次調費時間點"},
+{"signal": 2, "pass": 1, "reason": "說明 5.5 年週期只是歷史頻率而非承諾"}]},
+{"id": "J0207", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 FY2026 10-K 北美批發+14%、毛利率升至 45.6%、中國跌 13% 等訊號"},
+{"signal": 1, "pass": 1, "reason": "明確區分局部修復與全面復甦/轉折確立"},
+{"signal": 2, "pass": 1, "reason": "表示尚無足夠證據宣布轉折確立"}]},
+{"id": "K0165", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要 10-K 的全通路零售商與相互強化生態系定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商為成長引擎、廣告為高毛利業務"},
+{"signal": 2, "pass": 1, "reason": "內容以 FY2026 10-K 官方揭露為主"}]},
+{"id": "J0150", "scores": [
+{"signal": 0, "pass": 1, "reason": "說清低毛利 11.09%、規模攤薄 SG&A 與周轉的獲利核心"},
+{"signal": 1, "pass": 1, "reason": "指出會員費 59.07 億美元約占營業利益 50.5%"},
+{"signal": 2, "pass": 1, "reason": "以 SKU、續約率、Executive 占比等具體數據取代泛泛描述"}]},
+{"id": "K0154", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論已具備高品質獲利引擎特質"},
+{"signal": 1, "pass": 1, "reason": "說明廣告占總營收 9.57%、為 AWS 53%、歸屬北美與國際部門"},
+{"signal": 2, "pass": 1, "reason": "註明未單獨揭露廣告營業費用與淨利率，需間接評估"}]},
+{"id": "K0027", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容空白，沒有任何財務指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論財務體質非常保守"},
+{"signal": 2, "pass": 0, "reason": "回答幾乎空白，無法顯示有控制推論範圍"}]},
+{"id": "K0217", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較波音 FAA 產能限制、品質重整與空巴發動機供應瓶頸"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過亂流"},
+{"signal": 2, "pass": 0, "reason": "空巴監管風險低廉可控等點直接斷言，未保留"}]},
+{"id": "K0143", "scores": [
+{"signal": 0, "pass": 1, "reason": "摘要 10-K 中電商與廣告為相互促進的核心組件"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商成長角色與廣告高毛利角色"},
+{"signal": 2, "pass": 1, "reason": "以 FY2026 10-K 揭露為依據，非外部評論"}]},
+{"id": "K0196", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論絕對已是高品質獲利引擎"},
+{"signal": 1, "pass": 1, "reason": "說明廣告歸屬北美與國際事業群、為 AWS 之後第二支柱"},
+{"signal": 2, "pass": 0, "reason": "雖提未獨立揭露，卻引業界估計 60~70% 利潤率並斷言完全稱得上"}]},
+{"id": "J0059", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露直接支持作為風險判斷"},
+{"signal": 1, "pass": 1, "reason": "保留未證明利潤率必然下降、未量化影響"},
+{"signal": 2, "pass": 1, "reason": "強調 10-K 是風險揭露，非公司承認已發生"}]},
+{"id": "K0210", "scores": [
+{"signal": 0, "pass": 0, "reason": "誤把 2024 年調漲當答案，未區分下一次調費的明講與揣測"},
+{"signal": 1, "pass": 0, "reason": "未說明管理層對下一次調費沒有明確時間點"},
+{"signal": 2, "pass": 0, "reason": "直接斷言並非快要調漲，回答截斷且缺依據"}]},
+{"id": "K0215", "scores": [
+{"signal": 0, "pass": 1, "reason": "提供每股股息、股息總額 87.79 億與營運現金流 74.08 億"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍是穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "分析現金流覆蓋與盈餘配息率，非僅靠防禦印象"}]},
+{"id": "K0261", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是輝達、禮來、好市多下修風險，非沃爾瑪定位"},
+{"signal": 1, "pass": 0, "reason": "完全未談沃爾瑪電商與廣告業務"},
+{"signal": 2, "pass": 0, "reason": "答非所問，無沃爾瑪管理層定位"}]},
+{"id": "K0242", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家資產負債表、CapEx、回購與特別股利模式"},
+{"signal": 1, "pass": 1, "reason": "明確結論好市多較穩健"},
+{"signal": 2, "pass": 0, "reason": "表格空白、無任何數據，結構因素僅泛泛帶過"}]},
+{"id": "K0172", "scores": [
+{"signal": 0, "pass": 1, "reason": "提及監管信用收入下滑、EPS 年減 39%、毛利率降至 17.8%、Robotaxi 啟動"},
+{"signal": 1, "pass": 1, "reason": "分節區分結構性挑戰與短期過渡衝擊"},
+{"signal": 2, "pass": 0, "reason": "結論主要連回 10-K，近期新聞依據幾乎未出現"}]},
+{"id": "K0240", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、內容授權三分部的數據與訊號"},
+{"signal": 1, "pass": 0, "reason": "表示三個業務都必須看，未明確指出單一核心分部"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的分部保留，DTC 利潤數字亦未查證即陳述"}]},
+{"id": "J0266", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明三家的必需品、會員續約率、加盟權利金等韌性來源"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪 ≳ 好市多 > 麥當勞排序"},
+{"signal": 2, "pass": 1, "reason": "說明依定義不同結論不同，並提醒 D/E 指標不可直接比較"}]},
+{"id": "K0052", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別說明 Google 拆分、Meta 隱私與 FTC、蘋果 App Store 風險來源"},
+{"signal": 1, "pass": 1, "reason": "指出 Google 最難量化，因涉及結構拆分與無法估計損失"},
+{"signal": 2, "pass": 0, "reason": "未對三家無法直接比較之處保留"}]},
+{"id": "K0181", "scores": [
+{"signal": 0, "pass": 1, "reason": "提供 64 年增息、每股股息、股息總額 87.79 億"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍是超穩定配息型企業"},
+{"signal": 2, "pass": 1, "reason": "以 EPS 3.04 對照股息 2.04 等數據分析覆蓋能力"}]},
+{"id": "K0251", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家 OCF、FCF、CapEx 比例與股東回饋"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出 D/E 17% vs 58%、CapEx/OCF 40.7% vs 64.1% 等依據"}]},
+{"id": "K0106", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較波音 FAA 限產與空巴供應鏈交付瓶頸"},
+{"signal": 1, "pass": 1, "reason": "明確判斷空中巴士較能撐過"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的比較點保留，直接斷言空巴全面佔優"}]}
+]

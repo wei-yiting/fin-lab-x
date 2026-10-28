@@ -1,0 +1,122 @@
+[
+{"id": "K0126", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 FY2026 10-K 摘要管理層「相互強化的全通路模式」與利潤擴張定位"},
+{"signal": 1, "pass": 1, "reason": "分別說明電商（流量與便利核心）與廣告（高毛利利潤引擎）角色"},
+{"signal": 2, "pass": 1, "reason": "全文以 10-K 官方揭露為依據，未僅引用外部評論"}]},
+{"id": "K0254", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較業務結構（濃縮液輕資產 vs 食品飲料重資產）與定價／利潤率"},
+{"signal": 1, "pass": 1, "reason": "明確判定可口可樂結構較乾淨、定價能力較高"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 營收結構占比與營運利潤率 28.7% vs 12.2% 等數據支撐"}]},
+{"id": "K0090", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案殘缺，開頭即為管理層批評，官方揭露內容僅一句籠統描述、無具體數據"},
+{"signal": 1, "pass": 0, "reason": "僅總結區分現況與潛在長期傷害，未具體說明短期壓力為何"},
+{"signal": 2, "pass": 1, "reason": "明確說官方揭露未見長期傷害，將長期影響標示為潛在風險未硬推"}]},
+{"id": "K0104", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即回答官方揭露直接支持該說法"},
+{"signal": 1, "pass": 0, "reason": "風險因素多為「可能」語氣，卻結論為「明確證實」，未保留"},
+{"signal": 2, "pass": 0, "reason": "把 10-K 風險因素的可能性包裝成公司已證實監管削弱獲利的事實"}]},
+{"id": "K0076", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億美元現金與國債、D/E 0.17 等具體指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論為非常保守"},
+{"signal": 2, "pass": 1, "reason": "內容限於 10-K 與 Finnhub 指標，未延伸至取不到的細節"}]},
+{"id": "K0015", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 10-K 資本要求、緩衝與分配限制為主要依據"},
+{"signal": 1, "pass": 0, "reason": "先說官方未稱長期傷害，又稱官方揭露長期約束，未清楚區分短期壓力與長期獲利傷害"},
+{"signal": 2, "pass": 0, "reason": "將 500 億資本需求與 Dimon 評論推成 ROE 長期壓抑與競爭劣勢，混入官方揭露"}]},
+{"id": "K0019", "scores": [
+{"signal": 0, "pass": 1, "reason": "分監管、交付、需求三段分別分析"},
+{"signal": 1, "pass": 1, "reason": "明確指出主因為監管與交付，需求非瓶頸"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 的 FAA 審查、backlog 等揭露為據，未把情緒當事實"}]},
+{"id": "K0171", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 TTM P/E 480x、Forward P/E 174x 與營收年減 3% 等估值與成長數據"},
+{"signal": 1, "pass": 1, "reason": "明確結論為市場已提前算入大量好消息"},
+{"signal": 2, "pass": 1, "reason": "Robotaxi、Optimus 以市場預期與前提條件陳述，未當成確定事實"}]},
+{"id": "K0255", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格與分段涵蓋 Alphabet、微軟、蘋果三家"},
+{"signal": 1, "pass": 1, "reason": "同時比較回購金額與流動比率、D/E 等財務風險"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏直接數據的部分（如蘋果依賴短債的風險）做任何保留說明"}]},
+{"id": "K0097", "scores": [
+{"signal": 0, "pass": 1, "reason": "先以 10-K 的 CET1、GSIB 附加資本、eSLR 揭露回答"},
+{"signal": 1, "pass": 1, "reason": "區分目前資本體質無恙與管理層警告的潛在長期傷害"},
+{"signal": 2, "pass": 1, "reason": "明確說官方未見長期傷害，長期影響標為管理層警告的潛在風險"}]},
+{"id": "K0083", "scores": [
+{"signal": 0, "pass": 1, "reason": "分兩段列已提存 34 億準備金與陪審團、Daubert、證券訴訟等不確定性"},
+{"signal": 1, "pass": 1, "reason": "以 FY2025 10-K 揭露為主要依據"},
+{"signal": 2, "pass": 1, "reason": "總結明確指出已確認成本約 34 億且仍有大幅擴大風險"}]},
+{"id": "K0069", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 FY2026 10-K 大中華區 -13%、毛利率 -140bps 等近期訊號"},
+{"signal": 1, "pass": 1, "reason": "定位為轉型初期局部改善，尚非全面回穩"},
+{"signal": 2, "pass": 1, "reason": "結論為言之過早，未硬下回穩結論"}]},
+{"id": "K0032", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 10-K 對淨零情境不確定、監管與 LCS 政策依賴等風險描述"},
+{"signal": 1, "pass": 1, "reason": "以 LCS 約 6 億 vs 總資本支出 290 億、股利 172 億與回購 200 億說明取捨"},
+{"signal": 2, "pass": 1, "reason": "結論建立在 10-K 揭露上"}]},
+{"id": "K0012", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 CET1 14.6%、SLR、ROE 等數據分析，非僅重述印象"},
+{"signal": 1, "pass": 1, "reason": "涵蓋資本水位、業務動能（IB／交易）與近期風險（Apple Card、利率上限）"},
+{"signal": 2, "pass": 1, "reason": "明確判斷此說法仍站得住"}]},
+{"id": "K0060", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案改談 Google／Meta／蘋果監管風險，未比較迪士尼與 Netflix"},
+{"signal": 1, "pass": 0, "reason": "未判斷迪士尼與 Netflix 誰的期待較不滿"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對本題證據做保留"}]},
+{"id": "K0093", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案被截斷，僅一句排名提及三家，無實質分析"},
+{"signal": 1, "pass": 0, "reason": "未說明期待被下修的比較邏輯，對比內容缺失"},
+{"signal": 2, "pass": 0, "reason": "未對跨產業不可直接比較做任何保留"}]},
+{"id": "K0223", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 3,690 億現金與國債、D/E 0.17、股東權益 7,174 億等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論為極為保守"},
+{"signal": 2, "pass": 1, "reason": "內容限於 10-K 與 Finnhub 可得數據"}]},
+{"id": "J0246", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 P/E、Forward P/E、營收與 EPS 成長等多項指標"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "K0214", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出每股股利 2.04→2.12、全年發放 87.79 億與殖利率 3.14%"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍是穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "以 64 年調升紀錄與資本分配優先順序支撐，非僅防禦印象"}]},
+{"id": "K0174", "scores": [
+{"signal": 0, "pass": 1, "reason": "分段列出已知 34 億準備金與未決的陪審團、證券訴訟等"},
+{"signal": 1, "pass": 1, "reason": "以 FY2025 10-K 揭露為主要依據"},
+{"signal": 2, "pass": 0, "reason": "無總結段，未給出整體風險結論，僅列不確定項目"}]},
+{"id": "K0186", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 FY2026 10-K 北美 +3%、批發成長、大中華區 -11% 等數據"},
+{"signal": 1, "pass": 1, "reason": "區分局部築底／批發復甦與尚未全面回穩"},
+{"signal": 2, "pass": 1, "reason": "結論為現在斷定回穩太早，並列出後續觀察指標"}]},
+{"id": "K0233", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 P/E、Forward P/E、營收成長、淨利率、ROE"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉較符合好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "未說明只是期待值檢查而非投資建議"}]},
+{"id": "K0247", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較蘋果 App Store／Google 授權金與 Meta 廣告精準度等具體業務"},
+{"signal": 1, "pass": 1, "reason": "區分已罰款、已開放第三方商店與推出 LPA，以及若上訴禁止授權金等潛在影響"},
+{"signal": 2, "pass": 1, "reason": "結論 Meta 直接衝擊更廣更直接，並說明蘋果在利潤面風險較大"}]},
+{"id": "K0091", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案改談好市多與沃爾瑪現金流，未涉及嬌生官司"},
+{"signal": 1, "pass": 0, "reason": "未引用嬌生官方訴訟揭露"},
+{"signal": 2, "pass": 0, "reason": "未給出嬌生官司風險結論"}]},
+{"id": "K0155", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 CNBC 出口管制新聞判斷 ASML 較直接暴露"},
+{"signal": 1, "pass": 0, "reason": "僅說明 20-F 不在資料庫，未指出哪些具體判斷目前無法確認"},
+{"signal": 2, "pass": 0, "reason": "將中國營收佔比預估下降說成已造成實質影響，台積電依賴度亦未附證據即斷言"}]},
+{"id": "K0034", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、影視三分部並附營業利潤數據"},
+{"signal": 1, "pass": 0, "reason": "結論為三者都必須看，未明確指出最該看的核心分部"},
+{"signal": 2, "pass": 0, "reason": "未對證據不足的分部（如票房）做保留說明"}]},
+{"id": "K0077", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論為已是高品質獲利引擎"},
+{"signal": 1, "pass": 1, "reason": "以營收表說明廣告占 9.57% 與成長 22.1%，並與 AWS 對照"},
+{"signal": 2, "pass": 0, "reason": "亞馬遜未揭露廣告利潤率，答案卻直接斷言高毛利，未保留"}]},
+{"id": "K0003", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較蘋果服務業務抽成與授權金、Meta 精準廣告與資料傳輸"},
+{"signal": 1, "pass": 1, "reason": "區分已執行罰款與開放、LPA，與若禁令實施或 Article 6(4) 違規等潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判斷短中期蘋果直接衝擊較大"}]},
+{"id": "K0182", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 10-K 對淨零假設、政策風險、低碳商業化與供需錯配風險的描述"},
+{"signal": 1, "pass": 1, "reason": "說明回報導向配置、低碳投資視政策調整，以及股利 172 億、回購 200 億"},
+{"signal": 2, "pass": 1, "reason": "論點皆以 10-K 揭露為依據"}]},
+{"id": "K0199", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較蘋果服務業務與 Meta 廣告變現、拆分風險等業務面"},
+{"signal": 1, "pass": 1, "reason": "區分已罰款、已推出 LPA 與若最終判定違規、FTC 尋求拆分等潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判斷 Meta 直接商業衝擊較大"}]}
+]

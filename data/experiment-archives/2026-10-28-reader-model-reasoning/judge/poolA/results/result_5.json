@@ -1,0 +1,122 @@
+[
+{"id": "J0173", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論「算」，並補充是尚未完全透明的獲利引擎"},
+{"signal": 1, "pass": 1, "reason": "指出廣告是第三大揭露收入來源、含於服務銷售、不屬三大分部"},
+{"signal": 2, "pass": 1, "reason": "明說廣告營業利益率未揭露、無法從申報直接驗證，估值應保留折扣"}]},
+{"id": "J0145", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用本益比、預估本益比、市銷率及營收、EPS 成長率"},
+{"signal": 1, "pass": 1, "reason": "明確結論：市場已把很多好消息先算進去"},
+{"signal": 2, "pass": 1, "reason": "Robotaxi、Optimus 等以「市場可能押注」與高執行風險呈現，並引 10-K 風險"}]},
+{"id": "J0174", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節列出 34 億美元已認列準備與卵巢癌、懲罰性賠償等未決風險"},
+{"signal": 1, "pass": 1, "reason": "主要依據 FY2025 10-K 揭露，僅一則 Reuters 補充"},
+{"signal": 2, "pass": 1, "reason": "明確結論滑石粉為最大風險，並以分級表標出最大尾部風險"}]},
+{"id": "J0155", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 CNBC 報導 ASML 無法對中國賣 EUV 及 Finnhub 數據做相對判斷"},
+{"signal": 1, "pass": 1, "reason": "明說無法取得 20-F、成長無法拆出 AI 來源、證據不足無法精確比較"},
+{"signal": 2, "pass": 1, "reason": "區分 beta 等市場指標與已證明的基本面，未把宏觀敘事當公司事實"}]},
+{"id": "J0050", "scores": [
+{"signal": 0, "pass": 0, "reason": "幾乎只比估值數字，近期敘事僅一句「似乎」帶過，無具體事件"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 1, "reason": "對 52 週區間資料可能受公司行動影響表示不採用，並提醒便宜不等於值得買"}]},
+{"id": "J0187", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，只談到 Meta，未說明 Apple 與 Google 的風險來源"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因監管嵌入其資料驅動廣告變現核心"},
+{"signal": 2, "pass": 0, "reason": "未對三家無法直接比較的部分作任何保留"}]},
+{"id": "J0265", "scores": [
+{"signal": 0, "pass": 1, "reason": "COST、NVDA、LLY 三家皆有估值、成長與風險分析"},
+{"signal": 1, "pass": 1, "reason": "以估值隱含期待與不及預期時的下修理由為比較邏輯並排序"},
+{"signal": 2, "pass": 0, "reason": "直接跨產業比較本益比排序，未明確保留跨產業指標不可直接比"}]},
+{"id": "J0110", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較估值、基本面並引 Bloomberg 與 Reuters 近期報導敘事"},
+{"signal": 1, "pass": 1, "reason": "明確選迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 1, "reason": "指出 Netflix 報價可能受拆股或資料口徑影響，不宜直接比較跌幅"}]},
+{"id": "J0003", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Apple App Store/支付/搜尋分發與 Meta 個人化廣告/資料整合"},
+{"signal": 1, "pass": 1, "reason": "區分已執行的 DMA 調整與罰款，和可能降低收入的潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判斷短期直接衝擊 Apple 較大，並給中長期對照"}]},
+{"id": "J0227", "scores": [
+{"signal": 0, "pass": 0, "reason": "估值指標與成長數據內容缺失，只剩「估值很激進」的斷言"},
+{"signal": 1, "pass": 1, "reason": "明確結論市場已把很多好消息先算進去"},
+{"signal": 2, "pass": 1, "reason": "以條件式描述未來平台業務，並提醒高執行風險"}]},
+{"id": "J0232", "scores": [
+{"signal": 0, "pass": 1, "reason": "表格比較 TTM 本益比、預估本益比與營收成長"},
+{"signal": 1, "pass": 1, "reason": "明確判斷特斯拉比輝達更像好消息已反映"},
+{"signal": 2, "pass": 0, "reason": "回答截斷，未說明只是期待值檢查而非完整投資建議"}]},
+{"id": "J0162", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即答「有，而且 Mastercard 更直接」"},
+{"signal": 1, "pass": 1, "reason": "對 interchange 收入被直接拿走的說法標為不精確並保留"},
+{"signal": 2, "pass": 1, "reason": "以公司揭露原文措辭為據，結論用「可能壓縮」而非已發生"}]},
+{"id": "J0219", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出股息 2.12 美元、殖利率 3.14%、營業現金流 74.08 億與股息支付 87.79 億"},
+{"signal": 1, "pass": 1, "reason": "明確回答算穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "分析股息覆蓋、fairlife 一次性支出與槓桿，而非只靠防禦印象"}]},
+{"id": "J0040", "scores": [
+{"signal": 0, "pass": 1, "reason": "主要依 JPM 與 BofA FY2025 10-K 的資本要求揭露"},
+{"signal": 1, "pass": 1, "reason": "區分已看到的長期拖累機制與尚未形成的結構性獲利傷害"},
+{"signal": 2, "pass": 1, "reason": "明說揭露未量化少賺多少，Dimon 觀點不等於已量化損失"}]},
+{"id": "J0082", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答的是 Apple 與 Meta 監管衝擊，未比較特斯拉與輝達指標"},
+{"signal": 1, "pass": 0, "reason": "未對特斯拉或輝達給出判斷，答非所問"},
+{"signal": 2, "pass": 0, "reason": "未說明期待值檢查性質，答非所問"}]},
+{"id": "J0094", "scores": [
+{"signal": 0, "pass": 1, "reason": "分節區分 34 億美元準備金與未決案件、懲罰性賠償等不確定性"},
+{"signal": 1, "pass": 1, "reason": "以 FY2025 10-K 為主要依據，新聞僅補充裁決"},
+{"signal": 2, "pass": 1, "reason": "明確結論滑石粉為最大風險，並給出風險方向表"}]},
+{"id": "J0111", "scores": [
+{"signal": 0, "pass": 1, "reason": "NVDA、COST、LLY 三家皆有估值與期待分析"},
+{"signal": 1, "pass": 1, "reason": "區分成長期待下修與估值倍數下修的比較邏輯"},
+{"signal": 2, "pass": 0, "reason": "直接跨產業排序，未明確保留跨產業指標不可直接比較"}]},
+{"id": "J0064", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容是特斯拉利空分析，未談刷卡網路與放款差異"},
+{"signal": 1, "pass": 0, "reason": "未說明 Visa 穩定性來源，答非所問"},
+{"signal": 2, "pass": 0, "reason": "結論與 Visa 業務結構無關"}]},
+{"id": "J0169", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即答有，且 Mastercard 表述更直接"},
+{"signal": 1, "pass": 1, "reason": "說明揭露的是風險機制而非已全面壓縮，對 interchange 說法保留"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 原文為據，明說非宣稱監管已經壓縮獲利"}]},
+{"id": "J0245", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 JPM FY2025 10-K 的 CET1、RWA、SCB 等揭露回答"},
+{"signal": 1, "pass": 1, "reason": "分成已確認的資本效率長期影響與尚未證明的獲利傷害兩層"},
+{"signal": 2, "pass": 1, "reason": "指出 CET1 下降部分源自 Apple Card、10-K 未量化 ROE 損失"}]},
+{"id": "J0151", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，未提供任何具體財務指標數字"},
+{"signal": 1, "pass": 1, "reason": "明確結論算，且非常保守"},
+{"signal": 2, "pass": 0, "reason": "內容過短，只有無數據支撐的斷言，無法判定是否謹守可得資料"}]},
+{"id": "J0204", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明 Visa 不放款、不承擔信用風險，收入來自交易處理而非利差"},
+{"signal": 1, "pass": 1, "reason": "以網路效應、交易分散、低邊際成本等商業模式說明穩定性"},
+{"signal": 2, "pass": 1, "reason": "結論以銀行承擔信用風險、Visa 承擔交易量風險連回業務結構"}]},
+{"id": "J0203", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 10-K Foundry 虧損、減損為已確認事實，新聞僅作改善跡象"},
+{"signal": 1, "pass": 1, "reason": "明說尚不足以判定全面失敗，14A 與外部客戶仍待驗證"},
+{"signal": 2, "pass": 1, "reason": "分已確認惡化、待驗證假設、可能改善三層風險"}]},
+{"id": "J0123", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較估值並引 CNBC 近期 Netflix 與 Disney 報導敘事"},
+{"signal": 1, "pass": 1, "reason": "明確答迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 1, "reason": "指出單日價格變動不足以判斷，迪士尼非低風險"}]},
+{"id": "J0062", "scores": [
+{"signal": 0, "pass": 0, "reason": "只剩標題，無任何已確認事實或數據支撐區分"},
+{"signal": 1, "pass": 1, "reason": "結論表明尚不足以直接判定公司全面失敗"},
+{"signal": 2, "pass": 0, "reason": "三層風險內容缺失，未描述可確認的風險層級"}]},
+{"id": "J0268", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答是可口可樂與百事比較，未談波音監管、交付、需求"},
+{"signal": 1, "pass": 0, "reason": "未指出波音問題主因，答非所問"},
+{"signal": 2, "pass": 0, "reason": "與波音無關，答非所問"}]},
+{"id": "J0130", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答是可口可樂配息，未談英特爾新聞與事實"},
+{"signal": 1, "pass": 0, "reason": "未對英特爾基本面下任何判斷，答非所問"},
+{"signal": 2, "pass": 0, "reason": "未描述英特爾風險層級，答非所問"}]},
+{"id": "J0043", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 個人化廣告/資料整合與 Apple App Store/支付/搜尋授權"},
+{"signal": 1, "pass": 1, "reason": "區分已執行的 DMA 調整、罰款與可能的收入及利潤影響"},
+{"signal": 2, "pass": 1, "reason": "明確判斷短中期 Meta 直接衝擊較大"}]},
+{"id": "J0001", "scores": [
+{"signal": 0, "pass": 1, "reason": "以股價、TTM 營收、10-K 區域進度與中國新聞判斷"},
+{"signal": 1, "pass": 1, "reason": "以表格區分北美改善與整體回穩、可持續成長的可信度"},
+{"signal": 2, "pass": 1, "reason": "明說整體反轉下結論太早，列出待觀察指標"}]},
+{"id": "J0207", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用北美營收、批發成長、毛利率 45.6% 與中國衰退數據"},
+{"signal": 1, "pass": 1, "reason": "區分局部修復與全面復甦兩種回穩定義"},
+{"signal": 2, "pass": 1, "reason": "明說證據不足以宣布轉折確立"}]}
+]

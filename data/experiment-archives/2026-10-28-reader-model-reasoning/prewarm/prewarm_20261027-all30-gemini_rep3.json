@@ -1,0 +1,170 @@
+[
+  {
+    "ticker": "TSLA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 2.1,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 1.0
+  },
+  {
+    "ticker": "DIS",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 2.8,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "BA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "INTC",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 4.3,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "JNJ",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.1,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "GOOGL",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.8,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "JPM",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 33.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 2.6
+  },
+  {
+    "ticker": "AAPL",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 0.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "META",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "WMT",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.8,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "XOM",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.8,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "V",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 2.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "MA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.7,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "COST",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.1,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.4
+  },
+  {
+    "ticker": "AMZN",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "KO",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 2.5,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.5
+  },
+  {
+    "ticker": "PEP",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.0,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "BRK-B",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 8.7,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "MSFT",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 4.3,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.7
+  },
+  {
+    "ticker": "NVDA",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 1.9,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "NFLX",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 4.1,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "LLY",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 3.2,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 0.6
+  },
+  {
+    "ticker": "NKE",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 9.7,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 1.7
+  },
+  {
+    "ticker": "MCD",
+    "sec_filing_list_sections_status": "success",
+    "sec_filing_list_sections_s": 12.5,
+    "sec_filing_search_status": "success",
+    "sec_filing_search_s": 2.2
+  }
+]

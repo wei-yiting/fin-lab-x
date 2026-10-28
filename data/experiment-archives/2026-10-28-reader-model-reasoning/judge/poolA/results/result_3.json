@@ -1,0 +1,122 @@
+[
+{"id": "J0061", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 10-K 季度股息 0.53 美元、全年 2.12 美元及連續 64 年調升"},
+{"signal": 1, "pass": 1, "reason": "明確結論仍屬相對穩定的配息公司"},
+{"signal": 2, "pass": 1, "reason": "以具體配息紀錄數據支撐，而非只靠防禦股印象"}]},
+{"id": "J0011", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別比較 Boeing 的 FAA 監督、品質整改與 Airbus 的供應商瓶頸及財務緩衝"},
+{"signal": 1, "pass": 1, "reason": "明確判斷 Airbus 較能撐過亂流"},
+{"signal": 2, "pass": 1, "reason": "註明 Airbus 10-K 未顯示同等監管事件不代表無風險，並提醒 Finnhub 數據限制"}]},
+{"id": "J0095", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為波克夏財務保守性，未談台積電與 ASML"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未指出台積電與 ASML 比較中無法確認的部分"},
+{"signal": 2, "pass": 0, "reason": "回答對象錯誤，未處理 AI 循環與出口限制的敘事"}]},
+{"id": "J0202", "scores": [
+{"signal": 0, "pass": 1, "reason": "以 JPM FY2025 10-K 的 CET1、SCB、RWA 等官方揭露為主"},
+{"signal": 1, "pass": 1, "reason": "區分資本效率與分配約束的結構性摩擦和長期獲利傷害"},
+{"signal": 2, "pass": 1, "reason": "明說揭露尚未充分證明已形成長期經濟傷害"}]},
+{"id": "J0138", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為 Visa 與 Mastercard 監管揭露，未談 Nike"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未區分 Nike 初步改善與確認轉折"},
+{"signal": 2, "pass": 0, "reason": "未針對 Nike 是否回穩作任何處理"}]},
+{"id": "J0258", "scores": [
+{"signal": 0, "pass": 0, "reason": "僅列本益比數字，未比較兩家近期敘事"},
+{"signal": 1, "pass": 1, "reason": "明確判斷迪士尼的市場期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "未對證據不直接之處作任何保留"}]},
+{"id": "J0228", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即結論：官方揭露有直接支持但需精確表述"},
+{"signal": 1, "pass": 1, "reason": "指出 interchange 非兩家直接收入，該命題不精確，並以表格分級支持程度"},
+{"signal": 2, "pass": 1, "reason": "引用公司 10-K 原述並以「可能」描述風險，未把外部敘事當成公司承認"}]},
+{"id": "J0065", "scores": [
+{"signal": 0, "pass": 0, "reason": "出口限制部分以一般產業推理判斷，僅引用一則新聞，非只根據可確認新聞"},
+{"signal": 1, "pass": 1, "reason": "明說無法取得 20-F，中國收入與受限產品的比較證據不完整"},
+{"signal": 2, "pass": 1, "reason": "明言相對判斷不能當成已由公司申報證實的結論"}]},
+{"id": "J0171", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出本益比 456.9 倍、預期本益比 174 倍、營收年增 8.3%、EPS 下跌 39.2%"},
+{"signal": 1, "pass": 1, "reason": "結論為市場已提前反映相當多好消息"},
+{"signal": 2, "pass": 1, "reason": "把 Robotaxi、Optimus 當成待驗證的情境，並引用 10-K 延誤風險"}]},
+{"id": "J0212", "scores": [
+{"signal": 0, "pass": 0, "reason": "雖有排名，但只分析 Google，蘋果與微軟沒有內容"},
+{"signal": 1, "pass": 0, "reason": "只列 Google 的回購與現金，未比較三家的財務風險"},
+{"signal": 2, "pass": 0, "reason": "未對缺乏數據的細節作任何保留"}]},
+{"id": "J0177", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭即結論：官方揭露有支持，Mastercard 措辭更直接"},
+{"signal": 1, "pass": 1, "reason": "說明揭露的是風險機制，不是宣稱監管必然或已壓縮利潤"},
+{"signal": 2, "pass": 1, "reason": "以 Visa 10-K 原述為據，並區分風險揭露與已發生事實"}]},
+{"id": "J0218", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答截斷，沒有具體證據區分新聞與已確認事實"},
+{"signal": 1, "pass": 0, "reason": "直接回答「是」，下了強結論，未說明證據不足"},
+{"signal": 2, "pass": 0, "reason": "沒有提出可確認的風險數據或事件"}]},
+{"id": "J0073", "scores": [
+{"signal": 0, "pass": 0, "reason": "內容缺漏，支持理由只剩泛泛的穩健描述，未提出數據"},
+{"signal": 1, "pass": 0, "reason": "業務多元化只列名稱，資本水位與近期風險沒有具體內容"},
+{"signal": 2, "pass": 1, "reason": "明確判斷仍大致站得住，但屬相對穩健"}]},
+{"id": "J0176", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 FY2026 10-K 摘要電商為全通路基礎、廣告為生態系變現"},
+{"signal": 1, "pass": 1, "reason": "電商與廣告各有專段說明角色"},
+{"signal": 2, "pass": 1, "reason": "以公司 10-K 為本，並非只引外部評論"}]},
+{"id": "J0175", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 廣告個人化、資料整合與 Apple App Store 抽成、搜尋分發"},
+{"signal": 1, "pass": 0, "reason": "只有 Meta 的 DMA 訂閱調整提到已執行措施，Apple 未區分已執行與潛在影響"},
+{"signal": 2, "pass": 1, "reason": "明確判斷 Meta 的直接衝擊較大"}]},
+{"id": "J0028", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家營業現金流、自由現金流轉換率與資本配置"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出 FCF/OCF 35.9% 對 59.3%、流動比率、負債權益比等依據"}]},
+{"id": "J0085", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Boeing 的供應鏈、品質與監管三重壓力和 Airbus 的引擎供應瓶頸"},
+{"signal": 1, "pass": 1, "reason": "明確判斷 Airbus 較能撐過"},
+{"signal": 2, "pass": 1, "reason": "註明本次取得的 Airbus 資料有限，未顯示同等監管危機"}]},
+{"id": "J0186", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用最新季度營收持平、北美 +3%、大中華 -7% 等訊號"},
+{"signal": 1, "pass": 1, "reason": "區分北美初步回穩與整體尚未確認反轉"},
+{"signal": 2, "pass": 1, "reason": "結論為全面回穩仍太早，未硬下結論"}]},
+{"id": "J0024", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分 10-K 與 CEO 說法和市場猜測及歷史頻率推估"},
+{"signal": 1, "pass": 1, "reason": "直接說管理層沒有講明下一次調價時間"},
+{"signal": 2, "pass": 1, "reason": "明言 2029 年的推估不是公司指引"}]},
+{"id": "J0163", "scores": [
+{"signal": 0, "pass": 1, "reason": "說明發卡行承擔信用風險，Visa 只處理授權清算，不靠利差"},
+{"signal": 1, "pass": 1, "reason": "穩定性歸因於按交易收費與網路效應的商業模式"},
+{"signal": 2, "pass": 1, "reason": "結論連回「交易是否經過網路」與「錢借出去」的業務結構差異"}]},
+{"id": "J0092", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋美國搜尋案、Google Play、歐盟與美國廣告技術案、DMA"},
+{"signal": 1, "pass": 1, "reason": "分段並以表格區分已落地與潛在壓力"},
+{"signal": 2, "pass": 1, "reason": "以 10-K 為據，指出結構性拆分等措施尚未成為最終命令"}]},
+{"id": "J0012", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 10-K 資本要求、流動性壓力測試與私人信貸新聞，非只重述印象"},
+{"signal": 1, "pass": 1, "reason": "連到資本水位（CET1 要求 11.5%）與近期私人信貸減值風險"},
+{"signal": 2, "pass": 1, "reason": "判斷仍大致站得住，屬相對穩健"}]},
+{"id": "J0264", "scores": [
+{"signal": 0, "pass": 1, "reason": "輝達、禮來、好市多三家都有專段分析"},
+{"signal": 1, "pass": 1, "reason": "以隱含期待高低、客戶集中與需求可見度說明排序邏輯"},
+{"signal": 2, "pass": 0, "reason": "未明說跨產業估值與預期不可直接比較"}]},
+{"id": "J0165", "scores": [
+{"signal": 0, "pass": 1, "reason": "依 FY2026 10-K 摘要電商為全通路成長引擎、廣告為變現層"},
+{"signal": 1, "pass": 1, "reason": "電商與廣告的角色都分點說明"},
+{"signal": 2, "pass": 1, "reason": "以公司 10-K 為本，並註明未揭露廣告的利潤率"}]},
+{"id": "J0136", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家 OCF、資本支出、FCF 及股東回饋占 FCF 的比例"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多較穩"},
+{"signal": 2, "pass": 1, "reason": "列出 FCF/淨利 67% 對 102%、股利加回購對 FCF 等數據"}]},
+{"id": "J0261", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為輝達、禮來、好市多期待下修，未談沃爾瑪"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未涵蓋沃爾瑪電商與廣告"},
+{"signal": 2, "pass": 0, "reason": "未提供沃爾瑪任何官方或外部資訊"}]},
+{"id": "J0031", "scores": [
+{"signal": 0, "pass": 0, "reason": "回答內容為好市多會員費，未比較波音與空中巴士"},
+{"signal": 1, "pass": 0, "reason": "答非所問，未判斷哪一邊較能撐過"},
+{"signal": 2, "pass": 0, "reason": "未針對航空業比較點作保留"}]},
+{"id": "J0244", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用 10-K 說明 Visa 不發卡、不提供信用，與 JPM 放款信用風險對比"},
+{"signal": 1, "pass": 1, "reason": "穩定性歸因於交易量收入、輕資產負債表與網路效應"},
+{"signal": 2, "pass": 1, "reason": "總結連回資產負債表承擔風險與支付網路收費的結構差異"}]},
+{"id": "J0133", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別討論交付生產、FAA 監管、需求 backlog 三條"},
+{"signal": 1, "pass": 1, "reason": "指出生產品質導致的交付問題是主因"},
+{"signal": 2, "pass": 1, "reason": "註明部分新聞為舊報導，單日股價跌幅不能判定原因"}]},
+{"id": "J0014", "scores": [
+{"signal": 0, "pass": 1, "reason": "區分管理層「何時而非是否」的說法和市場依週期的推測"},
+{"signal": 1, "pass": 1, "reason": "直接說沒有公布下一次調價日期或月份"},
+{"signal": 2, "pass": 1, "reason": "明言「快要調」是推測，不能當成管理層的確認時程"}]}
+]

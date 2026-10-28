@@ -1,0 +1,122 @@
+[
+{"id": "J0224", "scores": [
+{"signal": 0, "pass": 1, "reason": "開頭明確對比 Boeing 監管品質危機與 Airbus 供應鏈產能瓶頸的差異"},
+{"signal": 1, "pass": 1, "reason": "明確判斷偏向空中巴士較能撐過"},
+{"signal": 2, "pass": 0, "reason": "僅說是相對優勢，未對證據不足的比較點（如 Airbus 端無證據）做保留"}]},
+{"id": "J0188", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述 Meta 資料廣告、Google 搜尋廣告科技 Play AI、Apple App Store DMA 的風險來源"},
+{"signal": 1, "pass": 1, "reason": "指出 Meta 最難量化，因監管嵌入核心變現與可能結構性救濟"},
+{"signal": 2, "pass": 1, "reason": "說明難量化不等於損失最大、法律請求上限非預期損失，並區分不同判準"}]},
+{"id": "J0167", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出每股股息2.12美元、股息率3.14%、營業現金流與股息支出等數據"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍算穩定配息公司"},
+{"signal": 2, "pass": 1, "reason": "比較股息支出87.79億高於營業現金流74.08億等，非僅防禦印象"}]},
+{"id": "J0048", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論「算」，為高品質獲利引擎"},
+{"signal": 1, "pass": 1, "reason": "說明為第二支獲利支柱、列於服務收入、未獨立為分部"},
+{"signal": 2, "pass": 1, "reason": "指出公司未單獨披露廣告營業利益，30–40%利潤率為外部估計"}]},
+{"id": "J0178", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、廣告科技案、Google Play/Epic、歐盟 DMA 等多條戰線"},
+{"signal": 1, "pass": 1, "reason": "分「已經在發生」與「潛在壓力」兩節並以表格標示狀態"},
+{"signal": 2, "pass": 1, "reason": "明說強制出售廣告科技或 Chrome 不能視為已發生事實"}]},
+{"id": "J0164", "scores": [
+{"signal": 0, "pass": 1, "reason": "以10-K營收、Foundry虧損、減損等已確認數據對照新聞報導"},
+{"signal": 1, "pass": 1, "reason": "明說不足以支持英特爾必然失敗或不可逆衰退的強結論"},
+{"signal": 2, "pass": 1, "reason": "以「基本面受損且轉型風險很高」描述可確認的風險層級"}]},
+{"id": "J0122", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用FY2026 10-K北美營收增5%、批發增14%等近期訊號"},
+{"signal": 1, "pass": 1, "reason": "區分「部分先回穩」與「已經反轉」"},
+{"signal": 2, "pass": 1, "reason": "說明復甦尚未全面確認，未硬下反轉結論"}]},
+{"id": "J0226", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案只展開沃爾瑪，好市多與麥當勞的韌性來源未說明"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪＞好市多＞麥當勞的排序"},
+{"signal": 2, "pass": 0, "reason": "僅區分營運韌性與預期報酬，未保留跨商業模式不可直接比較之處"}]},
+{"id": "J0060", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談 Meta、Google、Apple 監管風險，未比較迪士尼與 Netflix"},
+{"signal": 1, "pass": 0, "reason": "未判斷迪士尼或 Netflix 誰的期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對迪士尼與 Netflix 的證據做保留"}]},
+{"id": "J0075", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較兩家營運現金流、資本支出、流動比率、負債權益比等"},
+{"signal": 1, "pass": 1, "reason": "明確判斷好市多整體較穩"},
+{"signal": 2, "pass": 1, "reason": "列出FCF轉換率36%對59%、流動比率、負債權益比等依據"}]},
+{"id": "J0088", "scores": [
+{"signal": 0, "pass": 1, "reason": "分別分析 COST、LLY、NVDA 三家"},
+{"signal": 1, "pass": 1, "reason": "以估值倍數與成長率落差、預期集中度、預期衝擊大小說明下修邏輯"},
+{"signal": 2, "pass": 0, "reason": "直接比較跨產業本益比，未明確保留不可直接比較之處"}]},
+{"id": "J0071", "scores": [
+{"signal": 0, "pass": 1, "reason": "分「已經看得到的成本」34億準備金與「可能擴大」的未決部分"},
+{"signal": 1, "pass": 1, "reason": "主要依據FY2025 10-K的準備金、索賠人數與Daubert程序揭露"},
+{"signal": 2, "pass": 1, "reason": "結論明確：滑石粉為最大風險，34億不是總風險上限"}]},
+{"id": "J0055", "scores": [
+{"signal": 0, "pass": 1, "reason": "結論分別點出交付生產、監管放大、需求非瓶頸三條敘事"},
+{"signal": 1, "pass": 1, "reason": "指出主因為交付／生產執行"},
+{"signal": 2, "pass": 1, "reason": "以10-K揭露的生產與FAA條件為據，未把市場情緒當事實"}]},
+{"id": "J0033", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在比較迪士尼與 Netflix，未說明蘋果、Google、Meta 的風險來源"},
+{"signal": 1, "pass": 0, "reason": "未指出三家中誰的監管風險最難量化"},
+{"signal": 2, "pass": 0, "reason": "答非所問，未對三家無法直接比較處做保留"}]},
+{"id": "J0183", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論「算」"},
+{"signal": 1, "pass": 1, "reason": "說明廣告為第三大收入來源、含於服務銷售、規模逾AWS一半"},
+{"signal": 2, "pass": 1, "reason": "指出廣告實際利潤外部無法從申報文件直接驗證"}]},
+{"id": "J0198", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較 Meta 個人化廣告與 Apple App Store 抽成、支付、分發等業務面"},
+{"signal": 1, "pass": 1, "reason": "區分已被罰款與已改產品（5億、2億歐元）和潛在結構性救濟"},
+{"signal": 2, "pass": 1, "reason": "明確判斷 Meta 直接商業衝擊較大並說明條件"}]},
+{"id": "J0181", "scores": [
+{"signal": 0, "pass": 1, "reason": "列出季度股息0.53美元、2025年支付87.79億、現金158億等"},
+{"signal": 1, "pass": 1, "reason": "明確回答仍屬相對穩定配息型公司"},
+{"signal": 2, "pass": 1, "reason": "以股息紀錄、流動性、信評、負債比等數據分析，非僅防禦印象"}]},
+{"id": "J0135", "scores": [
+{"signal": 0, "pass": 0, "reason": "答案在談埃克森美孚能源轉型，未處理摩根大通"},
+{"signal": 1, "pass": 0, "reason": "未連到摩根大通業務組合、資本水位或近期風險"},
+{"signal": 2, "pass": 0, "reason": "未判斷摩根大通較穩的說法是否站得住"}]},
+{"id": "J0034", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋樂園、串流、票房三個分部的具體數據"},
+{"signal": 1, "pass": 1, "reason": "明說短期最該看樂園業務"},
+{"signal": 2, "pass": 1, "reason": "指出串流仍需幾季驗證、內容部門利潤不等於票房利潤"}]},
+{"id": "J0129", "scores": [
+{"signal": 0, "pass": 1, "reason": "比較本益比、預估本益比、營收與EPS成長、利潤率"},
+{"signal": 1, "pass": 1, "reason": "判斷特斯拉較像好消息已大幅反映"},
+{"signal": 2, "pass": 0, "reason": "僅說是相對比較，未說明這只是期待值檢查而非完整投資建議"}]},
+{"id": "J0127", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用現金與國庫券3,690億、debt-to-equity 0.17等指標"},
+{"signal": 1, "pass": 1, "reason": "明確結論算保守"},
+{"signal": 2, "pass": 1, "reason": "依10-K與Finnhub數據論述，並提醒current ratio參考價值有限"}]},
+{"id": "J0197", "scores": [
+{"signal": 0, "pass": 0, "reason": "只比較估值與財務指標，未提兩家近期事件或敘事"},
+{"signal": 1, "pass": 1, "reason": "判斷迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 1, "reason": "提醒估值口徑差異與拆股可能影響比較"}]},
+{"id": "J0252", "scores": [
+{"signal": 0, "pass": 1, "reason": "涵蓋搜尋案、廣告科技案、Play/Epic、歐盟 Android 與 DMA"},
+{"signal": 1, "pass": 1, "reason": "分已發生與潛在壓力並附日期、判決、罰款"},
+{"signal": 2, "pass": 1, "reason": "明說強制出售廣告科技不能視為已發生事實"}]},
+{"id": "J0077", "scores": [
+{"signal": 0, "pass": 1, "reason": "明確結論為高品質引擎但未經財報單獨驗證"},
+{"signal": 1, "pass": 1, "reason": "說明廣告占營收9.6%、含於北美與國際分部"},
+{"signal": 2, "pass": 1, "reason": "指出高邊際利潤是推論，無法從10-K直接計算"}]},
+{"id": "J0097", "scores": [
+{"signal": 0, "pass": 1, "reason": "以JPM FY2025 10-K的資本要求與CET1比率為主要依據"},
+{"signal": 1, "pass": 1, "reason": "區分資本配置的持續負擔與已證實的長期獲利傷害"},
+{"signal": 2, "pass": 1, "reason": "指出CET1下降部分源於Apple Card，10-K未量化ROE損失"}]},
+{"id": "J0109", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用本益比456.9倍、預期本益比174.4倍及營收、EPS成長"},
+{"signal": 1, "pass": 1, "reason": "判斷市場已先反映大量好消息"},
+{"signal": 2, "pass": 1, "reason": "說明Robotaxi、Optimus等仍是執行假設並列情境分析"}]},
+{"id": "J0260", "scores": [
+{"signal": 0, "pass": 1, "reason": "分述沃爾瑪必需品低價、好市多會員續卡率、麥當勞平價外食"},
+{"signal": 1, "pass": 1, "reason": "給出沃爾瑪≈好市多＞麥當勞的排序"},
+{"signal": 2, "pass": 1, "reason": "提醒財年不一致及Finnhub指標不能證明衰退表現"}]},
+{"id": "J0021", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用北美營收增5%、批發增5%、大中華區減13%等近期訊號"},
+{"signal": 1, "pass": 1, "reason": "以表格區分初步回穩部分與尚未確認反轉"},
+{"signal": 2, "pass": 1, "reason": "明說稱全面復甦仍太早，待多項指標驗證"}]},
+{"id": "J0243", "scores": [
+{"signal": 0, "pass": 1, "reason": "以Bloomberg報導Netflix獲利了結壓力對比迪士尼修復型期待"},
+{"signal": 1, "pass": 1, "reason": "判斷偏向迪士尼期待較沒那麼滿"},
+{"signal": 2, "pass": 0, "reason": "未對證據不夠直接的部分做任何保留"}]},
+{"id": "J0045", "scores": [
+{"signal": 0, "pass": 1, "reason": "引用本益比、市銷率及營收、EPS、汽車銷售成長數據"},
+{"signal": 1, "pass": 1, "reason": "判斷市場已先反映大量好消息"},
+{"signal": 2, "pass": 1, "reason": "指出Robotaxi商業化仍有不確定性，高估值合理化有前提"}]}
+]

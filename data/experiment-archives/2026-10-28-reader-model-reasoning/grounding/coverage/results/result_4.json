@@ -1,0 +1,288 @@
+[
+{"id": "C0091", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確指出已提前計入，前提是Robotaxi/Optimus商業化"},
+{"n": 1, "score": 1, "reason": "列出TTM 480倍、預估174倍、市銷率14.95倍並對比傳統車廠"},
+{"n": 2, "score": 1, "reason": "EPS -39%、汽車營收下滑、毛利率下降；未提淨利率/營業利益率"},
+{"n": 3, "score": 1, "reason": "提及FSD/Robotaxi/Optimus與儲能營收127.7億、毛利29.8%"},
+{"n": 4, "score": 0.5, "reason": "僅提競爭與Optimus早期，缺監管、需求、關稅等"},
+{"n": 5, "score": 0, "reason": "未提具體驗證點或情境分析"},
+{"n": 6, "score": 0, "reason": "未提交付164萬輛或資本支出"}
+]},
+{"id": "C0092", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確選迪士尼期待較不滿"},
+{"n": 1, "score": 1, "reason": "列出預估本益比與市銷率對比"},
+{"n": 2, "score": 1, "reason": "營收、EPS、淨利率對比齊全，僅缺營業利益率"},
+{"n": 3, "score": 1, "reason": "說明Netflix須持續超預期、迪士尼為修復型期待"},
+{"n": 4, "score": 1, "reason": "提及ESPN/傳統電視、樂園客流、串流轉型不確定"},
+{"n": 5, "score": 1, "reason": "指出TTM本益比NFLX低於DIS及拆股口徑"},
+{"n": 6, "score": 0, "reason": "未提廣告方案、漲價或停公布訂戶"}
+]},
+{"id": "C0093", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確指出滑石粉訴訟"},
+{"n": 1, "score": 1, "reason": "34億美元準備金、內容與三分之一流動負債皆提及"},
+{"n": 2, "score": 0, "reason": "未提Red River破產方案被駁回與回沖"},
+{"n": 3, "score": 0.5, "reason": "僅籠統提及索賠可能增加，無原告數與開庭時程"},
+{"n": 4, "score": 1, "reason": "指出無法估計超額損失、34億非上限"},
+{"n": 5, "score": 0, "reason": "未提Daubert裁定節點"},
+{"n": 6, "score": 0, "reason": "未提其他衍生訴訟或大額判決"},
+{"n": 7, "score": 0, "reason": "未提Ingham案歷史賠償"}
+]},
+{"id": "C0094", "nuggets": [
+{"n": 0, "score": 1, "reason": "結論好市多較穩，並提沃爾瑪規模與信評"},
+{"n": 1, "score": 1, "reason": "OCF與1.87/1.71倍皆列出"},
+{"n": 2, "score": 1, "reason": "Capex、占比、FCF數字齊全"},
+{"n": 3, "score": 1, "reason": "負債權益比、流動比率、213億現金皆列出"},
+{"n": 4, "score": 0.5, "reason": "列出股利與回購及特別股利，但未對比FCF覆蓋"},
+{"n": 5, "score": 0.5, "reason": "提營運資金赤字226億但未指出現金流品質須打折"},
+{"n": 6, "score": 1, "reason": "提及AA/Aa2與融資管道暢通"},
+{"n": 7, "score": 1, "reason": "標明兩家財年截止日"}
+]},
+{"id": "C0095", "nuggets": [
+{"n": 0, "score": 1, "reason": "結論好市多較穩，沃爾瑪規模融資較強"},
+{"n": 1, "score": 1, "reason": "OCF與OCF/淨利倍數皆列出"},
+{"n": 2, "score": 1, "reason": "Capex、FCF與占比描述完整"},
+{"n": 3, "score": 0.5, "reason": "有現金213億與長債，但缺負債權益比與流動比率"},
+{"n": 4, "score": 1, "reason": "股利加回購對比FCF完整"},
+{"n": 5, "score": 1, "reason": "指出負營運資金與付款時點/稅款因素"},
+{"n": 6, "score": 0.5, "reason": "提信用與融資能力強但無具體信評"},
+{"n": 7, "score": 1, "reason": "財年截止日與FY2027 Capex 75億皆提"}
+]},
+{"id": "C0096", "nuggets": [
+{"n": 0, "score": 0, "reason": "未提2024年9月調漲"},
+{"n": 1, "score": 0, "reason": "未提調漲金額"},
+{"n": 2, "score": 1, "reason": "指出管理層未排定明確時程"},
+{"n": 3, "score": 0, "reason": "未提Galanti說法"},
+{"n": 4, "score": 0, "reason": "未提歷史週期推估"},
+{"n": 5, "score": 0.5, "reason": "稱屬市場推測，但未提2024剛調過"},
+{"n": 6, "score": 0, "reason": "未提續約率等條件"}
+]},
+{"id": "C0097", "nuggets": [
+{"n": 0, "score": 1, "reason": "Google第一並給出完整排序"},
+{"n": 1, "score": 1, "reason": "三家負債權益比與流動比率齊全"},
+{"n": 2, "score": 1, "reason": "回購與OCF數字齊全"},
+{"n": 3, "score": 1, "reason": "蘋果回報超過FCF、淨現金中性、913億票據與80億商業本票"},
+{"n": 4, "score": 1, "reason": "提Google與微軟Capex壓力"},
+{"n": 5, "score": 1, "reason": "列出Google與蘋果現金緩衝"},
+{"n": 6, "score": 0.5, "reason": "標示各財年但未指出非同時點比較"}
+]},
+{"id": "C0098", "nuggets": [
+{"n": 0, "score": 1, "reason": "說明淨零情境基於假設、缺政策技術無法達成"},
+{"n": 1, "score": 1, "reason": "碳稅、許可、電動車強制令等提及"},
+{"n": 2, "score": 1, "reason": "低碳業務依賴政策支持"},
+{"n": 3, "score": 1, "reason": "提及限制供給導致價格波動與短缺"},
+{"n": 4, "score": 1, "reason": "以回報為導向並保留調整彈性"},
+{"n": 5, "score": 1, "reason": "提二疊紀低成本油氣支撐現金流"},
+{"n": 6, "score": 1, "reason": "股息4美元/172億、回購200億與2026計畫"},
+{"n": 7, "score": 0.5, "reason": "提低碳Capex約6億，但未談聲譽與回報取捨"}
+]},
+{"id": "C0099", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確結論屬保守"},
+{"n": 1, "score": 0.5, "reason": "僅提現金與國庫券，無具體數字"},
+{"n": 2, "score": 0.5, "reason": "僅提低槓桿，無數據"},
+{"n": 3, "score": 0, "reason": "未提浮存金"},
+{"n": 4, "score": 0.5, "reason": "提股票集中與市場波動，未提理賠負債與權益波動"},
+{"n": 5, "score": 0, "reason": "未提淨賣股或未回購"},
+{"n": 6, "score": 1, "reason": "區分償債保守與投資組合集中"}
+]},
+{"id": "C0100", "nuggets": [
+{"n": 0, "score": 1, "reason": "給出三業務角色分工與優先順序"},
+{"n": 1, "score": 1, "reason": "DTC營收246億、營業利益由1.43億大增"},
+{"n": 2, "score": 1, "reason": "樂園營業利益99.95億、成長7.8%、占比56%"},
+{"n": 3, "score": 0.5, "reason": "提消費壓力與客流，但未指出漲價掩蓋需求轉弱"},
+{"n": 4, "score": 1, "reason": "線性電視營收-12%、營業利益-14%至29.55億"},
+{"n": 5, "score": 1, "reason": "內容授權營業利益3.92億與IP飛輪"},
+{"n": 6, "score": 0.5, "reason": "提ARPU與漲價但無數字與其他指標"},
+{"n": 7, "score": 1, "reason": "提預估本益比約13.9倍"}
+]},
+{"id": "C0101", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確KO較乾淨"},
+{"n": 1, "score": 1, "reason": "濃縮液59%營收、85%銷量與再特許化"},
+{"n": 2, "score": 1, "reason": "說明食品加飲料、自營裝瓶與DSD重資產，缺比例"},
+{"n": 3, "score": 0.5, "reason": "KO price/mix +4%有，PEP銷量下滑與轉嫁困難未提"},
+{"n": 4, "score": 1, "reason": "營業利益率與毛利率對比齊全"},
+{"n": 5, "score": 1, "reason": "提Rockstar減值與重組成本"},
+{"n": 6, "score": 0, "reason": "未提PEP多元化的反面觀點"},
+{"n": 7, "score": 1, "reason": "負債權益比1.20 vs 2.33"}
+]},
+{"id": "C0102", "nuggets": [
+{"n": 0, "score": 0.5, "reason": "結論成立但未強調相對穩健、非無風險"},
+{"n": 1, "score": 1, "reason": "CET1 14.6% vs 11.5%"},
+{"n": 2, "score": 1, "reason": "LCR 111%、SLR 5.8%"},
+{"n": 3, "score": 0.5, "reason": "ROE 17%、ROTCE 20%，但未具體比較同業"},
+{"n": 4, "score": 0.5, "reason": "提撥備142億且上升，缺沖銷與其他曝險"},
+{"n": 5, "score": 0.5, "reason": "僅提業務多元優勢，未提相應風險"},
+{"n": 6, "score": 0.5, "reason": "提P/B 2.36倍溢價，但未區分經營穩健與股價"}
+]},
+{"id": "C0103", "nuggets": [
+{"n": 0, "score": 1, "reason": "結論為成長引擎並保留利潤未驗證"},
+{"n": 1, "score": 1, "reason": "三年營收、22.1%、12%、9.6%齊全"},
+{"n": 2, "score": 1, "reason": "指出未單獨揭露利潤率與自由現金流"},
+{"n": 3, "score": 0.5, "reason": "僅提資產負擔輕"},
+{"n": 4, "score": 0, "reason": "未提分部營業利益來自廣告"},
+{"n": 5, "score": 0.5, "reason": "僅提與賣家飛輪"},
+{"n": 6, "score": 0, "reason": "未與AWS比較"},
+{"n": 7, "score": 0, "reason": "未列風險"}
+]},
+{"id": "C0104", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確為相對穩健、非無風險"},
+{"n": 1, "score": 0.5, "reason": "提11.5%要求但未列實際CET1比率"},
+{"n": 2, "score": 0, "reason": "未列流動性與槓桿指標"},
+{"n": 3, "score": 0.5, "reason": "ROE 17.9%，缺ROTCE與同業比較"},
+{"n": 4, "score": 0.5, "reason": "提季度撥備上升與企業信用，缺年度數據與沖銷"},
+{"n": 5, "score": 1, "reason": "說明多元化伴隨交易衍生品等複雜性"},
+{"n": 6, "score": 1, "reason": "區分銀行穩健與股票便宜，P/B 2.36倍溢價"}
+]},
+{"id": "C0105", "nuggets": [
+{"n": 0, "score": 1, "reason": "結論含限定條件"},
+{"n": 1, "score": 1, "reason": "營收規模與成長數據齊全"},
+{"n": 2, "score": 1, "reason": "指出未列分部、未揭露利潤"},
+{"n": 3, "score": 1, "reason": "不需承擔採購庫存物流退貨成本"},
+{"n": 4, "score": 1, "reason": "北美296億、國際47.5億且部分來自廣告"},
+{"n": 5, "score": 1, "reason": "閉環轉換與賣家飛輪"},
+{"n": 6, "score": 1, "reason": "AWS 456億、35.4%對比"},
+{"n": 7, "score": 1, "reason": "流量、隱私、中國賣家風險與235億提醒"}
+]},
+{"id": "C0106", "nuggets": [
+{"n": 0, "score": 1, "reason": "Meta衝擊較大並附依據"},
+{"n": 1, "score": 1, "reason": "廣告占98%與資料使用限制"},
+{"n": 2, "score": 1, "reason": "2億歐元罰款、LPA與歐洲收入警告"},
+{"n": 3, "score": 1, "reason": "5億歐元、替代支付分發、費率與10%上限"},
+{"n": 4, "score": 0.5, "reason": "提Epic禁令，未提DOJ對蘋果訴訟"},
+{"n": 5, "score": 1, "reason": "提Google授權金風險"},
+{"n": 6, "score": 0.5, "reason": "僅提青少年法規，未提FTC訴訟"},
+{"n": 7, "score": 1, "reason": "指出蘋果硬體提供緩衝"}
+]},
+{"id": "C0107", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確屬保守"},
+{"n": 1, "score": 1, "reason": "3,690億與300億門檻"},
+{"n": 2, "score": 1, "reason": "權益7,174億、負債權益比0.17、母公司借款227億"},
+{"n": 3, "score": 1, "reason": "浮存金1,760億且承保獲利"},
+{"n": 4, "score": 1, "reason": "股票集中、淨利與權益波動"},
+{"n": 5, "score": 0, "reason": "未提淨賣股或未回購"},
+{"n": 6, "score": 1, "reason": "區分償債保守與投資組合集中"}
+]},
+{"id": "C0108", "nuggets": [
+{"n": 0, "score": 1, "reason": "空巴較能撐，並提其自身供應鏈困擾"},
+{"n": 1, "score": 1, "reason": "FAA監督、42架與47架"},
+{"n": 2, "score": 1, "reason": "新機型延誤與777X 48.99億虧損"},
+{"n": 3, "score": 1, "reason": "區分引擎短缺與內部品質/Spirit整合"},
+{"n": 4, "score": 1, "reason": "負債權益比7.52 vs 0.70與利潤率"},
+{"n": 5, "score": 1, "reason": "A320產能目標下調延後"},
+{"n": 6, "score": 0, "reason": "未提波音支撐與反彈潛力"}
+]},
+{"id": "C0109", "nuggets": [
+{"n": 0, "score": 1, "reason": "Meta>Google>Apple並說明理由"},
+{"n": 1, "score": 1, "reason": "界定難量化非損失最大"},
+{"n": 2, "score": 0.5, "reason": "提核心變現機制，缺罰款、LPA與FTC"},
+{"n": 3, "score": 0, "reason": "未展開Google內容"},
+{"n": 4, "score": 0.5, "reason": "僅稱Apple較易建模，無細節"},
+{"n": 5, "score": 0, "reason": "未提AI法規等"},
+{"n": 6, "score": 0, "reason": "未提抵銷效果或建模框架"}
+]},
+{"id": "C0110", "nuggets": [
+{"n": 0, "score": 1, "reason": "全通路整合門店與線上取貨配送"},
+{"n": 1, "score": 1, "reason": "電商為全通路成長引擎、Growth優先"},
+{"n": 2, "score": 1, "reason": "廣告依附流量數據服務品牌與賣家"},
+{"n": 3, "score": 1, "reason": "明確mutually reinforcing生態系"},
+{"n": 4, "score": 1, "reason": "高毛利、改善業務組合與利潤率"},
+{"n": 5, "score": 1, "reason": "電商貢獻4.3個百分點"},
+{"n": 6, "score": 0, "reason": "未指出未揭露廣告利潤"},
+{"n": 7, "score": 0, "reason": "未提相關風險"}
+]},
+{"id": "C0111", "nuggets": [
+{"n": 0, "score": 1, "reason": "明確迪士尼期待較不滿"},
+{"n": 1, "score": 1, "reason": "預估本益比、市銷率、市淨率齊全"},
+{"n": 2, "score": 0.5, "reason": "有營收成長與營業利益率，缺EPS成長與DIS淨利率"},
+{"n": 3, "score": 1, "reason": "Netflix容錯率低、迪士尼易估值修復"},
+{"n": 4, "score": 1, "reason": "線性電視、ESPN版權成本、樂園等"},
+{"n": 5, "score": 1, "reason": "提Netflix拆股"},
+{"n": 6, "score": 1, "reason": "廣告、漲價、停公布訂戶"}
+]},
+{"id": "C0112", "nuggets": [
+{"n": 0, "score": 1, "reason": "官方揭露未見長期傷害"},
+{"n": 1, "score": 1, "reason": "CET1 2,884.69億、11.5%含SCB與GSIB"},
+{"n": 2, "score": 1, "reason": "未達要求將限制股利與回購"},
+{"n": 3, "score": 0.5, "reason": "僅透過管理層批評提及ROE受壓"},
+{"n": 4, "score": 1, "reason": "Basel III終局、GSIB修訂、eSLR"},
+{"n": 5, "score": 0, "reason": "未提Advanced法RWA上升"},
+{"n": 6, "score": 1, "reason": "提fortress balance sheet"},
+{"n": 7, "score": 1, "reason": "區分官方揭露與管理層200億批評"}
+]},
+{"id": "C0113", "nuggets": [
+{"n": 0, "score": 1, "reason": "Meta較大並附依據"},
+{"n": 1, "score": 1, "reason": "收入絕大部分來自廣告、多項法規限制"},
+{"n": 2, "score": 1, "reason": "2億歐元、LPA與歐洲收入警告"},
+{"n": 3, "score": 1, "reason": "5億歐元、替代支付分發與10%上限"},
+{"n": 4, "score": 1, "reason": "Epic禁令與DOJ訴訟"},
+{"n": 5, "score": 0, "reason": "未提Google搜尋授權收入"},
+{"n": 6, "score": 1, "reason": "FTC剝離、同意令與未成年人規範"},
+{"n": 7, "score": 1, "reason": "指出10-K未量化，屬敏感度比較"}
+]},
+{"id": "C0114", "nuggets": [
+{"n": 0, "score": 1, "reason": "穩定配息但非高股息或無風險"},
+{"n": 1, "score": 1, "reason": "0.53美元、2.12美元、連續64年"},
+{"n": 2, "score": 1, "reason": "股息87.79億高於OCF 74.08億"},
+{"n": 3, "score": 0, "reason": "未提配發率"},
+{"n": 4, "score": 1, "reason": "158億現金與62億信用額度"},
+{"n": 5, "score": 1, "reason": "殖利率3.14%、本益比27.8倍"},
+{"n": 6, "score": 0.5, "reason": "僅籠統稱防禦低波動"},
+{"n": 7, "score": 1, "reason": "負債權益比1.20與股息增幅放緩"}
+]},
+{"id": "C0115", "nuggets": [
+{"n": 0, "score": 1, "reason": "2024年9月1日生效"},
+{"n": 1, "score": 1, "reason": "60→65、120→130"},
+{"n": 2, "score": 1, "reason": "管理層與10-K未給日期"},
+{"n": 3, "score": 1, "reason": "引Galanti何時而非是否"},
+{"n": 4, "score": 1, "reason": "五年半週期推估約2030且非指引"},
+{"n": 5, "score": 1, "reason": "直接回答屬市場推測"},
+{"n": 6, "score": 1, "reason": "續約率92.3%與Executive滲透"}
+]},
+{"id": "C0116", "nuggets": [
+{"n": 0, "score": 1, "reason": "搜尋案判決與2025年12月補救措施"},
+{"n": 1, "score": 1, "reason": "廣告技術案部分責任認定"},
+{"n": 2, "score": 1, "reason": "歐盟30億歐元罰款、上訴與銀行擔保"},
+{"n": 3, "score": 1, "reason": "結構性補救未定屬潛在"},
+{"n": 4, "score": 1, "reason": "雙方上訴時點"},
+{"n": 5, "score": 1, "reason": "Google Play補救已實施"},
+{"n": 6, "score": 1, "reason": "日本、澳洲與歐盟舊案"},
+{"n": 7, "score": 1, "reason": "DMA、德州案、集體訴訟與無法估計損失"}
+]},
+{"id": "C0117", "nuggets": [
+{"n": 0, "score": 1, "reason": "拆分出口限制與AI循環"},
+{"n": 1, "score": 1, "reason": "ASML設備為管制標的、中國占比下降"},
+{"n": 2, "score": 1, "reason": "台積電較間接、客戶為美系巨頭"},
+{"n": 3, "score": 1, "reason": "台積電直接CoWoS、ASML滯後"},
+{"n": 4, "score": 1, "reason": "說明20-F限制與依賴新聞"},
+{"n": 5, "score": 0, "reason": "未提股價不能證明暴露"},
+{"n": 6, "score": 1, "reason": "營收成長與預估本益比數據"}
+]},
+{"id": "C0118", "nuggets": [
+{"n": 0, "score": 1, "reason": "好市多較穩，沃爾瑪規模融資較強"},
+{"n": 1, "score": 0.5, "reason": "列出OCF但無OCF/淨利轉換"},
+{"n": 2, "score": 1, "reason": "Capex、占比與FCF"},
+{"n": 3, "score": 1, "reason": "負債權益比、流動比率與213億現金"},
+{"n": 4, "score": 0.5, "reason": "好市多股利回購與特別股利，缺沃爾瑪與FCF對比"},
+{"n": 5, "score": 1, "reason": "營運資金赤字226億、依賴供應商信用"},
+{"n": 6, "score": 1, "reason": "AA/Aa2及低流動比率不必然危險"},
+{"n": 7, "score": 1, "reason": "財年截止日與FY2027 Capex 75億"}
+]},
+{"id": "C0119", "nuggets": [
+{"n": 0, "score": 1, "reason": "已提前計入大量遠期好消息"},
+{"n": 1, "score": 1, "reason": "估值倍數並對比車廠與科技股"},
+{"n": 2, "score": 1, "reason": "EPS、營業利益率、淨利率、汽車營收與毛利下滑"},
+{"n": 3, "score": 1, "reason": "FSD/Cybercab/Optimus與儲能127.7億、29.8%、46.7GWh"},
+{"n": 4, "score": 1, "reason": "關稅、需求放緩、法規、Optimus、競爭"},
+{"n": 5, "score": 0, "reason": "無驗證點或情境分析"},
+{"n": 6, "score": 1, "reason": "交付約164萬輛"}
+]},
+{"id": "C0120", "nuggets": [
+{"n": 0, "score": 1, "reason": "交付與監管為主，需求非問題"},
+{"n": 1, "score": 1, "reason": "積壓訂單5,672.9億與6,822億"},
+{"n": 2, "score": 1, "reason": "FAA監督與增產需同意"},
+{"n": 3, "score": 1, "reason": "供應鏈、品質、勞工及交機付款"},
+{"n": 4, "score": 1, "reason": "新機型延誤、2027首交與48.99億"},
+{"n": 5, "score": 0.5, "reason": "給出優先序但未闡明因果關係"},
+{"n": 6, "score": 1, "reason": "訂單取消110.94億"},
+{"n": 7, "score": 1, "reason": "MAX 7/10認證與適航簽發權歸還"}
+]}
+]

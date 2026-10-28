@@ -1,0 +1,41 @@
+row_id,ticker,query_type,detection_source,html_rank,text_rank,html_format_rank,text_format_rank,html_snippet_rank,text_snippet_rank,html_mrr,text_mrr,html_miss_kind,text_miss_kind,question
+p20,PODD,passage,markdown_h3,1,7,1,7,1,7,1.0000,0.1429,hit,hit,What threatens collection of the EOFlow trade-secret award?
+p38,COIN,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What happens to underlying Ether when cbETH changes hands?
+p41,GOOGL,factoid,flat,,1,,1,5,1,0.0000,1.0000,label-miss,hit,Who independently evaluates Alphabet's cyber defenses?
+p43,AXON,factoid,markdown_h3|text_fallback,,4,2,4,2,4,0.0000,0.2500,format-miss,hit,How much credit could Axon draw at year-end 2025?
+p44,COST,factoid,text_fallback,,5,,5,,5,0.0000,0.2000,retrieval-miss,hit,Impact of one-percentage-point rate shift on Costco investments
+p45,DDOG,factoid,text_fallback,9,9,9,9,9,9,0.1111,0.1111,hit,hit,How much debt principal did Datadog raise through its 2029 Notes issuance?
+p48,PLD,factoid,markdown_h3|text_fallback,4,3,4,3,4,3,0.2500,0.3333,hit,hit,Prologis Series Q per-share dividend amount for 2025
+p49,NVDA,factoid,markdown_h3|text_fallback,,,,,,,0.0000,0.0000,retrieval-miss,retrieval-miss,What corporate software modernization initiative is NVIDIA continuing?
+a24,GOOGL,passage,markdown_h3,,1,8,1,8,1,0.0000,1.0000,format-miss,hit,When do Alphabet's revolving credit lines expire?
+p16,LIN,factoid,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,Which cost components does Linde include when accounting for equipment contracts?
+p17,NVDA,factoid,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What share of NVIDIA's fiscal 2026 revenue came from its largest direct customer?
+p18,DDOG,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,Could U.S. export controls delay or cost Datadog customer deals?
+p21,COIN,factoid,markdown_h3,9,3,9,3,9,3,0.1111,0.3333,hit,hit,What kind of revenue does Coinbase mostly earn from non-US customers?
+p22,AMZN,passage,text_fallback,1,3,1,3,1,3,1.0000,0.3333,hit,hit,What primarily drove AWS sales growth in 2025?
+p23,DECK,factoid,text_fallback,,1,,1,1,1,0.0000,1.0000,label-miss,hit,How did Deckers' total unit volume change in fiscal 2026?
+p24,GOOGL,factoid,markdown_h3,6,1,6,1,6,1,0.1667,1.0000,hit,hit,What mix of floating- and fixed-rate U.S. dollar notes did Alphabet issue in November 2025?
+p26,AXON,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What drove the increase in Axon's Personal Sensors revenue in 2025?
+p29,PLD,factoid,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What share of third-party promote earnings can Prologis allocate to employees under its Promote Plan?
+p30,LIN,factoid,markdown_h3,3,4,3,4,3,4,0.3333,0.2500,hit,hit,Where were Linde's 2025 capital expenditures concentrated geographically?
+p32,XOM,factoid,flat,,1,,1,4,1,0.0000,1.0000,label-miss,hit,How large was ExxonMobil's active patent portfolio at the end of 2025?
+p33,NVDA,passage,text_fallback,1,1,1,1,1,1,1.0000,1.0000,hit,hit,How does NVIDIA say Rubin improves cost per token compared with Blackwell?
+p34,DDOG,passage,text_fallback,1,1,1,1,1,1,1.0000,1.0000,hit,hit,How does Datadog’s Database Monitoring identify database bottlenecks?
+p35,PODD,factoid,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What milestone did Insulet reach for EVOLUTION 2 in 2025?
+p36,PODD,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,How does Omnipod 5 use glucose readings to adjust insulin dosing?
+p37,AMZN,passage,text_fallback,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What consumer hardware products does Amazon make?
+a16,LIN,passage,markdown_h3,3,3,3,3,3,3,0.3333,0.3333,hit,hit,How did currency translation affect Linde's APAC sales in 2025?
+a17,NVDA,passage,markdown_h3,4,3,4,3,4,3,0.2500,0.3333,hit,hit,What drove the growth in NVIDIA's Data Center networking revenue in fiscal 2026?
+a18,DDOG,factoid,text_fallback,,1,1,1,1,1,0.0000,1.0000,format-miss,hit,How did Datadog’s trailing 12-month dollar-based net retention rate change from 2024 to 2025?
+a19,LLY,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,Why will Lilly's near-term capital spending remain elevated?
+a20,PODD,passage,markdown_h3,,9,,9,,9,0.0000,0.1111,retrieval-miss,hit,What investments drove Insulet's higher capital spending in 2025?
+a21,COIN,passage,markdown_h3,,10,,10,,10,0.0000,0.1000,retrieval-miss,hit,Does Coinbase actively trade the crypto it keeps on its balance sheet as an investment?
+a22,AMZN,passage,text_fallback,1,1,1,1,1,1,1.0000,1.0000,hit,hit,When will Amazon begin capitalizing certain satellite broadband development costs?
+a23,DECK,factoid,text_fallback,,1,,1,1,1,0.0000,1.0000,label-miss,hit,How much did Deckers' net sales increase on a constant-currency basis in fiscal 2026?
+a25,CAT,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,What purchase price did Caterpillar expect to pay for RPMGlobal?
+n01,NEE,passage,markdown_h3,1,1,1,1,1,1,1.0000,1.0000,hit,hit,How did growth in FPL's regulatory capital base affect its 2025 earnings?
+n04,XOM,passage,markdown_h3,,2,,2,1,2,0.0000,0.5000,label-miss,hit,How did lower crude prices affect ExxonMobil's 2025 Upstream earnings?
+n05,COST,passage,text_fallback,,1,,1,1,1,0.0000,1.0000,label-miss,hit,What drove Costco's comparable-sales growth in fiscal 2025?
+n08,DECK,factoid,text_fallback,,2,,2,3,2,0.0000,0.5000,label-miss,hit,Which brands does Deckers identify as its principal product brands?
+n09,PODD,factoid,text_fallback,,2,,2,1,2,0.0000,0.5000,label-miss,hit,Has Insulet experienced cybersecurity incidents that materially affected the company?
+n10,JPM,factoid,markdown_h3,,,,,,,0.0000,0.0000,retrieval-miss,retrieval-miss,Which types of market risk does JPMorganChase include in its Value-at-Risk measure?

@@ -1,0 +1,946 @@
+{
+  "collections": {
+    "html": "sec_ab_parsing_html_20261028",
+    "text": "sec_ab_parsing_text_20261028"
+  },
+  "embedding": {
+    "html": {
+      "model": "text-embedding-3-large",
+      "dim": 3072
+    },
+    "text": {
+      "model": "text-embedding-3-large",
+      "dim": 3072
+    }
+  },
+  "chunking": {
+    "html": {
+      "size_tokens": 512,
+      "overlap_tokens": 50
+    },
+    "text": {
+      "size_tokens": 512,
+      "overlap_tokens": 50
+    }
+  },
+  "filings": {
+    "NVDA/2026": {
+      "text": {
+        "accession_number": "0001045810-26-000021",
+        "store_sha256": "b1103303991197f15b288d319cb1de2dda1ba87381c98669bb035e3166009c3a",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 193,
+        "items": {
+          "1": 28,
+          "10": 3,
+          "15": 65,
+          "16": 6,
+          "1a": 53,
+          "1b": 1,
+          "1c": 3,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 4,
+          "7": 18,
+          "7a": 3,
+          "9": 1,
+          "9a": 4,
+          "9b": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001045810-26-000021",
+        "fiscal_year": 2026,
+        "markdown_chars": 377736,
+        "chunks": 338,
+        "items": {
+          "Item 1": 32,
+          "Item 10": 8,
+          "Item 15": 155,
+          "Item 16": 6,
+          "Item 1A": 59,
+          "Item 1B": 1,
+          "Item 1C": 3,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 8,
+          "Item 6": 1,
+          "Item 7": 35,
+          "Item 7A": 3,
+          "Item 8": 1,
+          "Item 9": 1,
+          "Item 9A": 6,
+          "Item 9B": 1,
+          "Item 9C": 1,
+          "_unknown": 14
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "AMZN/2025": {
+      "text": {
+        "accession_number": "0001018724-26-000004",
+        "store_sha256": "406adb3ddd872ff773bf3b31bb9fc33bc0e259abc82b667de56a076f36b60382",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 104,
+        "items": {
+          "1": 16,
+          "10": 1,
+          "15": 7,
+          "16": 1,
+          "1a": 27,
+          "1b": 1,
+          "1c": 2,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 5,
+          "6": 1,
+          "7": 25,
+          "7a": 5,
+          "9": 1,
+          "9a": 6,
+          "9b": 2,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001018724-26-000004",
+        "fiscal_year": 2025,
+        "markdown_chars": 324921,
+        "chunks": 332,
+        "items": {
+          "Item 1": 18,
+          "Item 10": 1,
+          "Item 15": 1,
+          "Item 16": 5,
+          "Item 1A": 39,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 5,
+          "Item 6": 1,
+          "Item 7": 31,
+          "Item 7A": 8,
+          "Item 8": 184,
+          "Item 9": 1,
+          "Item 9A": 9,
+          "Item 9B": 1,
+          "Item 9C": 1,
+          "_unknown": 22
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "AXON/2025": {
+      "text": {
+        "accession_number": "0001628280-26-011360",
+        "store_sha256": "2cab60940244fc36b57689d770436aae170bfb6b19578d5fa96794cfc168ce69",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 139,
+        "items": {
+          "1": 17,
+          "10": 1,
+          "11": 1,
+          "12": 3,
+          "15": 9,
+          "16": 5,
+          "1a": 54,
+          "1b": 1,
+          "1c": 6,
+          "2": 1,
+          "4": 1,
+          "5": 3,
+          "7": 26,
+          "7a": 3,
+          "9": 1,
+          "9a": 5,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001628280-26-011360",
+        "fiscal_year": 2025,
+        "markdown_chars": 467524,
+        "chunks": 387,
+        "items": {
+          "Item 1": 23,
+          "Item 10": 1,
+          "Item 12": 1,
+          "Item 15": 1,
+          "Item 16": 6,
+          "Item 1A": 57,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 4,
+          "Item 6": 1,
+          "Item 7": 45,
+          "Item 7A": 3,
+          "Item 8": 204,
+          "Item 9": 1,
+          "Item 9A": 5,
+          "Item 9B": 5,
+          "Item 9C": 1,
+          "_unknown": 24
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "CAT/2025": {
+      "text": {
+        "accession_number": "0000018230-26-000008",
+        "store_sha256": "f0c4d2194ec32566bcbfcc395a3f8adc42717795f065ebbf5ba1de07fba2403c",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 159,
+        "items": {
+          "1": 30,
+          "10": 8,
+          "12": 1,
+          "14": 1,
+          "15": 13,
+          "16": 3,
+          "1a": 23,
+          "1b": 1,
+          "1c": 4,
+          "2": 7,
+          "4": 1,
+          "5": 4,
+          "7": 55,
+          "7a": 1,
+          "9": 1,
+          "9a": 4,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0000018230-26-000008",
+        "fiscal_year": 2025,
+        "markdown_chars": 607526,
+        "chunks": 628,
+        "items": {
+          "Item 1": 33,
+          "Item 10": 11,
+          "Item 12": 3,
+          "Item 14": 1,
+          "Item 15": 1,
+          "Item 16": 6,
+          "Item 1A": 23,
+          "Item 1B": 1,
+          "Item 1C": 4,
+          "Item 1D": 1,
+          "Item 2": 10,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 7,
+          "Item 6": 1,
+          "Item 7": 135,
+          "Item 7A": 1,
+          "Item 8": 334,
+          "Item 9": 1,
+          "Item 9A": 4,
+          "Item 9B": 2,
+          "Item 9C": 1,
+          "_unknown": 46
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "COIN/2025": {
+      "text": {
+        "accession_number": "0001679788-26-000015",
+        "store_sha256": "ca16eb40315c3c43061d6eb95de8fff5257df49c6a20186755688a10b28922a7",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 258,
+        "items": {
+          "1": 34,
+          "10": 1,
+          "15": 18,
+          "16": 4,
+          "1a": 129,
+          "1b": 1,
+          "1c": 5,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 8,
+          "7": 33,
+          "7a": 13,
+          "9": 1,
+          "9a": 5,
+          "9b": 2,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001679788-26-000015",
+        "fiscal_year": 2025,
+        "markdown_chars": 699271,
+        "chunks": 554,
+        "items": {
+          "Item 1": 39,
+          "Item 10": 1,
+          "Item 15": 23,
+          "Item 16": 7,
+          "Item 1A": 135,
+          "Item 1B": 1,
+          "Item 1C": 5,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 9,
+          "Item 6": 1,
+          "Item 7": 61,
+          "Item 7A": 17,
+          "Item 8": 232,
+          "Item 9": 1,
+          "Item 9A": 5,
+          "Item 9B": 3,
+          "Item 9C": 1,
+          "_unknown": 10
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "COST/2025": {
+      "text": {
+        "accession_number": "0000909832-25-000101",
+        "store_sha256": "e1f8e50ea397e91ac4fd8f83b9177bdbc48d44432525feea40902e52064a7e98",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 79,
+        "items": {
+          "1": 12,
+          "10": 1,
+          "15": 3,
+          "16": 4,
+          "1a": 20,
+          "1b": 1,
+          "1c": 4,
+          "2": 1,
+          "3": 1,
+          "4": 2,
+          "5": 4,
+          "6": 1,
+          "7": 14,
+          "7a": 4,
+          "9": 1,
+          "9a": 4,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0000909832-25-000101",
+        "fiscal_year": 2025,
+        "markdown_chars": 238643,
+        "chunks": 162,
+        "items": {
+          "_unknown": 162
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "DDOG/2025": {
+      "text": {
+        "accession_number": "0001628280-26-008819",
+        "store_sha256": "336d5995df2ab057388ebc51d03453b2423c78f39d388fabc6478d4db064b5bb",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 151,
+        "items": {
+          "1": 17,
+          "10": 1,
+          "15": 6,
+          "16": 4,
+          "1a": 72,
+          "1b": 1,
+          "1c": 5,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 6,
+          "7": 23,
+          "7a": 3,
+          "9": 1,
+          "9a": 6,
+          "9b": 2,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001628280-26-008819",
+        "fiscal_year": 2025,
+        "markdown_chars": 410480,
+        "chunks": 344,
+        "items": {
+          "Item 1": 22,
+          "Item 10": 1,
+          "Item 15": 23,
+          "Item 16": 4,
+          "Item 1A": 72,
+          "Item 1B": 1,
+          "Item 1C": 5,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 6,
+          "Item 6": 1,
+          "Item 7": 44,
+          "Item 7A": 3,
+          "Item 8": 140,
+          "Item 9": 1,
+          "Item 9A": 9,
+          "Item 9B": 3,
+          "Item 9C": 1,
+          "_unknown": 5
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "DECK/2026": {
+      "text": {
+        "accession_number": "0001628280-26-037664",
+        "store_sha256": "959d4c6326e1528a4ae8a043ec8820ff777b1d7dab7825988d662d91cadb7c14",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 523,
+        "items": {
+          "1": 81,
+          "10": 1,
+          "15": 249,
+          "1a": 33,
+          "1b": 1,
+          "1c": 13,
+          "2": 6,
+          "3": 4,
+          "5": 8,
+          "7": 95,
+          "7a": 19,
+          "9a": 10,
+          "9b": 3
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001628280-26-037664",
+        "fiscal_year": 2026,
+        "markdown_chars": 373837,
+        "chunks": 288,
+        "items": {
+          "_unknown": 288
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "GOOGL/2025": {
+      "text": {
+        "accession_number": "0001652044-26-000018",
+        "store_sha256": "b50ecc9c3f14e0aa5f914c7cf00b4c01129c721b0054b5fb2a8c2fde1a9f3bcd",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 119,
+        "items": {
+          "1": 14,
+          "10": 1,
+          "15": 11,
+          "16": 1,
+          "1a": 38,
+          "1b": 1,
+          "1c": 2,
+          "2": 1,
+          "4": 1,
+          "5": 7,
+          "7": 27,
+          "7a": 6,
+          "9": 1,
+          "9a": 4,
+          "9b": 3,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001652044-26-000018",
+        "fiscal_year": 2025,
+        "markdown_chars": 396260,
+        "chunks": 397,
+        "items": {
+          "Item 1": 17,
+          "Item 10": 1,
+          "Item 15": 22,
+          "Item 16": 6,
+          "Item 1A": 40,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 12,
+          "Item 6": 1,
+          "Item 7": 53,
+          "Item 7A": 7,
+          "Item 8": 216,
+          "Item 9": 1,
+          "Item 9A": 5,
+          "Item 9B": 3,
+          "Item 9C": 1,
+          "_unknown": 7
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "JPM/2025": {
+      "text": {
+        "accession_number": "0001628280-26-008131",
+        "store_sha256": "df4a58723adb534d0133563598758858a68251729f764529e610f1de67f799a7",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 780,
+        "items": {
+          "1": 180,
+          "10": 5,
+          "11": 1,
+          "12": 1,
+          "13": 1,
+          "14": 1,
+          "15": 522,
+          "1a": 51,
+          "1b": 1,
+          "2": 2,
+          "3": 1,
+          "4": 1,
+          "5": 3,
+          "6": 1,
+          "7": 1,
+          "9": 1,
+          "9a": 1,
+          "9b": 5,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001628280-26-008131",
+        "fiscal_year": 2025,
+        "markdown_chars": 1286893,
+        "chunks": 1124,
+        "items": {
+          "Item 10": 8,
+          "Item 11": 1,
+          "Item 12": 1,
+          "Item 13": 1,
+          "Item 14": 1,
+          "Item 15": 1,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 6,
+          "Item 6": 1,
+          "Item 7": 1,
+          "Item 7A": 1,
+          "Item 8": 1,
+          "Item 9": 1,
+          "Item 9A": 1,
+          "Item 9B": 6,
+          "Item 9C": 1,
+          "_unknown": 1087
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "LIN/2025": {
+      "text": {
+        "accession_number": "0001628280-26-011430",
+        "store_sha256": "d543e4bfa2b158b411eca7df34c462af6a1c76182e0e520c12e7871283b4561b",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 84,
+        "items": {
+          "1": 11,
+          "1a": 11,
+          "2": 1,
+          "7": 61
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001628280-26-011430",
+        "fiscal_year": 2025,
+        "markdown_chars": 407489,
+        "chunks": 415,
+        "items": {
+          "Item 1": 13,
+          "Item 10": 1,
+          "Item 12": 2,
+          "Item 15": 41,
+          "Item 16": 4,
+          "Item 1A": 1,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 1,
+          "Item 6": 1,
+          "Item 7": 83,
+          "Item 7A": 3,
+          "Item 8": 232,
+          "Item 9": 1,
+          "Item 9A": 4,
+          "Item 9B": 1,
+          "Item 9C": 1,
+          "_unknown": 21
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "LLY/2025": {
+      "text": {
+        "accession_number": "0000059478-26-000013",
+        "store_sha256": "ff3afce41ace53d13c88e4c5160a36a4674fb5b6fed53edaee912f69c5049909",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 141,
+        "items": {
+          "1": 38,
+          "10": 5,
+          "11": 1,
+          "12": 4,
+          "13": 3,
+          "14": 1,
+          "15": 5,
+          "16": 5,
+          "1a": 38,
+          "1b": 1,
+          "1c": 4,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 2,
+          "7": 25,
+          "9": 1,
+          "9a": 3,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0000059478-26-000013",
+        "fiscal_year": 2025,
+        "markdown_chars": 401566,
+        "chunks": 342,
+        "items": {
+          "Item 1": 49,
+          "Item 10": 5,
+          "Item 11": 1,
+          "Item 12": 3,
+          "Item 13": 3,
+          "Item 14": 1,
+          "Item 15": 15,
+          "Item 16": 3,
+          "Item 1A": 39,
+          "Item 1B": 1,
+          "Item 1C": 4,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 4,
+          "Item 6": 1,
+          "Item 7": 31,
+          "Item 7A": 1,
+          "Item 8": 166,
+          "Item 9": 1,
+          "Item 9A": 4,
+          "Item 9B": 1,
+          "Item 9C": 1,
+          "_unknown": 5
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "NEE/2025": {
+      "text": {
+        "accession_number": "0000753308-26-000015",
+        "store_sha256": "14f4f7b5dcc385b61f18e1c3d8f579e558c82ba44380f331186beb623aeb03c8",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 402,
+        "items": {
+          "1": 44,
+          "10": 1,
+          "12": 3,
+          "14": 2,
+          "15": 126,
+          "16": 4,
+          "1a": 36,
+          "1b": 1,
+          "1c": 4,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 2,
+          "6": 6,
+          "7": 52,
+          "7a": 112,
+          "9": 1,
+          "9a": 3,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0000753308-26-000015",
+        "fiscal_year": 2025,
+        "markdown_chars": 682345,
+        "chunks": 658,
+        "items": {
+          "Item 1": 52,
+          "Item 10": 1,
+          "Item 12": 3,
+          "Item 14": 1,
+          "Item 15": 1,
+          "Item 16": 4,
+          "Item 1A": 40,
+          "Item 1B": 1,
+          "Item 1C": 4,
+          "Item 2": 2,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 1,
+          "Item 6": 1,
+          "Item 7": 88,
+          "Item 7A": 1,
+          "Item 8": 338,
+          "Item 9": 1,
+          "Item 9A": 1,
+          "Item 9B": 1,
+          "Item 9C": 1,
+          "_unknown": 114
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "PLD/2025": {
+      "text": {
+        "accession_number": "0001193125-26-051453",
+        "store_sha256": "9d0209b322617b88a5e12a03f93d8733fdae79ba293296c1f45363d72ef14ae9",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 415,
+        "items": {
+          "1": 26,
+          "15": 1,
+          "16": 275,
+          "1a": 25,
+          "1b": 1,
+          "1c": 2,
+          "2": 11,
+          "3": 1,
+          "4": 1,
+          "5": 7,
+          "7": 49,
+          "7a": 4,
+          "9": 1,
+          "9a": 9,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001193125-26-051453",
+        "fiscal_year": 2025,
+        "markdown_chars": 544178,
+        "chunks": 550,
+        "items": {
+          "Item 1": 28,
+          "Item 15": 1,
+          "Item 16": 360,
+          "Item 1A": 26,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 23,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 9,
+          "Item 6": 1,
+          "Item 7": 73,
+          "Item 7A": 6,
+          "Item 8": 1,
+          "Item 9": 1,
+          "Item 9A": 9,
+          "Item 9B": 1,
+          "Item 9C": 1,
+          "_unknown": 6
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "PODD/2025": {
+      "text": {
+        "accession_number": "0001145197-26-000028",
+        "store_sha256": "6c5790635ebb3fffc783db1d0a440e95d059a65f1bf771e7eabe47a18db660e4",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 145,
+        "items": {
+          "1": 27,
+          "12": 1,
+          "15": 40,
+          "1a": 28,
+          "1b": 1,
+          "1c": 5,
+          "2": 1,
+          "4": 1,
+          "5": 7,
+          "6": 1,
+          "7": 22,
+          "7a": 3,
+          "9": 1,
+          "9a": 4,
+          "9b": 3
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0001145197-26-000028",
+        "fiscal_year": 2025,
+        "markdown_chars": 361060,
+        "chunks": 336,
+        "items": {
+          "Item 1": 43,
+          "Item 12": 1,
+          "Item 15": 1,
+          "Item 16": 6,
+          "Item 1A": 32,
+          "Item 1B": 1,
+          "Item 1C": 1,
+          "Item 2": 1,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 8,
+          "Item 6": 1,
+          "Item 7": 34,
+          "Item 7A": 1,
+          "Item 8": 151,
+          "Item 9": 1,
+          "Item 9A": 1,
+          "Item 9B": 1,
+          "_unknown": 50
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    },
+    "XOM/2025": {
+      "text": {
+        "accession_number": "0000034088-26-000045",
+        "store_sha256": "9ca0d7e330d47af6bb4c030e622f2f294b6748565e446753faf6755c51a47b45",
+        "items_dropped": [
+          "8"
+        ],
+        "chunks": 252,
+        "items": {
+          "1": 3,
+          "12": 3,
+          "15": 1,
+          "16": 181,
+          "1a": 19,
+          "1b": 1,
+          "1c": 2,
+          "2": 28,
+          "3": 1,
+          "4": 4,
+          "5": 1,
+          "7a": 1,
+          "9": 1,
+          "9a": 4,
+          "9b": 1,
+          "9c": 1
+        },
+        "status": "ok"
+      },
+      "html": {
+        "accession_number": "0000034088-26-000045",
+        "fiscal_year": 2025,
+        "markdown_chars": 527658,
+        "chunks": 511,
+        "items": {
+          "Item 1": 1,
+          "Item 12": 1,
+          "Item 15": 1,
+          "Item 16": 394,
+          "Item 1A": 21,
+          "Item 1B": 1,
+          "Item 1C": 63,
+          "Item 3": 1,
+          "Item 4": 1,
+          "Item 5": 1,
+          "Item 7": 1,
+          "Item 7A": 1,
+          "Item 8": 1,
+          "Item 9": 1,
+          "Item 9A": 4,
+          "Item 9C": 1,
+          "_unknown": 17
+        },
+        "status": "ok"
+      },
+      "same_accession": true
+    }
+  }
+}

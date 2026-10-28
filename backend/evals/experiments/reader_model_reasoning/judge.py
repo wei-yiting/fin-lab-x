@@ -166,7 +166,34 @@ def _chunks(items: list[Any], size: int) -> list[list[Any]]:
     return [items[i : i + size] for i in range(0, len(items), size)]
 
 
-def cmd_build_pool(raw_dir: Path, judge_dir: Path, key_dir: Path) -> int:
+def _anchors(
+    pool_dir: Path, key_path: Path, n: int, rng: random.Random
+) -> list[tuple[dict[str, Any], dict[str, Any]]]:
+    """n real items from an earlier pool, ids kept, to re-judge in this one."""
+    key = json.loads(key_path.read_text())
+    real = [
+        it
+        for p in sorted((pool_dir / "batches").glob("batch_*.json"))
+        for it in json.loads(p.read_text())
+        if key[it["id"]]["kind"] == "real"
+    ]
+    return [
+        (it, {**key[it["id"]], "anchor_from": pool_dir.name})
+        for it in rng.sample(sorted(real, key=lambda it: it["id"]), n)
+    ]
+
+
+def cmd_build_pool(
+    raw_dir: Path,
+    judge_dir: Path,
+    key_dir: Path,
+    *,
+    id_prefix: str = "J",
+    rejudge_items: int = REJUDGE_ITEMS,
+    anchor_pool: Path | None = None,
+    anchor_key: Path | None = None,
+    anchor_items: int = 0,
+) -> int:
     dataset = load_dataset()
     records = [json.loads(p.read_text()) for p in sorted(raw_dir.rglob("*.json"))]
     by_row: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -226,7 +253,7 @@ def cmd_build_pool(raw_dir: Path, judge_dir: Path, key_dir: Path) -> int:
     key: dict[str, dict[str, Any]] = {}
     entries = []
     for index, (item, meta) in enumerate(items, start=1):
-        item_id = f"J{index:04d}"
+        item_id = f"{id_prefix}{index:04d}"
         key[item_id] = meta
         row = dataset[item["row_id"]]
         entries.append(
@@ -237,11 +264,17 @@ def cmd_build_pool(raw_dir: Path, judge_dir: Path, key_dir: Path) -> int:
                 "answer": item["answer"],
             }
         )
+    if anchor_pool is not None and anchor_key is not None:
+        for entry, meta in _anchors(anchor_pool, anchor_key, anchor_items, rng):
+            key[entry["id"]] = meta
+            entries.append(entry)
+    rng.shuffle(entries)
 
     batches = _chunks(entries, BATCH_SIZE)
     _write_batches(judge_dir / "batches", "", batches)
-    rejudge = rng.sample(entries, min(REJUDGE_ITEMS, len(entries)))
-    _write_batches(judge_dir / "rejudge", "r", _chunks(rejudge, REJUDGE_BATCH_SIZE))
+    rejudge = rng.sample(entries, min(rejudge_items, len(entries)))
+    if rejudge:
+        _write_batches(judge_dir / "rejudge", "r", _chunks(rejudge, REJUDGE_BATCH_SIZE))
     (judge_dir / "judge_prompt.md").write_text(JUDGE_PROMPT + "\n")
     key_dir.mkdir(parents=True, exist_ok=True)
     (key_dir / "KEY_do_not_share.json").write_text(
@@ -252,7 +285,7 @@ def cmd_build_pool(raw_dir: Path, judge_dir: Path, key_dir: Path) -> int:
         kinds[meta["kind"]] += 1
     print(
         f"{len(key)} items in {len(batches)} batches: {dict(kinds)}; "
-        f"re-judge {REJUDGE_ITEMS} items; prompt sha256 "
+        f"re-judge {len(rejudge)} items; prompt sha256 "
         f"{hashlib.sha256(JUDGE_PROMPT.encode()).hexdigest()[:12]}"
     )
     return 0
@@ -339,9 +372,54 @@ def _paired(a: dict[str, float], b: dict[str, float]) -> tuple[float, float, flo
     return _ci({r: a[r] - b[r] for r in a if r in b})
 
 
-def cmd_score(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
-    key = json.loads(key_path.read_text())
-    results = load_results(judge_dir / "results")
+def _load_pools(
+    judge_dirs: list[Path], key_paths: list[Path]
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Merged key, primary results, within-pool re-judges, cross-pool anchors.
+
+    An id judged in more than one pool keeps its first pool's verdict as
+    primary; later pools' verdicts on it are anchor re-judges.
+    """
+    key: dict[str, Any] = {}
+    results: dict[str, Any] = {}
+    rejudged: dict[str, Any] = {}
+    anchored: dict[str, Any] = {}
+    for judge_dir, key_path in zip(judge_dirs, key_paths, strict=True):
+        pool_key = json.loads(key_path.read_text())
+        for item_id, scores in load_results(judge_dir / "results").items():
+            if item_id in results:
+                anchored[item_id] = scores
+            else:
+                results[item_id] = scores
+                key[item_id] = pool_key[item_id]
+        rejudged.update(load_results(judge_dir / "rejudge"))
+    return key, results, rejudged, anchored
+
+
+def _agreement(
+    results: dict[str, Any], second_pass: dict[str, Any]
+) -> dict[str, Any] | None:
+    if not second_pass:
+        return None
+    same = total = items_same = 0
+    flips = []
+    for item_id, second in second_pass.items():
+        matches = [a["pass"] == b["pass"] for a, b in zip(results[item_id], second)]
+        same += sum(matches)
+        total += len(matches)
+        items_same += all(matches)
+        if not all(matches):
+            flips.append(item_id)
+    return {
+        "items": len(second_pass),
+        "signal_agreement": same / total,
+        "item_exact_agreement": items_same / len(second_pass),
+        "items_with_flips": sorted(flips),
+    }
+
+
+def cmd_score(judge_dirs: list[Path], key_paths: list[Path], out_dir: Path) -> int:
+    key, results, rejudged, anchored = _load_pools(judge_dirs, key_paths)
     entries = []
     for item_id, meta in key.items():
         if item_id not in results:
@@ -413,26 +491,6 @@ def cmd_score(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
             "passed": passed,
         }
 
-    agreement = None
-    rejudged = load_results(judge_dir / "rejudge")
-    if rejudged:
-        same = total = items_same = 0
-        flips = []
-        for item_id, second in rejudged.items():
-            first = results[item_id]
-            matches = [a["pass"] == b["pass"] for a, b in zip(first, second)]
-            same += sum(matches)
-            total += len(matches)
-            items_same += all(matches)
-            if not all(matches):
-                flips.append(item_id)
-        agreement = {
-            "items": len(rejudged),
-            "signal_agreement": same / total,
-            "item_exact_agreement": items_same / len(rejudged),
-            "items_with_flips": sorted(flips),
-        }
-
     per_signal = defaultdict(list)
     for e in entries:
         if e["kind"] == "real":
@@ -454,7 +512,8 @@ def cmd_score(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
         "contrasts_vs_control": contrasts,
         "discrimination": discrimination,
         "discrimination_passed": all(d["passed"] for d in discrimination.values()),
-        "judge_self_agreement": agreement,
+        "judge_self_agreement": _agreement(results, rejudged),
+        "cross_pool_anchor_agreement": _agreement(results, anchored),
         "signal_ceiling": signal_ceiling,
     }
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -470,26 +529,28 @@ def cmd_score(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
     return 0
 
 
-def cmd_spot_check(judge_dir: Path, key_path: Path, out_dir: Path) -> int:
+def cmd_spot_check(judge_dirs: list[Path], key_paths: list[Path], out_dir: Path) -> int:
     """Blinded 15-answer sample: 3 real answers per arm + 1 per control kind.
 
     Within each arm, one answer with at least one failed signal is taken
     first when the arm has any, so the sample contains the judge's fails,
     not only its passes.
     """
-    key = json.loads(key_path.read_text())
+    key, results, _, _ = _load_pools(judge_dirs, key_paths)
     items = {
         it["id"]: it
+        for judge_dir in judge_dirs
         for p in (judge_dir / "batches").glob("batch_*.json")
         for it in json.loads(p.read_text())
     }
-    results = load_results(judge_dir / "results")
     rng = random.Random(POOL_SEED + 2)
     picked: list[str] = []
     for arm in ARM_NAMES:
         ids = sorted(
             i for i, m in key.items() if m.get("arm") == arm and m["kind"] == "real"
         )
+        if not ids:
+            continue
         failing = [i for i in ids if not all(s["pass"] for s in results[i])]
         chosen = rng.sample(failing, min(1, len(failing)))
         rest = [i for i in ids if i not in chosen]
@@ -551,17 +612,31 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--raw-dir", type=Path, required=True)
     build.add_argument("--judge-dir", type=Path, required=True)
     build.add_argument("--key-dir", type=Path, required=True)
+    build.add_argument("--id-prefix", default="J")
+    build.add_argument("--rejudge", type=int, default=REJUDGE_ITEMS)
+    build.add_argument("--anchor-pool", type=Path, help="Earlier judge dir")
+    build.add_argument("--anchor-key", type=Path)
+    build.add_argument("--anchors", type=int, default=0)
     collect = sub.add_parser("collect")
     collect.add_argument("--judge-dir", type=Path, required=True)
     for name in ("score", "spot-check"):
         p = sub.add_parser(name)
-        p.add_argument("--judge-dir", type=Path, required=True)
-        p.add_argument("--key", type=Path, required=True)
+        p.add_argument("--judge-dir", type=Path, nargs="+", required=True)
+        p.add_argument("--key", type=Path, nargs="+", required=True)
         p.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args(argv)
 
     if args.cmd == "build-pool":
-        return cmd_build_pool(args.raw_dir, args.judge_dir, args.key_dir)
+        return cmd_build_pool(
+            args.raw_dir,
+            args.judge_dir,
+            args.key_dir,
+            id_prefix=args.id_prefix,
+            rejudge_items=args.rejudge,
+            anchor_pool=args.anchor_pool,
+            anchor_key=args.anchor_key,
+            anchor_items=args.anchors,
+        )
     if args.cmd == "collect":
         return cmd_collect(args.judge_dir)
     if args.cmd == "score":

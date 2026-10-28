@@ -88,3 +88,34 @@ Also: the Gemini account was out of credit when the Luna workers started
 (23:09). The Gemini workers started at 23:21 after the user topped up, so the
 Gemini arms lag the Luna arms by ~12 min to ~30 min on the same row. That is
 reported as a deviation.
+
+## Amendment 2 — 2026-10-28 ~09:50 (secondary measures, added before they were run)
+
+After the primary analysis, the user pointed out that the signals measure
+whether a point is *mentioned*, not whether the answer is complete or faithful.
+Two secondary measures are added. They are reported next to the primary
+result and **do not change the pre-registered decision rule above**.
+
+**Faithfulness (claim-level groundedness).** Scope: repetition 1 of
+`reader_luna_none` and `reader_luna_medium` (the only arm that cuts both cost
+and latency, vs the control), 60 answers. A fresh subagent receives the
+question, the answer, and the tool outputs *that run* received, lists every
+checkable factual claim (figures, dates, named events, attributions to
+filings or news; at most 25) and labels each supported / unsupported /
+contradicted by that evidence. Metric: support rate = supported / claims.
+- Validity control: 30 *perturbed* answers (a rep-1 Luna answer with one
+  figure altered). The judge passes if it flags the altered figure as
+  unsupported or contradicted in ≥ 80% of them.
+- Interpretation: `reader_luna_none` is non-inferior on faithfulness if the
+  paired Δ support rate has a 95% CI lower bound > −0.05.
+
+**Completeness (nugget recall), exploratory.** Per row, a fresh subagent
+reads the question and the four rep-1 answers (one per arm, anonymised and
+shuffled) and writes 4–8 key points a complete answer needs, each marked
+vital / okay. The lists are **not human-reviewed**, so completeness is
+exploratory and not a gate. Each rep-1 answer (120) is then scored per key
+point (covered 1 / partial 0.5 / missing 0) by fresh subagents. Metric: vital
+key-point recall.
+- Validity control: 30 truncated answers (opening ~15% of a rep-1 Luna
+  answer); paired Δ vs their base answers must be ≤ −0.25 with CI upper
+  bound < 0.

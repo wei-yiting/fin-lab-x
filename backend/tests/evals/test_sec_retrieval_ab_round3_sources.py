@@ -9,10 +9,21 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import pytest
 import tiktoken
 
 
 REPO_ROOT = Path(__file__).parents[3]
+# Round-3 artifacts are anchored to the filing store as parsed under
+# edgartools 5.17.1. The final dataset was later re-anchored to the 5.62
+# parse (see the scenario README); these checks keep guarding the round-3
+# provenance against the store it was built on. The store is local-only
+# (gitignored), so the module skips where it is absent (CI).
+ROUND3_STORE_DIR = REPO_ROOT / "data/sec_text_round3"
+pytestmark = pytest.mark.skipif(
+    not ROUND3_STORE_DIR.exists(),
+    reason="round-3 filing store (edgartools 5.17.1 parse) not present",
+)
 RESULTS_DIR = REPO_ROOT / (
     "backend/evals/scenarios/sec_retrieval_ab/curation/round2_ticker_results"
 )
@@ -78,8 +89,7 @@ def test_round3_sources_are_store_exact_and_exclude_item_8() -> None:
     for result_path in sorted(RESULTS_DIR.glob("*.json")):
         result = json.loads(result_path.read_text())
         store_path = (
-            REPO_ROOT
-            / "data/sec_text"
+            ROUND3_STORE_DIR
             / result["ticker"]
             / "10-K"
             / f"{result['fiscal_year']}.json"
@@ -127,8 +137,7 @@ def test_round3_store_anchors_resolve_to_the_current_exact_strings() -> None:
     for result_path in sorted(RESULTS_DIR.glob("*.json")):
         result = json.loads(result_path.read_text())
         store_path = (
-            REPO_ROOT
-            / "data/sec_text"
+            ROUND3_STORE_DIR
             / result["ticker"]
             / "10-K"
             / f"{result['fiscal_year']}.json"
@@ -167,7 +176,7 @@ def test_round3_store_anchors_resolve_to_the_current_exact_strings() -> None:
 
 def test_jpm_n10_enumerates_store_exact_var_table_copies() -> None:
     result = json.loads((RESULTS_DIR / "T09_JPM.json").read_text())
-    filing = json.loads((REPO_ROOT / "data/sec_text/JPM/10-K/2025.json").read_text())
+    filing = json.loads((ROUND3_STORE_DIR / "JPM/10-K/2025.json").read_text())
     units = list(_store_units(filing))
     candidate = next(
         candidate
@@ -219,7 +228,7 @@ def test_jpm_n10_enumerates_store_exact_var_table_copies() -> None:
 
 def test_lin_a16_has_independently_sufficient_store_exact_or_alternatives() -> None:
     result = json.loads((RESULTS_DIR / "T10_LIN.json").read_text())
-    filing = json.loads((REPO_ROOT / "data/sec_text/LIN/10-K/2025.json").read_text())
+    filing = json.loads((ROUND3_STORE_DIR / "LIN/10-K/2025.json").read_text())
     units = list(_store_units(filing))
     candidate = next(
         candidate
@@ -280,8 +289,7 @@ def test_every_non_item8_store_copy_is_enumerated_in_its_or_set() -> None:
         result = json.loads(result_path.read_text())
         filing = json.loads(
             (
-                REPO_ROOT
-                / "data/sec_text"
+                ROUND3_STORE_DIR
                 / result["ticker"]
                 / "10-K"
                 / f"{result['fiscal_year']}.json"

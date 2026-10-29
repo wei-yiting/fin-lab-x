@@ -1,0 +1,213 @@
+{
+  "errors": 0,
+  "P0/en": {
+    "pass": 149,
+    "n": 156,
+    "rate": 0.9551,
+    "ci95": [
+      0.91,
+      0.978
+    ],
+    "failure_languages": {
+      "es": 4,
+      "zh-Hans": 2,
+      "ja": 1
+    },
+    "questions_with_failure": [
+      "d06",
+      "d07",
+      "d08",
+      "d17",
+      "s2"
+    ]
+  },
+  "P0/zh-Hant": {
+    "pass": 48,
+    "n": 48,
+    "rate": 1.0,
+    "ci95": [
+      0.926,
+      1.0
+    ],
+    "failure_languages": {},
+    "questions_with_failure": []
+  },
+  "P0/cost_usd": 0.614,
+  "R0/en": {
+    "pass": 140,
+    "n": 156,
+    "rate": 0.8974,
+    "ci95": [
+      0.84,
+      0.936
+    ],
+    "failure_languages": {
+      "es": 14,
+      "ru": 1,
+      "zh-Hans": 1
+    },
+    "questions_with_failure": [
+      "d06",
+      "d07",
+      "d13",
+      "d17",
+      "s1",
+      "s3"
+    ]
+  },
+  "R0/zh-Hant": {
+    "pass": 48,
+    "n": 48,
+    "rate": 1.0,
+    "ci95": [
+      0.926,
+      1.0
+    ],
+    "failure_languages": {},
+    "questions_with_failure": []
+  },
+  "R0/cost_usd": 0.605,
+  "R2/en": {
+    "pass": 122,
+    "n": 156,
+    "rate": 0.7821,
+    "ci95": [
+      0.711,
+      0.84
+    ],
+    "failure_languages": {
+      "es": 20,
+      "zh-Hans": 2,
+      "ru": 2,
+      "ja": 10
+    },
+    "questions_with_failure": [
+      "d06",
+      "d07",
+      "d08",
+      "d12",
+      "d13",
+      "d15",
+      "d17",
+      "s1",
+      "s2",
+      "s3"
+    ]
+  },
+  "R2/zh-Hant": {
+    "pass": 48,
+    "n": 48,
+    "rate": 1.0,
+    "ci95": [
+      0.926,
+      1.0
+    ],
+    "failure_languages": {},
+    "questions_with_failure": []
+  },
+  "R2/cost_usd": 0.615,
+  "R3/en": {
+    "pass": 156,
+    "n": 156,
+    "rate": 1.0,
+    "ci95": [
+      0.976,
+      1.0
+    ],
+    "failure_languages": {},
+    "questions_with_failure": []
+  },
+  "R3/zh-Hant": {
+    "pass": 48,
+    "n": 48,
+    "rate": 1.0,
+    "ci95": [
+      0.926,
+      1.0
+    ],
+    "failure_languages": {},
+    "questions_with_failure": []
+  },
+  "R3/cost_usd": 0.608,
+  "M/en": {
+    "pass": 155,
+    "n": 156,
+    "rate": 0.9936,
+    "ci95": [
+      0.965,
+      0.999
+    ],
+    "failure_languages": {
+      "es": 1
+    },
+    "questions_with_failure": [
+      "d06"
+    ]
+  },
+  "M/zh-Hant": {
+    "pass": 48,
+    "n": 48,
+    "rate": 1.0,
+    "ci95": [
+      0.926,
+      1.0
+    ],
+    "failure_languages": {},
+    "questions_with_failure": []
+  },
+  "M/cost_usd": 0.599,
+  "mcnemar_en_P0_vs_R0": {
+    "n_pairs": 156,
+    "pass_only_P0": 15,
+    "pass_only_R0": 6,
+    "p_exact": 0.0784
+  },
+  "mcnemar_en_R0_vs_R2": {
+    "n_pairs": 156,
+    "pass_only_R0": 30,
+    "pass_only_R2": 12,
+    "p_exact": 0.0079
+  },
+  "mcnemar_en_R2_vs_R3": {
+    "n_pairs": 156,
+    "pass_only_R2": 0,
+    "pass_only_R3": 34,
+    "p_exact": 0.0
+  },
+  "mcnemar_en_R0_vs_M": {
+    "n_pairs": 156,
+    "pass_only_R0": 0,
+    "pass_only_M": 15,
+    "p_exact": 0.0001
+  },
+  "mcnemar_en_R0_vs_R3": {
+    "n_pairs": 156,
+    "pass_only_R0": 0,
+    "pass_only_R3": 16,
+    "p_exact": 0.0
+  },
+  "mcnemar_en_M_vs_R3": {
+    "n_pairs": 156,
+    "pass_only_M": 0,
+    "pass_only_R3": 1,
+    "p_exact": 1.0
+  },
+  "fidelity_R0": {
+    "n": 204,
+    "pass_agreement": 184,
+    "recorded_failures": 12,
+    "recorded_failures_still_fail": 4,
+    "recorded_passes": 192,
+    "recorded_passes_now_fail": 12,
+    "recorded_en_pass": 144,
+    "recorded_en_n": 156
+  },
+  "forced_no_tools": {
+    "M": 10,
+    "P0": 11,
+    "R0": 11,
+    "R2": 10,
+    "R3": 16
+  },
+  "total_cost_usd": 3.041
+}

@@ -1,0 +1,42 @@
+[
+  {"id": "J081", "statements": [], "verdict": "Y"},
+  {"id": "J082", "statements": [], "verdict": "Y"},
+  {"id": "J083", "statements": [], "verdict": "Y"},
+  {"id": "J084", "statements": [
+    {"text": "Airbus 的 SEC 檢索結果實際上是 AIR 這家航空維修、零件與服務公司，而不是 Airbus SE 本身；因此財務比率與部分 10-K 風險資料不能直接視為 Airbus SE 的資料", "company": "AIR (aviation parts/services company)", "label": "supports", "reason": "Caveat about data provenance that qualifies the reliability of the Airbus comparison; directly serves the answer"}
+  ], "verdict": "Y"},
+  {"id": "J085", "statements": [
+    {"text": "Robotaxi 面臨來自既有車廠、新進者及自駕科技公司的競爭", "company": "Generic competitors", "label": "supports", "reason": "Generic competitive context for Tesla's valuation risk"},
+    {"text": "客戶是否改用自研晶片或競爭對手產品", "company": "Generic customers/competitors", "label": "supports", "reason": "Risk factor for Nvidia's priced-in expectations"}
+  ], "verdict": "Y"},
+  {"id": "J086", "statements": [
+    {"text": "超大規模雲端業者是否持續增加AI資本支出；客戶自研晶片可能改變需求", "company": "Hyperscalers (generic)", "label": "supports", "reason": "Drivers of Nvidia expectation revisions"},
+    {"text": "競爭藥物是否削弱價格或市場份額", "company": "Generic pharma competitors", "label": "supports", "reason": "Risk factor for Lilly's expectations"}
+  ], "verdict": "Y"},
+  {"id": "J087", "statements": [], "verdict": "Y"},
+  {"id": "J088", "statements": [], "verdict": "Y"},
+  {"id": "J089", "statements": [
+    {"text": "Epic Games 案中，陪審團於 2023 年作出不利於 Google 的裁決；Google 與 Epic 已達成修改補救命令的和解安排", "company": "Epic Games", "label": "supports", "reason": "Epic is the counterparty in Google's antitrust case; directly about Google's antitrust risk"}
+  ], "verdict": "Y"},
+  {"id": "J090", "statements": [], "verdict": "Y"},
+  {"id": "J091", "statements": [], "verdict": "Y"},
+  {"id": "J092", "statements": [
+    {"text": "UBS 仍須籌措約 200 億美元的新資本，與瑞士政府的資本爭議已延續多年。", "company": "UBS", "label": "off_target", "reason": "Standalone UBS regulatory/capital news with no stated link to JPMorgan's stability"}
+  ], "verdict": "N"},
+  {"id": "J093", "statements": [
+    {"text": "台積電直接承接 Nvidia、AMD、Apple、Google 等晶片設計商的先進製程與封裝需求", "company": "Nvidia, AMD, Apple, Google", "label": "supports", "reason": "Customers named to explain TSMC's AI demand exposure"},
+    {"text": "台積電曾因美方要求暫停向部分中國客戶出貨；相關背景涉及一枚台積電晶片出現在華為 AI 處理器中", "company": "Huawei", "label": "supports", "reason": "Explains TSMC's export-control exposure"},
+    {"text": "市場曾因 AI 展望、晶片管制與 ASML 自身展望疑慮，同時重挫半導體類股", "company": "Semiconductor sector (Nvidia suppliers)", "label": "supports", "reason": "Market context illustrating ASML's sensitivity to capex/export-control expectations"}
+  ], "verdict": "Y"},
+  {"id": "J094", "statements": [
+    {"text": "ASIC、競爭產品或客戶自研晶片提高替代性；超大規模雲端客戶 AI 資本支出增速下降", "company": "Generic competitors/hyperscalers", "label": "supports", "reason": "Risk factors for Nvidia expectations"},
+    {"text": "競爭者推出更有效、便宜或更方便使用的產品", "company": "Generic pharma competitors", "label": "supports", "reason": "Risk factor for Lilly's expectations"}
+  ], "verdict": "Y"},
+  {"id": "J095", "statements": [
+    {"text": "Robotaxi 面臨來自既有車廠、新進者及自駕科技公司的競爭", "company": "Generic competitors", "label": "supports", "reason": "Competitive context for Tesla's valuation"},
+    {"text": "此外，Anthropic 是 Bessemer 創立 116 年來最大的一筆投資。", "company": "Anthropic / Bessemer", "label": "off_target", "reason": "Standalone deal news unrelated to whether Tesla or Nvidia has good news priced in"}
+  ], "verdict": "N"},
+  {"id": "J096", "statements": [
+    {"text": "電動車市場競爭日益激烈；競爭加劇可能導致較低的銷量、降價與市占流失", "company": "Generic EV competitors", "label": "supports", "reason": "Competitive context for Tesla's long-term thesis"}
+  ], "verdict": "Y"}
+]

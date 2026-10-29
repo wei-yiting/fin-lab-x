@@ -1,0 +1,86 @@
+/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/reader-model-reasoning-benchmark/.venv/lib/python3.12/site-packages/langgraph/checkpoint/base/__init__.py:17: LangChainPendingDeprecationWarning: The default value of `allowed_objects` will change in a future version. Pass an explicit value (e.g., allowed_objects='messages' or allowed_objects='core') to suppress this warning.
+  from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+[10:30:06] start rep1 row 1 C1
+[10:30:06] start rep1 row 1 C0
+[10:30:06] start rep1 row 3 C0
+[10:30:06] start rep1 row 3 C1
+[10:30:06] start rep1 row 5 C1
+[10:30:06] start rep1 row 5 C0
+    done rep1 row 3 C1: error=None tavily_calls=3 total_s=14.892101790988818
+[10:30:21] start rep1 row 24 C0
+    done rep1 row 3 C0: error=None tavily_calls=1 total_s=19.848371125000995
+[10:30:26] start rep1 row 24 C1
+    done rep1 row 1 C0: error=None tavily_calls=1 total_s=23.820763333002105
+[10:30:30] start rep1 row 26 C1
+    done rep1 row 5 C1: error=None tavily_calls=2 total_s=27.213536166993435
+[10:30:34] start rep1 row 26 C0
+    done rep1 row 1 C1: error=None tavily_calls=2 total_s=27.810491707990877
+[10:30:34] start rep1 row 27 C0
+    done rep1 row 5 C0: error=None tavily_calls=2 total_s=31.515652791014872
+[10:30:38] start rep1 row 27 C1
+    done rep1 row 24 C0: error=None tavily_calls=2 total_s=28.287931124970783
+[10:30:49] start rep1 row 29 C1
+    done rep1 row 24 C1: error=None tavily_calls=2 total_s=26.61093691701535
+[10:30:53] start rep1 row 29 C0
+    done rep1 row 26 C1: error=None tavily_calls=3 total_s=25.287489374983124
+[10:30:55] start rep2 row 1 C0
+    done rep1 row 26 C0: error=None tavily_calls=3 total_s=27.04230762500083
+[10:31:01] start rep2 row 1 C1
+    done rep1 row 29 C1: error=None tavily_calls=4 total_s=25.488186082977336
+[10:31:15] start rep2 row 3 C1
+    done rep2 row 1 C0: error=None tavily_calls=2 total_s=21.79265600000508
+[10:31:17] start rep2 row 3 C0
+    done rep1 row 27 C1: error=None tavily_calls=1 total_s=39.64214379200712
+[10:31:17] start rep2 row 5 C0
+    done rep1 row 27 C0: error=None tavily_calls=1 total_s=44.307326333015226
+[10:31:18] start rep2 row 5 C1
+    done rep2 row 1 C1: error=None tavily_calls=1 total_s=22.970249000005424
+[10:31:24] start rep2 row 24 C1
+    done rep1 row 29 C0: error=None tavily_calls=3 total_s=33.14989299996523
+[10:31:26] start rep2 row 24 C0
+    done rep2 row 3 C1: error=None tavily_calls=3 total_s=14.846252666960936
+[10:31:30] start rep2 row 26 C0
+    done rep2 row 3 C0: error=None tavily_calls=2 total_s=17.030859124963172
+[10:31:34] start rep2 row 26 C1
+    done rep2 row 5 C0: error=None tavily_calls=2 total_s=23.60688154201489
+[10:31:41] start rep2 row 27 C1
+    done rep2 row 5 C1: error=None tavily_calls=2 total_s=27.06250108400127
+[10:31:45] start rep2 row 27 C0
+    done rep2 row 24 C1: error=None tavily_calls=2 total_s=24.420268375019077
+[10:31:48] start rep2 row 29 C0
+    done rep2 row 24 C0: error=None tavily_calls=0 total_s=23.566283749998547
+[10:31:50] start rep2 row 29 C1
+    done rep2 row 26 C0: error=None tavily_calls=3 total_s=23.59208266704809
+[10:31:53] start rep3 row 1 C1
+    done rep2 row 26 C1: error=None tavily_calls=3 total_s=24.508903166046366
+[10:31:59] start rep3 row 1 C0
+    done rep2 row 27 C1: error=None tavily_calls=1 total_s=22.480754833028186
+[10:32:04] start rep3 row 3 C0
+    done rep2 row 27 C0: error=None tavily_calls=1 total_s=24.08313237503171
+[10:32:10] start rep3 row 3 C1
+    done rep3 row 1 C1: error=None tavily_calls=2 total_s=21.168926124984864
+[10:32:15] start rep3 row 5 C1
+    done rep2 row 29 C0: error=None tavily_calls=5 total_s=32.07155629101908
+[10:32:20] start rep3 row 5 C0
+    done rep2 row 29 C1: error=None tavily_calls=3 total_s=31.52813095896272
+[10:32:21] start rep3 row 24 C0
+    done rep3 row 1 C0: error=None tavily_calls=2 total_s=22.837786209012847
+[10:32:22] start rep3 row 24 C1
+    done rep3 row 3 C0: error=None tavily_calls=3 total_s=18.08932349999668
+[10:32:22] start rep3 row 26 C1
+    done rep3 row 3 C1: error=None tavily_calls=1 total_s=14.270294709014706
+[10:32:24] start rep3 row 26 C0
+    done rep3 row 5 C1: error=None tavily_calls=2 total_s=22.998863957996946
+[10:32:38] start rep3 row 27 C0
+    done rep3 row 24 C0: error=None tavily_calls=2 total_s=17.91823704203125
+[10:32:39] start rep3 row 27 C1
+    done rep3 row 24 C1: error=None tavily_calls=2 total_s=20.2434051669552
+[10:32:42] start rep3 row 29 C1
+    done rep3 row 5 C0: error=None tavily_calls=2 total_s=22.784683000005316
+[10:32:43] start rep3 row 29 C0
+    done rep3 row 26 C0: error=None tavily_calls=0 total_s=21.781300833041314
+    done rep3 row 26 C1: error=None tavily_calls=3 total_s=25.196083166985773
+    done rep3 row 27 C0: error=None tavily_calls=2 total_s=18.907532791025005
+    done rep3 row 27 C1: error=None tavily_calls=2 total_s=20.57564837503014
+    done rep3 row 29 C0: error=None tavily_calls=4 total_s=29.415421959012747
+    done rep3 row 29 C1: error=None tavily_calls=6 total_s=31.696891749976203

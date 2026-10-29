@@ -1,0 +1,30 @@
+[
+  {"id": "J049", "statements": [], "verdict": "Y"},
+  {"id": "J050", "statements": [], "verdict": "Y"},
+  {"id": "J051", "statements": [
+    {"text": "歐盟近期突擊搜查多家飲料公司，調查可口可樂在歐洲的裝瓶商是否限制跨境貿易。", "company": "Coca-Cola (bottlers)", "label": "off_target", "reason": "Standalone regulatory news about an unrelated company with no link to Apple/Google/Meta regulatory risk."}
+  ], "verdict": "N"},
+  {"id": "J052", "statements": [], "verdict": "Y"},
+  {"id": "J053", "statements": [
+    {"text": "Novo Nordisk 或其他競爭者帶來更強產品（作為禮來期待下修的風險之一）", "company": "Novo Nordisk", "label": "supports", "reason": "Named as competitive risk to Eli Lilly's expectations, directly answering the question."}
+  ], "verdict": "Y"},
+  {"id": "J054", "statements": [], "verdict": "Y"},
+  {"id": "J055", "statements": [], "verdict": "Y"},
+  {"id": "J056", "statements": [], "verdict": "Y"},
+  {"id": "J057", "statements": [
+    {"text": "Airbus 接手原 Spirit AeroSystems 的部分資產後，A350 結構件供應與工廠整合仍可能造成額外延遲", "company": "Spirit AeroSystems", "label": "supports", "reason": "Explains Airbus's own supply-chain pressure, which is the question's focus."}
+  ], "verdict": "Y"},
+  {"id": "J058", "statements": [], "verdict": "Y"},
+  {"id": "J059", "statements": [], "verdict": "Y"},
+  {"id": "J060", "statements": [
+    {"text": "BP 宣布削減再生能源投資，並將每年油氣支出提高到 100 億美元。", "company": "BP", "label": "off_target", "reason": "Standalone corporate news about BP unrelated to Nvidia, Lilly or Costco expectations."}
+  ], "verdict": "N"},
+  {"id": "J061", "statements": [
+    {"text": "在 Epic Games v. Google 案中，法院要求 Google 修改 Android 與 Google Play…Google 隨後與 Epic 達成和解", "company": "Epic Games", "label": "supports", "reason": "Describes Google's own antitrust litigation and remedies, directly answering the question."}
+  ], "verdict": "Y"},
+  {"id": "J062", "statements": [], "verdict": "Y"},
+  {"id": "J063", "statements": [
+    {"text": "DeepSeek 消息曾引發全球 AI 與半導體股下跌，報導中特別提到 ASML 下跌約 7%", "company": "DeepSeek", "label": "supports", "reason": "Used as market context showing ASML's sensitivity to AI-cycle noise, which the question asks about."}
+  ], "verdict": "Y"},
+  {"id": "J064", "statements": [], "verdict": "Y"}
+]

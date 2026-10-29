@@ -1,0 +1,21 @@
+[
+  {"id": "J033", "statements": [], "verdict": "Y"},
+  {"id": "J034", "statements": [], "verdict": "Y"},
+  {"id": "J035", "statements": [], "verdict": "Y"},
+  {"id": "J036", "statements": [], "verdict": "Y"},
+  {"id": "J037", "statements": [], "verdict": "Y"},
+  {"id": "J038", "statements": [], "verdict": "Y"},
+  {"id": "J039", "statements": [], "verdict": "Y"},
+  {"id": "J040", "statements": [
+    {"text": "近期市場曾因 NVIDIA 對中國出口限制及 ASML 展望不佳，同時下修半導體產業預期，造成晶片股大幅波動。", "company": "Nvidia", "label": "supports", "reason": "Market context explaining the export-restriction/AI-cycle noise the question asks about and how it hits TSMC and ASML."},
+    {"text": "另有台積電晶片被發現用於華為 AI 處理器，引發對出口管制執行與供應商合規的關注。", "company": "Huawei", "label": "supports", "reason": "Mentioned only to illustrate TSMC's own export-control compliance exposure."}
+  ], "verdict": "Y"},
+  {"id": "J041", "statements": [], "verdict": "Y"},
+  {"id": "J042", "statements": [], "verdict": "Y"},
+  {"id": "J043", "statements": [], "verdict": "Y"},
+  {"id": "J044", "statements": [], "verdict": "Y"},
+  {"id": "J045", "statements": [], "verdict": "Y"},
+  {"id": "J046", "statements": [], "verdict": "Y"},
+  {"id": "J047", "statements": [], "verdict": "Y"},
+  {"id": "J048", "statements": [], "verdict": "Y"}
+]

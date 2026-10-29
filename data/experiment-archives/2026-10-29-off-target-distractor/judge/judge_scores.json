@@ -1,0 +1,137 @@
+{
+ "missing": [],
+ "off_target_rate": {
+  "reader_luna_none": {
+   "C0": [
+    0,
+    30
+   ],
+   "C1": [
+    0,
+    30
+   ]
+  },
+  "reader_luna_medium": {
+   "C0": [
+    0,
+    30
+   ],
+   "C1": [
+    0,
+    30
+   ]
+  }
+ },
+ "mcnemar": {
+  "reader_luna_none": {
+   "pairs": 30,
+   "c1_only": 0,
+   "c0_only": 0,
+   "p_exact": 1.0
+  },
+  "reader_luna_medium": {
+   "pairs": 30,
+   "c1_only": 0,
+   "c0_only": 0,
+   "p_exact": 1.0
+  }
+ },
+ "control_tpr": [
+  7,
+  7
+ ],
+ "controls": [
+  {
+   "id": "J016",
+   "row": "29",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "另外，安哥拉正尋求取得 Anglo American 旗下鑽石事業 De Beers 20% 至 30% 的股權。",
+     "company": "Anglo American / De Beers",
+     "label": "off_target",
+     "reason": "Standalone deal news about unrelated companies with no link to Boeing/Airbus supply chain or regulatory pressure."
+    }
+   ]
+  },
+  {
+   "id": "J051",
+   "row": "10",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "歐盟近期突擊搜查多家飲料公司，調查可口可樂在歐洲的裝瓶商是否限制跨境貿易。",
+     "company": "Coca-Cola (bottlers)",
+     "label": "off_target",
+     "reason": "Standalone regulatory news about an unrelated company with no link to Apple/Google/Meta regulatory risk."
+    }
+   ]
+  },
+  {
+   "id": "J060",
+   "row": "26",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "BP 宣布削減再生能源投資，並將每年油氣支出提高到 100 億美元。",
+     "company": "BP",
+     "label": "off_target",
+     "reason": "Standalone corporate news about BP unrelated to Nvidia, Lilly or Costco expectations."
+    }
+   ]
+  },
+  {
+   "id": "J065",
+   "row": "1",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "美國銀行本週公布的每股盈餘不如預期，股價走低；Baird 認為這波賣壓過頭，視為買進機會。",
+     "company": "Bank of America",
+     "label": "off_target",
+     "reason": "Bank of America's own earnings and stock news, with no stated link to Tesla's short- vs long-term thesis."
+    }
+   ]
+  },
+  {
+   "id": "J092",
+   "row": "27",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "UBS 仍須籌措約 200 億美元的新資本，與瑞士政府的資本爭議已延續多年。",
+     "company": "UBS",
+     "label": "off_target",
+     "reason": "Standalone UBS regulatory/capital news with no stated link to JPMorgan's stability"
+    }
+   ]
+  },
+  {
+   "id": "J095",
+   "row": "24",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "此外，Anthropic 是 Bessemer 創立 116 年來最大的一筆投資。",
+     "company": "Anthropic / Bessemer",
+     "label": "off_target",
+     "reason": "Standalone deal news unrelated to whether Tesla or Nvidia has good news priced in"
+    }
+   ]
+  },
+  {
+   "id": "J117",
+   "row": "7",
+   "flagged": true,
+   "flagged_statements": [
+    {
+     "text": "Apple 可能因 App Store 違反《數位市場法》面臨更多罰款，歐盟先前已在 Spotify 案中對其開罰 18 億歐元",
+     "company": "Apple",
+     "label": "off_target",
+     "reason": "Apple's own regulatory matter with no stated link to Google's antitrust risk"
+    }
+   ]
+  }
+ ],
+ "off_target_items": []
+}

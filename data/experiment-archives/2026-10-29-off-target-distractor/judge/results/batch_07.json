@@ -1,0 +1,38 @@
+[
+  {"id": "J097", "statements": [], "verdict": "Y"},
+  {"id": "J098", "statements": [], "verdict": "Y"},
+  {"id": "J099", "statements": [
+    {"text": "輝達主要風險包括超大型客戶自研晶片；AMD、客製 ASIC 及其他競爭", "company": "AMD / hyperscalers", "label": "supports", "reason": "Competitive threats cited as risk to Nvidia's priced-in expectations."}
+  ], "verdict": "Y"},
+  {"id": "J100", "statements": [
+    {"text": "投資人擔心大型雲端客戶（hyperscaler）的資本支出可能見頂", "company": "Hyperscalers", "label": "supports", "reason": "Customer capex context explains why Nvidia expectations could be cut."}
+  ], "verdict": "Y"},
+  {"id": "J101", "statements": [
+    {"text": "面對 TSMC、Samsung 等成熟晶圓代工競爭者", "company": "TSMC, Samsung", "label": "supports", "reason": "Competitive context for Intel Foundry's structural weakness."}
+  ], "verdict": "Y"},
+  {"id": "J102", "statements": [
+    {"text": "AMD、雲端服務商自研晶片等競爭；客戶自行開發晶片或AI方案", "company": "AMD / cloud providers", "label": "supports", "reason": "Listed as risks to Nvidia's valuation."}
+  ], "verdict": "Y"},
+  {"id": "J103", "statements": [
+    {"text": "Bank of America ROE 10.7%、Wells Fargo 12.8%、Citigroup 9.2% 等獲利指標比較", "company": "Bank of America, Wells Fargo, Citigroup", "label": "supports", "reason": "Peer comparison directly addresses whether JPM is the steadier big bank."},
+    {"text": "JPM P/B 約 2.36 倍，明顯高於 BofA、Wells Fargo、Citigroup 約 1.0–1.4 倍", "company": "Bank of America, Wells Fargo, Citigroup", "label": "supports", "reason": "Peer valuation comparison showing JPM's quality premium."}
+  ], "verdict": "Y"},
+  {"id": "J104", "statements": [], "verdict": "Y"},
+  {"id": "J105", "statements": [
+    {"text": "Epic Games 訴 Google 案，陪審團作出不利於 Google 的裁決；Google 已與 Epic 達成和解安排", "company": "Epic Games", "label": "supports", "reason": "Epic is the counterparty in a Google antitrust case; directly about Google's risk."}
+  ], "verdict": "Y"},
+  {"id": "J106", "statements": [], "verdict": "Y"},
+  {"id": "J107", "statements": [], "verdict": "Y"},
+  {"id": "J108", "statements": [], "verdict": "Y"},
+  {"id": "J109", "statements": [
+    {"text": "特斯拉面對來自既有車廠、新進電動車廠商、自駕公司與機器人公司的競爭；競爭者與客戶自研晶片可能壓縮輝達市場份額", "company": "Generic competitors", "label": "supports", "reason": "Competition cited as risk to targets' valuations."}
+  ], "verdict": "Y"},
+  {"id": "J110", "statements": [
+    {"text": "Epic Games 訴 Google 案；Google 隨後與 Epic 達成和解", "company": "Epic Games", "label": "supports", "reason": "Counterparty in Google's Play antitrust case."},
+    {"text": "是否會進一步限制 Google 與 Apple、瀏覽器、手機製造商之間的預設搜尋協議", "company": "Apple", "label": "supports", "reason": "Mentioned only as party to Google's default search deals under antitrust scrutiny."}
+  ], "verdict": "Y"},
+  {"id": "J111", "statements": [], "verdict": "Y"},
+  {"id": "J112", "statements": [
+    {"text": "特斯拉壓力歸因於中國電動車競爭", "company": "Chinese EV makers", "label": "supports", "reason": "Competition cited as cause of Tesla's negative news."}
+  ], "verdict": "Y"}
+]

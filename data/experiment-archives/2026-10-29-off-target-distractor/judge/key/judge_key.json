@@ -1,0 +1,898 @@
+{
+ "J001": {
+  "arm": "reader_luna_none",
+  "row": "24",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J002": {
+  "arm": "reader_luna_none",
+  "row": "10",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J003": {
+  "arm": "reader_luna_medium",
+  "row": "3",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J004": {
+  "arm": "reader_luna_none",
+  "row": "5",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J005": {
+  "arm": "reader_luna_none",
+  "row": "4",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J006": {
+  "arm": "reader_luna_medium",
+  "row": "5",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J007": {
+  "arm": "reader_luna_none",
+  "row": "1",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J008": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J009": {
+  "arm": "reader_luna_none",
+  "row": "24",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J010": {
+  "arm": "reader_luna_medium",
+  "row": "3",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J011": {
+  "arm": "reader_luna_none",
+  "row": "10",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J012": {
+  "arm": "reader_luna_medium",
+  "row": "3",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J013": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J014": {
+  "arm": "reader_luna_medium",
+  "row": "5",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J015": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J016": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "另外，安哥拉正尋求取得 Anglo American 旗下鑽石事業 De Beers 20% 至 30% 的股權。"
+ },
+ "J017": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J018": {
+  "arm": "reader_luna_medium",
+  "row": "4",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J019": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J020": {
+  "arm": "reader_luna_none",
+  "row": "7",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J021": {
+  "arm": "reader_luna_none",
+  "row": "26",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J022": {
+  "arm": "reader_luna_none",
+  "row": "26",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J023": {
+  "arm": "reader_luna_none",
+  "row": "26",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J024": {
+  "arm": "reader_luna_medium",
+  "row": "5",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J025": {
+  "arm": "reader_luna_none",
+  "row": "4",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J026": {
+  "arm": "reader_luna_none",
+  "row": "3",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J027": {
+  "arm": "reader_luna_medium",
+  "row": "3",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J028": {
+  "arm": "reader_luna_medium",
+  "row": "4",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J029": {
+  "arm": "reader_luna_none",
+  "row": "5",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J030": {
+  "arm": "reader_luna_none",
+  "row": "24",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J031": {
+  "arm": "reader_luna_none",
+  "row": "10",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J032": {
+  "arm": "reader_luna_none",
+  "row": "27",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J033": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J034": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J035": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J036": {
+  "arm": "reader_luna_none",
+  "row": "3",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J037": {
+  "arm": "reader_luna_none",
+  "row": "5",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J038": {
+  "arm": "reader_luna_none",
+  "row": "1",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J039": {
+  "arm": "reader_luna_none",
+  "row": "10",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J040": {
+  "arm": "reader_luna_medium",
+  "row": "4",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J041": {
+  "arm": "reader_luna_medium",
+  "row": "3",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J042": {
+  "arm": "reader_luna_none",
+  "row": "29",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J043": {
+  "arm": "reader_luna_none",
+  "row": "1",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J044": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J045": {
+  "arm": "reader_luna_none",
+  "row": "27",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J046": {
+  "arm": "reader_luna_none",
+  "row": "27",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J047": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J048": {
+  "arm": "reader_luna_none",
+  "row": "27",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J049": {
+  "arm": "reader_luna_none",
+  "row": "27",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J050": {
+  "arm": "reader_luna_none",
+  "row": "10",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J051": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "另外，歐盟近期突擊搜查多家飲料公司，調查可口可樂在歐洲的裝瓶商是否限制跨境貿易。"
+ },
+ "J052": {
+  "arm": "reader_luna_none",
+  "row": "3",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J053": {
+  "arm": "reader_luna_none",
+  "row": "26",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J054": {
+  "arm": "reader_luna_none",
+  "row": "10",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J055": {
+  "arm": "reader_luna_none",
+  "row": "27",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J056": {
+  "arm": "reader_luna_medium",
+  "row": "5",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J057": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J058": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J059": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J060": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "另外，BP 宣布削減再生能源投資，並將每年油氣支出提高到 100 億美元。"
+ },
+ "J061": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J062": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J063": {
+  "arm": "reader_luna_none",
+  "row": "4",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J064": {
+  "arm": "reader_luna_none",
+  "row": "29",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J065": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "另外，美國銀行本週公布的每股盈餘不如預期，股價走低；Baird 認為這波賣壓過頭，視為買進機會。"
+ },
+ "J066": {
+  "arm": "reader_luna_none",
+  "row": "4",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J067": {
+  "arm": "reader_luna_medium",
+  "row": "4",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J068": {
+  "arm": "reader_luna_none",
+  "row": "29",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J069": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J070": {
+  "arm": "reader_luna_none",
+  "row": "24",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J071": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J072": {
+  "arm": "reader_luna_none",
+  "row": "1",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J073": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J074": {
+  "arm": "reader_luna_none",
+  "row": "5",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J075": {
+  "arm": "reader_luna_none",
+  "row": "7",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J076": {
+  "arm": "reader_luna_none",
+  "row": "3",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J077": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J078": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J079": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J080": {
+  "arm": "reader_luna_none",
+  "row": "3",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J081": {
+  "arm": "reader_luna_medium",
+  "row": "5",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J082": {
+  "arm": "reader_luna_none",
+  "row": "29",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J083": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J084": {
+  "arm": "reader_luna_none",
+  "row": "29",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J085": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J086": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J087": {
+  "arm": "reader_luna_none",
+  "row": "3",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J088": {
+  "arm": "reader_luna_none",
+  "row": "5",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J089": {
+  "arm": "reader_luna_none",
+  "row": "7",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J090": {
+  "arm": "reader_luna_none",
+  "row": "29",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J091": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J092": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "另外，UBS 仍須籌措約 200 億美元的新資本，與瑞士政府的資本爭議已延續多年。"
+ },
+ "J093": {
+  "arm": "reader_luna_medium",
+  "row": "4",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J094": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J095": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "此外，Anthropic 是 Bessemer 創立 116 年來最大的一筆投資。"
+ },
+ "J096": {
+  "arm": "reader_luna_medium",
+  "row": "1",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J097": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J098": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J099": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J100": {
+  "arm": "reader_luna_none",
+  "row": "26",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J101": {
+  "arm": "reader_luna_medium",
+  "row": "5",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J102": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J103": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J104": {
+  "arm": "reader_luna_none",
+  "row": "4",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J105": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J106": {
+  "arm": "reader_luna_none",
+  "row": "4",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J107": {
+  "arm": "reader_luna_none",
+  "row": "26",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J108": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J109": {
+  "arm": "reader_luna_medium",
+  "row": "24",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J110": {
+  "arm": "reader_luna_none",
+  "row": "7",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J111": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J112": {
+  "arm": "reader_luna_none",
+  "row": "1",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J113": {
+  "arm": "reader_luna_medium",
+  "row": "10",
+  "rep": 1,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J114": {
+  "arm": "reader_luna_none",
+  "row": "24",
+  "rep": 3,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J115": {
+  "arm": "reader_luna_medium",
+  "row": "26",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J116": {
+  "arm": "reader_luna_none",
+  "row": "7",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J117": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "control_injected",
+  "injected": "此外，Apple 可能因 App Store 違反《數位市場法》面臨更多罰款，歐盟先前已在 Spotify 案中對其開罰 18 億歐元。"
+ },
+ "J118": {
+  "arm": "reader_luna_none",
+  "row": "5",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J119": {
+  "arm": "reader_luna_none",
+  "row": "24",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J120": {
+  "arm": "reader_luna_medium",
+  "row": "3",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J121": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J122": {
+  "arm": "reader_luna_medium",
+  "row": "29",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J123": {
+  "arm": "reader_luna_medium",
+  "row": "4",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J124": {
+  "arm": "reader_luna_none",
+  "row": "1",
+  "rep": 2,
+  "condition": "C1",
+  "kind": "real"
+ },
+ "J125": {
+  "arm": "reader_luna_medium",
+  "row": "7",
+  "rep": 2,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J126": {
+  "arm": "reader_luna_medium",
+  "row": "27",
+  "rep": 3,
+  "condition": "C0",
+  "kind": "real"
+ },
+ "J127": {
+  "arm": "reader_luna_none",
+  "row": "7",
+  "rep": 1,
+  "condition": "C0",
+  "kind": "real"
+ }
+}

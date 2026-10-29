@@ -1,0 +1,38 @@
+/Users/dong.wyt/Documents/dev-projects/fin-lab-x-wt/reader-model-reasoning-benchmark/.venv/lib/python3.12/site-packages/langgraph/checkpoint/base/__init__.py:17: LangChainPendingDeprecationWarning: The default value of `allowed_objects` will change in a future version. Pass an explicit value (e.g., allowed_objects='messages' or allowed_objects='core') to suppress this warning.
+  from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+[10:48:14] start reader_luna_medium rep1 row 4 C1
+[10:48:14] start reader_luna_medium rep1 row 4 C0
+[10:48:14] start reader_luna_medium rep1 row 7 C0
+[10:48:14] start reader_luna_medium rep1 row 7 C1
+    done rep1 row 4 C1: error=None tavily_calls=4 total_s=23.713824459002353
+[10:48:38] start reader_luna_medium rep1 row 10 C1
+    done rep1 row 7 C0: error=None tavily_calls=2 total_s=26.390737875015475
+[10:48:41] start reader_luna_medium rep1 row 10 C0
+    done rep1 row 4 C0: error=None tavily_calls=4 total_s=28.822628874971997
+[10:48:43] start reader_luna_medium rep2 row 4 C0
+    done rep1 row 7 C1: error=None tavily_calls=3 total_s=28.93371037498582
+[10:48:43] start reader_luna_medium rep2 row 4 C1
+    done rep1 row 10 C1: error=None tavily_calls=3 total_s=22.502978749980684
+[10:49:01] start reader_luna_medium rep2 row 7 C1
+    done rep1 row 10 C0: error=None tavily_calls=1 total_s=19.94185095798457
+[10:49:01] start reader_luna_medium rep2 row 7 C0
+    done rep2 row 4 C0: error=None tavily_calls=6 total_s=29.020907291967887
+[10:49:12] start reader_luna_medium rep2 row 10 C0
+    done rep2 row 4 C1: error=None tavily_calls=4 total_s=42.36842691601487
+[10:49:26] start reader_luna_medium rep2 row 10 C1
+    done rep2 row 7 C1: error=None tavily_calls=2 total_s=28.175461500009988
+[10:49:29] start reader_luna_medium rep3 row 4 C1
+    done rep2 row 10 C0: error=None tavily_calls=3 total_s=17.009233041026164
+[10:49:29] start reader_luna_medium rep3 row 4 C0
+    done rep2 row 7 C0: error=None tavily_calls=2 total_s=28.93713541701436
+[10:49:30] start reader_luna_medium rep3 row 7 C0
+    done rep2 row 10 C1: error=None tavily_calls=3 total_s=20.73032550001517
+[10:49:47] start reader_luna_medium rep3 row 7 C1
+    done rep3 row 4 C0: error=None tavily_calls=4 total_s=24.453912208031397
+[10:49:54] start reader_luna_medium rep3 row 10 C1
+    done rep3 row 4 C1: error=None tavily_calls=4 total_s=25.406105000001844
+[10:49:54] start reader_luna_medium rep3 row 10 C0
+    done rep3 row 7 C0: error=None tavily_calls=2 total_s=28.22358799999347
+    done rep3 row 10 C1: error=None tavily_calls=3 total_s=19.360561624984257
+    done rep3 row 10 C0: error=None tavily_calls=3 total_s=20.13898808299564
+    done rep3 row 7 C1: error=None tavily_calls=3 total_s=29.25602145801531

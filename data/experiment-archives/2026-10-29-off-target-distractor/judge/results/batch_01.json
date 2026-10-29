@@ -1,0 +1,44 @@
+[
+  {"id": "J001", "statements": [], "verdict": "Y"},
+  {"id": "J002", "statements": [
+    {"text": "反壟斷案件可能要求拆分 Instagram 或 WhatsApp", "company": "Instagram / WhatsApp (Meta subsidiaries)", "label": "supports", "reason": "Meta-owned businesses; directly part of Meta's regulatory risk the question asks about."}
+  ], "verdict": "Y"},
+  {"id": "J003", "statements": [
+    {"text": "FAA在2024年阿拉斯加航空737 MAX艙門塞脫落事故後，將737 MAX生產限制在每月38架", "company": "Alaska Airlines", "label": "supports", "reason": "Identifies the Boeing incident that triggered FAA production limits; explains Boeing's regulatory constraint."},
+    {"text": "報導也指出航空公司並未因近期問題普遍放棄波音；部分航空公司取消寬體機訂單", "company": "Airlines (customers)", "label": "supports", "reason": "Customer behavior used to assess Boeing's demand side, which is what the question asks."}
+  ], "verdict": "Y"},
+  {"id": "J004", "statements": [
+    {"text": "外部晶圓代工業務面臨台積電、三星等成熟競爭者", "company": "TSMC, Samsung", "label": "supports", "reason": "Competitive context explaining Intel Foundry's fundamental risk."}
+  ], "verdict": "Y"},
+  {"id": "J005", "statements": [
+    {"text": "近期報導指出，美國對中國 AI 晶片的限制已造成相關晶片公司的銷售與費用衝擊；這支持「台積電主要透過客戶端傳導」的判斷", "company": "Nvidia / AI chip companies", "label": "supports", "reason": "Explicitly linked to explaining TSMC's indirect export-control exposure via customers."}
+  ], "verdict": "Y"},
+  {"id": "J006", "statements": [], "verdict": "Y"},
+  {"id": "J007", "statements": [
+    {"text": "Tesla 面臨交車下滑、定價能力減弱，以及中國車廠競爭加劇等問題", "company": "Chinese automakers", "label": "supports", "reason": "Competitive pressure cited as a cause of Tesla's current negative news."}
+  ], "verdict": "Y"},
+  {"id": "J008", "statements": [
+    {"text": "Epic Games 訴 Google Play 案中，陪審團於 2023 年判 Google 承擔責任；Google 與 Epic 在 2025 年達成和解安排", "company": "Epic Games", "label": "supports", "reason": "Epic is the plaintiff in a Google antitrust case; directly about Google's antitrust risk."}
+  ], "verdict": "Y"},
+  {"id": "J009", "statements": [
+    {"text": "輝達的主要風險：AMD、華為及其他競爭者加劇競爭；雲端公司自行開發晶片", "company": "AMD, Huawei, cloud providers", "label": "supports", "reason": "Listed as competitive risks to Nvidia's valuation, relevant to how much good news is priced in."}
+  ], "verdict": "Y"},
+  {"id": "J010", "statements": [
+    {"text": "這說明航空公司和租賃公司的購機需求仍然存在", "company": "Airlines and lessors", "label": "supports", "reason": "Customer demand used to evaluate Boeing's demand side."}
+  ], "verdict": "Y"},
+  {"id": "J011", "statements": [], "verdict": "Y"},
+  {"id": "J012", "statements": [
+    {"text": "這說明航空公司及租賃商仍有相當強的飛機需求；客戶可能取消或改訂其他機型", "company": "Airlines and lessors", "label": "supports", "reason": "Customer demand used to evaluate Boeing's demand side."}
+  ], "verdict": "Y"},
+  {"id": "J013", "statements": [
+    {"text": "Epic Games 訴 Google Play 案中，陪審團在 2023 年裁定 Google 相關業務存在違法問題；Google 與 Epic 達成的後續和解", "company": "Epic Games", "label": "supports", "reason": "Plaintiff in a Google antitrust case; directly about Google's antitrust risk."}
+  ], "verdict": "Y"},
+  {"id": "J014", "statements": [], "verdict": "Y"},
+  {"id": "J015", "statements": [
+    {"text": "Epic Games 訴 Google 案中，法院要求 Google 修改 Android、Google Play 的商業模式；2025 年 10 月與 Epic 達成和解", "company": "Epic Games", "label": "supports", "reason": "Plaintiff in a Google antitrust case; directly about Google's antitrust risk."}
+  ], "verdict": "Y"},
+  {"id": "J016", "statements": [
+    {"text": "Airbus 和 Boeing 都曾租用大型 An-124 貨機運送急需的機身結構件", "company": "Antonov (An-124 operator)", "label": "supports", "reason": "Illustrates both targets' supply-chain breakpoints; the aircraft is incidental to the targets' situation."},
+    {"text": "另外，安哥拉正尋求取得 Anglo American 旗下鑽石事業 De Beers 20% 至 30% 的股權。", "company": "Anglo American / De Beers", "label": "off_target", "reason": "Standalone deal news about unrelated companies with no link to Boeing/Airbus supply chain or regulatory pressure."}
+  ], "verdict": "N"}
+]

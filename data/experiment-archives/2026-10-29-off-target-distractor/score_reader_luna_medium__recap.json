@@ -1,0 +1,1180 @@
+{
+ "n_runs": 60,
+ "errors": 0,
+ "leak_rate": {
+  "C0": [
+   0,
+   30
+  ],
+  "C1": [
+   0,
+   30
+  ]
+ },
+ "exposure_C1": [
+  28,
+  30
+ ],
+ "mcnemar_all_pairs": {
+  "pairs": 30,
+  "c1_only_leak": 0,
+  "c0_only_leak": 0,
+  "p_exact": 1.0
+ },
+ "mcnemar_exposed_pairs": {
+  "pairs": 28,
+  "c1_only_leak": 0,
+  "c0_only_leak": 0,
+  "p_exact": 1.0
+ },
+ "row_sign_test": {
+  "rows_c1_higher": 0,
+  "rows_c0_higher": 0,
+  "p_exact": 1.0
+ },
+ "per_row": {
+  "1": {
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 2
+  },
+  "3": {
+   "leak_set": [],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "4": {
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "5": {
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "7": {
+   "leak_set": [
+    "Spotify"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 2
+  },
+  "10": {
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "24": {
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "26": {
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "27": {
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  },
+  "29": {
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "C0": [
+    0,
+    3
+   ],
+   "C1": [
+    0,
+    3
+   ],
+   "C1_exposed": 3
+  }
+ },
+ "runs": [
+  {
+   "row": "1",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 3,
+   "exposed": true,
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 728
+  },
+  {
+   "row": "1",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 945
+  },
+  {
+   "row": "3",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 854
+  },
+  {
+   "row": "3",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 863
+  },
+  {
+   "row": "4",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1693
+  },
+  {
+   "row": "4",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1945
+  },
+  {
+   "row": "5",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1183
+  },
+  {
+   "row": "5",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1051
+  },
+  {
+   "row": "7",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 1,
+   "exposed": false,
+   "leak_set": [
+    "Spotify"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1044
+  },
+  {
+   "row": "7",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Spotify"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 677
+  },
+  {
+   "row": "10",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 9,
+   "exposed": true,
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1313
+  },
+  {
+   "row": "10",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 6,
+   "exposed": true,
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1252
+  },
+  {
+   "row": "24",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1685
+  },
+  {
+   "row": "24",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1541
+  },
+  {
+   "row": "26",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 6,
+   "exposed": true,
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1053
+  },
+  {
+   "row": "26",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 6,
+   "exposed": true,
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 846
+  },
+  {
+   "row": "27",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 565
+  },
+  {
+   "row": "27",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 989
+  },
+  {
+   "row": "29",
+   "rep": 1,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1490
+  },
+  {
+   "row": "29",
+   "rep": 1,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1849
+  },
+  {
+   "row": "1",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 3,
+   "exposed": true,
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 851
+  },
+  {
+   "row": "1",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 1,
+   "exposed": false,
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 885
+  },
+  {
+   "row": "3",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 1,
+   "exposed": true,
+   "leak_set": [],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1143
+  },
+  {
+   "row": "3",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 887
+  },
+  {
+   "row": "4",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1424
+  },
+  {
+   "row": "4",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1418
+  },
+  {
+   "row": "5",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1207
+  },
+  {
+   "row": "5",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1370
+  },
+  {
+   "row": "7",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Spotify"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 866
+  },
+  {
+   "row": "7",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 1,
+   "exposed": false,
+   "leak_set": [
+    "Spotify"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 688
+  },
+  {
+   "row": "10",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 6,
+   "exposed": true,
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1288
+  },
+  {
+   "row": "10",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 6,
+   "exposed": true,
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1678
+  },
+  {
+   "row": "24",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1226
+  },
+  {
+   "row": "24",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1202
+  },
+  {
+   "row": "26",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 9,
+   "exposed": true,
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 499
+  },
+  {
+   "row": "26",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 9,
+   "exposed": true,
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 924
+  },
+  {
+   "row": "27",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 805
+  },
+  {
+   "row": "27",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 602
+  },
+  {
+   "row": "29",
+   "rep": 2,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1563
+  },
+  {
+   "row": "29",
+   "rep": 2,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1884
+  },
+  {
+   "row": "1",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 712
+  },
+  {
+   "row": "1",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Baird",
+    "Bank of America",
+    "SK Hynix",
+    "Seagate",
+    "Western Digital"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1170
+  },
+  {
+   "row": "3",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 1,
+   "exposed": true,
+   "leak_set": [],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1058
+  },
+  {
+   "row": "3",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 788
+  },
+  {
+   "row": "4",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1613
+  },
+  {
+   "row": "4",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "AMD",
+    "Altera",
+    "DeepSeek",
+    "Fairchild Semiconductor",
+    "GlobalFoundries",
+    "Google",
+    "Meta",
+    "Microsoft",
+    "Rapidus",
+    "SoftBank",
+    "Xilinx"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1555
+  },
+  {
+   "row": "5",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1102
+  },
+  {
+   "row": "5",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Apple",
+    "Nvidia",
+    "OneTrust"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1356
+  },
+  {
+   "row": "7",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Spotify"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 723
+  },
+  {
+   "row": "7",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 3,
+   "exposed": true,
+   "leak_set": [
+    "Spotify"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1165
+  },
+  {
+   "row": "10",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 9,
+   "exposed": true,
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 986
+  },
+  {
+   "row": "10",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 6,
+   "exposed": true,
+   "leak_set": [
+    "Coca-Cola",
+    "Elliott Management",
+    "Microsoft",
+    "OpenAI",
+    "PepsiCo"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1169
+  },
+  {
+   "row": "24",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1970
+  },
+  {
+   "row": "24",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anthropic",
+    "Bessemer",
+    "OpenAI"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1768
+  },
+  {
+   "row": "26",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 9,
+   "exposed": true,
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 606
+  },
+  {
+   "row": "26",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 9,
+   "exposed": true,
+   "leak_set": [
+    "BP",
+    "LVMH"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 837
+  },
+  {
+   "row": "27",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 968
+  },
+  {
+   "row": "27",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 2,
+   "exposed": true,
+   "leak_set": [
+    "Blue Owl",
+    "UBS"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 750
+  },
+  {
+   "row": "29",
+   "rep": 3,
+   "condition": "C0",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 1818
+  },
+  {
+   "row": "29",
+   "rep": 3,
+   "condition": "C1",
+   "task_error": null,
+   "tavily_calls": 4,
+   "exposed": true,
+   "leak_set": [
+    "Anglo American",
+    "De Beers"
+   ],
+   "leaked": {},
+   "leak": false,
+   "response_chars": 2044
+  }
+ ]
+}

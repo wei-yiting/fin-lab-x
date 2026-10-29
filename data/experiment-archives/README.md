@@ -34,3 +34,4 @@ runtime traces live in `data/trace-archives/`.
 |---|---|---|
 | [`2026-08-18-rag-metadata-filter-ab-eval`](2026-08-18-rag-metadata-filter-ab-eval/) | How much cross-ticker bleed does SEC 10-K dense retrieval suffer without a ticker filter? | `experiment/2026-08-18-rag-metadata-filter-ab-eval` |
 | [`2026-10-28-language-middleware`](2026-10-28-language-middleware/) | Does #82's response-language middleware stop English questions drifting into other languages once a 10-K is in context, and is the directive rewording enough without it? (17 questions × 3 arms × 6 runs) | `experiment/2026-10-28-language-middleware` |
+| [`2026-10-29-language-replay`](2026-10-29-language-replay/) | With the evidence frozen by replaying recorded runs, which of #82's answer-language fixes (prompt rule, directive wording, middleware) actually keeps English answers in English? (102 recorded runs × 5 conditions × 2 replays) | `experiment/2026-10-29-language-replay` |

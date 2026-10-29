@@ -1,0 +1,294 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T02",
+  "ticker": "AXON",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p26",
+      "p43",
+      "n07"
+    ],
+    "excluded_candidate_ids": [
+      "p11",
+      "a11"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001069183",
+    "accession_number": "0001628280-26-011360",
+    "filing_date": "2026-02-25",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "axon-20251231.htm"
+  },
+  "normalization": {
+    "method": "pipeline_independent_visible_text",
+    "normalized_chars": 425266,
+    "normalized_sha256": "fbeb437c9a1b2319fa37948c80b15fcd18c0e07a04068fa87bef05345bda5f11"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 12000,
+    "window_count": 36,
+    "covered_interval": [
+      0,
+      425266
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T02_AXON_research.md"
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p26",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "題目應該只問單一產品，不要一次問三個",
+        "question": "What factors drove TASER, Personal Sensors, and Platform Solutions growth?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Personal Sensors increased $80.1 million, which was primarily driven by the cont"
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_evidence",
+        "question": "What drove the increase in Axon's Personal Sensors revenue in 2025?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "answer_requirement": "One independently sufficient span must explain a principal disclosed driver of the 2025 increase in Personal Sensors revenue; an amount without a driver is partial.",
+        "reason": "The Round-1 question combined three product lines. The revision retains only Personal Sensors and its disclosed drivers."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "AXON-2025-181724",
+          "item_hint": "Item 7",
+          "filing_location": "Results of Operations",
+          "answer_span": "Personal Sensors increased $80.1 million, which was primarily driven by the continued adoption of our newest body camera, AB4, and higher warranty revenue from more devices in the field.",
+          "answer_snippet": "Personal Sensors increased $80.1 million, which was primarily driven by the continued adoption of our newest body camera, AB4, and higher warranty revenue from more devices in the field.",
+          "span_chars": 186,
+          "snippet_chars": 186,
+          "span_sha256": "57f85c91881437c47ff87a82bcf75bf9c3333209e24c0b1d8b9496cacd74c360",
+          "snippet_sha256": "57f85c91881437c47ff87a82bcf75bf9c3333209e24c0b1d8b9496cacd74c360",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Independently identifies AB4 adoption and higher warranty revenue as the principal drivers."
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      }
+    },
+    {
+      "candidate_id": "p43",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "How much credit could Axon draw at year-end 2025?",
+        "query_type": "factoid",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "As of the year ended December 31, 2025, there was no amount outstanding under th"
+        ]
+      },
+      "proposal": {
+        "change": "add_acceptable_occurrences",
+        "question": "How much credit could Axon draw at year-end 2025?",
+        "query_type": "factoid",
+        "item_keys": [
+          "7",
+          "7a"
+        ],
+        "answer_requirement": "One independently sufficient span must state Axon's available borrowing under its line of credit at year-end 2025.",
+        "reason": "The approved question remains unchanged. Two reachable non-Item-8 store occurrences independently report $291.1 million of available borrowing."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "AXON-2025-198921",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Capital Resources",
+          "answer_span": "As of December 31, 2025, we had letters of credit outstanding of approximately $8.9 million under the facility and available borrowing of $291.1 million.",
+          "answer_snippet": "As of December 31, 2025, we had letters of credit outstanding of approximately $8.9 million under the facility and available borrowing of $291.1 million.",
+          "span_chars": 153,
+          "snippet_chars": 153,
+          "span_sha256": "e4981cd71ad658f214d7ef0eeea58dbde3dc81528f4dfc8e302d3bda52cf0cdc",
+          "snippet_sha256": "e4981cd71ad658f214d7ef0eeea58dbde3dc81528f4dfc8e302d3bda52cf0cdc",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Independently states the year-end date and $291.1 million available borrowing.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7",
+            "unit_kind": "structured_block",
+            "block_index": 2,
+            "block_heading": "Liquidity and Capital Resources",
+            "span_start": 1545,
+            "span_end": 1698,
+            "snippet_start": 1545,
+            "snippet_end": 1698,
+            "span_sha256": "e4981cd71ad658f214d7ef0eeea58dbde3dc81528f4dfc8e302d3bda52cf0cdc",
+            "snippet_sha256": "e4981cd71ad658f214d7ef0eeea58dbde3dc81528f4dfc8e302d3bda52cf0cdc"
+          }
+        },
+        {
+          "occurrence_id": "AXON-2025-226300",
+          "item_hint": "Item 7A",
+          "filing_location": "Interest Rate Risk",
+          "answer_span": "As of the year ended December 31, 2025, there was no amount outstanding under the line of credit, and the available borrowing under the line of credit was $291.1 million.",
+          "answer_snippet": "As of the year ended December 31, 2025, there was no amount outstanding under the line of credit, and the available borrowing under the line of credit was $291.1 million.",
+          "span_chars": 170,
+          "snippet_chars": 170,
+          "span_sha256": "5b14fecbc448dd61e1ece37eb06839ea368ec6c92cc31060a8b5df5aa8cada93",
+          "snippet_sha256": "5b14fecbc448dd61e1ece37eb06839ea368ec6c92cc31060a8b5df5aa8cada93",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Independently states the year-end date and $291.1 million available borrowing.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "7a",
+            "unit_kind": "structured_block",
+            "block_index": 0,
+            "block_heading": "Interest Rate Risk",
+            "span_start": 1256,
+            "span_end": 1426,
+            "snippet_start": 1256,
+            "snippet_end": 1426,
+            "span_sha256": "5b14fecbc448dd61e1ece37eb06839ea368ec6c92cc31060a8b5df5aa8cada93",
+            "snippet_sha256": "5b14fecbc448dd61e1ece37eb06839ea368ec6c92cc31060a8b5df5aa8cada93"
+          }
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_whitespace_to_store",
+            "occurrence_id": "AXON-2025-198921",
+            "store_location": "Item 7 / Liquidity and Capital Resources / chars 1545-1698",
+            "reason": "The canonical visible-text occurrence differed from the filing store only in whitespace; span and snippet were re-extracted as exact store substrings."
+          },
+          {
+            "action": "reanchored_whitespace_to_store",
+            "occurrence_id": "AXON-2025-226300",
+            "store_location": "Item 7a / Interest Rate Risk / chars 1256-1426",
+            "reason": "The canonical visible-text occurrence differed from the filing store only in whitespace; span and snippet were re-extracted as exact store substrings."
+          }
+        ],
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "AXON-2025-355627",
+            "label_escape_search": "The 95-character Item 8 clause does not occur outside Item 8. Item 7 and Item 7A contain distinct independently sufficient disclosures and remain in the OR-set.",
+            "reason": "The source location is Item 8 and no same-text non-Item-8 label escape exists, so it is excluded from retrieval ground truth."
+          }
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must state Axon's available borrowing under its line of credit at year-end 2025.",
+          "kept_occurrence_ids": [
+            "AXON-2025-198921",
+            "AXON-2025-226300"
+          ],
+          "removed_occurrences": [],
+          "reason": "The two surviving non-Item-8 occurrences independently state $291.1 million of available borrowing at year-end 2025."
+        }
+      }
+    },
+    {
+      "candidate_id": "n07",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "How do Axon's subscription offerings support its recurring-revenue model?",
+        "query_type": "passage",
+        "item_keys": [
+          "1"
+        ],
+        "answer_requirement": "One independently sufficient span must connect an Axon subscription or SaaS offering to recurring revenue; a product list without that business-model relationship is partial.",
+        "reason": "The full-filing audit found two distinct Item 1 disclosures that independently connect subscription offerings to recurring revenue.",
+        "investor_intent": "Understand how subscription offerings support recurring revenue."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "AXON-2025-012871",
+          "item_hint": "Item 1",
+          "filing_location": "Business Segments",
+          "answer_span": "Our revenue is derived from a combination of hardware sales, multi-year recurring software subscriptions, professional services, and extended warranties.",
+          "answer_snippet": "Our revenue is derived from a combination of hardware sales, multi-year recurring software subscriptions, professional services, and extended warranties.",
+          "span_chars": 153,
+          "snippet_chars": 153,
+          "span_sha256": "12f8bbad46f1454c66f9f0d63866af6429b5bec5bbb56e2e077867206f814890",
+          "snippet_sha256": "12f8bbad46f1454c66f9f0d63866af6429b5bec5bbb56e2e077867206f814890",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Identifies multi-year recurring software subscriptions as a direct revenue source."
+        },
+        {
+          "occurrence_id": "AXON-2025-013183",
+          "item_hint": "Item 1",
+          "filing_location": "Business Segments",
+          "answer_span": "Axon has a suite of cloud-based, SaaS solutions that deeply integrate with our hardware to benefit customers and drive annual recurring revenue, which totaled $1.3 billion1 as of December 31, 2025.",
+          "answer_snippet": "Axon has a suite of cloud-based, SaaS solutions that deeply integrate with our hardware to benefit customers and drive annual recurring revenue, which totaled $1.3 billion1 as of December 31, 2025.",
+          "span_chars": 197,
+          "snippet_chars": 197,
+          "span_sha256": "51409a9e45fceb7d4b4bb2ab9c4b366ea2c3688cd59e4104464fdab694d40e44",
+          "snippet_sha256": "51409a9e45fceb7d4b4bb2ab9c4b366ea2c3688cd59e4104464fdab694d40e44",
+          "exact_occurrences_in_store": 1,
+          "acceptance_reason": "Directly connects Axon's SaaS suite to annual recurring revenue.",
+          "store_anchor": {
+            "source": "sec_text_pipeline_filing_store",
+            "item": "1",
+            "unit_kind": "structured_block",
+            "block_index": 1,
+            "block_heading": "Business Segments",
+            "span_start": 2224,
+            "span_end": 2421,
+            "snippet_start": 2224,
+            "snippet_end": 2421,
+            "span_sha256": "51409a9e45fceb7d4b4bb2ab9c4b366ea2c3688cd59e4104464fdab694d40e44",
+            "snippet_sha256": "51409a9e45fceb7d4b4bb2ab9c4b366ea2c3688cd59e4104464fdab694d40e44"
+          }
+        }
+      ],
+      "post_traversal_audit": {
+        "result": "All other related filing occurrences were partial, Item 8-excluded, or outside the 50–200 character snippet contract."
+      },
+      "round3_reconciliation": {
+        "t1": [
+          {
+            "action": "reanchored_whitespace_to_store",
+            "occurrence_id": "AXON-2025-013183",
+            "store_location": "Item 1 / Business Segments / chars 2224-2421",
+            "reason": "The canonical visible-text occurrence differed from the filing store only in whitespace; span and snippet were re-extracted as exact store substrings."
+          }
+        ],
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient span must connect an Axon subscription or SaaS offering to recurring revenue; a product list without that business-model relationship is partial.",
+          "kept_occurrence_ids": [
+            "AXON-2025-012871",
+            "AXON-2025-013183"
+          ],
+          "removed_occurrences": [],
+          "reason": "One occurrence identifies multi-year recurring software subscriptions as revenue; the other independently connects SaaS offerings to annual recurring revenue."
+        }
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 3,
+    "acceptable_occurrence_count": 5,
+    "snippet_contract_violations": 0,
+    "store_whitespace_reanchors": 3
+  }
+}

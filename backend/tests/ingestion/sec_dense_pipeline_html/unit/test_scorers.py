@@ -1,192 +1,166 @@
+"""Unit tests for the sec_retrieval scorers (OR-set semantics).
+
+Per the DEV-162 round-2/3 ruling, expected `header_paths` /
+`answer_snippets` are index-aligned ALTERNATIVES: a chunk matching any
+(header_path, snippet) pair satisfies the row. recall@k is 0/1 per row and
+MAP degenerates to MRR.
+"""
+
 import pytest
 from autoevals import Score
 
 from backend.evals.scenarios.sec_retrieval.scorer import (
-    _compute_map,
-    _is_hit,
+    _chunk_hits_any,
+    _first_hit_rank,
     header_path_recall_at_5,
     header_path_recall_at_10,
+    mean_average_precision,
+    mean_reciprocal_rank,
 )
+
+NVDA_1A = "NVDA / 2025 / Item 1A"
+NVDA_7 = "NVDA / 2025 / Item 7"
 
 
 @pytest.mark.parametrize(
-    "chunk_path,chunk_text,expected_paths,snippets,expected_hit",
+    "chunk_path,chunk_text,alternatives,expected_hit",
     [
+        # path + snippet both match
         (
-            "NVDA / 2025 / Item 1A / Risks Related",
+            f"{NVDA_1A} / Risks Related",
             "US export controls limit access to certain licenses",
-            ["NVDA / 2025 / Item 1A"],
-            ["export controls"],
+            [(NVDA_1A, "export controls")],
             True,
         ),
+        # path matches, snippet does not
         (
-            "NVDA / 2025 / Item 1A / Risks Related",
+            f"{NVDA_1A} / Risks Related",
             "Revenue grew significantly in Q4",
-            ["NVDA / 2025 / Item 1A"],
-            ["export controls"],
+            [(NVDA_1A, "export controls")],
             False,
         ),
+        # snippet matches but path does not (e.g. an unlisted Note copy):
+        # containment alone never scores a hit
         (
-            "NVDA / 2025 / Item 1A / Risks",
-            "any text",
-            ["NVDA / 2025 / Item 1A"],
-            [],
+            "NVDA / 2025 / Item 8. Financial Statements / Note 16",
+            "US export controls limit access to certain licenses",
+            [(NVDA_1A, "export controls")],
+            False,
+        ),
+        # legacy path-only alternative (no snippet)
+        (f"{NVDA_1A} / Risks", "any text", [(NVDA_1A, None)], True),
+        # second alternative carries the hit
+        (
+            f"{NVDA_7} / Results",
+            "sales to one direct customer represented 22% of total revenue",
+            [(NVDA_1A, "no such text"), (NVDA_7, "one direct customer")],
             True,
         ),
     ],
 )
-def test_is_hit(chunk_path, chunk_text, expected_paths, snippets, expected_hit) -> None:
+def test_chunk_hits_any(chunk_path, chunk_text, alternatives, expected_hit) -> None:
     chunk = {"header_path": chunk_path, "text": chunk_text}
-    expected = {"header_paths": expected_paths}
-    if snippets is not None:
-        expected["answer_snippets"] = snippets
-    assert _is_hit(chunk, expected) == expected_hit
+    assert _chunk_hits_any(chunk, alternatives) == expected_hit
 
 
-def test_recall_dedup_cross_company() -> None:
-    output = {
-        "retrieved_chunks": [
-            {
-                "header_path": "NVDA / 2025 / Item 1A / Risks X",
-                "text": "export controls limit",
-            },
-            {
-                "header_path": "NVDA / 2025 / Item 1A / Risks Y",
-                "text": "export controls restrict",
-            },
-            {
-                "header_path": "NVDA / 2025 / Item 1A / Risks Z",
-                "text": "export controls prevent",
-            },
-            {
-                "header_path": "AMD / 2025 / Item 1A / Competitive",
-                "text": "export restrictions apply",
-            },
-            *[
-                {"header_path": f"TSLA / 2025 / Item {i}", "text": "unrelated"}
-                for i in range(6)
-            ],
-        ]
-    }
-    expected = {
-        "header_paths": [
-            "NVDA / 2025 / Item 1A",
-            "AMD / 2025 / Item 1A",
-            "INTC / 2025 / Item 1A",
-        ],
-        "answer_snippets": [
-            "export controls",
-            "export restrictions",
-            "trade compliance",
-        ],
-        "match_mode": "startswith",
-    }
-    result = header_path_recall_at_10(
-        output=output, expected=expected, input={"question": "test"}
+def _output(*chunks: dict) -> dict:
+    return {"retrieved_chunks": list(chunks)}
+
+
+UNRELATED = {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"}
+HIT_1A = {"header_path": f"{NVDA_1A} / Risks / A", "text": "export controls limit"}
+HIT_7 = {
+    "header_path": f"{NVDA_7} / Results",
+    "text": "one direct customer represented 22% of total revenue",
+}
+EXPECTED_OR = {
+    "header_paths": [NVDA_1A, NVDA_7],
+    "answer_snippets": ["export controls", "one direct customer"],
+}
+
+
+def test_recall_is_binary_any_alternative() -> None:
+    output = _output(UNRELATED, HIT_7, UNRELATED)
+    result = header_path_recall_at_5(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
     )
     assert isinstance(result, Score)
-    assert abs(result.score - 2 / 3) < 0.01
+    assert result.score == 1.0
 
 
-def test_recall_cross_company_at_5_structural_ceiling() -> None:
-    output = {
-        "retrieved_chunks": [
-            {
-                "header_path": f"NVDA / 2025 / Item 1A / Section {i}",
-                "text": "export controls info",
-            }
-            for i in range(5)
-        ]
-    }
-    expected = {
-        "header_paths": [
-            "NVDA / 2025 / Item 1A",
-            "AMD / 2025 / Item 1A",
-            "INTC / 2025 / Item 1A",
-            "AAPL / 2025 / Item 1A",
-            "TSLA / 2025 / Item 1A",
-        ],
-        "answer_snippets": ["export controls"] * 5,
-        "match_mode": "startswith",
-    }
-    result = header_path_recall_at_5(
-        output=output, expected=expected, input={"question": "test"}
+def test_recall_k_boundary() -> None:
+    output = _output(*([UNRELATED] * 5), HIT_1A)  # first hit at rank 6
+    at5 = header_path_recall_at_5(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
     )
-    assert abs(result.score - 0.2) < 0.01
+    at10 = header_path_recall_at_10(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
+    )
+    assert at5.score == 0.0
+    assert at10.score == 1.0
 
 
-def test_map_canonical_ranks_1_and_3() -> None:
-    """AP = (P@1 + P@3) / R = (1/1 + 2/3) / 2 = 0.8333 when R=2, hits at 1 and 3."""
-    chunks = [
-        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
-        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
-        {"header_path": "AMD / 2025 / Item 1A / B", "text": "export restrictions"},
-        {"header_path": "TSLA / 2025 / Item 3", "text": "unrelated"},
-    ]
+def test_recall_no_hit() -> None:
+    output = _output(*([UNRELATED] * 10))
+    result = header_path_recall_at_10(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
+    )
+    assert result.score == 0.0
+
+
+def test_mrr_first_hit_rank() -> None:
+    output = _output(UNRELATED, UNRELATED, HIT_1A, HIT_7)
+    result = mean_reciprocal_rank(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
+    )
+    assert abs(result.score - 1 / 3) < 1e-6
+
+
+def test_map_equals_mrr_under_or_set() -> None:
+    output = _output(UNRELATED, HIT_7)
+    mrr = mean_reciprocal_rank(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
+    )
+    map_ = mean_average_precision(
+        output=output, expected=EXPECTED_OR, input={"question": "q"}
+    )
+    assert mrr.score == map_.score == 0.5
+
+
+def test_no_hit_scores_zero() -> None:
+    output = _output(UNRELATED)
+    assert (
+        mean_reciprocal_rank(
+            output=output, expected=EXPECTED_OR, input={"question": "q"}
+        ).score
+        == 0.0
+    )
+    assert (
+        mean_average_precision(
+            output=output, expected=EXPECTED_OR, input={"question": "q"}
+        ).score
+        == 0.0
+    )
+
+
+def test_empty_expected_scores_zero() -> None:
+    assert _first_hit_rank([HIT_1A], {"header_paths": []}) is None
+    result = header_path_recall_at_5(
+        output=_output(HIT_1A), expected={"header_paths": []}, input={"question": "q"}
+    )
+    assert result.score == 0.0
+
+
+def test_legacy_cross_company_row_scores_any_hit() -> None:
+    """The old 10-row placeholder's cross-company rows relied on AND
+    semantics; under OR-set they score as any-hit (accepted, see scorer
+    module docstring)."""
+    output = _output(HIT_1A, *([UNRELATED] * 9))
     expected = {
-        "header_paths": ["NVDA / 2025 / Item 1A", "AMD / 2025 / Item 1A"],
-        "answer_snippets": ["export controls", "export restrictions"],
+        "header_paths": [NVDA_1A, "AMD / 2025 / Item 1A", "INTC / 2025 / Item 1A"],
+        "answer_snippets": ["export controls", "export restrictions", "trade"],
     }
-    assert abs(_compute_map(chunks, expected) - (1.0 + 2 / 3) / 2) < 1e-6
-
-
-def test_map_canonical_ranks_2_and_4() -> None:
-    """AP = (P@2 + P@4) / R = (1/2 + 2/4) / 2 = 0.5 when R=2, hits at 2 and 4."""
-    chunks = [
-        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
-        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
-        {"header_path": "TSLA / 2025 / Item 3", "text": "unrelated"},
-        {"header_path": "AMD / 2025 / Item 1A / B", "text": "export restrictions"},
-    ]
-    expected = {
-        "header_paths": ["NVDA / 2025 / Item 1A", "AMD / 2025 / Item 1A"],
-        "answer_snippets": ["export controls", "export restrictions"],
-    }
-    assert abs(_compute_map(chunks, expected) - 0.5) < 1e-6
-
-
-def test_map_unmatched_expected_reduces_score() -> None:
-    """R counts all expected entries even if some are never found.
-    R=3, only one hit at rank 1 → AP = (1/1) / 3 = 0.333."""
-    chunks = [
-        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
-    ]
-    expected = {
-        "header_paths": [
-            "NVDA / 2025 / Item 1A",
-            "AMD / 2025 / Item 1A",
-            "INTC / 2025 / Item 1A",
-        ],
-        "answer_snippets": [
-            "export controls",
-            "export restrictions",
-            "trade compliance",
-        ],
-    }
-    assert abs(_compute_map(chunks, expected) - 1.0 / 3) < 1e-6
-
-
-def test_map_single_expected_equals_reciprocal_rank() -> None:
-    """With one expected entry, AP degenerates to 1/rank of first hit."""
-    chunks = [
-        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
-        {"header_path": "TSLA / 2025 / Item 3", "text": "unrelated"},
-        {"header_path": "NVDA / 2025 / Item 1A / A", "text": "export controls"},
-    ]
-    expected = {
-        "header_paths": ["NVDA / 2025 / Item 1A"],
-        "answer_snippets": ["export controls"],
-    }
-    assert abs(_compute_map(chunks, expected) - 1.0 / 3) < 1e-6
-
-
-def test_map_no_hits() -> None:
-    """Zero relevant ranks → AP = 0."""
-    chunks = [
-        {"header_path": "TSLA / 2025 / Item 2", "text": "unrelated"},
-    ]
-    expected = {
-        "header_paths": ["NVDA / 2025 / Item 1A"],
-        "answer_snippets": ["export controls"],
-    }
-    assert _compute_map(chunks, expected) == 0.0
+    result = header_path_recall_at_10(
+        output=output, expected=expected, input={"question": "q"}
+    )
+    assert result.score == 1.0

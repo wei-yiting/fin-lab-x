@@ -311,3 +311,52 @@ async def test_resolve_latest_year_runs_under_active_trace() -> None:
         assert result == 2025
         assert seen["is_valid"] is True
         assert seen["trace_id"] == root.get_span_context().trace_id
+
+
+# --- search(): exclude_items filter (DEV-162 round-2 ruling) ---
+
+
+def _patched_search_env():
+    from unittest.mock import AsyncMock
+
+    return (
+        patch("backend.ingestion.sec_dense_pipeline_html.retriever.QdrantClient"),
+        patch(
+            "backend.ingestion.sec_dense_pipeline_html.retriever.embed_query",
+            new=AsyncMock(return_value=[0.0] * 8),
+        ),
+        patch("backend.ingestion.sec_dense_pipeline_html.retriever.get_client"),
+    )
+
+
+@pytest.mark.asyncio
+async def test_search_exclude_items_adds_must_not_condition() -> None:
+    client_patch, embed_patch, lf_patch = _patched_search_env()
+    with client_patch as client_cls, embed_patch, lf_patch:
+        client = client_cls.return_value
+        client.collection_exists.return_value = True
+        client.query_points.return_value = MagicMock(points=[])
+
+        await search(query="q", filters={"exclude_items": ["Item 8"]}, top_k=5)
+
+        query_filter = client.query_points.call_args.kwargs["query_filter"]
+        item_conds = [
+            c for c in query_filter.must_not if getattr(c, "key", None) == "item"
+        ]
+        assert len(item_conds) == 1
+        assert item_conds[0].match.any == ["Item 8"]
+
+
+@pytest.mark.asyncio
+async def test_search_without_exclude_items_keeps_default_filter() -> None:
+    client_patch, embed_patch, lf_patch = _patched_search_env()
+    with client_patch as client_cls, embed_patch, lf_patch:
+        client = client_cls.return_value
+        client.collection_exists.return_value = True
+        client.query_points.return_value = MagicMock(points=[])
+
+        await search(query="q", top_k=5)
+
+        query_filter = client.query_points.call_args.kwargs["query_filter"]
+        keys = [getattr(c, "key", None) for c in query_filter.must_not]
+        assert keys == ["status"]

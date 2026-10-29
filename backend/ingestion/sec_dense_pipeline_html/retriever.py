@@ -148,6 +148,15 @@ async def _download_and_parse(pipeline: SECFilingPipeline, ticker: str, year: in
 async def search(
     query: str, filters: dict | None = None, top_k: int = 10
 ) -> list[Chunk]:
+    """Dense retrieval over the SEC chunk collection.
+
+    ``filters`` keys: ``ticker`` (triggers JIT ingestion when missing),
+    ``year``, and ``exclude_items`` — a list of item labels (e.g.
+    ``["Item 8"]``) whose chunks are excluded from results. ``exclude_items``
+    is additive and off by default; the A/B eval task uses it to keep the
+    frozen HTML arm's retrieval scope aligned with the text arm without
+    re-ingesting (DEV-162 round-2 ruling, 2026-08-27).
+    """
     if not 1 <= top_k <= 100:
         raise ValueError(f"top_k must be between 1 and 100, got {top_k}")
 
@@ -266,7 +275,22 @@ async def search(
             embed_span.update(output={"dimensions": len(query_vector)})
 
         must_conditions: list[models.Condition] = []
+        must_not_conditions: list[models.Condition] = [
+            models.FieldCondition(
+                key="status",
+                match=models.MatchAny(any=["pending", "complete"]),
+            )
+        ]
         applied_filters: dict = {}
+        if filters and filters.get("exclude_items"):
+            exclude_items = [str(i) for i in filters["exclude_items"]]
+            must_not_conditions.append(
+                models.FieldCondition(
+                    key="item",
+                    match=models.MatchAny(any=exclude_items),
+                )
+            )
+            applied_filters["exclude_items"] = exclude_items
         if filters:
             if "ticker" in filters:
                 ticker_value = canonicalize_ticker(filters["ticker"])
@@ -306,12 +330,7 @@ async def search(
                 with_payload=True,
                 query_filter=models.Filter(
                     must=must_conditions or None,
-                    must_not=[
-                        models.FieldCondition(
-                            key="status",
-                            match=models.MatchAny(any=["pending", "complete"]),
-                        )
-                    ],
+                    must_not=must_not_conditions,
                 ),
             )
             search_span.update(

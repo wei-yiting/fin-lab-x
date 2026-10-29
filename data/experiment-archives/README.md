@@ -33,3 +33,4 @@ runtime traces live in `data/trace-archives/`.
 | Experiment | Question | Tag |
 |---|---|---|
 | [`2026-08-18-rag-metadata-filter-ab-eval`](2026-08-18-rag-metadata-filter-ab-eval/) | How much cross-ticker bleed does SEC 10-K dense retrieval suffer without a ticker filter? | `experiment/2026-08-18-rag-metadata-filter-ab-eval` |
+| [`2026-10-28-parsing-ab`](2026-10-28-parsing-ab/) | Does replacing the hand-written SEC HTML parser with the edgartools text pipeline change what dense retrieval finds? | `experiment/2026-10-28-parsing-ab` |

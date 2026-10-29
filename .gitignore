@@ -21,6 +21,7 @@ playwright-report/
 # SEC filing data
 data/sec_filings_html/
 data/sec_text/
+data/sec_text_round3/
 data/sec_text_inspect/
 
 # Logs

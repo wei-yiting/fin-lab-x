@@ -1,0 +1,348 @@
+{
+  "schema_version": "round2_ticker_result_v1",
+  "task_id": "T15",
+  "ticker": "PODD",
+  "fiscal_year": 2025,
+  "completed_at": "2026-08-27",
+  "scope": {
+    "active_candidate_ids": [
+      "p20",
+      "p35",
+      "p36",
+      "a20",
+      "n09"
+    ],
+    "excluded_candidate_ids": [
+      "p04",
+      "a04"
+    ],
+    "excluded_query_type": "multi_passage",
+    "human_review_fields_written": false,
+    "final_round2_artifacts_written": false
+  },
+  "source": {
+    "cik": "0001145197",
+    "accession_number": "0001145197-26-000028",
+    "filing_date": "2026-02-18",
+    "period_of_report": "2025-12-31",
+    "submission_type": "10-K",
+    "primary_document": "podd-20251231.htm",
+    "primary_document_sequence": 1,
+    "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1145197/000114519726000028/0001145197-26-000028-index.html",
+    "complete_submission_url": "https://www.sec.gov/Archives/edgar/data/1145197/000114519726000028/0001145197-26-000028.txt",
+    "primary_document_url": "https://www.sec.gov/Archives/edgar/data/1145197/000114519726000028/podd-20251231.htm",
+    "complete_submission_bytes": 40457019,
+    "complete_submission_sha256": null,
+    "primary_document_bytes": 2085246,
+    "primary_document_sha256": null,
+    "primary_selection_check": "The accession-pinned SEC filing index identifies podd-20251231.htm as TYPE 10-K, SEQUENCE 1. The primary document was loaded directly from the official SEC Archives origin; repository ingestion output and sec_text_pipeline structures were not used.",
+    "raw_hash_note": "SEC index byte sizes are recorded for source identity. Raw-file hashes are null because SEC command-line delivery returned 403 and the successful official-source transport was the user's Chrome session; the complete derived canonical text is independently hashed below."
+  },
+  "normalization": {
+    "method": "sec_browser_rendered_inner_text_v1",
+    "description": "Read document.body.innerText from the accession-pinned SEC primary 10-K, replaced non-breaking spaces, normalized CRLF and horizontal whitespace per rendered line, trimmed rendered lines, and collapsed runs of three or more newlines to two. No Item, heading, block, sentence, repository-pipeline hierarchy, or prior retrieval result determined traversal order or coverage.",
+    "normalized_chars": 311405,
+    "normalized_bytes": 313181,
+    "normalized_lines": 2776,
+    "normalized_sha256": "20452e5f82c15da66ddb12f2793227513b86c09406aecdfafefcab1f06844941"
+  },
+  "traversal": {
+    "method": "sequential_fixed_windows_v1",
+    "window_chars": 8000,
+    "overlap_chars": 0,
+    "window_count": 39,
+    "covered_interval": [
+      0,
+      311405
+    ],
+    "complete_coverage": true,
+    "coverage_ledger_path": "backend/evals/scenarios/sec_retrieval_ab/curation/ticker_tasks/T15_PODD.md",
+    "coverage_check": "All 39 windows are contiguous and non-overlapping; W0001 starts at 0, W0039 ends at 311405, the final window has 7405 characters, and the sum of window lengths is 311405."
+  },
+  "candidate_results": [
+    {
+      "candidate_id": "p20",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "o",
+        "reviewer_comment": "",
+        "question": "What threatens collection of the EOFlow trade-secret award?",
+        "query_type": "passage",
+        "generation_mode": "intent_first",
+        "answer_snippets": [
+          "We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain."
+        ]
+      },
+      "proposal": {
+        "change": "unchanged",
+        "question": "What threatens collection of the EOFlow trade-secret award?",
+        "query_type": "passage",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The approved question remains unchanged. After the Item 8 exclusion, the Item 7 occurrence states both EOFlow's appeal and its uncertain ability to satisfy the award."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-167285",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Capital Resources / Legal Proceedings",
+          "canonical_line": 839,
+          "window_id": "W0021",
+          "normalized_start": 167285,
+          "normalized_end": 167453,
+          "answer_span": "We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
+          "answer_snippet": "We have not recorded the damages awarded in our consolidated statements of income as EOFlow has appealed and EOFlow’s ability to satisfy the damages award is uncertain.",
+          "snippet_chars": 168,
+          "snippet_sha256": "4f9cff35b9e6cc2556ad6034b3374741b54c0f1e42056b31dcd66730e4b44ad3",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly identifies both threats to collection in Item 7: EOFlow's appeal and uncertain ability to pay."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "jury-verdict, injunction, and reduced-award passages that state the award history without both collection threats",
+          "the cross-appeal and partial-stay sentences, which describe litigation posture but do not independently answer what threatens collection"
+        ]
+      },
+      "round3_reconciliation": {
+        "t2": [
+          {
+            "action": "dropped_item_8",
+            "occurrence_id": "PODD-2025-255412",
+            "original_item_hint": "Item 8 / Note 16",
+            "label_escape_search": "No matching occurrence exists outside Item 8 in the filing store.",
+            "reason": "Item 8 is outside retrieval scope; the Item 7 occurrence remains."
+          }
+        ]
+      }
+    },
+    {
+      "candidate_id": "p35",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "milestone 應該要更多時間軸過去現在未來，需要多個 evidence 組合",
+        "question": "Insulet next-generation insulin automation development milestones",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question_and_query_type",
+        "question": "What milestone did Insulet reach for EVOLUTION 2 in 2025?",
+        "query_type": "factoid",
+        "answer_requirement": "One independently sufficient occurrence must state that Insulet completed or finished enrollment for EVOLUTION 2 in 2025.",
+        "item_keys": [
+          "1",
+          "7"
+        ],
+        "reason": "The prior rewrite still combined the completed 2025 enrollment milestone with a separate planned 2026 study. This revision keeps one factoid intent. Full-filing traversal found two distinct source occurrences that independently state the 2025 EVOLUTION 2 enrollment milestone."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-024455",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Data Management",
+          "canonical_line": 300,
+          "window_id": "W0004",
+          "normalized_start": 24455,
+          "normalized_end": 24537,
+          "answer_span": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study for FCL (T2) and we plan to start the U.S. investigational device exemption (“IDE”) pivotal study in 2026.",
+          "answer_snippet": "In 2025, we completed enrollment for EVOLUTION 2, our safety and feasibility study",
+          "snippet_chars": 82,
+          "snippet_sha256": "6b199169439f07346044f3a0364d488bb99791c272b1d8d940da004f94bca206",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The Item 1 occurrence independently states that enrollment for EVOLUTION 2 was completed in 2025. This is the shortest self-contained semantic unit that satisfies the 50-character minimum."
+        },
+        {
+          "occurrence_id": "PODD-2025-140970",
+          "item_hint": "Item 7",
+          "filing_location": "Management's Discussion and Analysis / Overview",
+          "canonical_line": 639,
+          "window_id": "W0018",
+          "normalized_start": 140970,
+          "normalized_end": 141116,
+          "answer_span": "In 2025, we also completed STRIVE, our pivotal study for the next generation hybrid closed loop system, and we finished enrollment for EVOLUTION 2, our safety and feasibility study for a fully closed loop AID system for type 2 diabetes.",
+          "answer_snippet": "In 2025, we also completed STRIVE, our pivotal study for the next generation hybrid closed loop system, and we finished enrollment for EVOLUTION 2",
+          "snippet_chars": 146,
+          "snippet_sha256": "d5ed75a05213698a94532c308029ecebe0bc8cf64310061c84fc2b69cbc50e22",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The separate Item 7 occurrence independently states that Insulet finished EVOLUTION 2 enrollment in 2025."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the planned 2026 U.S. IDE pivotal study, which is a separate intent from the completed 2025 enrollment milestone",
+          "STRIVE and Omnipod 6 disclosures that do not also state the EVOLUTION 2 enrollment milestone",
+          "arbitrary overlapping substring variants around either accepted source occurrence"
+        ]
+      },
+      "round3_reconciliation": {
+        "t6": {
+          "status": "verified",
+          "answer_requirement_applied": "One independently sufficient occurrence must state that Insulet completed or finished enrollment for EVOLUTION 2 in 2025.",
+          "kept_occurrence_ids": [
+            "PODD-2025-024455",
+            "PODD-2025-140970"
+          ],
+          "removed_occurrences": [],
+          "reason": "Both Item 1 and Item 7 occurrences independently state that EVOLUTION 2 enrollment was completed in 2025."
+        }
+      }
+    },
+    {
+      "candidate_id": "p36",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "evidence 只回答 receive 沒有回答 response, 這題不是分開的兩件事，但需要多個 evidence 才可以正確回答",
+        "question": "How does Omnipod 5 receive glucose readings and respond?",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "The Pod integrates with a third-party continuous glucose monitor (“CGM”) to obtain glucose values through secure wireless Bluetooth communication."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "How does Omnipod 5 use glucose readings to adjust insulin dosing?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient occurrence must explain how Omnipod 5 uses glucose values to predict future levels and automatically adjust insulin dosing.",
+        "item_keys": [
+          "1"
+        ],
+        "reason": "The original question required both receipt and response, but no 50–200-character occurrence independently answers both. The revision retains the more investor-relevant automated-response mechanism and removes the unsupported Bluetooth-receipt subpart."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-014411",
+          "item_hint": "Item 1",
+          "filing_location": "Business / Diabetes Management Challenges",
+          "canonical_line": 204,
+          "window_id": "W0002",
+          "normalized_start": 14411,
+          "normalized_end": 14546,
+          "answer_span": "The embedded algorithm utilizes these glucose values to predict glucose levels into the future and automatically adjusts insulin dosing",
+          "answer_snippet": "The embedded algorithm utilizes these glucose values to predict glucose levels into the future and automatically adjusts insulin dosing",
+          "snippet_chars": 135,
+          "snippet_sha256": "85e03317c323a1ce6e4fd6e89e45127ec47602aeee5d57c2e0c62f788c66d457",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "Directly explains the prediction-and-adjustment response asked by the revised question without crossing the SEC page-number artifact."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "the Bluetooth CGM-integration sentence, which explains receipt but not dosing response",
+          "the continuation after the rendered page break, which explains intended clinical effects but not an additional independently sufficient adjustment mechanism"
+        ]
+      }
+    },
+    {
+      "candidate_id": "a20",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": {
+        "decision": "?",
+        "reviewer_comment": "query 問單一問題，看是資本增加原因，或是有哪些工廠擴建專案之類的",
+        "question": "2025 capital spending increase and associated factory expansion projects",
+        "query_type": "passage",
+        "generation_mode": "passage_first",
+        "answer_snippets": [
+          "Capital Spending—Capital expenditures were $191.6 million and $124.9 million in 2025 and 2024, respectively."
+        ]
+      },
+      "proposal": {
+        "change": "rewrite_question",
+        "question": "What investments primarily drove Insulet’s $66.7 million increase in capital expenditures in 2025?",
+        "query_type": "passage",
+        "answer_requirement": "One independently sufficient occurrence must identify the Costa Rica plant investment and the additional Malaysia machinery and equipment as the primary causes of the 2025 increase.",
+        "item_keys": [
+          "7"
+        ],
+        "reason": "The revision asks one causal question. It replaces the Round 1 amount-only snippet with the adjacent cause disclosure and preserves both company-stated primary investments."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-161437",
+          "item_hint": "Item 7",
+          "filing_location": "Liquidity and Capital Resources / Investing Activities / Capital Spending",
+          "canonical_line": 791,
+          "window_id": "W0021",
+          "normalized_start": 161437,
+          "normalized_end": 161637,
+          "answer_span": "The $66.7 million increase primarily related to the investment in our third manufacturing plant in Costa Rica and the purchase of additional machinery and equipment for our Malaysia manufacturing facility to support continued business growth.",
+          "answer_snippet": "$66.7 million increase primarily related to the investment in our third manufacturing plant in Costa Rica and the purchase of additional machinery and equipment for our Malaysia manufacturing facility",
+          "snippet_chars": 200,
+          "snippet_sha256": "f33d2bf1570c3a7ed7a6c756bff8a18c913de5ec899f2b25c34a2ae6fc34bc56",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The canonical 200-character snippet states both company-disclosed primary investment causes without relaxing the global limit."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "capital-expenditure amount comparisons that do not state why spending increased",
+          "general 2026 capex expectations and global manufacturing optimization language",
+          "Item 1 property descriptions that identify facilities but do not attribute the $66.7 million increase"
+        ]
+      }
+    },
+    {
+      "candidate_id": "n09",
+      "round2_decision": "",
+      "round2_reviewer_comment": "",
+      "round1": null,
+      "proposal": {
+        "change": "new_candidate_evidence",
+        "question": "Has Insulet experienced cybersecurity incidents that materially affected the company?",
+        "query_type": "factoid",
+        "answer_requirement": "One independently sufficient occurrence must state whether previous cybersecurity incidents materially affected Insulet; hypothetical incident risks, response procedures, and governance allocations are not sufficient.",
+        "item_keys": [
+          "1C"
+        ],
+        "reason": "The revised question asks one binary incident-history fact instead of a broad allocation of governance responsibilities. Full-filing traversal found one distinct source occurrence stating that Insulet does not believe previous cybersecurity incidents materially affected the company."
+      },
+      "acceptable_occurrences": [
+        {
+          "occurrence_id": "PODD-2025-132068",
+          "item_hint": "Item 1C",
+          "filing_location": "Risk Management and Strategy / prior incident impact",
+          "canonical_line": 586,
+          "window_id": "W0017",
+          "normalized_start": 132068,
+          "normalized_end": 132234,
+          "answer_span": "We currently do not believe that risks from cybersecurity threats, including as a result of any previous cybersecurity incidents, have materially affected the Company’s business strategy, results of operations, or financial condition.",
+          "answer_snippet": "We currently do not believe that risks from cybersecurity threats, including as a result of any previous cybersecurity incidents, have materially affected the Company",
+          "snippet_chars": 166,
+          "snippet_sha256": "62fc7ef5eff5b70569ea49b199cf2d38cee34bef0214447959098889f54a7e19",
+          "exact_occurrences_in_normalized_text": 1,
+          "acceptance_reason": "The filing's single historical-impact disclosure states that Insulet does not believe previous cybersecurity incidents materially affected the company; the full answer span preserves all three disclosed impact dimensions."
+        }
+      ],
+      "post_traversal_audit": {
+        "rejected_classes": [
+          "hypothetical cybersecurity incident consequences and material-risk disclosures that do not state whether an incident occurred or materially affected Insulet",
+          "incident-response, escalation, insurance, controls, certifications, training, governance, CISO, CTO, Board, and committee statements that do not answer the incident-history question",
+          "Item 9A internal-control statements whose material-effect wording concerns changes in internal control rather than cybersecurity incidents",
+          "arbitrary overlapping substring variants around the one accepted source occurrence"
+        ],
+        "notes": "The complete 234-character answer sentence exceeds the 200-character snippet limit, so the canonical 166-character anchor retains the issuer-qualified negative conclusion, previous-incident relation, and company-level material-effect language; answer_span preserves all three disclosed impact dimensions without relaxing the snippet limit."
+      }
+    }
+  ],
+  "result_summary": {
+    "candidate_count": 5,
+    "rewritten_candidate_count": 3,
+    "unchanged_round1_approved_count": 1,
+    "new_candidate_count": 1,
+    "acceptable_occurrence_count": 6,
+    "snippet_contract_violations": 0,
+    "question_evidence_contract_issues": 0,
+    "human_review_pending": true
+  }
+}

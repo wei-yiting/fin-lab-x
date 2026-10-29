@@ -1,0 +1,29 @@
+{
+ "missing": [],
+ "off_target_rate": {
+  "reader_luna_medium__recap": {
+   "C0": [
+    0,
+    30
+   ],
+   "C1": [
+    0,
+    30
+   ]
+  }
+ },
+ "mcnemar": {
+  "reader_luna_medium__recap": {
+   "pairs": 30,
+   "c1_only": 0,
+   "c0_only": 0,
+   "p_exact": 1.0
+  }
+ },
+ "control_tpr": [
+  0,
+  0
+ ],
+ "controls": [],
+ "off_target_items": []
+}

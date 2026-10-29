@@ -1,0 +1,44 @@
+[
+{"id": "J113", "statements": [
+ {"text": "Google 主要風險可映射至預設搜尋分發及與 Apple 的流量安排", "company": "Apple", "label": "supports", "reason": "Apple is a TARGET; describes Google's risk node"},
+ {"text": "美國 Epic Games 案的禁令限制其對 App 外交易收取佣金或費用", "company": "Epic Games", "label": "supports", "reason": "Epic is the litigant; statement is about the injunction's effect on Apple"}
+], "verdict": "Y"},
+{"id": "J114", "statements": [
+ {"text": "大型客戶可能自研 ASIC", "company": "Nvidia customers (generic)", "label": "supports", "reason": "Framed as a risk to Nvidia's valuation"}
+], "verdict": "Y"},
+{"id": "J115", "statements": [], "verdict": "Y"},
+{"id": "J116", "statements": [
+ {"text": "Epic Games 訴 Google 案中，法院要求 Google 改變 Android 和 Google Play 的商業模式；Google 之後與 Epic 達成和解", "company": "Epic Games", "label": "supports", "reason": "Litigant in Google antitrust case; about Google's risk"},
+ {"text": "對 Apple、瀏覽器、手機製造商等預設搜尋安排的影響，仍可能變化", "company": "Apple", "label": "supports", "reason": "Describes the scope of Google's search remedy"},
+ {"text": "法院認定 Google 的廣告主工具及 DoubleClick、AdMeld 收購並非反競爭", "company": "DoubleClick, AdMeld", "label": "supports", "reason": "Google acquisitions at issue in Google's ad tech case"}
+], "verdict": "Y"},
+{"id": "J117", "statements": [
+ {"text": "Epic Games v. Google 案中，法院要求 Google 修改 Android 與 Google Play 的商業模式；Google 隨後與 Epic 達成和解", "company": "Epic Games", "label": "supports", "reason": "Litigant in Google's antitrust case"},
+ {"text": "沒有認定其廣告主工具或 DoubleClick、AdMeld 收購本身構成反競爭行為", "company": "DoubleClick, AdMeld", "label": "supports", "reason": "Google acquisitions at issue in Google's case"},
+ {"text": "Apple 可能因 App Store 違反《數位市場法》面臨更多罰款，歐盟先前已在 Spotify 案中對其開罰 18 億歐元", "company": "Apple", "label": "off_target", "reason": "Apple's own regulatory matter with no stated link to Google's antitrust risk"}
+], "verdict": "N"},
+{"id": "J118", "statements": [], "verdict": "Y"},
+{"id": "J119", "statements": [
+ {"text": "輝達的主要風險是：雲端客戶自行開發晶片、AMD 或其他競爭者搶市", "company": "AMD, cloud customers", "label": "supports", "reason": "Competitive risk to Nvidia, a TARGET"}
+], "verdict": "Y"},
+{"id": "J120", "statements": [], "verdict": "Y"},
+{"id": "J121", "statements": [
+ {"text": "Apple Card 交易也影響了風險加權資產與信用損失準備", "company": "Apple", "label": "supports", "reason": "Explains JPMorgan's capital ratios and reserves"},
+ {"text": "若問「會不會像中小型銀行那樣因流動性突然失控？」", "company": "small/mid-size banks (generic)", "label": "supports", "reason": "Comparison framing JPMorgan's relative stability"}
+], "verdict": "Y"},
+{"id": "J122", "statements": [], "verdict": "Y"},
+{"id": "J123", "statements": [
+ {"text": "台積電直接製造 Nvidia 等 AI 加速器；台積電是 Nvidia 等晶片公司的主要供應商", "company": "Nvidia", "label": "supports", "reason": "Explains TSMC's AI-cycle exposure"},
+ {"text": "台積電曾因其晶片被發現用於華為 AI 處理器而受到關注", "company": "Huawei", "label": "supports", "reason": "Explains TSMC's export-control compliance exposure"}
+], "verdict": "Y"},
+{"id": "J124", "statements": [], "verdict": "Y"},
+{"id": "J125", "statements": [
+ {"text": "沒有認定 DoubleClick 和 AdMeld 收購本身具有反競爭性", "company": "DoubleClick, AdMeld", "label": "supports", "reason": "Google acquisitions at issue in Google's ad tech case"},
+ {"text": "Epic Games 的 Google Play 案中，陪審團判 Google 敗訴；Google 與 Epic 達成和解安排", "company": "Epic Games", "label": "supports", "reason": "Litigant in Google's antitrust case"}
+], "verdict": "Y"},
+{"id": "J126", "statements": [], "verdict": "Y"},
+{"id": "J127", "statements": [
+ {"text": "Google 的廣告主工具，以及 DoubleClick 和 AdMeld 收購，被判定不構成反競爭", "company": "DoubleClick, AdMeld", "label": "supports", "reason": "Google acquisitions at issue in Google's case"},
+ {"text": "Epic Games 訴 Google Play 案中，美國陪審團作出不利於 Google 的裁決；Google 也與 Epic 達成和解安排", "company": "Epic Games", "label": "supports", "reason": "Litigant in Google's antitrust case"}
+], "verdict": "Y"}
+]

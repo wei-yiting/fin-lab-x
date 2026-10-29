@@ -1,0 +1,44 @@
+[
+  {"id": "J017", "statements": [], "verdict": "Y"},
+  {"id": "J018", "statements": [
+    {"text": "台積電直接承接 Nvidia、AMD、手機與其他晶片設計公司的晶圓代工需求", "company": "Nvidia, AMD", "label": "supports", "reason": "Customers named to explain TSMC's direct exposure to the AI cycle."},
+    {"text": "台積電通知美國商務部，其晶片被發現用於華為 AI 處理器；台積電也被報導停止向部分中國客戶出貨", "company": "Huawei", "label": "supports", "reason": "Explains TSMC's export-control exposure, which the question asks about."}
+  ], "verdict": "Y"},
+  {"id": "J019", "statements": [], "verdict": "Y"},
+  {"id": "J020", "statements": [
+    {"text": "Epic Games 訴 Google Play 案…Google 隨後與 Epic 達成和解", "company": "Epic Games", "label": "supports", "reason": "Plaintiff in a Google antitrust case; directly about Google's realized antitrust risk."}
+  ], "verdict": "Y"},
+  {"id": "J021", "statements": [
+    {"text": "近期新聞顯示超大規模雲端業者持續擴大AI資本支出，也持續擔心超大規模客戶資本支出可能見頂", "company": "Hyperscalers (unnamed)", "label": "supports", "reason": "Customer capex context explaining Nvidia's expectation-reset risk."}
+  ], "verdict": "Y"},
+  {"id": "J022", "statements": [
+    {"text": "Novo Nordisk 或其他競爭者帶來更強產品", "company": "Novo Nordisk", "label": "supports", "reason": "Competitive threat listed as a trigger for Lilly expectation cuts."},
+    {"text": "超大規模客戶 AI 資本支出是否見頂列為輝達投資人主要疑慮", "company": "Hyperscalers (unnamed)", "label": "supports", "reason": "Customer capex context for Nvidia's risk."}
+  ], "verdict": "Y"},
+  {"id": "J023", "statements": [
+    {"text": "超大規模雲端業者的 AI 資本支出仍非常強勁，另一方面也存在 hyperscaler 資本支出是否見頂的疑慮", "company": "Hyperscalers (unnamed)", "label": "supports", "reason": "Customer capex context for Nvidia's expectation-reset risk."}
+  ], "verdict": "Y"},
+  {"id": "J024", "statements": [
+    {"text": "Intel 面對 TSMC、三星等成熟競爭者", "company": "TSMC, Samsung", "label": "supports", "reason": "Competitors cited to explain Intel's foundry fundamental risk."}
+  ], "verdict": "Y"},
+  {"id": "J025", "statements": [
+    {"text": "一枚 TSMC 晶片被發現用於華為 AI 處理器後，相關監管壓力升高", "company": "Huawei", "label": "supports", "reason": "Explains TSMC's export-control exposure."}
+  ], "verdict": "Y"},
+  {"id": "J026", "statements": [
+    {"text": "交付量仍落後空中巴士", "company": "Airbus", "label": "supports", "reason": "Peer comparison illustrating Boeing's delivery problem."}
+  ], "verdict": "Y"},
+  {"id": "J027", "statements": [], "verdict": "Y"},
+  {"id": "J028", "statements": [
+    {"text": "台積電是 Nvidia 等晶片公司的主要製造商", "company": "Nvidia", "label": "supports", "reason": "Explains TSMC's direct AI-cycle exposure."},
+    {"text": "AI 需求促使台積電、三星等晶圓廠擴充產能，最後才轉化為 ASML 的曝光機訂單", "company": "Samsung", "label": "supports", "reason": "Describes ASML's demand transmission chain."},
+    {"text": "台積電曾向美國商務部通報其晶片出現在華為 AI 處理器中", "company": "Huawei", "label": "supports", "reason": "Explains TSMC's export-control exposure."}
+  ], "verdict": "Y"},
+  {"id": "J029", "statements": [
+    {"text": "面臨 TSMC、Samsung、GlobalFoundries 等成熟競爭者", "company": "TSMC, Samsung, GlobalFoundries", "label": "supports", "reason": "Competitors cited to explain Intel's foundry weakness."}
+  ], "verdict": "Y"},
+  {"id": "J030", "statements": [
+    {"text": "輝達的主要風險包括 AMD、客製化 ASIC 等競爭", "company": "AMD", "label": "supports", "reason": "Competitive risk relevant to whether Nvidia's good news is priced in."}
+  ], "verdict": "Y"},
+  {"id": "J031", "statements": [], "verdict": "Y"},
+  {"id": "J032", "statements": [], "verdict": "Y"}
+]

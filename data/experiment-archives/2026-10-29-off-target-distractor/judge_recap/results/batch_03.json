@@ -1,0 +1,41 @@
+[
+  {"id": "J033", "statements": [
+    {"text": "Tesla 面臨中國電動車製造商競爭、定價能力下降、利潤率壓縮", "company": "Chinese EV makers", "label": "supports", "reason": "Competitive context explaining pressure on Tesla's deliveries and margins."}
+  ], "verdict": "Y"},
+  {"id": "J034", "statements": [
+    {"text": "返回的多數內容其實是 Apple、Google 或其他公司的舊反壟斷新聞。因此，我不把那些內容誤列為 Meta 新聞。", "company": "other companies", "label": "supports", "reason": "Mentions other companies only to say they are unrelated to Meta."},
+    {"text": "大型科技公司的歐盟監管壓力", "company": "large tech companies (broad market)", "label": "supports", "reason": "Generic sector context summarizing the targets' regulatory risk."}
+  ], "verdict": "Y"},
+  {"id": "J035", "statements": [
+    {"text": "市場焦點同時集中在大型雲端公司持續增加 AI 資本支出，以及投資人對這種支出是否會見頂的疑慮", "company": "hyperscale cloud companies", "label": "supports", "reason": "Customer capex context directly explaining Nvidia's AI demand."},
+    {"text": "Costco 搜尋返回結果反而是關於 Lilly 減重藥物的文章", "company": "Eli Lilly (in Costco section)", "label": "supports", "reason": "Mentioned only to say the result is unrelated to Costco; Lilly is itself a target."}
+  ], "verdict": "Y"},
+  {"id": "J036", "statements": [], "verdict": "Y"},
+  {"id": "J037", "statements": [
+    {"text": "Etihad 取消 15 架 777X 訂單", "company": "Etihad", "label": "supports", "reason": "Customer cancellation directly affecting Boeing's 777X order book."}
+  ], "verdict": "Y"},
+  {"id": "J038", "statements": [
+    {"text": "返回内容主要是 Apple、Google 或旧新闻，不能据此可靠概括 Meta 的最新动态", "company": "Apple, Google", "label": "supports", "reason": "Targets themselves; mentioned only to say results are unrelated to Meta."}
+  ], "verdict": "Y"},
+  {"id": "J039", "statements": [], "verdict": "Y"},
+  {"id": "J040", "statements": [], "verdict": "Y"},
+  {"id": "J041", "statements": [
+    {"text": "JPMorgan 下調部分私人信貸相關貸款的估值，並限制對相關基金的融資", "company": "private credit funds", "label": "supports", "reason": "Unnamed counterparties described only as part of JPMorgan's own action."}
+  ], "verdict": "Y"},
+  {"id": "J042", "statements": [], "verdict": "Y"},
+  {"id": "J043", "statements": [
+    {"text": "Google 通过与苹果等公司的默认搜索安排维持搜索垄断", "company": "Apple", "label": "supports", "reason": "Describes Google's own antitrust case mechanics."}
+  ], "verdict": "Y"},
+  {"id": "J044", "statements": [
+    {"text": "约 2 万亿美元的私人信贷市场近期出现流动性和信用质量担忧", "company": "private credit market", "label": "supports", "reason": "Market context explaining JPMorgan's markdown decision."}
+  ], "verdict": "Y"},
+  {"id": "J045", "statements": [], "verdict": "Y"},
+  {"id": "J046", "statements": [
+    {"text": "私人信貸市場規模約為 2 萬億美元，近期因投資人擔心部分借款人及軟體產業風險，市場流動性壓力增加", "company": "private credit market / software sector", "label": "supports", "reason": "Market context explaining JPMorgan's risk-control action."}
+  ], "verdict": "Y"},
+  {"id": "J047", "statements": [
+    {"text": "TSMC 曾通知美國商務部，其一款晶片被發現用於華為 AI 處理器", "company": "Huawei", "label": "supports", "reason": "Directly tied to TSMC's export-control compliance risk."},
+    {"text": "ASML 的業績展望曾令市場失望，並與 Nvidia 對中國出口限制的消息一起，引發半導體類股下跌", "company": "Nvidia", "label": "supports", "reason": "Market context explaining the ASML stock/sector selloff alongside ASML's own warning."}
+  ], "verdict": "Y"},
+  {"id": "J048", "statements": [], "verdict": "Y"}
+]

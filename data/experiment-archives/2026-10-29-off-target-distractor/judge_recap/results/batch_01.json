@@ -1,0 +1,36 @@
+[
+  {"id": "J001", "statements": [
+    {"text": "美國據報要求 TSMC 暫停向部分中國客戶出貨先進晶片；背景是有 TSMC 晶片被發現用於華為 AI 處理器", "company": "Huawei", "label": "supports", "reason": "Explains the cause of TSMC's export-control news; directly about TSMC's situation."},
+    {"text": "美國進一步限制 Nvidia 對中國出口，以及 ASML 業績表現令人失望，曾令全球半導體股承壓", "company": "Nvidia", "label": "supports", "reason": "Market context for the semiconductor sell-off explicitly tied to ASML's sensitivity to export policy."}
+  ], "verdict": "Y"},
+  {"id": "J002", "statements": [
+    {"text": "BYD、Xiaomi 等中國車企被列為主要競爭者，尤其在價格與產品創新方面對 Tesla 構成壓力", "company": "BYD, Xiaomi", "label": "supports", "reason": "Competitive context explaining Tesla's demand and margin pressure."}
+  ], "verdict": "Y"},
+  {"id": "J003", "statements": [
+    {"text": "搜尋結果主要回傳 Apple、Google 或其他公司的反壟斷新聞，沒有足夠證據支持 Meta 最近的具體事件", "company": "other companies (unnamed)", "label": "supports", "reason": "Mentions other companies only to say results were not relevant to Meta."}
+  ], "verdict": "Y"},
+  {"id": "J004", "statements": [
+    {"text": "Tesla的汽車銷售及交付表現受到中國電動車製造商競爭……的影響", "company": "Chinese EV makers", "label": "supports", "reason": "Competitive context explaining Tesla's delivery pressure."}
+  ], "verdict": "Y"},
+  {"id": "J005", "statements": [
+    {"text": "Boeing／Airbus 以大型 Antonov An-124 貨機加快運送零組件", "company": "Antonov", "label": "supports", "reason": "Aircraft named only as the transport means in the targets' supply-chain news; not standalone news about Antonov."}
+  ], "verdict": "Y"},
+  {"id": "J006", "statements": [
+    {"text": "報導特別提到中國電動車製造商帶來的壓力", "company": "Chinese EV makers", "label": "supports", "reason": "Competitive context explaining Tesla's margin pressure."}
+  ], "verdict": "Y"},
+  {"id": "J007", "statements": [], "verdict": "Y"},
+  {"id": "J008", "statements": [], "verdict": "Y"},
+  {"id": "J009", "statements": [], "verdict": "Y"},
+  {"id": "J010", "statements": [], "verdict": "Y"},
+  {"id": "J011", "statements": [
+    {"text": "TSMC 通知美國商務部，其一款晶片被發現用於華為 AI 處理器", "company": "Huawei", "label": "supports", "reason": "Background explaining the U.S. request that TSMC halt shipments to some Chinese customers."}
+  ], "verdict": "Y"},
+  {"id": "J012", "statements": [], "verdict": "Y"},
+  {"id": "J013", "statements": [], "verdict": "Y"},
+  {"id": "J014", "statements": [], "verdict": "Y"},
+  {"id": "J015", "statements": [
+    {"text": "波音交付量仍落後空中巴士", "company": "Airbus", "label": "supports", "reason": "Peer comparison giving context for Boeing's delivery performance."},
+    {"text": "Etihad 同期取消 15 架 777X 訂單", "company": "Etihad", "label": "supports", "reason": "Customer cancellation directly affecting Boeing's 777X order book."}
+  ], "verdict": "Y"},
+  {"id": "J016", "statements": [], "verdict": "Y"}
+]

@@ -1,0 +1,35 @@
+[
+  {"id": "J017", "statements": [], "verdict": "Y"},
+  {"id": "J018", "statements": [], "verdict": "Y"},
+  {"id": "J019", "statements": [], "verdict": "Y"},
+  {"id": "J020", "statements": [], "verdict": "Y"},
+  {"id": "J021", "statements": [
+    {"text": "交付量仍落后于 Airbus", "company": "Airbus", "label": "supports", "reason": "Peer comparison framing Boeing's delivery performance."},
+    {"text": "Etihad 取消了15架777X订单", "company": "Etihad", "label": "supports", "reason": "Customer cancellation of Boeing 777X orders; directly about Boeing's order book."}
+  ], "verdict": "Y"},
+  {"id": "J022", "statements": [], "verdict": "Y"},
+  {"id": "J023", "statements": [], "verdict": "Y"},
+  {"id": "J024", "statements": [
+    {"text": "交付量仍落后於空中巴士", "company": "Airbus", "label": "supports", "reason": "Peer comparison framing Boeing's delivery performance."},
+    {"text": "阿提哈德航空取消了15架777X訂單", "company": "Etihad", "label": "supports", "reason": "Customer cancellation of Boeing 777X orders; directly about Boeing's order book."}
+  ], "verdict": "Y"},
+  {"id": "J025", "statements": [
+    {"text": "TSMC 通知美國商務部，其一枚晶片出現在華為 AI 處理器中", "company": "Huawei", "label": "supports", "reason": "Part of TSMC's own export-control news; Huawei mentioned only as where TSMC's chip appeared."}
+  ], "verdict": "Y"},
+  {"id": "J026", "statements": [], "verdict": "Y"},
+  {"id": "J027", "statements": [
+    {"text": "中国车企在国内及海外市场的竞争尤其突出", "company": "Chinese automakers", "label": "supports", "reason": "Competitive context explaining Tesla's margin and sales pressure."}
+  ], "verdict": "Y"},
+  {"id": "J028", "statements": [
+    {"text": "返回結果主要是 Apple 的歐盟監管新聞，或是與 Google、Amazon 有關的舊聞", "company": "Amazon", "label": "supports", "reason": "Mentioned only to explain search results were not relevant; no Amazon news given."}
+  ], "verdict": "Y"},
+  {"id": "J029", "statements": [], "verdict": "Y"},
+  {"id": "J030", "statements": [
+    {"text": "First Brands 和 Tricolor 等借款人倒闭后，投资者对信贷质量更加警惕", "company": "First Brands, Tricolor", "label": "supports", "reason": "Background explaining the private-credit concerns behind JPMorgan's lending markdowns."}
+  ], "verdict": "Y"},
+  {"id": "J031", "statements": [], "verdict": "Y"},
+  {"id": "J032", "statements": [
+    {"text": "TSMC 曾通知美國商務部，其一款晶片被發現用於華為 AI 處理器", "company": "Huawei", "label": "supports", "reason": "Part of TSMC's own export-control news."},
+    {"text": "2025 年 4 月 ASML 的相關表現及美國對 Nvidia 晶片的新限制，曾引發全球科技股下跌", "company": "Nvidia", "label": "supports", "reason": "Export-control market context tied to the sell-off pressuring ASML; not standalone Nvidia news."}
+  ], "verdict": "Y"}
+]

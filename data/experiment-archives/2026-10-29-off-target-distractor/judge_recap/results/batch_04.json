@@ -1,0 +1,32 @@
+[
+  {"id": "J049", "statements": [
+    {"text": "TSMC 曾通知美國商務部，其一款晶片出現在華為 AI 處理器中", "company": "Huawei", "label": "supports", "reason": "Huawei mentioned only as part of TSMC's export-control compliance news."},
+    {"text": "報導將 ASML 股價壓力與 Nvidia 對中國出口限制連在一起", "company": "Nvidia", "label": "supports", "reason": "Nvidia export curbs cited as context explaining ASML's share decline."}
+  ], "verdict": "Y"},
+  {"id": "J050", "statements": [], "verdict": "Y"},
+  {"id": "J051", "statements": [
+    {"text": "波音 11 月交付量較去年同期下降 17%，落後空中巴士", "company": "Airbus", "label": "supports", "reason": "Peer comparison framing Boeing's delivery performance."},
+    {"text": "Etihad 取消了 15 架 777X 訂單", "company": "Etihad", "label": "supports", "reason": "Customer cancellation of Boeing orders; directly about Boeing's order book."}
+  ], "verdict": "Y"},
+  {"id": "J052", "statements": [], "verdict": "Y"},
+  {"id": "J053", "statements": [], "verdict": "Y"},
+  {"id": "J054", "statements": [
+    {"text": "租用大型 Antonov An-124 貨機空運零組件", "company": "Antonov", "label": "supports", "reason": "Aircraft type used by the targets to ease their supply snags; part of target news."}
+  ], "verdict": "Y"},
+  {"id": "J055", "statements": [], "verdict": "Y"},
+  {"id": "J056", "statements": [
+    {"text": "阿提哈德航空同時取消了 15 架 777X 訂單", "company": "Etihad", "label": "supports", "reason": "Customer cancellation of Boeing orders; directly about Boeing's order book."}
+  ], "verdict": "Y"},
+  {"id": "J057", "statements": [
+    {"text": "Tesla 正受到 BYD、小米等中國電動車廠商在價格和產品創新方面的競爭", "company": "BYD, Xiaomi", "label": "supports", "reason": "Competitors named to explain Tesla's margin and competitive pressure."}
+  ], "verdict": "Y"},
+  {"id": "J058", "statements": [
+    {"text": "大型雲端業者持續大規模投資 AI 基礎設施；投資人擔心超大規模雲端業者 AI 資本支出是否見頂", "company": "Hyperscalers", "label": "supports", "reason": "Customer capex context directly explaining Nvidia's demand and stock pressure."}
+  ], "verdict": "Y"},
+  {"id": "J059", "statements": [
+    {"text": "Google 被裁定利用與 Apple 等公司的預設搜尋安排排除競爭者", "company": "Apple", "label": "supports", "reason": "Apple mentioned only as part of Google's antitrust case."}
+  ], "verdict": "Y"},
+  {"id": "J060", "statements": [
+    {"text": "市場仍關注大型雲端業者的 AI 資本支出是否會見頂", "company": "Hyperscalers", "label": "supports", "reason": "Customer capex context for Nvidia's outlook."}
+  ], "verdict": "Y"}
+]

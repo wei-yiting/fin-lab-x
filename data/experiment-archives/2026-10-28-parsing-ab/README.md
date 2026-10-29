@@ -15,6 +15,7 @@ finds?
 | Doc | Read this for |
 |---|---|
 | [`report.md`](report.md) | The reference: design, controlled variables, results with CIs, gap decomposition, failure examples, claim boundary, per-row table, reproduce steps |
+| [`recall_at_5_definitions.md`](recall_at_5_definitions.md) | Slide-ready recall@5 table: did the evidence reach the LLM vs did it also carry the right Item label |
 
 ## Files
 
@@ -22,6 +23,7 @@ finds?
 |---|---|
 | `README.md` | This index |
 | `report.md` | The reference report |
+| `recall_at_5_definitions.md` | Recall@5 / @10 / MRR for both arms under *snippet only* vs *snippet + correct Item* (strict as reference), plus the @5 HTML miss diagnosis |
 | `tables.md` | Generated tables from `analyze` (aggregate, sensitivity, breakdowns incl. per-ticker, miss diagnosis, every discordant row) |
 | `per_row.csv` | Per row: strict, format-insensitive and label-agnostic ranks for both arms, MRR, outcome class |
 | `summary.json` | Aggregate point estimates and CIs per metric and arm |

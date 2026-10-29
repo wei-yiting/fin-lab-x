@@ -171,8 +171,13 @@ The +0.35 decomposes into roughly +0.075 formatting, +0.20 Item attribution, and
 +0.075 evidence retrieval. The last component's CI touches zero.
 
 Of the HTML arm's 8 label-misses:
-- **7** retrieved the evidence in a chunk with **no Item at all** (`_unknown`, path ends at `Part I` / `Part II` or the bare filing). These cover COST, DECK and JPM, but also isolated sections of GOOGL (1C), XOM (1) and PODD (1C).
+- **7** retrieved the evidence in a chunk with **no Item at all** (`_unknown`, path ends at `Part I` / `Part II` or the bare filing). These cover COST and DECK (4 rows), plus isolated sections of GOOGL (1C), XOM (1) and PODD (1C). JPM's only row (`n10`) is a retrieval miss on both arms, not a label miss.
 - **1** (`n04`, XOM) is a genuine labelling disagreement, discussed in §6.
+
+The same two relaxed rules at recall@5 (and MRR), side by side — snippet only
+vs snippet + correct Item, strict as reference — are in
+[`recall_at_5_definitions.md`](recall_at_5_definitions.md). Headline @5:
+snippet only 0.775 vs 0.850 (+0.075); snippet + Item 0.575 vs 0.850 (+0.275).
 
 ### 5.3 Sensitivity: degraded filings excluded (n = 34)
 
